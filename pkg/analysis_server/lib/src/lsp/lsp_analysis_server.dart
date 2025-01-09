@@ -29,7 +29,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -53,8 +52,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
-/// that listens on a [CommunicationChannel] for LSP messages and processes
-/// them.
+/// that listens on a [LspServerCommunicationChannel] for LSP messages and
+/// processes them.
 class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
@@ -160,10 +159,9 @@ class LspAnalysisServer extends AnalysisServer {
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
-    // Disable to avoid using this in unit tests.
-    bool enableBlazeWatcher = false,
-    DartFixPromptManager? dartFixPromptManager,
-    bool retainDataForTesting = false,
+    super.enableBlazeWatcher,
+    super.dartFixPromptManager,
+    super.retainDataForTesting,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -178,9 +176,6 @@ class LspAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),
-         enableBlazeWatcher: enableBlazeWatcher,
-         dartFixPromptManager: dartFixPromptManager,
-         retainDataForTesting: retainDataForTesting,
        ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -398,7 +393,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
   /// `null` if the document version is not known.
   ///
-  /// Prefer using [LspHandlerHelperMixin.extractDocumentVersion] when you
+  /// Prefer using [HandlerHelperMixin.extractDocumentVersion] when you
   /// already have a [TextDocumentIdentifier] from the client because it is
   /// guaranteed to be what the client expected and not just the current version
   /// the server has.
@@ -866,8 +861,9 @@ class LspAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
-  /// Send the given [request] to the client and wait for a response. Completes
-  /// with the raw [ResponseMessage] which could be an error response.
+  /// Sends a request with the given [params] to the client and wait for a
+  /// response. Completes with the raw [ResponseMessage] which could be an
+  /// error response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     var requestId = nextRequestId++;
     var completer = Completer<ResponseMessage>();

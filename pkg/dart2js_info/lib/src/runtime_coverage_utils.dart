@@ -83,8 +83,10 @@ class RuntimeClassInfo {
     }
     final colonIndex = input.indexOf(':');
     if (colonIndex < 0) {
-      throw ArgumentError('AngularInfo format cannot accept undefined schemes.'
-          ' No scheme found for: $input');
+      throw ArgumentError(
+        'AngularInfo format cannot accept undefined schemes.'
+        ' No scheme found for: $input',
+      );
     }
     final slashIndex = input.indexOf('/');
     final spaceIndex = input.indexOf(' ');

@@ -1,6 +1,10 @@
 abstract class Key {
-  Key(int x, int y) : foo = x ^ y, bar = x ^ y {}
-  Key.NotDuplicate(int x, int y) : foo = x ^ y, bar = x ^ y {}
+  Key(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
+  Key.NotDuplicate(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
   int bar;
   int foo;
   int get a => runtimeType.hashCode ^ null.hashCode;

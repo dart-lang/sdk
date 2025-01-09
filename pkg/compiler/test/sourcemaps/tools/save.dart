@@ -32,8 +32,9 @@ Usage: save <dir-containing 'out.js.map2'>
   }
 
   String humanReadableSourceMap = humanReadableSourceMapFile.readAsStringSync();
-  SingleMapping mapping =
-      convertFromHumanReadableSourceMap(humanReadableSourceMap);
+  SingleMapping mapping = convertFromHumanReadableSourceMap(
+    humanReadableSourceMap,
+  );
 
   if (sourceMapFile != null) {
     sourceMapFile.writeAsStringSync(json.encoder.convert(mapping.toJson()));
@@ -94,7 +95,8 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
         throw ArgumentError('source url id end must be > 0: $sourceUrlId');
       } else if (sourceUrlId >= sources.length) {
         throw ArgumentError(
-            'source url id end must be < ${sources.length}: $sourceUrlId');
+          'source url id end must be < ${sources.length}: $sourceUrlId',
+        );
       }
 
       sourceString = sourceString.substring(colonPos + 1);
@@ -110,10 +112,19 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
       }
     }
 
-    TargetLineEntry lineEntry =
-        lineEntryMap.putIfAbsent(lineNo, () => TargetLineEntry(lineNo, []));
-    lineEntry.entries.add(TargetEntry(
-        columnStart, sourceUrlId, sourceLine, sourceColumn, nameIndex));
+    TargetLineEntry lineEntry = lineEntryMap.putIfAbsent(
+      lineNo,
+      () => TargetLineEntry(lineNo, []),
+    );
+    lineEntry.entries.add(
+      TargetEntry(
+        columnStart,
+        sourceUrlId,
+        sourceLine,
+        sourceColumn,
+        nameIndex,
+      ),
+    );
     if (columnEnd != null) {
       lineEntry.entries.add(TargetEntry(columnEnd));
     }

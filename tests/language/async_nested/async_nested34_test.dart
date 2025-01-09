@@ -9,29 +9,35 @@ import 'dart:async';
 
 void main() async {
   String expected = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16";
-  Node node = await new Future.value(new Node('1', [
-    await new Future.value(new Node('2', [
-      new Node('3', []),
-      new Node('4', []),
-      new Node('5', [
-        await new Future.value(new Node('6', [
-          new Node('7', [
-            new Node('8', []),
-            new Node('9', [
-              new Node('10', []),
-              await new Future.value(new Node('11', [])),
+  Node node = await new Future.value(
+    new Node('1', [
+      await new Future.value(
+        new Node('2', [
+          new Node('3', []),
+          new Node('4', []),
+          new Node('5', [
+            await new Future.value(
+              new Node('6', [
+                new Node('7', [
+                  new Node('8', []),
+                  new Node('9', [
+                    new Node('10', []),
+                    await new Future.value(new Node('11', [])),
+                  ]),
+                ]),
+                await new Future.value(new Node('12', [])),
+              ]),
+            ),
+            new Node('13', [
+              await new Future.value(new Node('14', [])),
+              await new Future.value(new Node('15', [])),
+              new Node('16', []),
             ]),
           ]),
-          await new Future.value(new Node('12', [])),
-        ])),
-        new Node('13', [
-          await new Future.value(new Node('14', [])),
-          await new Future.value(new Node('15', [])),
-          new Node('16', []),
         ]),
-      ]),
-    ])),
-  ]));
+      ),
+    ]),
+  );
   String actual = node.toSimpleString();
   print(actual);
   if (actual != expected) {

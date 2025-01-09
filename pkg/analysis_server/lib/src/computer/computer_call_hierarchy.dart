@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -15,14 +15,17 @@ import 'package:analyzer/src/dart/element/element.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///
-/// Returns `null` if none of [elements] are valid containers.
+/// Returns `null` if none of [element]'s ancestors are valid containers.
 ///
 /// This is used to construct (and group calls by) a [CallHierarchyItem] that
 /// contains calls and also locate their containers for additional labelling.
-Element? _getContainer(Element element) {
+Element2? _getContainer(Element2 element) {
+  // TODO(brianwilkerson): This used to use the compilation unit as a container
+  //  which allowed users to see the path to the containing file, but that's
+  //  been lost. Consider trying to restore that behavior.
   const containerKinds = {
     ElementKind.CLASS,
-    ElementKind.COMPILATION_UNIT,
+    ElementKind.LIBRARY,
     ElementKind.CONSTRUCTOR,
     ElementKind.ENUM,
     ElementKind.EXTENSION,
@@ -33,29 +36,27 @@ Element? _getContainer(Element element) {
     ElementKind.MIXIN,
     ElementKind.SETTER,
   };
-  return element.thisOrAncestorMatching(
+  return element.thisOrAncestorMatching2(
     (ancestor) => containerKinds.contains(ancestor.kind),
   );
 }
 
 /// Gets a user-friendly display name for [element].
-String _getDisplayName(Element element) {
-  return element is CompilationUnitElement
-      ? element.source.shortName
-      : element is PropertyAccessorElement
-      ? element.isGetter
-          ? 'get ${element.displayName}'
-          : 'set ${element.displayName}'
-      : element.displayName;
+String _getDisplayName(Element2 element) {
+  return switch (element) {
+    LibraryElement2() => element.firstFragment.source.shortName,
+    GetterElement() => 'get ${element.displayName}',
+    SetterElement() => 'set ${element.displayName}',
+    _ => element.displayName,
+  };
 }
 
 /// A [CallHierarchyItem] and a set of ranges that call to or from it.
 class CallHierarchyCalls {
   final CallHierarchyItem item;
-  final List<SourceRange> ranges;
+  final List<SourceRange> ranges = [];
 
-  CallHierarchyCalls(this.item, [List<SourceRange>? ranges])
-    : ranges = ranges ?? [];
+  CallHierarchyCalls(this.item);
 }
 
 /// An item that can appear in a Call Hierarchy.
@@ -101,39 +102,53 @@ class CallHierarchyItem {
     required this.codeRange,
   });
 
-  CallHierarchyItem.forElement(Element element)
+  CallHierarchyItem.forElement(Element2 element)
     : displayName = _getDisplayName(element),
       nameRange = _nameRangeForElement(element),
       codeRange = _codeRangeForElement(element),
-      file = element.source!.fullName,
+      file = element.firstFragment.libraryFragment!.source.fullName,
       kind = CallHierarchyKind.forElement(element) {
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement =
+        element.enclosingElement2 ??
+        element.firstFragment.enclosingFragment?.element;
     var container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
     containerName = container != null ? _getDisplayName(container) : null;
   }
 
   /// Returns the [SourceRange] of the code for [element].
-  static SourceRange _codeRangeForElement(Element element) {
+  static SourceRange _codeRangeForElement(Element2 element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    var elementImpl = element.nonSynthetic as ElementImpl;
+    element = _nonSynthetic(element);
+    var fragment = element.firstFragment as ElementImpl;
 
     // Non-synthetic elements should always have code locations.
-    return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
+    // TODO(brianwilkerson): Figure out why that's no longer true and possibly
+    //  remove the conditionals below.
+    return SourceRange(fragment.codeOffset ?? 0, fragment.codeLength ?? 0);
   }
 
   /// Returns the [SourceRange] of the name for [element].
-  static SourceRange _nameRangeForElement(Element element) {
+  static SourceRange _nameRangeForElement(Element2 element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    element = element.nonSynthetic;
+    element = _nonSynthetic(element);
+    var fragment = element.firstFragment as ElementImpl;
 
     // Compilation units will return -1 for nameOffset which is not valid, so
-    //use 0:0.
-    return element.nameOffset == -1
+    // use 0:0.
+    return fragment.nameOffset == -1
         ? SourceRange(0, 0)
-        : SourceRange(element.nameOffset, element.nameLength);
+        : SourceRange(fragment.nameOffset, fragment.nameLength);
+  }
+
+  static Element2 _nonSynthetic(Element2 element) {
+    element = element.nonSynthetic2;
+    if (element.isSynthetic) {
+      element = element.enclosingElement2 ?? element;
+    }
+    return element;
   }
 }
 
@@ -152,7 +167,7 @@ enum CallHierarchyKind {
 
   static const _elementMapping = {
     ElementKind.CLASS: class_,
-    ElementKind.COMPILATION_UNIT: file,
+    ElementKind.LIBRARY: file,
     ElementKind.CONSTRUCTOR: constructor,
     ElementKind.EXTENSION: extension,
     ElementKind.FUNCTION: function,
@@ -162,7 +177,7 @@ enum CallHierarchyKind {
     ElementKind.SETTER: property,
   };
 
-  static CallHierarchyKind forElement(Element element) =>
+  static CallHierarchyKind forElement(Element2 element) =>
       _elementMapping[element.kind] ?? unknown;
 }
 
@@ -209,14 +224,14 @@ class DartCallHierarchyComputer {
     // implicit constructors do not have.
     // Here, we map them back to the synthetic constructor element.
     var isImplicitConstructor =
-        element is InterfaceElement &&
+        element is InterfaceElement2 &&
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
-      element = element.unnamedConstructor;
+      element = element.unnamedConstructor2;
     }
 
     // We only find incoming calls to executable elements.
-    if (element is! ExecutableElement) {
+    if (element is! ExecutableElement2) {
       return [];
     }
 
@@ -225,12 +240,12 @@ class DartCallHierarchyComputer {
 
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.
-    var resultsByContainer = <Element, CallHierarchyCalls>{};
+    var resultsByContainer = <Element2, CallHierarchyCalls>{};
     // We may need to fetch parsed results for the other files, reuse them
     // across calls.
     var parsedUnits = <String, SomeParsedUnitResult?>{};
     for (var reference in references) {
-      var container = _getContainer(reference.element);
+      var container = _getContainer(reference.element2);
       if (container == null) {
         continue;
       }
@@ -278,7 +293,7 @@ class DartCallHierarchyComputer {
 
     // Group results by their target, since we only want to return a single
     // entry for each target, with a set of ranges that call it.
-    var resultsByTarget = <Element, CallHierarchyCalls>{};
+    var resultsByTarget = <Element2, CallHierarchyCalls>{};
     for (var referenceNode in referenceNodes) {
       var target = _getElementOfNode(referenceNode);
       if (target == null) {
@@ -301,14 +316,14 @@ class DartCallHierarchyComputer {
 
   /// Finds a target for starting call hierarchy navigation at [offset].
   ///
-  /// If [offset] is an invocation, returns information about the [Element] it
+  /// If [offset] is an invocation, returns information about the [Element2] it
   /// refers to.
   CallHierarchyItem? findTarget(int offset) {
     var node = _findTargetNode(offset);
     var element = _getElementOfNode(node);
 
     // We only return targets that are executable elements.
-    return element is ExecutableElement
+    return element is ExecutableElement2
         ? CallHierarchyItem.forElement(element)
         : null;
   }
@@ -344,10 +359,10 @@ class DartCallHierarchyComputer {
     return node;
   }
 
-  /// Return the [Element] of the given [node], or `null` if [node] is `null`,
+  /// Return the [Element2] of the given [node], or `null` if [node] is `null`,
   /// does not have an element, or the element is not a valid target for call
   /// hierarchy.
-  Element? _getElementOfNode(AstNode? node) {
+  Element2? _getElementOfNode(AstNode? node) {
     if (node == null) {
       return null;
     }
@@ -356,18 +371,18 @@ class DartCallHierarchyComputer {
     // ElementLocator returns the class for default constructor calls and null
     // for constructor names.
     if (node is NamedType && parent is ConstructorName) {
-      return parent.staticElement;
+      return parent.element;
     } else if (node is ConstructorName) {
-      return node.staticElement;
+      return node.element;
     } else if (node is PropertyAccess) {
       node = node.propertyName;
     }
 
-    var element = ElementLocator.locate(node);
+    var element = ElementLocator.locate2(node);
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.
-    if (element is PropertyAccessorElement && element.isSynthetic) {
+    if (element is PropertyAccessorElement2 && element.isSynthetic) {
       return null;
     }
 
@@ -379,7 +394,7 @@ class DartCallHierarchyComputer {
   /// This is used to ensure calls are only returned for the expected target
   /// if source code has changed since the earlier request that provided
   /// [target] to the client.
-  bool _isMatchingElement(Element element, CallHierarchyItem target) {
+  bool _isMatchingElement(Element2 element, CallHierarchyItem target) {
     return _getDisplayName(element) == target.displayName;
   }
 
@@ -493,7 +508,10 @@ class _OutboundCallVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement is FunctionElement && !node.inDeclarationContext()) {
+    var element = node.element;
+    if ((element is LocalFunctionElement ||
+            element is TopLevelFunctionElement) &&
+        !node.inDeclarationContext()) {
       collect(node);
     }
     super.visitSimpleIdentifier(node);

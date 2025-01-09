@@ -19,7 +19,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'lint_rules.dart';
 import 'plugin_server_test_base.dart';
 
-void main() async {
+void main() {
   defineReflectiveTests(PluginServerTest);
 }
 

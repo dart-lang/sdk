@@ -56,6 +56,7 @@ allocate
 allocator
 altered
 ambiguities
+ambivalent
 amd
 analogous
 analogy
@@ -132,6 +133,7 @@ bail
 balance
 bang
 bar
+basename
 basically
 basis
 batch
@@ -403,6 +405,7 @@ danrubel
 daringfireball
 dartaotruntime
 dartbug
+dartdev
 dartdoc
 dartfix
 dartino
@@ -631,6 +634,7 @@ explosion
 exportable
 exportee
 exportees
+expose
 exposing
 expr
 expression's
@@ -1487,6 +1491,7 @@ reinterpret
 reissued
 reject
 rejoin
+rejoins
 relatively
 relativize
 relax

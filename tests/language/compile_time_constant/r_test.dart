@@ -13,9 +13,8 @@ const y = const {
       throw "y";
 //    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [cfe] Throw is not a constant expression.
-//    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE
+// [cfe] Throw is not a constant expression.
 //             ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected '}' before this.

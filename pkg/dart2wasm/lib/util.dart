@@ -5,6 +5,10 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
+bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
+  return getPragma(coreTypes, node, name, defaultValue: '') != null;
+}
+
 T? getPragma<T>(CoreTypes coreTypes, Annotatable node, String name,
     {T? defaultValue}) {
   for (Expression annotation in node.annotations) {
@@ -35,3 +39,16 @@ T? getPragma<T>(CoreTypes coreTypes, Annotatable node, String name,
   }
   return null;
 }
+
+/// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
+T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
+    addPragma(node, 'wasm:entry-point', coreTypes);
+
+T addPragma<T extends Annotatable>(
+        T node, String pragmaName, CoreTypes coreTypes, {Constant? value}) =>
+    node
+      ..addAnnotation(ConstantExpression(
+          InstanceConstant(coreTypes.pragmaClass.reference, [], {
+        coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+        coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
+      })));

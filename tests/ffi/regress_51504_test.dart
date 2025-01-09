@@ -19,9 +19,16 @@ void main() {
 }
 
 @Native<Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>)>(
-    symbol: 'VariadicAt1Int64x5', isLeaf: true)
+  symbol: 'VariadicAt1Int64x5',
+  isLeaf: true,
+)
 external int variadicAt1Int64x5NativeLeaf(
-    int a0, int a1, int a2, int a3, int a4);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 void testVariadicAt1Int64x5NativeLeaf() {
   final result = variadicAt1Int64x5NativeLeaf(1, 2, 3, 4, 5);

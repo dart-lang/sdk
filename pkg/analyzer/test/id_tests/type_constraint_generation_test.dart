@@ -13,7 +13,7 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(
       Platform.script.resolve('../../../_fe_analyzer_shared/test/inference/'
           'type_constraint_generation/data'));
@@ -41,8 +41,8 @@ class _TypeConstraintGenerationDataComputer
       Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap) {
     _TypeConstraintGenerationDataExtractor(
             testingData.uriToTypeConstraintGenerationData[
-                unit.declaredElement!.source.uri]!,
-            unit.declaredElement!.source.uri,
+                unit.declaredFragment?.source.uri]!,
+            unit.declaredFragment!.source.uri,
             actualMap)
         .run(unit);
   }
@@ -74,11 +74,12 @@ class _TypeConstraintGenerationDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
+        var name = actualData[i].typeParameter.name3;
         if (actualData[i].isUpper) {
-          sb.write("${actualData[i].typeParameter.name} <: ");
+          sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());
         } else {
-          sb.write("${actualData[i].typeParameter.name} :> ");
+          sb.write("$name :> ");
           sb.write(actualData[i].constraint.getDisplayString());
         }
       }

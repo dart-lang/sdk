@@ -15,9 +15,7 @@ main() {
 /// Access an enum value.
 ////////////////////////////////////////////////////////////////////////////////
 
-enum Enum1 {
-  a,
-}
+enum Enum1 { a }
 
 /*member: enumValue:[exact=Enum1]*/
 enumValue() => Enum1.a;
@@ -26,9 +24,7 @@ enumValue() => Enum1.a;
 /// Access an enum 'index' property.
 ////////////////////////////////////////////////////////////////////////////////
 
-enum Enum2 {
-  a,
-}
+enum Enum2 { a }
 
 /*member: enumIndex:[exact=JSUInt31]*/
 enumIndex() => Enum2.a. /*[exact=Enum2]*/ index;
@@ -37,10 +33,7 @@ enumIndex() => Enum2.a. /*[exact=Enum2]*/ index;
 /// Access an enum 'values' property.
 ////////////////////////////////////////////////////////////////////////////////
 
-enum Enum3 {
-  a,
-  b,
-}
+enum Enum3 { a, b }
 
 /*member: enumValues:Container([exact=JSUnmodifiableArray], element: [exact=Enum3], length: 2)*/
 enumValues() => Enum3.values;
@@ -49,9 +42,7 @@ enumValues() => Enum3.values;
 /// Call an enum 'toString' method on a singleton enum.
 ////////////////////////////////////////////////////////////////////////////////
 
-enum Enum4 {
-  a,
-}
+enum Enum4 { a }
 
 /*member: enumToString1:[exact=JSString]*/
 enumToString1() {
@@ -62,10 +53,7 @@ enumToString1() {
 /// Call an enum 'toString' method on an enum with multiple values.
 ////////////////////////////////////////////////////////////////////////////////
 
-enum Enum5 {
-  a,
-  b,
-}
+enum Enum5 { a, b }
 
 /*member: enumToString2:[exact=JSString]*/
 enumToString2() {

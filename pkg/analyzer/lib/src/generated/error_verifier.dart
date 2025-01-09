@@ -118,6 +118,8 @@ class EnclosingExecutableContext {
     return element?.displayName;
   }
 
+  ExecutableElement2? get element2 => element.asElement2;
+
   bool get isClosure {
     return element is FunctionElement && element!.displayName.isEmpty;
   }
@@ -1011,16 +1013,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    Expression functionExpression = node.function;
+    var functionExpression = node.function;
 
     if (functionExpression is ExtensionOverride) {
       return super.visitFunctionExpressionInvocation(node);
     }
 
-    DartType expressionType = functionExpression.typeOrThrow;
-    if (expressionType is FunctionType) {
-      _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    }
+    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
     _checkUseVerifier.checkFunctionExpressionInvocation(node);
@@ -1487,7 +1486,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element2.ifTypeOrNull(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
@@ -2669,7 +2668,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify all conflicts between type variable and enclosing extension.
   ///
   /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION], and
-  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_MEMBER].
+  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION].
   void _checkForConflictingExtensionTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
         in _enclosingExtension!.typeParameters) {
@@ -3347,7 +3346,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
   }
 
-  /// Verify that the given extends [clause] does not extend a deferred class.
+  /// Verifies that the given [superclass], found in an extends-clause, is not a
+  /// deferred class.
   ///
   /// See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
   void _checkForExtendsDeferredClass(NamedType? superclass) {
@@ -3358,8 +3358,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
   }
 
-  /// Verify that the given extends [clause] does not extend classes such as
-  /// 'num' or 'String'.
+  /// Verifies that the given [superclass], found in an extends-clause, is not a
+  /// class such as 'num' or 'String'.
   ///
   /// See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
   bool _checkForExtendsDisallowedClass(NamedType? superclass) {
@@ -3374,8 +3374,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// classes that are deferred.
   ///
   /// See [_checkForExtendsDeferredClass],
-  /// [_checkForExtendsDeferredClassInTypeAlias],
-  /// [_checkForImplementsDeferredClass],
   /// [_checkForAllMixinErrorCodes],
   /// [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS],
   /// [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS], and
@@ -3664,7 +3662,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// If there are no constructors in the given [members], verify that all
   /// final fields are initialized.  Cases in which there is at least one
-  /// constructor are handled in [_checkForAllFinalInitializedErrorCodes].
+  /// constructor are handled in [_checkForFinalNotInitialized].
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
   /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
@@ -4809,7 +4807,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var representationType = element.representation.type;
 
     for (var typeParameterNode in typeParameters) {
-      var typeParameterElement = typeParameterNode.declaredElement!;
+      var typeParameterElement = typeParameterNode.declaredFragment!.element;
       var nonCovariant = representationType.accept(
         NonCovariantTypeParameterPositionVisitor(
           [typeParameterElement],
@@ -5395,7 +5393,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify that the given [element] does not reference itself directly.
-  /// If it does, report the error on the [node].
+  /// If it does, report the error on the [nameToken].
   ///
   /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
@@ -6630,7 +6628,7 @@ class HiddenElements {
     this.outerElements,
     GuardedPatternImpl guardedPattern,
   ) {
-    _elements.addAll(guardedPattern.variables.values);
+    _elements.addAll(guardedPattern.variables.values.map((e) => e.asElement!));
   }
 
   /// Return `true` if this set of elements contains the given [element].

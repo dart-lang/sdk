@@ -50,7 +50,8 @@ class FunctionReferenceResolver {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         // Something like `List.filled<int>`.
-        function.accept(_resolver);
+        _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+        _resolver.popRewrite();
         // We can safely assume `function.constructorName.name` is non-null
         // because if no name had been given, the construct would have been
         // interpreted as a type literal (e.g. `List<int>`).
@@ -67,7 +68,8 @@ class FunctionReferenceResolver {
     } else {
       // TODO(srawlins): Handle `function` being a [SuperExpression].
 
-      function.accept(_resolver);
+      _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+      function = _resolver.popRewrite()!;
       var functionType = function.staticType;
       if (functionType == null) {
         _resolveDisallowedExpression(node, functionType);
@@ -376,7 +378,6 @@ class FunctionReferenceResolver {
     }
 
     if (member is PropertyAccessorElement) {
-      function.accept(_resolver);
       _resolve(node: node, rawType: member.returnType);
       return;
     }
@@ -390,7 +391,7 @@ class FunctionReferenceResolver {
   /// function element, tearing off an extension element declared on [Function],
   /// and tearing off an extension element declared on a function type.
   Element? _resolveFunctionTypeFunction(
-    Expression receiver,
+    ExpressionImpl receiver,
     SimpleIdentifier methodName,
     FunctionType receiverType,
   ) {
@@ -494,13 +495,15 @@ class FunctionReferenceResolver {
         CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
       );
     }
-    function.accept(_resolver);
+    _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+    _resolver.popRewrite();
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 
   void _resolvePropertyAccessFunction(
       FunctionReferenceImpl node, PropertyAccessImpl function) {
-    function.accept(_resolver);
+    _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+    _resolver.popRewrite();
     var callMethod = _getCallMethod(node, function.staticType);
     if (callMethod is MethodElement) {
       _resolveAsImplicitCallReference(node, callMethod);
@@ -618,16 +621,21 @@ class FunctionReferenceResolver {
         _resolveConstructorReference(node);
         return;
       } else if (element is InterfaceElement) {
-        node.function.accept(_resolver);
+        _resolver.analyzeExpression(
+            node.function, _resolver.operations.unknownType);
+        _resolver.popRewrite();
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
       } else if (element is TypeAliasElement) {
-        prefix.accept(_resolver);
+        _resolver.analyzeExpression(prefix, _resolver.operations.unknownType);
+        _resolver.popRewrite();
         _resolveTypeAlias(node: node, element: element, typeAlias: prefix);
         return;
       }
     } else if (element is ExecutableElement) {
-      node.function.accept(_resolver);
+      _resolver.analyzeExpression(
+          node.function, _resolver.operations.unknownType);
+      _resolver.popRewrite();
       var callMethod = _getCallMethod(node, node.function.staticType);
       if (callMethod is MethodElement) {
         _resolveAsImplicitCallReference(node, callMethod);
@@ -861,11 +869,11 @@ class FunctionReferenceResolver {
   /// Returns `null` if [receiver]'s type is `null`, a [TypeParameterType],
   /// or a type alias for a non-interface type.
   DartType? _resolveTypeProperty({
-    required Expression receiver,
+    required ExpressionImpl receiver,
     required SimpleIdentifierImpl name,
     required SyntacticEntity nameErrorEntity,
   }) {
-    if (receiver is Identifier) {
+    if (receiver is IdentifierImpl) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is InterfaceElement) {
         var element = _resolveStaticElement(receiverElement, name);

@@ -499,7 +499,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverNever(
     MethodInvocationImpl node,
-    Expression receiver,
+    ExpressionImpl receiver,
     DartType receiverType,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required DartType contextType,
@@ -575,6 +575,7 @@ class MethodInvocationResolver with ScopeHelpers {
     );
 
     var element = scopeLookupResult.getter;
+    var element2 = scopeLookupResult.getter2;
     if (element != null) {
       nameNode.staticElement = element;
       if (element is MultiplyDefinedElement) {
@@ -590,7 +591,7 @@ class MethodInvocationResolver with ScopeHelpers {
         return null;
       }
       if (element is VariableElement) {
-        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
+        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element2);
         var targetType =
             _localVariableTypeProvider.getType(nameNode, isRead: true);
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
@@ -803,7 +804,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverType({
     required MethodInvocationImpl node,
-    required Expression? receiver,
+    required ExpressionImpl? receiver,
     required DartType receiverType,
     required SimpleIdentifierImpl nameNode,
     required String name,

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -123,7 +124,7 @@ class PostfixExpressionResolver {
   }
 
   void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
-    Expression operand = node.operand;
+    ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.atNode(
@@ -175,8 +176,8 @@ class PostfixExpressionResolver {
         _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
       }
       if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
+        var element = operand.element;
+        if (element is PromotableElementImpl2) {
           if (_resolver.definingLibrary.featureSet
               .isEnabled(Feature.inference_update_4)) {
             _resolver.flowAnalysis.flow?.postIncDec(

@@ -25,12 +25,12 @@ import "dart:core" as core;
 
 extension type Foo(core::String x) {
   abstract extension-type-member representation-field get x() → core::String;
-  get x2 = get self::Foo|x2;
-  set x2 = set self::Foo|x2;
-  get a = get self::Foo|a;
-  set a = set self::Foo|a;
-  get b = get self::Foo|b;
-  set b = set self::Foo|b;
+  get x2 = self::Foo|get#x2;
+  set x2 = self::Foo|set#x2;
+  get a = self::Foo|get#a;
+  set a = self::Foo|set#a;
+  get b = self::Foo|get#b;
+  set b = self::Foo|set#b;
   constructor • = self::Foo|constructor#;
   constructor tearoff • = self::Foo|constructor#_#new#tearOff;
 }
@@ -40,21 +40,21 @@ static extension-type-member method Foo|constructor#(core::String x) → self::F
 }
 static extension-type-member method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
   return self::Foo|constructor#(x);
-static abstract extension-type-member get Foo|x2() → core::int;
-static abstract extension-type-member set Foo|x2(synthesized core::int #externalFieldValue) → void;
+static abstract extension-type-member method Foo|get#x2(lowered core::String #this) → core::int;
+static abstract extension-type-member method Foo|set#x2(lowered core::String #this, synthesized core::int #externalFieldValue) → void;
 @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_01.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
    ^"
-static abstract extension-type-member get Foo|a() → core::int?;
+static abstract extension-type-member method Foo|get#a(lowered core::String #this) → core::int?;
 @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_01.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
    ^"
-static abstract extension-type-member set Foo|a(synthesized core::int? #externalFieldValue) → void;
+static abstract extension-type-member method Foo|set#a(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
 @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_01.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
    ^"
-static abstract extension-type-member get Foo|b() → core::int?;
+static abstract extension-type-member method Foo|get#b(lowered core::String #this) → core::int?;
 @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_01.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
    ^"
-static abstract extension-type-member set Foo|b(synthesized core::int? #externalFieldValue) → void;
+static abstract extension-type-member method Foo|set#b(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;

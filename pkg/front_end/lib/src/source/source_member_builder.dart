@@ -8,10 +8,8 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -62,8 +60,6 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void set isConflictingAugmentationMember(bool value);
 
   AugmentSuperTarget? get augmentSuperTarget;
-
-  BodyBuilderContext createBodyBuilderContext();
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -99,11 +95,6 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnimplementedError('$runtimeType.augmentSuperTarget');
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext() {
-    throw new UnimplementedError('$runtimeType.bodyBuilderContext');
   }
 }
 
@@ -145,11 +136,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => unsupported("kind", fileOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.

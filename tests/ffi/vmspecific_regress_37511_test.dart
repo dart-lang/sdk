@@ -67,22 +67,58 @@ final Pointer<Int64> highAddressPointer = Pointer.fromAddress(highAddress);
 // Dynamic library operation helpers.
 final doDlopen = () => dlopenPlatformSpecific("ffi_test_functions");
 
-final doDlsym = () => ffiTestFunctions
-    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("TriggerGC");
+final doDlsym =
+    () => ffiTestFunctions.lookupFunction<NativeNullaryOp, NullaryOpVoid>(
+      "TriggerGC",
+    );
 
 // Trampoline helpers.
-typedef NativeUndenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
-    IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
-typedef UndenaryOp = int Function(
-    int, int, int, int, int, int, int, int, int, int, int);
+typedef NativeUndenaryOp =
+    IntPtr Function(
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+    );
+typedef UndenaryOp =
+    int Function(int, int, int, int, int, int, int, int, int, int, int);
 
 final UndenaryOp sumManyIntsOdd = ffiTestFunctions
     .lookupFunction<NativeUndenaryOp, UndenaryOp>("SumManyIntsOdd");
 
-typedef NativeDoubleDecenaryOp = Double Function(Double, Double, Double, Double,
-    Double, Double, Double, Double, Double, Double);
-typedef DoubleDecenaryOp = double Function(double, double, double, double,
-    double, double, double, double, double, double);
+typedef NativeDoubleDecenaryOp =
+    Double Function(
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+    );
+typedef DoubleDecenaryOp =
+    double Function(
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+    );
 
 final DoubleDecenaryOp sumManyDoubles = ffiTestFunctions
     .lookupFunction<NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
@@ -94,14 +130,16 @@ typedef NullaryOpPtr = Pointer<Void> Function();
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 
-final minInt64 =
-    ffiTestFunctions.lookupFunction<NativeNullaryOp64, NullaryOp>("MinInt64");
+final minInt64 = ffiTestFunctions.lookupFunction<NativeNullaryOp64, NullaryOp>(
+  "MinInt64",
+);
 
-final minInt32 =
-    ffiTestFunctions.lookupFunction<NativeNullaryOp32, NullaryOp>("MinInt32");
+final minInt32 = ffiTestFunctions.lookupFunction<NativeNullaryOp32, NullaryOp>(
+  "MinInt32",
+);
 
 final smallDouble = ffiTestFunctions
     .lookupFunction<NativeNullaryOpDouble, NullaryOpDbl>("SmallDouble");
 
-final largePointer =
-    ffiTestFunctions.lookupFunction<NullaryOpPtr, NullaryOpPtr>("LargePointer");
+final largePointer = ffiTestFunctions
+    .lookupFunction<NullaryOpPtr, NullaryOpPtr>("LargePointer");

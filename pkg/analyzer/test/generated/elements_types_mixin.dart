@@ -434,7 +434,7 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
-  ParameterElement namedParameter({
+  ParameterElementImpl namedParameter({
     required String name,
     required DartType type,
     bool isCovariant = false,
@@ -464,7 +464,7 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  ParameterElement positionalParameter({
+  ParameterElementImpl positionalParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,
@@ -558,7 +558,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  ParameterElement requiredParameter({
+  ParameterElementImpl requiredParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,

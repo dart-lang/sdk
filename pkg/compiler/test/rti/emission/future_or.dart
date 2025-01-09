@@ -29,8 +29,10 @@ class FutureMock<T> implements Future<T> {
   Future<T> whenComplete(FutureOr action()) => this;
 
   @override
-  Future<T> catchError(Function onError,
-      {bool test(bool test(Object error))?}) {
+  Future<T> catchError(
+    Function onError, {
+    bool test(bool test(Object error))?,
+  }) {
     return this;
   }
 

@@ -421,12 +421,12 @@ class _WidgetDescriptionComputer {
 
   Future<void> _fetchClassElements() async {
     var sessionHelper = AnalysisSessionHelper(resolvedUnit.session);
-    _classAlignment = await sessionHelper.getFlutterClass2('Alignment');
-    _classAlignmentDirectional = await sessionHelper.getFlutterClass2(
+    _classAlignment = await sessionHelper.getFlutterClass('Alignment');
+    _classAlignmentDirectional = await sessionHelper.getFlutterClass(
       'AlignmentDirectional',
     );
-    _classContainer = await sessionHelper.getFlutterClass2('Container');
-    _classEdgeInsets = await sessionHelper.getFlutterClass2('EdgeInsets');
+    _classContainer = await sessionHelper.getFlutterClass('Container');
+    _classEdgeInsets = await sessionHelper.getFlutterClass('EdgeInsets');
   }
 
   protocol.FlutterWidgetPropertyEditor? _getEditor(DartType type) {

@@ -529,15 +529,39 @@ def _CheckDevCompilerSync(input_api, output_api):
     return []
 
 
+def _CheckDartApiWinCSync(input_api, output_api):
+    """Ensure that dart_api_win.c is up-to-date."""
+    GENERATOR = "runtime/tools/generate_dart_api_win_c.dart"
+    DART_API_H = "runtime/include/dart_api.h"
+    DART_NATIVe_API_H = "runtime/include/dart_native_api.h"
+
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+
+    if (GENERATOR in files or DART_API_H in files or
+            DART_NATIVe_API_H in files):
+        # Run the generator with `--check-up-to-date` to see if the output is
+        # up-to-date.
+        args = [
+            "tools/sdks/dart-sdk/bin/dart",
+            GENERATOR,
+            "--check-up-to-date",
+        ]
+        try:
+            subprocess.run(args, check=True)
+        except subprocess.CalledProcessError as e:
+            return [
+                output_api.PresubmitError(
+                    f"Make sure to re-run {GENERATOR} when it or its inputs "
+                    "change.")
+            ]
+
+    return []
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
-
-    # TODO(rnystrom): Temporarily disabling dart format checking while
-    # migrating to the new formatting style.
-    # See: https://github.com/dart-lang/sdk/issues/56688
-    # results.extend(_CheckDartFormat(input_api, output_api))
-
+    results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
@@ -549,6 +573,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
     results.extend(_CheckNoNewObservatoryServiceTests(input_api, output_api))
     results.extend(_CheckDevCompilerSync(input_api, output_api))
+    results.extend(_CheckDartApiWinCSync(input_api, output_api))
     return results
 
 

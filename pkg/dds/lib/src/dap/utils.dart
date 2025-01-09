@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:stack_trace/stack_trace.dart' as stack;
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
 
 /// Returns whether this URI is something that can be resolved to a file-like
 /// URI via the VM Service.
@@ -27,10 +29,9 @@ bool isResolvableUri(Uri uri) {
 ///
 /// Frames that do not look like real Dart stack frames (such as including path
 /// or URIs that look like real Dart libraries) will be filtered out but it
-/// should not be assumed that if a [stack.Frame] is returned that the input
-/// was necessarily a stack frame or that calling `toString` will return the
-/// original input text.
-stack.Frame? parseDartStackFrame(String line) {
+/// should not be assumed that if a value is returned that the input
+/// was necessarily a stack frame.
+StackFrameLocation? parseDartStackFrame(String line) {
   final frame = _parseStackFrame(line);
   final uri = frame?.uri;
   return uri != null && _isDartUri(uri) ? frame : null;
@@ -68,35 +69,58 @@ bool _isDartUri(Uri uri) {
   return false;
 }
 
+/// A [RegExp] for extracting URIs and optional line/columns out of a line from
+/// a stack trace.
+final _stackFrameLocationPattern =
+    // Characters we consider part of a path:
+    //
+    //   - `\w` word characters
+    //   - `-` dash (valid in paths and URI schemes)
+    //   - `:` colons (scheme or drive letters)
+    //   - `/` forward slashes (URIs)
+    //   - `\` black slashes (Windows paths)
+    //   - `%` percent (URL percent encoding)
+    //   - `+` plus (possible URL encoding of space)
+    //
+    // To avoid matching too much, we don't allow spaces even though they could
+    // appear in relative paths. Most output should be URIs where they would be
+    // encoded.
+    //
+    // The whole string must end with the line/col sequence, a non-word
+    // character or be the end of the line. This avoids matching some strings
+    // that contain ".dart" but probably aren't valid paths, like ".dart2".
+    RegExp(r'([\w\-:\/\\%+]+\.dart)(?:(?:(?: +|:)(\d+):(\d+))|\W|$)');
+
 /// Attempts to parse a line as a stack frame in order to read path/line/col
 /// information.
 ///
-/// It should not be assumed that if a [stack.Frame] is returned that the input
-/// was necessarily a stack frame or that calling `toString` will return the
-/// original input text.
-stack.Frame? _parseStackFrame(String line) {
-  // Because we split on \n, on Windows there may be trailing \r which prevents
-  // package:stack_trace from parsing correctly.
-  line = line.trim();
+/// It should not be assumed that if a value is returned that the input
+/// was necessarily a stack frame.
+StackFrameLocation? _parseStackFrame(String input) {
+  var match = _stackFrameLocationPattern.firstMatch(input);
+  if (match == null) return null;
 
-  /// Helper to try parsing a frame with [parser], returning `null` if it
-  /// fails to parse.
-  stack.Frame? tryParseFrame(stack.Frame Function(String) parser) {
-    final frame = parser(line);
-    return frame is stack.UnparsedFrame ? null : frame;
+  var uriMatch = match.group(1);
+  var lineMatch = match.group(2);
+  var colMatch = match.group(3);
+
+  var uri = uriMatch != null ? Uri.tryParse(uriMatch) : null;
+  var line = lineMatch != null ? int.tryParse(lineMatch) : null;
+  var col = colMatch != null ? int.tryParse(colMatch) : null;
+
+  if (uriMatch == null || uri == null) {
+    return null;
   }
 
-  // Try different formats of stack frames.
-  // pkg:stack_trace does not have a generic Frame.parse() and Trace.parse()
-  // doesn't work well when the content includes non-stack-frame lines
-  // (https://github.com/dart-lang/stack_trace/issues/115).
-  return tryParseFrame((line) => stack.Frame.parseVM(line)) ??
-      // TODO(dantup): Tidy up when constructor tear-offs are available.
-      tryParseFrame((line) => stack.Frame.parseV8(line)) ??
-      tryParseFrame((line) => stack.Frame.parseSafari(line)) ??
-      tryParseFrame((line) => stack.Frame.parseFirefox(line)) ??
-      tryParseFrame((line) => stack.Frame.parseIE(line)) ??
-      tryParseFrame((line) => stack.Frame.parseFriendly(line));
+  // If the URI has no scheme, assume a relative path from Directory.current.
+  if (!uri.hasScheme && path.isRelative(uriMatch)) {
+    var currentDirectoryPath = Directory.current.path;
+    if (currentDirectoryPath.isNotEmpty) {
+      uri = Uri.file(path.join(currentDirectoryPath, uriMatch));
+    }
+  }
+
+  return (uri: uri, line: line, column: col);
 }
 
 /// Checks whether [flag] is in [args], allowing for both underscore and
@@ -106,3 +130,5 @@ bool containsVmFlag(List<String> args, String flag) {
   final flagDashes = flag.replaceAll('_', '-');
   return args.contains(flagUnderscores) || args.contains(flagDashes);
 }
+
+typedef StackFrameLocation = ({Uri uri, int? line, int? column});

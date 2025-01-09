@@ -14424,6 +14424,118 @@ final class C extends Struct {
 }
 ```
 
+### native_function_missing_type
+
+_The native type of this function couldn't be inferred so it must be specified
+in the annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a `@Native`-annotated function
+requires a type hint on the annotation to infer the native function type.
+
+Dart types like `int` and `double` have multiple possible native
+representations. Since the native type needs to be known at compile time
+to generate correct bindings and call instructions for the function, an
+explicit type must be given.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the function `f()` has
+the return type `int`, but doesn't have an explicit type parameter on the
+`Native` annotation:
+
+```dart
+import 'dart:ffi';
+
+@Native()
+external int [!f!]();
+```
+
+#### Common fixes
+
+Add the corresponding type to the annotation. For instance, if `f()` was
+declared to return an `int32_t` in C, the Dart function should be declared
+as:
+
+```dart
+import 'dart:ffi';
+
+@Native<Int32 Function()>()
+external int f();
+```
+
+### negative_variable_dimension
+
+_The variable dimension of a variable-length array must be non-negative._
+
+#### Description
+
+The analyzer produces this diagnostic in two cases.
+
+The first is when the variable dimension given in an
+`Array.variableWithVariableDimension` annotation is negative. The variable
+dimension is the first argument in the annotation.
+
+The second is when the variable dimension given in an
+`Array.variableMulti` annotation is negative. The variable dimension is
+specified in the `variableDimension` argument of the annotation.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Examples
+
+The following code produces this diagnostic because a variable dimension
+of `-1` was provided in the `Array.variableWithVariableDimension`
+annotation:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Array.variableWithVariableDimension([!-1!])
+  external Array<Uint8> a0;
+}
+```
+
+The following code produces this diagnostic because a variable dimension
+of `-1` was provided in the `Array.variableMulti` annotation:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct2 extends Struct {
+  @Array.variableMulti(variableDimension: [!-1!], [1, 2])
+  external Array<Array<Array<Uint8>>> a0;
+}
+```
+
+#### Common fixes
+
+Change the variable dimension with zero (`0`) or a positive number:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Array.variableWithVariableDimension(1)
+  external Array<Uint8> a0;
+}
+```
+
+Change the variable dimension with zero (`0`) or a positive number:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct2 extends Struct {
+  @Array.variableMulti(variableDimension: 1, [1, 2])
+  external Array<Array<Array<Uint8>>> a0;
+}
+```
+
 ### new_with_undefined_constructor_default
 
 _The class '{0}' doesn't have an unnamed constructor._
@@ -15718,7 +15830,7 @@ For more information about FFI, see [C interop using dart:ffi][ffi].
 #### Example
 
 The following code produces this diagnostic because an array dimension of
-`-1` was provided:
+`-8` was provided:
 
 ```dart
 import 'dart:ffi';
@@ -15742,7 +15854,8 @@ final class MyStruct extends Struct {
 }
 ```
 
-If this is a variable length inline array, change the annotation to `Array.variable()`:
+If this is a variable length inline array, change the annotation to
+`Array.variable()`:
 
 ```dart
 import 'dart:ffi';
@@ -29096,6 +29209,32 @@ List<String> toLowercase(List<String> strings) {
     ...strings.map((String s) => s.toLowerCase()),
   ];
 }
+```
+
+### unnecessary_underscores
+
+_Unnecessary use of multiple underscores._
+
+#### Description
+
+The analyzer produces this diagnostic when an unused variable is named
+with multiple underscores (for example `__`). A single `_` wildcard variable
+can be used instead.
+
+#### Example
+
+The following code produces this diagnostic because the `__` parameter is unused:
+
+```dart
+void function(int [!__!]) { }
+```
+
+#### Common fixes
+
+Replace the name with a single underscore:
+
+```dart
+void function(int _) { }
 ```
 
 ### unrelated_type_equality_checks

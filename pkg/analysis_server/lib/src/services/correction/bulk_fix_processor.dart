@@ -17,7 +17,6 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -80,9 +79,10 @@ class BulkFixProcessor {
   ];
 
   /// A map from an error code to a list of generators used to create multiple
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the
-  /// [FixProcessor.lintMultiProducerMap].
+  /// correction producers used to build fixes for those diagnostics.
+  ///
+  /// The generators used for lint rules are in
+  /// `_RegisteredFixGenerators.lintMultiProducers`.
   ///
   /// The expectation is that only one of the correction producers will produce
   /// a change for a given fix. If more than one change is produced the result
@@ -534,8 +534,9 @@ class BulkFixProcessor {
           }
         }
         if (resolvedLibrary is ResolvedLibraryResult) {
-          await _fixErrorsInLibrary(
+          await _fixErrorsInLibraryAt(
             resolvedLibrary,
+            path: path,
             stopAfterFirst: stopAfterFirst,
           );
           if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
@@ -565,6 +566,7 @@ class BulkFixProcessor {
     }
 
     // Run lints that handle specific node types.
+    context.currentUnit = currentUnit;
     currentUnit.unit.accept(AnalysisRuleVisitor(nodeRegistry));
   }
 
@@ -590,12 +592,14 @@ class BulkFixProcessor {
 
   /// Uses the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [libraryResult].
-  Future<void> _fixErrorsInLibrary(
+  Future<void> _fixErrorsInLibraryAt(
     ResolvedLibraryResult libraryResult, {
+    required String path,
     bool stopAfterFirst = false,
     bool autoTriggered = false,
   }) async {
-    for (var unitResult in libraryResult.units) {
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult != null) {
       await _fixErrorsInLibraryUnit(
         libraryResult,
         unitResult,
@@ -1096,7 +1100,7 @@ class IterativeBulkFixProcessor {
     OperationPerformanceImpl performance,
     String path, {
     required bool autoTriggered,
-  }) async {
+  }) {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile', (
       performance,
     ) async {

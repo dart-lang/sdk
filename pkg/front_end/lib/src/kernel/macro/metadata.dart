@@ -25,6 +25,7 @@ import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/procedure_builder.dart';
 import '../../source/source_field_builder.dart';
+import '../../source/source_method_builder.dart';
 
 // Coverage-ignore(suite): Not run.
 final Uri dummyUri = Uri.parse('dummy:uri');
@@ -91,6 +92,8 @@ shared.Proto builderToProto(Builder builder, String name) {
     return new shared.FieldProto(new FieldReference(builder));
   } else if (builder is ProcedureBuilder) {
     return new shared.FunctionProto(new FunctionReference(builder));
+  } else if (builder is SourceMethodBuilder) {
+    return new shared.FunctionProto(new MethodReference(builder));
   } else if (builder is PrefixBuilder) {
     return new shared.PrefixProto(name, new PrefixScope(builder));
   } else if (builder is ClassBuilder) {
@@ -354,6 +357,16 @@ class FunctionReference extends shared.FunctionReference {
   final ProcedureBuilder builder;
 
   FunctionReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class MethodReference extends shared.FunctionReference {
+  final SourceMethodBuilder builder;
+
+  MethodReference(this.builder);
 
   @override
   String get name => builder.name;

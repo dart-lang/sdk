@@ -93,11 +93,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   ///
   /// It is a parameter to the [body] function, so that [awaitStatement] can
   /// call [body] with the result of an awaited Future.
-  late final js_ast.Identifier _result = TemporaryId('t\$result');
+  late final js_ast.Identifier _result = ScopedId('t\$result');
 
   /// A parameter to the [bodyName] function. Indicating if we are in success
   /// or error case.
-  late final js_ast.Identifier _errorCode = TemporaryId('t\$errorCode');
+  late final js_ast.Identifier _errorCode = ScopedId('t\$errorCode');
 
   /// The inner function that is scheduled to do each await/yield,
   /// and called to do a new iteration for sync*.
@@ -107,10 +107,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   ///
   /// To "goto" a label, the label is assigned to this variable, and break out
   /// of the switch to take another iteration in the while loop. See [_addGoto]
-  late final js_ast.Identifier _goto = TemporaryId('t\$goto');
+  late final js_ast.Identifier _goto = ScopedId('t\$goto');
 
   /// Variable containing the label of the current error handler.
-  late final js_ast.Identifier _handler = TemporaryId('t\$handler');
+  late final js_ast.Identifier _handler = ScopedId('t\$handler');
 
   /// Set to `true` if any of the switch statement labels is a handler. At the
   /// end of rewriting this is used to see if a shorter form of error handling
@@ -122,16 +122,16 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   /// A stack of labels of finally blocks to visit, and the label to go to after
   /// the last.
-  late final js_ast.Identifier _next = TemporaryId('t\$next');
+  late final js_ast.Identifier _next = ScopedId('t\$next');
 
   /// The current returned value (a finally block may overwrite it).
-  late final js_ast.Identifier _returnValue = TemporaryId('t\$returnValue');
+  late final js_ast.Identifier _returnValue = ScopedId('t\$returnValue');
 
   /// Stores a stack of the current set of errors when we are in the process of
   /// handling an error. Errors are pushed onto this stack when error handling
   /// begins and the current error is popped off when error handling ends. This
   /// prevents nested error handling from overwriting state.
-  late final js_ast.Identifier _errorStack = TemporaryId('t\$errorStack');
+  late final js_ast.Identifier _errorStack = ScopedId('t\$errorStack');
 
   /// The label of the outer loop.
   ///
@@ -226,7 +226,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// [_ScopeCollector] for more info on scope objects. Temporary ids are
   /// already unique to a given scope so we can just hoist them directly.
   void _hoistIfNecessary(js_ast.Expression node) {
-    if (node is TemporaryId) {
+    if (node is ScopedId) {
       _localVariables.add(node);
     }
   }
@@ -360,7 +360,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     // are not [js_ast.Literal]s.
     if (result is js_ast.Literal) return result;
 
-    var tempVar = TemporaryId('t\$temp');
+    var tempVar = ScopedId('t\$temp');
     _localVariables.add(tempVar);
     _addStatement(js_ast.js.statement('# = #;', [tempVar, result]));
     return tempVar;
@@ -1780,8 +1780,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
             .first
             .declaration);
 
-    final valueWrapperVar = TemporaryId('t\$wrappedValue');
-    final iteratorVar = TemporaryId('t\$iterator');
+    final valueWrapperVar = ScopedId('t\$wrappedValue');
+    final iteratorVar = ScopedId('t\$iterator');
     _localVariables.add(valueWrapperVar);
     _localVariables.add(iteratorVar);
 
@@ -1916,7 +1916,7 @@ class AsyncRewriter extends AsyncRewriterBase {
   /// The Completer that will finish an async function.
   ///
   /// Not used for sync* or async* functions.
-  late final js_ast.Identifier completer = TemporaryId('t\$completer');
+  late final js_ast.Identifier completer = ScopedId('t\$completer');
 
   /// The function called by an async function to initiate asynchronous
   /// execution of the body.  This is called with:
@@ -2123,7 +2123,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// A parameter to the [bodyName] function that passes the controlling
   /// `_SyncStarIterator`. This parameter is used to update the state of the
   /// iterator.
-  late final js_ast.Identifier iterator = TemporaryId('t\$iterator');
+  late final js_ast.Identifier iterator = ScopedId('t\$iterator');
 
   /// Static method to create a sync star iterable.
   final js_ast.Expression makeSyncStarIterable;
@@ -2196,9 +2196,14 @@ class SyncStarRewriter extends AsyncRewriterBase {
     var innerDeclarationsList = <js_ast.VariableInitialization>[];
     for (var parameter in parameters) {
       final name = parameter.parameterName;
-      final renamedIdentifier = TemporaryId(name);
-      final parameterRef =
-          parameter is TemporaryId ? parameter : js_ast.Identifier(name);
+      final renamedIdentifier = ScopedId(name);
+      final parameterRef = switch (parameter) {
+        ScopedId() => ScopedId.from(parameter),
+        js_ast.DestructuredVariable() when parameter.name is ScopedId =>
+          ScopedId.from(parameter.name as ScopedId),
+        _ => js_ast.Identifier(name)
+      };
+
       innerDeclarationsList
           .add(js_ast.VariableInitialization(parameterRef, renamedIdentifier));
       outerDeclarationsList
@@ -2325,10 +2330,10 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// The stack of labels of finally blocks to assign to [_next] if the
   /// async* [StreamSubscription] was canceled during a yield.
   late final js_ast.Identifier nextWhenCanceled =
-      TemporaryId('t\$nextWhenCanceled');
+      ScopedId('t\$nextWhenCanceled');
 
   /// The StreamController that controls an async* function.
-  late final js_ast.Identifier controller = TemporaryId('t\$controller');
+  late final js_ast.Identifier controller = ScopedId('t\$controller');
 
   /// The function called by an async* function to simulate an await, yield or
   /// yield*.
@@ -3124,7 +3129,7 @@ class PreTranslationAnalysis extends js_ast.NodeVisitor<bool> {
 /// Each scope also tracks if it was captured. Only captured scopes need to be
 /// reset upon re-entry, otherwise the values within them cannot leak out.
 class _ScopeInfo {
-  late final TemporaryId scopeObject = TemporaryId('asyncScope');
+  late final ScopedId scopeObject = ScopedId('asyncScope');
   bool isCaptured = false;
   bool hasDeclarations = false;
   final Map<String, _ScopeInfo> _nameDeclarations;
@@ -3161,14 +3166,14 @@ class _ScopeInfo {
 /// by their capture name.
 class _ClosureCaptureInfo {
   final _ScopeInfo scopeInfo;
-  final Map<_ScopeInfo, TemporaryId> usedScopes = {};
+  final Map<_ScopeInfo, ScopedId> usedScopes = {};
   bool get hasCapture => usedScopes.isNotEmpty;
 
   _ClosureCaptureInfo(this.scopeInfo);
 
-  TemporaryId useScope(_ScopeInfo scope) {
+  ScopedId useScope(_ScopeInfo scope) {
     scope.isCaptured = true;
-    return usedScopes[scope] ??= TemporaryId('capturedAsyncScope');
+    return usedScopes[scope] ??= ScopedId('capturedAsyncScope');
   }
 }
 
@@ -3258,14 +3263,14 @@ class _ScopeCollector extends js_ast.VariableDeclarationVisitor {
 
   @override
   void declare(js_ast.Identifier node) {
-    if (node is TemporaryId) return;
+    if (node is ScopedId && !node.needsCapture) return;
     _currentScope.declare(node, inClosure || skipHoisting);
     registerUsed(node);
   }
 
   @override
   void visitIdentifier(js_ast.Identifier node) {
-    if (node is TemporaryId) return;
+    if (node is ScopedId && !node.needsCapture) return;
     registerUsed(node);
   }
 

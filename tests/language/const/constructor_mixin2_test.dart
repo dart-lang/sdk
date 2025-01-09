@@ -10,14 +10,12 @@ class A {
   const A(foo);
 }
 
-class B extends A
-    with Mixin
-{
+class B extends A with Mixin {
   const B(foo) : super(foo);
-//      ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD
-//               ^
-// [cfe] A constant constructor can't call a non-constant super constructor.
+  //    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD
+  //             ^
+  // [cfe] A constant constructor can't call a non-constant super constructor.
 }
 
 main() {

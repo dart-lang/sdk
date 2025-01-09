@@ -88,7 +88,7 @@ class InlineExpander {
       String parameterString = 'x$j';
       DartType type = originalArgument.getStaticType(_staticTypeContext);
       dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: type, isSynthesized: true));
+          type: _toExternalType(type), isSynthesized: true));
       if (originalArgument is! VariableGet) {
         allArgumentsAreGet = false;
       }
@@ -120,5 +120,19 @@ class InlineExpander {
     }
     _methodCollector.addMethod(dartProcedure, jsMethodName, codeTemplate);
     return result;
+  }
+
+  // The `JS<foo>("...some js code ...", arg0, arg1)` expressions will produce
+  // wasm imports. We want to only use types in those wasm imports that binaryen
+  // allows under closed world assumptions (and not blindly use `arg<N>`s static
+  // type).
+  //
+  // For now we special case `WasmArray<>` which we turn into a generic `array`
+  // type (super type of all wasm arrays).
+  DartType _toExternalType(DartType type) {
+    if (type is InterfaceType && type.classNode == _util.wasmArrayClass) {
+      return InterfaceType(_util.wasmArrayRefClass, type.declaredNullability);
+    }
+    return type;
   }
 }

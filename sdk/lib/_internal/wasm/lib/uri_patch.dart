@@ -36,8 +36,8 @@ class _Uri {
       }""");
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
-  // component.  This corresponds to [_unreservedTable], i.e. characters that
-  // are not encoded by any encoding table.
+  // component.  This corresponds to `_unreservedMask` table,
+  // i.e. characters that are not encoded by any encoding table.
   static final RegExp _needsNoEncoding = RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
 
   /**
@@ -47,7 +47,7 @@ class _Uri {
    */
   @patch
   static String _uriEncode(
-    List<int> canonicalTable,
+    int canonicalMask,
     String text,
     Encoding encoding,
     bool spaceToPlus,
@@ -62,8 +62,7 @@ class _Uri {
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+      if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         result.writeCharCode(byte);
       } else if (spaceToPlus && byte == _SPACE) {
         result.write('+');

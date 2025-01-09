@@ -183,6 +183,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     String? command,
     String? title,
     ProgressToken? commandWorkDoneToken,
+    bool openTargetFile = false,
   }) async {
     filePath ??= mainFilePath;
 
@@ -200,6 +201,7 @@ $expected''';
       kind: kind,
       command: command,
       title: title,
+      openTargetFile: openTargetFile,
     );
 
     // Verify the edits either by executing the command we expected, or

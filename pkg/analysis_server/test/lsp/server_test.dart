@@ -148,7 +148,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     failTestOnAnyErrorNotification = false;
     await initialize();
 
-    var error = await expectErrorNotification(() async {
+    var error = await expectErrorNotification(() {
       errorNotifier.logException(Exception('dummy exception'));
     });
 
@@ -161,7 +161,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     failTestOnAnyErrorNotification = false;
     await initialize();
 
-    var error = await expectErrorNotification(() async {
+    var error = await expectErrorNotification(() {
       server.sendServerErrorNotification(
         'message',
         Exception('dummy exception'),

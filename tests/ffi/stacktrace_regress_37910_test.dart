@@ -15,9 +15,11 @@ int fooFfi1() {
   return a;
 }
 
-int Function() foo1 = ffi.Pointer.fromFunction<fooFfi1Type>(fooFfi1, 0)
-    .cast<ffi.NativeFunction<fooFfi1Type>>()
-    .asFunction();
+int Function() foo1 =
+    ffi.Pointer.fromFunction<fooFfi1Type>(
+      fooFfi1,
+      0,
+    ).cast<ffi.NativeFunction<fooFfi1Type>>().asFunction();
 
 main() {
   foo1();

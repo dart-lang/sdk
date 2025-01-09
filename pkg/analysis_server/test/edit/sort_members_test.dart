@@ -109,7 +109,7 @@ class C {}
 ''');
   }
 
-  Future<void> test_OK_classMembers_method() async {
+  Future<void> test_OK_classMembers_method() {
     addTestFile('''
 class A {
   c() {}
@@ -126,7 +126,7 @@ class A {
 ''');
   }
 
-  Future<void> test_OK_directives() async {
+  Future<void> test_OK_directives() {
     addTestFile('''
 library lib;
 
@@ -177,7 +177,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_OK_directives_withAnnotation() async {
+  Future<void> test_OK_directives_withAnnotation() {
     addTestFile('''
 library lib;
 
@@ -211,7 +211,7 @@ class MyAnnotation {
 ''');
   }
 
-  Future<void> test_OK_genericFunctionType() async {
+  Future<void> test_OK_genericFunctionType() {
     addTestFile('''
 class C {
   void caller() {
@@ -278,7 +278,7 @@ class Z {
 ''');
   }
 
-  Future<void> test_OK_unitMembers_class() async {
+  Future<void> test_OK_unitMembers_class() {
     addTestFile('''
 class C {}
 class A {}

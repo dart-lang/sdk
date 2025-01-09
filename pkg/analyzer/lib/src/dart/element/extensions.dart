@@ -205,7 +205,7 @@ extension LibraryExtension2 on LibraryElement2? {
 
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({
+  ParameterElementImpl copyWith({
     DartType? type,
     ParameterKind? kind,
     bool? isCovariant,
@@ -217,6 +217,11 @@ extension ParameterElementExtensions on ParameterElement {
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
   }
+
+  /// Returns `this`, converted to a [ParameterElementImpl] if it isn't one
+  /// already.
+  ParameterElementImpl toImpl() =>
+      switch (this) { ParameterElementImpl p => p, _ => copyWith() };
 }
 
 extension RecordTypeExtension on RecordType {

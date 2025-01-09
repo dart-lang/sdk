@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utilities for interoperating with JavaScript.
+@Deprecated('Use dart:js_interop instead')
 library;
 
 export 'dart:js_util';

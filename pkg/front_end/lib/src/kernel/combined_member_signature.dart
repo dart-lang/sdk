@@ -345,13 +345,10 @@ abstract class CombinedMemberSignatureBase {
       if (typeParameterCount == 0) {
         return type;
       }
-      List<DartType> types =
-          new List<DartType>.filled(typeParameterCount, dummyDartType);
-      for (int i = 0; i < typeParameterCount; i++) {
-        types[i] =
-            new TypeParameterType.forAlphaRenamingFromStructuralParameters(
-                signatureTypeParameters[i], typeParameters[i]);
-      }
+      List<DartType> types = [
+        for (TypeParameter parameter in typeParameters)
+          new TypeParameterType.withDefaultNullability(parameter)
+      ];
       FunctionTypeInstantiator instantiator =
           new FunctionTypeInstantiator.fromIterables(
               signatureTypeParameters, types);

@@ -36,7 +36,8 @@ void testTypeVariablePromotedToNullableCallableClass<T>(T t) {
 }
 
 void testTypeVariableExtendsNullableTypeVariable<T extends U?, U extends C>(
-    T t) {
+  T t,
+) {
   context<void Function()>(t);
   //                       ^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE

@@ -780,6 +780,7 @@ NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
 NamedParametersInExtensionTypeDeclaration/analyzerCode: Fail
 NativeClauseShouldBeAnnotation/example: Fail
+NegativeVariableDimension/analyzerCode: Fail
 NeverReachableSwitchDefaultError/analyzerCode: Fail
 NeverReachableSwitchDefaultError/example: Fail
 NeverReachableSwitchDefaultWarning/analyzerCode: Fail

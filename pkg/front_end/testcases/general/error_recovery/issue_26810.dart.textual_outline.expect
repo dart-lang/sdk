@@ -20,8 +20,12 @@ abstract class Key {
   s(int x, int y) {}
   int foo;
   int bar;
-  Key(int x, int y) : foo = x ^ y, bar = x ^ y {}
-  Key.NotDuplicate(int x, int y) : foo = x ^ y, bar = x ^ y {}
+  Key(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
+  Key.NotDuplicate(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
 }
 
 main() {}

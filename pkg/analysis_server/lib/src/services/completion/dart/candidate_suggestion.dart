@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/utilities/completion_matcher.dart';
+library;
+
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
@@ -186,7 +189,8 @@ final class ConstructorSuggestion extends ExecutableSuggestion
 
     var className = enclosingClass.displayName;
 
-    var completion = element.displayName;
+    // TODO(scheglov): Wrong, if no name, should be no completion.
+    var completion = element.name3 ?? '';
     if (suggestUnnamedAsNew) {
       if (completion.isEmpty) {
         completion = 'new';
@@ -374,7 +378,6 @@ final class FunctionCall extends CandidateSuggestion {
   String get completion => 'call()';
 }
 
-
 /// The information about a candidate suggestion based on a getter.
 final class GetterSuggestion extends ImportableSuggestion
     with MemberSuggestion {
@@ -501,7 +504,7 @@ final class ImportData {
   final String? prefix;
 
   /// Initialize data representing an import of a library, using the
-  /// [libraryUriStr], with the [prefix].
+  /// [libraryUri], with the [prefix].
   ImportData({
     required this.libraryUri,
     required this.prefix,

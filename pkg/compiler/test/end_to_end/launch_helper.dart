@@ -33,8 +33,11 @@ List<String> dart2JsCommand(List<String> args) {
 
 Future<ProcessResult> launchDart2Js(args, {bool noStdoutEncoding = false}) {
   if (noStdoutEncoding) {
-    return Process.run(Platform.executable, dart2JsCommand(args),
-        stdoutEncoding: null);
+    return Process.run(
+      Platform.executable,
+      dart2JsCommand(args),
+      stdoutEncoding: null,
+    );
   } else {
     return Process.run(Platform.executable, dart2JsCommand(args));
   }

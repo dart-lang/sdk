@@ -3,12 +3,18 @@ abstract class Const {
 }
 
 class Class {
-  Class({
-    this.constants = const [Const.impl(), Alias.impl(), ImplAlias<String>()],
-  });
-  const Class.named({
-    this.constants = const [Const.impl(), Alias.impl(), ImplAlias<String>()],
-  });
+  Class(
+      {this.constants = const [
+        Const.impl(),
+        Alias.impl(),
+        ImplAlias<String>()
+      ]});
+  const Class.named(
+      {this.constants = const [
+        Const.impl(),
+        Alias.impl(),
+        ImplAlias<String>()
+      ]});
   final List<Const> constants;
 }
 

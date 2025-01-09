@@ -55,6 +55,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -82,6 +83,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -278,7 +280,8 @@ abstract class AnalysisServer {
     ProcessRunner? processRunner,
     this.notificationManager, {
     this.requestStatistics,
-    bool enableBlazeWatcher = false,
+    // Disable to avoid using this in unit tests.
+    @visibleForTesting bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,
@@ -291,8 +294,8 @@ abstract class AnalysisServer {
        ),
        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
        messageScheduler = MessageScheduler(
-            testView:
-                retainDataForTesting ? MessageSchedulerTestView() : null) {
+         testView: retainDataForTesting ? MessageSchedulerTestView() : null,
+       ) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
@@ -674,6 +677,12 @@ abstract class AnalysisServer {
     return getElementOfNode(node);
   }
 
+  /// Return a [Future] that completes with the [Element2] at the given
+  /// [offset] of the given [file], or with `null` if there is no node at the
+  /// [offset] or the node does not have an element.
+  Future<Element2?> getElementAtOffset2(String file, int offset) async =>
+      (await getElementAtOffset(file, offset)).asElement2;
+
   /// Return the [Element] of the given [node], or `null` if [node] is `null` or
   /// does not have an element.
   Element? getElementOfNode(AstNode? node) {
@@ -689,11 +698,41 @@ abstract class AnalysisServer {
     if (node is StringLiteral && node.parent is UriBasedDirective) {
       return null;
     }
-    var element = ElementLocator.locate(node);
+
+    Element? element;
+    switch (node) {
+      case ExportDirective():
+        element = node.element;
+      case ImportDirective():
+        element = node.element;
+      case PartOfDirective():
+        element = node.element;
+      default:
+        element = ElementLocator.locate2(node).asElement;
+    }
+
     if (node is SimpleIdentifier && element is PrefixElement) {
       element = getImportElement(node);
     }
     return element;
+  }
+
+  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
+  /// does not have an element.
+  Element2? getElementOfNode2(AstNode? node) {
+    if (node == null) {
+      return null;
+    }
+    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is StringLiteral && node.parent is UriBasedDirective) {
+      return null;
+    }
+    return ElementLocator.locate2(node);
   }
 
   /// Return a [LineInfo] for the file with the given [path].

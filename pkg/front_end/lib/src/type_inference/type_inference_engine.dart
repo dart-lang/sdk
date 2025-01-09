@@ -636,22 +636,6 @@ class OperationsCfe
     return new SharedTypeView(result);
   }
 
-  DartType getNullableType(DartType type) {
-    // Note that the [IntersectionType.withDeclaredNullability] is special so
-    // we don't trust it.
-    if (type.declaredNullability == Nullability.nullable &&
-        type is! IntersectionType) {
-      return type;
-    }
-    DartType? cached = typeCacheNullable[type];
-    if (cached != null) {
-      return cached;
-    }
-    DartType result = type.withDeclaredNullability(Nullability.nullable);
-    typeCacheNullable[type] = result;
-    return result;
-  }
-
   @override
   SharedTypeView<DartType> variableType(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
@@ -685,8 +669,7 @@ class OperationsCfe
           // `x != null && x is T`.
           return new SharedTypeView(new IntersectionType(
               unwrappedFrom.withDeclaredNullability(
-                  TypeParameterType.computeNullabilityFromBound(
-                      unwrappedFrom.parameter)),
+                  unwrappedFrom.parameter.computeNullabilityFromBound()),
               unwrappedTo));
         } else {
           return new SharedTypeView(
@@ -763,7 +746,22 @@ class OperationsCfe
 
   @override
   DartType makeNullableInternal(DartType type) {
-    return type.withDeclaredNullability(Nullability.nullable);
+    if (type is NullType || type is NeverType) {
+      return const NullType();
+    }
+    // Note that the [IntersectionType.withDeclaredNullability] is special so
+    // we don't trust it.
+    if (type.declaredNullability == Nullability.nullable &&
+        type is! IntersectionType) {
+      return type;
+    }
+    DartType? cached = typeCacheNullable[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.withDeclaredNullability(Nullability.nullable);
+    typeCacheNullable[type] = result;
+    return result;
   }
 
   @override

@@ -1175,14 +1175,7 @@ bool ConstantInstr::AttributesEqual(const Instruction& other) const {
 
 UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
                                            Representation representation)
-    : ConstantInstr(value),
-      representation_(representation),
-      constant_address_(0) {
-  if (representation_ == kUnboxedDouble) {
-    ASSERT(value.IsDouble());
-    constant_address_ = FindDoubleConstant(Double::Cast(value).value());
-  }
-}
+    : ConstantInstr(value), representation_(representation) {}
 
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
@@ -1219,6 +1212,17 @@ intptr_t Value::BoundSmiConstant() const {
   return Smi::Cast(BoundConstant()).Value();
 }
 
+BlockEntryInstr* TryEntryInstr::SuccessorAt(intptr_t index) const {
+  switch (index) {
+    case 0:
+      return try_body_;
+    case 1:
+      return catch_target_;
+    default:
+      UNREACHABLE();
+  }
+}
+
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  intptr_t osr_id)
     : GraphEntryInstr(parsed_function,
@@ -1233,7 +1237,6 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                 deopt_id,
                                 /*stack_depth*/ 0),
       parsed_function_(parsed_function),
-      catch_entries_(),
       indirect_entries_(),
       osr_id_(osr_id),
       entry_count_(0),
@@ -1250,17 +1253,13 @@ ConstantInstr* GraphEntryInstr::constant_null() {
   return nullptr;
 }
 
-CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
-  // TODO(fschneider): Sort the catch entries by catch_try_index to avoid
-  // searching.
-  for (intptr_t i = 0; i < catch_entries_.length(); ++i) {
-    if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
-  }
-  return nullptr;
-}
-
 bool GraphEntryInstr::IsCompiledForOsr() const {
   return osr_id_ != Compiler::kNoOSRDeoptId;
+}
+
+void TryEntryInstr::set_catch_target(CatchBlockEntryInstr* catch_target) {
+  catch_target_ = catch_target;
+  catch_target_->AddPredecessor(this);
 }
 
 // ==== Support for visiting flow graphs.
@@ -1738,9 +1737,9 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
   ASSERT(preorder->length() == parent->length());
 
   // 5. Iterate straight-line successors to record assigned variables and
-  // find the last instruction in the block.  The graph entry block consists
-  // of only the entry instruction, so that is the last instruction in the
-  // block.
+  // find the last instruction in the block.  The graph and try entry blocks
+  // consist of only the entry instruction, so that is the last instruction in
+  // the block.
   Instruction* last = this;
   for (ForwardInstructionIterator it(this); !it.Done(); it.Advance()) {
     last = it.Current();
@@ -1751,16 +1750,11 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
   return true;
 }
 
-void GraphEntryInstr::RelinkToOsrEntry(Zone* zone, intptr_t max_block_id) {
-  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
-  BitVector* block_marks = new (zone) BitVector(zone, max_block_id + 1);
-  bool found = FindOsrEntryAndRelink(this, /*parent=*/nullptr, block_marks);
-  ASSERT(found);
-}
-
-bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
-                                            Instruction* parent,
-                                            BitVector* block_marks) {
+OsrEntryRelinkingInfo* BlockEntryInstr::FindOsrEntryRecursive(
+    GraphEntryInstr* graph_entry,
+    Instruction* parent,
+    BitVector& block_marks,
+    GrowableArray<TryEntryInstr*>& try_entries) {
   const intptr_t osr_id = graph_entry->osr_id();
 
   // Search for the instruction with the OSR id.  Use a depth first search
@@ -1768,53 +1762,56 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
   // blocks by replacing the normal entry with a jump to the block
   // containing the OSR entry point.
 
+  // Keep try-catch blocks in the graph that would be "jumped-over" to OSR entry
+  // point. Keep them by moving try-entry blocks upward so they form a chain
+  // starting from OSR entry. They are safe to move because the only property
+  // that we have to guarantee is that try-entry dominates all blocks which
+  // constitute the body of the try.
+  // While we need only to relink try blocks that enclose OSR entry, for
+  // simplicity we relink all try blocks on the path from normal entry to the
+  // OSR entry as we don't mark ends of try blocks explicitly in the flow graph.
+
+  // Note that given that try-entry can move upwards, body of the try block
+  // is defined by explicit [try_index] values associated with the block and
+  // not as a a set of blocks dominated by try-entry.
+
   // Do not visit blocks more than once.
-  if (block_marks->Contains(block_id())) return false;
-  block_marks->Add(block_id());
+  if (block_marks.Contains(block_id())) return nullptr;
+  block_marks.Add(block_id());
 
   // Search this block for the OSR id.
   Instruction* instr = this;
+  if (auto try_entry = AsTryEntry()) {
+    try_entries.Add(try_entry);
+  }
   for (ForwardInstructionIterator it(this); !it.Done(); it.Advance()) {
     instr = it.Current();
     if (instr->GetDeoptId() == osr_id) {
-      // Sanity check that we found a stack check instruction.
-      ASSERT(instr->IsCheckStackOverflow());
-      // Loop stack check checks are always in join blocks so that they can
-      // be the target of a goto.
-      ASSERT(IsJoinEntry());
-      // The instruction should be the first instruction in the block so
-      // we can simply jump to the beginning of the block.
-      ASSERT(instr->previous() == this);
-
-      ASSERT(stack_depth() == instr->AsCheckStackOverflow()->stack_depth());
-      auto normal_entry = graph_entry->normal_entry();
-      auto osr_entry = new OsrEntryInstr(
-          graph_entry, normal_entry->block_id(), normal_entry->try_index(),
-          normal_entry->deopt_id(), stack_depth());
-
-      auto goto_join = new GotoInstr(AsJoinEntry(),
-                                     CompilerState::Current().GetNextDeoptId());
-      ASSERT(parent != nullptr);
-      goto_join->CopyDeoptIdFrom(*parent);
-      osr_entry->LinkTo(goto_join);
-
-      // Remove normal function entries & add osr entry.
-      graph_entry->set_normal_entry(nullptr);
-      graph_entry->set_unchecked_entry(nullptr);
-      graph_entry->set_osr_entry(osr_entry);
-
-      return true;
+      return new OsrEntryRelinkingInfo(graph_entry, instr, parent, try_entries);
     }
   }
 
   // Recursively search the successors.
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
-    if (instr->SuccessorAt(i)->FindOsrEntryAndRelink(graph_entry, instr,
-                                                     block_marks)) {
-      return true;
+    auto result = instr->SuccessorAt(i)->FindOsrEntryRecursive(
+        graph_entry, instr, block_marks, try_entries);
+    if (result != nullptr) {
+      return result;
     }
   }
-  return false;
+  if (IsTryEntry()) {
+    try_entries.RemoveLast();
+  }
+  return nullptr;
+}
+
+OsrEntryRelinkingInfo* GraphEntryInstr::FindOsrEntry(Zone* zone,
+                                                     intptr_t max_block_id) {
+  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
+  GrowableArray<TryEntryInstr*> try_entries;
+  BitVector block_marks(zone, max_block_id + 1);
+  return FindOsrEntryRecursive(this, /*parent=*/nullptr, block_marks,
+                               try_entries);
 }
 
 bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
@@ -1993,7 +1990,7 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
 intptr_t GraphEntryInstr::SuccessorCount() const {
   return (normal_entry() == nullptr ? 0 : 1) +
          (unchecked_entry() == nullptr ? 0 : 1) +
-         (osr_entry() == nullptr ? 0 : 1) + catch_entries_.length();
+         (osr_entry() == nullptr ? 0 : 1);
 }
 
 BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
@@ -2009,7 +2006,7 @@ BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
     if (index == 0) return osr_entry();
     index--;
   }
-  return catch_entries_[index];
+  UNREACHABLE();
 }
 
 intptr_t BranchInstr::SuccessorCount() const {
@@ -3021,8 +3018,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   const auto& abs_type = AbstractType::Cast(dst_type()->BoundConstant());
 
   if (abs_type.IsTopTypeForSubtyping() ||
-      (FLAG_eliminate_type_checks &&
-       value()->Type()->IsAssignableTo(abs_type))) {
+      (FLAG_eliminate_type_checks && value()->Type()->IsSubtypeOf(abs_type))) {
     return value()->definition();
   }
   if (abs_type.IsInstantiated()) {
@@ -3107,7 +3103,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     if (new_dst_type.IsTopTypeForSubtyping() ||
         (FLAG_eliminate_type_checks &&
-         value()->Type()->IsAssignableTo(new_dst_type))) {
+         value()->Type()->IsSubtypeOf(new_dst_type))) {
       return value()->definition();
     }
   }
@@ -5144,7 +5140,7 @@ bool InstanceCallBaseInstr::CanReceiverBeSmiBasedOnInterfaceTarget(
     // it would compute correctly whether or not receiver can be a smi.
     const AbstractType& target_type = AbstractType::Handle(
         zone, Class::Handle(zone, interface_target().Owner()).RareType());
-    if (!CompileType::Smi().IsAssignableTo(target_type)) {
+    if (!CompileType::Smi().IsSubtypeOf(target_type)) {
       return false;
     }
   }
@@ -8697,6 +8693,23 @@ int64_t TestIntInstr::ComputeImmediateMask() {
       UNREACHABLE();
       return -1;
   }
+}
+
+LocationSummary* TryEntryInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  UNREACHABLE();
+  return nullptr;
+}
+
+void TryEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    JoinEntryInstr::EmitNativeCode(compiler);
+    if (!compiler->CanFallThroughTo(try_body())) {
+      __ Jump(compiler->GetJumpLabel(try_body()));
+    }
+    return;
+  }
+  UNREACHABLE();
 }
 
 #undef __

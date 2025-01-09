@@ -4,8 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 final bool _assertionsEnabled = () {
@@ -13,6 +14,11 @@ final bool _assertionsEnabled = () {
   assert(enabled = true);
   return enabled;
 }();
+
+/// Expando used by [_InferenceLogWriterImpl.setExpressionVisitCodePath] to
+/// record the code path that's being used by the [ResolverVisitor] to visit a
+/// subexpression.
+final _expressionVisitCodePaths = Expando<ExpressionVisitCodePath>();
 
 /// The [InferenceLogWriter] currently being used by the analyzer, if inference
 /// logging is active, otherwise `null`.
@@ -52,22 +58,69 @@ void stopInferenceLogging() {
   _inferenceLogWriter = null;
 }
 
+/// Enum of all the possible code paths that can be used by the
+/// [ResolverVisitor] to visit expressions when inside the body or initializer
+/// of a top level construct.
+enum ExpressionVisitCodePath {
+  /// The expression is being visited via [ResolverVisitor.analyzeExpression].
+  analyzeExpression,
+
+  /// The expression is the identifier in a "for each" loop, so it is not a true
+  /// expression, and it is being visited directly using [Expression.accept].
+  forEachIdentifier
+}
+
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
 /// functionality.
 abstract interface class InferenceLogWriter
     implements
-        SharedInferenceLogWriter<DartType, DartType, TypeParameterElement> {
+        SharedInferenceLogWriter<DartType, DartType,
+            TypeParameterElementImpl2> {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
   /// each expression's visit method property calls [enterExpression].
   void assertExpressionWasRecorded(Expression expression);
+
+  /// Called when type inference enters the body of a top level function or
+  /// method, or the initializer of a top level variable or field, or the
+  /// initializers and body of a constructor.
+  void enterBodyOrInitializer(AstNode node);
+
+  /// Called when type inference enters the body of a top level function or
+  /// method, or the initializer of a top level variable or field, or the
+  /// initializers and body of a constructor.
+  void exitBodyOrInitializer();
+
+  /// Records [source] as the code path that the [ResolverVisitor] is about to
+  /// use to visit the expression [node].
+  ///
+  /// An assertion in [enterExpression] verifies that when inside a method body
+  /// or initializer (see [enterBodyOrInitializer]), every call to
+  /// [enterExpression] is preceded by exactly one call to
+  /// [setExpressionVisitCodePath]. This ensures that the resolution process
+  /// doesn't ever try to resolve a subexpression more than once. It also
+  /// ensures that every code path that resolves subexpressions inside method
+  /// bodies and initializers calls this method, making it easy to statically
+  /// locate these code paths.
+  void setExpressionVisitCodePath(
+      Expression node, ExpressionVisitCodePath source);
 }
 
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
 final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
-    DartType, DartType, TypeParameterElement> implements InferenceLogWriter {
+    DartType,
+    DartType,
+    TypeParameterElementImpl2> implements InferenceLogWriter {
+  /// Whether type inference is currently inside the body of a top level
+  /// function or method, or the initializer of a top level variable or field,
+  /// or the initializers and body of a constructor.
+  ///
+  /// When this value is `true`, flow analysis is active, and expressions must
+  /// be visited using [ResolverVisitor.analyzeExpression].
+  bool _inBodyOrInitializer = false;
+
   @override
   void assertExpressionWasRecorded(Object expression) {
     if (_recordedExpressions[expression] ?? false) return;
@@ -91,6 +144,12 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
   }
 
   @override
+  void enterBodyOrInitializer(AstNode node) {
+    assert(!_inBodyOrInitializer, 'Already in a body or initializer');
+    _inBodyOrInitializer = true;
+  }
+
+  @override
   void enterElement(covariant CollectionElement node) {
     checkCall(
         method: 'enterElement',
@@ -101,6 +160,10 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
 
   @override
   void enterExpression(covariant Expression node, DartType contextType) {
+    assert(
+        !_inBodyOrInitializer || _expressionVisitCodePaths[node] != null,
+        'When in a body or initializer, setExpressionVisitSource should be '
+        'called prior to enterExpression. Not called for $node.');
     checkCall(
         method: 'enterExpression',
         arguments: [node, contextType],
@@ -145,6 +208,20 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
         arguments: [node],
         expectedNode: traceableAncestor(node));
     super.enterStatement(node);
+  }
+
+  @override
+  void exitBodyOrInitializer() {
+    assert(_inBodyOrInitializer, 'Not in a method body or initializer');
+    _inBodyOrInitializer = false;
+  }
+
+  @override
+  void setExpressionVisitCodePath(
+      Expression node, ExpressionVisitCodePath source) {
+    assert(_expressionVisitCodePaths[node] == null,
+        'An expression visit source was already set for $node');
+    _expressionVisitCodePaths[node] = source;
   }
 
   /// Returns the nearest ancestor of [node] for which a call to `enter...`

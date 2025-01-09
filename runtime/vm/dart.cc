@@ -123,6 +123,7 @@ class DartInitializationState : public AllStatic {
   }
 
   static bool IsInitialized() { return state_.load() == kInitialized; }
+  static bool IsShuttingDown() { return state_.load() == kCleaningup; }
 
   static bool SetCleaningup() {
     uint8_t expected = kInitialized;
@@ -797,6 +798,10 @@ char* Dart::Cleanup() {
 
 bool Dart::IsInitialized() {
   return DartInitializationState::IsInitialized();
+}
+
+bool Dart::IsShuttingDown() {
+  return DartInitializationState::IsShuttingDown();
 }
 
 bool Dart::SetActiveApiCall() {

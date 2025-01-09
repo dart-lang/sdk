@@ -49,5 +49,5 @@ const Map<String, String> sources = const {
     library deferred;
 
     unique_method_name() => (() => print("unique-string"))();
-    """
+    """,
 };

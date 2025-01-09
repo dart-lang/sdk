@@ -130,6 +130,7 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 5),
+      error(WarningCode.UNUSED_ELEMENT, 37, 3),
     ]);
   }
 
@@ -154,6 +155,7 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
+      error(WarningCode.UNUSED_ELEMENT, 41, 3),
     ]);
   }
 

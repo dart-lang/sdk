@@ -22,16 +22,17 @@ import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_builder_mixins.dart';
 import 'source_extension_type_declaration_builder.dart';
+import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
@@ -44,9 +45,6 @@ abstract class SourceFunctionBuilder
   List<NominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;
-
-  @override
-  ProcedureKind? get kind;
 
   @override
   bool get isAbstract;
@@ -107,10 +105,6 @@ abstract class SourceFunctionBuilder
   List<TypeParameter>? get thisTypeParameters;
 
   void becomeNative(SourceLoader loader);
-
-  bool checkAugmentation(SourceFunctionBuilder augmentation);
-
-  void reportAugmentationMismatch(Builder augmentation);
 }
 
 /// Common base class for constructor and procedure builders.
@@ -171,21 +165,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isConstructor => false;
-
-  @override
-  bool get isRegularMethod => identical(ProcedureKind.Method, kind);
-
-  @override
-  bool get isGetter => identical(ProcedureKind.Getter, kind);
-
-  @override
-  bool get isSetter => identical(ProcedureKind.Setter, kind);
-
-  @override
-  bool get isOperator => identical(ProcedureKind.Operator, kind);
-
-  @override
-  bool get isFactory => identical(ProcedureKind.Factory, kind);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -305,6 +284,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   bool get supportsTypeParameters => true;
@@ -313,63 +293,24 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     function.asyncMarker = asyncModifier;
     function.body = body;
     body?.parent = function;
-    IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-    if (!isConstructor && !isFactory && parent is ClassBuilder) {
+    List<TypeParameter>? classTypeParameters;
+    if (!isConstructor &&
+        !isFactory &&
+        // Coverage-ignore(suite): Not run.
+        parent is ClassBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       Class enclosingClass = classBuilder!.cls;
-      if (enclosingClass.typeParameters.isNotEmpty) {
-        needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-            enclosingClass.typeParameters,
-            // We are checking the parameter types which are in a
-            // contravariant position.
-            initialVariance: Variance.contravariant);
-      }
+      classTypeParameters = enclosingClass.typeParameters;
     }
-    if (typeParameters != null) {
-      for (NominalParameterBuilder t in typeParameters!) {
-        TypeParameter parameter = t.parameter;
-        if (supportsTypeParameters) {
-          function.typeParameters.add(parameter);
-        }
-        if (needsCheckVisitor != null) {
-          if (parameter.bound.accept(needsCheckVisitor)) {
-            parameter.isCovariantByClass = true;
-          }
-        }
-      }
-      setParents(function.typeParameters, function);
-    }
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        VariableDeclaration parameter = formal.build(libraryBuilder);
-        if (needsCheckVisitor != null) {
-          if (parameter.type.accept(needsCheckVisitor)) {
-            parameter.isCovariantByClass = true;
-          }
-        }
-        if (formal.isNamed) {
-          function.namedParameters.add(parameter);
-        } else {
-          function.positionalParameters.add(parameter);
-        }
-        parameter.parent = function;
-        if (formal.isRequiredPositional) {
-          function.requiredParameterCount++;
-        }
-
-        // Required named parameters can't have default values.
-        if (formal.isRequiredNamed && formal.initializerToken != null) {
-          libraryBuilder.addProblem(
-              templateRequiredNamedParameterHasDefaultValueError
-                  .withArguments(formal.name),
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri);
-        }
-      }
-    }
+    buildTypeParametersAndFormals(
+        libraryBuilder, function, typeParameters, formals,
+        classTypeParameters: classTypeParameters,
+        supportsTypeParameters: supportsTypeParameters);
     if (!(isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         isSetter &&
+        // Coverage-ignore(suite): Not run.
         (formals?.length != 1 || formals![0].isOptionalPositional)) {
+      // Coverage-ignore-block(suite): Not run.
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
@@ -381,7 +322,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.requiredParameterCount = 1;
     } else if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         isSetter &&
+        // Coverage-ignore(suite): Not run.
         (formals?.length != 2 || formals![1].isOptionalPositional)) {
+      // Coverage-ignore-block(suite): Not run.
       // Replace illegal parameters by single dummy parameter (after #this).
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
@@ -412,12 +355,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             parent as SourceExtensionTypeDeclarationBuilder;
         List<DartType> typeArguments;
         if (_thisTypeParameters != null) {
-          typeArguments = new List<DartType>.generate(
-              _thisTypeParameters!.length,
-              (int index) => new TypeParameterType(
-                  _thisTypeParameters![index],
-                  TypeParameterType.computeNullabilityFromBound(
-                      _thisTypeParameters![index])));
+          typeArguments = [
+            for (TypeParameter parameter in _thisTypeParameters!)
+              new TypeParameterType.withDefaultNullability(parameter)
+          ];
         } else {
           typeArguments = [];
         }
@@ -430,6 +371,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           ..fileOffset = fileOffset
           ..isLowered = true;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         _thisVariable = function.positionalParameters.first;
       }
     }
@@ -439,6 +381,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   VariableDeclaration getFormalParameter(int index) {
     if (this is! ConstructorBuilder &&
         (isExtensionInstanceMember || isExtensionTypeInstanceMember)) {
+      // Coverage-ignore-block(suite): Not run.
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;
@@ -485,7 +428,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               ? parent as DeclarationBuilder
               : null;
       LookupScope parentScope =
-          classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
+          classOrExtensionBuilder?.scope ?? // Coverage-ignore(suite): Not run.
+              libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
         MetadataBuilder.buildAnnotations(annotatable, metadata,
             createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
@@ -518,46 +462,113 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void becomeNative(SourceLoader loader) {
-    MemberBuilder constructor = loader.getNativeAnnotation();
     for (Annotatable annotatable in annotatables) {
-      Arguments arguments =
-          new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
-      Expression annotation;
-      if (constructor.isConstructor) {
-        annotation = new ConstructorInvocation(
-            constructor.invokeTarget as Constructor, arguments)
-          ..isConst = true;
+      loader.addNativeAnnotation(annotatable, nativeMethodName!);
+    }
+  }
+
+  BodyBuilderContext createBodyBuilderContext();
+}
+
+/// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
+/// [VariableDeclaration]s for [declaredFormals] and adds them to [function].
+///
+/// If [classTypeParameters] the bounds on type parameters and formal parameter
+/// types will be marked as `isCovariantByClass` depending on their use of the
+/// [classTypeParameters].
+///
+/// If [supportsTypeParameters] is false, declared type parameters are not added
+/// to the function. This is done to avoid adding type parameters to
+/// [Constructor]s which don't support them.
+void buildTypeParametersAndFormals(
+    SourceLibraryBuilder libraryBuilder,
+    FunctionNode function,
+    List<NominalParameterBuilder>? declaredTypeParameters,
+    List<FormalParameterBuilder>? declaredFormals,
+    {required List<TypeParameter>? classTypeParameters,
+    required bool supportsTypeParameters}) {
+  IncludesTypeParametersNonCovariantly? needsCheckVisitor;
+  if (classTypeParameters != null && classTypeParameters.isNotEmpty) {
+    needsCheckVisitor =
+        new IncludesTypeParametersNonCovariantly(classTypeParameters,
+            // We are checking the parameter types which are in a
+            // contravariant position.
+            initialVariance: Variance.contravariant);
+  }
+  if (declaredTypeParameters != null) {
+    for (NominalParameterBuilder t in declaredTypeParameters) {
+      TypeParameter parameter = t.parameter;
+      if (supportsTypeParameters) {
+        function.typeParameters.add(parameter);
+      }
+      if (needsCheckVisitor != null) {
+        if (parameter.bound.accept(needsCheckVisitor)) {
+          parameter.isCovariantByClass = true;
+        }
+      }
+    }
+    setParents(function.typeParameters, function);
+  }
+  if (declaredFormals != null) {
+    for (FormalParameterBuilder formal in declaredFormals) {
+      VariableDeclaration parameter = formal.build(libraryBuilder);
+      if (needsCheckVisitor != null) {
+        if (parameter.type.accept(needsCheckVisitor)) {
+          parameter.isCovariantByClass = true;
+        }
+      }
+      if (formal.isNamed) {
+        function.namedParameters.add(parameter);
       } else {
-        // Coverage-ignore-block(suite): Not run.
-        annotation = new StaticInvocation(
-            constructor.invokeTarget as Procedure, arguments)
-          ..isConst = true;
+        function.positionalParameters.add(parameter);
+      }
+      parameter.parent = function;
+      if (formal.isRequiredPositional) {
+        function.requiredParameterCount++;
       }
 
-      annotatable.addAnnotation(annotation);
+      // Required named parameters can't have default values.
+      if (formal.isRequiredNamed && formal.initializerToken != null) {
+        libraryBuilder.addProblem(
+            templateRequiredNamedParameterHasDefaultValueError
+                .withArguments(formal.name),
+            formal.fileOffset,
+            formal.name.length,
+            formal.fileUri);
+      }
     }
   }
+}
 
-  @override
-  bool checkAugmentation(SourceFunctionBuilder augmentation) {
-    if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
-          augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
+/// Reports an error if [augmentation] is from a patch library and [origin] is
+/// not external.
+bool checkAugmentation(
+    {required SourceLibraryBuilder augmentationLibraryBuilder,
+    required Builder origin,
+    required Builder augmentation}) {
+  if (!origin.isExternal && !augmentationLibraryBuilder.isAugmentationLibrary) {
+    // Coverage-ignore-block(suite): Not run.
+    augmentationLibraryBuilder.addProblem(messagePatchNonExternal,
+        augmentation.fileOffset, noLength, augmentation.fileUri!,
+        context: [
+          messagePatchDeclarationOrigin.withLocation(
+              origin.fileUri!, origin.fileOffset, noLength)
+        ]);
+    return false;
+  }
+  return true;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Reports the error that [augmentation] cannot augment [origin].
+void reportAugmentationMismatch(
+    {required SourceLibraryBuilder originLibraryBuilder,
+    required Builder origin,
+    required Builder augmentation}) {
+  originLibraryBuilder.addProblem(messagePatchDeclarationMismatch,
+      augmentation.fileOffset, noLength, augmentation.fileUri!,
+      context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, fileOffset, noLength)
+            origin.fileUri!, origin.fileOffset, noLength)
       ]);
-      return false;
-    }
-    return true;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void reportAugmentationMismatch(Builder augmentation) {
-    libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-        augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
-      messagePatchDeclarationOrigin.withLocation(fileUri, fileOffset, noLength)
-    ]);
-  }
 }

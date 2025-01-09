@@ -92,6 +92,7 @@ import '../codes/cfe_codes.dart'
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../source/diet_parser.dart';
+import '../source/offset_map.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
@@ -965,7 +966,7 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
 
-  void finishFields() {
+  void finishFields(OffsetMap offsetMap) {
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
     int count = pop() as int;
@@ -976,27 +977,7 @@ class BodyBuilder extends StackListenerImpl
       ]));
       Expression? initializer = pop() as Expression?;
       Identifier identifier = pop() as Identifier;
-      String name = identifier.name;
-      Builder declaration = _context.lookupLocalMember(name, required: true)!;
-      int fileOffset = identifier.nameOffset;
-      while (declaration.next != null) {
-        // If we have duplicates, we try to find the right declaration.
-        if (declaration.fileUri == uri &&
-            declaration.fileOffset == fileOffset) {
-          break;
-        }
-        declaration = declaration.next!;
-      }
-      if (declaration.fileUri != uri || declaration.fileOffset != fileOffset) {
-        // If we don't have the right declaration, skip the initializer.
-        continue;
-      }
-      SourceFieldBuilder fieldBuilder;
-      if (declaration.isField) {
-        fieldBuilder = declaration as SourceFieldBuilder;
-      } else {
-        continue;
-      }
+      SourceFieldBuilder fieldBuilder = offsetMap.lookupField(identifier);
       if (initializer != null) {
         if (!fieldBuilder.hasBodyBeenBuilt) {
           initializer = typeInferrer
@@ -1440,8 +1421,8 @@ class BodyBuilder extends StackListenerImpl
   RedirectionTarget _getRedirectionTarget(Procedure factory) {
     List<DartType> typeArguments = new List<DartType>.generate(
         factory.function.typeParameters.length, (int i) {
-      return new TypeParameterType.withDefaultNullabilityForLibrary(
-          factory.function.typeParameters[i], factory.enclosingLibrary);
+      return new TypeParameterType.withDefaultNullability(
+          factory.function.typeParameters[i]);
     }, growable: true);
 
     // Cyclic factories are detected earlier, so we're guaranteed to
@@ -1887,16 +1868,15 @@ class BodyBuilder extends StackListenerImpl
             _context.memberNameOffset,
             noLength);
       }
-      if (initializers.last is SuperInitializer) {
-        SuperInitializer superInitializer =
-            initializers.last as SuperInitializer;
+      Initializer last = initializers.last;
+      if (last is SuperInitializer) {
         if (_context.isEnumClass) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(cfe.messageEnumConstructorSuperInitializer,
-                  superInitializer.fileOffset, noLength))
-            ..parent = superInitializer.parent;
+                  last.fileOffset, noLength))
+            ..parent = last.parent;
         } else if (libraryFeatures.superParameters.isEnabled) {
-          ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
+          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
 
           if (positionalSuperParametersAsArguments != null) {
             if (arguments.positional.isNotEmpty) {
@@ -1928,19 +1908,16 @@ class BodyBuilder extends StackListenerImpl
                 ?.insertAll(0, superParametersAsArguments);
           }
         }
-      } else if (initializers.last is RedirectingInitializer) {
-        RedirectingInitializer redirectingInitializer =
-            initializers.last as RedirectingInitializer;
+      } else if (last is RedirectingInitializer) {
         if (_context.isEnumClass && libraryFeatures.enhancedEnums.isEnabled) {
-          ArgumentsImpl arguments =
-              redirectingInitializer.arguments as ArgumentsImpl;
+          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
             new VariableGetImpl(function.positionalParameters[0],
                 forNullGuardedAccess: false)
-              ..parent = redirectingInitializer.arguments,
+              ..parent = last.arguments,
             new VariableGetImpl(function.positionalParameters[1],
                 forNullGuardedAccess: false)
-              ..parent = redirectingInitializer.arguments
+              ..parent = last.arguments
           ];
           arguments.positional.insertAll(0, enumSyntheticArguments);
           arguments.argumentsOriginalOrder
@@ -3288,7 +3265,7 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-           !(_context.isConstructor && inFieldInitializer) &&
+          !(_context.isConstructor && inFieldInitializer) &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, nameToken, cfe.messageNotAConstantExpression);
@@ -7605,7 +7582,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
-    debugEvent("ForIntLoopParts");
+    debugEvent("ForInLoopParts");
     assert(checkState(forToken, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -7618,6 +7595,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement, // Variable for non-pattern for-in loop.
+        ValueKinds.ParserRecovery,
       ]),
     ]));
     Object expression = pop() as Object;
@@ -7759,6 +7737,9 @@ class BodyBuilder extends StackListenerImpl
             isFinal: false);
       } else if (lvalue is AmbiguousBuilder) {
         elements.expressionProblem = toValue(lvalue);
+      } else if (lvalue is ParserRecovery) {
+        elements.expressionProblem = buildProblem(
+            cfe.messageSyntheticToken, lvalue.charOffset, noLength);
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
             ? cfe.messageForInLoopExactlyOneVariable
@@ -7809,6 +7790,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement,
+        ValueKinds.ParserRecovery,
       ]),
     ]));
     Statement body = popStatement(endToken);
@@ -9372,9 +9354,11 @@ class BodyBuilder extends StackListenerImpl
           NominalParameterBuilder typeParameterBuilder =
               declaration as NominalParameterBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
-          if (typeParameter.declaration is Class ||
-              typeParameter.declaration is Extension ||
-              typeParameter.declaration is ExtensionTypeDeclaration) {
+          GenericDeclaration? typeParameterDeclaration =
+              typeParameter.declaration;
+          if (typeParameterDeclaration is Class ||
+              typeParameterDeclaration is Extension ||
+              typeParameterDeclaration is ExtensionTypeDeclaration) {
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
               LocatedMessage message = cfe.messageTypeVariableInConstantContext

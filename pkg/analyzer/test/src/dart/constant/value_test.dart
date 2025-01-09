@@ -859,8 +859,11 @@ class DartObjectImplTest {
   }
 
   void test_identical_list_false_differentValues() {
-    _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
-        _listValue(_typeProvider.intType, [_intValue(3)]));
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, [_intValue(3)]),
+    );
   }
 
   void test_identical_list_false_equalTypes_differentValues() {
@@ -2421,7 +2424,7 @@ class DartObjectImplTest {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.mapType(keyType, valueType),
-      MapState(map),
+      MapState(keyType: keyType, valueType: valueType, entries: map),
     );
   }
 
@@ -2445,11 +2448,14 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(
-      ParameterizedType type, Set<DartObjectImpl>? elements) {
+      ParameterizedType elementType, Set<DartObjectImpl>? elements) {
     return DartObjectImpl(
       _typeSystem,
-      type,
-      SetState(elements ?? <DartObjectImpl>{}),
+      _typeProvider.setType(elementType),
+      SetState(
+        elementType: elementType,
+        elements: elements ?? <DartObjectImpl>{},
+      ),
     );
   }
 

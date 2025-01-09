@@ -1,3 +1,7 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:svg library.
+
 /// Scalable Vector Graphics:
 /// Two-dimensional vector graphics with support for events and animation.
 ///
@@ -11,6 +15,7 @@
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.svg;
 
 import 'dart:async';
@@ -21,9 +26,6 @@ import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject;
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:svg library.
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

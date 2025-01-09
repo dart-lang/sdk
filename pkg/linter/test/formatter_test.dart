@@ -5,10 +5,10 @@
 import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
-import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
+import '../tool/util/formatter.dart';
 import 'mocks.dart';
 
 void main() {
@@ -51,7 +51,7 @@ var z = 33;
 
         info = AnalysisErrorInfo([error], lineInfo);
         out = StringBuffer();
-        reporter = ReportFormatter([info], out, elapsedMs: 13)..write();
+        reporter = ReportFormatter([info], out)..write();
       });
 
       test('count', () {
@@ -63,24 +63,17 @@ var z = 33;
 var z = 33;
  ^^^
 
-files analyzed, 1 issue found, in 13 ms.''');
+files analyzed, 1 issue found.''');
       });
 
       test('stats', () {
         out.clear();
-        ReportFormatter([info], out, showStatistics: true, elapsedMs: 13)
-            .write();
+        ReportFormatter([info], out).write();
         expect(out.toString(), startsWith('''$sourcePath 3:2 [test] MSG
 var z = 33;
  ^^^
 
-files analyzed, 1 issue found, in 13 ms.
-
-----------------------------------------
-Counts
-----------------------------------------
-mock_code                              1
-----------------------------------------
+files analyzed, 1 issue found.
 '''));
       });
     });

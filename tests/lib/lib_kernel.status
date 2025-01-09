@@ -42,7 +42,7 @@ isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel iss
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
-mirrors/invocation_fuzz_test: Crash
+mirrors/invocation_fuzz_test/smi: Crash
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 
 [ $compiler == dartk && $hot_reload_rollback ]

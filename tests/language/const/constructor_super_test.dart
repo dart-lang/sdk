@@ -12,15 +12,11 @@ class A {
 
 class B extends A {
   final b;
-  B(x)
-      : b = x + 1,
-        super(x);
+  B(x) : b = x + 1, super(x);
 
   // Const constructor cannot call non-const super constructor.
-  const B.zerofive()
-      : b = 0,
-        super(5);
-  //    ^^^^^^^^
+  const B.zerofive() : b = 0, super(5);
+  //                          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
   // [cfe] A constant constructor can't call a non-constant super constructor.
 }

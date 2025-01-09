@@ -94,7 +94,7 @@ class SocketAddress {
   char as_string_[kMaxUnixPathLength];
 #else
   char as_string_[INET6_ADDRSTRLEN];
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||       \
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||
         // defined(DART_HOST_OS_ANDROID)
   RawAddr addr_;
 

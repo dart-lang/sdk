@@ -125,6 +125,8 @@ import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_extension_method_test.dart' as const_eval_extension_method;
 import 'const_eval_for_element_test.dart' as const_eval_for_element;
 import 'const_eval_method_invocation_test.dart' as const_eval_method_invocation;
+import 'const_eval_primitive_equality_test.dart'
+    as const_eval_primitive_equality;
 import 'const_eval_property_access_test.dart' as const_eval_property_access;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
@@ -308,6 +310,7 @@ import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'extraneous_modifier_test.dart' as extraneous_modifier;
 import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast_test;
+import 'ffi_array_test.dart' as ffi_array_test;
 import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
@@ -1008,6 +1011,7 @@ main() {
     const_eval_extension_method.main();
     const_eval_for_element.main();
     const_eval_method_invocation.main();
+    const_eval_primitive_equality.main();
     const_eval_property_access.main();
     const_eval_throws_exception.main();
     const_eval_throws_idbze.main();
@@ -1128,6 +1132,7 @@ main() {
     extra_size_annotation_carray.main();
     extraneous_modifier.main();
     ffi_addresss_of_cast_test.main();
+    ffi_array_test.main();
     ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();

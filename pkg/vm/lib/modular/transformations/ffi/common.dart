@@ -14,6 +14,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
         messageFfiVariableLengthArrayNotLast,
+        messageNegativeVariableDimension,
         messageNonPositiveArrayDimensions,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
@@ -224,7 +225,7 @@ class FfiTransformer extends Transformer {
   final Field arraySizeDimension4Field;
   final Field arraySizeDimension5Field;
   final Field arraySizeDimensionsField;
-  final Field arraySizeVariableLengthField;
+  final Field arraySizeVariableDimensionField;
   final Class pointerClass;
   final Class compoundClass;
   final Class structClass;
@@ -241,6 +242,7 @@ class FfiTransformer extends Transformer {
   final Class ffiInlineArrayClass;
   final Field ffiInlineArrayElementTypeField;
   final Field ffiInlineArrayLengthField;
+  final Field ffiInlineArrayVariableLengthField;
   final Class packedClass;
   final Field packedMemberAlignmentField;
   final Procedure allocateMethod;
@@ -250,6 +252,8 @@ class FfiTransformer extends Transformer {
   final Procedure addressGetter;
   final Procedure structPointerGetRef;
   final Procedure structPointerSetRef;
+  final Procedure structPointerRefWithFinalizer;
+  final Procedure structPointerRefWithFinalizerTearoff;
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
   final Procedure structPointerElementAt;
@@ -258,12 +262,15 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
+  final Procedure unionPointerRefWithFinalizer;
+  final Procedure unionPointerRefWithFinalizerTearoff;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
   final Procedure unionPointerElementAt;
   final Procedure unionPointerPlusOperator;
   final Procedure unionPointerMinusOperator;
   final Procedure unionPointerElementAtTearoff;
+  final Procedure uint8PointerAsTypedList;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -286,6 +293,7 @@ class FfiTransformer extends Transformer {
   final Field compoundTypedDataBaseField;
   final Field compoundOffsetInBytesField;
   final Field arraySizeField;
+  final Field arrayVariableLengthField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
   final Procedure arrayNestedDimensionsFlattened;
@@ -352,6 +360,7 @@ class FfiTransformer extends Transformer {
   late final InterfaceType nativeTypeType;
   // The Pointer type when instantiated to bounds.
   late final InterfaceType pointerNativeTypeType;
+  late final InterfaceType uint8Type;
   late final InterfaceType compoundType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
@@ -415,8 +424,8 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_ArraySize', 'dimension5'),
         arraySizeDimensionsField =
             index.getField('dart:ffi', '_ArraySize', 'dimensions'),
-        arraySizeVariableLengthField =
-            index.getField('dart:ffi', '_ArraySize', 'variableLength'),
+        arraySizeVariableDimensionField =
+            index.getField('dart:ffi', '_ArraySize', 'variableDimension'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
@@ -442,6 +451,8 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_FfiInlineArray', 'elementType'),
         ffiInlineArrayLengthField =
             index.getField('dart:ffi', '_FfiInlineArray', 'length'),
+        ffiInlineArrayVariableLengthField =
+            index.getField('dart:ffi', '_FfiInlineArray', 'variableLength'),
         packedClass = index.getClass('dart:ffi', 'Packed'),
         packedMemberAlignmentField =
             index.getField('dart:ffi', 'Packed', 'memberAlignment'),
@@ -458,6 +469,8 @@ class FfiTransformer extends Transformer {
         compoundOffsetInBytesField =
             index.getField('dart:ffi', '_Compound', '_offsetInBytes'),
         arraySizeField = index.getField('dart:ffi', 'Array', '_size'),
+        arrayVariableLengthField =
+            index.getField('dart:ffi', 'Array', '_variableLength'),
         arrayNestedDimensionsField =
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
         arrayCheckIndex =
@@ -487,6 +500,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', 'get:ref'),
         structPointerSetRef =
             index.getProcedure('dart:ffi', 'StructPointer', 'set:ref'),
+        structPointerRefWithFinalizer =
+            index.getProcedure('dart:ffi', 'StructPointer', 'refWithFinalizer'),
+        structPointerRefWithFinalizerTearoff = index.getProcedure('dart:ffi',
+            'StructPointer', LibraryIndex.tearoffPrefix + 'refWithFinalizer'),
         structPointerGetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
         structPointerSetElemAt =
@@ -503,6 +520,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
         unionPointerSetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'set:ref'),
+        unionPointerRefWithFinalizer =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'refWithFinalizer'),
+        unionPointerRefWithFinalizerTearoff = index.getProcedure('dart:ffi',
+            'UnionPointer', LibraryIndex.tearoffPrefix + 'refWithFinalizer'),
         unionPointerGetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
         unionPointerSetElemAt =
@@ -515,6 +536,8 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '-'),
         unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
+        uint8PointerAsTypedList =
+            index.getProcedure('dart:ffi', 'Uint8Pointer', 'asTypedList'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
@@ -669,6 +692,8 @@ class FfiTransformer extends Transformer {
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
+    uint8Type = InterfaceType(
+        nativeTypesClasses[NativeType.kUint8]!, Nullability.nonNullable);
     compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,
@@ -818,14 +843,42 @@ class FfiTransformer extends Transformer {
   ///
   /// For types where this returns a non-null value, this is the inverse of
   /// [convertNativeTypeToDartType].
-  DartType? convertDartTypeToNativeType(DartType dartType) {
-    if (isPointerType(dartType) ||
-        isStructOrUnionSubtype(dartType) ||
-        isArrayType(dartType)) {
+  DartType? convertDartTypeToNativeType(
+    DartType dartType, {
+    bool allowVoid = false,
+  }) {
+    if (allowVoid && dartType is VoidType) return voidType;
+
+    if (isArrayType(dartType) ||
+        isPointerType(dartType) ||
+        isStructOrUnionSubtype(dartType)) {
       return dartType;
-    } else {
-      return null;
     }
+
+    if (dartType is FunctionType) {
+      if (dartType.namedParameters.isNotEmpty) return null;
+      if (dartType.positionalParameters.length !=
+          dartType.requiredParameterCount) {
+        return null;
+      }
+      if (dartType.typeParameters.isNotEmpty) return null;
+
+      final returnType =
+          convertDartTypeToNativeType(dartType.returnType, allowVoid: true);
+      if (returnType == null) return null;
+
+      final argumentTypes = <DartType>[];
+      for (final paramDartType
+          in flattenVarargs(dartType).positionalParameters) {
+        argumentTypes.add(
+          convertDartTypeToNativeType(paramDartType) ?? dummyDartType,
+        );
+      }
+      if (argumentTypes.contains(dummyDartType)) return null;
+      return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+    }
+
+    return null;
   }
 
   /// Removes the VarArgs from a DartType list.
@@ -1025,10 +1078,19 @@ class FfiTransformer extends Transformer {
               node.fileUri,
             );
           }
-          return dimensions; // Variable length single dimension.
         }
-        for (var dimension in dimensions) {
-          if (dimension <= 0) {
+        for (var i = 0; i < dimensions.length; i++) {
+          // First dimension is variable.
+          if (i == 0 && variableLength) {
+            // Variable dimension can't be negative.
+            if (dimensions[0] < 0) {
+              diagnosticReporter.report(messageNegativeVariableDimension,
+                  node.fileOffset, node.name.text.length, node.fileUri);
+            }
+            continue;
+          }
+
+          if (dimensions[i] <= 0) {
             diagnosticReporter.report(messageNonPositiveArrayDimensions,
                 node.fileOffset, node.name.text.length, node.fileUri);
             success = false;
@@ -1062,18 +1124,18 @@ class FfiTransformer extends Transformer {
 
   /// Reads the dimensions from a constant instance of `_ArraySize`.
   (List<int>, bool) _arraySize(InstanceConstant constant) {
-    final variableLength =
-        (constant.fieldValues[arraySizeVariableLengthField.fieldReference]
-                as BoolConstant)
-            .value;
+    final variableDimension =
+        constant.fieldValues[arraySizeVariableDimensionField.fieldReference];
+    final variableLength = variableDimension is IntConstant;
     final dimensions =
         constant.fieldValues[arraySizeDimensionsField.fieldReference];
-    if (dimensions != null) {
-      if (dimensions is ListConstant) {
-        final result =
-            dimensions.entries.whereType<IntConstant>().map((e) => e.value);
-        return ([if (variableLength) 0, ...result], variableLength);
-      }
+    if (dimensions is ListConstant) {
+      final result =
+          dimensions.entries.whereType<IntConstant>().map((e) => e.value);
+      return (
+        [if (variableLength) variableDimension.value, ...result],
+        variableLength,
+      );
     }
     final dimensionFields = [
       arraySizeDimension1Field,
@@ -1434,7 +1496,7 @@ class FfiTransformer extends Transformer {
     bool allowInlineArray = false,
     bool allowVoid = false,
   }) {
-    if (!_nativeTypeValid(nativeType,
+    if (!isNativeTypeValid(nativeType,
         allowStructAndUnion: allowStructAndUnion,
         allowHandle: allowHandle,
         allowInlineArray: allowInlineArray,
@@ -1450,7 +1512,7 @@ class FfiTransformer extends Transformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(
+  bool isNativeTypeValid(
     DartType nativeType, {
     bool allowStructAndUnion = false,
     bool allowHandle = false,

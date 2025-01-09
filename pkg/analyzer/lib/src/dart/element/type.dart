@@ -17,6 +17,8 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -84,7 +86,11 @@ class DynamicTypeImpl extends TypeImpl
 }
 
 /// The type of a function, method, constructor, getter, or setter.
-class FunctionTypeImpl extends TypeImpl implements FunctionType {
+class FunctionTypeImpl extends TypeImpl
+    implements
+        FunctionType,
+        SharedFunctionTypeStructure<DartType, TypeParameterElementImpl2,
+            FormalParameterElementOrMember> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -107,7 +113,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final int requiredPositionalParameterCount;
 
   @override
-  final List<ParameterElement> sortedNamedParameters;
+  final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
     required List<TypeParameterElement> typeFormals,
@@ -160,8 +166,26 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         nullabilitySuffix: nullabilitySuffix,
         positionalParameterTypes: positionalParameterTypes,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
-        sortedNamedParameters: sortedNamedParameters,
+        // TODO(paulberry): avoid the cast by changing the type of
+        // `sortedNamedParameters`.
+        sortedNamedParameters: sortedNamedParameters.cast(),
         alias: alias);
+  }
+
+  factory FunctionTypeImpl.v2({
+    required List<TypeParameterElement2> typeParameters,
+    required List<FormalParameterElement> formalParameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    return FunctionTypeImpl(
+      typeFormals: typeParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters.map((e) => e.asElement).toList(),
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   FunctionTypeImpl._({
@@ -210,9 +234,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
-  List<TypeParameterElement2> get typeParameters => typeFormals
-      .map((fragment) => (fragment as TypeParameterFragment).element)
+  // TODO(paulberry): see if this type can be changed to
+  // `List<FormalParameterElementImpl>`. See
+  // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+  List<FormalParameterElementOrMember> get sortedNamedParametersShared =>
+      sortedNamedParameters
+          .map((p) => p.asElement2 as FormalParameterElementOrMember)
+          .toList();
+
+  @override
+  List<TypeParameterElementImpl2> get typeParameters => typeFormals
+      .map((fragment) => (fragment as TypeParameterElementImpl).element)
       .toList();
+
+  @override
+  List<TypeParameterElementImpl2> get typeParametersShared => typeParameters;
 
   @override
   bool operator ==(Object other) {
@@ -314,6 +350,33 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    if (typeFormals.any((element) {
+      var elementImpl = element as TypeParameterElementImpl;
+      assert(!parameters.contains(elementImpl.asElement2));
+
+      var bound = elementImpl.bound as TypeImpl?;
+      if (bound != null && bound.referencesAny2(parameters)) {
+        return true;
+      }
+
+      var defaultType = elementImpl.defaultType as TypeImpl;
+      return defaultType.referencesAny2(parameters);
+    })) {
+      return true;
+    }
+
+    if (this.parameters.any((element) {
+      var type = element.type as TypeImpl;
+      return type.referencesAny2(parameters);
+    })) {
+      return true;
+    }
+
+    return (returnType as TypeImpl).referencesAny2(parameters);
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return FunctionTypeImpl._(
@@ -352,16 +415,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       for (var namedParameter in sortedNamedParameters) {
         namedParameterInfo.add(namedParameter.isRequired);
         namedParameterInfo.add(namedParameter.name);
-        namedParameterInfo.add(namedParameter.type);
       }
     }
 
     return Object.hash(
-        nullabilitySuffix,
-        returnType,
-        requiredPositionalParameterCount,
-        Object.hashAll(positionalParameterTypes),
-        namedParameterInfo);
+      nullabilitySuffix,
+      returnType,
+      requiredPositionalParameterCount,
+      namedParameterInfo,
+    );
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be
@@ -626,7 +688,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceElement2 get element3 => (element as InterfaceFragment).element;
+  InterfaceElementImpl2 get element3 =>
+      (element as InterfaceElementImpl).element;
 
   @override
   List<GetterElement> get getters => accessors
@@ -751,7 +814,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<MethodElement2> get methods2 =>
-      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+      methods.map((e) => e.asElement2).toList();
 
   @override
   List<InterfaceType> get mixins {
@@ -889,6 +952,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       MethodMember.from(element.getMethod(methodName), this);
 
   @override
+  MethodElement2? getMethod2(String methodName) {
+    return getMethod(methodName)?.asElement2;
+  }
+
+  @override
   PropertyAccessorElement? getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
 
@@ -953,6 +1021,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  GetterElement? lookUpGetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpGetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
+  }
+
+  @override
   MethodElement? lookUpMethod2(
     String name,
     LibraryElement library, {
@@ -989,6 +1074,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
+  }
+
+  @override
+  MethodElement2? lookUpMethod3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpMethod2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2;
   }
 
   @override
@@ -1031,10 +1133,35 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  SetterElement? lookUpSetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpSetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
+  }
+
+  @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return typeArguments.any((argument) {
       var argumentImpl = argument as TypeImpl;
       return argumentImpl.referencesAny(parameters);
+    });
+  }
+
+  @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return typeArguments.any((argument) {
+      var argumentImpl = argument as TypeImpl;
+      return argumentImpl.referencesAny2(parameters);
     });
   }
 
@@ -1216,7 +1343,8 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
   });
 }
 
-class RecordTypeImpl extends TypeImpl implements RecordType {
+class RecordTypeImpl extends TypeImpl
+    implements RecordType, SharedRecordTypeStructure<DartType> {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1273,10 +1401,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   String? get name => null;
 
-  List<SharedNamedTypeStructure<DartType>> get namedTypes => namedFields;
+  List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes => namedTypes;
+  List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
   bool operator ==(Object other) {
@@ -1376,7 +1504,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
 }
 
 class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
-    implements RecordTypeNamedField {
+    implements RecordTypeNamedField, SharedNamedTypeStructure<DartType> {
   @override
   final String name;
 
@@ -1384,6 +1512,9 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
     required this.name,
     required super.type,
   });
+
+  @override
+  String get nameShared => name;
 }
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
@@ -1502,6 +1633,10 @@ abstract class TypeImpl implements DartType {
     return false;
   }
 
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return false;
+  }
+
   @override
   String toString() {
     return getDisplayString();
@@ -1565,8 +1700,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   ElementLocation get definition => element.location!;
 
   @override
-  TypeParameterElement2 get element3 =>
-      (element as TypeParameterFragment).element;
+  TypeParameterElementImpl2 get element3 =>
+      (element as TypeParameterElementImpl).element;
 
   @override
   int get hashCode => element.hashCode;
@@ -1651,6 +1786,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
+  }
+
+  @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return parameters.contains(element3);
   }
 
   @override

@@ -96,7 +96,7 @@ class _StringEdit implements Comparable<_StringEdit> {
   final String string;
 
   _StringEdit(this.begin, this.end, this.string, [int? sortId])
-      : sortId = sortId ?? begin;
+    : sortId = sortId ?? begin;
 
   int get length => end - begin;
 

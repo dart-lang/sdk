@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helpers for parsing Code object name produced by Code::QualifiedName
-library vm_snapshot_analysis.name;
+library;
 
 // Wrapper around the name of a Code object produced by Code::QualifiedName.
 //

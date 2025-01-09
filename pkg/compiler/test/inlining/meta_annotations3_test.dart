@@ -46,14 +46,16 @@ const MEMORY_SOURCE_FILES = const {
           monster1(38000993);
           monster2(48000992);
           monster2(48000993);
-        }'''
+        }''',
 };
 
 void main() {
   runTests() async {
     OutputCollector collector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+    );
     String jsOutput = collector.getOutput('', api.OutputType.js)!;
 
     void has(String text) {
@@ -63,7 +65,9 @@ void main() {
     void hasNot(String text) {
       print(jsOutput);
       Expect.isFalse(
-          jsOutput.contains(text), "output must not contain '$text'");
+        jsOutput.contains(text),
+        "output must not contain '$text'",
+      );
     }
 
     // Check that (u + 1000) from monster1 is not inlined and constant folded.

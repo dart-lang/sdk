@@ -619,7 +619,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     var inferrer = typeSystem.setupGenericTypeInference(
-      typeParameters: ft.typeFormals,
+      typeParameters: ft.typeParameters,
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
       errorReporter: reporter,

@@ -20,7 +20,7 @@ class UnsafeVariance extends LintRule {
       : super(
           name: LintNames.unsafe_variance,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

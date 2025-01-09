@@ -24,6 +24,6 @@ foo() {
   Expect.equals(x, C3.foo);
   Expect.mapEquals({x: x}, C4.foo);
   Expect.listEquals([
-    const {1: 3}
+    const {1: 3},
   ], C5.foo);
 }

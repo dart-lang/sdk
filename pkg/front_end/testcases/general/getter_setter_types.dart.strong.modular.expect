@@ -1,0 +1,101 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:8:17: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void Function<T extends G>() get getter2 => throw '';
+//                 ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:9:34: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void set setter2(void Function<T extends G>() _) {}
+//                                  ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:15:17: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void Function<T extends G>() get getter2 => throw '';
+//                 ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:16:34: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void set setter2(void Function<T extends G>() _) {}
+//                                  ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:22:17: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void Function<T extends G>() get getter2 => throw '';
+//                 ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/getter_setter_types.dart:23:34: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//   void set setter2(void Function<T extends G>() _) {}
+//                                  ^
+// pkg/front_end/testcases/general/getter_setter_types.dart:5:9: Context: Bound of this variable references variable 'T' from the same declaration.
+// class G<T extends G<T>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class G<T extends self::G<self::G::T> = self::G<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::T>
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get getter2() → <T extends self::G<self::G<dynamic>> = dynamic>() → void
+    return throw "";
+  set setter2(wildcard <T extends self::G<self::G<dynamic>> = dynamic>() → void _#wc0#formal) → void {}
+}
+extension E<T extends self::G<T> = self::G<dynamic>> on T {
+  get getter1 = self::E|get#getter1;
+  get getter2 = self::E|get#getter2;
+  set setter1 = self::E|set#setter1;
+  set setter2 = self::E|set#setter2;
+}
+extension type ET<T extends self::G<T> = self::G<dynamic>>(T it) {
+  abstract extension-type-member representation-field get it() → T;
+  get getter1 = self::ET|get#getter1;
+  get getter2 = self::ET|get#getter2;
+  set setter1 = self::ET|set#setter1;
+  set setter2 = self::ET|set#setter2;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static extension-member method E|get#getter1<T extends self::G<self::E|get#getter1::T> = self::G<dynamic>>(lowered final self::E|get#getter1::T #this) → self::E|get#getter1::T
+  return throw "";
+static extension-member method E|set#setter1<T extends self::G<self::E|set#setter1::T> = self::G<dynamic>>(lowered final self::E|set#setter1::T #this, self::E|set#setter1::T t) → void {}
+static extension-member method E|get#getter2<T extends self::G<self::E|get#getter2::T> = dynamic>(lowered final self::E|get#getter2::T #this) → <T extends self::G<self::G<dynamic>> = dynamic>() → void
+  return throw "";
+static extension-member method E|set#setter2<T extends self::G<self::E|set#setter2::T> = self::G<dynamic>>(lowered final self::E|set#setter2::T #this, wildcard <T extends self::G<self::G<dynamic>> = dynamic>() → void _#wc1#formal) → void {}
+static extension-type-member method ET|constructor#<T extends self::G<self::ET|constructor#::T> = self::G<dynamic>>(self::ET|constructor#::T it) → self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */ {
+  lowered final self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member method ET|constructor#_#new#tearOff<T extends self::G<self::ET|constructor#_#new#tearOff::T> = self::G<dynamic>>(self::ET|constructor#_#new#tearOff::T it) → self::ET<self::ET|constructor#_#new#tearOff::T>% /* erasure=self::ET|constructor#_#new#tearOff::T, declared=! */
+  return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T>(it);
+static extension-type-member method ET|get#getter1<T extends self::G<self::ET|get#getter1::T> = self::G<dynamic>>(lowered final self::ET<self::ET|get#getter1::T>% /* erasure=self::ET|get#getter1::T, declared=! */ #this) → self::ET|get#getter1::T
+  return throw "";
+static extension-type-member method ET|set#setter1<T extends self::G<self::ET|set#setter1::T> = self::G<dynamic>>(lowered final self::ET<self::ET|set#setter1::T>% /* erasure=self::ET|set#setter1::T, declared=! */ #this, self::ET|set#setter1::T t) → void {}
+static extension-type-member method ET|get#getter2<T extends self::G<self::ET|get#getter2::T> = dynamic>(lowered final self::ET<self::ET|get#getter2::T>% /* erasure=self::ET|get#getter2::T, declared=! */ #this) → <T extends self::G<self::G<dynamic>> = dynamic>() → void
+  return throw "";
+static extension-type-member method ET|set#setter2<T extends self::G<self::ET|set#setter2::T> = self::G<dynamic>>(lowered final self::ET<self::ET|set#setter2::T>% /* erasure=self::ET|set#setter2::T, declared=! */ #this, wildcard <T extends self::G<self::G<dynamic>> = dynamic>() → void _#wc2#formal) → void {}

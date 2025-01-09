@@ -3096,7 +3096,7 @@ augment class A {
               periodOffset: 56
               nameEnd: 62
               parameters
-                requiredPositional final this.f @68
+                requiredPositional final hasImplicitType this.f @68
                   type: int
                   field: <testLibraryFragment>::@class::A::@field::f
 ----------------------------------------
@@ -3154,7 +3154,7 @@ library
         named
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
           formalParameters
-            requiredPositional final f
+            requiredPositional final hasImplicitType f
               type: int
       getters
         synthetic get f
@@ -3851,7 +3851,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
           formalParameters
-            optionalPositional x
+            optionalPositional hasImplicitType x
               type: dynamic
 ''');
   }
@@ -3885,7 +3885,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
-            optionalPositional x
+            optionalPositional hasImplicitType x
               type: dynamic
 ''');
   }
@@ -3919,7 +3919,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
-            optionalPositional x
+            optionalPositional hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -3973,7 +3973,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -4031,7 +4031,7 @@ library
         set foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -4853,7 +4853,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       formalParameters
-        optionalPositional x
+        optionalPositional hasImplicitType x
           type: dynamic
       returnType: void
 ''');
@@ -5022,7 +5022,7 @@ library
     static set foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
       formalParameters
-        requiredPositional x
+        requiredPositional hasImplicitType x
           type: dynamic
           metadata
             Annotation
@@ -8697,7 +8697,7 @@ library
           reference: <testLibraryFragment>::@function::foo
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional a @102
+            requiredPositional hasImplicitType a @102
               type: dynamic
           returnType: void
           macroDiagnostics
@@ -8731,7 +8731,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
-        requiredPositional a
+        requiredPositional hasImplicitType a
           type: dynamic
       returnType: void
 ''');
@@ -17452,7 +17452,7 @@ abstract class MacroTypesTest extends MacroElementsBaseTest {
   bool get retainDataForTesting => true;
 
   @override
-  Future<void> tearDown() async {
+  Future<void> tearDown() {
     for (var directory in _ioDirectoriesToDelete) {
       try {
         directory.deleteSync(
@@ -19352,7 +19352,7 @@ elementFactory
 
     // Check that it has `class B2 {}`, as requested.
     result2 as LibraryElementResultImpl;
-    _assertMacroCode(result2.element as LibraryElementImpl, r'''
+    _assertMacroCode(result2.element, r'''
 part of 'package:test/test.dart';
 
 class B2 {}

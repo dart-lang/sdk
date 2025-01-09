@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend;
+library;
 
 import '../common.dart';
 import '../common/codegen.dart';
@@ -15,7 +15,9 @@ import 'codegen_inputs.dart';
 
 abstract class FunctionCompiler {
   void initialize(
-      GlobalTypeInferenceResults globalInferenceResults, CodegenInputs codegen);
+    GlobalTypeInferenceResults globalInferenceResults,
+    CodegenInputs codegen,
+  );
 
   /// Generates JavaScript code for [member].
   CodegenResult compile(MemberEntity member);
@@ -42,7 +44,7 @@ class FunctionInlineCache {
 
   final Map<FunctionEntity, _Decision> _cachedDecisions = {};
 
-  FunctionInlineCache(this._annotationsData) {}
+  FunctionInlineCache(this._annotationsData);
 
   /// Checks that [method] is the canonical representative for this method.
   ///
@@ -107,9 +109,10 @@ class FunctionInlineCache {
       switch (oldDecision) {
         case _Decision.mustNotInline:
           throw failedAt(
-              element,
-              "Can't mark $element as non-inlinable and inlinable at the "
-              "same time.");
+            element,
+            "Can't mark $element as non-inlinable and inlinable at the "
+            "same time.",
+          );
 
         case _Decision.unknown:
           // We know that it can be inlined in a loop, but don't know about the
@@ -133,9 +136,10 @@ class FunctionInlineCache {
         case _Decision.mayInlineInLoopMustNotOutside:
         case _Decision.canInlineInLoopMustNotOutside:
           throw failedAt(
-              element,
-              "Can't mark $element as non-inlinable and inlinable at the "
-              "same time.");
+            element,
+            "Can't mark $element as non-inlinable and inlinable at the "
+            "same time.",
+          );
 
         case _Decision.unknown:
         case _Decision.canInlineInLoopMayInlineOutside:
@@ -159,9 +163,10 @@ class FunctionInlineCache {
         case _Decision.canInlineInLoopMayInlineOutside:
         case _Decision.canInline:
           throw failedAt(
-              element,
-              "Can't mark $element as non-inlinable and inlinable at the "
-              "same time.");
+            element,
+            "Can't mark $element as non-inlinable and inlinable at the "
+            "same time.",
+          );
 
         case _Decision.mayInlineInLoopMustNotOutside:
         case _Decision.unknown:
@@ -176,9 +181,10 @@ class FunctionInlineCache {
       switch (oldDecision) {
         case _Decision.canInline:
           throw failedAt(
-              element,
-              "Can't mark $element as non-inlinable and inlinable at the "
-              "same time.");
+            element,
+            "Can't mark $element as non-inlinable and inlinable at the "
+            "same time.",
+          );
 
         case _Decision.unknown:
           // We can't inline outside a loop, but we might still be allowed to do

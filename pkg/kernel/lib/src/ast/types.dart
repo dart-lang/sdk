@@ -213,6 +213,46 @@ class TypeParameter extends TreeNode implements Annotatable {
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(this);
   }
+
+  /// Computes the nullability of a type-parameter type based on [bound].
+  ///
+  /// This is a helper function to be used when the bound of the type parameter
+  /// is changing or is being set for the first time, and the update on some
+  /// type-parameter types is required.
+  Nullability computeNullabilityFromBound() {
+    // If the bound is nullable or 'undetermined', both nullable and
+    // non-nullable types can be passed in for the type parameter, making the
+    // corresponding type parameter types 'undetermined.'  Otherwise, the
+    // nullability matches that of the bound.
+    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
+      throw new StateError("Can't compute nullability from an absent bound.");
+    }
+
+    // If a type parameter's nullability depends on itself, it is deemed
+    // 'undetermined'. Currently, it's possible if the type parameter has a
+    // possibly nested FutureOr containing that type parameter.  If there are
+    // other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = bound;
+      while (type is FutureOrType) {
+        type = type.typeArgument;
+      }
+      if (type is TypeParameterType && type.parameter == this) {
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
+    Nullability boundNullability =
+        bound is InvalidType ? Nullability.undetermined : bound.nullability;
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.undetermined
+        ? Nullability.undetermined
+        : boundNullability;
+  }
 }
 
 /// Declaration of a type variable by a [FunctionType]
@@ -306,6 +346,46 @@ class StructuralParameter extends Node
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeStructuralParameterName(this);
+  }
+
+  /// Computes the nullability of a structural parameter type based on [bound].
+  ///
+  /// This is a helper function to be used when the bound of the structural
+  /// parameter is changing or is being set for the first time, and the update
+  /// on some structural parameter types is required.
+  Nullability computeNullabilityFromBound() {
+    // If the bound is nullable or 'undetermined', both nullable and
+    // non-nullable types can be passed in for the type parameter, making the
+    // corresponding type parameter types 'undetermined.'  Otherwise, the
+    // nullability matches that of the bound.
+    if (identical(bound, StructuralParameter.unsetBoundSentinel)) {
+      throw new StateError("Can't compute nullability from an absent bound.");
+    }
+
+    // If a type parameter's nullability depends on itself, it is deemed
+    // 'undetermined'. Currently, it's possible if the type parameter has a
+    // possibly nested FutureOr containing that type parameter.  If there are
+    // other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = bound;
+      while (type is FutureOrType) {
+        type = type.typeArgument;
+      }
+      if (type is StructuralParameterType && type.parameter == this) {
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
+    Nullability boundNullability =
+        bound is InvalidType ? Nullability.undetermined : bound.nullability;
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.undetermined
+        ? Nullability.undetermined
+        : boundNullability;
   }
 }
 
@@ -979,10 +1059,10 @@ class FunctionType extends DartType
   int get requiredPositionalParameterCount => requiredParameterCount;
 
   @override
-  List<NamedType> get sortedNamedParameters => namedParameters;
+  List<NamedType> get sortedNamedParametersShared => namedParameters;
 
   @override
-  List<StructuralParameter> get typeFormals => typeParameters;
+  List<StructuralParameter> get typeParametersShared => typeParameters;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -1525,7 +1605,6 @@ class NamedType extends Node
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
-  @override
   final String name;
   @override
   final DartType type;
@@ -1533,6 +1612,9 @@ class NamedType extends Node
   final bool isRequired;
 
   const NamedType(this.name, this.type, {this.isRequired = false});
+
+  @override
+  String get nameShared => name;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -1929,31 +2011,13 @@ class TypeParameterType extends DartType {
 
   TypeParameterType(this.parameter, this.declaredNullability);
 
-  /// Creates a type-parameter type to be used in alpha-renaming.
+  /// Creates a type parameter type with default nullability.
   ///
-  /// The constructed type object is supposed to be used as a value in a
-  /// substitution map created to perform an alpha-renaming from parameter
-  /// [from] to parameter [to] on a generic type.  The resulting type-parameter
-  /// type is an occurrence of [to] as a type, but the nullability property is
-  /// derived from the bound of [from].  It allows to assign the bound to [to]
-  /// after the desired alpha-renaming is performed, which is often the case.
-  TypeParameterType.forAlphaRenaming(TypeParameter from, TypeParameter to)
-      : this(to, computeNullabilityFromBound(from));
-
-  TypeParameterType.forAlphaRenamingFromStructuralParameters(
-      StructuralParameter from, TypeParameter to)
-      : this(to, StructuralParameterType.computeNullabilityFromBound(from));
-
-  /// Creates a type-parameter type with default nullability for the library.
-  ///
-  /// The nullability is computed as if the programmer omitted the modifier. It
-  /// means that in the opt-out libraries `Nullability.legacy` will be used, and
-  /// in opt-in libraries either `Nullability.nonNullable` or
-  /// `Nullability.undetermined` will be used, depending on the nullability of
-  /// the bound of [parameter].
-  TypeParameterType.withDefaultNullabilityForLibrary(
-      this.parameter, Library library)
-      : declaredNullability = computeNullabilityFromBound(parameter);
+  /// The nullability is computed as if the programmer omitted the modifier.
+  /// Either `Nullability.nonNullable` or `Nullability.undetermined` will be
+  /// used, depending on the nullability of the bound of [parameter].
+  TypeParameterType.withDefaultNullability(this.parameter)
+      : declaredNullability = parameter.computeNullabilityFromBound();
 
   @override
   DartType get nonTypeParameterBound {
@@ -2013,47 +2077,6 @@ class TypeParameterType extends DartType {
     return new TypeParameterType(parameter, declaredNullability);
   }
 
-  /// Gets the nullability of a type-parameter type based on the bound.
-  ///
-  /// This is a helper function to be used when the bound of the type parameter
-  /// is changing or is being set for the first time, and the update on some
-  /// type-parameter types is required.
-  static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
-    // If the bound is nullable or 'undetermined', both nullable and
-    // non-nullable types can be passed in for the type parameter, making the
-    // corresponding type parameter types 'undetermined.'  Otherwise, the
-    // nullability matches that of the bound.
-    DartType bound = typeParameter.bound;
-    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
-      throw new StateError("Can't compute nullability from an absent bound.");
-    }
-
-    // If a type parameter's nullability depends on itself, it is deemed
-    // 'undetermined'. Currently, it's possible if the type parameter has a
-    // possibly nested FutureOr containing that type parameter.  If there are
-    // other ways for such a dependency to exist, they should be checked here.
-    bool nullabilityDependsOnItself = false;
-    {
-      DartType type = typeParameter.bound;
-      while (type is FutureOrType) {
-        type = type.typeArgument;
-      }
-      if (type is TypeParameterType && type.parameter == typeParameter) {
-        nullabilityDependsOnItself = true;
-      }
-    }
-    if (nullabilityDependsOnItself) {
-      return Nullability.undetermined;
-    }
-
-    Nullability boundNullability =
-        bound is InvalidType ? Nullability.undetermined : bound.nullability;
-    return boundNullability == Nullability.nullable ||
-            boundNullability == Nullability.undetermined
-        ? Nullability.undetermined
-        : boundNullability;
-  }
-
   @override
   String toString() {
     return "TypeParameterType(${toStringInternal()})";
@@ -2076,26 +2099,13 @@ class StructuralParameterType extends DartType {
 
   StructuralParameterType(this.parameter, this.declaredNullability);
 
-  /// Creates a structural parameter type to be used in alpha-renaming.
+  /// Creates a structural parameter type with default nullability.
   ///
-  /// The constructed type object is supposed to be used as a value in a
-  /// substitution map created to perform an alpha-renaming from the parameter
-  /// [from] to the parameter [to] on a generic type. The resulting structural
-  /// parameter type is an occurrence of [to] as a type, but the nullability
-  /// property is derived from the bound of [from].
-  ///
-  /// A typical use of this constructor is to create a [StructuralParameterType]
-  /// referring to [StructuralParameter] [from] that is not fully formed yet and
-  /// may miss a bound. In case of alpha renaming it is assumed that nothing but
-  /// the identity of the variables change, and the bound of the parameter being
-  /// replaced can be used to compute the nullability of the replacement.
-  StructuralParameterType.forAlphaRenaming(
-      StructuralParameter from, StructuralParameter to)
-      : this(to, computeNullabilityFromBound(from));
-
-  StructuralParameterType.forAlphaRenamingFromTypeParameters(
-      TypeParameter from, StructuralParameter to)
-      : this(to, TypeParameterType.computeNullabilityFromBound(from));
+  /// The nullability is computed as if the programmer omitted the modifier.
+  /// Either [Nullability.nonNullable] or [Nullability.undetermined] will be
+  /// used, depending on the nullability of the bound of [parameter].
+  StructuralParameterType.withDefaultNullability(this.parameter)
+      : declaredNullability = parameter.computeNullabilityFromBound();
 
   @override
   DartType get nonTypeParameterBound {
@@ -2167,49 +2177,6 @@ class StructuralParameterType extends DartType {
       return this;
     }
     return new StructuralParameterType(parameter, declaredNullability);
-  }
-
-  /// Gets the nullability of a structural parameter type based on the bound.
-  ///
-  /// This is a helper function to be used when the bound of the structural
-  /// parameter is changing or is being set for the first time, and the update
-  /// on some structural parameter types is required.
-  static Nullability computeNullabilityFromBound(
-      StructuralParameter structuralParameter) {
-    // If the bound is nullable or 'undetermined', both nullable and
-    // non-nullable types can be passed in for the type parameter, making the
-    // corresponding type parameter types 'undetermined.'  Otherwise, the
-    // nullability matches that of the bound.
-    DartType bound = structuralParameter.bound;
-    if (identical(bound, StructuralParameter.unsetBoundSentinel)) {
-      throw new StateError("Can't compute nullability from an absent bound.");
-    }
-
-    // If a type parameter's nullability depends on itself, it is deemed
-    // 'undetermined'. Currently, it's possible if the type parameter has a
-    // possibly nested FutureOr containing that type parameter.  If there are
-    // other ways for such a dependency to exist, they should be checked here.
-    bool nullabilityDependsOnItself = false;
-    {
-      DartType type = structuralParameter.bound;
-      while (type is FutureOrType) {
-        type = type.typeArgument;
-      }
-      if (type is StructuralParameterType &&
-          type.parameter == structuralParameter) {
-        nullabilityDependsOnItself = true;
-      }
-    }
-    if (nullabilityDependsOnItself) {
-      return Nullability.undetermined;
-    }
-
-    Nullability boundNullability =
-        bound is InvalidType ? Nullability.undetermined : bound.nullability;
-    return boundNullability == Nullability.nullable ||
-            boundNullability == Nullability.undetermined
-        ? Nullability.undetermined
-        : boundNullability;
   }
 
   @override

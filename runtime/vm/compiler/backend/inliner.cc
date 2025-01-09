@@ -1324,12 +1324,7 @@ class CallSiteInliner : public ValueObject {
           callee_graph->set_current_ssa_temp_index(
               caller_graph_->current_ssa_temp_index());
 #if defined(DEBUG)
-          // The inlining IDs of instructions in the callee graph are unset
-          // until we call SetInliningID later.
-          GrowableArray<const Function*> callee_inline_id_to_function;
-          callee_inline_id_to_function.Add(&function);
-          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
-              .Check("Builder (callee)");
+          FlowGraphChecker(callee_graph).Check("Builder (callee)");
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
@@ -1399,17 +1394,6 @@ class CallSiteInliner : public ValueObject {
         ASSERT(arguments->length() ==
                first_actual_param_index + function.NumParameters());
 
-        // Update try-index of the callee graph.
-        BlockEntryInstr* call_block = call_data->call->GetBlock();
-        if (call_block->InsideTryBlock()) {
-          intptr_t try_index = call_block->try_index();
-          for (BlockIterator it = callee_graph->reverse_postorder_iterator();
-               !it.Done(); it.Advance()) {
-            BlockEntryInstr* block = it.Current();
-            block->set_try_index(try_index);
-          }
-        }
-
         BlockScheduler::AssignEdgeWeights(callee_graph);
 
         {
@@ -1417,12 +1401,7 @@ class CallSiteInliner : public ValueObject {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
           callee_graph->ComputeSSA(param_stubs);
 #if defined(DEBUG)
-          // The inlining IDs of instructions in the callee graph are unset
-          // until we call SetInliningID later.
-          GrowableArray<const Function*> callee_inline_id_to_function;
-          callee_inline_id_to_function.Add(&function);
-          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
-              .Check("SSA (callee)");
+          FlowGraphChecker(callee_graph).Check("SSA (callee)");
 #endif
         }
 
@@ -1440,22 +1419,18 @@ class CallSiteInliner : public ValueObject {
           if (CompilerState::Current().is_aot()) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
             AotCallSpecializer call_specializer(inliner_->precompiler_,
-                                                callee_graph,
-                                                inliner_->speculative_policy_);
+                                                callee_graph);
 
-            CompilerPassState state(Thread::Current(), callee_graph,
-                                    inliner_->speculative_policy_);
+            CompilerPassState state(Thread::Current(), callee_graph);
             state.call_specializer = &call_specializer;
             CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
           } else {
-            JitCallSpecializer call_specializer(callee_graph,
-                                                inliner_->speculative_policy_);
+            JitCallSpecializer call_specializer(callee_graph);
 
-            CompilerPassState state(Thread::Current(), callee_graph,
-                                    inliner_->speculative_policy_);
+            CompilerPassState state(Thread::Current(), callee_graph);
             state.call_specializer = &call_specializer;
             CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
           }
@@ -1574,10 +1549,12 @@ class CallSiteInliner : public ValueObject {
         }
 
         {
-          COMPILER_TIMINGS_TIMER_SCOPE(thread(), SetInliningId);
-          FlowGraphInliner::SetInliningId(
-              callee_graph, inliner_->NextInlineId(callee_graph->function(),
-                                                   call_data->call->source()));
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), SetInliningIdAndTryIndex);
+          FlowGraphInliner::SetInliningIdAndTryIndex(
+              callee_graph,
+              inliner_->NextInlineId(callee_graph->function(),
+                                     call_data->call->source()),
+              call_data->call->GetBlock()->try_index());
         }
         TRACE_INLINING(THR_Print("     Success\n"));
         TRACE_INLINING(THR_Print(
@@ -2400,19 +2377,15 @@ bool PolymorphicInliner::Inline() {
   return true;
 }
 
-FlowGraphInliner::FlowGraphInliner(
-    FlowGraph* flow_graph,
-    GrowableArray<const Function*>* inline_id_to_function,
-    GrowableArray<TokenPosition>* inline_id_to_token_pos,
-    GrowableArray<intptr_t>* caller_inline_id,
-    SpeculativeInliningPolicy* speculative_policy,
-    Precompiler* precompiler)
+FlowGraphInliner::FlowGraphInliner(FlowGraph* flow_graph,
+                                   Precompiler* precompiler)
     : flow_graph_(flow_graph),
-      inline_id_to_function_(inline_id_to_function),
-      inline_id_to_token_pos_(inline_id_to_token_pos),
-      caller_inline_id_(caller_inline_id),
+      inline_id_to_function_(
+          &(flow_graph->inlining_info().inline_id_to_function)),
+      inline_id_to_token_pos_(
+          &(flow_graph->inlining_info().inline_id_to_token_pos)),
+      caller_inline_id_(&(flow_graph->inlining_info().caller_inline_id)),
       trace_inlining_(FLAG_trace_inlining && flow_graph->should_print()),
-      speculative_policy_(speculative_policy),
       precompiler_(precompiler) {}
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,
@@ -2449,8 +2422,9 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,
   *call_site_count = function.optimized_call_site_count();
 }
 
-void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
-                                     intptr_t inlining_id) {
+void FlowGraphInliner::SetInliningIdAndTryIndex(FlowGraph* flow_graph,
+                                                intptr_t inlining_id,
+                                                intptr_t caller_try_index) {
   ASSERT(flow_graph->inlining_id() < 0);
   flow_graph->set_inlining_id(inlining_id);
   // We only need to set the inlining ID on instructions that may possibly
@@ -2458,8 +2432,13 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
   // definitions.
   for (BlockIterator block_it = flow_graph->postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
-         it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (caller_try_index != kInvalidTryIndex) {
+      // Inlining of functions with try-blocks is not supported at the moment.
+      ASSERT(!block->InsideTryBlock());
+      block->set_try_index(caller_try_index);
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       current->set_inlining_id(inlining_id);
     }

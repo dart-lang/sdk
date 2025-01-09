@@ -26,7 +26,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -61,7 +60,7 @@ Future<void> addLibraryImports(
 
   // TODO(brianwilkerson): Use `targetLibrary2` everywhere below and rename it
   //  to `targetLibrary`.
-  var targetLibrary = targetLibrary2.asElement as LibraryElement;
+  var targetLibrary = targetLibrary2.asElement;
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
@@ -79,7 +78,7 @@ Future<void> addLibraryImports(
           .map(
             (library) => getLibrarySourceUri(
               session.resourceProvider.pathContext,
-              targetLibrary,
+              targetLibrary2,
               library.uri,
             ),
           )
@@ -278,7 +277,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<int> lengths = <int>[];
 
   /// The map of local elements to their visibility ranges.
-  late Map<LocalElement, SourceRange> _visibleRangeMap;
+  late Map<LocalElement2, SourceRange> _visibleRangeMap;
 
   /// The map of local names to their visibility ranges.
   final Map<String, List<SourceRange>> _localNames =
@@ -642,19 +641,19 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var parent = _parentMember!.parent;
     // top-level function
     if (parent is CompilationUnit) {
-      var libraryElement = parent.declaredElement!.library;
+      var libraryElement = parent.declaredFragment!.element;
       return validateCreateFunction(_searchEngine, libraryElement, name);
     }
     // method of class
-    InterfaceElement? interfaceElement;
+    InterfaceElement2? interfaceElement;
     if (parent is ClassDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is EnumDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is ExtensionTypeDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is MixinDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     }
     if (interfaceElement != null) {
       return validateCreateMethod(
@@ -975,10 +974,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         result.addError(errorExits);
       }
     }
-    // maybe ends with "return" statement
+    // Maybe ends with a "return" statement.
     if (selectionStatements != null) {
-      var typeSystem = _resolveResult.typeSystem;
-      var returnTypeComputer = _ReturnTypeComputer(typeSystem);
+      var returnTypeComputer = ReturnTypeComputer(_resolveResult.typeSystem);
       for (var statement in selectionStatements) {
         statement.accept(returnTypeComputer);
       }
@@ -1110,7 +1108,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   void _prepareExcludedNames() {
     _excludedNames.clear();
     var localElements = getDefinedLocalElements(_parentMember!);
-    _excludedNames.addAll(localElements.map((e) => e.name!));
+    _excludedNames.addAll(localElements.map((e) => e.name3!));
   }
 
   void _prepareNames() {
@@ -1684,7 +1682,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
     if (element is LocalElement) {
       // declared local elements
       if (node.inDeclarationContext()) {
-        var range = ref._visibleRangeMap[element];
+        var range = ref._visibleRangeMap[element.asElement2];
         if (range != null) {
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
@@ -1714,7 +1712,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
       // remember information for conflicts checking
       if (element is LocalElement) {
         // declared local elements
-        var range = ref._visibleRangeMap[element as LocalElement];
+        var range = ref._visibleRangeMap[element.asElement2 as LocalElement2];
         if (range != null) {
           var name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
@@ -1755,41 +1753,6 @@ class _Occurrence {
   final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
   _Occurrence(this.range, this.isSelection);
-}
-
-class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
-  final TypeSystem typeSystem;
-
-  DartType? returnType;
-
-  _ReturnTypeComputer(this.typeSystem);
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {}
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    // prepare expression
-    var expression = node.expression;
-    if (expression == null) {
-      return;
-    }
-    // prepare type
-    var type = expression.typeOrThrow;
-    if (type.isBottom) {
-      return;
-    }
-    // combine types
-    returnType = _combine(returnType, type);
-  }
-
-  DartType _combine(DartType? returnType, DartType type) {
-    if (returnType == null) {
-      return type;
-    } else {
-      return typeSystem.leastUpperBound(returnType, type);
-    }
-  }
 }
 
 /// Generalized version of some source, in which references to the specific
@@ -1903,7 +1866,7 @@ extension on LibraryElement {
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
     for (var imp in library.definingCompilationUnit.libraryImports) {
-      var definedNames = getImportNamespace(imp);
+      var definedNames = imp.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return imp;
       }

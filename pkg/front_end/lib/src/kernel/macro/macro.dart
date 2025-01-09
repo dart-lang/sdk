@@ -31,8 +31,10 @@ import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
-import '../../source/source_procedure_builder.dart';
+import '../../source/source_method_builder.dart';
+import '../../source/source_property_builder.dart';
 import '../../source/source_type_alias_builder.dart';
+import '../../source/synthetic_method_builder.dart';
 import '../benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../hierarchy/hierarchy_builder.dart';
 import 'annotation_parser.dart';
@@ -476,7 +478,21 @@ class MacroApplications {
         Iterator<Builder> memberIterator = builder.localMemberIterator();
         while (memberIterator.moveNext()) {
           Builder memberBuilder = memberIterator.current;
-          if (memberBuilder is SourceProcedureBuilder) {
+          if (memberBuilder is SourceMethodBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              classMacroApplicationData.memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SyntheticMethodBuilder) {
+            // [SyntheticMethodBuilder] doesn't have metadata.
+          } else if (memberBuilder is SourcePropertyBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
                 scope: builder.scope,
@@ -544,7 +560,19 @@ class MacroApplications {
           libraryMacroApplicationData.classData[builder] =
               classMacroApplicationData;
         }
-      } else if (builder is SourceProcedureBuilder) {
+      } else if (builder is SourceMethodBuilder) {
+        List<MacroApplication>? macroApplications = prebuildAnnotations(
+            enclosingLibrary: libraryBuilder,
+            scope: libraryBuilder.scope,
+            fileUri: builder.fileUri,
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[builder] =
+              new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                  builder, macroApplications);
+        }
+      } else if (builder is SourcePropertyBuilder) {
         List<MacroApplication>? macroApplications = prebuildAnnotations(
             enclosingLibrary: libraryBuilder,
             scope: libraryBuilder.scope,
@@ -585,7 +613,20 @@ class MacroApplications {
         Iterator<Builder> memberIterator = builder.localMemberIterator();
         while (memberIterator.moveNext()) {
           Builder memberBuilder = memberIterator.current;
-          if (memberBuilder is SourceProcedureBuilder) {
+          if (memberBuilder is SourceMethodBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              extensionTypeMacroApplicationData
+                      .memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SourcePropertyBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
                 scope: builder.scope,

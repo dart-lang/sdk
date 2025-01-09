@@ -544,7 +544,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Clear upper part of the out register. We are going to use setcc on it
   // which is a byte move.
-  __ xorq(RDX, RDX);
+  __ ClearRegister(RDX);
 
   // Emit comparison code. This must not overwrite the result register.
   // IfThenElseInstr::Supports() should prevent EmitConditionCode from using
@@ -650,7 +650,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
       const int64_t value = Integer::Cast(value_).Value();
       if (value == 0) {
-        __ xorl(destination.reg(), destination.reg());
+        __ ClearRegister(destination.reg());
       } else {
         __ movq(destination.reg(), compiler::Immediate(value));
       }
@@ -1506,11 +1506,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(
                 THR, compiler::target::Thread::global_object_pool_offset()));
   } else {
-    __ xorq(PP, PP);  // GC-safe value into PP.
+    __ ClearRegister(PP);  // GC-safe value into PP.
   }
 
   // Load a GC-safe value for arguments descriptor (unused but tagged).
-  __ xorq(ARGS_DESC_REG, ARGS_DESC_REG);
+  __ ClearRegister(ARGS_DESC_REG);
 
   // Push a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
@@ -1657,8 +1657,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ leaq(bytes_end_minus_16_reg, compiler::Address(bytes_end_reg, -16));
 
   // Initialize size and flags.
-  __ xorq(size_reg, size_reg);
-  __ xorq(flags_reg, flags_reg);
+  __ ClearRegister(size_reg);
+  __ ClearRegister(flags_reg);
 
   __ jmp(&scan_ascii, compiler::Assembler::kNearJump);
 
@@ -1700,7 +1700,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           table_reg, temp_reg, TIMES_1,
                           compiler::target::OneByteString::data_offset()));
   __ orq(flags_reg, temp_reg);
-  __ andq(temp_reg, compiler::Immediate(kSizeMask));
+  __ AndImmediate(temp_reg, compiler::Immediate(kSizeMask));
   __ addq(size_reg, temp_reg);
 
   // Stop if end is reached.
@@ -1735,7 +1735,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           table_reg, temp_reg, TIMES_1,
                           compiler::target::OneByteString::data_offset()));
   __ orq(flags_reg, temp_reg);
-  __ andq(temp_reg, compiler::Immediate(kSizeMask));
+  __ AndImmediate(temp_reg, compiler::Immediate(kSizeMask));
   __ addq(size_reg, temp_reg);
 
   // Stop if end is reached.
@@ -1745,7 +1745,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 
   // Write flags to field.
-  __ andq(flags_reg, compiler::Immediate(kFlagsMask));
+  __ AndImmediate(flags_reg, compiler::Immediate(kFlagsMask));
   if (!IsScanFlagsUnboxed()) {
     __ SmiTag(flags_reg);
   }
@@ -2042,15 +2042,12 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movb(element_address, compiler::Immediate(static_cast<int8_t>(value)));
     } else {
       const Register value = locs()->in(2).reg();
-      compiler::Label store_value, store_0xff;
+      compiler::Label store_value;
       __ CompareImmediate(value, compiler::Immediate(0xFF));
-      __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
+      __ j(UNSIGNED_LESS_EQUAL, &store_value, compiler::Assembler::kNearJump);
       // Clamp to 0x0 or 0xFF respectively.
-      __ j(GREATER, &store_0xff);
-      __ xorq(value, value);
-      __ jmp(&store_value, compiler::Assembler::kNearJump);
-      __ Bind(&store_0xff);
-      __ LoadImmediate(value, compiler::Immediate(0xFF));
+      __ notq(value);
+      __ sarq(value, compiler::Immediate(63));
       __ Bind(&store_value);
       __ movb(element_address, ByteRegisterOf(value));
     }
@@ -2736,9 +2733,6 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(this);
-  if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
-  }
 
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
@@ -2748,6 +2742,10 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, compiler::Address(RBP, fp_sp_dist));
+
+  if (HasParallelMove()) {
+    parallel_move()->EmitNativeCode(compiler);
+  }
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
@@ -2970,7 +2968,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       compiler::Label done, is_not_zero;
       __ CompareObject(right, Smi::ZoneHandle(Smi::New(Smi::kBits)));
       __ j(BELOW, &is_not_zero, compiler::Assembler::kNearJump);
-      __ xorq(left, left);
+      __ ClearRegister(left);
       __ jmp(&done, compiler::Assembler::kNearJump);
       __ Bind(&is_not_zero);
       __ SmiUntag(right);
@@ -3504,7 +3502,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                             compiler::kObjectBytes);
         compiler::Label count_ok;
         __ j(LESS_EQUAL, &count_ok, compiler::Assembler::kNearJump);
-        __ xorq(left, left);
+        __ ClearRegister(left);
         __ jmp(&done, compiler::Assembler::kNearJump);
         __ Bind(&count_ok);
       }
@@ -3703,7 +3701,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       // bits intact. This creates false dependency and causes performance
       // problems for subsequent uses of the XMM register. To break the
       // dependency XORPS is recommended.
-      __ xorps(result, result);
+      __ ClearFpuRegister(result);
       __ OBJ(cvtsi2sd)(result, box);
       break;
     }
@@ -4045,21 +4043,18 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
     }
     case MethodRecognizer::kDouble_getIsInfinite: {
       const Register temp = locs()->temp(0).reg();
-      __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
-      __ movsd(compiler::Address(RSP, 0), value);
-      __ movq(temp, compiler::Address(RSP, 0));
-      __ AddImmediate(RSP, compiler::Immediate(kDoubleSize));
-      // Mask off the sign.
-      __ AndImmediate(temp, compiler::Immediate(0x7FFFFFFFFFFFFFFFLL));
-      // Compare with +infinity.
-      __ CompareImmediate(temp, compiler::Immediate(0x7FF0000000000000LL));
+      __ MoveFpuRegisterToRegister(temp, value);
+      // Shift out the sign.
+      __ addq(temp, temp);
+      // Compare with +/-infinity << 1.
+      __ CompareImmediate(temp, compiler::Immediate(0xFFE0000000000000LL));
       return is_negated ? NOT_EQUAL : EQUAL;
     }
     case MethodRecognizer::kDouble_getIsNegative: {
       const Register temp = locs()->temp(0).reg();
       const FpuRegister temp_fpu = locs()->temp(1).fpu_reg();
       compiler::Label not_zero;
-      __ xorpd(temp_fpu, temp_fpu);
+      __ ClearFpuRegister(temp_fpu);
       __ comisd(value, temp_fpu);
       // If it's NaN, it's not negative.
       __ j(PARITY_EVEN, is_negated ? labels.true_label : labels.false_label);
@@ -4271,11 +4266,11 @@ DEFINE_EMIT(
 }
 
 DEFINE_EMIT(Float32x4Zero, (XmmRegister value)) {
-  __ xorps(value, value);
+  __ ClearFpuRegister(value);
 }
 
 DEFINE_EMIT(Float64x2Zero, (XmmRegister value)) {
-  __ xorpd(value, value);
+  __ ClearFpuRegister(value);
 }
 
 DEFINE_EMIT(Float32x4Clamp,
@@ -4318,7 +4313,7 @@ DEFINE_EMIT(Int32x4FromBools,
   __ SubImmediate(RSP, compiler::Immediate(kSimd128Size));
   for (intptr_t i = 0; i < 4; i++) {
     compiler::Label done, load_false;
-    __ xorq(temp, temp);
+    __ ClearRegister(temp);
     __ CompareObject(instr->locs()->in(i).reg(), Bool::True());
     __ setcc(EQUAL, ByteRegisterOf(temp));
     __ negl(temp);  // temp = input ? -1 : 0
@@ -4340,7 +4335,7 @@ static void EmitToBoolean(FlowGraphCompiler* compiler, Register out) {
 DEFINE_EMIT(Int32x4GetFlagZorW,
             (Register out, XmmRegister value, Temp<XmmRegister> temp)) {
   __ movhlps(temp, value);  // extract upper half.
-  __ movq(out, temp);
+  __ MoveFpuRegisterToRegister(out, temp);
   if (instr->kind() == SimdOpInstr::kInt32x4GetFlagW) {
     __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
   }
@@ -4348,7 +4343,7 @@ DEFINE_EMIT(Int32x4GetFlagZorW,
 }
 
 DEFINE_EMIT(Int32x4GetFlagXorY, (Register out, XmmRegister value)) {
-  __ movq(out, value);
+  __ MoveFpuRegisterToRegister(out, value);
   if (instr->kind() == SimdOpInstr::kInt32x4GetFlagY) {
     __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
   }
@@ -4369,7 +4364,7 @@ DEFINE_EMIT(
   __ movups(compiler::Address(RSP, 0), mask);
 
   // temp = flag == true ? -1 : 0
-  __ xorq(temp, temp);
+  __ ClearRegister(temp);
   __ CompareObject(flag, Bool::True());
   __ setcc(EQUAL, ByteRegisterOf(temp));
   __ negl(temp);
@@ -4698,7 +4693,7 @@ void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // bits intact. This creates false dependency and causes performance
   // problems for subsequent uses of the XMM register. To break the
   // dependency XORPS is recommended.
-  __ xorps(result, result);
+  __ ClearFpuRegister(result);
   __ cvtsi2sdl(result, value);
 }
 
@@ -4721,7 +4716,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // bits intact. This creates false dependency and causes performance
   // problems for subsequent uses of the XMM register. To break the
   // dependency XORPS is recommended.
-  __ xorps(result, result);
+  __ ClearFpuRegister(result);
   __ OBJ(cvtsi2sd)(result, value);
 }
 
@@ -4730,7 +4725,7 @@ DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
   // bits intact. This creates false dependency and causes performance
   // problems for subsequent uses of the XMM register. To break the
   // dependency XORPS is recommended.
-  __ xorps(result, result);
+  __ ClearFpuRegister(result);
   __ cvtsi2sdq(result, value);
 }
 
@@ -4775,7 +4770,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler::Immediate(0));
     __ j(EQUAL, slow_path->entry_label());
 
-    __ xorps(FpuTMP, FpuTMP);
+    __ ClearFpuRegister(FpuTMP);
     switch (recognized_kind()) {
       case MethodRecognizer::kDoubleFloorToInt:
         __ roundsd(FpuTMP, value_double, compiler::Assembler::kRoundDown);
@@ -4933,7 +4928,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   XmmRegister zero_temp =
       locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
 
-  __ xorps(zero_temp, zero_temp);
+  __ ClearFpuRegister(zero_temp);
   __ LoadDImmediate(result, 1.0);
 
   compiler::Label check_base, skip_call;
@@ -5241,7 +5236,7 @@ static void EmitHashIntegerCodeSequence(FlowGraphCompiler* compiler) {
   __ movq(RDX, RAX);
   __ shrq(RDX, compiler::Immediate(32));
   __ xorq(RAX, RDX);
-  __ andq(RAX, compiler::Immediate(0x3fffffff));
+  __ AndImmediate(RAX, compiler::Immediate(0x3fffffff));
 }
 
 LocationSummary* HashDoubleOpInstr::MakeLocationSummary(Zone* zone,
@@ -5268,8 +5263,8 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // cvtsi2sd only writes to the lower part of the register and leaves upper
   // bits intact. This creates false dependency and causes performance
   // problems for subsequent uses of the XMM register. To break the
-  // dependency XORPS is recommended.
-  __ xorps(temp_fpu_reg, temp_fpu_reg);
+  // dependency XORPS is recommended (which is what ClearRegister does).
+  __ ClearFpuRegister(temp_fpu_reg);
   __ cvttsd2siq(RAX, value);
   __ cvtsi2sdq(temp_fpu_reg, RAX);
   __ comisd(value, temp_fpu_reg);
@@ -5284,11 +5279,11 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Bind(&hash_double);
   // Convert the double bits to a hash code that fits in a Smi.
-  __ movq(RAX, value);
+  __ MoveFpuRegisterToRegister(RAX, value);
   __ movq(RDX, RAX);
   __ shrq(RDX, compiler::Immediate(32));
   __ xorq(RAX, RDX);
-  __ andq(RAX, compiler::Immediate(compiler::target::kSmiMax));
+  __ AndImmediate(RAX, compiler::Immediate(compiler::target::kSmiMax));
 
   __ Bind(&done);
 }
@@ -5571,7 +5566,7 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
     if (has_divide_by_minus_one()) {
       __ Bind(div_by_minus_one_label());
       if (is_mod_) {
-        __ xorq(RDX, RDX);  // x % -1 =  0
+        __ ClearRegister(RDX);  // x % -1 =  0
       } else {
         __ negq(RAX);  // x / -1 = -x
       }
@@ -5690,7 +5685,6 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
           __ imulq(RDX, TMP);
           __ subq(RAX, RDX);
           // Compensate for Dart's Euclidean view of MOD.
-          __ testq(RAX, RAX);
           __ j(GREATER_EQUAL, &pos);
           if (divisor > 0) {
             __ addq(RAX, TMP);
@@ -5967,7 +5961,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
   }
 
   if (shift >= 32) {
-    __ xorl(left, left);
+    __ ClearRegister(left);
   } else {
     switch (op_kind) {
       case Token::kSHR:
@@ -6025,7 +6019,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
         break;
       case Token::kUSHR:
       case Token::kSHL:
-        __ xorq(out, out);
+        __ ClearRegister(out);
         break;
       default:
         UNREACHABLE();
@@ -6095,7 +6089,7 @@ void BinaryUint32OpInstr::EmitShiftUint32(FlowGraphCompiler* compiler) {
       compiler::Label done;
       __ cmpl(RCX, compiler::Immediate(kUint32ShiftCountLimit));
       __ j(UNSIGNED_LESS_EQUAL, &done);
-      __ xorl(out, out);
+      __ ClearRegister(out);
       __ Bind(&done);
     }
   }
@@ -6415,7 +6409,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // RCX: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-    __ xorq(IC_DATA_REG, IC_DATA_REG);
+    __ ClearRegister(IC_DATA_REG);
   }
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),

@@ -179,7 +179,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             isAbstract: true,
             isExternal: false,
             isFinal: isFinal,
-            isCovariantByDeclaration: isCovariantByDeclaration);
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isForcedExtension: true);
       }
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
@@ -346,6 +347,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<MetadataBuilder>? get metadataForTesting => metadata;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
   bool get isAugmentation => modifiers.isAugment;
 
   @override
@@ -389,7 +394,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void _ensureType(ClassMembersBuilder membersBuilder) {
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
-      membersBuilder.inferFieldType(this, _overrideDependencies!);
+      membersBuilder.inferFieldType(declarationBuilder as SourceClassBuilder,
+          type, _overrideDependencies!,
+          name: fullNameForErrors,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          nameLength: fullNameForErrors.length,
+          isAssignable: isAssignable);
       _overrideDependencies = null;
     } else {
       type.build(libraryBuilder, TypeUse.fieldType,
@@ -470,12 +481,24 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Member get readTarget => _fieldEncoding.readTarget;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _fieldEncoding.readTargetReference;
+
+  @override
   Member? get writeTarget {
     return isAssignable ? _fieldEncoding.writeTarget : null;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _fieldEncoding.writeTargetReference;
+
+  @override
   Member get invokeTarget => readTarget;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => _fieldEncoding.readTargetReference;
 
   @override
   Iterable<Reference> get exportedMemberReferences =>
@@ -495,7 +518,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _fieldEncoding.build(libraryBuilder, this);
   }
 
-  @override
   BodyBuilderContext createBodyBuilderContext() {
     return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember);
   }
@@ -708,8 +730,14 @@ abstract class FieldEncoding {
   /// Returns the member used to read the field value.
   Member get readTarget;
 
+  /// Returns the reference used to read the field value.
+  Reference get readTargetReference;
+
   /// Returns the member used to write to the field.
   Member? get writeTarget;
+
+  /// Returns the reference used to write to the field.
+  Reference? get writeTargetReference;
 
   /// Returns the references to the generated members that are visible through
   /// exports.
@@ -858,7 +886,15 @@ class RegularFieldEncoding implements FieldEncoding {
   Member get readTarget => _field;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _field.getterReference;
+
+  @override
   Member get writeTarget => _field;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _field.setterReference;
 
   @override
   Iterable<Reference> get exportedReferenceMembers =>
@@ -1228,7 +1264,15 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Member get readTarget => _lateGetter;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _lateGetter.reference;
+
+  @override
   Member? get writeTarget => _lateSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _lateSetter?.reference;
 
   @override
   Iterable<Reference> get exportedReferenceMembers {
@@ -1744,11 +1788,12 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       {required this.isAbstract,
       required this.isExternal,
       required bool isFinal,
-      required bool isCovariantByDeclaration})
-      : _isExtensionInstanceMember = isExternal &&
+      required bool isCovariantByDeclaration,
+      bool isForcedExtension = false})
+      : _isExtensionInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionMember &&
             nameScheme.isInstanceMember,
-        _isExtensionTypeInstanceMember = isExternal &&
+        _isExtensionTypeInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionTypeMember &&
             nameScheme.isInstanceMember {
     if (_isExtensionInstanceMember || _isExtensionTypeInstanceMember) {
@@ -1991,7 +2036,15 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Member get readTarget => _getter;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _getter.reference;
+
+  @override
   Member? get writeTarget => _setter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _setter?.reference;
 
   @override
   Iterable<Reference> get exportedReferenceMembers {
@@ -2146,7 +2199,15 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _getter.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
 
   @override
   // Coverage-ignore(suite): Not run.

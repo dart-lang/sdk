@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -30,6 +31,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -68,7 +70,7 @@ class ElementHolder {
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
-  LibraryElementImpl _libraryElement;
+  final LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
   final ErrorReporter _errorReporter;
@@ -415,7 +417,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       name,
       node.name.offset,
     );
-    _patternVariables.add(name, element);
+    _patternVariables.add(name, element.element);
     _elementHolder.enclose(element);
     _define(element);
     element.hasImplicitType = node.type == null;
@@ -669,7 +671,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitForEachPartsWithPattern(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
+        .whereType<BindPatternVariableElementImpl2>()
+        .map((e) => e.asElement as BindPatternVariableElementImpl)
         .toList();
   }
 
@@ -1147,7 +1150,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
+        .whereType<BindPatternVariableElementImpl2>()
+        .map((e) => e.asElement as BindPatternVariableElementImpl)
         .toList();
   }
 
@@ -1613,7 +1617,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     // Matched variables are available in `whenClause`.
     _withNameScope(() {
       for (var variable in variables.values) {
-        _define(variable);
+        _define(variable.asElement!);
       }
       guardedPattern.variables = variables.cast();
       guardedPattern.whenClause?.accept(this);
@@ -1924,7 +1928,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _VariableBinder
-    extends VariableBinder<DartPatternImpl, PromotableElement> {
+    extends VariableBinder<DartPatternImpl, PromotableElementImpl2> {
   final TypeProvider typeProvider;
 
   _VariableBinder({
@@ -1933,46 +1937,48 @@ class _VariableBinder
   });
 
   @override
-  JoinPatternVariableElementImpl joinPatternVariables({
+  JoinPatternVariableElementImpl2 joinPatternVariables({
     required Object key,
-    required List<PromotableElement> components,
+    required List<PromotableElement2> components,
     required shared.JoinedPatternVariableInconsistency inconsistency,
   }) {
     var first = components.first;
     List<PatternVariableElementImpl> expandedVariables;
     if (key is LogicalOrPatternImpl) {
       expandedVariables = components.expand((variable) {
-        variable as PatternVariableElementImpl;
-        if (variable is JoinPatternVariableElementImpl) {
+        variable as PatternVariableElementImpl2;
+        if (variable is JoinPatternVariableElementImpl2) {
           return variable.variables;
         } else {
-          return [variable];
+          return [variable.asElement as PatternVariableElementImpl];
         }
       }).toList(growable: false);
     } else if (key is SwitchStatementCaseGroup) {
       expandedVariables = components
-          .map((e) => e as PatternVariableElementImpl)
+          .map((e) => e.asElement as PatternVariableElementImpl)
           .toList(growable: false);
     } else {
       throw UnimplementedError('(${key.runtimeType}) $key');
     }
-    return JoinPatternVariableElementImpl(
-      first.name,
+    return (JoinPatternVariableElementImpl(
+      first.name3!,
       -1,
       expandedVariables,
       inconsistency.maxWithAll(
         components
-            .whereType<JoinPatternVariableElementImpl>()
+            .whereType<JoinPatternVariableElementImpl2>()
             .map((e) => e.inconsistency),
       ),
     )
-      ..enclosingElement3 = first.enclosingElement3
-      ..type = InvalidTypeImpl.instance;
+          ..enclosingElement3 =
+              first.firstFragment.enclosingFragment!.element.asElement!
+          ..type = InvalidTypeImpl.instance)
+        .element;
   }
 }
 
 class _VariableBinderErrors
-    implements VariableBinderErrors<DartPatternImpl, PromotableElement> {
+    implements VariableBinderErrors<DartPatternImpl, PromotableElementImpl2> {
   final ResolutionVisitor visitor;
 
   _VariableBinderErrors(this.visitor);
@@ -1986,8 +1992,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant BindPatternVariableElementImpl original,
-    required covariant BindPatternVariableElementImpl duplicate,
+    required covariant BindPatternVariableElementImpl2 original,
+    required covariant BindPatternVariableElementImpl2 duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
@@ -2006,7 +2012,7 @@ class _VariableBinderErrors
     required covariant LogicalOrPatternImpl node,
     required bool hasInLeft,
     required String name,
-    required PromotableElement variable,
+    required PromotableElement2 variable,
   }) {
     visitor._errorReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,

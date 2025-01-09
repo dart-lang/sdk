@@ -39,7 +39,7 @@ class CodeActionHandler
     CodeActionParams params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
+  ) {
     var performance = message.performance;
 
     var textDocument = params.textDocument;
@@ -327,7 +327,8 @@ class _CodeActionSorter {
         .toList();
   }
 
-  /// Creates a comparer for [CodeActions] that compares the column distance from [pos].
+  /// Creates a comparer for [CodeAction]s that compares the column distance from
+  /// [pos].
   int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
     Position pos,
   ) {

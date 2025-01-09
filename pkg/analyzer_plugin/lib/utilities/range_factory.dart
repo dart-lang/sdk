@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -94,11 +93,6 @@ class RangeFactory {
       endOffset = end.offset;
     }
     return startOffsetEndOffset(startOffset, endOffset);
-  }
-
-  /// Return a source range that covers the name of the given [element].
-  SourceRange elementName(Element element) {
-    return SourceRange(element.nameOffset, element.nameLength);
   }
 
   /// Return a source range that starts at the end of [leftEntity] and ends at

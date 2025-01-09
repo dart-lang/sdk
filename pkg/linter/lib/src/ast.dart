@@ -8,7 +8,6 @@ library;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
@@ -119,21 +118,10 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
 }
 
 /// If the [node] is the finishing identifier of an assignment, return its
-/// "writeElement", otherwise return its "staticElement", which might be
-/// thought as the "readElement".
-Element? getWriteOrReadElement(SimpleIdentifier node) {
-  var writeElement = _getWriteElement(node);
-  if (writeElement != null) {
-    return writeElement;
-  }
-  return node.staticElement;
-}
-
-/// If the [node] is the finishing identifier of an assignment, return its
 /// "writeElement", otherwise return its "element", which might be
 /// thought as the "readElement".
-Element2? getWriteOrReadElement2(SimpleIdentifier node) =>
-    _getWriteElement2(node) ?? node.element;
+Element2? getWriteOrReadElement(SimpleIdentifier node) =>
+    _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
     node.computeConstantValue().errors.isNotEmpty;
@@ -196,7 +184,7 @@ bool isMethod(ClassMember m) => m is MethodDeclaration;
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) {
-  var declaredElement = m.declaredElement;
+  var declaredElement = m.declaredFragment?.element;
   return declaredElement != null && isMethod(m) && declaredElement.isPublic;
 }
 
@@ -390,30 +378,7 @@ int? _getIntValue(Expression expression, LinterContext? context,
 /// return the corresponding "writeElement", which is the local variable,
 /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
 /// or the `[]=` operator.
-Element? _getWriteElement(AstNode node) {
-  var parent = node.parent;
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement;
-  }
-  if (parent is PostfixExpression) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression) {
-    return parent.writeElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _getWriteElement(parent);
-  }
-
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _getWriteElement(parent);
-  }
-
-  return null;
-}
-
-Element2? _getWriteElement2(AstNode node) {
+Element2? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.writeElement2;
@@ -426,11 +391,11 @@ Element2? _getWriteElement2(AstNode node) {
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _getWriteElement2(parent);
+    return _getWriteElement(parent);
   }
 
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _getWriteElement2(parent);
+    return _getWriteElement(parent);
   }
 
   return null;

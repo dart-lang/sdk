@@ -12,6 +12,8 @@ import 'augmented_expression_test.dart' as augmented_expression;
 import 'augmented_invocation_test.dart' as augmented_invocation;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
+import 'cascade_expression_resolution_test.dart'
+    as cascade_expression_resolution_test;
 import 'cast_pattern_test.dart' as cast_pattern;
 import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
@@ -127,6 +129,7 @@ main() {
     augmented_invocation.main();
     await_expression.main();
     binary_expression.main();
+    cascade_expression_resolution_test.main();
     cast_pattern.main();
     class_alias.main();
     class_resolution.main();

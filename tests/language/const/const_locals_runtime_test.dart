@@ -10,12 +10,9 @@
 import "package:expect/expect.dart";
 
 void main() {
-
   const c2 = 0;
 
-
   const c5 = constField;
-
 
   const c8 = const Class();
 }

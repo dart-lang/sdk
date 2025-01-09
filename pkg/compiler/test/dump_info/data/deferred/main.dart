@@ -387,5 +387,5 @@ import 'lib.dart' deferred as lib;
   {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"}]
 */
 main() => lib.loadLibrary().then((_) {
-      (lib.funky)();
-    });
+  (lib.funky)();
+});

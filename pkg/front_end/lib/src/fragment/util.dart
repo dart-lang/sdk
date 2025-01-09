@@ -44,3 +44,55 @@ class ConstructorName {
       required this.fullNameLength})
       : assert(name != 'new');
 }
+
+void _buildMetadataForOutlineExpressions(
+    SourceLibraryBuilder libraryBuilder,
+    LookupScope parentScope,
+    BodyBuilderContext bodyBuilderContext,
+    Annotatable annotatable,
+    List<MetadataBuilder>? metadata,
+    {required Uri fileUri,
+    required bool createFileUriExpression}) {
+  MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
+      libraryBuilder, fileUri, parentScope,
+      createFileUriExpression: createFileUriExpression);
+}
+
+void _buildTypeParametersForOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    SourceLibraryBuilder libraryBuilder,
+    BodyBuilderContext bodyBuilderContext,
+    LookupScope typeParameterScope,
+    List<NominalParameterBuilder>? typeParameters) {
+  if (typeParameters != null) {
+    for (int i = 0; i < typeParameters.length; i++) {
+      typeParameters[i].buildOutlineExpressions(libraryBuilder,
+          bodyBuilderContext, classHierarchy, typeParameterScope);
+    }
+  }
+}
+
+void _buildFormalsForOutlineExpressions(
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder,
+    List<FormalParameterBuilder>? formals,
+    {required bool isClassInstanceMember}) {
+  if (formals != null) {
+    for (FormalParameterBuilder formal in formals) {
+      _buildFormalForOutlineExpressions(
+          libraryBuilder, declarationBuilder, formal,
+          isClassInstanceMember: isClassInstanceMember);
+    }
+  }
+}
+
+void _buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
+    {required bool isClassInstanceMember}) {
+  // For const constructors we need to include default parameter values
+  // into the outline. For all other formals we need to call
+  // buildOutlineExpressions to clear initializerToken to prevent
+  // consuming too much memory.
+  formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+      buildDefaultValue: isClassInstanceMember);
+}

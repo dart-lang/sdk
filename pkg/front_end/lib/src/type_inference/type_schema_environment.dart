@@ -281,8 +281,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       for (int i = 0; i < helperTypeParameters.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredSubstitution[helperTypeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(
-                  helperTypeParameters[i], helperTypeParameters[i]);
+              new TypeParameterType.withDefaultNullability(
+                  helperTypeParameters[i]);
         } else {
           assert(isKnown(inferredTypes[i]));
           inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
@@ -409,7 +409,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (constraint.lower is! SharedUnknownTypeSchemaView<DartType>) {
         return grounded
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                topType: topType)
+                coreTypes: coreTypes)
             : constraint.lower.unwrapTypeSchemaView();
       } else if (constraint.upper is! UnknownType) {
         return grounded
@@ -440,7 +440,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       } else if (constraint.lower is! UnknownType) {
         return grounded
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                topType: topType)
+                coreTypes: coreTypes)
             :
             // Coverage-ignore(suite): Not run.
             constraint.lower.unwrapTypeSchemaView();

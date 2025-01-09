@@ -2,20 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedObjects=ffi_test_functions
+
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
+import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
-main(List<String> arguments) {
-  for (int i = 0; i < 100; i++) {
+import 'dylib_utils.dart';
+
+void main(List<String> arguments) {
+  // Force dlopen so @Native lookups in DynamicLibrary.process() succeed.
+  dlopenGlobalPlatformSpecific('ffi_test_functions');
+
+  for (var i = 0; i < 100; i++) {
     testStoreLoad();
     testReifiedGeneric();
     testCompoundLoadAndStore();
+    testCompoundRefWithFinalizer();
   }
+  print('done');
 }
 
-testStoreLoad() {
+void testStoreLoad() {
   final p = calloc<Int8>(2);
   p.value = 10;
   Expect.equals(10, p.value);
@@ -65,14 +74,14 @@ testStoreLoad() {
   calloc.free(p4);
 }
 
-testReifiedGeneric() {
+void testReifiedGeneric() {
   final p = calloc<Pointer<Int8>>();
   Pointer<Pointer<NativeType>> p2 = p;
   Expect.isTrue(p2.value is Pointer<Int8>);
   calloc.free(p);
 }
 
-testCompoundLoadAndStore() {
+void testCompoundLoadAndStore() {
   final foos = calloc<Foo>(10);
   final reference = foos.ref..a = 10;
 
@@ -105,6 +114,32 @@ testCompoundLoadAndStore() {
   calloc.free(bars);
 }
 
+void testCompoundRefWithFinalizer() {
+  final vec4 = Struct.create<Vec4>();
+  vec4
+    ..x = 1.2
+    ..y = 3.4
+    ..z = 5.6
+    ..w = 7.8;
+  final result = twiddleVec4Components(vec4);
+  Expect.equals(3.4, result.x);
+  Expect.equals(5.6, result.y);
+  Expect.equals(7.8, result.z);
+  Expect.equals(1.2, result.w);
+}
+
+Vec4 twiddleVec4Components(Vec4 input) {
+  final result = calloc<Vec4>();
+  nativeTwiddleVec4Components(input, result);
+  return result.refWithFinalizer(calloc.nativeFree);
+}
+
+@Native<Void Function(Vec4, Pointer<Vec4>)>(
+  symbol: 'TwiddleVec4Components',
+  isLeaf: true,
+)
+external void nativeTwiddleVec4Components(Vec4 input, Pointer<Vec4> result);
+
 final class Foo extends Struct {
   @Int8()
   external int a;
@@ -114,4 +149,15 @@ final class Bar extends Union {
   external Foo foo;
   @Int32()
   external int baz;
+}
+
+final class Vec4 extends Struct {
+  @Double()
+  external double x;
+  @Double()
+  external double y;
+  @Double()
+  external double z;
+  @Double()
+  external double w;
 }

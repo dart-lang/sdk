@@ -65,7 +65,7 @@ class RelevanceComputer {
     return _cachedContainingMemberName;
   }
 
-  /// Compute the relevance for [FieldElement] suggestion.
+  /// Compute the relevance for [FieldElement2] suggestion.
   int computeFieldElementRelevance(
     FieldElement2 element,
     double inheritanceDistance,
@@ -101,7 +101,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
-    var neverType = request.libraryElement2.typeProvider.neverType;
+    var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
       case ClassSuggestion():
         return computeTopLevelRelevance2(
@@ -420,7 +420,7 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [ConstructorElement].
+  /// Compute the relevance for [ConstructorElement2].
   int _computeConstructorRelevance(
     ConstructorElement2 element,
     NeverType neverType,
@@ -564,7 +564,7 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [MethodElement].
+  /// Compute the relevance for [MethodElement2].
   int _computeMethodRelevance(
     MethodElement2 method,
     double inheritanceDistance,
@@ -605,7 +605,7 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [PropertyAccessorElement].
+  /// Compute the relevance for [PropertyAccessorElement2].
   int _computePropertyAccessorRelevance(
     PropertyAccessorElement2 accessor,
     double inheritanceDistance,
@@ -639,7 +639,7 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for a static [FieldElement].
+  /// Compute the relevance for a static [FieldElement2].
   int _computeStaticFieldRelevance(
     FieldElement2 element,
     double inheritanceDistance,
@@ -663,7 +663,7 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for top level [PropertyAccessorElement].
+  /// Compute the relevance for top level [PropertyAccessorElement2].
   int _computeTopLevelPropertyAccessorRelevance(
     PropertyAccessorElement2 accessor,
     bool isNotImportedLibrary,
@@ -722,7 +722,7 @@ class RelevanceComputer {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(

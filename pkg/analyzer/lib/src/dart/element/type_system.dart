@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -498,9 +499,9 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
-      InterfaceElement mixinElement) {
+      InterfaceElement2 mixinElement) {
     List<InterfaceType> candidates;
-    if (mixinElement is MixinElement) {
+    if (mixinElement is MixinElement2) {
       candidates = mixinElement.superclassConstraints;
     } else {
       var supertype = mixinElement.supertype;
@@ -509,7 +510,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement is ClassElement && mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElement2 && mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
@@ -585,9 +586,9 @@ class TypeSystemImpl implements TypeSystem {
   /// See `resources/type-system/inference.md`
   DartType greatestClosure(
     DartType type,
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl2> typeParameters,
   ) {
-    var typeParameterSet = Set<TypeParameterElement>.identity();
+    var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
     typeParameterSet.addAll(typeParameters);
 
     return LeastGreatestClosureHelper(
@@ -649,12 +650,16 @@ class TypeSystemImpl implements TypeSystem {
       return const <DartType>[];
     }
 
-    inferenceLogWriter?.enterGenericInference(fnType.typeFormals, fnType);
+    inferenceLogWriter?.enterGenericInference(
+        // TODO(paulberry): make this cast unnecessary by switching `fnType` to
+        // `FunctionTypeImpl`
+        fnType.typeParameters.cast(),
+        fnType);
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = GenericInferrer(this, fnType.typeFormals,
+    var inferrer = GenericInferrer(this, fnType.typeParameters,
         errorReporter: errorReporter,
         errorEntity: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
@@ -1363,9 +1368,9 @@ class TypeSystemImpl implements TypeSystem {
   /// See `resources/type-system/inference.md`
   DartType leastClosure(
     DartType type,
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl2> typeParameters,
   ) {
-    var typeParameterSet = Set<TypeParameterElement>.identity();
+    var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
     typeParameterSet.addAll(typeParameters);
 
     return LeastGreatestClosureHelper(
@@ -1415,7 +1420,7 @@ class TypeSystemImpl implements TypeSystem {
   /// that can be applied to [srcTypes] to make it equal to [destTypes].
   /// If no such substitution can be found, `null` is returned.
   List<DartType>? matchSupertypeConstraints(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl2> typeParameters,
     List<DartType> srcTypes,
     List<DartType> destTypes, {
     required TypeSystemOperations typeSystemOperations,
@@ -1441,7 +1446,7 @@ class TypeSystemImpl implements TypeSystem {
         .chooseFinalTypes()
         .map(_removeBoundsOfGenericFunctionTypes)
         .toFixedList();
-    var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
+    var substitution = Substitution.fromPairs2(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
       var srcType = substitution.substituteType(srcTypes[i]);
@@ -1669,7 +1674,8 @@ class TypeSystemImpl implements TypeSystem {
   /// list/map literal, initializing a [GenericInferrer] using the downward
   /// context type.
   GenericInferrer setupGenericTypeInference({
-    required List<TypeParameterElement> typeParameters,
+    // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
+    required List<TypeParameterElement2> typeParameters,
     required DartType declaredReturnType,
     required DartType contextReturnType,
     ErrorReporter? errorReporter,

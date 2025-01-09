@@ -15,13 +15,12 @@
 // ignore_for_file: flutter_style_todos
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/task/inference_error.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
 library;
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
 
-class FfiCode extends AnalyzerErrorCode {
+class FfiCode extends ErrorCode {
   ///  No parameters.
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',
@@ -182,7 +181,8 @@ class FfiCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   static const FfiCode
-  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER = FfiCode(
+      FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER =
+      FfiCode(
     'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
     "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
     correctionMessage: "Pass as Handle instead.",
@@ -203,7 +203,7 @@ class FfiCode extends AnalyzerErrorCode {
   ///  0: the expected number of parameters
   ///  1: the actual number of parameters
   static const FfiCode
-  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
+      FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}. Native instance method annotation must have receiver as first "
@@ -387,6 +387,25 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters
+  static const FfiCode NATIVE_FUNCTION_MISSING_TYPE = FfiCode(
+    'NATIVE_FUNCTION_MISSING_TYPE',
+    "The native type of this function couldn't be inferred so it must be "
+        "specified in the annotation.",
+    correctionMessage:
+        "Try adding a type parameter extending `NativeType` to the `@Native` "
+        "annotation.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode NEGATIVE_VARIABLE_DIMENSION = FfiCode(
+    'NEGATIVE_VARIABLE_DIMENSION',
+    "The variable dimension of a variable-length array must be non-negative.",
+    correctionMessage: "Try using a value that is zero or greater.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the name of the function, method, or constructor having type arguments
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
@@ -512,10 +531,10 @@ class FfiCode extends AnalyzerErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
-         uniqueName: 'FfiCode.${uniqueName ?? name}',
-       );
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'FfiCode.${uniqueName ?? name}',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;

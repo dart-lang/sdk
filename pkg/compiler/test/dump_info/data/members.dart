@@ -453,9 +453,7 @@ class A {
   "code": "",
   "type": "List<A>"
 }]*/
-final constList = const [
-  const A(),
-];
+final constList = const [const A()];
 
 /*member: main:
  function=[{

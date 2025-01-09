@@ -20,13 +20,17 @@ part of dart.core;
 ///
 /// It is generally not allowed to modify the map (add or remove keys) while
 /// an operation is being performed on the map, for example in functions called
-/// during a [forEach] or [putIfAbsent] call.
+/// during a [forEach] call.
 /// Modifying the map while iterating the keys or values
 /// may also break the iteration.
 ///
 /// It is generally not allowed to modify the equality of keys (and thus not
 /// their hashcode) while they are in the map. Some specialized subtypes may be
 /// more permissive, in which case they should document this behavior.
+///
+/// Key equality must be an equality relation. If the key stored in a map
+/// and the key used for lookup do not agree on whether the two are equal,
+/// so equality is not *symmetric*, then lookup behavior is unspecified.
 abstract interface class Map<K, V> {
   /// Creates an empty [LinkedHashMap].
   ///
@@ -302,8 +306,8 @@ abstract interface class Map<K, V> {
   ///
   /// Returns the new value associated with the key.
   ///
-  /// If the key is present, invokes [update] with the current value and stores
-  /// the new value in the map.
+  /// If the key is present, invokes [update] with the current value
+  /// and stores the new value in the map.
   ///
   /// If the key is not present and [ifAbsent] is provided, calls [ifAbsent]
   /// and adds the key with the returned value to the map.
@@ -348,6 +352,14 @@ abstract interface class Map<K, V> {
   /// Returns the value associated to [key], if there is one.
   /// Otherwise calls [ifAbsent] to get a new value, associates [key] to
   /// that value, and then returns the new value.
+  ///
+  /// That is, if the key is currently in the map,
+  /// `map.putIfAbsent(key, ifAbsent)` is equivalent to `map[key]`.
+  /// If the key is not currently in the map,
+  /// it's instead equivalent to `map[key] = ifAbsent()`
+  /// (but without any guarantee that the `[]` and `[]=` operators are
+  /// actually called to achieve that effect).
+  ///
   /// ```dart
   /// final diameters = <num, String>{1.0: 'Earth'};
   /// final otherDiameters = <double, String>{0.383: 'Mercury', 0.949: 'Venus'};
@@ -362,7 +374,8 @@ abstract interface class Map<K, V> {
   /// print(result); // Mercury
   /// print(diameters); // {1.0: Earth, 0.383: Mercury, 0.949: Venus}
   /// ```
-  /// Calling [ifAbsent] must not add or remove keys from the map.
+  /// The [ifAbsent] function is allowed to modify the map,
+  /// and if so, it behaves the same as the equivalent `map[key] = ifAbsent()`.
   V putIfAbsent(K key, V ifAbsent());
 
   /// Adds all key/value pairs of [other] to this map.

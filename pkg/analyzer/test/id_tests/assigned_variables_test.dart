@@ -8,14 +8,14 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
@@ -37,11 +37,10 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<_Data>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
-    _AssignedVariablesDataExtractor(
-            unitElement.source.uri, actualMap, flowResult)
-        .run(unit);
+    var unitElement = unit.declaredFragment!.element;
+    var uri = unitElement.firstFragment.source.uri;
+    var flowResult = testingData.uriToFlowAnalysisData[uri]!;
+    _AssignedVariablesDataExtractor(uri, actualMap, flowResult).run(unit);
   }
 }
 
@@ -50,7 +49,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 
   Declaration? _currentDeclaration;
 
-  AssignedVariablesForTesting<AstNode, PromotableElement>?
+  AssignedVariablesForTesting<AstNode, PromotableElement2>?
       _currentAssignedVariables;
 
   _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);
@@ -98,7 +97,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   Set<String> _convertVars(Iterable<int> x) =>
-      x.map((e) => _currentAssignedVariables!.variableForKey(e).name).toSet();
+      x.map((e) => _currentAssignedVariables!.variableForKey(e).name3!).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {

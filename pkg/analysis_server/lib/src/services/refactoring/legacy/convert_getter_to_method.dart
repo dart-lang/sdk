@@ -60,7 +60,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     if (field is FieldElement2 &&
         (field.enclosingElement2 is InterfaceElement2 ||
             field.enclosingElement2 is ExtensionElement2)) {
-      var elements = await getHierarchyMembers2(searchEngine, field);
+      var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (Element2 member) async {
         if (member is FieldElement2) {
           var getter = member.getter2;
@@ -113,7 +113,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
         return;
       }
       var sessionHelper = AnalysisSessionHelper(session);
-      var result = await sessionHelper.getElementDeclaration2(fragment);
+      var result = await sessionHelper.getElementDeclaration(fragment);
       var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         getKeyword = declaration.propertyKeyword;
@@ -138,7 +138,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _updateElementReferences(Element2 element) async {
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
       // Don't update references in macro-generated files.

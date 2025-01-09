@@ -406,7 +406,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
-      var B1a = _typeSystem.greatestClosure(B1, [X1.element]);
+      var B1a = _typeSystem.greatestClosure(B1, [X1.element3]);
       return getLeastUpperBound(B1a, T2);
     }
 
@@ -423,7 +423,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
-      var B2a = _typeSystem.greatestClosure(B2, [X2.element]);
+      var B2a = _typeSystem.greatestClosure(B2, [X2.element3]);
       return getLeastUpperBound(T1, B2a);
     }
 
@@ -532,7 +532,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
       var bound = _typeParameterBound(T1);
-      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element3]);
       return getLeastUpperBound(closure, T2);
     }
 
@@ -550,7 +550,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
       var bound = _typeParameterBound(T2);
-      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element3]);
       return getLeastUpperBound(T1, closure);
     }
 

@@ -73,7 +73,7 @@ enum IndexRelationKind : byte {
   IS_WRITTEN_BY
 }
 
-/// When we need to reference a synthetic element in [PackageIndex] we use a
+/// When we need to reference a synthetic element in PackageIndex we use a
 /// value of this enum to specify which kind of the synthetic element we
 /// actually reference.
 enum IndexSyntheticElementKind : byte {
@@ -147,12 +147,12 @@ table AnalysisDriverResolvedUnit {
 /// Information about a subtype of one or more classes.
 table AnalysisDriverSubtype {
   /// The names of defined instance members.
-  /// They are indexes into [AnalysisDriverUnitError.strings] list.
+  /// They are indexes into [AnalysisDriverUnitIndex.strings] list.
   /// The list is sorted in ascending order.
   members:[uint] (id: 1);
 
   /// The name of the class.
-  /// It is an index into [AnalysisDriverUnitError.strings] list.
+  /// It is an index into [AnalysisDriverUnitIndex.strings] list.
   name:uint (id: 0);
 }
 
@@ -275,18 +275,6 @@ table AnalysisDriverUnitIndex {
   usedNames:[uint] (id: 14);
 }
 
-/// Information about an available, even if not yet imported file.
-table AvailableFile {
-  /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 0);
-
-  /// Exports directives of the file.
-  exports:[string] (id: 1);
-
-  /// URIs of `part` directives.
-  parts:[string] (id: 2);
-}
-
 /// Errors for a single unit.
 table CiderUnitErrors {
   errors:[AnalysisDriverUnitError] (id: 0);
@@ -308,15 +296,6 @@ table DiagnosticMessage {
 
   /// The URL of the message, if any.
   url:string (id: 4);
-}
-
-/// Information about the Dartdoc directives in an [AvailableFile].
-table DirectiveInfo {
-  /// The names of the defined templates.
-  templateNames:[string] (id: 0);
-
-  /// The values of the defined templates.
-  templateValues:[string] (id: 1);
 }
 
 root_type AnalysisDriverResolvedUnit;

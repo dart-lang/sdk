@@ -21,9 +21,7 @@ int method(Map<int, String?> m) {}
 
 main() {}
 
-test(
-  Map<int, String> map, {
-  required int expectedValue,
-  required int expectedContainsKeyCount,
-  required int expectedIndexGetCount,
-}) {}
+test(Map<int, String> map,
+    {required int expectedValue,
+    required int expectedContainsKeyCount,
+    required int expectedIndexGetCount}) {}

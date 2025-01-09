@@ -36,6 +36,12 @@ abstract class LinterContext {
   /// including the defining compilation unit, all parts, and all augmentations.
   List<LintRuleUnitContext> get allUnits;
 
+  /// The compilation unit being linted.
+  ///
+  /// `null` when a unit is not currently being linted (for example when node
+  /// processors are being registered).
+  LintRuleUnitContext? get currentUnit;
+
   /// The defining compilation unit of the library under analysis.
   LintRuleUnitContext get definingUnit;
 
@@ -81,6 +87,9 @@ final class LinterContextWithParsedResults implements LinterContext {
   final LintRuleUnitContext definingUnit;
 
   @override
+  LintRuleUnitContext? currentUnit;
+
+  @override
   final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextWithParsedResults(this.allUnits, this.definingUnit);
@@ -120,6 +129,9 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   final LintRuleUnitContext definingUnit;
+
+  @override
+  LintRuleUnitContext? currentUnit;
 
   @override
   final WorkspacePackage? package;
@@ -189,8 +201,8 @@ abstract class LintRule {
     @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
-    State? state,
-  }) : state = state ?? State.stable();
+    this.state = const State.stable(),
+  });
 
   /// Indicates whether the lint rule can work with just the parsed information
   /// or if it requires a resolved unit.
@@ -223,9 +235,10 @@ abstract class LintRule {
 
   set reporter(ErrorReporter value) => _reporter = value;
 
-  /// Return a visitor to be passed to pubspecs to perform lint
+  /// Returns a visitor to be passed to pubspecs to perform lint
   /// analysis.
-  /// Lint errors are reported via this [Linter]'s error [reporter].
+  ///
+  /// Lint errors are reported via this [LintRule]'s error [reporter].
   PubspecVisitor? getPubspecVisitor() => null;
 
   /// Registers node processors in the given [registry].

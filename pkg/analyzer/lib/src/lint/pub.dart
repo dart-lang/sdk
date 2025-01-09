@@ -199,7 +199,7 @@ abstract class PSGitRepo {
   ///   foo:
   ///     git:       https://github.com/example/example
   /// ```
-  /// Then [token] and [url.key] will be the same object.
+  /// Then [token] and `url.key` will be the same object.
   PSEntry? get url;
 }
 

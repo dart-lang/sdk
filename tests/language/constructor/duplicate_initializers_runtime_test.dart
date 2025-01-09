@@ -6,27 +6,21 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers are not duplicated
 
- class Class {
-   Class(var v) : field_ = v
-   // Test against duplicate final field initialization in initializing list.
+class Class {
+  Class(var v) : field_ = v;
+  // Test against duplicate final field initialization in initializing list.
 
-   ;
-   Class.field(this.field_)
-   // Test against duplicate final field initialization between initializing
-   // formals and initializer list.
+  Class.field(this.field_);
+  // Test against duplicate final field initialization between initializing
+  // formals and initializer list.
 
-   ;
-   // Test against duplicate final field initialization in initializing formals.
-   Class.two_fields(this.field_
+  // Test against duplicate final field initialization in initializing formals.
+  Class.two_fields(this.field_);
+  final field_;
+}
 
-       );
-   final field_;
- }
-
- main() {
-   new Class(42);
-   new Class.field(42);
-   new Class.two_fields(42
-
-       );
- }
+main() {
+  new Class(42);
+  new Class.field(42);
+  new Class.two_fields(42);
+}

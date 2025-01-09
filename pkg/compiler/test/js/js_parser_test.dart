@@ -19,8 +19,10 @@ testExpression(String expression, [String expect = ""]) {
 testError(String expression, [String expect = ""]) {
   bool doCheck(exception) {
     final exceptionText = '$exception';
-    Expect.isTrue(exceptionText.contains(expect),
-        'Missing "$expect" in "$exceptionText"');
+    Expect.isTrue(
+      exceptionText.contains(expect),
+      'Missing "$expect" in "$exceptionText"',
+    );
     return true;
   }
 
@@ -39,7 +41,9 @@ void main() {
   testExpression('x = a + b * c + d');
   testExpression('x = a * b + c * d');
   testExpression(
-      'remaining = (remaining / 88) | 0', 'remaining = remaining / 88 | 0');
+    'remaining = (remaining / 88) | 0',
+    'remaining = remaining / 88 | 0',
+  );
   // Binary operators have left associativity.
   testExpression('x = a + b + c');
   // We can cope with relational operators and non-relational.
@@ -75,7 +79,9 @@ void main() {
   testExpression('new Frobinator().frobinate()');
   // The prettyprinter strips some superfluous parentheses.
   testExpression(
-      '(new Frobinator()).frobinate()', 'new Frobinator().frobinate()');
+    '(new Frobinator()).frobinate()',
+    'new Frobinator().frobinate()',
+  );
   // *We want a bracket on 'new'.
   testError('new Foo', 'Parentheses are required');
   testError('(new Foo)', 'Parentheses are required');

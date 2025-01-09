@@ -66,7 +66,7 @@ class FunctionType extends Type
   final Type returnType;
 
   @override
-  List<TypeParameter> typeFormals;
+  List<TypeParameter> typeParametersShared;
 
   /// A list of the types of positional parameters.
   final List<Type> positionalParameters;
@@ -78,7 +78,7 @@ class FunctionType extends Type
   final List<NamedFunctionParameter> namedParameters;
 
   FunctionType(this.returnType, this.positionalParameters,
-      {this.typeFormals = const [],
+      {this.typeParametersShared = const [],
       int? requiredPositionalParameterCount,
       this.namedParameters = const [],
       super.nullabilitySuffix = NullabilitySuffix.none})
@@ -93,7 +93,7 @@ class FunctionType extends Type
 
   @override
   int get hashCode {
-    if (typeFormals.isNotEmpty) {
+    if (typeParametersShared.isNotEmpty) {
       // Generic function types need to have the same hash if they are the same
       // after renaming of type formals. To ensure this, we rename the type
       // formals to a consistent sent of names and then hash the result.
@@ -133,7 +133,7 @@ class FunctionType extends Type
       //   to be equal even if the underlying objects are not equal.
       var freshTypeParameterGenerator = FreshTypeParameterGenerator();
       var substitution = {
-        for (var typeFormal in typeFormals)
+        for (var typeFormal in typeParametersShared)
           typeFormal: TypeParameterType(freshTypeParameterGenerator.generate())
       };
       return substitute(substitution, dropTypeFormals: true).hashCode;
@@ -151,13 +151,16 @@ class FunctionType extends Type
   List<Type> get positionalParameterTypes => positionalParameters;
 
   @override
-  List<NamedFunctionParameter> get sortedNamedParameters => namedParameters;
+  List<NamedFunctionParameter> get sortedNamedParametersShared =>
+      namedParameters;
 
   @override
   bool operator ==(Object other) {
     if (other is! FunctionType) return false;
-    if (typeFormals.length != other.typeFormals.length) return false;
-    if (typeFormals.isNotEmpty) {
+    if (typeParametersShared.length != other.typeParametersShared.length) {
+      return false;
+    }
+    if (typeParametersShared.isNotEmpty) {
       // Check if types are equal under a consistent renaming of type formals
       var freshTypeParameterGenerator = FreshTypeParameterGenerator()
         ..excludeNamesUsedIn(this)
@@ -166,13 +169,14 @@ class FunctionType extends Type
       var otherSubstitution = <TypeParameter, Type>{};
       var thisTypeFormalBounds = <Type>[];
       var otherTypeFormalBounds = <Type>[];
-      for (var i = 0; i < typeFormals.length; i++) {
+      for (var i = 0; i < typeParametersShared.length; i++) {
         var freshTypeParameterType =
             TypeParameterType(freshTypeParameterGenerator.generate());
-        thisSubstitution[typeFormals[i]] = freshTypeParameterType;
-        otherSubstitution[other.typeFormals[i]] = freshTypeParameterType;
-        thisTypeFormalBounds.add(typeFormals[i].bound);
-        otherTypeFormalBounds.add(other.typeFormals[i].bound);
+        thisSubstitution[typeParametersShared[i]] = freshTypeParameterType;
+        otherSubstitution[other.typeParametersShared[i]] =
+            freshTypeParameterType;
+        thisTypeFormalBounds.add(typeParametersShared[i].bound);
+        otherTypeFormalBounds.add(other.typeParametersShared[i].bound);
       }
       return const ListEquality().equals(
               thisTypeFormalBounds.substitute(thisSubstitution) ??
@@ -207,7 +211,7 @@ class FunctionType extends Type
     }
     return FunctionType(newReturnType ?? returnType,
         newPositionalParameters ?? positionalParameters,
-        typeFormals: typeFormals,
+        typeParametersShared: typeParametersShared,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: newNamedParameters ?? namedParameters,
         nullabilitySuffix: nullabilitySuffix);
@@ -219,7 +223,7 @@ class FunctionType extends Type
     for (var positionalParameter in positionalParameters) {
       positionalParameter.gatherUsedIdentifiers(identifiers);
     }
-    for (var typeFormal in typeFormals) {
+    for (var typeFormal in typeParametersShared) {
       identifiers.add(typeFormal.name);
       typeFormal.explicitBound?.gatherUsedIdentifiers(identifiers);
     }
@@ -247,7 +251,7 @@ class FunctionType extends Type
     }
     return FunctionType(newReturnType ?? returnType,
         newPositionalParameters ?? positionalParameters,
-        typeFormals: typeFormals,
+        typeParametersShared: typeParametersShared,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: newNamedParameters ?? namedParameters,
         nullabilitySuffix: nullabilitySuffix);
@@ -257,13 +261,13 @@ class FunctionType extends Type
   FunctionType? substitute(Map<TypeParameter, Type> substitution,
       {bool dropTypeFormals = false}) {
     List<TypeParameter>? newTypeFormals;
-    if (typeFormals.isNotEmpty) {
+    if (typeParametersShared.isNotEmpty) {
       if (dropTypeFormals) {
         newTypeFormals = const <TypeParameter>[];
       } else {
         // Check if any of the type formal bounds will be changed by the
         // substitution.
-        if (typeFormals.any((typeFormal) =>
+        if (typeParametersShared.any((typeFormal) =>
             typeFormal.explicitBound?.substitute(substitution) != null)) {
           // Yes, at least one of the type formal bounds will be changed by the
           // substitution. So that type formal will have to be replaced by a
@@ -275,14 +279,14 @@ class FunctionType extends Type
           // formals.
           substitution = {...substitution};
           newTypeFormals = [];
-          for (var typeFormal in typeFormals) {
+          for (var typeFormal in typeParametersShared) {
             var newTypeFormal = TypeParameter._(typeFormal.name);
             newTypeFormals.add(newTypeFormal);
             substitution[typeFormal] = TypeParameterType(newTypeFormal);
           }
           // Now that the substitution has been created, fix up all the bounds.
-          for (var i = 0; i < typeFormals.length; i++) {
-            if (typeFormals[i].explicitBound case var bound?) {
+          for (var i = 0; i < typeParametersShared.length; i++) {
+            if (typeParametersShared[i].explicitBound case var bound?) {
               newTypeFormals[i].explicitBound =
                   bound.substitute(substitution) ?? bound;
             }
@@ -302,7 +306,7 @@ class FunctionType extends Type
     } else {
       return FunctionType(newReturnType ?? returnType,
           newPositionalParameters ?? positionalParameters,
-          typeFormals: newTypeFormals ?? typeFormals,
+          typeParametersShared: newTypeFormals ?? typeParametersShared,
           requiredPositionalParameterCount: requiredPositionalParameterCount,
           namedParameters: newNamedParameters ?? namedParameters,
           nullabilitySuffix: nullabilitySuffix);
@@ -312,7 +316,7 @@ class FunctionType extends Type
   @override
   Type withNullability(NullabilitySuffix suffix) =>
       FunctionType(returnType, positionalParameters,
-          typeFormals: typeFormals,
+          typeParametersShared: typeParametersShared,
           requiredPositionalParameterCount: requiredPositionalParameterCount,
           namedParameters: namedParameters,
           nullabilitySuffix: suffix);
@@ -320,9 +324,9 @@ class FunctionType extends Type
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
     var formals = '';
-    if (typeFormals.isNotEmpty) {
+    if (typeParametersShared.isNotEmpty) {
       var formalStrings = <String>[];
-      for (var typeFormal in typeFormals) {
+      for (var typeFormal in typeParametersShared) {
         if (typeFormal.explicitBound case var bound?) {
           formalStrings.add('${typeFormal.name} extends $bound');
         } else {
@@ -406,7 +410,6 @@ class NamedFunctionParameter
     implements
         SharedNamedFunctionParameterStructure<Type>,
         _Substitutable<NamedFunctionParameter> {
-  @override
   final String name;
 
   @override
@@ -420,6 +423,9 @@ class NamedFunctionParameter
 
   @override
   int get hashCode => Object.hash(name, type, isRequired);
+
+  @override
+  String get nameShared => name;
 
   @override
   bool operator ==(Object other) =>
@@ -442,7 +448,6 @@ class NamedFunctionParameter
 
 class NamedType
     implements SharedNamedTypeStructure<Type>, _Substitutable<NamedType> {
-  @override
   final String name;
 
   @override
@@ -452,6 +457,9 @@ class NamedType
 
   @override
   int get hashCode => Object.hash(name, type);
+
+  @override
+  String get nameShared => name;
 
   @override
   bool operator ==(Object other) =>
@@ -1770,7 +1778,7 @@ class _PreFunctionType extends _PreType {
             positionalParameterType.materialize(
                 typeFormalScope: typeFormalScope)
         ],
-        typeFormals: materializedTypeFormals,
+        typeParametersShared: materializedTypeFormals,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: [
           for (var namedParameter in namedParameters)

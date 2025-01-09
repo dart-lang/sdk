@@ -1597,6 +1597,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       final functionTypeParameters = this.functionTypeParameters =
           new List<TypeParameter>.from(enclosingFunction.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters.length;
     }
 
     if (!hasCode) {
@@ -1812,6 +1814,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
+    objectTable.numEnclosingFunctionTypeParameters = 0;
     staticTypeContext.leaveMember(node);
     enclosingClass = null;
     enclosingMember = null;
@@ -2378,6 +2381,8 @@ class BytecodeGenerator extends RecursiveVisitor {
           this.functionTypeParameters ??= <TypeParameter>[];
       functionTypeParameters.addAll(function.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters.length;
     }
 
     final closures = this.closures ??= <ClosureDeclaration>[];
@@ -2416,6 +2421,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters!.length -= function.typeParameters.length;
       functionTypeParametersSet = functionTypeParameters!.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters!.length;
     }
 
     enclosingFunction = parentFunction;

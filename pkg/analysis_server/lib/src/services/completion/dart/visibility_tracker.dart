@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 /// This class tracks the set of names already added in the completion list in
 /// order to prevent suggesting elements that have been shadowed by more local
@@ -21,7 +21,10 @@ class VisibilityTracker {
   /// by being `null` or by returning `false` from `isNotImported`) and the name
   /// is visible, it will be added to the list of [_declaredNames] so that it
   /// will shadow any elements of the same name further up the scope chain.
-  bool isVisible({required Element? element, required ImportData? importData}) {
+  bool isVisible({
+    required Element2? element,
+    required ImportData? importData,
+  }) {
     var name = element?.displayName;
     if (name == null) {
       return false;

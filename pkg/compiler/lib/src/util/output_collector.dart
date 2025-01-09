@@ -4,7 +4,7 @@
 
 // Output provider that collects the output in string buffers.
 
-library output_collector;
+library;
 
 import 'package:compiler/compiler_api.dart' as api;
 
@@ -57,12 +57,16 @@ class CloningOutputSink implements api.OutputSink {
 
   @override
   void add(String event) {
-    sinks.forEach((api.OutputSink sink) => sink.add(event));
+    for (var sink in sinks) {
+      sink.add(event);
+    }
   }
 
   @override
   void close() {
-    sinks.forEach((api.OutputSink sink) => sink.close());
+    for (var sink in sinks) {
+      sink.close();
+    }
   }
 }
 
@@ -88,7 +92,9 @@ class OutputCollector implements api.CompilerOutput {
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
     return binaryOutputMap.putIfAbsent(
-        uri, () => BufferedBinaryOutputSink(uri));
+      uri,
+      () => BufferedBinaryOutputSink(uri),
+    );
   }
 
   /// `true` if any output has been collected.
@@ -106,16 +112,23 @@ class OutputCollector implements api.CompilerOutput {
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
-    Map<String, BufferedOutputSink> sinkMap =
-        outputMap.putIfAbsent(type, () => {});
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
+    Map<String, BufferedOutputSink> sinkMap = outputMap.putIfAbsent(
+      type,
+      () => {},
+    );
     return sinkMap.putIfAbsent(name, () => BufferedOutputSink());
   }
 
   Map<api.OutputType, Map<String, String>> clear() {
     Map<api.OutputType, Map<String, String>> outputMapResult = {};
-    outputMap.forEach(
-        (api.OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
+    outputMap.forEach((
+      api.OutputType outputType,
+      Map<String, BufferedOutputSink> sinkMap,
+    ) {
       Map<String, String> sinkMapResult = outputMapResult[outputType] = {};
       sinkMap.forEach((String name, BufferedOutputSink sink) {
         sinkMapResult[name] = sink.toString();

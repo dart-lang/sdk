@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -253,7 +254,7 @@ class FileResolver {
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
   Future<List<CiderSearchMatch>> findReferences2(Element element,
-      {OperationPerformanceImpl? performance}) async {
+      {OperationPerformanceImpl? performance}) {
     return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
@@ -301,7 +302,7 @@ class FileResolver {
   Future<ErrorsResult> getErrors2({
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
@@ -389,7 +390,7 @@ class FileResolver {
     return fsState.getFilesWithTopLevelDeclarations(name);
   }
 
-  Future<LibraryElement> getLibraryByUri2({
+  Future<LibraryElementImpl> getLibraryByUri2({
     required String uriStr,
     OperationPerformanceImpl? performance,
   }) async {
@@ -513,7 +514,7 @@ class FileResolver {
   Future<ResolvedUnitResult> resolve({
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
@@ -551,7 +552,7 @@ class FileResolver {
     required int completionColumn,
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');

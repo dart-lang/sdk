@@ -1227,7 +1227,7 @@ library
               reference: <testLibraryFragment>::@class::X1::@method::==
               enclosingElement3: <testLibraryFragment>::@class::X1
               parameters
-                requiredPositional other @77
+                requiredPositional hasImplicitType other @77
                   type: Object
               returnType: bool
         class X2 @102
@@ -1244,7 +1244,7 @@ library
               reference: <testLibraryFragment>::@class::X2::@method::==
               enclosingElement3: <testLibraryFragment>::@class::X2
               parameters
-                requiredPositional other @148
+                requiredPositional hasImplicitType other @148
                   type: Object
               returnType: bool
         class X3 @173
@@ -1261,7 +1261,7 @@ library
               reference: <testLibraryFragment>::@class::X3::@method::==
               enclosingElement3: <testLibraryFragment>::@class::X3
               parameters
-                requiredPositional other @216
+                requiredPositional hasImplicitType other @216
                   type: int
               returnType: bool
 ----------------------------------------
@@ -1335,7 +1335,7 @@ library
           reference: <testLibrary>::@class::X1::@method::==
           firstFragment: <testLibraryFragment>::@class::X1::@method::==
           formalParameters
-            requiredPositional other
+            requiredPositional hasImplicitType other
               type: Object
     class X2
       reference: <testLibrary>::@class::X2
@@ -1350,7 +1350,7 @@ library
           reference: <testLibrary>::@class::X2::@method::==
           firstFragment: <testLibraryFragment>::@class::X2::@method::==
           formalParameters
-            requiredPositional other
+            requiredPositional hasImplicitType other
               type: Object
     class X3
       reference: <testLibrary>::@class::X3
@@ -1365,7 +1365,7 @@ library
           reference: <testLibrary>::@class::X3::@method::==
           firstFragment: <testLibraryFragment>::@class::X3::@method::==
           formalParameters
-            requiredPositional other
+            requiredPositional hasImplicitType other
               type: int
 ''');
   }
@@ -2616,7 +2616,7 @@ library
           reference: <testLibraryFragment>::@function::foo
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default p @39
+            optionalPositional default hasImplicitType p @39
               type: dynamic
               constantInitializer
                 SimpleIdentifier
@@ -2646,7 +2646,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
-        optionalPositional p
+        optionalPositional hasImplicitType p
           type: dynamic
       returnType: dynamic
 ''');
@@ -2678,7 +2678,7 @@ library
           reference: <testLibraryFragment>::@function::foo
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default p @22
+            optionalPositional default hasImplicitType p @22
               type: dynamic
               constantInitializer
                 SimpleIdentifier
@@ -2707,7 +2707,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
-        optionalPositional p
+        optionalPositional hasImplicitType p
           type: dynamic
       returnType: dynamic
 ''');
@@ -2748,7 +2748,7 @@ library
           reference: <testLibraryFragment>::@function::foo
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default p @5
+            optionalPositional default hasImplicitType p @5
               type: dynamic
               constantInitializer
                 SimpleIdentifier
@@ -2815,7 +2815,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
-        optionalPositional p
+        optionalPositional hasImplicitType p
           type: dynamic
       returnType: dynamic
     V

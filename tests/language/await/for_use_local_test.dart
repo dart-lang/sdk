@@ -27,9 +27,11 @@ Future test() async {
     }
   }
 
-  countStreamController = new StreamController<int>(onListen: () {
-    scheduleMicrotask(tick);
-  });
+  countStreamController = new StreamController<int>(
+    onListen: () {
+      scheduleMicrotask(tick);
+    },
+  );
   Expect.equals(45, await sumStream(countStreamController.stream));
 }
 

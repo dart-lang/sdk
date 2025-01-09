@@ -27,8 +27,7 @@ enum MappingState {
   mapped0Continued('mapped0continued', 2, 3),
   mapped1('mapped1', 4, 1),
   mapped1Continued('mapped1continued', 4, 1),
-  unmapped('unmapped', 5, 1),
-  ;
+  unmapped('unmapped', 5, 1);
 
   final String cssClass;
   final int _continuedState;
@@ -119,7 +118,8 @@ void generateHtml(String jsFileName, String jsMapFileName) {
         output.write(' title="$prefix');
         output.write(escape(mapping.urls[currentEntry.sourceUrlId!]));
         output.write(
-            ':${currentEntry.sourceLine! + 1}:${currentEntry.sourceColumn! + 1}');
+          ':${currentEntry.sourceLine! + 1}:${currentEntry.sourceColumn! + 1}',
+        );
         if (currentEntry.sourceNameId != null) {
           output.write(' (');
           output.write(escape(mapping.names[currentEntry.sourceNameId!]));

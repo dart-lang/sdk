@@ -7,6 +7,7 @@ library dart._vmservice;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -172,6 +173,10 @@ typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 /// Called when a client wants the service to serve Observatory.
 typedef void ServeObservatoryCallback();
 
+/// Called when we want to get the appropriate resident compiler info file for
+/// the current program execution.
+typedef File? getResidentCompilerInfoFileCallback();
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static DdsConnectedCallback? ddsConnected;
@@ -188,6 +193,7 @@ class VMServiceEmbedderHooks {
   static WebServerAcceptNewWebSocketConnectionsCallback?
   acceptNewWebSocketConnections;
   static ServeObservatoryCallback? serveObservatory;
+  static getResidentCompilerInfoFileCallback? getResidentCompilerInfoFile;
 }
 
 class VMService extends MessageRouter {

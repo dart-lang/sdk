@@ -42,7 +42,8 @@ class Class1<T> {
 
   /*member: Class1.method5:hasThis*/
   method5() {
-    /*hasThis*/ local<S>() {
+    /*hasThis*/
+    local<S>() {
       return /*fields=[S],free=[S],hasThis*/ () => S;
     }
 
@@ -51,16 +52,17 @@ class Class1<T> {
 
   /*member: Class1.method6:hasThis*/
   method6<S>() {
-    /*fields=[S],free=[S],hasThis*/ local<U>() {
+    /*fields=[S],free=[S],hasThis*/
+    local<U>() {
       return /*fields=[S,U],free=[S,U],hasThis*/ () => '$S$U';
     }
 
     var local2 =
-        /*fields=[S,this],free=[S,this],hasThis*/
-        (o) {
+    /*fields=[S,this],free=[S,this],hasThis*/
+    (o) {
       return
-          /*fields=[S,this],free=[S,this],hasThis*/
-          () => Map<T, S>();
+      /*fields=[S,this],free=[S,this],hasThis*/
+      () => Map<T, S>();
     };
     return local2(local<double>());
   }
@@ -84,7 +86,8 @@ class Class1<T> {
 
   /*member: Class1.staticMethod4:*/
   static staticMethod4<S>() {
-    /*fields=[S],free=[S]*/ local<U>() {
+    /*fields=[S],free=[S]*/
+    local<U>() {
       return /*fields=[S,U],free=[S,U]*/ () => '$S$U';
     }
 
@@ -114,7 +117,8 @@ topLevelMethod3() {
 
 /*member: topLevelMethod4:*/
 topLevelMethod4<S>() {
-  /*fields=[S],free=[S]*/ local<U>() {
+  /*fields=[S],free=[S]*/
+  local<U>() {
     return /*fields=[S,U],free=[S,U]*/ () => '$S$U';
   }
 

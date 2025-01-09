@@ -42,17 +42,12 @@ class Class1 {
   var field5b = 5;
 
   Class1.a()
-      : field1 = 1,
-        field2 = 1,
-        field3a = 3,
-        field3b = 3,
-        field5a = 5,
-        field5b = 5;
+    : field1 = 1,
+      field2 = 1,
+      field3a = 3,
+      field3b = 3,
+      field5a = 5,
+      field5b = 5;
 
-  Class1.b()
-      : field2 = 2,
-        field3a = 3,
-        field3b = 3,
-        field5a = 5,
-        field5b = 5;
+  Class1.b() : field2 = 2, field3a = 3, field3b = 3, field5a = 5, field5b = 5;
 }

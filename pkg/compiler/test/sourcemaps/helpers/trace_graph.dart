@@ -59,8 +59,14 @@ class TraceStep {
 
   List<Object>? stack;
 
-  TraceStep(this.kind, this.id, this.node, this.offset, this.text,
-      [this.sourceLocation]);
+  TraceStep(
+    this.kind,
+    this.id,
+    this.node,
+    this.offset,
+    this.text, [
+    this.sourceLocation,
+  ]);
 
   @override
   String toString() => '<span style="background:${toColorCss(id)}">$id</span>';

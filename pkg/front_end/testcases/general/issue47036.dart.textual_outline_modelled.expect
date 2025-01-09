@@ -12,7 +12,9 @@ class Default {
 }
 
 class Settings {
-  const factory Settings({@Default(Sidebar()) Sidebar sidebar}) = _SSettings;
+  const factory Settings({
+    @Default(Sidebar()) Sidebar sidebar,
+  }) = _SSettings;
 }
 
 class Sidebar {

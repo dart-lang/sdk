@@ -60,12 +60,18 @@ List<String> getDeferredImports(ir.Component component) {
 /// 4) Listens for a json string from the spawned isolated and returns the
 ///    results as a [Future<String>].
 Future<String> constraintsToJson(
-    ir.Component component, Uri constraintsUri) async {
+  ir.Component component,
+  Uri constraintsUri,
+) async {
   var imports = getDeferredImports(component);
   SendPort? sendPort;
   var receivePort = ReceivePort();
-  var isolate = await Isolate.spawnUri(constraintsUri, [], receivePort.sendPort,
-      paused: true);
+  var isolate = await Isolate.spawnUri(
+    constraintsUri,
+    [],
+    receivePort.sendPort,
+    paused: true,
+  );
   isolate.addOnExitListener(receivePort.sendPort);
   isolate.resume(isolate.pauseCapability!);
   String? json;
@@ -119,13 +125,17 @@ main(List<String> args) {
   bool generateGoldens = args.contains('-g');
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const OutputUnitDataComputer(),
-        options: compilerOptions,
-        perTestOptions: createPerTestOptions(),
-        args: args, setUpFunction: () {
-      importPrefixes.clear();
-    },
-        testedConfigs: allSpecConfigs,
-        verifyCompiler: generateGoldens ? generateJSON : verifyCompiler);
+    await checkTests(
+      dataDir,
+      const OutputUnitDataComputer(),
+      options: compilerOptions,
+      perTestOptions: createPerTestOptions(),
+      args: args,
+      setUpFunction: () {
+        importPrefixes.clear();
+      },
+      testedConfigs: allSpecConfigs,
+      verifyCompiler: generateGoldens ? generateJSON : verifyCompiler,
+    );
   });
 }

@@ -4,7 +4,7 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-import 'js_names.dart' show TemporaryId;
+import 'js_names.dart' show ScopedId;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///
@@ -202,7 +202,7 @@ class MetaLet extends Expression {
         substitutions[variable] = init;
       } else {
         // Otherwise replace it with a temp, which will be assigned once.
-        var temp = TemporaryId(variable.displayName);
+        var temp = ScopedId(variable.displayName);
         substitutions[variable] = temp;
         initializers.add(VariableInitialization(temp, init));
       }

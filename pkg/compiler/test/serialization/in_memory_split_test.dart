@@ -17,24 +17,28 @@ main(List<String> args) {
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
     bool useDataKinds = argResults['kinds'] || argResults['debug'];
-    SerializationStrategy strategy =
-        BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
+    SerializationStrategy strategy = BytesInMemorySerializationStrategy(
+      useDataKinds: useDataKinds,
+    );
     if (argResults['object'] || argResults['debug']) {
-      strategy =
-          ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
+      strategy = ObjectsInMemorySerializationStrategy(
+        useDataKinds: useDataKinds,
+      );
     }
 
-    Uri entryPoint = getEntryPoint(argResults) ??
+    Uri entryPoint =
+        getEntryPoint(argResults) ??
         Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
     Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri? packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
     await runTest(
-        entryPoint: entryPoint,
-        packageConfig: packageConfig,
-        librariesSpecificationUri: librariesSpecificationUri,
-        options: options,
-        strategy: strategy,
-        useDataKinds: useDataKinds);
+      entryPoint: entryPoint,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      options: options,
+      strategy: strategy,
+      useDataKinds: useDataKinds,
+    );
   });
 }

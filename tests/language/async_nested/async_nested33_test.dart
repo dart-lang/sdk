@@ -17,15 +17,15 @@ void main() async {
         new Node('6', [
           new Node('7', [
             await new Future.value(new Node('8', [])),
-            await new Future.value(new Node('9', [
-              await new Future.value(new Node('10', [
-                new Node('11', []),
-              ])),
-              await new Future.value(new Node('12', [])),
-              await new Future.value(new Node('13', [
-                await new Future.value(new Node('14', [])),
-              ])),
-            ])),
+            await new Future.value(
+              new Node('9', [
+                await new Future.value(new Node('10', [new Node('11', [])])),
+                await new Future.value(new Node('12', [])),
+                await new Future.value(
+                  new Node('13', [await new Future.value(new Node('14', []))]),
+                ),
+              ]),
+            ),
             await new Future.value(new Node('15', [])),
             new Node('16', []),
           ]),

@@ -67,7 +67,7 @@ class SuggestionBuilder {
   /// URIs that should be imported (that are not already) for all types in the
   /// completion.
   ///
-  /// Includes a [URI] for [libraryUriStr] only if the items being suggested are
+  /// Includes a [Uri] for [libraryUriStr] only if the items being suggested are
   /// not already imported.
   List<Uri> requiredImports = const [];
 
@@ -152,7 +152,6 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
-        elementLocation: null, // type.element is Null for FunctionType.
       ),
     );
   }
@@ -274,11 +273,10 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for a [field]. If the field is being referenced with a
-  /// target of `super`, then the [containingMemberName] should be the name of
-  /// the member containing the reference. The [inheritanceDistance] is the
-  /// value of the inheritance distance feature computed for the field (or
-  /// `-1.0` if the field is a static field).
+  /// Adds a suggestion for a [field].
+  ///
+  /// The [inheritanceDistance] is the value of the inheritance distance feature
+  /// computed for the field (or `-1.0` if the field is a static field).
   void suggestField(
     FieldElement2 field, {
     required double inheritanceDistance,
@@ -389,12 +387,10 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for an [getter] declared within a class or extension.
-  /// If the accessor is being invoked with a target of `super`, then the
-  /// [containingMemberName] should be the name of the member containing the
-  /// invocation. The [inheritanceDistance] is the value of the inheritance
-  /// distance feature computed for the accessor or `-1.0` if the accessor is a
-  /// static accessor.
+  /// Adds a suggestion for an [getter] declared within a class or extension.
+  ///
+  /// The [inheritanceDistance] is the value of the inheritance distance feature
+  /// computed for the accessor or `-1.0` if the accessor is a static accessor.
   void suggestGetter(
     GetterElement getter, {
     required double inheritanceDistance,
@@ -728,7 +724,6 @@ class SuggestionBuilder {
       parameterType: type,
       replacementLength: replacementLength,
       element: convertElement2(parameter),
-      elementLocation: parameter.location,
     );
 
     if (parameter is FieldFormalParameterElement2) {
@@ -777,7 +772,7 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion to replace the [targetId] with an override of the given
+  /// Add a suggestion to replace the `targetId` with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.
   Future<void> suggestOverride({
@@ -850,7 +845,6 @@ class SuggestionBuilder {
       element.metadata2.hasDeprecated,
       false,
       displayText: displayText,
-      elementLocation: element.location,
       requiredImports: overrideImports.toList(),
     );
     suggestion.element = protocol.convertElement2(element);
@@ -928,18 +922,15 @@ class SuggestionBuilder {
         false,
         // Let the user know that we are going to insert a complete statement.
         displayText: displayText,
-        elementLocation: method.location,
       ),
       textToMatchOverride: 'setState',
     );
   }
 
-  /// Add a suggestion for an [setter] declared within a class or extension.
-  /// If the accessor is being invoked with a target of `super`, then the
-  /// [containingMemberName] should be the name of the member containing the
-  /// invocation. The [inheritanceDistance] is the value of the inheritance
-  /// distance feature computed for the accessor or `-1.0` if the accessor is a
-  /// static accessor.
+  /// Adds a suggestion for an [setter] declared within a class or extension.
+  ///
+  /// The [inheritanceDistance] is the value of the inheritance distance feature
+  /// computed for the accessor or `-1.0` if the accessor is a static accessor.
   void suggestSetter(
     SetterElement setter, {
     required double inheritanceDistance,
@@ -1396,13 +1387,14 @@ class SuggestionBuilder {
     return j == targetPrefixLower.length;
   }
 
-  /// Return a [CompletionSuggestionBuilder] based on the [element], or `null`
-  /// if the element cannot be suggested. If the completion should be something
-  /// different than the name of the element, then the [completion] should be
-  /// supplied. If an [elementKind] is provided, then it will be used rather
-  /// than the kind normally used for the element. If a [prefix] is provided,
-  /// then the element name (or completion) will be prefixed. The [relevance] is
-  /// the relevance of the suggestion.
+  /// Returns a [CompletionSuggestionBuilder] based on the [element], or `null`
+  /// if the element cannot be suggested.
+  ///
+  /// If the completion should be something different than the name of the
+  /// element, then the [completion] should be supplied. If a [kind] is
+  /// provided, then it will be used rather than the kind normally used for the
+  /// element. If a [prefix] is provided, then the element name (or completion)
+  /// will be prefixed. The [relevance] is the relevance of the suggestion.
   CompletionSuggestionBuilder? _createCompletionSuggestionBuilder(
     Element2 element, {
     String? completion,
@@ -1432,13 +1424,14 @@ class SuggestionBuilder {
     );
   }
 
-  /// Return a [CompletionSuggestionBuilder] based on the [element], or `null`
-  /// if the element cannot be suggested. If the completion should be something
-  /// different than the name of the element, then the [completion] should be
-  /// supplied. If an [elementKind] is provided, then it will be used rather
-  /// than the kind normally used for the element. If a [prefix] is provided,
-  /// then the element name (or completion) will be prefixed. The [relevance] is
-  /// the relevance of the suggestion.
+  /// Returns a [CompletionSuggestionBuilder] based on the [element], or `null`
+  /// if the element cannot be suggested.
+  ///
+  /// If the completion should be something different than the name of the
+  /// element, then the [completion] should be supplied. If a [kind] is
+  /// provided, then it will be used rather than the kind normally used for the
+  /// element. If a [prefix] is provided, then the element name (or completion)
+  /// will be prefixed. The [relevance] is the relevance of the suggestion.
   CompletionSuggestionBuilder? _createCompletionSuggestionBuilder2(
     Element2 element, {
     String? completion,
@@ -1468,7 +1461,6 @@ class SuggestionBuilder {
     );
   }
 
-  /// The non-caching implementation of [_getElementCompletionData].
   _ElementCompletionData _createElementCompletionData(Element2 element) {
     var documentation = _getDocumentation(element);
 
@@ -1522,9 +1514,7 @@ class SuggestionBuilder {
     ElementLocation? elementLocation;
     if (element is! LocalVariableElement2 ||
         (element is FormalParameterElement &&
-            element.enclosingElement2 != null)) {
-      elementLocation = element.location;
-    }
+            element.enclosingElement2 != null)) {}
 
     return _ElementCompletionData(
       isDeprecated: element.hasOrInheritsDeprecated,
@@ -1576,7 +1566,7 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1604,7 +1594,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1617,7 +1607,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1630,7 +1620,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1642,7 +1632,7 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1731,7 +1721,7 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
 }
 
 /// The implementation of [CompletionSuggestionBuilder] that is based on
-/// [ElementCompletionData] and location specific information.
+/// [_ElementCompletionData] and location specific information.
 class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
   final Element2 orgElement;
   final SuggestionBuilder suggestionBuilder;
@@ -1799,14 +1789,13 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
-      elementLocation: element.elementLocation,
       requiredImports: requiredImports,
       colorHex: element.colorHex,
     );
   }
 }
 
-/// Information about an [Element] that does not depend on the location where
+/// Information about an [Element2] that does not depend on the location where
 /// this element is suggested. For some often used elements, such as classes,
 /// it might be cached, so created only once.
 class _ElementCompletionData {

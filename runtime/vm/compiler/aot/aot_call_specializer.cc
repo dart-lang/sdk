@@ -62,12 +62,9 @@ static void GetUniqueDynamicTarget(IsolateGroup* isolate_group,
          isolate_group->object_store()->unique_dynamic_targets());
 }
 
-AotCallSpecializer::AotCallSpecializer(
-    Precompiler* precompiler,
-    FlowGraph* flow_graph,
-    SpeculativeInliningPolicy* speculative_policy)
+AotCallSpecializer::AotCallSpecializer(Precompiler* precompiler,
+                                       FlowGraph* flow_graph)
     : CallSpecializer(flow_graph,
-                      speculative_policy,
                       /* should_clone_fields=*/false),
       precompiler_(precompiler),
       has_unique_no_such_method_(false) {

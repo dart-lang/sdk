@@ -208,7 +208,11 @@ const list2_98 = <Object?>[list2_97, list2_97];
 const list2_99 = <Object?>[list2_98, list2_98];
 
 confuse(x) {
-  try { throw x; } catch (e) { return e; }
+  try {
+    throw x;
+  } catch (e) {
+    return e;
+  }
 }
 
 main() {

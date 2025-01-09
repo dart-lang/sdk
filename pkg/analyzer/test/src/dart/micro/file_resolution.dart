@@ -117,7 +117,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     );
   }
 
-  Future<ErrorsResult> getTestErrors() async {
+  Future<ErrorsResult> getTestErrors() {
     return fileResolver.getErrors2(path: testFile.path);
   }
 

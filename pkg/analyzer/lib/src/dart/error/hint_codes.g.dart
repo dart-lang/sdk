@@ -15,13 +15,12 @@
 // ignore_for_file: flutter_style_todos
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/task/inference_error.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
 library;
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
 
-class HintCode extends AnalyzerErrorCode {
+class HintCode extends ErrorCode {
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not
@@ -63,8 +62,8 @@ class HintCode extends AnalyzerErrorCode {
   ///
   ///  This code is deprecated in favor of the
   ///  'deprecated_member_from_same_package' lint rule, and will be removed.
-  static const HintCode
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
+      HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -99,7 +98,10 @@ class HintCode extends AnalyzerErrorCode {
   ///  Reported when the macro uses `Builder.report()` with `Severity.info`.
   ///  Parameters:
   ///  0: the message
-  static const HintCode MACRO_INFO = HintCode('MACRO_INFO', "{0}");
+  static const HintCode MACRO_INFO = HintCode(
+    'MACRO_INFO',
+    "{0}",
+  );
 
   ///  Parameters:
   ///  0: the URI that is not necessary
@@ -121,10 +123,10 @@ class HintCode extends AnalyzerErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
-         uniqueName: 'HintCode.${uniqueName ?? name}',
-       );
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'HintCode.${uniqueName ?? name}',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

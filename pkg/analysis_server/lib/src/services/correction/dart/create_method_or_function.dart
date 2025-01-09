@@ -52,7 +52,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           return;
         }
       } else {
-        targetElement = node.enclosingInterfaceElement2;
+        targetElement = node.enclosingInterfaceElement;
         argument = nameNode;
       }
       argument = stepUpNamedExpression(argument);
@@ -203,11 +203,11 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     List<ClassMember>? classMembers;
     if (targetClassElement is MixinElement2) {
       var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getMixinDeclaration2(fragment);
+      var node = targetNode = await getMixinDeclaration(fragment);
       classMembers = node?.members;
     } else if (targetClassElement is ClassElement2) {
       var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getClassDeclaration2(fragment);
+      var node = targetNode = await getClassDeclaration(fragment);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {

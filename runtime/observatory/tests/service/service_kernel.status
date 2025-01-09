@@ -121,7 +121,6 @@ next_through_await_for_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_call_on_field_in_class_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_call_on_field_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_call_on_static_field_in_class_test: SkipByDesign # Debugger is disabled in AOT mode.
-next_through_catch_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_create_list_and_map_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_for_each_loop_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -129,7 +128,6 @@ next_through_for_loop_with_break_and_continue_test: SkipByDesign # Debugger is d
 next_through_function_expression_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_implicit_call_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_is_and_as_test: SkipByDesign # Debugger is disabled in AOT mode.
-next_through_multi_catch_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_new_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_operator_bracket_on_super_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_operator_bracket_on_this_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -218,7 +216,6 @@ next_through_assign_int_test: Skip # Issues 32137 and 32138.
 next_through_call_on_field_in_class_test: Skip # Issues 32137 and 32138.
 next_through_call_on_field_test: Skip # Issues 32137 and 32138.
 next_through_call_on_static_field_in_class_test: Skip # Timeout
-next_through_catch_test: Skip # Issues 32137 and 32138.
 next_through_closure_test: Skip # Timeout
 next_through_create_list_and_map_test: Skip # Issues 32137 and 32138.
 next_through_for_each_loop_test: Skip # Timeout
@@ -226,7 +223,6 @@ next_through_for_loop_with_break_and_continue_test: Skip # Timeout
 next_through_function_expression_test: Skip # Issues 32137 and 32138.
 next_through_implicit_call_test: Skip # Timeout
 next_through_is_and_as_test: Skip # Issues 32137 and 32138.
-next_through_multi_catch_test: Skip # Issues 32137 and 32138.
 next_through_new_test: Skip # Timeout
 next_through_operator_bracket_on_super_test: Skip # Timeout
 next_through_operator_bracket_on_this_test: Skip # Timeout

@@ -252,7 +252,10 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
 final _builtInLintMultiProducers = {
-  LinterLintCode.comment_references: [ImportLibrary.forType],
+  LinterLintCode.comment_references: [
+    ImportLibrary.forType,
+    ImportLibrary.forExtension,
+  ],
   LinterLintCode.deprecated_member_use_from_same_package_without_message: [
     DataDriven.new,
   ],
@@ -464,6 +467,7 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.specify_nonobvious_property_types: [
     AddTypeAnnotation.bulkFixable,
   ],
+  LinterLintCode.strict_top_level_inference_add_type: [AddReturnType.new],
   LinterLintCode.type_annotate_public_apis: [AddTypeAnnotation.bulkFixable],
   LinterLintCode.type_init_formals: [RemoveTypeAnnotation.other],
   LinterLintCode.type_literal_in_constant_pattern: [
@@ -507,6 +511,7 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.unnecessary_to_list_in_spreads: [RemoveToList.new],
   LinterLintCode.unnecessary_this: [RemoveThisExpression.new],
+  LinterLintCode.unnecessary_underscores: [ConvertToWildcardVariable.new],
   LinterLintCode.unreachable_from_main: [RemoveUnusedElement.new],
   LinterLintCode.use_colored_box: [ReplaceContainerWithColoredBox.new],
   LinterLintCode.use_decorated_box: [ReplaceWithDecoratedBox.new],
@@ -947,11 +952,16 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
     AddTrailingComma.new,
   ],
+  CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE: [
+    AddAsync.wrongReturnType,
+  ],
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
+    AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
+    AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
@@ -1089,8 +1099,8 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
-      [
+  CompileTimeErrorCode
+      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.

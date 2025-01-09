@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library elements.jumps;
+library;
 
 import 'entities.dart' show Entity, Local;
 
@@ -33,6 +33,9 @@ abstract class JumpTarget extends Local {
   bool get isSwitch;
   bool get isSwitchCase;
 
-  LabelDefinition addLabel(String labelName,
-      {bool isBreakTarget = false, bool isContinueTarget = false});
+  LabelDefinition addLabel(
+    String labelName, {
+    bool isBreakTarget = false,
+    bool isContinueTarget = false,
+  });
 }

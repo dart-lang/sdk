@@ -22,8 +22,9 @@ final RegExp MEMBER_VALUE = RegExp(r'^      (".+?"):');
 final RegExp MEMBER_FUNCTION = RegExp(r'^      ([a-zA-Z0-9_$]+): \[?function');
 final RegExp MEMBER_OBJECT = RegExp(r'^      ([a-zA-Z0-9_$]+): \[?\{');
 
-final RegExp STATIC_FUNCTION =
-    RegExp(r'^        ([a-zA-Z0-9_$]+): \[?function');
+final RegExp STATIC_FUNCTION = RegExp(
+  r'^        ([a-zA-Z0-9_$]+): \[?function',
+);
 
 /// Subrange of the JavaScript output.
 abstract class OutputEntity {
@@ -38,8 +39,10 @@ abstract class OutputEntity {
   CodeSource? codeSource;
 
   Interval getChildInterval(Interval childIndex) {
-    return Interval(children[childIndex.from].interval.from,
-        children[childIndex.to - 1].interval.to);
+    return Interval(
+      children[childIndex.from].interval.from,
+      children[childIndex.to - 1].interval.to,
+    );
   }
 
   OutputEntity getChild(int index) {
@@ -206,7 +209,10 @@ class OutputStructure extends OutputEntity {
     }
 
     List<LibraryBlock> computeHeaderMap(
-        List<CodeLine> lines, int start, int end) {
+      List<CodeLine> lines,
+      int start,
+      int end,
+    ) {
       List<LibraryBlock> libraryBlocks = <LibraryBlock>[];
       LibraryBlock? current;
       for (int index = start; index < end; index++) {
@@ -226,8 +232,11 @@ class OutputStructure extends OutputEntity {
 
     int headerEnd = findHeaderStart(lines);
     int footerStart = findHeaderEnd(headerEnd, lines);
-    List<LibraryBlock> libraryBlocks =
-        computeHeaderMap(lines, headerEnd, footerStart);
+    List<LibraryBlock> libraryBlocks = computeHeaderMap(
+      lines,
+      headerEnd,
+      footerStart,
+    );
     for (LibraryBlock block in libraryBlocks) {
       block.preprocess(lines);
     }
@@ -253,9 +262,10 @@ class OutputStructure extends OutputEntity {
         json['lines'].map((l) => CodeLine.fromJson(l, strategy)).toList();
     int headerEnd = json['headerEnd'];
     int footerStart = json['footerStart'];
-    List<LibraryBlock> children = json['children']
-        .map((j) => AbstractEntity.fromJson(j, strategy))
-        .toList();
+    List<LibraryBlock> children =
+        json['children']
+            .map((j) => AbstractEntity.fromJson(j, strategy))
+            .toList();
     return OutputStructure(lines, headerEnd, footerStart, children);
   }
 }
@@ -293,18 +303,22 @@ abstract class AbstractEntity extends OutputEntity {
       case EntityKind.STRUCTURE:
         throw StateError('Unexpected entity kind $kind');
       case EntityKind.LIBRARY:
-        LibraryBlock lib = LibraryBlock(name, from)
-          ..to = to
-          ..codeSource = codeSource;
-        json['children'].forEach((child) =>
-            lib.children.add(fromJson(child, strategy) as BasicEntity));
+        LibraryBlock lib =
+            LibraryBlock(name, from)
+              ..to = to
+              ..codeSource = codeSource;
+        json['children'].forEach(
+          (child) => lib.children.add(fromJson(child, strategy) as BasicEntity),
+        );
         return lib;
       case EntityKind.CLASS:
-        LibraryClass cls = LibraryClass(name, from)
-          ..to = to
-          ..codeSource = codeSource;
-        json['children'].forEach((child) =>
-            cls.children.add(fromJson(child, strategy) as BasicEntity));
+        LibraryClass cls =
+            LibraryClass(name, from)
+              ..to = to
+              ..codeSource = codeSource;
+        json['children'].forEach(
+          (child) => cls.children.add(fromJson(child, strategy) as BasicEntity),
+        );
         return cls;
       case EntityKind.TOP_LEVEL_FUNCTION:
         return TopLevelFunction(name, from)
@@ -327,11 +341,14 @@ abstract class AbstractEntity extends OutputEntity {
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.STATICS:
-        Statics statics = Statics(from)
-          ..to = to
-          ..codeSource = codeSource;
-        json['children'].forEach((child) =>
-            statics.children.add(fromJson(child, strategy) as BasicEntity));
+        Statics statics =
+            Statics(from)
+              ..to = to
+              ..codeSource = codeSource;
+        json['children'].forEach(
+          (child) =>
+              statics.children.add(fromJson(child, strategy) as BasicEntity),
+        );
         return statics;
       case EntityKind.STATIC_FUNCTION:
         return StaticFunction(name, from)
@@ -682,11 +699,7 @@ class Interval {
   String toString() => '[$from,$to[';
 }
 
-enum CodeKind {
-  LIBRARY,
-  CLASS,
-  MEMBER,
-}
+enum CodeKind { LIBRARY, CLASS, MEMBER }
 
 class CodeLocation {
   final Uri uri;
@@ -699,11 +712,7 @@ class CodeLocation {
   String toString() => '$uri:$name:$offset';
 
   Map toJson(JsonStrategy strategy) {
-    return {
-      'uri': uri.toString(),
-      'name': name,
-      'offset': offset,
-    };
+    return {'uri': uri.toString(), 'name': name, 'offset': offset};
   }
 
   static CodeLocation? fromJson(Map? json, JsonStrategy strategy) {
@@ -758,8 +767,13 @@ class CodeSource {
 
   static CodeSource? fromJson(Map? json) {
     if (json == null) return null;
-    CodeSource codeSource = CodeSource(CodeKind.values[json['kind']],
-        Uri.parse(json['uri']), json['name'], json['begin'], json['end']);
+    CodeSource codeSource = CodeSource(
+      CodeKind.values[json['kind']],
+      Uri.parse(json['uri']),
+      json['name'],
+      json['begin'],
+      json['end'],
+    );
     json['members'].forEach((m) => codeSource.members.add(fromJson(m)!));
     return codeSource;
   }

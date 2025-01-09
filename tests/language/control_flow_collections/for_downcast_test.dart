@@ -20,7 +20,7 @@ void testList() {
 
   // Downcast variable.
   var b = <int>[
-    for (int n in <num>[1, 2, 3, 4]) n
+    for (int n in <num>[1, 2, 3, 4]) n,
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
@@ -29,7 +29,7 @@ void testList() {
 
   // Downcast element.
   var c = <int>[
-    for (num n in <num>[1, 2, 3, 4]) n
+    for (num n in <num>[1, 2, 3, 4]) n,
     //                               ^
     // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
@@ -53,7 +53,7 @@ void testMap() {
 
   // Downcast variable.
   var b = <int, int>{
-    for (int n in <num>[1, 2, 3, 4]) n: n
+    for (int n in <num>[1, 2, 3, 4]) n: n,
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
@@ -62,7 +62,7 @@ void testMap() {
 
   // Downcast element.
   var c = <int, int>{
-    for (num n in <num>[1, 2, 3, 4]) n: n
+    for (num n in <num>[1, 2, 3, 4]) n: n,
     //                               ^
     // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
@@ -89,7 +89,7 @@ void testSet() {
 
   // Downcast variable.
   var b = <int>{
-    for (int n in <num>[1, 2, 3, 4]) n
+    for (int n in <num>[1, 2, 3, 4]) n,
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
@@ -98,7 +98,7 @@ void testSet() {
 
   // Downcast element.
   var c = <int>{
-    for (num n in <num>[1, 2, 3, 4]) n
+    for (num n in <num>[1, 2, 3, 4]) n,
     //                               ^
     // [analyzer] COMPILE_TIME_ERROR.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.

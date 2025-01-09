@@ -853,6 +853,7 @@ ugly
 unassignment
 unawaited
 unbreak
+uncalled
 uncaught
 uncommitted
 uncompiled

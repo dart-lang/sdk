@@ -22,14 +22,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// A completion pass that will create candidate suggestions based on the
@@ -308,11 +307,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var parameters = node.invokedFormalParameters;
       if (parameters != null) {
         var positionalParameterCount = 0;
-        var availableNamedParameters = <ParameterElement>[];
+        var availableNamedParameters = <FormalParameterElement>[];
         for (int i = 0; i < parameters.length; i++) {
           var parameter = parameters[i];
           if (parameter.isNamed) {
-            if (!usedNames.contains(parameter.name)) {
+            if (!usedNames.contains(parameter.name3)) {
               availableNamedParameters.add(parameter);
             }
           } else {
@@ -376,10 +375,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         for (var parameter in availableNamedParameters) {
           var matcherScore = state.matcher.score(parameter.displayName);
           if (matcherScore != -1) {
-            var isWidget = isFlutterWidgetParameter(parameter.asElement2);
+            var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(
               NamedArgumentSuggestion(
-                parameter: parameter.asElement2,
+                parameter: parameter,
                 appendColon: true,
                 appendComma: appendComma,
                 replacementLength: replacementLength,
@@ -737,11 +736,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         _forConstructorInitializer(node, null);
       }
     } else if (type == TokenType.EQ) {
-      var constructorElement = node.declaredElement;
+      var constructorElement = node.declaredFragment?.element;
       if (constructorElement == null) {
         return;
       }
-      var libraryElement = state.libraryElement.asElement as LibraryElement;
+      var libraryElement = state.libraryElement;
       declarationHelper(
         mustBeConstant: constructorElement.isConst,
       ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
@@ -784,8 +783,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     if (node.parent is ConstructorReference) {
-      var element = node.type.element;
-      if (element is InterfaceElement) {
+      var element = node.type.element2;
+      if (element is InterfaceElement2) {
         declarationHelper(
           preferNonInvocation: true,
         ).addConstructorNamesForElement(element: element);
@@ -845,7 +844,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
 
-    var enumElement = enumDeclaration.declaredElement!;
+    var enumElement = enumDeclaration.declaredFragment!.element;
     declarationHelper(
       suggestUnnamedAsNew: true,
     ).addConstructorNamesForElement(element: enumElement);
@@ -1274,10 +1273,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       constructor = constructor.parent;
     }
     if (constructor is ConstructorDeclaration) {
-      var declaredElement = node.declaredElement;
-      FieldElement? field;
-      if (declaredElement is FieldFormalParameterElement) {
-        field = declaredElement.field;
+      var declaredElement = node.declaredFragment?.element;
+      FieldElement2? field;
+      if (declaredElement is FieldFormalParameterElement2) {
+        field = declaredElement.field2;
       }
       declarationHelper().addFieldsForInitializers(constructor, field);
     }
@@ -1663,16 +1662,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitImportPrefixReference(ImportPrefixReference node) {
     var parent = node.parent;
     if (parent is NamedType && offset <= parent.name2.offset) {
-      var element = node.element;
+      var element = node.element2;
       DartType type;
       collector.completionLocation = 'PropertyAccess_propertyName';
-      if (element is FunctionTypedElement) {
-        if (element is PropertyAccessorElement && element.isGetter) {
+      if (element is FunctionTypedElement2) {
+        if (element is GetterElement) {
           type = element.type.returnType;
         } else {
           type = element.type;
         }
-      } else if (element is PrefixElement) {
+      } else if (element is PrefixElement2) {
         var isInstanceCreation =
             node.parent?.parent?.parent is InstanceCreationExpression;
         declarationHelper(
@@ -1681,10 +1680,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           mustBeNonVoid: isInstanceCreation,
         ).addDeclarationsThroughImportPrefix(element);
         return;
-      } else if (element is VariableElement) {
+      } else if (element is VariableElement2) {
         type = element.type;
       } else {
-        if (element is InterfaceElement || element is ExtensionElement) {
+        if (element is InterfaceElement2 || element is ExtensionElement2) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
         return;
@@ -1930,11 +1929,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
-        var element = target.staticElement;
-        if (element is InterfaceElement || element is ExtensionTypeElement) {
+        var element = target.element;
+        if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
-        if (element is PrefixElement) {
+        if (element is PrefixElement2) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
@@ -2014,14 +2013,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             for (int i = 0; i < parameters.length; i++) {
               var parameter = parameters[i];
               if (parameter.isNamed) {
-                if (!usedNames.contains(parameter.name)) {
+                if (!usedNames.contains(parameter.name3)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
-                    var isWidget = isFlutterWidgetParameter(parameter.asElement2);
+                    var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(
                       NamedArgumentSuggestion(
-                        parameter:
-                            parameter.asElement2,
+                        parameter: parameter,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false,
@@ -2050,7 +2048,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation = 'ArgumentList_method_named';
       }
       _forExpression(node, mustBeNonVoid: inArgumentList);
-      var parameterType = node.staticParameterElement?.type;
+      var parameterType = node.element2?.type;
       if (parameterType is FunctionType) {
         var includeTrailingComma = !node.isFollowedByComma;
         _addClosureSuggestion(parameterType, includeTrailingComma);
@@ -2061,10 +2059,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     var importPrefix = node.importPrefix;
-    var prefixElement = importPrefix?.element;
+    var prefixElement = importPrefix?.element2;
 
     // `prefix.x^ print(0);` is recovered as `prefix.x print; (0);`.
-    if (prefixElement is PrefixElement) {
+    if (prefixElement is PrefixElement2) {
       if (node.parent case VariableDeclarationList variableList) {
         if (variableList.parent case VariableDeclarationStatement statement) {
           if (statement.semicolon.isSynthetic) {
@@ -2248,12 +2246,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
-        var element = target.staticElement;
+        var element = target.element;
         if (element != null) {
           var parent = node.parent;
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
-          if (element is PrefixElement) {
+          if (element is PrefixElement2) {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
             ).addDeclarationsThroughImportPrefix(element);
@@ -2261,8 +2259,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
-                  element is InterfaceElement &&
-                  state.request.shouldSuggestTearOff(element),
+                  element is InterfaceElement2 &&
+                  state.request.shouldSuggestTearOff2(element),
             ).addStaticMembersOfElement(element);
           }
         }
@@ -2306,16 +2304,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
-        var element = target.staticElement;
-        if (element is InterfaceElement || element is ExtensionTypeElement) {
+        var element = target.element;
+        if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
-        if (element is PrefixElement) {
+        if (element is PrefixElement2) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
       if (type == null && target is ExtensionOverride) {
-        declarationHelper().addMembersFromExtensionElement(target.element);
+        declarationHelper().addMembersFromExtensionElement(target.element2);
       }
     }
   }
@@ -2553,8 +2551,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'FormalParameterList_parameter';
       if (type is NamedType) {
         if (type.importPrefix case var importPrefix?) {
-          var prefixElement = importPrefix.element;
-          if (prefixElement is PrefixElement) {
+          var prefixElement = importPrefix.element2;
+          if (prefixElement is PrefixElement2) {
             if (type.name2.coversOffset(offset)) {
               declarationHelper(
                 mustBeType: true,
@@ -2635,8 +2633,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset <= node.argumentList.offset) {
       var container = constructor.parent;
       var superType = switch (container) {
-        ClassDeclaration() => container.declaredElement?.supertype,
-        EnumDeclaration() => container.declaredElement?.supertype,
+        ClassDeclaration() => container.declaredFragment?.supertype,
+        EnumDeclaration() => container.declaredFragment?.supertype,
         _ => null,
       };
       if (superType != null) {
@@ -3068,8 +3066,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           }
           _suggestOverridesFor(
             element: switch (container) {
-              ClassDeclaration() => container.declaredElement,
-              MixinDeclaration() => container.declaredElement,
+              ClassDeclaration() => container.declaredFragment?.element,
+              MixinDeclaration() => container.declaredFragment?.element,
               _ => null,
             },
           );
@@ -3088,7 +3086,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
       _forExpression(node, mustBeNonVoid: true);
-      var variableType = node.declaredElement?.type;
+      var variableType = node.declaredFragment?.element.type;
       if (variableType is FunctionType) {
         _addClosureSuggestion(variableType, false);
       }
@@ -3277,7 +3275,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forClassMember(ClassDeclaration node) {
     keywordHelper.addClassMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
-    _suggestOverridesFor(element: node.declaredElement);
+    _suggestOverridesFor(element: node.declaredFragment?.element);
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -3383,9 +3381,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     ConstructorDeclaration constructor,
     ConstructorFieldInitializer? initializer,
   ) {
-    var element = initializer?.fieldName.staticElement;
-    FieldElement? field;
-    if (element is FieldElement) {
+    var element = initializer?.fieldName.element;
+    FieldElement2? field;
+    if (element is FieldElement2) {
       field = element;
     }
     keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
@@ -3536,7 +3534,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forMixinMember(MixinDeclaration node) {
     keywordHelper.addMixinMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
-    _suggestOverridesFor(element: node.declaredElement);
+    _suggestOverridesFor(element: node.declaredFragment?.element);
   }
 
   /// Adds the suggestions that are appropriate when the selection is in the
@@ -3663,9 +3661,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     var container = constructor.parent;
     var thisType = switch (container) {
-      ClassDeclaration() => container.declaredElement?.thisType,
-      EnumDeclaration() => container.declaredElement?.thisType,
-      ExtensionTypeDeclaration() => container.declaredElement?.thisType,
+      ClassDeclaration() => container.declaredFragment?.element.thisType,
+      EnumDeclaration() => container.declaredFragment?.element.thisType,
+      ExtensionTypeDeclaration() =>
+        container.declaredFragment?.element.thisType,
       _ => null,
     };
     if (thisType != null) {
@@ -3704,8 +3703,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     if (node is NamedType) {
       if (node.importPrefix case var importPrefix?) {
-        var prefixElement = importPrefix.element;
-        if (prefixElement is PrefixElement) {
+        var prefixElement = importPrefix.element2;
+        if (prefixElement is PrefixElement2) {
           declarationHelper(
             mustBeExtensible: mustBeExtensible,
             mustBeImplementable: mustBeImplementable,
@@ -3888,7 +3887,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// If the budget has been exceeded, then the results are marked as incomplete
   /// and no suggestions are added.
   void _suggestOverridesFor({
-    required InterfaceElement? element,
+    required InterfaceElement2? element,
     bool skipAt = false,
   }) {
     if (state.budget.isEmpty) {
@@ -3898,7 +3897,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (suggestOverrides && element != null) {
       overrideHelper.computeOverridesFor(
-        interfaceElement: element.asElement2,
+        interfaceElement: element,
         replacementRange: SourceRange(offset, 0),
         skipAt: skipAt,
       );
@@ -3979,8 +3978,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _tryOverrideAnnotation(Token identifier, Declaration node) {
     var lexeme = identifier.lexeme;
     if (lexeme.isNotEmpty && 'override'.startsWith(lexeme)) {
-      var declaredElement = node.declaredElement;
-      if (declaredElement is InterfaceElement) {
+      var declaredElement = node.declaredFragment?.element;
+      if (declaredElement is InterfaceElement2) {
         _suggestOverridesFor(element: declaredElement, skipAt: true);
       }
     }
@@ -4176,37 +4175,37 @@ extension on ClassMember {
 extension on ArgumentList {
   /// The element being invoked by the expression containing this argument list,
   /// or `null` if the element is not known.
-  Element? get invokedElement {
+  Element2? get invokedElement {
     switch (parent) {
       case Annotation invocation:
-        return invocation.element;
+        return invocation.element2;
       case EnumConstantArguments invocation:
         var grandParent = invocation.parent;
         if (grandParent is EnumConstantDeclaration) {
-          return grandParent.constructorElement;
+          return grandParent.constructorElement2;
         }
       case FunctionExpressionInvocation invocation:
-        var element = invocation.staticElement;
+        var element = invocation.element;
         if (element == null) {
           var function = invocation.function.unParenthesized;
           if (function is SimpleIdentifier) {
-            return function.staticElement;
+            return function.element;
           }
         }
         return element;
       case InstanceCreationExpression invocation:
-        return invocation.constructorName.staticElement;
+        return invocation.constructorName.element;
       case MethodInvocation invocation:
-        return invocation.methodName.staticElement;
+        return invocation.methodName.element;
       case SuperConstructorInvocation invocation:
-        return invocation.staticElement;
+        return invocation.element;
       case RedirectingConstructorInvocation invocation:
-        return invocation.staticElement;
+        return invocation.element;
     }
     return null;
   }
 
-  List<ParameterElement>? get invokedFormalParameters {
+  List<FormalParameterElement>? get invokedFormalParameters {
     var result = invokedElement?.getParameters();
     if (result != null) {
       return result;
@@ -4216,7 +4215,7 @@ extension on ArgumentList {
       case FunctionExpressionInvocation invocation:
         var functionType = invocation.function.staticType;
         if (functionType is FunctionType) {
-          return functionType.parameters;
+          return functionType.formalParameters;
         }
     }
 
@@ -4298,7 +4297,7 @@ extension on CompilationUnit {
   }
 }
 
-extension on Element? {
+extension on Element2? {
   /// Returns the parameters associated with this element, or `null` if this
   /// element doesn't have any parameters associated with it.
   ///
@@ -4306,16 +4305,16 @@ extension on Element? {
   /// the method / function's parameters. If this element is a variable and the
   /// variable's type is a function type, then return the parameters from the
   /// function type.
-  List<ParameterElement>? getParameters() {
+  List<FormalParameterElement>? getParameters() {
     var self = this;
-    if (self is PropertyAccessorElement && self.isGetter) {
-      return self.returnType.ifTypeOrNull<FunctionType>()?.parameters;
-    } else if (self is ExecutableElement) {
-      return self.parameters;
-    } else if (self is VariableElement) {
+    if (self is GetterElement) {
+      return self.returnType.ifTypeOrNull<FunctionType>()?.formalParameters;
+    } else if (self is ExecutableElement2) {
+      return self.formalParameters;
+    } else if (self is VariableElement2) {
       var type = self.type;
       if (type is FunctionType) {
-        return type.parameters;
+        return type.formalParameters;
       }
     }
     return null;

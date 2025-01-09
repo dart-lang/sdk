@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -118,14 +119,14 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
-  /// The enclosing [InterfaceElement], or `null` if not in a class.
-  late final InterfaceElement? enclosingInterfaceElement = () {
+  /// The enclosing [InterfaceElement2], or `null` if not in a class.
+  late final InterfaceElement2? enclosingInterfaceElement = () {
     var unitMember =
         containingNode.thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
-      return unitMember.declaredElement;
+      return unitMember.declaredFragment?.element;
     } else if (unitMember is MixinDeclaration) {
-      return unitMember.declaredElement;
+      return unitMember.declaredFragment?.element;
     } else {
       return null;
     }

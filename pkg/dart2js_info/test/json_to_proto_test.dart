@@ -25,12 +25,18 @@ void main() {
 
       expect(proto.program.entrypointId, isNotNull);
       expect(proto.program.size, 90293);
-      expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2022-07-14 17:35:15.006337").microsecondsSinceEpoch);
-      expect(proto.program.toProtoDuration.toInt(),
-          Duration(milliseconds: 2).inMicroseconds);
-      expect(proto.program.dumpInfoDuration.toInt(),
-          Duration(milliseconds: 0).inMicroseconds);
+      expect(
+        proto.program.compilationMoment.toInt(),
+        DateTime.parse("2022-07-14 17:35:15.006337").microsecondsSinceEpoch,
+      );
+      expect(
+        proto.program.toProtoDuration.toInt(),
+        Duration(milliseconds: 2).inMicroseconds,
+      );
+      expect(
+        proto.program.dumpInfoDuration.toInt(),
+        Duration(milliseconds: 0).inMicroseconds,
+      );
       expect(proto.program.noSuchMethodEnabled, isFalse);
       expect(proto.program.minified, isFalse);
     });
@@ -48,32 +54,50 @@ void main() {
       for (final info in proto.allInfos.entries) {
         final value = info.value;
         if (value.hasLibraryInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.library]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.library]!),
+          );
         } else if (value.hasClassInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.clazz]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.clazz]!),
+          );
         } else if (value.hasClassTypeInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.classType]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.classType]!),
+          );
         } else if (value.hasFunctionInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.function]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.function]!),
+          );
         } else if (value.hasFieldInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.field]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.field]!),
+          );
         } else if (value.hasConstantInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.constant]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.constant]!),
+          );
         } else if (value.hasOutputUnitInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.outputUnit]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.outputUnit]!),
+          );
         } else if (value.hasTypedefInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.typedef]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.typedef]!),
+          );
         } else if (value.hasClosureInfo()) {
-          expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.closure]!));
+          expect(
+            value.serializedId,
+            startsWith(expectedPrefixes[InfoKind.closure]!),
+          );
         }
       }
     });

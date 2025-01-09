@@ -16,7 +16,7 @@ class BinaryDataSource implements DataSource {
   late final Map<int, int> _deferredOffsetToSize;
 
   BinaryDataSource(this._bytes, {StringInterner? stringInterner})
-      : _stringInterner = stringInterner {
+    : _stringInterner = stringInterner {
     final deferredDataStart = readAtOffset(_bytes.length - 4, readUint32);
     _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
       final deferredSizesCount = readInt();
@@ -71,14 +71,15 @@ class BinaryDataSource implements DataSource {
   E readEnum<E extends Enum>(List<E> values) {
     int index = readInt();
     assert(
-        0 <= index && index < values.length,
-        "Invalid data kind index. "
-        "Expected one of $values, found index $index.");
+      0 <= index && index < values.length,
+      "Invalid data kind index. "
+      "Expected one of $values, found index $index.",
+    );
     return values[index];
   }
 
   @override
-  E readAtOffset<E>(int offset, E reader()) {
+  E readAtOffset<E>(int offset, E Function() reader) {
     final offsetBefore = _byteOffset;
     _byteOffset = offset;
     final value = reader();
@@ -105,7 +106,7 @@ class BinaryDataSource implements DataSource {
   }
 
   @override
-  E readDeferredAsEager<E>(E reader()) {
+  E readDeferredAsEager<E>(E Function() reader) {
     readInt(); // Read collision padding.
     return reader();
   }

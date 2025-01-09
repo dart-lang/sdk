@@ -6,7 +6,6 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -73,18 +72,8 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
-  /// Returns [ExtensionElement] declared by an enclosing node.
-  ExtensionElement? get enclosingExtensionElement {
-    for (var node in withParents) {
-      if (node is ExtensionDeclaration) {
-        return node.declaredElement;
-      }
-    }
-    return null;
-  }
-
   /// Returns [ExtensionElement2] declared by an enclosing node.
-  ExtensionElement2? get enclosingExtensionElement2 {
+  ExtensionElement2? get enclosingExtensionElement {
     for (var node in withParents) {
       if (node is ExtensionDeclaration) {
         return node.declaredFragment?.element;
@@ -105,20 +94,8 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  /// Returns [InterfaceElement] declared by an enclosing node.
-  InterfaceElement? get enclosingInterfaceElement {
-    for (var node in withParents) {
-      if (node is ClassDeclaration) {
-        return node.declaredElement;
-      } else if (node is MixinDeclaration) {
-        return node.declaredElement;
-      }
-    }
-    return null;
-  }
-
   /// Returns [InterfaceElement2] declared by an enclosing node.
-  InterfaceElement2? get enclosingInterfaceElement2 {
+  InterfaceElement2? get enclosingInterfaceElement {
     for (var node in withParents) {
       if (node is ClassDeclaration) {
         return node.declaredFragment?.element;
@@ -200,10 +177,10 @@ extension AstNodeExtension on AstNode {
   ExpressionStatement? findSimplePrintInvocation() {
     var parent = this.parent;
     var grandparent = parent?.parent;
-    if (this case SimpleIdentifier(:var staticElement)) {
-      if (staticElement is FunctionElement &&
-          staticElement.name == 'print' &&
-          staticElement.library.isDartCore &&
+    if (this case SimpleIdentifier(:var element)) {
+      if (element is TopLevelFunctionElement &&
+          element.name3 == 'print' &&
+          element.library2.isDartCore &&
           parent is MethodInvocation &&
           grandparent is ExpressionStatement) {
         return grandparent;
@@ -291,16 +268,18 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
 }
 
 extension DirectiveExtension on Directive {
-  /// If the target imports or exports a [LibraryElement], returns it.
-  LibraryElement? get referencedLibrary {
-    var element = this.element;
-    if (element is LibraryExportElement) {
-      return element.exportedLibrary;
-    } else if (element is LibraryImportElement) {
-      return element.importedLibrary;
+  /// If the target imports or exports a [LibraryElement2], returns it.
+  LibraryElement2? get referencedLibrary {
+    switch (this) {
+      case ExportDirective directive:
+        return directive.libraryExport?.exportedLibrary2;
+      case ImportDirective directive:
+        return directive.libraryImport?.importedLibrary2;
+      default:
+        return null;
     }
-    return null;
   }
+
 
   /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
   /// from it.
@@ -314,15 +293,16 @@ extension DirectiveExtension on Directive {
 
   /// Returns the [DirectiveUri] from the element.
   DirectiveUri? get referencedUri {
-    var self = this;
-    if (self is ExportDirective) {
-      return self.element?.uri;
-    } else if (self is ImportDirective) {
-      return self.element?.uri;
-    } else if (self is PartDirective) {
-      return self.element?.uri;
+    switch (this) {
+      case ExportDirective directive:
+        return directive.libraryExport?.uri;
+      case ImportDirective directive:
+        return directive.libraryImport?.uri;
+      case PartDirective directive:
+        return directive.partInclude?.uri;
+      default:
+        return null;
     }
-    return null;
   }
 }
 
@@ -330,9 +310,9 @@ extension ExpressionExtension on Expression {
   /// Return `true` if this expression is an invocation of the method `cast`
   /// from either Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethodInvocation {
-    if (this is MethodInvocation) {
-      var element = (this as MethodInvocation).methodName.staticElement;
-      return element is MethodElement && element.isCastMethod;
+    if (this case MethodInvocation self) {
+      var element = self.methodName.element;
+      return element is MethodElement2 && element.isCastMethod;
     }
     return false;
   }
@@ -340,9 +320,9 @@ extension ExpressionExtension on Expression {
   /// Return `true` if this expression is an invocation of the method `toList`
   /// from `Iterable`.
   bool get isToListMethodInvocation {
-    if (this is MethodInvocation) {
-      var element = (this as MethodInvocation).methodName.staticElement;
-      return element is MethodElement && element.isToListMethod;
+    if (this case MethodInvocation self) {
+      var element = self.methodName.element;
+      return element is MethodElement2 && element.isToListMethod;
     }
     return false;
   }
@@ -350,9 +330,9 @@ extension ExpressionExtension on Expression {
   /// Return `true` if this expression is an invocation of the method `toSet`
   /// from `Iterable`.
   bool get isToSetMethodInvocation {
-    if (this is MethodInvocation) {
-      var element = (this as MethodInvocation).methodName.staticElement;
-      return element is MethodElement && element.isToSetMethod;
+    if (this case MethodInvocation self) {
+      var element = self.methodName.element;
+      return element is MethodElement2 && element.isToSetMethod;
     }
     return false;
   }

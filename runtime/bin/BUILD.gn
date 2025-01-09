@@ -902,23 +902,6 @@ dart_executable("dart") {
   }
 }
 
-# This rule is here to ensure benchmark suites do not break, it can be
-# removed once the benchmark suites are updated.
-group("dart_precompiled_runtime") {
-  deps = [
-    ":copy_dart_precompiled_runtime",
-    ":dartaotruntime",
-  ]
-}
-
-copy("copy_dart_precompiled_runtime") {
-  visibility = [ ":dart_precompiled_runtime" ]
-  deps = [ ":dartaotruntime" ]
-  src_dir = get_label_info(":dartaotruntime", "root_out_dir")
-  sources = [ "$src_dir/dartaotruntime${executable_suffix}" ]
-  outputs = [ "$root_out_dir/dart_precompiled_runtime${executable_suffix}" ]
-}
-
 dart_executable("dartaotruntime") {
   extra_configs = [
     "..:dart_aotruntime_config",
@@ -1140,6 +1123,9 @@ executable("run_vm_tests") {
 shared_library("entrypoints_verification_test") {
   deps = [ ":dart" ]
   sources = [ "entrypoints_verification_test.cc" ]
+  if (is_win) {
+    sources += [ "dart_api_win.c" ]
+  }
   include_dirs = [ ".." ]
 }
 
@@ -1166,19 +1152,17 @@ shared_library("ffi_test_functions") {
     "ffi_test/ffi_test_functions_generated_2.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]
+
+  if (is_win) {
+    sources += [ "dart_api_win.c" ]
+  }
+
   if (is_win && current_cpu == "x64") {
     sources += [ "ffi_test/clobber_x64_win.S" ]
   } else if (!is_win) {
     sources += [ "ffi_test/clobber_$current_cpu.S" ]
   }
   include_dirs = [ ".." ]
-
-  if (is_win) {
-    # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
-    libs = [ "dart.lib" ]
-    abs_root_out_dir = rebase_path(root_out_dir)
-    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-  }
 }
 
 # DartLibFuzzer only "exists" for restricted configurations.
@@ -1220,6 +1204,20 @@ source_set("dart_embedder_runtime_jit_set") {
     ":libdart_builtin",
     "..:libdart_jit",
   ]
+
+  if (is_win) {
+    libs = [
+      # ole32.dll contains CoTaskMemAlloc. Here so that package:ffi can look
+      # CoTaskMemAlloc up with `DynamicLibrary.process()`.
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
 }
 
 static_library("dart_embedder_runtime_jit") {

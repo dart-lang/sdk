@@ -23,8 +23,8 @@ class ScrollWatcher {
   Element? _scrollerEl;
 
   ScrollWatcher(Scroller scroller)
-      : _scroller = scroller,
-        _listeners = <ScrollListener>[];
+    : _scroller = scroller,
+      _listeners = <ScrollListener>[];
 
   void addListener(ScrollListener listener) {
     _listeners.add(listener);

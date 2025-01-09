@@ -286,7 +286,9 @@ static void GetLastErrorAsString(char** error) {
 #endif
 }
 
-void* Utils::LoadDynamicLibrary(const char* library_path, char** error) {
+void* Utils::LoadDynamicLibrary(const char* library_path,
+                                bool search_dll_load_dir,
+                                char** error) {
   void* handle = nullptr;
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
@@ -307,7 +309,12 @@ void* Utils::LoadDynamicLibrary(const char* library_path, char** error) {
           MultiByteToWideChar(CP_UTF8, /*dwFlags=*/0, library_path,
                               /*cbMultiByte=*/-1, name.get(), name_len);
       RELEASE_ASSERT(written_len == name_len);
-      handle = LoadLibraryW(name.get());
+      if (search_dll_load_dir) {
+        handle =
+            LoadLibraryExW(name.get(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+      } else {
+        handle = LoadLibraryW(name.get());
+      }
     }
   }
 #endif

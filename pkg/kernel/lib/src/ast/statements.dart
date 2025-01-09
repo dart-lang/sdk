@@ -1443,6 +1443,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isFinal = false,
       bool isConst = false,
       bool isInitializingFormal = false,
+      bool isSuperInitializingFormal = false,
       bool isCovariantByDeclaration = false,
       bool isLate = false,
       bool isRequired = false,
@@ -1458,6 +1459,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isFinal = isFinal;
       this.isConst = isConst;
       this.isInitializingFormal = isInitializingFormal;
+      this.isSuperInitializingFormal = isSuperInitializingFormal;
       this.isCovariantByDeclaration = isCovariantByDeclaration;
       this.isLate = isLate;
       this.isRequired = isRequired;
@@ -1476,6 +1478,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       {bool isFinal = true,
       bool isConst = false,
       bool isInitializingFormal = false,
+      bool isSuperInitializingFormal = false,
       bool isLate = false,
       bool isRequired = false,
       bool isLowered = false,
@@ -1484,6 +1487,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isInitializingFormal = isInitializingFormal;
+    this.isSuperInitializingFormal = isSuperInitializingFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
@@ -1515,6 +1519,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagSynthesized = 1 << 9;
   static const int FlagHoisted = 1 << 10;
   static const int FlagWildcard = 1 << 11;
+  static const int FlagSuperInitializingFormal = 1 << 12;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -1526,6 +1531,12 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// a constructor.
   @informative
   bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
+
+  /// Whether the variable is declared as a super initializing formal parameter
+  /// of a constructor.
+  @informative
+  bool get isSuperInitializingFormal =>
+      flags & FlagSuperInitializingFormal != 0;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -1617,6 +1628,13 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value
         ? (flags | FlagInitializingFormal)
         : (flags & ~FlagInitializingFormal);
+  }
+
+  @informative
+  void set isSuperInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagSuperInitializingFormal)
+        : (flags & ~FlagSuperInitializingFormal);
   }
 
   void set isCovariantByClass(bool value) {

@@ -18,8 +18,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:meta/meta_meta.dart';
 
-/// Organizes imports (and other directives) in the [unit], using sorting
-/// rules from [DirectiveSorter].
+/// Organizes imports (and other directives) in the [unit].
 class ImportOrganizer {
   final String initialCode;
 

@@ -105,13 +105,13 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 /// Information about a subtype of one or more classes.
 abstract class AnalysisDriverSubtype extends base.SummaryClass {
   /// The names of defined instance members.
-  /// They are indexes into [AnalysisDriverUnitError.strings] list.
+  /// They are indexes into [AnalysisDriverUnitIndex.strings] list.
   /// The list is sorted in ascending order.
   @Id(1)
   List<int> get members;
 
   /// The name of the class.
-  /// It is an index into [AnalysisDriverUnitError.strings] list.
+  /// It is an index into [AnalysisDriverUnitIndex.strings] list.
   @Id(0)
   int get name;
 }
@@ -266,25 +266,6 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get usedNames;
 }
 
-/// Information about an available, even if not yet imported file.
-@TopLevel('UICF')
-abstract class AvailableFile extends base.SummaryClass {
-  factory AvailableFile.fromBuffer(List<int> buffer) =>
-      generated.readAvailableFile(buffer);
-
-  /// The Dartdoc directives in the file.
-  @Id(0)
-  DirectiveInfo? get directiveInfo;
-
-  /// Exports directives of the file.
-  @Id(1)
-  List<String> get exports;
-
-  /// URIs of `part` directives.
-  @Id(2)
-  List<String> get parts;
-}
-
 /// Errors for a single unit.
 @TopLevel('CUEr')
 abstract class CiderUnitErrors extends base.SummaryClass {
@@ -316,17 +297,6 @@ abstract class DiagnosticMessage extends base.SummaryClass {
   /// The URL of the message, if any.
   @Id(4)
   String get url;
-}
-
-/// Information about the Dartdoc directives in an [AvailableFile].
-abstract class DirectiveInfo extends base.SummaryClass {
-  /// The names of the defined templates.
-  @Id(0)
-  List<String> get templateNames;
-
-  /// The values of the defined templates.
-  @Id(1)
-  List<String> get templateValues;
 }
 
 /// Enum used to indicate the kind of an index relation.
@@ -394,7 +364,7 @@ enum IndexRelationKind {
   IS_WRITTEN_BY,
 }
 
-/// When we need to reference a synthetic element in [PackageIndex] we use a
+/// When we need to reference a synthetic element in PackageIndex we use a
 /// value of this enum to specify which kind of the synthetic element we
 /// actually reference.
 enum IndexSyntheticElementKind {

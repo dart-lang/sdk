@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -14,7 +14,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   final DartType topType;
   final DartType topFunctionType;
   final DartType bottomType;
-  final Set<TypeParameterElement> eliminationTargets;
+  final Set<TypeParameterElementImpl2> eliminationTargets;
 
   late final bool _isLeastClosure;
   bool _isCovariant = true;
@@ -72,7 +72,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     //  - The greatest closure of `S` with respect to `L` is `Function`
     for (var typeParameter in node.typeFormals) {
       if (typeParameter.bound case TypeImpl bound?
-          when bound.referencesAny(eliminationTargets)) {
+          when bound.referencesAny2(eliminationTargets)) {
         return _functionReplacement;
       }
     }
@@ -82,7 +82,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType type) {
-    if (eliminationTargets.contains(type.element)) {
+    if (eliminationTargets.contains(type.element3)) {
       var replacement = _typeParameterReplacement as TypeImpl;
       return replacement.withNullability(
         uniteNullabilities(

@@ -15,12 +15,10 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -38,7 +36,7 @@ Availability analyzeAvailability({
 
 /// Continues analysis of the selection in [available], and returns either
 /// a [ValidSelectionState], or one of [ErrorSelectionState] subtypes.
-Future<SelectionState> analyzeSelection({required Available available}) async {
+Future<SelectionState> analyzeSelection({required Available available}) {
   return _SelectionAnalyzer(available: available).analyze();
 }
 
@@ -110,7 +108,7 @@ final class FormalParameterState {
   final int id;
 
   /// The element, used internally for `super` conversion.
-  final ParameterElement element;
+  final FormalParameterElement element;
 
   /// The current kind of the formal parameter.
   final FormalParameterKind kind;
@@ -244,7 +242,7 @@ final class ValidSelectionState extends SelectionState {
 
   /// The element of the target method, used to find corresponding methods
   /// in the class hierarchy.
-  final ExecutableElement element;
+  final ExecutableElement2 element;
 
   /// The current formal parameters.
   final List<FormalParameterState> formalParameters;
@@ -254,10 +252,6 @@ final class ValidSelectionState extends SelectionState {
     required this.element,
     required this.formalParameters,
   });
-
-  /// The element of the target method, used to find corresponding methods
-  /// in the class hierarchy.
-  ExecutableElement2 get element2 => element.asElement2;
 }
 
 class _AvailabilityAnalyzer {
@@ -306,8 +300,8 @@ class _AvailabilityAnalyzer {
     }
 
     _Declaration? buildDeclaration(Declaration node) {
-      var element = node.declaredElement;
-      if (element is ExecutableElement) {
+      var element = node.declaredFragment?.element;
+      if (element is ExecutableElement2) {
         return _Declaration(element: element, node: node, selected: selected);
       }
       return null;
@@ -379,20 +373,20 @@ class _AvailabilityAnalyzer {
   Availability _executableElement() {
     var coveringNode = refactoringContext.coveringNode;
 
-    Element? element;
+    Element2? element;
     if (coveringNode is SimpleIdentifier) {
       var invocation = coveringNode.parent;
       if (invocation is MethodInvocation &&
           invocation.methodName == coveringNode) {
-        element = invocation.methodName.staticElement;
+        element = invocation.methodName.element;
       }
     }
 
-    if (element is! ExecutableElement) {
+    if (element is! ExecutableElement2) {
       return NotAvailableNoExecutableElement();
     }
 
-    var libraryFilePath = element.librarySource.fullName;
+    var libraryFilePath = element.library2.firstFragment.source.fullName;
     if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
       return NotAvailableExternalElement();
     }
@@ -414,7 +408,7 @@ final class _AvailableWithDeclaration extends Available {
 
   @override
   bool get hasPositionalParameters {
-    return declaration.element.parameters.any((e) => e.isPositional);
+    return declaration.element.formalParameters.any((e) => e.isPositional);
   }
 
   @override
@@ -479,7 +473,7 @@ final class _AvailableWithDeclaration extends Available {
 }
 
 final class _AvailableWithExecutableElement extends Available {
-  final ExecutableElement element;
+  final ExecutableElement2 element;
 
   _AvailableWithExecutableElement({
     required super.refactoringContext,
@@ -488,13 +482,13 @@ final class _AvailableWithExecutableElement extends Available {
 
   @override
   bool get hasPositionalParameters {
-    return element.parameters.any((e) => e.isPositional);
+    return element.formalParameters.any((e) => e.isPositional);
   }
 }
 
 /// The target method declaration.
 class _Declaration {
-  final ExecutableElement element;
+  final ExecutableElement2 element;
   final AstNode node;
   final List<FormalParameter> selected;
 
@@ -557,7 +551,7 @@ class _SelectionAnalyzer {
         return const UnexpectedSelectionState();
       }
 
-      var parameterElement = parameterNode.declaredElement;
+      var parameterElement = parameterNode.declaredFragment?.element;
       if (parameterElement == null) {
         return const UnexpectedSelectionState();
       }
@@ -599,9 +593,9 @@ class _SelectionAnalyzer {
     }
   }
 
-  Future<AstNode?> _elementDeclaration(ExecutableElement element) async {
+  Future<AstNode?> _elementDeclaration(ExecutableElement2 element) async {
     var helper = refactoringContext.sessionHelper;
-    var nodeResult = await helper.getElementDeclaration(element);
+    var nodeResult = await helper.getElementDeclaration(element.firstFragment);
     return nodeResult?.node;
   }
 }
@@ -659,24 +653,27 @@ class _SignatureUpdater {
   /// a function, only the elements itself has to be updated. If the target
   /// is a class method, then every element in this class hierarchy should
   /// be updated.
-  Future<List<ExecutableElement>> computeElements() async {
+  Future<List<ExecutableElement2>> computeElements() async {
     var element = selectionState.element;
-    if (element case ClassMemberElement member) {
-      var set = await getHierarchyMembers(searchEngine, member);
-      return set.whereType<ExecutableElement>().toList();
+    switch (element) {
+      case ConstructorElement2():
+      case MethodElement2():
+        var set = await getHierarchyMembers(searchEngine, element);
+        return set.whereType<ExecutableElement2>().toList();
+      default:
+        return [element];
     }
-    return [element];
   }
 
-  /// Returns the [MethodDeclaration] for a [MethodElement].
-  Future<AstNode?> elementDeclaration(ExecutableElement element) async {
+  /// Returns the [MethodDeclaration] for a [MethodElement2].
+  Future<AstNode?> elementDeclaration(ExecutableElement2 element) async {
     var helper = sessionHelper;
-    var result = await helper.getElementDeclaration(element);
+    var result = await helper.getElementDeclaration(element.firstFragment);
     return result?.node;
   }
 
   /// Returns the [Selection] for the [reference], using the resolved unit.
-  /// Used to find [MethodInvocation]s of a [MethodElement].
+  /// Used to find [MethodInvocation]s of a [MethodElement2].
   Future<Selection?> referenceSelection(SearchMatch reference) async {
     var unitResult = await referenceUnitResult(reference);
     return unitResult?.unit.select(
@@ -687,7 +684,7 @@ class _SignatureUpdater {
 
   /// Returns the resolved unit with [reference].
   Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
-    var element = reference.element;
+    var element = reference.element2;
     return await sessionHelper.getResolvedUnitByElement(element);
   }
 
@@ -743,10 +740,10 @@ class _SignatureUpdater {
   /// Replaces formal parameters of [element] with new code as requested
   /// by the formal parameter updates, reordering, changing kind, etc.
   Future<ChangeStatus> updateDeclaration({
-    required ExecutableElement element,
+    required ExecutableElement2 element,
     required ChangeBuilder builder,
   }) async {
-    var path = element.source.fullName;
+    var path = element.firstFragment.libraryFragment.source.fullName;
 
     var unitResult = await sessionHelper.getResolvedUnitByElement(element);
     if (unitResult == null) {
@@ -964,7 +961,7 @@ class _SignatureUpdater {
 
   /// Updates arguments of invocations of [element].
   Future<ChangeStatus> updateReferences({
-    required ExecutableElement element,
+    required ExecutableElement2 element,
     required ChangeBuilder builder,
   }) async {
     var references = await searchEngine.searchReferences(element);
@@ -1141,7 +1138,7 @@ class _SignatureUpdater {
       return ChangeStatusSuccess();
     }
 
-    var parameterElementsToSuper = <ParameterElement>{};
+    var parameterElementsToSuper = <FormalParameterElement>{};
     for (var update in signatureUpdate.formalParameters) {
       if (update.kind.isNamed) {
         var existing = selectionState.formalParameters[update.id];
@@ -1151,8 +1148,8 @@ class _SignatureUpdater {
           continue;
         }
 
-        var parameterElement = argument.staticElement;
-        if (parameterElement is! ParameterElement) {
+        var parameterElement = argument.element;
+        if (parameterElement is! FormalParameterElement) {
           continue;
         }
 

@@ -17,7 +17,7 @@ class Decoder {
   // For more info, see appengine/encoder.py.
   int readInt() {
     var r = 0;
-    for (var i = 0;; i++) {
+    for (var i = 0; ; i++) {
       var v = data.codeUnitAt(index++);
       r |= (v & 0x3F) << (6 * i);
       if ((v & 0x40) == 0) break;

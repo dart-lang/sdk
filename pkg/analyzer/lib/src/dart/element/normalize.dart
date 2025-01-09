@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -36,10 +35,9 @@ class NormalizeHelper {
   FunctionTypeImpl _functionType(FunctionType functionType) {
     var fresh = getFreshTypeParameters(functionType.typeFormals);
     for (var typeParameter in fresh.freshTypeParameters) {
-      var bound = typeParameter.bound;
+      var bound = typeParameter.firstFragment.bound;
       if (bound != null) {
-        var typeParameterImpl = typeParameter as TypeParameterElementImpl;
-        typeParameterImpl.bound = _normalize(bound);
+        typeParameter.firstFragment.bound = _normalize(bound);
       }
     }
 

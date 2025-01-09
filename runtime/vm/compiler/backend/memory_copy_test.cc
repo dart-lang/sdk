@@ -157,12 +157,14 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
     import 'dart:ffi';
 
+    @pragma("vm:entry-point", "call")
     void copyConst() {
       final pointer = Pointer<Uint8>.fromAddress(%s%p);
       final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
       noop();
     }
 
+    @pragma("vm:entry-point", "call")
     void callNonConstCopy() {
       final pointer = Pointer<Uint8>.fromAddress(%s%p);
       final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
@@ -209,8 +211,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
 
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveDebugStepCheck,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer},
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer2},
           kMatchAndMoveRecordCoverage,
@@ -246,8 +251,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
       ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveDebugStepCheck,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
           kMatchAndMoveRecordCoverage,

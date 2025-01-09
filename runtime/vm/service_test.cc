@@ -237,6 +237,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
       "  x();\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
   Dart_Handle lib;
@@ -362,6 +363,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
       "  x();\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
   Dart_Handle lib;
@@ -433,6 +435,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
       "  x();\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
   Dart_Handle lib;
@@ -500,6 +503,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
       "  return global;\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
 
@@ -591,6 +595,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
       "  x = (x / 13).floor();\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib;
   {
     TransitionVMToNative transition(thread);
@@ -636,6 +641,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
       "  x = (x / 13).floor();\n"
       "}";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib;
   {
     TransitionVMToNative transition(thread);
@@ -687,6 +693,7 @@ static void EnableProfiler() {
 ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   EnableProfiler();
   const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
       "var port;\n"  // Set to our mock port by C++.
       "\n"
       "var x = 7;\n"

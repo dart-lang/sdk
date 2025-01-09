@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.test.memory_compiler;
+library;
 
 import 'dart:async';
 
-import 'package:compiler/compiler_api.dart' as api
+import 'package:compiler/compiler_api.dart'
+    as api
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
@@ -14,6 +15,7 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'memory_source_file_helper.dart';
@@ -27,8 +29,9 @@ String sdkPath = 'sdk/lib';
 
 String sdkLibrariesSpecificationPath = '$sdkPath/libraries.json';
 
-Uri sdkLibrariesSpecificationUri =
-    Uri.base.resolve(sdkLibrariesSpecificationPath);
+Uri sdkLibrariesSpecificationUri = Uri.base.resolve(
+  sdkLibrariesSpecificationPath,
+);
 
 Uri sdkPlatformBinariesUri = fe
     .computePlatformBinariesLocation()
@@ -50,8 +53,14 @@ class MultiDiagnostics implements api.CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(covariant Message? message, Uri? uri, int? begin, int? end,
-      String text, api.Diagnostic kind) {
+  void report(
+    covariant Message? message,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String text,
+    api.Diagnostic kind,
+  ) {
     for (api.CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }
@@ -59,21 +68,26 @@ class MultiDiagnostics implements api.CompilerDiagnostics {
 }
 
 api.CompilerDiagnostics createCompilerDiagnostics(
-    api.CompilerDiagnostics? diagnostics, SourceFileProvider provider,
-    {bool showDiagnostics = true, bool verbose = false}) {
+  api.CompilerDiagnostics? diagnostics,
+  SourceFileProvider provider, {
+  bool showDiagnostics = true,
+  bool verbose = false,
+}) {
   if (showDiagnostics) {
     if (diagnostics == null) {
-      diagnostics = FormattingDiagnosticHandler()
-        ..verbose = verbose
-        ..registerFileProvider(provider);
+      diagnostics =
+          FormattingDiagnosticHandler()
+            ..verbose = verbose
+            ..registerFileProvider(provider);
     } else {
-      var formattingHandler = FormattingDiagnosticHandler()
-        ..verbose = verbose
-        ..registerFileProvider(provider);
+      var formattingHandler =
+          FormattingDiagnosticHandler()
+            ..verbose = verbose
+            ..registerFileProvider(provider);
       diagnostics = MultiDiagnostics([diagnostics, formattingHandler]);
     }
-  } else if (diagnostics == null) {
-    diagnostics = MultiDiagnostics();
+  } else {
+    diagnostics ??= MultiDiagnostics();
   }
   return diagnostics;
 }
@@ -84,56 +98,60 @@ fe.InitializedCompilerState? kernelInitializedCompilerState;
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
 /// type for the second parameter).
-Future<api.CompilationResult> runCompiler(
-    {Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
-    Uri? entryPoint,
-    api.CompilerDiagnostics? diagnosticHandler,
-    api.CompilerOutput? outputProvider,
-    List<String> options = const <String>[],
-    Map<String, String>? environment,
-    bool showDiagnostics = true,
-    Uri? librariesSpecificationUri,
-    Uri? platformBinaries,
-    Uri? packageConfig,
-    bool skipPackageConfig = false,
-    void beforeRun(Compiler compiler)?}) async {
-  if (entryPoint == null) {
-    entryPoint = Uri.parse('memory:main.dart');
-  }
+Future<api.CompilationResult> runCompiler({
+  Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
+  Uri? entryPoint,
+  api.CompilerDiagnostics? diagnosticHandler,
+  api.CompilerOutput? outputProvider,
+  List<String> options = const <String>[],
+  Map<String, String>? environment,
+  bool showDiagnostics = true,
+  Uri? librariesSpecificationUri,
+  Uri? platformBinaries,
+  Uri? packageConfig,
+  bool skipPackageConfig = false,
+  void Function(Compiler compiler)? beforeRun,
+}) async {
+  entryPoint ??= Uri.parse('memory:main.dart');
   Compiler compiler = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      diagnosticHandler: diagnosticHandler,
-      outputProvider: outputProvider,
-      options: options,
-      environment: environment,
-      showDiagnostics: showDiagnostics,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries,
-      packageConfig: packageConfig,
-      skipPackageConfig: skipPackageConfig);
+    entryPoint: entryPoint,
+    memorySourceFiles: memorySourceFiles,
+    diagnosticHandler: diagnosticHandler,
+    outputProvider: outputProvider,
+    options: options,
+    environment: environment,
+    showDiagnostics: showDiagnostics,
+    librariesSpecificationUri: librariesSpecificationUri,
+    platformBinaries: platformBinaries,
+    packageConfig: packageConfig,
+    skipPackageConfig: skipPackageConfig,
+  );
   if (beforeRun != null) {
     beforeRun(compiler);
   }
   bool isSuccess = await compiler.run();
   fe.InitializedCompilerState? compilerState =
       kernelInitializedCompilerState = compiler.initializedCompilerState;
-  return api.CompilationResult(compiler,
-      isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
+  return api.CompilationResult(
+    compiler,
+    isSuccess: isSuccess,
+    kernelInitializedCompilerState: compilerState,
+  );
 }
 
-Compiler compilerFor(
-    {Uri? entryPoint,
-    Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
-    api.CompilerDiagnostics? diagnosticHandler,
-    api.CompilerOutput? outputProvider,
-    List<String> options = const <String>[],
-    Map<String, String>? environment,
-    bool showDiagnostics = true,
-    Uri? librariesSpecificationUri,
-    Uri? platformBinaries,
-    Uri? packageConfig,
-    bool skipPackageConfig = false}) {
+Compiler compilerFor({
+  Uri? entryPoint,
+  Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
+  api.CompilerDiagnostics? diagnosticHandler,
+  api.CompilerOutput? outputProvider,
+  List<String> options = const <String>[],
+  Map<String, String>? environment,
+  bool showDiagnostics = true,
+  Uri? librariesSpecificationUri,
+  Uri? platformBinaries,
+  Uri? packageConfig,
+  bool skipPackageConfig = false,
+}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
@@ -152,27 +170,35 @@ Compiler compilerFor(
 
   MemorySourceFileProvider provider;
   provider = MemorySourceFileProvider(sources);
-  diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
-      showDiagnostics: showDiagnostics,
-      verbose: options.contains('-v') || options.contains('--verbose'));
+  diagnosticHandler = createCompilerDiagnostics(
+    diagnosticHandler,
+    provider,
+    showDiagnostics: showDiagnostics,
+    verbose: options.contains('-v') || options.contains('--verbose'),
+  );
 
-  if (outputProvider == null) {
-    outputProvider = const NullCompilerOutput();
-  }
+  outputProvider ??= const NullCompilerOutput();
 
   options = [...options, '${Flags.entryUri}=$entryPoint'];
 
-  CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries)
-    ..environment = environment ?? {}
-    ..packageConfig = packageConfig;
+  CompilerOptions compilerOptions =
+      CompilerOptions.parse(
+          options,
+          librariesSpecificationUri: librariesSpecificationUri,
+          platformBinaries: platformBinaries,
+        )
+        ..environment = environment ?? {}
+        ..packageConfig = packageConfig;
 
   compilerOptions.setDefaultOutputUriForTesting();
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
-  var compiler =
-      Compiler(provider, outputProvider, diagnosticHandler, compilerOptions);
+  var compiler = Compiler(
+    provider,
+    outputProvider,
+    diagnosticHandler,
+    compilerOptions,
+  );
 
   return compiler;
 }

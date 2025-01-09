@@ -247,7 +247,7 @@ class SelectionCoverageTest {
           var overridden = inheritanceManager.getOverridden4(
             visitedNodeList.enclosingElement2 as InterfaceElement2,
             Name(
-              visitedNodeList.library2!.uri,
+              visitedNodeList.library2.uri,
               visitedNodeList.name3!,
             ),
           );

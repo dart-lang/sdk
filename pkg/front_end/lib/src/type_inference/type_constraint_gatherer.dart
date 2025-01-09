@@ -47,13 +47,15 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   final TypeInferenceResultForTesting? _inferenceResultForTesting;
 
   TypeConstraintGatherer(
-      this._environment, Iterable<StructuralParameter> typeParameters,
-      {required OperationsCfe typeOperations,
-      required TypeInferenceResultForTesting? inferenceResultForTesting,
-      required super.inferenceUsingBoundsIsEnabled})
-      : typeOperations = typeOperations,
-        typeParametersToConstrain =
-            new List<StructuralParameter>.of(typeParameters),
+    this._environment,
+    Iterable<StructuralParameter> typeParameters, {
+    required OperationsCfe typeOperations,
+    required TypeInferenceResultForTesting? inferenceResultForTesting,
+    required super.inferenceUsingBoundsIsEnabled,
+  })  : typeOperations = typeOperations,
+        typeParametersToConstrain = new List<StructuralParameter>.of(
+          typeParameters,
+        ),
         _inferenceResultForTesting = inferenceResultForTesting;
 
   @override
@@ -75,28 +77,32 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   (DartType, DartType, {List<StructuralParameter> typeParametersToEliminate})
       instantiateFunctionTypesAndProvideFreshTypeParameters(
-          covariant FunctionType p, covariant FunctionType q,
-          {required bool leftSchema}) {
+    covariant FunctionType p,
+    covariant FunctionType q, {
+    required bool leftSchema,
+  }) {
     FunctionType instantiatedP;
     FunctionType instantiatedQ;
     if (leftSchema) {
-      List<DartType> typeParametersForAlphaRenaming =
-          new List<DartType>.generate(
-              p.typeFormals.length,
-              (int i) => new StructuralParameterType.forAlphaRenaming(
-                  q.typeParameters[i], p.typeParameters[i]));
+      List<DartType> typeParametersForAlphaRenaming = [
+        for (StructuralParameter parameter in p.typeParametersShared)
+          new StructuralParameterType.withDefaultNullability(parameter),
+      ];
       instantiatedP = p.withoutTypeParameters;
       instantiatedQ = FunctionTypeInstantiator.instantiate(
-          q, typeParametersForAlphaRenaming);
+        q,
+        typeParametersForAlphaRenaming,
+      );
     } else {
       // Coverage-ignore-block(suite): Not run.
-      List<DartType> typeParametersForAlphaRenaming =
-          new List<DartType>.generate(
-              p.typeFormals.length,
-              (int i) => new StructuralParameterType.forAlphaRenaming(
-                  p.typeParameters[i], q.typeParameters[i]));
+      List<DartType> typeParametersForAlphaRenaming = [
+        for (StructuralParameter parameter in q.typeParametersShared)
+          new StructuralParameterType.withDefaultNullability(parameter),
+      ];
       instantiatedP = FunctionTypeInstantiator.instantiate(
-          p, typeParametersForAlphaRenaming);
+        p,
+        typeParametersForAlphaRenaming,
+      );
       instantiatedQ = q.withoutTypeParameters;
     }
 
@@ -107,33 +113,39 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
           ? p.typeParameters
           :
           // Coverage-ignore(suite): Not run.
-          q.typeParameters
+          q.typeParameters,
     );
   }
 
   @override
   void eliminateTypeParametersInGeneratedConstraints(
-      covariant List<StructuralParameter> typeParametersToEliminate,
-      shared.TypeConstraintGeneratorState eliminationStartState,
-      {required TreeNode? astNodeForTesting}) {
-    List<GeneratedTypeConstraint> constraints =
-        _protoConstraints.sublist(eliminationStartState.count);
+    covariant List<StructuralParameter> typeParametersToEliminate,
+    shared.TypeConstraintGeneratorState eliminationStartState, {
+    required TreeNode? astNodeForTesting,
+  }) {
+    List<GeneratedTypeConstraint> constraints = _protoConstraints.sublist(
+      eliminationStartState.count,
+    );
     _protoConstraints.length = eliminationStartState.count;
     for (GeneratedTypeConstraint constraint in constraints) {
       if (constraint.isUpper) {
         addUpperConstraintForParameter(
-            constraint.typeParameter,
-            typeOperations.leastClosureOfTypeInternal(
-                constraint.constraint.unwrapTypeSchemaView(),
-                typeParametersToEliminate),
-            astNodeForTesting: astNodeForTesting);
+          constraint.typeParameter,
+          typeOperations.leastClosureOfTypeInternal(
+            constraint.constraint.unwrapTypeSchemaView(),
+            typeParametersToEliminate,
+          ),
+          astNodeForTesting: astNodeForTesting,
+        );
       } else {
         addLowerConstraintForParameter(
-            constraint.typeParameter,
-            typeOperations.greatestClosureOfTypeInternal(
-                constraint.constraint.unwrapTypeSchemaView(),
-                typeParametersToEliminate),
-            astNodeForTesting: astNodeForTesting);
+          constraint.typeParameter,
+          typeOperations.greatestClosureOfTypeInternal(
+            constraint.constraint.unwrapTypeSchemaView(),
+            typeParametersToEliminate,
+          ),
+          astNodeForTesting: astNodeForTesting,
+        );
       }
     }
   }
@@ -141,26 +153,36 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
   void constrainArguments(
-      List<DartType> formalTypes, List<DartType> actualTypes,
-      {required TreeNode? treeNodeForTesting}) {
+    List<DartType> formalTypes,
+    List<DartType> actualTypes, {
+    required TreeNode? treeNodeForTesting,
+  }) {
     assert(formalTypes.length == actualTypes.length);
     for (int i = 0; i < formalTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
-      tryConstrainLower(formalTypes[i], actualTypes[i],
-          treeNodeForTesting: treeNodeForTesting);
+      tryConstrainLower(
+        formalTypes[i],
+        actualTypes[i],
+        treeNodeForTesting: treeNodeForTesting,
+      );
     }
   }
 
   // Coverage-ignore(suite): Not run.
   Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
-    return _environment.hierarchy
-        .getInterfaceMember(class_, name, setter: setter);
+    return _environment.hierarchy.getInterfaceMember(
+      class_,
+      name,
+      setter: setter,
+    );
   }
 
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    TypeDeclarationType type,
+    TypeDeclaration typeDeclaration,
+  ) {
     return _environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
@@ -169,13 +191,16 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     Map<StructuralParameter, MergedTypeConstraint> result = {};
     for (StructuralParameter parameter in typeParametersToConstrain) {
       result[parameter] = new MergedTypeConstraint(
-          lower: new SharedTypeSchemaView(const UnknownType()),
-          upper: new SharedTypeSchemaView(const UnknownType()),
-          origin: const UnknownTypeConstraintOrigin());
+        lower: new SharedTypeSchemaView(const UnknownType()),
+        upper: new SharedTypeSchemaView(const UnknownType()),
+        origin: const UnknownTypeConstraintOrigin(),
+      );
     }
     for (GeneratedTypeConstraint protoConstraint in _protoConstraints) {
-      result[protoConstraint.typeParameter]!
-          .mergeIn(protoConstraint, typeOperations);
+      result[protoConstraint.typeParameter]!.mergeIn(
+        protoConstraint,
+        typeOperations,
+      );
     }
     return result;
   }
@@ -184,29 +209,47 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   ///
   /// Doesn't change the already accumulated set of constraints if [bound] isn't
   /// a subtype of [type] under any set of constraints.
-  bool tryConstrainLower(DartType type, DartType bound,
-      {required TreeNode? treeNodeForTesting}) {
-    return performSubtypeConstraintGenerationInternal(bound, type,
-        leftSchema: true, astNodeForTesting: treeNodeForTesting);
+  bool tryConstrainLower(
+    DartType type,
+    DartType bound, {
+    required TreeNode? treeNodeForTesting,
+  }) {
+    return performSubtypeConstraintGenerationInternal(
+      bound,
+      type,
+      leftSchema: true,
+      astNodeForTesting: treeNodeForTesting,
+    );
   }
 
   /// Tries to constrain type parameters in [type], so that [type] <: [bound].
   ///
   /// Doesn't change the already accumulated set of constraints if [type] isn't
   /// a subtype of [bound] under any set of constraints.
-  bool tryConstrainUpper(DartType type, DartType bound,
-      {required TreeNode? treeNodeForTesting}) {
-    return performSubtypeConstraintGenerationInternal(type, bound,
-        leftSchema: false, astNodeForTesting: treeNodeForTesting);
+  bool tryConstrainUpper(
+    DartType type,
+    DartType bound, {
+    required TreeNode? treeNodeForTesting,
+  }) {
+    return performSubtypeConstraintGenerationInternal(
+      type,
+      bound,
+      leftSchema: false,
+      astNodeForTesting: treeNodeForTesting,
+    );
   }
 
   @override
   void addLowerConstraintForParameter(
-      StructuralParameter parameter, DartType lower,
-      {required TreeNode? astNodeForTesting}) {
+    StructuralParameter parameter,
+    DartType lower, {
+    required TreeNode? astNodeForTesting,
+  }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.lower(
-            parameter, new SharedTypeSchemaView(lower));
+      parameter,
+      new SharedTypeSchemaView(lower),
+    );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
@@ -218,11 +261,15 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   void addUpperConstraintForParameter(
-      StructuralParameter parameter, DartType upper,
-      {required TreeNode? astNodeForTesting}) {
+    StructuralParameter parameter,
+    DartType upper, {
+    required TreeNode? astNodeForTesting,
+  }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.upper(
-            parameter, new SharedTypeSchemaView(upper));
+      parameter,
+      new SharedTypeSchemaView(upper),
+    );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
@@ -233,8 +280,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   @override
-  bool performSubtypeConstraintGenerationInternal(DartType p, DartType q,
-      {required bool leftSchema, required TreeNode? astNodeForTesting}) {
+  bool performSubtypeConstraintGenerationInternal(
+    DartType p,
+    DartType q, {
+    required bool leftSchema,
+    required TreeNode? astNodeForTesting,
+  }) {
     if (p is SharedInvalidTypeStructure<DartType> ||
         q is SharedInvalidTypeStructure<DartType>) {
       return false;
@@ -245,54 +296,70 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // check that, the assert below uses the equivalence of the following: X ->
     // Y  <=>  !X || Y.
     assert(
-        !leftSchema ||
-            !containsStructuralParameter(p, typeParametersToConstrain.toSet(),
-                unhandledTypeHandler: (DartType type, ignored) =>
-                    type is UnknownType
-                        ? false
-                        :
-                        // Coverage-ignore(suite): Not run.
-                        throw new UnsupportedError(
-                            "Unsupported type '${type.runtimeType}'.")),
-        "Failed implication check: "
-        "constrainSupertype -> !containsStructuralParameter(q)");
+      !leftSchema ||
+          !containsStructuralParameter(
+            p,
+            typeParametersToConstrain.toSet(),
+            unhandledTypeHandler: (DartType type, ignored) =>
+                type is UnknownType
+                    ? false
+                    :
+                    // Coverage-ignore(suite): Not run.
+                    throw new UnsupportedError(
+                        "Unsupported type '${type.runtimeType}'.",
+                      ),
+          ),
+      "Failed implication check: "
+      "constrainSupertype -> !containsStructuralParameter(q)",
+    );
 
     // If the type parameters being constrained occur in the supertype (that is,
     // [q]), the supertype is not allowed to contain [UnknownType] as its part,
     // that is, the supertype should be fully known.  To check that, the assert
     // below uses the equivalence of the following: X -> Y  <=>  !X || Y.
     assert(
-        !leftSchema || isKnown(q),
-        "Failed implication check: "
-        "constrainSupertype -> isKnown(q)");
+      !leftSchema || isKnown(q),
+      "Failed implication check: "
+      "constrainSupertype -> isKnown(q)",
+    );
 
     // If the type parameters being constrained occur in the subtype (that is,
     // [p]), the subtype is not allowed to contain [UnknownType] as its part,
     // that is, the subtype should be fully known.  To check that, the assert
     // below uses the equivalence of the following: X -> Y  <=>  !X || Y.
     assert(
-        leftSchema || isKnown(p),
-        "Failed implication check: "
-        "!constrainSupertype -> isKnown(p)");
+      leftSchema || isKnown(p),
+      "Failed implication check: "
+      "!constrainSupertype -> isKnown(p)",
+    );
 
     // If the type parameters being constrained occur in the subtype (that is,
     // [p]), the supertype (that is, [q]) is not allowed to contain them.  To
     // check that, the assert below uses the equivalence of the following: X ->
     // Y  <=>  !X || Y.
     assert(
-        leftSchema ||
-            !containsStructuralParameter(q, typeParametersToConstrain.toSet(),
-                unhandledTypeHandler: (DartType type, ignored) =>
-                    type is UnknownType
-                        ? false
-                        :
-                        // Coverage-ignore(suite): Not run.
-                        throw new UnsupportedError(
-                            "Unsupported type '${type.runtimeType}'.")),
-        "Failed implication check: "
-        "!constrainSupertype -> !containsStructuralParameter(q)");
+      leftSchema ||
+          !containsStructuralParameter(
+            q,
+            typeParametersToConstrain.toSet(),
+            unhandledTypeHandler: (DartType type, ignored) =>
+                type is UnknownType
+                    ? false
+                    :
+                    // Coverage-ignore(suite): Not run.
+                    throw new UnsupportedError(
+                        "Unsupported type '${type.runtimeType}'.",
+                      ),
+          ),
+      "Failed implication check: "
+      "!constrainSupertype -> !containsStructuralParameter(q)",
+    );
 
-    return super.performSubtypeConstraintGenerationInternal(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
+    return super.performSubtypeConstraintGenerationInternal(
+      p,
+      q,
+      leftSchema: leftSchema,
+      astNodeForTesting: astNodeForTesting,
+    );
   }
 }

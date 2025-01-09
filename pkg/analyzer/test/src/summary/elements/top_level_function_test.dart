@@ -349,7 +349,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional x @13
+            requiredPositional hasImplicitType x @13
               type: dynamic
           returnType: void
 ----------------------------------------
@@ -370,7 +370,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional x
+        requiredPositional hasImplicitType x
           type: dynamic
       returnType: void
 ''');
@@ -535,7 +535,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional final x @8
+            requiredPositional final hasImplicitType x @8
               type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -556,7 +556,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional final x
+        requiredPositional final hasImplicitType x
           type: dynamic
       returnType: dynamic
 ''');
@@ -576,7 +576,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalNamed default x @3
+            optionalNamed default hasImplicitType x @3
               reference: <testLibraryFragment>::@function::f::@parameter::x
               type: dynamic
           returnType: dynamic
@@ -599,7 +599,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        optionalNamed x
+        optionalNamed hasImplicitType x
           firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: dynamic
       returnType: dynamic
@@ -620,7 +620,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default x @3
+            optionalPositional default hasImplicitType x @3
               type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -641,7 +641,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        optionalPositional x
+        optionalPositional hasImplicitType x
           type: dynamic
       returnType: dynamic
 ''');
@@ -661,7 +661,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional x @2
+            requiredPositional hasImplicitType x @2
               type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -682,7 +682,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional x
+        requiredPositional hasImplicitType x
           type: dynamic
       returnType: dynamic
 ''');
@@ -705,9 +705,9 @@ library
             requiredPositional g @2
               type: dynamic Function(dynamic, dynamic)
               parameters
-                requiredPositional x @4
+                requiredPositional hasImplicitType x @4
                   type: dynamic
-                requiredPositional y @7
+                requiredPositional hasImplicitType y @7
                   type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -731,9 +731,9 @@ library
         requiredPositional g
           type: dynamic Function(dynamic, dynamic)
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
-            requiredPositional y
+            requiredPositional hasImplicitType y
               type: dynamic
       returnType: dynamic
 ''');
@@ -970,9 +970,9 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional x @2
+            requiredPositional hasImplicitType x @2
               type: dynamic
-            requiredPositional y @5
+            requiredPositional hasImplicitType y @5
               type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -995,9 +995,9 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional x
+        requiredPositional hasImplicitType x
           type: dynamic
-        requiredPositional y
+        requiredPositional hasImplicitType y
           type: dynamic
       returnType: dynamic
 ''');
@@ -1240,8 +1240,7 @@ library
   test_function_typed_parameter_implicit() async {
     var library = await buildLibrary('f(g()) => null;');
     expect(
-        library
-            .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
+        library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
         isFalse);
   }
 

@@ -118,8 +118,8 @@ class DuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void checkUnit(CompilationUnitImpl node) {
     var fragment = node.declaredElement!;
-    Map<String, Element> definedGetters = HashMap<String, Element>();
-    Map<String, Element> definedSetters = HashMap<String, Element>();
+    var definedGetters = <String, Element>{};
+    var definedSetters = <String, Element>{};
 
     void addWithoutChecking(CompilationUnitElement element) {
       for (PropertyAccessorElement accessor in element.accessors) {
@@ -231,9 +231,10 @@ class DuplicateDefinitionVerifier {
     if (element is PropertyInducingElement) {
       _checkDuplicateIdentifier(getterScope, identifier,
           element: element.getter!, setterScope: setterScope);
-      if (!element.isConst && !element.isFinal) {
+      var setter = element.setter;
+      if (setter != null && setter.isSynthetic) {
         _checkDuplicateIdentifier(getterScope, identifier,
-            element: element.setter!, setterScope: setterScope);
+            element: setter, setterScope: setterScope);
       }
       return;
     }
@@ -522,17 +523,18 @@ class MemberDuplicateDefinitionVerifier {
     if (element is PropertyInducingElement) {
       _checkDuplicateIdentifier(getterScope, identifier,
           element: element.getter!, setterScope: setterScope);
-      if (!element.isConst && !element.isFinal) {
+      var setter = element.setter;
+      if (setter != null && setter.isSynthetic) {
         _checkDuplicateIdentifier(getterScope, identifier,
-            element: element.setter!, setterScope: setterScope);
+            element: setter, setterScope: setterScope);
       }
       return;
     }
 
-    var name = identifier.lexeme;
-    if (element is MethodElement) {
-      name = element.name;
-    }
+    var name = switch (element) {
+      MethodElement() => element.name,
+      _ => identifier.lexeme,
+    };
 
     var previous = getterScope[name];
     if (previous != null) {

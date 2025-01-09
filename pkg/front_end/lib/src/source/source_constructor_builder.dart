@@ -114,9 +114,6 @@ abstract class AbstractSourceConstructorBuilder
   bool get isConstructor => true;
 
   @override
-  ProcedureKind? get kind => null;
-
-  @override
   Statement? get body {
     if (bodyInternal == null && !isExternal) {
       bodyInternal = new EmptyStatement();
@@ -365,7 +362,8 @@ abstract class AbstractSourceConstructorBuilder
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInConstructorBuilder(this, formals, typeEnvironment);
+    library.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: isAbstract, isExternal: isExternal);
   }
 
   @override
@@ -377,6 +375,27 @@ abstract class AbstractSourceConstructorBuilder
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRegularMethod => false;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isOperator => false;
+
+  @override
+  bool get isFactory => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 }
 
 class DeclaredSourceConstructorBuilder
@@ -487,10 +506,23 @@ class DeclaredSourceConstructorBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? _constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => constructor.reference;
 
   @override
   FunctionNode get function => _constructor.function;
@@ -893,9 +925,8 @@ class DeclaredSourceConstructorBuilder
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     InterfaceType type = new InterfaceType(
         enclosingClass, Nullability.nonNullable, typeParameterTypes);
@@ -930,13 +961,19 @@ class DeclaredSourceConstructorBuilder
   @override
   void applyAugmentation(Builder augmentation) {
     if (augmentation is DeclaredSourceConstructorBuilder) {
-      if (checkAugmentation(augmentation)) {
+      if (checkAugmentation(
+          augmentationLibraryBuilder: augmentation.libraryBuilder,
+          origin: this,
+          augmentation: augmentation)) {
         augmentation.actualOrigin = this;
         (_augmentations ??= []).add(augmentation);
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(augmentation);
+      reportAugmentationMismatch(
+          originLibraryBuilder: libraryBuilder,
+          origin: this,
+          augmentation: augmentation);
     }
   }
 
@@ -1090,10 +1127,6 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isAbstract => false;
 
   @override
@@ -1107,6 +1140,30 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRegularMethod => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isGetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isOperator => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFactory => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1130,10 +1187,23 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? _constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Constructor get invokeTarget => _constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => _constructor.reference;
 
   @override
   bool get isConst => _constructor.isConst;
@@ -1296,9 +1366,6 @@ class SourceExtensionTypeConstructorBuilder
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
-  SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
-      parent as SourceExtensionTypeDeclarationBuilder;
-
   @override
   Member get readTarget =>
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
@@ -1306,10 +1373,23 @@ class SourceExtensionTypeConstructorBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? _constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => _constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => _constructor.reference;
 
   @override
   FunctionNode get function => _constructor.function;
@@ -1346,7 +1426,7 @@ class SourceExtensionTypeConstructorBuilder
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
       LookupScope typeParameterScope =
-          computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
+          computeTypeParameterScope(declarationBuilder.scope);
       _buildConstructorForOutline(beginInitializers, typeParameterScope);
       _buildBody();
     }
@@ -1405,13 +1485,12 @@ class SourceExtensionTypeConstructorBuilder
     // function is its enclosing class.
     super.buildFunction();
     ExtensionTypeDeclaration extensionTypeDeclaration =
-        extensionTypeDeclarationBuilder.extensionTypeDeclaration;
+        declarationBuilder.extensionTypeDeclaration;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {
       TypeParameter typeParameter = function.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     ExtensionType type = new ExtensionType(
         extensionTypeDeclaration, Nullability.nonNullable, typeParameterTypes);
@@ -1494,17 +1573,14 @@ class SourceExtensionTypeConstructorBuilder
 
   Substitution get _substitution {
     if (typeParameters != null) {
-      assert(extensionTypeDeclarationBuilder.typeParameters!.length ==
-          typeParameters?.length);
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters?.length);
       _substitutionCache = Substitution.fromPairs(
-          extensionTypeDeclarationBuilder
-              .extensionTypeDeclaration.typeParameters,
+          declarationBuilder.extensionTypeDeclaration.typeParameters,
           new List<DartType>.generate(
-              extensionTypeDeclarationBuilder.typeParameters!.length,
-              (int index) =>
-                  new TypeParameterType.withDefaultNullabilityForLibrary(
-                      function.typeParameters[index],
-                      libraryBuilder.origin.library)));
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
     } else {
       _substitutionCache = Substitution.empty;
     }

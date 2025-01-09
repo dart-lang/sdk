@@ -33,7 +33,9 @@ class StackDeobfuscationResult {
 /// Parse [stackTrace] and deobfuscate it using source-map data available from
 /// [provider].
 StackDeobfuscationResult deobfuscateStack(
-    String stackTrace, FileProvider provider) {
+  String stackTrace,
+  FileProvider provider,
+) {
   var trace = Trace.parse(stackTrace.trim());
   var deobfuscatedFrames = <Frame>[];
   var frameMap = <Frame, List<Frame>>{};
@@ -53,8 +55,11 @@ StackDeobfuscationResult deobfuscateStack(
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.
-    SourceSpan? span = mapping.sourceMap
-        .spanFor(frameLine - 1, column - 1, uri: frame.uri.toString());
+    SourceSpan? span = mapping.sourceMap.spanFor(
+      frameLine - 1,
+      column - 1,
+      uri: frame.uri.toString(),
+    );
 
     // If we can't find a source span, ignore the frame. It's probably something
     // internal that the user doesn't care about.
@@ -86,8 +91,14 @@ StackDeobfuscationResult deobfuscateStack(
         if (frame.isEmpty) break outer;
         if (frame.isPush) {
           if (depth <= 0) {
-            mappedFrames.add(Frame(fileName!, targetLine, targetColumn,
-                "${_normalizeName(frame.inlinedMethodName)}(inlined)"));
+            mappedFrames.add(
+              Frame(
+                fileName!,
+                targetLine,
+                targetColumn,
+                "${_normalizeName(frame.inlinedMethodName)}(inlined)",
+              ),
+            );
             fileName = Uri.parse(frame.callUri!);
             targetLine = (frame.callLine ?? 0) + 1;
             targetColumn = (frame.callColumn ?? 0) + 1;

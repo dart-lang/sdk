@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_type_declared_instance_field_04.dart:10:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   int foo = 42;
+//       ^^^
+//
+// pkg/front_end/testcases/regress/extension_type_declared_instance_field_04.dart:10:7: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int foo = 42;
+//       ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type foo(core::int _x) {
+  abstract extension-type-member representation-field get _x() → core::int;
+  method bar = self::foo|bar;
+  method tearoff bar = self::foo|get#bar;
+  get foo = self::foo|get#foo;
+  set foo = self::foo|set#foo;
+  constructor _ = self::foo|constructor#_;
+  constructor tearoff _ = self::foo|constructor#_#_#tearOff;
+}
+static extension-type-member method foo|constructor#_(core::int _x) → self::foo% /* erasure=core::int, declared=! */ {
+  lowered final self::foo% /* erasure=core::int, declared=! */ #this = _x;
+  return #this;
+}
+static extension-type-member method foo|constructor#_#_#tearOff(core::int _x) → self::foo% /* erasure=core::int, declared=! */
+  return self::foo|constructor#_(_x);
+static extension-type-member method foo|bar(lowered final self::foo% /* erasure=core::int, declared=! */ #this) → void {
+  self::foo|set#foo(#this, self::foo|get#foo(#this).{core::num::+}(1){(core::num) → core::int});
+}
+static extension-type-member method foo|get#bar(lowered final self::foo% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::foo|bar(#this);
+static abstract extension-type-member method foo|get#foo(lowered core::int #this) → core::int;
+static abstract extension-type-member method foo|set#foo(lowered core::int #this, synthesized core::int #externalFieldValue) → void;

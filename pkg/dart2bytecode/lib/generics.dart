@@ -24,8 +24,7 @@ List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
   }
   final types = List<DartType>.generate(typeParameters.length, (int i) {
     final tp = typeParameters[i];
-    return TypeParameterType(
-        tp, TypeParameterType.computeNullabilityFromBound(tp));
+    return TypeParameterType.withDefaultNullability(tp);
   });
   return types;
 }
@@ -37,8 +36,7 @@ bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
     final typeParam = typeParameters[i];
     if (!(superTypeArg is TypeParameterType &&
         superTypeArg.parameter == typeParameters[i] &&
-        superTypeArg.nullability ==
-            TypeParameterType.computeNullabilityFromBound(typeParam))) {
+        superTypeArg.nullability == typeParam.computeNullabilityFromBound())) {
       return false;
     }
   }

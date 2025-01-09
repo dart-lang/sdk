@@ -10,7 +10,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -63,7 +63,7 @@ class ImplementationHandler
     OperationPerformanceImpl performance,
   ) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
-    var element = server.getElementOfNode(node);
+    var element = server.getElementOfNode2(node);
     if (element == null) {
       return success([]);
     }
@@ -75,7 +75,7 @@ class ImplementationHandler
     }
     var needsMember = helper.findMemberElement(interfaceElement) != null;
 
-    var allSubtypes = <InterfaceElement>{};
+    var allSubtypes = <InterfaceElement2>{};
     await performance.runAsync(
       'appendAllSubtypes',
       (performance) => server.searchEngine.appendAllSubtypes(
@@ -94,23 +94,32 @@ class ImplementationHandler
                     // Filter based on type, so when searching for members we don't
                     // include any intermediate classes that don't have
                     // implementations for the method.
-                    ? helper.findMemberElement(element)?.nonSynthetic
+                    ? helper.findMemberElement(element)?.nonSynthetic2
                     : element;
               })
               .nonNulls
               .toSet()
               .map((element) {
-                var unitElement =
-                    element.thisOrAncestorOfType<CompilationUnitElement>();
-                if (unitElement == null) {
+                var firstFragment = element.firstFragment;
+                var libraryFragment = firstFragment.libraryFragment;
+                if (libraryFragment == null) {
                   return null;
                 }
+
+                var nameOffset = firstFragment.nameOffset2;
+                var name = firstFragment.name2;
+                if (nameOffset == null || name == null) {
+                  return null;
+                }
+
                 return Location(
-                  uri: uriConverter.toClientUri(unitElement.source.fullName),
+                  uri: uriConverter.toClientUri(
+                    libraryFragment.source.fullName,
+                  ),
                   range: toRange(
-                    unitElement.lineInfo,
-                    element.nameOffset,
-                    element.nameLength,
+                    libraryFragment.lineInfo,
+                    nameOffset,
+                    name.length,
                   ),
                 );
               })

@@ -62,6 +62,16 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'ElementLocatorTest',
+      methodName: '_assertElement',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'ElementLocatorTest2',
+      methodName: '_assertElement',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'FileResolutionTest',
       methodName: 'assertStateString',
       argument: _ArgumentIndex(0),
@@ -134,6 +144,16 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'SearchTest',
       methodName: 'assertElementReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
+      methodName: 'assertLibraryFragmentReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
+      methodName: 'assertLibraryImportReferencesText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

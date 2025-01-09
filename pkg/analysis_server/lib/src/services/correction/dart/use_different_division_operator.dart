@@ -7,7 +7,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -20,39 +20,39 @@ class UseDifferentDivisionOperator extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    var exp = node;
-    if (exp case BinaryExpression _) {
-      return switch (exp.operator.type) {
-        TokenType.SLASH => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
-          ),
-        ],
-        TokenType.TILDE_SLASH => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_DIVISION,
-          ),
-        ],
-        _ => const [],
-      };
-    } else if (exp case AssignmentExpression _) {
-      return switch (exp.operator.type) {
-        TokenType.SLASH_EQ => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
-          ),
-        ],
-        TokenType.TILDE_SLASH_EQ => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_DIVISION,
-          ),
-        ],
-        _ => const [],
-      };
+    switch (node) {
+      case BinaryExpression node:
+        return switch (node.operator.type) {
+          TokenType.SLASH => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+            ),
+          ],
+          TokenType.TILDE_SLASH => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_DIVISION,
+            ),
+          ],
+          _ => const [],
+        };
+      case AssignmentExpression node:
+        return switch (node.operator.type) {
+          TokenType.SLASH_EQ => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+            ),
+          ],
+          TokenType.TILDE_SLASH_EQ => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_DIVISION,
+            ),
+          ],
+          _ => const [],
+        };
     }
     return const [];
   }
@@ -75,17 +75,17 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var exp = node;
     DartType? leftType;
     Token operator;
-    if (exp case BinaryExpression _) {
-      leftType = exp.leftOperand.staticType;
-      operator = exp.operator;
-    } else if (exp case AssignmentExpression _) {
-      leftType = exp.writeType;
-      operator = exp.operator;
-    } else {
-      return;
+    switch (node) {
+      case BinaryExpression node:
+        leftType = node.leftOperand.staticType;
+        operator = node.operator;
+      case AssignmentExpression node:
+        leftType = node.writeType;
+        operator = node.operator;
+      default:
+        return;
     }
     if (leftType == null) {
       return;
@@ -103,13 +103,16 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     }
     // All extensions available in the current scope for the left operand that
     // define the other division operator.
-    var name = Name(unitResult.libraryElement.source.uri, otherOperator.lexeme);
+    var name = Name.forLibrary(
+      unitResult.libraryElement2,
+      otherOperator.lexeme,
+    );
     var hasNoExtensionWithOtherDivisionOperator =
         await librariesWithExtensions(otherOperator.lexeme).where((library) {
           return library.exportedExtensions
               .havingMemberWithBaseName(name)
               .applicableTo(
-                targetLibrary: libraryElement,
+                targetLibrary: libraryElement2,
                 targetType: leftType!,
               )
               .isNotEmpty;
@@ -128,23 +131,20 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
-    // See operators defined for this type element.
-    if (element case InterfaceElement interfaceElement) {
-      return {
-        for (var method in interfaceElement.methods)
-          // No need to test for eq operators, as they are not explicitly defined.
-          if (method.name == TokenType.SLASH.lexeme)
-            _DivisionOperator.division
-          else if (method.name == TokenType.TILDE_SLASH.lexeme)
-            _DivisionOperator.effectiveIntegerDivision,
-        ...interfaceElement.allSupertypes.expand(
-          (type) => type.divisionOperators,
-        ),
-      };
-    } else if (element case TypeParameterElement typeParameterElement) {
-      return typeParameterElement.bound?.divisionOperators ?? const {};
+    switch (element3) {
+      case InterfaceElement2 element:
+        return {
+          for (var method in element.methods2)
+            // No need to test for eq operators, as they are not explicitly defined.
+            if (method.name3 == TokenType.SLASH.lexeme)
+              _DivisionOperator.division
+            else if (method.name3 == TokenType.TILDE_SLASH.lexeme)
+              _DivisionOperator.effectiveIntegerDivision,
+          ...element.allSupertypes.expand((type) => type.divisionOperators),
+        };
+      case TypeParameterElement2 element:
+        return element.bound?.divisionOperators ?? const {};
     }
-
     return const {};
   }
 }

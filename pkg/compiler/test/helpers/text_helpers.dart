@@ -5,9 +5,12 @@
 /// Compares [text1] and [text2] line-by-line. If a mismatch is found, a diff
 /// of the [windowSize] lines before and after are printed and the mismatch line
 /// number is returned. If identical, nothing is printed and `null` is returned.
-int? checkEqualContentAndShowDiff(String text1, String text2,
-    {int windowSize = 20,
-    bool Function(int, List<String>, List<String>)? filter}) {
+int? checkEqualContentAndShowDiff(
+  String text1,
+  String text2, {
+  int windowSize = 20,
+  bool Function(int, List<String>, List<String>)? filter,
+}) {
   List<String> lines1 = text1.split('\n');
   List<String> lines2 = text2.split('\n');
   for (int i = 0; i < lines1.length && i < lines2.length; i++) {

@@ -27,8 +27,8 @@ import '../js_interop.dart'
 /// member, we utilize closures that contain a lot of that information already.
 /// We compute one [_InvocationBuilder] per node, and reuse as needed for
 /// multiple invocations of the same static interop member.
-typedef _InvocationBuilder = Expression Function(
-    Arguments arguments, Expression invocation);
+typedef _InvocationBuilder =
+    Expression Function(Arguments arguments, Expression invocation);
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -71,76 +71,130 @@ class JsUtilOptimizer extends Transformer {
     'getProperty',
     'jsify',
     'newObject',
-    'setProperty'
+    'setProperty',
   ];
 
   JsUtilOptimizer(
-      this._coreTypes, ClassHierarchy hierarchy, this._extensionIndex,
-      {required bool isDart2JS})
-      : _callMethodTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
-        _callMethodTrustTypeTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_callMethodTrustType'),
-        _callMethodUncheckedTargets = List<Procedure>.generate(
-            5,
-            (i) => _coreTypes.index.getTopLevelProcedure(
-                'dart:js_util', '_callMethodUnchecked$i')),
-        _callMethodUncheckedTrustTypeTargets = List<Procedure>.generate(
-            5,
-            (i) => _coreTypes.index.getTopLevelProcedure(
-                'dart:js_util', '_callMethodUncheckedTrustType$i')),
-        _callConstructorTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'callConstructor'),
-        _callConstructorUncheckedTargets = List<Procedure>.generate(
-            5,
-            (i) => _coreTypes.index.getTopLevelProcedure(
-                'dart:js_util', '_callConstructorUnchecked$i')),
-        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
-        _functionToJSCaptureThisTarget = _coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop',
-            'FunctionToJSExportedDartFunction|get#toJSCaptureThis'),
-        _functionToJSTargets = List<Procedure>.generate(
-            6,
-            (i) => _coreTypes.index
-                .getTopLevelProcedure('dart:js_util', '_functionToJS$i')),
-        _functionToJSCaptureThisTargets = isDart2JS
-            ? List<Procedure>.generate(
-                5,
-                (i) => _coreTypes.index.getTopLevelProcedure(
-                    'dart:js_util', '_functionToJSCaptureThis$i'))
-            : null,
-        _functionToJSNTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_functionToJSN'),
-        _functionToJSCaptureThisNTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_functionToJSCaptureThisN'),
-        _getPropertyTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'getProperty'),
-        _getPropertyTrustTypeTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
-        _globalContextTarget = _coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'get:staticInteropGlobalContext'),
-        _jsExportedDartFunctionToDartTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_interop',
-                'JSExportedDartFunctionToFunction|get#toDart'),
-        _jsFunctionToDart = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_jsFunctionToDart'),
-        _objectType = hierarchy.coreTypes.objectNonNullableRawType,
-        _setPropertyTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'setProperty'),
-        _setPropertyUncheckedTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
-        _jsTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
-        _allowInteropTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
-        _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
-            (member) =>
-                _coreTypes.index.getTopLevelProcedure('dart:js_util', member)),
-        _listEmptyFactory =
-            _coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
-        _staticTypeContext = StatefulStaticTypeContext.stacked(
-            TypeEnvironment(_coreTypes, hierarchy));
+    this._coreTypes,
+    ClassHierarchy hierarchy,
+    this._extensionIndex, {
+    required bool isDart2JS,
+  }) : _callMethodTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         'callMethod',
+       ),
+       _callMethodTrustTypeTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_callMethodTrustType',
+       ),
+       _callMethodUncheckedTargets = List<Procedure>.generate(
+         5,
+         (i) => _coreTypes.index.getTopLevelProcedure(
+           'dart:js_util',
+           '_callMethodUnchecked$i',
+         ),
+       ),
+       _callMethodUncheckedTrustTypeTargets = List<Procedure>.generate(
+         5,
+         (i) => _coreTypes.index.getTopLevelProcedure(
+           'dart:js_util',
+           '_callMethodUncheckedTrustType$i',
+         ),
+       ),
+       _callConstructorTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         'callConstructor',
+       ),
+       _callConstructorUncheckedTargets = List<Procedure>.generate(
+         5,
+         (i) => _coreTypes.index.getTopLevelProcedure(
+           'dart:js_util',
+           '_callConstructorUnchecked$i',
+         ),
+       ),
+       _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_interop',
+         'FunctionToJSExportedDartFunction|get#toJS',
+       ),
+       _functionToJSCaptureThisTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_interop',
+         'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
+       ),
+       _functionToJSTargets = List<Procedure>.generate(
+         6,
+         (i) => _coreTypes.index.getTopLevelProcedure(
+           'dart:js_util',
+           '_functionToJS$i',
+         ),
+       ),
+       _functionToJSCaptureThisTargets =
+           isDart2JS
+               ? List<Procedure>.generate(
+                 5,
+                 (i) => _coreTypes.index.getTopLevelProcedure(
+                   'dart:js_util',
+                   '_functionToJSCaptureThis$i',
+                 ),
+               )
+               : null,
+       _functionToJSNTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_functionToJSN',
+       ),
+       _functionToJSCaptureThisNTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_functionToJSCaptureThisN',
+       ),
+       _getPropertyTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         'getProperty',
+       ),
+       _getPropertyTrustTypeTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_getPropertyTrustType',
+       ),
+       _globalContextTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:_js_helper',
+         'get:staticInteropGlobalContext',
+       ),
+       _jsExportedDartFunctionToDartTarget = _coreTypes.index
+           .getTopLevelProcedure(
+             'dart:js_interop',
+             'JSExportedDartFunctionToFunction|get#toDart',
+           ),
+       _jsFunctionToDart = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_jsFunctionToDart',
+       ),
+       _objectType = hierarchy.coreTypes.objectNonNullableRawType,
+       _setPropertyTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         'setProperty',
+       ),
+       _setPropertyUncheckedTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         '_setPropertyUnchecked',
+       ),
+       _jsTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:_foreign_helper',
+         'JS',
+       ),
+       _allowInteropTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_util',
+         'allowInterop',
+       ),
+       _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
+         (member) =>
+             _coreTypes.index.getTopLevelProcedure('dart:js_util', member),
+       ),
+       _listEmptyFactory = _coreTypes.index.getProcedure(
+         'dart:core',
+         'List',
+         'empty',
+       ),
+       _staticTypeContext = StatefulStaticTypeContext.stacked(
+         TypeEnvironment(_coreTypes, hierarchy),
+       );
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -183,21 +237,32 @@ class JsUtilOptimizer extends Transformer {
         var dottedPrefix = _getDottedPrefixForStaticallyResolvableMember(node);
         if (dottedPrefix != null) {
           var receiver = _getObjectOffGlobalContext(
-              node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
-          var shouldTrustType = node.enclosingClass != null &&
+            node,
+            dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'),
+          );
+          var shouldTrustType =
+              node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
           if (_extensionIndex.isGetter(node)) {
             return _getExternalGetterInvocationBuilder(
-                node, shouldTrustType, receiver);
+              node,
+              shouldTrustType,
+              receiver,
+            );
           } else if (_extensionIndex.isSetter(node)) {
             return _getExternalSetterInvocationBuilder(node, receiver);
           } else if (_extensionIndex.isMethod(node)) {
             return _getExternalMethodInvocationBuilder(
-                node, shouldTrustType, receiver);
+              node,
+              shouldTrustType,
+              receiver,
+            );
           } else if (_extensionIndex.isNonLiteralConstructor(node)) {
             // Get the constructor object using the class name.
-            return _getExternalConstructorInvocationBuilder(node,
-                _getObjectOffGlobalContext(node, dottedPrefix.split('.')));
+            return _getExternalConstructorInvocationBuilder(
+              node,
+              _getObjectOffGlobalContext(node, dottedPrefix.split('.')),
+            );
           }
         }
       }
@@ -230,7 +295,9 @@ class JsUtilOptimizer extends Transformer {
         var lastDotIndex = jsName.lastIndexOf('.');
         if (lastDotIndex != -1) {
           dottedPrefix = concatenateJSNames(
-              dottedPrefix, jsName.substring(0, lastDotIndex));
+            dottedPrefix,
+            jsName.substring(0, lastDotIndex),
+          );
         }
       }
     } else {
@@ -256,9 +323,10 @@ class JsUtilOptimizer extends Transformer {
       // dotted prefix.
       var className = getJSName(enclosingClass);
       if (className.isEmpty) {
-        className = enclosingClass is Class
-            ? enclosingClass.name
-            : (enclosingClass as ExtensionTypeDeclaration).name;
+        className =
+            enclosingClass is Class
+                ? enclosingClass.name
+                : (enclosingClass as ExtensionTypeDeclaration).name;
       }
       dottedPrefix = concatenateJSNames(dottedPrefix, className);
     }
@@ -281,13 +349,18 @@ class JsUtilOptimizer extends Transformer {
   ///
   /// Returns an expression that contains the nested property gets.
   Expression _getObjectOffGlobalContext(
-      Procedure node, List<String> selectors) {
+    Procedure node,
+    List<String> selectors,
+  ) {
     Expression currentTarget = StaticGet(_globalContextTarget);
     for (String selector in selectors) {
       currentTarget = StaticInvocation(
-          _getPropertyTrustTypeTarget,
-          Arguments([currentTarget, StringLiteral(selector)],
-              types: [_objectType]));
+        _getPropertyTrustTypeTarget,
+        Arguments(
+          [currentTarget, StringLiteral(selector)],
+          types: [_objectType],
+        ),
+      );
     }
     return currentTarget;
   }
@@ -302,12 +375,15 @@ class JsUtilOptimizer extends Transformer {
   /// that instead of the first positional argument as the receiver for
   /// `js_util.getProperty`.
   _InvocationBuilder _getExternalGetterInvocationBuilder(
-      Procedure node, bool shouldTrustType,
-      [Expression? maybeReceiver]) {
+    Procedure node,
+    bool shouldTrustType, [
+    Expression? maybeReceiver,
+  ]) {
     final target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-    final isInstanceInteropMember =
-        _extensionIndex.isInstanceInteropMember(node);
+    final isInstanceInteropMember = _extensionIndex.isInstanceInteropMember(
+      node,
+    );
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
@@ -315,14 +391,18 @@ class JsUtilOptimizer extends Transformer {
       final positionalArgs = arguments.positional;
       assert(positionalArgs.length == (isInstanceInteropMember ? 1 : 0));
       // We clone the receiver as each invocation needs a fresh node.
-      final receiver = maybeReceiver == null
-          ? positionalArgs.first
-          : _cloner.clone(maybeReceiver);
+      final receiver =
+          maybeReceiver == null
+              ? positionalArgs.first
+              : _cloner.clone(maybeReceiver);
       final property = StringLiteral(name);
       return StaticInvocation(
           target,
-          Arguments([receiver, property],
-              types: [invocation.getStaticType(_staticTypeContext)]))
+          Arguments(
+            [receiver, property],
+            types: [invocation.getStaticType(_staticTypeContext)],
+          ),
+        )
         ..fileOffset = invocation.fileOffset
         ..parent = invocation.parent;
     };
@@ -335,27 +415,36 @@ class JsUtilOptimizer extends Transformer {
   /// version of `js_util.setProperty` for the given external setter. If
   /// [maybeReceiver] is non-null, the builder uses that instead of the first
   /// positional argument as the receiver for `js_util.setProperty`.
-  _InvocationBuilder _getExternalSetterInvocationBuilder(Procedure node,
-      [Expression? maybeReceiver]) {
-    final isInstanceInteropMember =
-        _extensionIndex.isInstanceInteropMember(node);
+  _InvocationBuilder _getExternalSetterInvocationBuilder(
+    Procedure node, [
+    Expression? maybeReceiver,
+  ]) {
+    final isInstanceInteropMember = _extensionIndex.isInstanceInteropMember(
+      node,
+    );
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
       // members.
       final positionalArgs = arguments.positional;
       assert(positionalArgs.length == (isInstanceInteropMember ? 2 : 1));
-      final receiver = maybeReceiver == null
-          ? positionalArgs.first
-          : _cloner.clone(maybeReceiver);
+      final receiver =
+          maybeReceiver == null
+              ? positionalArgs.first
+              : _cloner.clone(maybeReceiver);
       final property = StringLiteral(name);
       final value = positionalArgs.last;
-      return _lowerSetProperty(StaticInvocation(
-          _setPropertyTarget,
-          Arguments([receiver, property, value],
-              types: [value.getStaticType(_staticTypeContext)]))
-        ..fileOffset = invocation.fileOffset
-        ..parent = invocation.parent);
+      return _lowerSetProperty(
+        StaticInvocation(
+            _setPropertyTarget,
+            Arguments(
+              [receiver, property, value],
+              types: [value.getStaticType(_staticTypeContext)],
+            ),
+          )
+          ..fileOffset = invocation.fileOffset
+          ..parent = invocation.parent,
+      );
     };
   }
 
@@ -369,35 +458,40 @@ class JsUtilOptimizer extends Transformer {
   /// that instead of the first positional argument as the receiver for
   /// `js_util.callMethod`.
   _InvocationBuilder _getExternalMethodInvocationBuilder(
-      Procedure node, bool shouldTrustType,
-      [Expression? maybeReceiver]) {
+    Procedure node,
+    bool shouldTrustType, [
+    Expression? maybeReceiver,
+  ]) {
     final target =
         shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
-    final isInstanceInteropMember =
-        _extensionIndex.isInstanceInteropMember(node);
+    final isInstanceInteropMember = _extensionIndex.isInstanceInteropMember(
+      node,
+    );
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       var positional = arguments.positional;
-      final receiver = maybeReceiver == null
-          ? positional.first
-          : _cloner.clone(maybeReceiver);
+      final receiver =
+          maybeReceiver == null
+              ? positional.first
+              : _cloner.clone(maybeReceiver);
       if (isInstanceInteropMember) {
         // Ignore `this` for extension and extension type members.
         positional = positional.sublist(1);
       }
-      final callMethodInvocation = StaticInvocation(
-          target,
-          Arguments([
-            receiver,
-            StringLiteral(name),
-            ListLiteral(positional),
-          ], types: [
-            invocation.getStaticType(_staticTypeContext)
-          ]))
-        ..fileOffset = invocation.fileOffset
-        ..parent = invocation.parent;
-      return _lowerCallMethod(callMethodInvocation,
-          shouldTrustType: shouldTrustType);
+      final callMethodInvocation =
+          StaticInvocation(
+              target,
+              Arguments(
+                [receiver, StringLiteral(name), ListLiteral(positional)],
+                types: [invocation.getStaticType(_staticTypeContext)],
+              ),
+            )
+            ..fileOffset = invocation.fileOffset
+            ..parent = invocation.parent;
+      return _lowerCallMethod(
+        callMethodInvocation,
+        shouldTrustType: shouldTrustType,
+      );
     };
   }
 
@@ -405,10 +499,12 @@ class JsUtilOptimizer extends Transformer {
   ///
   /// This function only supports '[]' and '[]=' for now.
   _InvocationBuilder? _getExternalOperatorInvocationBuilder(
-      Procedure node, bool shouldTrustType) {
+    Procedure node,
+    bool shouldTrustType,
+  ) {
     final operator =
         _extensionIndex.getExtensionTypeDescriptor(node)?.name.text ??
-            _extensionIndex.getExtensionDescriptor(node)?.name.text;
+        _extensionIndex.getExtensionDescriptor(node)?.name.text;
 
     // TODO(srujzs): Support more operators for overloading using some
     // combination of Dart-defineable operators and @JS renaming for the ones
@@ -426,16 +522,21 @@ class JsUtilOptimizer extends Transformer {
         break;
       default:
         throw UnimplementedError(
-            'External operator $operator is unsupported for static interop. ');
+          'External operator $operator is unsupported for static interop. ',
+        );
     }
 
     return (Arguments arguments, Expression invocation) {
-      final replacement = StaticInvocation(
-          target,
-          Arguments(arguments.positional,
-              types: [invocation.getStaticType(_staticTypeContext)]))
-        ..fileOffset = invocation.fileOffset
-        ..parent = invocation.parent;
+      final replacement =
+          StaticInvocation(
+              target,
+              Arguments(
+                arguments.positional,
+                types: [invocation.getStaticType(_staticTypeContext)],
+              ),
+            )
+            ..fileOffset = invocation.fileOffset
+            ..parent = invocation.parent;
       return invocationOptimizer != null
           ? invocationOptimizer(replacement)
           : replacement;
@@ -449,17 +550,22 @@ class JsUtilOptimizer extends Transformer {
   /// version of `js_util.callConstructor` using the given [constructor] and the
   /// [Arguments] of the [Expression] that calls [node].
   _InvocationBuilder _getExternalConstructorInvocationBuilder(
-      Procedure node, Expression constructor) {
+    Procedure node,
+    Expression constructor,
+  ) {
     final function = node.function;
     assert(function.namedParameters.isEmpty);
     return (Arguments arguments, Expression invocation) {
-      final callConstructorInvocation = StaticInvocation(
-          _callConstructorTarget,
-          Arguments(
-              [_cloner.clone(constructor), ListLiteral(arguments.positional)],
-              types: [invocation.getStaticType(_staticTypeContext)]))
-        ..fileOffset = invocation.fileOffset
-        ..parent = invocation.parent;
+      final callConstructorInvocation =
+          StaticInvocation(
+              _callConstructorTarget,
+              Arguments(
+                [_cloner.clone(constructor), ListLiteral(arguments.positional)],
+                types: [invocation.getStaticType(_staticTypeContext)],
+              ),
+            )
+            ..fileOffset = invocation.fileOffset
+            ..parent = invocation.parent;
       return _lowerCallConstructor(callConstructorInvocation);
     };
   }
@@ -519,7 +625,9 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerJSExportedDartFunctionToDart(node);
     } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
-          target, () => _getExternalInvocationBuilder(target));
+        target,
+        () => _getExternalInvocationBuilder(target),
+      );
       if (builder != null) invocation = builder(node.arguments, node);
     }
     invocation.transformChildren(this);
@@ -534,7 +642,9 @@ class JsUtilOptimizer extends Transformer {
       // Reference to a static interop getter declared as static. Note that we
       // provide no arguments as static getters do not have a 'this'.
       final builder = _externalInvocationBuilders.putIfAbsent(
-          target, () => _getExternalInvocationBuilder(target));
+        target,
+        () => _getExternalInvocationBuilder(target),
+      );
       if (builder != null) invocation = builder(Arguments([]), node);
     }
     invocation.transformChildren(this);
@@ -549,7 +659,9 @@ class JsUtilOptimizer extends Transformer {
       // Reference to a static interop setter declared as static. Note that we
       // provide only the value as static setters do not have a 'this'.
       final builder = _externalInvocationBuilders.putIfAbsent(
-          target, () => _getExternalInvocationBuilder(target));
+        target,
+        () => _getExternalInvocationBuilder(target),
+      );
       if (builder != null) invocation = builder(Arguments([node.value]), node);
     }
     invocation.transformChildren(this);
@@ -580,17 +692,23 @@ class JsUtilOptimizer extends Transformer {
   /// Calls will be lowered when using a List literal or constant list with 0-4
   /// elements for the `callMethod` arguments, or the `List.empty()` factory.
   /// Removing the checks allows further inlining by the compilers.
-  StaticInvocation _lowerCallMethod(StaticInvocation node,
-      {required bool shouldTrustType}) {
+  StaticInvocation _lowerCallMethod(
+    StaticInvocation node, {
+    required bool shouldTrustType,
+  }) {
     Arguments arguments = node.arguments;
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
-    List<Procedure> targets = shouldTrustType
-        ? _callMethodUncheckedTrustTypeTargets
-        : _callMethodUncheckedTargets;
+    List<Procedure> targets =
+        shouldTrustType
+            ? _callMethodUncheckedTrustTypeTargets
+            : _callMethodUncheckedTargets;
 
     return _lowerToCallUnchecked(
-        node, targets, arguments.positional.sublist(0, 2));
+      node,
+      targets,
+      arguments.positional.sublist(0, 2),
+    );
   }
 
   /// Lowers the given js_util `callConstructor` call to
@@ -605,8 +723,9 @@ class JsUtilOptimizer extends Transformer {
     assert(arguments.positional.length == 2);
     assert(arguments.named.isEmpty);
 
-    return _lowerToCallUnchecked(
-        node, _callConstructorUncheckedTargets, [arguments.positional.first]);
+    return _lowerToCallUnchecked(node, _callConstructorUncheckedTargets, [
+      arguments.positional.first,
+    ]);
   }
 
   /// Helper to lower the given [node] to the relevant unchecked target in the
@@ -617,21 +736,23 @@ class JsUtilOptimizer extends Transformer {
   /// arguments, or the `List.empty()` factory. Removing the checks allows further
   /// inlining by the compilers.
   StaticInvocation _lowerToCallUnchecked(
-      StaticInvocation node,
-      List<Procedure> callUncheckedTargets,
-      List<Expression> originalArguments) {
+    StaticInvocation node,
+    List<Procedure> callUncheckedTargets,
+    List<Expression> originalArguments,
+  ) {
     var argumentsList = node.arguments.positional.last;
     // Lower arguments in a List.empty factory call.
     if (argumentsList is StaticInvocation &&
         argumentsList.target == _listEmptyFactory) {
       return _createCallUncheckedNode(
-          callUncheckedTargets,
-          node.arguments.types,
-          [],
-          originalArguments,
-          node.fileOffset,
-          node.parent,
-          node.arguments.fileOffset);
+        callUncheckedTargets,
+        node.arguments.types,
+        [],
+        originalArguments,
+        node.fileOffset,
+        node.parent,
+        node.arguments.fileOffset,
+      );
     }
 
     // Lower arguments in other kinds of Lists.
@@ -649,10 +770,15 @@ class JsUtilOptimizer extends Transformer {
       if (argumentsListConstant.entries.length >= callUncheckedTargets.length) {
         return node;
       }
-      callUncheckedArguments = argumentsListConstant.entries
-          .map<Expression>((constant) => ConstantExpression(
-              constant, constant.getType(_staticTypeContext)))
-          .toList();
+      callUncheckedArguments =
+          argumentsListConstant.entries
+              .map<Expression>(
+                (constant) => ConstantExpression(
+                  constant,
+                  constant.getType(_staticTypeContext),
+                ),
+              )
+              .toList();
       entryType = argumentsListConstant.typeArgument;
     } else {
       // Skip lowering arguments in any other type of List.
@@ -669,32 +795,35 @@ class JsUtilOptimizer extends Transformer {
     }
 
     return _createCallUncheckedNode(
-        callUncheckedTargets,
-        node.arguments.types,
-        callUncheckedArguments,
-        originalArguments,
-        node.fileOffset,
-        node.parent,
-        node.arguments.fileOffset);
+      callUncheckedTargets,
+      node.arguments.types,
+      callUncheckedArguments,
+      originalArguments,
+      node.fileOffset,
+      node.parent,
+      node.arguments.fileOffset,
+    );
   }
 
   /// Creates a new StaticInvocation node for the relevant unchecked target
   /// with the given 0-4 arguments.
   StaticInvocation _createCallUncheckedNode(
-      List<Procedure> callUncheckedTargets,
-      List<DartType> callUncheckedTypes,
-      List<Expression> callUncheckedArguments,
-      List<Expression> originalArguments,
-      int nodeFileOffset,
-      TreeNode? nodeParent,
-      int argumentsFileOffset) {
+    List<Procedure> callUncheckedTargets,
+    List<DartType> callUncheckedTypes,
+    List<Expression> callUncheckedArguments,
+    List<Expression> originalArguments,
+    int nodeFileOffset,
+    TreeNode? nodeParent,
+    int argumentsFileOffset,
+  ) {
     assert(callUncheckedArguments.length <= 4);
     return StaticInvocation(
         callUncheckedTargets[callUncheckedArguments.length],
-        Arguments(
-          [...originalArguments, ...callUncheckedArguments],
-          types: callUncheckedTypes,
-        )..fileOffset = argumentsFileOffset)
+        Arguments([
+          ...originalArguments,
+          ...callUncheckedArguments,
+        ], types: callUncheckedTypes)..fileOffset = argumentsFileOffset,
+      )
       ..fileOffset = nodeFileOffset
       ..parent = nodeParent;
   }
@@ -710,8 +839,10 @@ class JsUtilOptimizer extends Transformer {
   /// There are specialized stubs up to a certain positional parameter length,
   /// and after that, either an invocation of `_functionToJSN` or
   /// `_functionToJSCaptureThisN` is returned.
-  StaticInvocation _lowerFunctionToJS(StaticInvocation node,
-      {bool captureThis = false}) {
+  StaticInvocation _lowerFunctionToJS(
+    StaticInvocation node, {
+    bool captureThis = false,
+  }) {
     // JS interop checks assert that the static type is available, and that
     // there are no named arguments or type arguments.
     final function = node.arguments.positional.single;
@@ -742,7 +873,9 @@ class JsUtilOptimizer extends Transformer {
       arguments = Arguments([function, IntLiteral(parametersLength)]);
     }
     return StaticInvocation(
-        target, arguments..fileOffset = node.arguments.fileOffset)
+        target,
+        arguments..fileOffset = node.arguments.fileOffset,
+      )
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
   }
@@ -754,7 +887,8 @@ class JsUtilOptimizer extends Transformer {
       StaticInvocation(
           _jsFunctionToDart,
           Arguments([node.arguments.positional[0]])
-            ..fileOffset = node.arguments.fileOffset)
+            ..fileOffset = node.arguments.fileOffset,
+        )
         ..fileOffset = node.fileOffset
         ..parent = node.parent;
 
@@ -818,7 +952,7 @@ class ExtensionIndex {
   final Map<Reference, Reference> _extensionTearOffIndex = {};
   final Map<Reference, ExtensionTypeDeclaration> _extensionTypeIndex = {};
   final Map<Reference, ExtensionTypeMemberDescriptor>
-      _extensionTypeMemberIndex = {};
+  _extensionTypeMemberIndex = {};
   final Map<Reference, Reference> _extensionTypeTearOffIndex = {};
   final Set<Reference> _externalDartReferences = {};
   final Class? _javaScriptObject;
@@ -828,8 +962,10 @@ class ExtensionIndex {
   final TypeEnvironment _typeEnvironment;
 
   ExtensionIndex(CoreTypes coreTypes, this._typeEnvironment)
-      : _javaScriptObject = coreTypes.index
-            .tryGetClass('dart:_interceptors', 'JavaScriptObject');
+    : _javaScriptObject = coreTypes.index.tryGetClass(
+        'dart:_interceptors',
+        'JavaScriptObject',
+      );
 
   /// If unprocessed, for all extension members in [library] whose on-type is a
   /// JS interop or `@Native` class, does the following:
@@ -845,7 +981,7 @@ class ExtensionIndex {
     if (_processedExtensionLibraries.contains(library)) return;
     for (var extension in library.extensions) {
       for (var descriptor in extension.memberDescriptors) {
-        var reference = descriptor.memberReference;
+        var reference = descriptor.memberReference!;
         var onType = extension.onType;
         bool isInteropOnType = false;
         Annotatable? cls;
@@ -918,8 +1054,10 @@ class ExtensionIndex {
   /// extension types.
   bool isInteropExtensionType(ExtensionTypeDeclaration extensionType) {
     return getCoreInteropType(
-        // Nullability is irrelevant for this purpose.
-        ExtensionType(extensionType, Nullability.undetermined)) != null;
+          // Nullability is irrelevant for this purpose.
+          ExtensionType(extensionType, Nullability.undetermined),
+        ) !=
+        null;
   }
 
   /// Returns the "core" interop type of [type], unwrapping extension types as
@@ -953,8 +1091,9 @@ class ExtensionIndex {
       }
       // Note that we recurse instead of using the erasure, as JS types are
       // extension types.
-      return _coreInteropTypeIndex[reference] =
-          getCoreInteropType(declaration.declaredRepresentationType);
+      return _coreInteropTypeIndex[reference] = getCoreInteropType(
+        declaration.declaredRepresentationType,
+      );
     } else if (type is InterfaceType) {
       final cls = type.classNode;
       final reference = cls.reference;
@@ -962,9 +1101,10 @@ class ExtensionIndex {
           (_javaScriptObject != null &&
               hasNativeAnnotation(cls) &&
               _typeEnvironment.isSubtypeOf(
-                  type,
-                  InterfaceType(_javaScriptObject!, Nullability.nullable),
-                  SubtypeCheckMode.withNullabilities))) {
+                type,
+                InterfaceType(_javaScriptObject, Nullability.nullable),
+                SubtypeCheckMode.withNullabilities,
+              ))) {
         return _coreInteropTypeIndex[reference] = reference;
       }
     }
@@ -987,7 +1127,7 @@ class ExtensionIndex {
     for (var extensionType in library.extensionTypeDeclarations) {
       if (isInteropExtensionType(extensionType)) {
         for (var descriptor in extensionType.memberDescriptors) {
-          final reference = descriptor.memberReference;
+          final reference = descriptor.memberReference!;
           _extensionTypeMemberIndex[reference] = descriptor;
           _extensionTypeIndex[reference] = extensionType;
           final tearOffReference = descriptor.tearOffReference;
@@ -1037,8 +1177,12 @@ class ExtensionIndex {
     return false;
   }
 
-  bool _isOneOfKinds(Procedure node, ExtensionTypeMemberKind extensionTypeKind,
-      ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
+  bool _isOneOfKinds(
+    Procedure node,
+    ExtensionTypeMemberKind extensionTypeKind,
+    ExtensionMemberKind extensionKind,
+    ProcedureKind procedureKind,
+  ) {
     if (node.isExtensionTypeMember) {
       return getExtensionTypeDescriptor(node)?.kind == extensionTypeKind;
     } else if (node.isExtensionMember) {
@@ -1049,28 +1193,32 @@ class ExtensionIndex {
   }
 
   bool isGetter(Procedure node) => _isOneOfKinds(
-      node,
-      ExtensionTypeMemberKind.Getter,
-      ExtensionMemberKind.Getter,
-      ProcedureKind.Getter);
+    node,
+    ExtensionTypeMemberKind.Getter,
+    ExtensionMemberKind.Getter,
+    ProcedureKind.Getter,
+  );
 
   bool isSetter(Procedure node) => _isOneOfKinds(
-      node,
-      ExtensionTypeMemberKind.Setter,
-      ExtensionMemberKind.Setter,
-      ProcedureKind.Setter);
+    node,
+    ExtensionTypeMemberKind.Setter,
+    ExtensionMemberKind.Setter,
+    ProcedureKind.Setter,
+  );
 
   bool isMethod(Procedure node) => _isOneOfKinds(
-      node,
-      ExtensionTypeMemberKind.Method,
-      ExtensionMemberKind.Method,
-      ProcedureKind.Method);
+    node,
+    ExtensionTypeMemberKind.Method,
+    ExtensionMemberKind.Method,
+    ProcedureKind.Method,
+  );
 
   bool isOperator(Procedure node) => _isOneOfKinds(
-      node,
-      ExtensionTypeMemberKind.Operator,
-      ExtensionMemberKind.Operator,
-      ProcedureKind.Operator);
+    node,
+    ExtensionTypeMemberKind.Operator,
+    ExtensionMemberKind.Operator,
+    ProcedureKind.Operator,
+  );
 
   /// Given an interop extension type or extension member [node], gets the
   /// function type as written.
@@ -1086,18 +1234,22 @@ class ExtensionIndex {
       return null;
     }
 
-    final functionType = node.signatureType ??
+    final functionType =
+        node.signatureType ??
         node.function.computeFunctionType(Nullability.nonNullable);
     var positionalParameters = functionType.positionalParameters;
     if (isInstanceInteropMember(node)) {
       // Ignore the instance parameter.
       positionalParameters = positionalParameters.skip(1).toList();
     }
-    return FunctionType(positionalParameters, functionType.returnType,
-        functionType.declaredNullability,
-        namedParameters: functionType.namedParameters,
-        typeParameters: functionType.typeParameters,
-        requiredParameterCount: functionType.requiredParameterCount);
+    return FunctionType(
+      positionalParameters,
+      functionType.returnType,
+      functionType.declaredNullability,
+      namedParameters: functionType.namedParameters,
+      typeParameters: functionType.typeParameters,
+      requiredParameterCount: functionType.requiredParameterCount,
+    );
   }
 
   /// Return whether [node] is an external static interop constructor/factory.

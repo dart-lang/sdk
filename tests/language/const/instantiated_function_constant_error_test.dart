@@ -29,110 +29,142 @@ void test<Z extends num>() {
   // Explicitly instantiate function declaration.
 
   const c03 = f1<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //            ^
+  // [cfe] Type variables can't be used as constants.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c04 = prefix.f2<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                   ^
+  // [cfe] Type variables can't be used as constants.
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c05 = prefix.f1<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                   ^
+  // [cfe] Type variables can't be used as constants.
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c06 = f2<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //            ^
+  // [cfe] Type variables can't be used as constants.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c07 = g1<int>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Not a constant expression.
 
   const c08 = prefix.g2<int>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                 ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [cfe] Undefined name 'g2'.
 
   const c09 = prefix.g1<int>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                 ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [cfe] Undefined name 'g1'.
 
   const c10 = g2<int>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Not a constant expression.
 
   const c11 = g1<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Not a constant expression.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c12 = prefix.g2<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                 ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [cfe] Undefined name 'g2'.
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c13 = prefix.g1<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                 ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [cfe] Undefined name 'g1'.
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c14 = g2<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Not a constant expression.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   // Explicitly instantiate constant variable.
 
   const c07 = prefix.c01<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c07' is already declared in this scope.
+  //                     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c08 = c02<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c08' is already declared in this scope.
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c09 = c01<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c09' is already declared in this scope.
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c10 = prefix.c02<Z>;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c10' is already declared in this scope.
+  //                     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   // Implicitly instantiate function declaration.
 
   const void Function(Z) c11 = f1;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                     ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c11' is already declared in this scope.
+  //                           ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const void Function(Z, [int, Map<int, int>]) c12 = prefix.f2;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                                           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c12' is already declared in this scope.
 
   // Implicitly instantiate constant variable.
 
   const void Function(Z) c13 = prefix.c01;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                     ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c13' is already declared in this scope.
+  //                           ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const void Function(Z, [int, Map<int, int>]) c14 = c02;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                                           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'c14' is already declared in this scope.
 }
 
 // Test new potentially constant expressions. A type variable is a potentially
@@ -145,18 +177,18 @@ class A<U extends num> {
   final void Function(U) x10;
 
   const A(bool b)
-      : x1 = (b ? f1 : prefix.f2)<U>,
-        x2 = (b ? prefix.c01 : c02)<U>,
-        x3 = ((b ? prefix.f1 : f2))<U>,
-        x4 = ((b ? c01 : prefix.c02))<U>,
-        x5 = (null ?? f1)<U>,
-        x6 = ((c01 as dynamic) as void Function<X extends num>(X,
-            [num, List<X>]))<U>,
-        x7 = b ? f1 : f2,
-        x8 = b ? c01 : c02,
-        x9 = null ?? c02,
-        x10 =
-            (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]);
+    : x1 = (b ? f1 : prefix.f2)<U>,
+      x2 = (b ? prefix.c01 : c02)<U>,
+      x3 = ((b ? prefix.f1 : f2))<U>,
+      x4 = ((b ? c01 : prefix.c02))<U>,
+      x5 = (null ?? f1)<U>,
+      x6 =
+          ((c01 as dynamic)
+              as void Function<X extends num>(X, [num, List<X>]))<U>,
+      x7 = b ? f1 : f2,
+      x8 = b ? c01 : c02,
+      x9 = null ?? c02,
+      x10 = (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]);
 }
 
 void main() {
@@ -166,13 +198,23 @@ void main() {
 
   void h<V>() {
     const A<V>(true);
-    //^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 16]
+    // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+    //    ^
+    // [cfe] Type argument 'V' doesn't conform to the bound 'num' of the type variable 'U' on 'A'.
+    // [cfe] Type variables can't be used as constants.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
     const A<V>(ff);
-    //^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+    //    ^
+    // [cfe] Type argument 'V' doesn't conform to the bound 'num' of the type variable 'U' on 'A'.
+    // [cfe] Type variables can't be used as constants.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }

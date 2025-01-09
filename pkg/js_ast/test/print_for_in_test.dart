@@ -13,17 +13,16 @@ void main() {
 
   final aInB = testExpression('a in b');
 
-  testStatement(
-    'for(#;#;#);',
-    [aInB, aInB, aInB],
-    'for ((a in b); a in b; a in b)\n  ;',
-  );
+  testStatement('for(#;#;#);', [
+    aInB,
+    aInB,
+    aInB,
+  ], 'for ((a in b); a in b; a in b)\n  ;');
 
-  testStatement(
-    'for(var v = (# || #);;);',
-    [aInB, aInB],
-    'for (var v = (a in b) || (a in b);;)\n  ;',
-  );
+  testStatement('for(var v = (# || #);;);', [
+    aInB,
+    aInB,
+  ], 'for (var v = (a in b) || (a in b);;)\n  ;');
 
   testStatement(
     'for (u = (a + 1) * (b in z);;);',
@@ -41,8 +40,5 @@ void main() {
     'for (u = (1 + a) * 2, v = 1 || (b in z) || 2;;)\n  ;',
   );
 
-  testStatement(
-    'for (var v in x);',
-    'for (var v in x)\n  ;',
-  );
+  testStatement('for (var v in x);', 'for (var v in x)\n  ;');
 }

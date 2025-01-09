@@ -181,9 +181,12 @@ class LibraryAnalyzer {
           file.uri, inferenceDataForTesting!);
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(ScopeResolverVisitor(
-          _libraryElement, file.source, _typeProvider, errorListener,
-          nameScope: unitElement.scope));
+      parsedUnit.accept(
+        ScopeResolverVisitor(
+          fileAnalysis.errorReporter,
+          nameScope: unitElement.scope,
+        ),
+      );
 
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
           _testingData != null, _libraryElement.featureSet,
@@ -403,6 +406,9 @@ class LibraryAnalyzer {
       // Skip computing lints on macro generated augmentations.
       // See: https://github.com/dart-lang/sdk/issues/54875
       if (fileAnalysis.file.isMacroPart) return;
+      // Skip computing lints on files that don't exist.
+      // See: https://github.com/Dart-Code/Dart-Code/issues/5343
+      if (!fileAnalysis.file.exists) continue;
 
       var unit = currentUnit.unit;
       var errorReporter = currentUnit.errorReporter;
@@ -412,6 +418,7 @@ class LibraryAnalyzer {
       }
 
       // Run lint rules that handle specific node types.
+      context.currentUnit = currentUnit;
       unit.accept(
         AnalysisRuleVisitor(
           nodeRegistry,
@@ -854,10 +861,7 @@ class LibraryAnalyzer {
               .libraryOfUri2(import.importedFile.uri)
     ];
     unit.accept(ScopeResolverVisitor(
-      _libraryElement,
-      source,
-      _typeProvider,
-      errorListener,
+      fileAnalysis.errorReporter,
       nameScope: unitElement.scope,
       docImportLibraries: docImportLibraries,
     ));

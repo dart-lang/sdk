@@ -1274,10 +1274,10 @@ mixin StandardBounds {
     if (g.typeParameters.length == m) {
       boundsMatch = true;
       if (m != 0) {
-        List<DartType> fParametersAsArguments = new List<DartType>.generate(
-            m,
-            (i) => new StructuralParameterType.forAlphaRenaming(
-                g.typeParameters[i], f.typeParameters[i]));
+        List<DartType> fParametersAsArguments = [
+          for (StructuralParameter parameter in f.typeParameters)
+            new StructuralParameterType.withDefaultNullability(parameter)
+        ];
         FunctionTypeInstantiator instantiator =
             FunctionTypeInstantiator.fromInstantiation(
                 g, fParametersAsArguments);
@@ -1520,10 +1520,10 @@ mixin StandardBounds {
     if (g.typeParameters.length == m) {
       boundsMatch = true;
       if (m != 0) {
-        List<DartType> fTypeParametersAsTypes = new List<DartType>.generate(
-            m,
-            (i) => new StructuralParameterType.forAlphaRenaming(
-                g.typeParameters[i], f.typeParameters[i]));
+        List<DartType> fTypeParametersAsTypes = [
+          for (StructuralParameter parameter in f.typeParameters)
+            new StructuralParameterType.withDefaultNullability(parameter)
+        ];
         instantiator = FunctionTypeInstantiator.fromIterables(
             g.typeParameters, fTypeParametersAsTypes);
         for (int i = 0; i < m && boundsMatch; ++i) {

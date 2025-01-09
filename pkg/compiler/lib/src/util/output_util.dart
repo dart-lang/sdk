@@ -76,10 +76,10 @@ class BufferedStringSinkWrapper implements api.OutputSink, StringSink {
 
   BufferedStringSinkWrapper._(this._outputSink);
 
-  factory BufferedStringSinkWrapper(api.OutputSink _outputSink) {
-    return _outputSink is BufferedStringSinkWrapper
-        ? _outputSink
-        : BufferedStringSinkWrapper._(_outputSink);
+  factory BufferedStringSinkWrapper(api.OutputSink outputSink) {
+    return outputSink is BufferedStringSinkWrapper
+        ? outputSink
+        : BufferedStringSinkWrapper._(outputSink);
   }
 
   static bool _isLeadSurrogate(int codeUnit) => (codeUnit & 0xFC00) == 0xD800;

@@ -32,16 +32,15 @@ void main(List<String> args) {
     platform('tools/package_deps'),
   ];
 
-  var cfePackageDirs = [
-    platform('pkg/front_end/testcases'),
-  ];
+  var cfePackageDirs = [platform('pkg/front_end/testcases')];
 
   var feAnalyzerSharedPackageDirs = [
     platform('pkg/_fe_analyzer_shared/test/exhaustiveness/data'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment'),
     platform(
-        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment'),
+      'pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment',
+    ),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/nullability'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/reachability'),
     platform('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion'),
@@ -53,9 +52,7 @@ void main(List<String> args) {
     platform('pkg/frontend_server/test/fixtures'),
   ];
 
-  var pkgVmPackageDirs = [
-    platform('pkg/vm/testcases'),
-  ];
+  var pkgVmPackageDirs = [platform('pkg/vm/testcases')];
 
   var sampleDirs = listSubdirectories(platform('samples')).toList();
 
@@ -179,7 +176,9 @@ Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
 
 /// Generates package configurations for the special pseudo-packages.
 Iterable<Package> makeSpecialPackageConfigs(
-    String packageNamePrefix, List<String> packageDirs) sync* {
+  String packageNamePrefix,
+  List<String> packageDirs,
+) sync* {
   // TODO: Remove the use of '.nonexisting/'.
   for (var packageDir in packageDirs) {
     yield Package(
@@ -198,8 +197,8 @@ Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) =>
 /// Generates package configurations for the special pseudo-packages used by the
 /// _fe_analyzer_shared id tests.
 Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
-        List<String> packageDirs) =>
-    makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
+  List<String> packageDirs,
+) => makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
 
 /// Generates package configurations for the special pseudo-packages used by the
 /// frontend_server tests.

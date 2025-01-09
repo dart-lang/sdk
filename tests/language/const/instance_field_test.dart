@@ -6,9 +6,9 @@
 
 class C {
   const field = 0;
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INSTANCE_FIELD
-// [cfe] Only static fields can be declared as const.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INSTANCE_FIELD
+  // [cfe] Only static fields can be declared as const.
 }
 
 void main() {

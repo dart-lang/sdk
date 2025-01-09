@@ -99,7 +99,7 @@ mixin LspProgressNotificationsMixin {
 
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
+        .listen((request) {
           var params = WorkDoneProgressCreateParams.fromJson(
             request.params as Map<String, Object?>,
           );
@@ -204,6 +204,18 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo<Null, Null>(request, (Null n) => n);
+  }
+
+  Future<Null> editArgument(Uri uri, Position pos, ArgumentEdit edit) {
+    var request = makeRequest(
+      CustomMethods.dartTextDocumentEditArgument,
+      EditArgumentParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+        edit: edit,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, (Null n) => n);
   }
 
   /// Gets the entire range for [code].

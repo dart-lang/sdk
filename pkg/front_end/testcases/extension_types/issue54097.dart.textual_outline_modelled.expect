@@ -6,9 +6,13 @@ class A1<X extends E1<X>> {}
 
 class A2<X extends E1<Y>, Y extends X> {}
 
-enum Enum1<X extends E1<X>> { element<Never>() }
+enum Enum1<X extends E1<X>> {
+  element<Never>();
+}
 
-enum Enum2<X extends E1<Y>, Y extends X> { element<Never, Never>() }
+enum Enum2<X extends E1<Y>, Y extends X> {
+  element<Never, Never>();
+}
 
 extension Ext1<X extends E1<X>> on List<X> {}
 

@@ -23,7 +23,8 @@ import 'lib2.dart' deferred as lib2;
 main() async {
   C1.value;
   print(const C(4));
-  /*closure_unit=main{}*/ () => print(const C(5));
+  /*closure_unit=main{}*/
+  () => print(const C(5));
   await lib2.loadLibrary();
   print(lib2.C2.value);
   print(lib2.C3.value);

@@ -2788,8 +2788,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   _LibraryImport? _getImportElement(Element element) {
     for (var import
         in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
+      var lookupName = element.name ?? '<null>';
+      if (import.prefix case var importPrefix?) {
+        lookupName = '${importPrefix.element.name}.$lookupName';
+      }
+
       var definedNames = import.namespace.definedNames;
-      if (definedNames.containsValue(element)) {
+      var importedElement = definedNames[lookupName];
+      if (importedElement != null &&
+          importedElement.librarySource?.uri == element.librarySource?.uri) {
         return _LibraryImport(
           uriText: import.librarySource.uri.toString(),
           isExplicitlyImported: true,

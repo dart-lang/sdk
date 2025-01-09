@@ -11,8 +11,7 @@ enum NativeThrowBehavior {
   nullNsm,
 
   /// Throws if first argument is null, then may throw.
-  nullNsmThenMay,
-  ;
+  nullNsmThenMay;
 
   bool get canThrow => this != never;
 

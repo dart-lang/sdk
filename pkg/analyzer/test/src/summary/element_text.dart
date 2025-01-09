@@ -9,10 +9,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -77,6 +77,35 @@ class ElementTextConfiguration {
   ElementTextConfiguration({
     this.filter = _filterTrue,
   });
+
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> extensionTypeNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is ExtensionTypeElement) {
+        return extensionTypeNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
+  }
 
   static bool _filterTrue(Object element) => true;
 }
@@ -436,7 +465,7 @@ class _Element2Writer extends _AbstractElementWriter {
             // element, only an enclosing fragment).
           } else {
             if (expectedEnclosingElement is Member) {
-              expectedEnclosingElement = expectedEnclosingElement.baseElement!;
+              expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
             expect(element.enclosingElement2, expectedEnclosingElement);
           }
@@ -635,6 +664,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -1162,7 +1192,8 @@ class _Element2Writer extends _AbstractElementWriter {
           _writeLibraryImport,
         );
       }
-      _writeElementList('prefixes', f, f.prefixes, _writePrefixElement);
+      _writeElementList(
+          'prefixes', f.library2!, f.prefixes, _writePrefixElement);
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);
@@ -2117,6 +2148,15 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
+  void _assertEnclosingElement<E extends Element>(
+    Iterable<E> elements,
+    Element enclosingElement,
+  ) {
+    for (var element in elements) {
+      expect(element.enclosingElement3, same(enclosingElement));
+    }
+  }
+
   void _assertNonSyntheticElementSelf(Element element) {
     expect(element.isSynthetic, isFalse);
     expect(element.nonSynthetic, same(element));
@@ -3031,6 +3071,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -3298,6 +3339,8 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
+
+      _assertEnclosingElement(e.typeParameters, e);
       _writeTypeParameterElements(e.typeParameters);
 
       var aliasedType = e.aliasedType;
@@ -3305,10 +3348,21 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
+        expect(aliasedElement.enclosingElement3, same(e));
         _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _sink.withIndent(() {
+          _assertEnclosingElement(
+            aliasedElement.typeParameters,
+            aliasedElement,
+          );
           _writeTypeParameterElements(aliasedElement.typeParameters);
+
+          _assertEnclosingElement(
+            aliasedElement.parameters,
+            aliasedElement,
+          );
           _writeParameterElements(aliasedElement.parameters);
+
           _writeReturnType(aliasedElement.returnType);
         });
       }

@@ -93,9 +93,7 @@ import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
-import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -111,7 +109,7 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
@@ -167,8 +165,8 @@ class AnalysisServerOptions {
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
-/// listens on a [CommunicationChannel] for analysis requests and processes
-/// them.
+/// listens on a [ServerCommunicationChannel] for analysis requests and
+/// processes them.
 class LegacyAnalysisServer extends AnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
@@ -192,19 +190,19 @@ class LegacyAnalysisServer extends AnalysisServer {
     ANALYSIS_REQUEST_SET_SUBSCRIPTIONS: AnalysisSetSubscriptionsHandler.new,
     ANALYSIS_REQUEST_UPDATE_CONTENT: AnalysisUpdateContentHandler.new,
     ANALYSIS_REQUEST_UPDATE_OPTIONS: AnalysisUpdateOptionsHandler.new,
-    //
+
     ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
     ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
     ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
     ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
-    //
+
     COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2:
         CompletionGetSuggestionDetails2Handler.new,
     COMPLETION_REQUEST_GET_SUGGESTIONS2: CompletionGetSuggestions2Handler.new,
-    //
+
     DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
     DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
-    //
+
     EDIT_REQUEST_FORMAT: EditFormatHandler.new,
     EDIT_REQUEST_FORMAT_IF_ENABLED: EditFormatIfEnabledHandler.new,
     EDIT_REQUEST_GET_ASSISTS: EditGetAssistsHandler.new,
@@ -223,19 +221,19 @@ class LegacyAnalysisServer extends AnalysisServer {
     EDIT_REQUEST_GET_POSTFIX_COMPLETION: EditGetPostfixCompletionHandler.new,
     EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES:
         EditListPostfixCompletionTemplatesHandler.new,
-    //
+
     EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
     EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
     EXECUTION_REQUEST_GET_SUGGESTIONS: ExecutionGetSuggestionsHandler.new,
     EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
     EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
-    //
+
     FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION:
         FlutterGetWidgetDescriptionHandler.new,
     FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE:
         FlutterSetWidgetPropertyValueHandler.new,
     FLUTTER_REQUEST_SET_SUBSCRIPTIONS: FlutterSetSubscriptionsHandler.new,
-    //
+
     SEARCH_REQUEST_FIND_ELEMENT_REFERENCES:
         SearchFindElementReferencesHandler.new,
     SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS:
@@ -247,7 +245,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS:
         SearchGetElementDeclarationsHandler.new,
     SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
-    //
+
     SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
     SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
     SERVER_REQUEST_SET_CLIENT_CAPABILITIES:
@@ -255,7 +253,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
     SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
 
-    //
     LSP_REQUEST_HANDLE: LspOverLegacyHandler.new,
   };
 
@@ -364,11 +361,6 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
-  ///
-  /// If [rethrowExceptions] is true, then any exceptions thrown by analysis are
-  /// propagated up the call stack.  The default is true to allow analysis
-  /// exceptions to show up in unit tests, but it should be set to false when
-  /// running a full analysis server.
   LegacyAnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
@@ -379,15 +371,14 @@ class LegacyAnalysisServer extends AnalysisServer {
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
-    RequestStatisticsHelper? requestStatistics,
+    super.requestStatistics,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
-    // Disable to avoid using this in unit tests.
-    bool enableBlazeWatcher = false,
-    DartFixPromptManager? dartFixPromptManager,
+    super.enableBlazeWatcher,
+    super.dartFixPromptManager,
     super.providedByteStore,
     super.pluginManager,
-    bool retainDataForTesting = false,
+    super.retainDataForTesting,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -402,10 +393,6 @@ class LegacyAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          NotificationManager(channel, baseResourceProvider.pathContext),
-         requestStatistics: requestStatistics,
-         enableBlazeWatcher: enableBlazeWatcher,
-         dartFixPromptManager: dartFixPromptManager,
-         retainDataForTesting: retainDataForTesting,
        ) {
     var contextManagerCallbacks = ServerContextManagerCallbacks(
       this,
@@ -524,7 +511,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// There was an error related to the socket from which requests are being
   /// read.
-  void error(argument) {}
+  void error(Object argument) {}
 
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.
@@ -633,7 +620,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     );
   }
 
-  /// Handle a [request] that was read from the communication channel.
+  /// Handle a [requestOrResponse] that was read from the communication channel.
   void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
     if (requestOrResponse is Request) {
       var cancellationToken = CancelableToken();

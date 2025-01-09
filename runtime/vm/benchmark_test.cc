@@ -176,6 +176,7 @@ base class Class extends NativeFieldWrapperClass1 {
   external int method(int param1, int param2);
 }
 
+@pragma('vm:entry-point', 'call')
 void benchmark(int count) {
   Class c = Class();
   c.init();
@@ -336,7 +337,9 @@ BENCHMARK(FrameLookup) {
           return StackFrame.accessFrame();
         }
       }
+      @pragma('vm:entry-point')
       class StackFrameTest {
+        @pragma('vm:entry-point', 'call')
         static int testMain() {
           First obj = new First();
           return obj.method1(1);
@@ -430,6 +433,7 @@ BENCHMARK(CreateMirrorSystem) {
   const char* kScriptChars =
       "import 'dart:mirrors';\n"
       "\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "void benchmark() {\n"
       "  currentMirrorSystem();\n"
       "}\n";
@@ -535,6 +539,7 @@ BENCHMARK(SimpleMessage) {
 
 BENCHMARK(LargeMap) {
   const char* kScript =
+      "@pragma('vm:entry-point', 'call')\n"
       "makeMap() {\n"
       "  Map m = {};\n"
       "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"

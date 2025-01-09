@@ -263,7 +263,7 @@ abstract class ExecutableMember extends Member
   LibraryElement get library => _declaration.library!;
 
   @override
-  LibraryElement2? get library2 => _element2.library2;
+  LibraryElement2 get library2 => _element2.library2;
 
   @override
   Source get librarySource => _declaration.librarySource!;
@@ -311,6 +311,7 @@ abstract class ExecutableMember extends Member
       .nonNulls
       .toList();
 
+  @override
   ExecutableElement2 get _element2 => declaration.asElement2;
 
   @override
@@ -348,6 +349,13 @@ abstract class ExecutableMember extends Member
     for (var child in children2) {
       child.accept2(visitor);
     }
+  }
+
+  static ExecutableElement2 from(
+    ExecutableElement2 element,
+    MapSubstitution substitution,
+  ) {
+    return from2(element.asElement, substitution).asElement2;
   }
 
   static ExecutableElement from2(
@@ -554,7 +562,7 @@ class FieldMember extends VariableMember
   LibraryElement get library => _declaration.library!;
 
   @override
-  LibraryElement2? get library2 => _element2.library2;
+  LibraryElement2 get library2 => _element2.library2;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -591,6 +599,7 @@ class FieldMember extends VariableMember
   @override
   Source? get source => _declaration.source;
 
+  @override
   FieldElement2 get _element2 => declaration.asElement2;
 
   @override
@@ -881,6 +890,8 @@ abstract class Member implements Element {
   /// The substitution for type parameters referenced in the base element.
   MapSubstitution get substitution => _substitution;
 
+  Element2 get _element2;
+
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
@@ -902,6 +913,12 @@ abstract class Member implements Element {
   @override
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
+
+  String getExtendedDisplayName2({String? shortName}) {
+    return _element2.getExtendedDisplayName2(
+      shortName: shortName,
+    );
+  }
 
   @override
   bool isAccessibleIn(LibraryElement library) =>
@@ -996,6 +1013,9 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  LibraryElement2 get library2 => _element2.library2;
+
+  @override
   String? get lookupName => name3;
 
   @override
@@ -1059,7 +1079,7 @@ class MethodMember extends ExecutableMember
 /// type parameters are known.
 class ParameterMember extends VariableMember
     with ParameterElementMixin
-    implements ParameterElement, FormalParameterElement {
+    implements ParameterElement, FormalParameterElementOrMember {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -1148,6 +1168,9 @@ class ParameterMember extends VariableMember
   String? get name3 => _element2.name3;
 
   @override
+  String get nameShared => name;
+
+  @override
   Element2 get nonSynthetic2 => _element2;
 
   @deprecated
@@ -1171,6 +1194,7 @@ class ParameterMember extends VariableMember
   @override
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
+  @override
   FormalParameterElement get _element2 => declaration.asElement2;
 
   @override
@@ -1519,6 +1543,9 @@ class TopLevelVariableMember extends VariableMember
   LibraryElement get library => _declaration.library!;
 
   @override
+  LibraryElement2 get library2 => _declaration.library as LibraryElement2;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -1533,6 +1560,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   Source get source => _declaration.source!;
+
+  @override
+  TopLevelVariableElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {

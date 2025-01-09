@@ -880,7 +880,7 @@ CascadeExpression
         staticElement: dart:core::<fragment>::@class::int::@getter::isEven
         element: dart:core::<fragment>::@class::int::@getter::isEven#element
         staticType: bool
-      staticType: bool
+      staticType: bool?
   staticType: A
 ''');
   }
@@ -991,7 +991,7 @@ CascadeExpression
         staticElement: <testLibraryFragment>::@class::A::@getter::baq
         element: <testLibraryFragment>::@class::A::@getter::baq#element
         staticType: A
-      staticType: A
+      staticType: A?
   staticType: A?
 ''');
   }

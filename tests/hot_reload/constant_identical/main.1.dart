@@ -16,12 +16,19 @@ class Fruit {
 
 var x;
 
+helper() {
+  return const Fruit('Pear');
+}
+
 Future<void> main() async {
   x = const Fruit('Pear');
   Expect.equals('Pear', x.toString());
+  Expect.identical(x, helper());
+
   await hotReload();
   Expect.equals('Pear', x.toString());
   Expect.identical(x, const Fruit('Pear'));
+  Expect.identical(x, helper());
 }
 /** DIFF **/
 /*

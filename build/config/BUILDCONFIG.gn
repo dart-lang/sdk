@@ -474,22 +474,43 @@ foreach(_target_type,
           "executable",
           "loadable_module",
         ]) {
-  template(_target_type) {
-    target(_target_type, target_name) {
-      forward_variables_from(invoker, "*", [ "no_default_deps" ])
-      if (!defined(deps)) {
-        deps = []
+  if (!is_shared_library) {
+    template(_target_type) {
+      target(_target_type, target_name) {
+        forward_variables_from(invoker, "*", [ "no_default_deps" ])
+        if (!defined(deps)) {
+          deps = []
+        }
+        if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+          if (use_flutter_cxx) {
+            deps += [ "//third_party/libcxx" ]
+          }
+          if (is_fuchsia) {
+            deps += [
+              "//build/fuchsia/config/clang:c++-runtime-deps",
+              "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
+            ]
+          }
+        }
       }
-      if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
-        if (use_flutter_cxx) {
-          deps += [ "//third_party/libcxx" ]
-        }
-        if (is_fuchsia) {
-          deps += [
-            "//build/fuchsia/config/clang:c++-runtime-deps",
-            "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
-          ]
-        }
+    }
+  } else {
+    # Forward to the main toolchain so that
+    #   shared_libary("foo") {
+    #     deps = [ ":bar" ]
+    #   }
+    #   executable("bar") {}
+    # doesn't create an extra copy of bar.
+    template(_target_type) {
+      group(target_name) {
+        forward_variables_from(invoker,
+                               [
+                                 "testonly",
+                                 "visibility",
+                               ])
+        not_needed(invoker, "*")
+        main_toolchain = string_replace(current_toolchain, "_shared", "")
+        public_deps = [ ":$target_name($main_toolchain)" ]
       }
     }
   }

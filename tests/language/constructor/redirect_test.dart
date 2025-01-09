@@ -21,9 +21,8 @@ class A {
   // happen in the /none version of this test. However, in /01,
   // staticFun isn't really a static function and should cause a
   // compile-time error.
-  static
-  moreStaticFun() {}
-      int staticFun(int v1, int v2) {
+  static moreStaticFun() {}
+  int staticFun(int v1, int v2) {
     return v1 * v2;
   }
 }

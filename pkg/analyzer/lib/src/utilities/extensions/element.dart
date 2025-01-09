@@ -11,6 +11,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:meta/meta.dart';
 
+extension ClassElement2Extension on ClassElement2 {
+  ClassElement get asElement {
+    return firstFragment as ClassElement;
+  }
+}
+
 extension ClassElementExtension on ClassElement {
   ClassElement2 get asElement2 {
     return (this as ClassElementImpl).element;
@@ -18,6 +24,10 @@ extension ClassElementExtension on ClassElement {
 }
 
 extension CompilationUnitElementExtension on CompilationUnitElement {
+  LibraryFragment get asElement2 {
+    return this as LibraryFragment;
+  }
+
   /// Returns this library fragment, and all its enclosing fragments.
   List<CompilationUnitElement> get withEnclosing {
     var result = <CompilationUnitElement>[];
@@ -34,6 +44,15 @@ extension CompilationUnitElementExtension on CompilationUnitElement {
   }
 }
 
+extension ConstructorElement2Extension on ConstructorElement2 {
+  ConstructorElement get asElement {
+    if (this case ConstructorMember member) {
+      return member;
+    }
+    return baseElement.firstFragment as ConstructorElement;
+  }
+}
+
 extension ConstructorElementExtension on ConstructorElement {
   ConstructorElement2 get asElement2 {
     return switch (this) {
@@ -44,25 +63,104 @@ extension ConstructorElementExtension on ConstructorElement {
   }
 }
 
+extension Element2Extension on Element2 {
+  List<Fragment> get fragments {
+    return [
+      for (Fragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  /// Whether the element is effectively [internal].
+  bool get isInternal {
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasInternal) {
+        return true;
+      }
+    }
+    if (this case PropertyAccessorElement2 accessor) {
+      var variable = accessor.variable3;
+      if (variable != null && variable.metadata2.hasInternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Whether the element is effectively [protected].
+  bool get isProtected {
+    var self = this;
+    if (self is PropertyAccessorElement2 &&
+        self.enclosingElement2 is InterfaceElement2) {
+      if (self.metadata2.hasProtected) {
+        return true;
+      }
+      var variable = self.variable3;
+      if (variable != null && variable.metadata2.hasProtected) {
+        return true;
+      }
+    }
+    if (self is MethodElement2 &&
+        self.enclosingElement2 is InterfaceElement2 &&
+        self.metadata2.hasProtected) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Whether the element is effectively [visibleForTesting].
+  bool get isVisibleForTesting {
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasVisibleForTesting) {
+        return true;
+      }
+    }
+    if (this case PropertyAccessorElement2 accessor) {
+      var variable = accessor.variable3;
+      if (variable != null && variable.metadata2.hasVisibleForTesting) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  List<ElementAnnotation> get metadata {
+    if (this case Annotatable annotatable) {
+      return annotatable.metadata2.annotations;
+    }
+    return [];
+  }
+}
+
 extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;
     switch (self) {
+      case null:
+        return null;
       case ConstructorElementImpl2():
         return self.firstFragment as Element;
-      case DynamicElementImpl():
-        return self;
+      case DynamicElementImpl2():
+        return self.firstFragment;
       case ExecutableMember():
         return self.declaration as Element;
+      case ExtensionElementImpl2():
+        return self.firstFragment as Element;
       case FieldElementImpl2():
         return self.firstFragment as Element;
       case FieldMember():
         return self.declaration as Element;
-      case FormalParameterElementImpl():
-        return self.firstFragment as Element;
+      case FormalParameterElement element2:
+        return element2.asElement;
       case GetterElementImpl():
         return self.firstFragment as Element;
+      case LabelElementImpl2 element2:
+        return element2.asElement;
       case LibraryElementImpl():
+        return self as Element;
+      case LibraryImportElementImpl():
         return self as Element;
       case LocalFunctionElementImpl():
         return self.wrappedElement as Element;
@@ -74,6 +172,8 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case NeverElementImpl2():
         return NeverElementImpl.instance;
+      case PrefixElement2 element2:
+        return element2.asElement;
       case SetterElementImpl():
         return self.firstFragment as Element;
       case TopLevelFunctionElementImpl():
@@ -83,7 +183,7 @@ extension Element2OrNullExtension on Element2? {
       case TypeDefiningElement2():
         return self.firstFragment as Element;
       default:
-        return null;
+        throw UnsupportedError('Unsupported type: $runtimeType');
     }
   }
 }
@@ -95,55 +195,6 @@ extension ElementExtension on Element {
       return augmentable.augmentation;
     }
     return null;
-  }
-
-  /// Whether the element is effectively [internal].
-  bool get isInternal {
-    if (hasInternal) {
-      return true;
-    }
-    if (this case PropertyAccessorElement accessor) {
-      var variable = accessor.variable2;
-      if (variable != null && variable.hasInternal) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Whether the element is effectively [protected].
-  bool get isProtected {
-    var self = this;
-    if (self is PropertyAccessorElement &&
-        self.enclosingElement3 is InterfaceElement) {
-      if (self.hasProtected) {
-        return true;
-      }
-      var variable = self.variable2;
-      if (variable != null && variable.hasProtected) {
-        return true;
-      }
-    }
-    if (self is MethodElement &&
-        self.enclosingElement3 is InterfaceElement &&
-        self.hasProtected) {
-      return true;
-    }
-    return false;
-  }
-
-  /// Whether the element is effectively [visibleForTesting].
-  bool get isVisibleForTesting {
-    if (hasVisibleForTesting) {
-      return true;
-    }
-    if (this case PropertyAccessorElement accessor) {
-      var variable = accessor.variable2;
-      if (variable != null && variable.hasVisibleForTesting) {
-        return true;
-      }
-    }
-    return false;
   }
 
   List<Element> get withAugmentations {
@@ -216,6 +267,12 @@ extension ElementOrNullExtension on Element? {
   }
 }
 
+extension EnumElement2Extension on EnumElement2 {
+  EnumElement get asElement {
+    return firstFragment as EnumElement;
+  }
+}
+
 extension EnumElementExtension on EnumElement {
   EnumElement2 get asElement2 {
     return (this as EnumElementImpl).element;
@@ -224,6 +281,9 @@ extension EnumElementExtension on EnumElement {
 
 extension ExecutableElement2Extension on ExecutableElement2 {
   ExecutableElement get asElement {
+    if (this case ExecutableMember member) {
+      return member;
+    }
     return firstFragment as ExecutableElement;
   }
 }
@@ -250,9 +310,30 @@ extension ExecutableElementOrNullExtension on ExecutableElement? {
   }
 }
 
+extension ExtensionElement2Extension on ExtensionElement2 {
+  ExtensionElement get asElement {
+    return firstFragment as ExtensionElement;
+  }
+}
+
 extension ExtensionElementExtension on ExtensionElement {
   ExtensionElement2 get asElement2 {
     return (this as ExtensionElementImpl).element;
+  }
+}
+
+extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
+  ExtensionTypeElement get asElement {
+    return firstFragment as ExtensionTypeElement;
+  }
+}
+
+extension FieldElement2Extension on FieldElement2 {
+  FieldElement get asElement {
+    if (this case FieldMember member) {
+      return member;
+    }
+    return firstFragment as FieldElement;
   }
 }
 
@@ -267,6 +348,13 @@ extension FieldElementExtension on FieldElement {
 }
 
 extension FormalParameterExtension on FormalParameterElement {
+  ParameterElement get asElement {
+    if (this case ParameterMember member) {
+      return member;
+    }
+    return firstFragment as ParameterElement;
+  }
+
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -299,9 +387,28 @@ extension InterfaceElementExtension on InterfaceElement {
   }
 }
 
+extension LabelElement2Extension on LabelElement2 {
+  LabelElement get asElement {
+    return firstFragment as LabelElement;
+  }
+}
+
+extension LibraryElement2Extension on LibraryElement2 {
+  LibraryElement get asElement {
+    return this as LibraryElement;
+  }
+}
+
 extension LibraryElementExtension on LibraryElement {
   LibraryElement2 get asElement2 {
-    return this as LibraryElementImpl;
+    return this as LibraryElement2;
+  }
+}
+
+extension LibraryExportElementExtension on LibraryExportElement {
+  LibraryExport get asElement2 {
+    var index = enclosingElement3.libraryExports.indexOf(this);
+    return enclosingElement3.asElement2.libraryExports2[index];
   }
 }
 
@@ -323,6 +430,13 @@ extension LibraryFragmentExtension on LibraryFragment {
   }
 }
 
+extension LibraryImportElementExtension on LibraryImportElement {
+  LibraryImport get asElement2 {
+    var index = enclosingElement3.libraryImports.indexOf(this);
+    return enclosingElement3.asElement2.libraryImports2[index];
+  }
+}
+
 extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {
@@ -335,6 +449,9 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
 
 extension MethodElement2Extension on MethodElement2 {
   MethodElement get asElement {
+    if (this case MethodMember member) {
+      return member;
+    }
     return baseElement.firstFragment as MethodElement;
   }
 }
@@ -346,6 +463,12 @@ extension MethodElementExtension on MethodElement {
       MethodMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension MixinElement2Extension on MixinElement2 {
+  MixinElement get asElement {
+    return firstFragment as MixinElement;
   }
 }
 
@@ -381,6 +504,15 @@ extension PrefixElementExtension on PrefixElement {
   }
 }
 
+extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
+  PropertyAccessorElement get asElement {
+    if (this case PropertyAccessorMember member) {
+      return member;
+    }
+    return firstFragment as PropertyAccessorElement;
+  }
+}
+
 extension PropertyAccessorElementExtension on PropertyAccessorElement {
   PropertyAccessorElement2 get asElement2 {
     return switch (this) {
@@ -391,14 +523,44 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
   }
 }
 
+extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
+  FunctionElement get asElement {
+    return firstFragment as FunctionElement;
+  }
+}
+
+extension TopLevelVariableElement2Extension on TopLevelVariableElement2 {
+  TopLevelVariableElement get asElement {
+    return baseElement.firstFragment as TopLevelVariableElement;
+  }
+}
+
 extension TopLevelVariableElementExtension on TopLevelVariableElement {
   TopLevelVariableElement2 get asElement2 {
     return (this as TopLevelVariableElementImpl).element;
   }
 }
 
+extension TypeAliasElement2Extension on TypeAliasElement2 {
+  TypeAliasElement get asElement {
+    return firstFragment as TypeAliasElement;
+  }
+}
+
+extension TypeAliasElementExtension on TypeAliasElement {
+  TypeAliasElement2 get asElement2 {
+    return (this as TypeAliasElementImpl).element;
+  }
+}
+
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;
+  }
+}
+
+extension TypeParameterElementExtension on TypeParameterElement {
+  TypeParameterElement2 get asElement2 {
+    return (this as TypeParameterElementImpl).element;
   }
 }

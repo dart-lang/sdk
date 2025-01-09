@@ -42,7 +42,7 @@ import 'utils.dart';
 /// client that is not the DevTools server (e.g. an IDE).
 FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
-  required String buildDir,
+  String? buildDir,
   ClientManager? clientManager,
   Handler? notFoundHandler,
   DtdInfo? dtd,
@@ -54,15 +54,6 @@ FutureOr<Handler> defaultHandler({
   if (dds?.authCodesEnabled ?? false) {
     appRoot = '/${dds!.authCode}$appRoot';
   }
-
-  const defaultDocument = 'index.html';
-  final indexFile = File(path.join(buildDir, defaultDocument));
-
-  // Serves the static web assets for DevTools.
-  final devtoolsStaticAssetHandler = createStaticHandler(
-    buildDir,
-    defaultDocument: defaultDocument,
-  );
 
   /// A wrapper around [devtoolsStaticAssetHandler] that handles serving
   /// index.html up for / and non-file requests like /memory, /inspector, etc.
@@ -106,6 +97,12 @@ FutureOr<Handler> defaultHandler({
       }
     }
 
+    if (buildDir == null) {
+      return Response.notFound('No build directory was specified.');
+    }
+
+    const defaultDocument = 'index.html';
+    final indexFile = File(path.join(buildDir, defaultDocument));
     final isValidRootPage = pathSegments.isEmpty ||
         (pathSegments.length == 1 && !pathSegments[0].contains('.'));
 
@@ -118,6 +115,11 @@ FutureOr<Handler> defaultHandler({
       );
     }
 
+    // Serves the static web assets for DevTools.
+    final devtoolsStaticAssetHandler = createStaticHandler(
+      buildDir,
+      defaultDocument: defaultDocument,
+    );
     return devtoolsStaticAssetHandler(request);
   }
 

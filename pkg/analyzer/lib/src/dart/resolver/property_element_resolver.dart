@@ -41,13 +41,13 @@ class PropertyElementResolver with ScopeHelpers {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   PropertyElementResolverResult resolveIndexExpression({
-    required IndexExpression node,
+    required IndexExpressionImpl node,
     required bool hasRead,
     required bool hasWrite,
   }) {
     var target = node.realTarget;
 
-    if (target is ExtensionOverride) {
+    if (target is ExtensionOverrideImpl) {
       var result = _extensionResolver.getOverrideMember(target, '[]');
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
@@ -149,7 +149,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult resolvePrefixedIdentifier({
-    required PrefixedIdentifier node,
+    required PrefixedIdentifierImpl node,
     required bool hasRead,
     required bool hasWrite,
     bool forAnnotation = false,
@@ -180,14 +180,14 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult resolvePropertyAccess({
-    required PropertyAccess node,
+    required PropertyAccessImpl node,
     required bool hasRead,
     required bool hasWrite,
   }) {
     var target = node.realTarget;
     var propertyName = node.propertyName;
 
-    if (target is ExtensionOverride) {
+    if (target is ExtensionOverrideImpl) {
       return _resolveTargetExtensionOverride(
         target: target,
         propertyName: propertyName,
@@ -196,7 +196,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    if (target is SuperExpression) {
+    if (target is SuperExpressionImpl) {
       return _resolveTargetSuperExpression(
         node: node,
         target: target,
@@ -274,7 +274,8 @@ class PropertyElementResolver with ScopeHelpers {
                 ?.unwrapTypeView() ??
             unpromotedType;
       }
-      _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
+      _resolver.checkReadOfNotAssignedLocalVariable(
+          node, readElementRequested?.asElement2);
     }
 
     Element? writeElementRequested;
@@ -387,8 +388,8 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolve({
-    required Expression node,
-    required Expression target,
+    required ExpressionImpl node,
+    required ExpressionImpl target,
     required bool isCascaded,
     required bool isNullAware,
     required SimpleIdentifier propertyName,
@@ -401,7 +402,7 @@ class PropertyElementResolver with ScopeHelpers {
     // hierarchy, instead we just look for the member in the type only.  This
     // does not apply to conditional property accesses (i.e. 'C?.m').
     //
-    if (target is Identifier) {
+    if (target is IdentifierImpl) {
       var targetElement = target.staticElement;
       if (targetElement is InterfaceElement) {
         return _resolveTargetInterfaceElement(
@@ -430,7 +431,7 @@ class PropertyElementResolver with ScopeHelpers {
     // then look for the member in the extension. This does not apply to
     // conditional property accesses (i.e. 'C?.m').
     //
-    if (target is Identifier) {
+    if (target is IdentifierImpl) {
       var targetElement = target.staticElement;
       if (targetElement is ExtensionElement) {
         return _resolveTargetExtensionElement(
@@ -464,7 +465,7 @@ class PropertyElementResolver with ScopeHelpers {
       targetType = _typeSystem.promoteToNonNull(targetType);
     }
 
-    if (target is TypeLiteral && target.type.type is FunctionType) {
+    if (target is TypeLiteralImpl && target.type.type is FunctionType) {
       // There is no possible resolution for a property access of a function
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
@@ -504,7 +505,7 @@ class PropertyElementResolver with ScopeHelpers {
                   node,
                   isCascaded
                       ? CascadePropertyTarget.singleton
-                          as PropertyTarget<Expression>
+                          as PropertyTarget<ExpressionImpl>
                       : ExpressionPropertyTarget(target),
                   propertyName.name,
                   result.getter,
@@ -795,7 +796,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetSuperExpression({
-    required Expression node,
+    required ExpressionImpl node,
     required SuperExpression target,
     required SimpleIdentifier propertyName,
     required bool hasRead,

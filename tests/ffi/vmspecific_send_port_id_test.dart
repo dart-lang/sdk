@@ -16,14 +16,16 @@ main() async {
 
   final completer = Completer();
 
-  final receivePort = ReceivePort()
-    ..listen((receivedMessage) => completer.complete(receivedMessage));
+  final receivePort =
+      ReceivePort()
+        ..listen((receivedMessage) => completer.complete(receivedMessage));
 
   final executableSymbols = DynamicLibrary.executable();
 
-  final postInteger =
-      executableSymbols.lookupFunction<Dart_PostIntegerNFT, Dart_PostIntegerFT>(
-          "Dart_PostInteger");
+  final postInteger = executableSymbols
+      .lookupFunction<Dart_PostIntegerNFT, Dart_PostIntegerFT>(
+        "Dart_PostInteger",
+      );
 
   // Issue(dartbug.com/38545): The dart:ffi doesn't have a bool type yet.
   final bool success =

@@ -89,7 +89,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     // prepare target ClassDeclaration
     var targetElement = targetType.element3;
     var targetFragment = targetElement.firstFragment;
-    var targetResult = await sessionHelper.getElementDeclaration2(
+    var targetResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetResult == null) {
@@ -130,9 +130,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target interface type
-    var targetResult = await sessionHelper.getElementDeclaration2(
-      targetElement,
-    );
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;
     }
@@ -185,7 +183,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetResult = await sessionHelper.getElementDeclaration2(
+    var targetResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetResult == null) {

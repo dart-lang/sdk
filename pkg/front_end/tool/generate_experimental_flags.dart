@@ -179,7 +179,8 @@ class Version {
 }
 ''');
 
-  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+  return new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
       .format("$sb");
 }
 
@@ -214,7 +215,8 @@ import "ast.dart";
 const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
-  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+  return new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
       .format("$sb");
 }
 
@@ -527,7 +529,8 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   };
   ''');
 
-  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+  return new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
       .format("$sb");
 }
 

@@ -336,7 +336,6 @@ abstract class BuilderImpl implements Builder {
   bool get isSetter => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
 
   @override

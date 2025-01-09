@@ -53,7 +53,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /**
    * The lengths of the expressions that would be replaced by a reference to the variable. The
    * lengths correspond to the offsets. In other words, for a given expression, if the offset of that
-   * expression is offsets[i], then the length of that expression is lengths[i].
+   * expression is <code>offsets[i]</code>, then the length of that expression is
+   * <code>lengths[i]</code>.
    */
   private final int[] lengths;
 
@@ -120,7 +121,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /**
    * The lengths of the expressions that would be replaced by a reference to the variable. The
    * lengths correspond to the offsets. In other words, for a given expression, if the offset of that
-   * expression is offsets[i], then the length of that expression is lengths[i].
+   * expression is <code>offsets[i]</code>, then the length of that expression is
+   * <code>lengths[i]</code>.
    */
   public int[] getLengths() {
     return lengths;

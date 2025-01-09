@@ -267,6 +267,9 @@ class DillClassBuilder extends ClassBuilderImpl
     _interfaceBuilders = null;
     _typeParameters = null;
   }
+
+  @override
+  Reference get reference => cls.reference;
 }
 
 TypeBuilder? computeTypeBuilder(

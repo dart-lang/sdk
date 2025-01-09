@@ -123,7 +123,7 @@ var b1 = a[1];
 var t = (int p) {};
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'Null Function(int)',
     );
   }
@@ -134,7 +134,7 @@ var a = 0;
 var t = (int p) => (a = 1);
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'int Function(int)',
     );
   }
@@ -144,7 +144,7 @@ var t = (int p) => (a = 1);
 var t = (int a, b,int c, d) => 0;
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'int Function(int, dynamic, int, dynamic)',
     );
   }
@@ -12007,7 +12007,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                optionalPositional default final this.f @33
+                optionalPositional default final hasImplicitType this.f @33
                   type: int
                   constantInitializer
                     SimpleStringLiteral
@@ -12075,7 +12075,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            optionalPositional final f
+            optionalPositional final hasImplicitType f
               type: int
       getters
         synthetic get f
@@ -12206,7 +12206,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional _ @105
+                requiredPositional hasImplicitType _ @105
                   type: int
               returnType: void
 ----------------------------------------
@@ -12393,7 +12393,7 @@ library
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: int
 ''');
   }
@@ -12694,7 +12694,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional _ @108
+                requiredPositional hasImplicitType _ @108
                   type: T
               returnType: void
 ----------------------------------------
@@ -12891,7 +12891,7 @@ library
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: T
 ''');
   }
@@ -13338,7 +13338,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional _ @117
+                requiredPositional hasImplicitType _ @117
                   type: int
               returnType: void
 ----------------------------------------
@@ -13484,7 +13484,7 @@ library
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: int
 ''');
   }
@@ -13591,7 +13591,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional _ @120
+                requiredPositional hasImplicitType _ @120
                   type: T
               returnType: void
 ----------------------------------------
@@ -13747,7 +13747,7 @@ library
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: T
 ''');
   }
@@ -15050,7 +15050,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional _ @113
+                requiredPositional hasImplicitType _ @113
                   type: String
               returnType: void
 ----------------------------------------
@@ -15167,7 +15167,7 @@ library
         abstract set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: String
 ''');
   }
@@ -15651,7 +15651,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional _ @110
+                requiredPositional hasImplicitType _ @110
                   type: int
               returnType: void
 ----------------------------------------
@@ -15768,7 +15768,7 @@ library
         abstract set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: int
 ''');
   }
@@ -15878,7 +15878,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional _ @141
+                requiredPositional hasImplicitType _ @141
                   type: int
               returnType: void
 ----------------------------------------
@@ -16042,7 +16042,7 @@ library
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: int
 ''');
   }
@@ -17236,9 +17236,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @60
+                requiredPositional hasImplicitType a @60
                   type: int
-                requiredPositional b @63
+                requiredPositional hasImplicitType b @63
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -17308,9 +17308,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            requiredPositional b
+            requiredPositional hasImplicitType b
               type: dynamic
 ''');
   }
@@ -17382,7 +17382,7 @@ library
               enclosingElement3: <testLibraryFragment>::@class::C
               typeInferenceError: overrideNoCombinedSuperSignature
               parameters
-                requiredPositional a @102
+                requiredPositional hasImplicitType a @102
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -17480,7 +17480,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -17553,7 +17553,7 @@ library
               enclosingElement3: <testLibraryFragment>::@class::C
               typeInferenceError: overrideNoCombinedSuperSignature
               parameters
-                requiredPositional x @130
+                requiredPositional hasImplicitType x @130
                   type: dynamic
               returnType: Never
 ----------------------------------------
@@ -17649,7 +17649,7 @@ library
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
 ''');
   }
@@ -17873,7 +17873,7 @@ library
               enclosingElement3: <testLibraryFragment>::@class::C
               typeInferenceError: overrideNoCombinedSuperSignature
               parameters
-                requiredPositional a @114
+                requiredPositional hasImplicitType a @114
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -17983,7 +17983,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -18065,7 +18065,7 @@ library
               enclosingElement3: <testLibraryFragment>::@class::C
               typeInferenceError: overrideNoCombinedSuperSignature
               parameters
-                requiredPositional a @121
+                requiredPositional hasImplicitType a @121
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -18178,7 +18178,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -18229,9 +18229,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @55
+                requiredPositional hasImplicitType a @55
                   type: int
-                optionalNamed default b @59
+                optionalNamed default hasImplicitType b @59
                   reference: <testLibraryFragment>::@class::B::@method::m::@parameter::b
                   type: dynamic
               returnType: void
@@ -18303,9 +18303,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            optionalNamed b
+            optionalNamed hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::b
               type: dynamic
 ''');
@@ -18357,9 +18357,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @55
+                requiredPositional hasImplicitType a @55
                   type: int
-                optionalPositional default b @59
+                optionalPositional default hasImplicitType b @59
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -18429,9 +18429,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            optionalPositional b
+            optionalPositional hasImplicitType b
               type: dynamic
 ''');
   }
@@ -18465,7 +18465,7 @@ library
               reference: <testLibraryFragment>::@class::A::@method::m
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional a @14
+                requiredPositional hasImplicitType a @14
                   type: dynamic
               returnType: dynamic
         class B @28
@@ -18482,7 +18482,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @46
+                requiredPositional hasImplicitType a @46
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -18535,7 +18535,7 @@ library
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
     class B
       reference: <testLibrary>::@class::B
@@ -18550,7 +18550,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -18601,7 +18601,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @65
+                requiredPositional hasImplicitType a @65
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -18669,7 +18669,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -18730,7 +18730,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @50
+                requiredPositional hasImplicitType a @50
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -18816,7 +18816,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -18889,7 +18889,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @96
+                requiredPositional hasImplicitType a @96
                   type: int
               returnType: String
 ----------------------------------------
@@ -18991,7 +18991,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -19045,7 +19045,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @57
+                requiredPositional hasImplicitType a @57
                   type: int
               returnType: String
         class C @71
@@ -19062,7 +19062,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @89
+                requiredPositional hasImplicitType a @89
                   type: int
               returnType: String
 ----------------------------------------
@@ -19146,7 +19146,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
     class C
       reference: <testLibrary>::@class::C
@@ -19161,7 +19161,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -19215,7 +19215,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @60
+                requiredPositional hasImplicitType a @60
                   type: int
               returnType: String
         class C @74
@@ -19232,7 +19232,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @92
+                requiredPositional hasImplicitType a @92
                   type: int
               returnType: String
 ----------------------------------------
@@ -19315,7 +19315,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
     class C
       reference: <testLibrary>::@class::C
@@ -19330,7 +19330,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -19385,7 +19385,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @69
+                requiredPositional hasImplicitType a @69
                   type: int
               returnType: String
         class C @83
@@ -19402,7 +19402,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @101
+                requiredPositional hasImplicitType a @101
                   type: int
               returnType: String
 ----------------------------------------
@@ -19486,7 +19486,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
     class C
       reference: <testLibrary>::@class::C
@@ -19501,7 +19501,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -19561,9 +19561,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @79
+                requiredPositional hasImplicitType a @79
                   type: int
-                requiredPositional b @82
+                requiredPositional hasImplicitType b @82
                   type: double
               returnType: String
 ----------------------------------------
@@ -19647,9 +19647,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            requiredPositional b
+            requiredPositional hasImplicitType b
               type: double
 ''');
   }
@@ -19700,7 +19700,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @57
+                requiredPositional hasImplicitType a @57
                   type: int
               returnType: String
 ----------------------------------------
@@ -19768,7 +19768,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -19822,9 +19822,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @69
+                requiredPositional hasImplicitType a @69
                   type: int
-                optionalNamed default b @73
+                optionalNamed default hasImplicitType b @73
                   reference: <testLibraryFragment>::@class::B::@method::m::@parameter::b
                   type: double
               returnType: String
@@ -19902,9 +19902,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            optionalNamed b
+            optionalNamed hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::b
               type: double
 ''');
@@ -19958,9 +19958,9 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @69
+                requiredPositional hasImplicitType a @69
                   type: int
-                optionalPositional default b @73
+                optionalPositional default hasImplicitType b @73
                   type: double
               returnType: String
 ----------------------------------------
@@ -20034,9 +20034,9 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
-            optionalPositional b
+            optionalPositional hasImplicitType b
               type: double
 ''');
   }
@@ -20109,7 +20109,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @96
+                requiredPositional hasImplicitType a @96
                   type: int
               returnType: String
 ----------------------------------------
@@ -20211,7 +20211,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -20267,7 +20267,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @79
+                requiredPositional hasImplicitType a @79
                   type: int
               returnType: String
 ----------------------------------------
@@ -20342,7 +20342,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -20393,7 +20393,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @67
+                requiredPositional hasImplicitType a @67
                   type: int
               returnType: String
 ----------------------------------------
@@ -20460,7 +20460,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -20533,7 +20533,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @125
+                requiredPositional hasImplicitType a @125
                   type: String
               returnType: int
 ----------------------------------------
@@ -20635,7 +20635,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -20798,7 +20798,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @69
+                requiredPositional hasImplicitType a @69
                   type: int
               returnType: String
 ----------------------------------------
@@ -20866,7 +20866,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -20947,7 +20947,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @121
+                requiredPositional hasImplicitType a @121
                   type: int
               returnType: String
 ----------------------------------------
@@ -21060,7 +21060,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -21131,7 +21131,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @103
+                requiredPositional hasImplicitType a @103
                   type: int
               returnType: String
 ----------------------------------------
@@ -21229,7 +21229,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: int
 ''');
   }
@@ -21240,6 +21240,6 @@ library
     var analysisSession = contextFor(testFile).currentSession;
     var result = await analysisSession.getUnitElement(testFile.path);
     result as UnitElementResult;
-    return result.element.library as LibraryElementImpl;
+    return result.fragment.element as LibraryElementImpl;
   }
 }

@@ -1,0 +1,43 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/regress_flutter160137.lib.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method procedure() → void {
+    self::Helper helper = new self::Helper::•();
+    {
+      [@vm.direct-call.metadata=#lib::Helper.instance] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] helper.{self::Helper::instance}{#lib1::MyExtensionType? /* erasure=core::int? */};
+    }
+  }
+}
+class Helper extends core::Object {
+  constructor •() → self::Helper
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
+  get instance() → #lib1::MyExtensionType? /* erasure=core::int? */ {
+    return null;
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::Class c = new self::Class::•();
+  [@vm.direct-call.metadata=#lib::Class.procedure] [@vm.inferred-type.metadata=!? (skip check)] c.{self::Class::procedure}(){() → void};
+}
+library regress_flutter160137.lib.dart;
+import self as self;
+import "dart:core" as core;
+
+extension type MyExtensionType(core::int foo) {
+}

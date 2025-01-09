@@ -234,7 +234,7 @@ class TestSurveyManager extends SurveyManager {
   });
 
   @override
-  Future<void> checkForSurveys() async {
+  Future<void> checkForSurveys() {
     numberOfChecksPerformed++;
     return super.checkForSurveys();
   }

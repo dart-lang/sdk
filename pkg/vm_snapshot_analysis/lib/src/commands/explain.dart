@@ -4,7 +4,7 @@
 
 /// This command allows to inspect information written into the
 /// precompiler trace (`--trace-precompiler-to` output).
-library vm_snapshot_analysis.explain;
+library;
 
 import 'dart:async';
 import 'dart:io';

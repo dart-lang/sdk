@@ -73,19 +73,13 @@ class ParserTestListener implements Listener {
 
   @override
   void logEvent(String name) {
-    doPrint(
-      'logEvent('
-      '$name)',
-    );
+    doPrint('logEvent(' '$name)');
   }
 
   @override
   void beginArguments(Token token) {
     seen(token);
-    doPrint(
-      'beginArguments('
-      '$token)',
-    );
+    doPrint('beginArguments(' '$token)');
     indent++;
   }
 
@@ -94,12 +88,7 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endArguments('
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endArguments(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -107,31 +96,20 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint(
-      'handleObjectPatternFields('
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+        'handleObjectPatternFields(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     seen(asyncToken);
     seen(starToken);
-    doPrint(
-      'handleAsyncModifier('
-      '$asyncToken, '
-      '$starToken)',
-    );
+    doPrint('handleAsyncModifier(' '$asyncToken, ' '$starToken)');
   }
 
   @override
   void beginAwaitExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginAwaitExpression('
-      '$token)',
-    );
+    doPrint('beginAwaitExpression(' '$token)');
     indent++;
   }
 
@@ -140,76 +118,47 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endAwaitExpression('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endAwaitExpression(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void endInvalidAwaitExpression(
-    Token beginToken,
-    Token endToken,
-    MessageCode errorCode,
-  ) {
+      Token beginToken, Token endToken, MessageCode errorCode) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endInvalidAwaitExpression('
-      '$beginToken, '
-      '$endToken, '
-      '$errorCode)',
-    );
+    doPrint('endInvalidAwaitExpression('
+        '$beginToken, '
+        '$endToken, '
+        '$errorCode)');
   }
 
   @override
   void beginBlock(Token token, BlockKind blockKind) {
     seen(token);
-    doPrint(
-      'beginBlock('
-      '$token, '
-      '$blockKind)',
-    );
+    doPrint('beginBlock(' '$token, ' '$blockKind)');
     indent++;
   }
 
   @override
   void endBlock(
-    int count,
-    Token beginToken,
-    Token endToken,
-    BlockKind blockKind,
-  ) {
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endBlock('
-      '$count, '
-      '$beginToken, '
-      '$endToken, '
-      '$blockKind)',
-    );
+    doPrint('endBlock(' '$count, ' '$beginToken, ' '$endToken, ' '$blockKind)');
   }
 
   @override
   void handleInvalidTopLevelBlock(Token token) {
     seen(token);
-    doPrint(
-      'handleInvalidTopLevelBlock('
-      '$token)',
-    );
+    doPrint('handleInvalidTopLevelBlock(' '$token)');
   }
 
   @override
   void beginCascade(Token token) {
     seen(token);
-    doPrint(
-      'beginCascade('
-      '$token)',
-    );
+    doPrint('beginCascade(' '$token)');
     indent++;
   }
 
@@ -222,10 +171,7 @@ class ParserTestListener implements Listener {
   @override
   void beginCaseExpression(Token caseKeyword) {
     seen(caseKeyword);
-    doPrint(
-      'beginCaseExpression('
-      '$caseKeyword)',
-    );
+    doPrint('beginCaseExpression(' '$caseKeyword)');
     indent++;
   }
 
@@ -235,67 +181,48 @@ class ParserTestListener implements Listener {
     seen(caseKeyword);
     seen(when);
     seen(colon);
-    doPrint(
-      'endCaseExpression('
-      '$caseKeyword, '
-      '$when, '
-      '$colon)',
-    );
+    doPrint('endCaseExpression(' '$caseKeyword, ' '$when, ' '$colon)');
   }
 
   @override
   void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     seen(token);
-    doPrint(
-      'beginClassOrMixinOrExtensionBody('
-      '$kind, '
-      '$token)',
-    );
+    doPrint('beginClassOrMixinOrExtensionBody(' '$kind, ' '$token)');
     indent++;
   }
 
   @override
   void endClassOrMixinOrExtensionBody(
-    DeclarationKind kind,
-    int memberCount,
-    Token beginToken,
-    Token endToken,
-  ) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endClassOrMixinOrExtensionBody('
-      '$kind, '
-      '$memberCount, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endClassOrMixinOrExtensionBody('
+        '$kind, '
+        '$memberCount, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
     seen(token);
-    doPrint(
-      'beginClassOrMixinOrNamedMixinApplicationPrelude('
-      '$token)',
-    );
+    doPrint('beginClassOrMixinOrNamedMixinApplicationPrelude(' '$token)');
     indent++;
   }
 
   @override
   void beginClassDeclaration(
-    Token begin,
-    Token? abstractToken,
-    Token? macroToken,
-    Token? sealedToken,
-    Token? baseToken,
-    Token? interfaceToken,
-    Token? finalToken,
-    Token? augmentToken,
-    Token? mixinToken,
-    Token name,
-  ) {
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token? augmentToken,
+      Token? mixinToken,
+      Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
@@ -306,40 +233,30 @@ class ParserTestListener implements Listener {
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
-    doPrint(
-      'beginClassDeclaration('
-      '$begin, '
-      '$abstractToken, '
-      '$macroToken, '
-      '$sealedToken, '
-      '$baseToken, '
-      '$interfaceToken, '
-      '$finalToken, '
-      '$augmentToken, '
-      '$mixinToken, '
-      '$name)',
-    );
+    doPrint('beginClassDeclaration('
+        '$begin, '
+        '$abstractToken, '
+        '$macroToken, '
+        '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
+        '$augmentToken, '
+        '$mixinToken, '
+        '$name)');
     indent++;
   }
 
   @override
   void handleClassExtends(Token? extendsKeyword, int typeCount) {
     seen(extendsKeyword);
-    doPrint(
-      'handleClassExtends('
-      '$extendsKeyword, '
-      '$typeCount)',
-    );
+    doPrint('handleClassExtends(' '$extendsKeyword, ' '$typeCount)');
   }
 
   @override
   void handleImplements(Token? implementsKeyword, int interfacesCount) {
     seen(implementsKeyword);
-    doPrint(
-      'handleImplements('
-      '$implementsKeyword, '
-      '$interfacesCount)',
-    );
+    doPrint('handleImplements(' '$implementsKeyword, ' '$interfacesCount)');
   }
 
   @override
@@ -347,20 +264,12 @@ class ParserTestListener implements Listener {
     seen(begin);
     seen(classKeyword);
     seen(nativeToken);
-    doPrint(
-      'handleClassHeader('
-      '$begin, '
-      '$classKeyword, '
-      '$nativeToken)',
-    );
+    doPrint('handleClassHeader(' '$begin, ' '$classKeyword, ' '$nativeToken)');
   }
 
   @override
   void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
-    doPrint(
-      'handleRecoverDeclarationHeader('
-      '$kind)',
-    );
+    doPrint('handleRecoverDeclarationHeader(' '$kind)');
   }
 
   @override
@@ -368,54 +277,36 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endClassDeclaration('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endClassDeclaration(' '$beginToken, ' '$endToken)');
   }
 
   @override
-  void beginMixinDeclaration(
-    Token beginToken,
-    Token? augmentToken,
-    Token? baseToken,
-    Token mixinKeyword,
-    Token name,
-  ) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     seen(beginToken);
     seen(augmentToken);
     seen(baseToken);
     seen(mixinKeyword);
     seen(name);
-    doPrint(
-      'beginMixinDeclaration('
-      '$beginToken, '
-      '$augmentToken, '
-      '$baseToken, '
-      '$mixinKeyword, '
-      '$name)',
-    );
+    doPrint('beginMixinDeclaration('
+        '$beginToken, '
+        '$augmentToken, '
+        '$baseToken, '
+        '$mixinKeyword, '
+        '$name)');
     indent++;
   }
 
   @override
   void handleMixinOn(Token? onKeyword, int typeCount) {
     seen(onKeyword);
-    doPrint(
-      'handleMixinOn('
-      '$onKeyword, '
-      '$typeCount)',
-    );
+    doPrint('handleMixinOn(' '$onKeyword, ' '$typeCount)');
   }
 
   @override
   void handleMixinHeader(Token mixinKeyword) {
     seen(mixinKeyword);
-    doPrint(
-      'handleMixinHeader('
-      '$mixinKeyword)',
-    );
+    doPrint('handleMixinHeader(' '$mixinKeyword)');
   }
 
   @override
@@ -428,178 +319,124 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endMixinDeclaration('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endMixinDeclaration(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginUncategorizedTopLevelDeclaration(Token token) {
     seen(token);
-    doPrint(
-      'beginUncategorizedTopLevelDeclaration('
-      '$token)',
-    );
+    doPrint('beginUncategorizedTopLevelDeclaration(' '$token)');
     indent++;
   }
 
   @override
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
     seen(extensionKeyword);
-    doPrint(
-      'beginExtensionDeclarationPrelude('
-      '$extensionKeyword)',
-    );
+    doPrint('beginExtensionDeclarationPrelude(' '$extensionKeyword)');
     indent++;
   }
 
   @override
   void beginExtensionDeclaration(
-    Token? augmentToken,
-    Token extensionKeyword,
-    Token? name,
-  ) {
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     seen(augmentToken);
     seen(extensionKeyword);
     seen(name);
-    doPrint(
-      'beginExtensionDeclaration('
-      '$augmentToken, '
-      '$extensionKeyword, '
-      '$name)',
-    );
+    doPrint('beginExtensionDeclaration('
+        '$augmentToken, '
+        '$extensionKeyword, '
+        '$name)');
     indent++;
   }
 
   @override
-  void endExtensionDeclaration(
-    Token beginToken,
-    Token extensionKeyword,
-    Token? onKeyword,
-    Token endToken,
-  ) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token? onKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(extensionKeyword);
     seen(onKeyword);
     seen(endToken);
-    doPrint(
-      'endExtensionDeclaration('
-      '$beginToken, '
-      '$extensionKeyword, '
-      '$onKeyword, '
-      '$endToken)',
-    );
+    doPrint('endExtensionDeclaration('
+        '$beginToken, '
+        '$extensionKeyword, '
+        '$onKeyword, '
+        '$endToken)');
   }
 
   @override
   void beginExtensionTypeDeclaration(
-    Token? augmentKeyword,
-    Token extensionKeyword,
-    Token name,
-  ) {
+      Token? augmentKeyword, Token extensionKeyword, Token name) {
     seen(augmentKeyword);
     seen(extensionKeyword);
     seen(name);
-    doPrint(
-      'beginExtensionTypeDeclaration('
-      '$augmentKeyword, '
-      '$extensionKeyword, '
-      '$name)',
-    );
+    doPrint('beginExtensionTypeDeclaration('
+        '$augmentKeyword, '
+        '$extensionKeyword, '
+        '$name)');
     indent++;
   }
 
   @override
-  void endExtensionTypeDeclaration(
-    Token beginToken,
-    Token? augmentToken,
-    Token extensionKeyword,
-    Token typeKeyword,
-    Token endToken,
-  ) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(augmentToken);
     seen(extensionKeyword);
     seen(typeKeyword);
     seen(endToken);
-    doPrint(
-      'endExtensionTypeDeclaration('
-      '$beginToken, '
-      '$augmentToken, '
-      '$extensionKeyword, '
-      '$typeKeyword, '
-      '$endToken)',
-    );
+    doPrint('endExtensionTypeDeclaration('
+        '$beginToken, '
+        '$augmentToken, '
+        '$extensionKeyword, '
+        '$typeKeyword, '
+        '$endToken)');
   }
 
   @override
   void beginPrimaryConstructor(Token beginToken) {
     seen(beginToken);
-    doPrint(
-      'beginPrimaryConstructor('
-      '$beginToken)',
-    );
+    doPrint('beginPrimaryConstructor(' '$beginToken)');
     indent++;
   }
 
   @override
   void endPrimaryConstructor(
-    Token beginToken,
-    Token? constKeyword,
-    bool hasConstructorName,
-  ) {
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
     indent--;
     seen(beginToken);
     seen(constKeyword);
-    doPrint(
-      'endPrimaryConstructor('
-      '$beginToken, '
-      '$constKeyword, '
-      '$hasConstructorName)',
-    );
+    doPrint('endPrimaryConstructor('
+        '$beginToken, '
+        '$constKeyword, '
+        '$hasConstructorName)');
   }
 
   @override
   void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
     seen(token);
     seen(constKeyword);
-    doPrint(
-      'handleNoPrimaryConstructor('
-      '$token, '
-      '$constKeyword)',
-    );
+    doPrint('handleNoPrimaryConstructor(' '$token, ' '$constKeyword)');
   }
 
   @override
   void beginCombinators(Token token) {
     seen(token);
-    doPrint(
-      'beginCombinators('
-      '$token)',
-    );
+    doPrint('beginCombinators(' '$token)');
     indent++;
   }
 
   @override
   void endCombinators(int count) {
     indent--;
-    doPrint(
-      'endCombinators('
-      '$count)',
-    );
+    doPrint('endCombinators(' '$count)');
   }
 
   @override
   void beginCompilationUnit(Token token) {
     seen(token);
-    doPrint(
-      'beginCompilationUnit('
-      '$token)',
-    );
+    doPrint('beginCompilationUnit(' '$token)');
     indent++;
   }
 
@@ -612,20 +449,13 @@ class ParserTestListener implements Listener {
   void endCompilationUnit(int count, Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endCompilationUnit('
-      '$count, '
-      '$token)',
-    );
+    doPrint('endCompilationUnit(' '$count, ' '$token)');
   }
 
   @override
   void beginConstLiteral(Token token) {
     seen(token);
-    doPrint(
-      'beginConstLiteral('
-      '$token)',
-    );
+    doPrint('beginConstLiteral(' '$token)');
     indent++;
   }
 
@@ -633,77 +463,52 @@ class ParserTestListener implements Listener {
   void endConstLiteral(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endConstLiteral('
-      '$endToken)',
-    );
+    doPrint('endConstLiteral(' '$endToken)');
   }
 
   @override
   void beginConstructorReference(Token start) {
     seen(start);
-    doPrint(
-      'beginConstructorReference('
-      '$start)',
-    );
+    doPrint('beginConstructorReference(' '$start)');
     indent++;
   }
 
   @override
-  void endConstructorReference(
-    Token start,
-    Token? periodBeforeName,
-    Token endToken,
-    ConstructorReferenceContext constructorReferenceContext,
-  ) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     indent--;
     seen(start);
     seen(periodBeforeName);
     seen(endToken);
-    doPrint(
-      'endConstructorReference('
-      '$start, '
-      '$periodBeforeName, '
-      '$endToken, '
-      '$constructorReferenceContext)',
-    );
+    doPrint('endConstructorReference('
+        '$start, '
+        '$periodBeforeName, '
+        '$endToken, '
+        '$constructorReferenceContext)');
   }
 
   @override
   void beginDoWhileStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginDoWhileStatement('
-      '$token)',
-    );
+    doPrint('beginDoWhileStatement(' '$token)');
     indent++;
   }
 
   @override
   void endDoWhileStatement(
-    Token doKeyword,
-    Token whileKeyword,
-    Token endToken,
-  ) {
+      Token doKeyword, Token whileKeyword, Token endToken) {
     indent--;
     seen(doKeyword);
     seen(whileKeyword);
     seen(endToken);
     doPrint(
-      'endDoWhileStatement('
-      '$doKeyword, '
-      '$whileKeyword, '
-      '$endToken)',
-    );
+        'endDoWhileStatement(' '$doKeyword, ' '$whileKeyword, ' '$endToken)');
   }
 
   @override
   void beginDoWhileStatementBody(Token token) {
     seen(token);
-    doPrint(
-      'beginDoWhileStatementBody('
-      '$token)',
-    );
+    doPrint('beginDoWhileStatementBody(' '$token)');
     indent++;
   }
 
@@ -711,19 +516,13 @@ class ParserTestListener implements Listener {
   void endDoWhileStatementBody(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endDoWhileStatementBody('
-      '$token)',
-    );
+    doPrint('endDoWhileStatementBody(' '$token)');
   }
 
   @override
   void beginWhileStatementBody(Token token) {
     seen(token);
-    doPrint(
-      'beginWhileStatementBody('
-      '$token)',
-    );
+    doPrint('beginWhileStatementBody(' '$token)');
     indent++;
   }
 
@@ -731,132 +530,89 @@ class ParserTestListener implements Listener {
   void endWhileStatementBody(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endWhileStatementBody('
-      '$endToken)',
-    );
+    doPrint('endWhileStatementBody(' '$endToken)');
   }
 
   @override
   void beginEnum(Token enumKeyword) {
     seen(enumKeyword);
-    doPrint(
-      'beginEnum('
-      '$enumKeyword)',
-    );
+    doPrint('beginEnum(' '$enumKeyword)');
     indent++;
   }
 
   @override
-  void endEnum(
-    Token beginToken,
-    Token enumKeyword,
-    Token leftBrace,
-    int memberCount,
-    Token endToken,
-  ) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     indent--;
     seen(beginToken);
     seen(enumKeyword);
     seen(leftBrace);
     seen(endToken);
-    doPrint(
-      'endEnum('
-      '$beginToken, '
-      '$enumKeyword, '
-      '$leftBrace, '
-      '$memberCount, '
-      '$endToken)',
-    );
+    doPrint('endEnum('
+        '$beginToken, '
+        '$enumKeyword, '
+        '$leftBrace, '
+        '$memberCount, '
+        '$endToken)');
   }
 
   @override
-  void endEnumConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endEnumConstructor('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endEnumConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     seen(elementsEndToken);
-    doPrint(
-      'handleEnumElements('
-      '$elementsEndToken, '
-      '$elementsCount)',
-    );
+    doPrint('handleEnumElements(' '$elementsEndToken, ' '$elementsCount)');
   }
 
   @override
   void handleEnumHeader(
-    Token? augmentToken,
-    Token enumKeyword,
-    Token leftBrace,
-  ) {
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     seen(augmentToken);
     seen(enumKeyword);
     seen(leftBrace);
     doPrint(
-      'handleEnumHeader('
-      '$augmentToken, '
-      '$enumKeyword, '
-      '$leftBrace)',
-    );
+        'handleEnumHeader(' '$augmentToken, ' '$enumKeyword, ' '$leftBrace)');
   }
 
   @override
   void handleEnumElement(Token beginToken, Token? augmentToken) {
     seen(beginToken);
     seen(augmentToken);
-    doPrint(
-      'handleEnumElement('
-      '$beginToken, '
-      '$augmentToken)',
-    );
+    doPrint('handleEnumElement(' '$beginToken, ' '$augmentToken)');
   }
 
   @override
   void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
     seen(endToken);
-    doPrint(
-      'endEnumFactoryMethod('
-      '$beginToken, '
-      '$factoryKeyword, '
-      '$endToken)',
-    );
+    doPrint('endEnumFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
   void beginExport(Token token) {
     seen(token);
-    doPrint(
-      'beginExport('
-      '$token)',
-    );
+    doPrint('beginExport(' '$token)');
     indent++;
   }
 
@@ -865,160 +621,114 @@ class ParserTestListener implements Listener {
     indent--;
     seen(exportKeyword);
     seen(semicolon);
-    doPrint(
-      'endExport('
-      '$exportKeyword, '
-      '$semicolon)',
-    );
+    doPrint('endExport(' '$exportKeyword, ' '$semicolon)');
   }
 
   @override
   void handleExtraneousExpression(Token token, Message message) {
     seen(token);
-    doPrint(
-      'handleExtraneousExpression('
-      '$token, '
-      '$message)',
-    );
+    doPrint('handleExtraneousExpression(' '$token, ' '$message)');
   }
 
   @override
   void handleExpressionStatement(Token beginToken, Token endToken) {
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'handleExpressionStatement('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('handleExpressionStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
-  void beginFactoryMethod(
-    DeclarationKind declarationKind,
-    Token lastConsumed,
-    Token? externalToken,
-    Token? constToken,
-  ) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
     seen(lastConsumed);
     seen(externalToken);
     seen(constToken);
-    doPrint(
-      'beginFactoryMethod('
-      '$declarationKind, '
-      '$lastConsumed, '
-      '$externalToken, '
-      '$constToken)',
-    );
+    doPrint('beginFactoryMethod('
+        '$declarationKind, '
+        '$lastConsumed, '
+        '$externalToken, '
+        '$constToken)');
     indent++;
   }
 
   @override
   void endClassFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
     seen(endToken);
-    doPrint(
-      'endClassFactoryMethod('
-      '$beginToken, '
-      '$factoryKeyword, '
-      '$endToken)',
-    );
+    doPrint('endClassFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
   void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
     seen(endToken);
-    doPrint(
-      'endMixinFactoryMethod('
-      '$beginToken, '
-      '$factoryKeyword, '
-      '$endToken)',
-    );
+    doPrint('endMixinFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
   void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
     seen(endToken);
-    doPrint(
-      'endExtensionFactoryMethod('
-      '$beginToken, '
-      '$factoryKeyword, '
-      '$endToken)',
-    );
+    doPrint('endExtensionFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
   void endExtensionTypeFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(factoryKeyword);
     seen(endToken);
-    doPrint(
-      'endExtensionTypeFactoryMethod('
-      '$beginToken, '
-      '$factoryKeyword, '
-      '$endToken)',
-    );
+    doPrint('endExtensionTypeFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
-  void beginFormalParameter(
-    Token token,
-    MemberKind kind,
-    Token? requiredToken,
-    Token? covariantToken,
-    Token? varFinalOrConst,
-  ) {
+  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
+      Token? covariantToken, Token? varFinalOrConst) {
     seen(token);
     seen(requiredToken);
     seen(covariantToken);
     seen(varFinalOrConst);
-    doPrint(
-      'beginFormalParameter('
-      '$token, '
-      '$kind, '
-      '$requiredToken, '
-      '$covariantToken, '
-      '$varFinalOrConst)',
-    );
+    doPrint('beginFormalParameter('
+        '$token, '
+        '$kind, '
+        '$requiredToken, '
+        '$covariantToken, '
+        '$varFinalOrConst)');
     indent++;
   }
 
   @override
   void endFormalParameter(
-    Token? thisKeyword,
-    Token? superKeyword,
-    Token? periodAfterThisOrSuper,
-    Token nameToken,
-    Token? initializerStart,
-    Token? initializerEnd,
-    FormalParameterKind kind,
-    MemberKind memberKind,
-  ) {
+      Token? thisKeyword,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
+      Token nameToken,
+      Token? initializerStart,
+      Token? initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     indent--;
     seen(thisKeyword);
     seen(superKeyword);
@@ -1026,72 +736,55 @@ class ParserTestListener implements Listener {
     seen(nameToken);
     seen(initializerStart);
     seen(initializerEnd);
-    doPrint(
-      'endFormalParameter('
-      '$thisKeyword, '
-      '$superKeyword, '
-      '$periodAfterThisOrSuper, '
-      '$nameToken, '
-      '$initializerStart, '
-      '$initializerEnd, '
-      '$kind, '
-      '$memberKind)',
-    );
+    doPrint('endFormalParameter('
+        '$thisKeyword, '
+        '$superKeyword, '
+        '$periodAfterThisOrSuper, '
+        '$nameToken, '
+        '$initializerStart, '
+        '$initializerEnd, '
+        '$kind, '
+        '$memberKind)');
   }
 
   @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
     seen(token);
-    doPrint(
-      'handleNoFormalParameters('
-      '$token, '
-      '$kind)',
-    );
+    doPrint('handleNoFormalParameters(' '$token, ' '$kind)');
   }
 
   @override
   void beginFormalParameters(Token token, MemberKind kind) {
     seen(token);
-    doPrint(
-      'beginFormalParameters('
-      '$token, '
-      '$kind)',
-    );
+    doPrint('beginFormalParameters(' '$token, ' '$kind)');
     indent++;
   }
 
   @override
   void endFormalParameters(
-    int count,
-    Token beginToken,
-    Token endToken,
-    MemberKind kind,
-  ) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endFormalParameters('
-      '$count, '
-      '$beginToken, '
-      '$endToken, '
-      '$kind)',
-    );
+    doPrint('endFormalParameters('
+        '$count, '
+        '$beginToken, '
+        '$endToken, '
+        '$kind)');
   }
 
   @override
   void endClassFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -1102,34 +795,31 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endClassFields('
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endClassFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -1140,34 +830,31 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endMixinFields('
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endMixinFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void endExtensionFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -1178,34 +865,31 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endExtensionFields('
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endExtensionFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -1216,34 +900,31 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endExtensionTypeFields('
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endExtensionTypeFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(abstractToken);
     seen(augmentToken);
@@ -1254,137 +935,98 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endEnumFields('
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endEnumFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endEnumMethod('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endEnumMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
   void handleForInitializerEmptyStatement(Token token) {
     seen(token);
-    doPrint(
-      'handleForInitializerEmptyStatement('
-      '$token)',
-    );
+    doPrint('handleForInitializerEmptyStatement(' '$token)');
   }
 
   @override
   void handleForInitializerExpressionStatement(Token token, bool forIn) {
     seen(token);
-    doPrint(
-      'handleForInitializerExpressionStatement('
-      '$token, '
-      '$forIn)',
-    );
+    doPrint('handleForInitializerExpressionStatement(' '$token, ' '$forIn)');
   }
 
   @override
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     seen(token);
     doPrint(
-      'handleForInitializerLocalVariableDeclaration('
-      '$token, '
-      '$forIn)',
-    );
+        'handleForInitializerLocalVariableDeclaration(' '$token, ' '$forIn)');
   }
 
   @override
   void handleForInitializerPatternVariableAssignment(
-    Token keyword,
-    Token equals,
-  ) {
+      Token keyword, Token equals) {
     seen(keyword);
     seen(equals);
-    doPrint(
-      'handleForInitializerPatternVariableAssignment('
-      '$keyword, '
-      '$equals)',
-    );
+    doPrint('handleForInitializerPatternVariableAssignment('
+        '$keyword, '
+        '$equals)');
   }
 
   @override
   void beginForStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginForStatement('
-      '$token)',
-    );
+    doPrint('beginForStatement(' '$token)');
     indent++;
   }
 
   @override
-  void handleForLoopParts(
-    Token forKeyword,
-    Token leftParen,
-    Token leftSeparator,
-    Token rightSeparator,
-    int updateExpressionCount,
-  ) {
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     seen(forKeyword);
     seen(leftParen);
     seen(leftSeparator);
     seen(rightSeparator);
-    doPrint(
-      'handleForLoopParts('
-      '$forKeyword, '
-      '$leftParen, '
-      '$leftSeparator, '
-      '$rightSeparator, '
-      '$updateExpressionCount)',
-    );
+    doPrint('handleForLoopParts('
+        '$forKeyword, '
+        '$leftParen, '
+        '$leftSeparator, '
+        '$rightSeparator, '
+        '$updateExpressionCount)');
   }
 
   @override
   void endForStatement(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endForStatement('
-      '$endToken)',
-    );
+    doPrint('endForStatement(' '$endToken)');
   }
 
   @override
   void beginForStatementBody(Token token) {
     seen(token);
-    doPrint(
-      'beginForStatementBody('
-      '$token)',
-    );
+    doPrint('beginForStatementBody(' '$token)');
     indent++;
   }
 
@@ -1392,52 +1034,36 @@ class ParserTestListener implements Listener {
   void endForStatementBody(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endForStatementBody('
-      '$endToken)',
-    );
+    doPrint('endForStatementBody(' '$endToken)');
   }
 
   @override
-  void handleForInLoopParts(
-    Token? awaitToken,
-    Token forToken,
-    Token leftParenthesis,
-    Token? patternKeyword,
-    Token inKeyword,
-  ) {
+  void handleForInLoopParts(Token? awaitToken, Token forToken,
+      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
     seen(awaitToken);
     seen(forToken);
     seen(leftParenthesis);
     seen(patternKeyword);
     seen(inKeyword);
-    doPrint(
-      'handleForInLoopParts('
-      '$awaitToken, '
-      '$forToken, '
-      '$leftParenthesis, '
-      '$patternKeyword, '
-      '$inKeyword)',
-    );
+    doPrint('handleForInLoopParts('
+        '$awaitToken, '
+        '$forToken, '
+        '$leftParenthesis, '
+        '$patternKeyword, '
+        '$inKeyword)');
   }
 
   @override
   void endForIn(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endForIn('
-      '$endToken)',
-    );
+    doPrint('endForIn(' '$endToken)');
   }
 
   @override
   void beginForInExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginForInExpression('
-      '$token)',
-    );
+    doPrint('beginForInExpression(' '$token)');
     indent++;
   }
 
@@ -1445,19 +1071,13 @@ class ParserTestListener implements Listener {
   void endForInExpression(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endForInExpression('
-      '$token)',
-    );
+    doPrint('endForInExpression(' '$token)');
   }
 
   @override
   void beginForInBody(Token token) {
     seen(token);
-    doPrint(
-      'beginForInBody('
-      '$token)',
-    );
+    doPrint('beginForInBody(' '$token)');
     indent++;
   }
 
@@ -1465,19 +1085,13 @@ class ParserTestListener implements Listener {
   void endForInBody(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endForInBody('
-      '$endToken)',
-    );
+    doPrint('endForInBody(' '$endToken)');
   }
 
   @override
   void beginNamedFunctionExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginNamedFunctionExpression('
-      '$token)',
-    );
+    doPrint('beginNamedFunctionExpression(' '$token)');
     indent++;
   }
 
@@ -1485,19 +1099,13 @@ class ParserTestListener implements Listener {
   void endNamedFunctionExpression(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endNamedFunctionExpression('
-      '$endToken)',
-    );
+    doPrint('endNamedFunctionExpression(' '$endToken)');
   }
 
   @override
   void beginLocalFunctionDeclaration(Token token) {
     seen(token);
-    doPrint(
-      'beginLocalFunctionDeclaration('
-      '$token)',
-    );
+    doPrint('beginLocalFunctionDeclaration(' '$token)');
     indent++;
   }
 
@@ -1505,19 +1113,13 @@ class ParserTestListener implements Listener {
   void endLocalFunctionDeclaration(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endLocalFunctionDeclaration('
-      '$endToken)',
-    );
+    doPrint('endLocalFunctionDeclaration(' '$endToken)');
   }
 
   @override
   void beginBlockFunctionBody(Token token) {
     seen(token);
-    doPrint(
-      'beginBlockFunctionBody('
-      '$token)',
-    );
+    doPrint('beginBlockFunctionBody(' '$token)');
     indent++;
   }
 
@@ -1526,40 +1128,25 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endBlockFunctionBody('
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endBlockFunctionBody(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
   void handleNoFunctionBody(Token token) {
     seen(token);
-    doPrint(
-      'handleNoFunctionBody('
-      '$token)',
-    );
+    doPrint('handleNoFunctionBody(' '$token)');
   }
 
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     seen(token);
-    doPrint(
-      'handleFunctionBodySkipped('
-      '$token, '
-      '$isExpressionBody)',
-    );
+    doPrint('handleFunctionBodySkipped(' '$token, ' '$isExpressionBody)');
   }
 
   @override
   void beginFunctionName(Token token) {
     seen(token);
-    doPrint(
-      'beginFunctionName('
-      '$token)',
-    );
+    doPrint('beginFunctionName(' '$token)');
     indent++;
   }
 
@@ -1568,51 +1155,35 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(token);
-    doPrint(
-      'endFunctionName('
-      '$beginToken, '
-      '$token)',
-    );
+    doPrint('endFunctionName(' '$beginToken, ' '$token)');
   }
 
   @override
   void beginTypedef(Token token) {
     seen(token);
-    doPrint(
-      'beginTypedef('
-      '$token)',
-    );
+    doPrint('beginTypedef(' '$token)');
     indent++;
   }
 
   @override
-  void endTypedef(
-    Token? augmentToken,
-    Token typedefKeyword,
-    Token? equals,
-    Token endToken,
-  ) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     indent--;
     seen(augmentToken);
     seen(typedefKeyword);
     seen(equals);
     seen(endToken);
-    doPrint(
-      'endTypedef('
-      '$augmentToken, '
-      '$typedefKeyword, '
-      '$equals, '
-      '$endToken)',
-    );
+    doPrint('endTypedef('
+        '$augmentToken, '
+        '$typedefKeyword, '
+        '$equals, '
+        '$endToken)');
   }
 
   @override
   void handleClassWithClause(Token withKeyword) {
     seen(withKeyword);
-    doPrint(
-      'handleClassWithClause('
-      '$withKeyword)',
-    );
+    doPrint('handleClassWithClause(' '$withKeyword)');
   }
 
   @override
@@ -1623,10 +1194,7 @@ class ParserTestListener implements Listener {
   @override
   void handleEnumWithClause(Token withKeyword) {
     seen(withKeyword);
-    doPrint(
-      'handleEnumWithClause('
-      '$withKeyword)',
-    );
+    doPrint('handleEnumWithClause(' '$withKeyword)');
   }
 
   @override
@@ -1637,25 +1205,21 @@ class ParserTestListener implements Listener {
   @override
   void handleMixinWithClause(Token withKeyword) {
     seen(withKeyword);
-    doPrint(
-      'handleMixinWithClause('
-      '$withKeyword)',
-    );
+    doPrint('handleMixinWithClause(' '$withKeyword)');
   }
 
   @override
   void beginNamedMixinApplication(
-    Token beginToken,
-    Token? abstractToken,
-    Token? macroToken,
-    Token? sealedToken,
-    Token? baseToken,
-    Token? interfaceToken,
-    Token? finalToken,
-    Token? augmentToken,
-    Token? mixinToken,
-    Token name,
-  ) {
+      Token beginToken,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token? augmentToken,
+      Token? mixinToken,
+      Token name) {
     seen(beginToken);
     seen(abstractToken);
     seen(macroToken);
@@ -1666,62 +1230,47 @@ class ParserTestListener implements Listener {
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
-    doPrint(
-      'beginNamedMixinApplication('
-      '$beginToken, '
-      '$abstractToken, '
-      '$macroToken, '
-      '$sealedToken, '
-      '$baseToken, '
-      '$interfaceToken, '
-      '$finalToken, '
-      '$augmentToken, '
-      '$mixinToken, '
-      '$name)',
-    );
+    doPrint('beginNamedMixinApplication('
+        '$beginToken, '
+        '$abstractToken, '
+        '$macroToken, '
+        '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
+        '$augmentToken, '
+        '$mixinToken, '
+        '$name)');
     indent++;
   }
 
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     seen(withKeyword);
-    doPrint(
-      'handleNamedMixinApplicationWithClause('
-      '$withKeyword)',
-    );
+    doPrint('handleNamedMixinApplicationWithClause(' '$withKeyword)');
   }
 
   @override
-  void endNamedMixinApplication(
-    Token begin,
-    Token classKeyword,
-    Token equals,
-    Token? implementsKeyword,
-    Token endToken,
-  ) {
+  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
+      Token? implementsKeyword, Token endToken) {
     indent--;
     seen(begin);
     seen(classKeyword);
     seen(equals);
     seen(implementsKeyword);
     seen(endToken);
-    doPrint(
-      'endNamedMixinApplication('
-      '$begin, '
-      '$classKeyword, '
-      '$equals, '
-      '$implementsKeyword, '
-      '$endToken)',
-    );
+    doPrint('endNamedMixinApplication('
+        '$begin, '
+        '$classKeyword, '
+        '$equals, '
+        '$implementsKeyword, '
+        '$endToken)');
   }
 
   @override
   void beginHide(Token hideKeyword) {
     seen(hideKeyword);
-    doPrint(
-      'beginHide('
-      '$hideKeyword)',
-    );
+    doPrint('beginHide(' '$hideKeyword)');
     indent++;
   }
 
@@ -1729,46 +1278,31 @@ class ParserTestListener implements Listener {
   void endHide(Token hideKeyword) {
     indent--;
     seen(hideKeyword);
-    doPrint(
-      'endHide('
-      '$hideKeyword)',
-    );
+    doPrint('endHide(' '$hideKeyword)');
   }
 
   @override
   void handleIdentifierList(int count) {
-    doPrint(
-      'handleIdentifierList('
-      '$count)',
-    );
+    doPrint('handleIdentifierList(' '$count)');
   }
 
   @override
   void beginTypeList(Token token) {
     seen(token);
-    doPrint(
-      'beginTypeList('
-      '$token)',
-    );
+    doPrint('beginTypeList(' '$token)');
     indent++;
   }
 
   @override
   void endTypeList(int count) {
     indent--;
-    doPrint(
-      'endTypeList('
-      '$count)',
-    );
+    doPrint('endTypeList(' '$count)');
   }
 
   @override
   void beginIfStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginIfStatement('
-      '$token)',
-    );
+    doPrint('beginIfStatement(' '$token)');
     indent++;
   }
 
@@ -1778,21 +1312,13 @@ class ParserTestListener implements Listener {
     seen(ifToken);
     seen(elseToken);
     seen(endToken);
-    doPrint(
-      'endIfStatement('
-      '$ifToken, '
-      '$elseToken, '
-      '$endToken)',
-    );
+    doPrint('endIfStatement(' '$ifToken, ' '$elseToken, ' '$endToken)');
   }
 
   @override
   void beginThenStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginThenStatement('
-      '$token)',
-    );
+    doPrint('beginThenStatement(' '$token)');
     indent++;
   }
 
@@ -1801,20 +1327,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endThenStatement('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endThenStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginElseStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginElseStatement('
-      '$token)',
-    );
+    doPrint('beginElseStatement(' '$token)');
     indent++;
   }
 
@@ -1823,20 +1342,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endElseStatement('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endElseStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginImport(Token importKeyword) {
     seen(importKeyword);
-    doPrint(
-      'beginImport('
-      '$importKeyword)',
-    );
+    doPrint('beginImport(' '$importKeyword)');
     indent++;
   }
 
@@ -1844,11 +1356,7 @@ class ParserTestListener implements Listener {
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     seen(deferredKeyword);
     seen(asKeyword);
-    doPrint(
-      'handleImportPrefix('
-      '$deferredKeyword, '
-      '$asKeyword)',
-    );
+    doPrint('handleImportPrefix(' '$deferredKeyword, ' '$asKeyword)');
   }
 
   @override
@@ -1857,49 +1365,32 @@ class ParserTestListener implements Listener {
     seen(importKeyword);
     seen(augmentToken);
     seen(semicolon);
-    doPrint(
-      'endImport('
-      '$importKeyword, '
-      '$augmentToken, '
-      '$semicolon)',
-    );
+    doPrint('endImport(' '$importKeyword, ' '$augmentToken, ' '$semicolon)');
   }
 
   @override
   void handleRecoverImport(Token? semicolon) {
     seen(semicolon);
-    doPrint(
-      'handleRecoverImport('
-      '$semicolon)',
-    );
+    doPrint('handleRecoverImport(' '$semicolon)');
   }
 
   @override
   void beginConditionalUris(Token token) {
     seen(token);
-    doPrint(
-      'beginConditionalUris('
-      '$token)',
-    );
+    doPrint('beginConditionalUris(' '$token)');
     indent++;
   }
 
   @override
   void endConditionalUris(int count) {
     indent--;
-    doPrint(
-      'endConditionalUris('
-      '$count)',
-    );
+    doPrint('endConditionalUris(' '$count)');
   }
 
   @override
   void beginConditionalUri(Token ifKeyword) {
     seen(ifKeyword);
-    doPrint(
-      'beginConditionalUri('
-      '$ifKeyword)',
-    );
+    doPrint('beginConditionalUri(' '$ifKeyword)');
     indent++;
   }
 
@@ -1909,31 +1400,19 @@ class ParserTestListener implements Listener {
     seen(ifKeyword);
     seen(leftParen);
     seen(equalSign);
-    doPrint(
-      'endConditionalUri('
-      '$ifKeyword, '
-      '$leftParen, '
-      '$equalSign)',
-    );
+    doPrint('endConditionalUri(' '$ifKeyword, ' '$leftParen, ' '$equalSign)');
   }
 
   @override
   void handleDottedName(int count, Token firstIdentifier) {
     seen(firstIdentifier);
-    doPrint(
-      'handleDottedName('
-      '$count, '
-      '$firstIdentifier)',
-    );
+    doPrint('handleDottedName(' '$count, ' '$firstIdentifier)');
   }
 
   @override
   void beginImplicitCreationExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginImplicitCreationExpression('
-      '$token)',
-    );
+    doPrint('beginImplicitCreationExpression(' '$token)');
     indent++;
   }
 
@@ -1942,20 +1421,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(token);
     seen(openAngleBracket);
-    doPrint(
-      'endImplicitCreationExpression('
-      '$token, '
-      '$openAngleBracket)',
-    );
+    doPrint('endImplicitCreationExpression(' '$token, ' '$openAngleBracket)');
   }
 
   @override
   void beginInitializedIdentifier(Token token) {
     seen(token);
-    doPrint(
-      'beginInitializedIdentifier('
-      '$token)',
-    );
+    doPrint('beginInitializedIdentifier(' '$token)');
     indent++;
   }
 
@@ -1963,19 +1435,13 @@ class ParserTestListener implements Listener {
   void endInitializedIdentifier(Token nameToken) {
     indent--;
     seen(nameToken);
-    doPrint(
-      'endInitializedIdentifier('
-      '$nameToken)',
-    );
+    doPrint('endInitializedIdentifier(' '$nameToken)');
   }
 
   @override
   void beginFieldInitializer(Token token) {
     seen(token);
-    doPrint(
-      'beginFieldInitializer('
-      '$token)',
-    );
+    doPrint('beginFieldInitializer(' '$token)');
     indent++;
   }
 
@@ -1984,29 +1450,19 @@ class ParserTestListener implements Listener {
     indent--;
     seen(assignment);
     seen(endToken);
-    doPrint(
-      'endFieldInitializer('
-      '$assignment, '
-      '$endToken)',
-    );
+    doPrint('endFieldInitializer(' '$assignment, ' '$endToken)');
   }
 
   @override
   void handleNoFieldInitializer(Token token) {
     seen(token);
-    doPrint(
-      'handleNoFieldInitializer('
-      '$token)',
-    );
+    doPrint('handleNoFieldInitializer(' '$token)');
   }
 
   @override
   void beginVariableInitializer(Token token) {
     seen(token);
-    doPrint(
-      'beginVariableInitializer('
-      '$token)',
-    );
+    doPrint('beginVariableInitializer(' '$token)');
     indent++;
   }
 
@@ -2014,28 +1470,19 @@ class ParserTestListener implements Listener {
   void endVariableInitializer(Token assignmentOperator) {
     indent--;
     seen(assignmentOperator);
-    doPrint(
-      'endVariableInitializer('
-      '$assignmentOperator)',
-    );
+    doPrint('endVariableInitializer(' '$assignmentOperator)');
   }
 
   @override
   void handleNoVariableInitializer(Token token) {
     seen(token);
-    doPrint(
-      'handleNoVariableInitializer('
-      '$token)',
-    );
+    doPrint('handleNoVariableInitializer(' '$token)');
   }
 
   @override
   void beginInitializer(Token token) {
     seen(token);
-    doPrint(
-      'beginInitializer('
-      '$token)',
-    );
+    doPrint('beginInitializer(' '$token)');
     indent++;
   }
 
@@ -2043,19 +1490,13 @@ class ParserTestListener implements Listener {
   void endInitializer(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endInitializer('
-      '$endToken)',
-    );
+    doPrint('endInitializer(' '$endToken)');
   }
 
   @override
   void beginInitializers(Token token) {
     seen(token);
-    doPrint(
-      'beginInitializers('
-      '$token)',
-    );
+    doPrint('beginInitializers(' '$token)');
     indent++;
   }
 
@@ -2064,12 +1505,7 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endInitializers('
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endInitializers(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -2080,96 +1516,65 @@ class ParserTestListener implements Listener {
   @override
   void handleInvalidExpression(Token token) {
     seen(token);
-    doPrint(
-      'handleInvalidExpression('
-      '$token)',
-    );
+    doPrint('handleInvalidExpression(' '$token)');
   }
 
   @override
   void handleInvalidFunctionBody(Token token) {
     seen(token);
-    doPrint(
-      'handleInvalidFunctionBody('
-      '$token)',
-    );
+    doPrint('handleInvalidFunctionBody(' '$token)');
   }
 
   @override
   void handleInvalidTypeReference(Token token) {
     seen(token);
-    doPrint(
-      'handleInvalidTypeReference('
-      '$token)',
-    );
+    doPrint('handleInvalidTypeReference(' '$token)');
   }
 
   @override
   void handleLabel(Token token) {
     seen(token);
-    doPrint(
-      'handleLabel('
-      '$token)',
-    );
+    doPrint('handleLabel(' '$token)');
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     seen(token);
-    doPrint(
-      'beginLabeledStatement('
-      '$token, '
-      '$labelCount)',
-    );
+    doPrint('beginLabeledStatement(' '$token, ' '$labelCount)');
     indent++;
   }
 
   @override
   void endLabeledStatement(int labelCount) {
     indent--;
-    doPrint(
-      'endLabeledStatement('
-      '$labelCount)',
-    );
+    doPrint('endLabeledStatement(' '$labelCount)');
   }
 
   @override
   void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     seen(augmentKeyword);
     seen(libraryKeyword);
-    doPrint(
-      'beginLibraryAugmentation('
-      '$augmentKeyword, '
-      '$libraryKeyword)',
-    );
+    doPrint('beginLibraryAugmentation(' '$augmentKeyword, ' '$libraryKeyword)');
     indent++;
   }
 
   @override
   void endLibraryAugmentation(
-    Token augmentKeyword,
-    Token libraryKeyword,
-    Token semicolon,
-  ) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     indent--;
     seen(augmentKeyword);
     seen(libraryKeyword);
     seen(semicolon);
-    doPrint(
-      'endLibraryAugmentation('
-      '$augmentKeyword, '
-      '$libraryKeyword, '
-      '$semicolon)',
-    );
+    doPrint('endLibraryAugmentation('
+        '$augmentKeyword, '
+        '$libraryKeyword, '
+        '$semicolon)');
   }
 
   @override
   void beginLibraryName(Token token) {
     seen(token);
-    doPrint(
-      'beginLibraryName('
-      '$token)',
-    );
+    doPrint('beginLibraryName(' '$token)');
     indent++;
   }
 
@@ -2178,52 +1583,34 @@ class ParserTestListener implements Listener {
     indent--;
     seen(libraryKeyword);
     seen(semicolon);
-    doPrint(
-      'endLibraryName('
-      '$libraryKeyword, '
-      '$semicolon, '
-      '$hasName)',
-    );
+    doPrint('endLibraryName(' '$libraryKeyword, ' '$semicolon, ' '$hasName)');
   }
 
   @override
-  void handleLiteralMapEntry(
-    Token colon,
-    Token endToken, {
-    Token? nullAwareKeyToken,
-    Token? nullAwareValueToken,
-  }) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     seen(colon);
     seen(endToken);
     seen(nullAwareKeyToken);
     seen(nullAwareValueToken);
-    doPrint(
-      'handleLiteralMapEntry('
-      '$colon, '
-      '$endToken, '
-      '$nullAwareKeyToken, '
-      '$nullAwareValueToken)',
-    );
+    doPrint('handleLiteralMapEntry('
+        '$colon, '
+        '$endToken, '
+        '$nullAwareKeyToken, '
+        '$nullAwareValueToken)');
   }
 
   @override
   void handleMapPatternEntry(Token colon, Token endToken) {
     seen(colon);
     seen(endToken);
-    doPrint(
-      'handleMapPatternEntry('
-      '$colon, '
-      '$endToken)',
-    );
+    doPrint('handleMapPatternEntry(' '$colon, ' '$endToken)');
   }
 
   @override
   void beginLiteralString(Token token) {
     seen(token);
-    doPrint(
-      'beginLiteralString('
-      '$token)',
-    );
+    doPrint('beginLiteralString(' '$token)');
     indent++;
   }
 
@@ -2231,32 +1618,20 @@ class ParserTestListener implements Listener {
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
     seen(leftBracket);
     seen(rightBracket);
-    doPrint(
-      'handleInterpolationExpression('
-      '$leftBracket, '
-      '$rightBracket)',
-    );
+    doPrint('handleInterpolationExpression(' '$leftBracket, ' '$rightBracket)');
   }
 
   @override
   void endLiteralString(int interpolationCount, Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endLiteralString('
-      '$interpolationCount, '
-      '$endToken)',
-    );
+    doPrint('endLiteralString(' '$interpolationCount, ' '$endToken)');
   }
 
   @override
   void handleAdjacentStringLiterals(Token startToken, int literalCount) {
     seen(startToken);
-    doPrint(
-      'handleAdjacentStringLiterals('
-      '$startToken, '
-      '$literalCount)',
-    );
+    doPrint('handleAdjacentStringLiterals(' '$startToken, ' '$literalCount)');
   }
 
   @override
@@ -2268,10 +1643,7 @@ class ParserTestListener implements Listener {
   @override
   void handleInvalidMember(Token endToken) {
     seen(endToken);
-    doPrint(
-      'handleInvalidMember('
-      '$endToken)',
-    );
+    doPrint('handleInvalidMember(' '$endToken)');
   }
 
   @override
@@ -2282,16 +1654,15 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMethod(
-    DeclarationKind declarationKind,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? varFinalOrConst,
-    Token? getOrSet,
-    Token name,
-    String? enclosingDeclarationName,
-  ) {
+      DeclarationKind declarationKind,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? varFinalOrConst,
+      Token? getOrSet,
+      Token name,
+      String? enclosingDeclarationName) {
     seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
@@ -2299,239 +1670,172 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(getOrSet);
     seen(name);
-    doPrint(
-      'beginMethod('
-      '$declarationKind, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$varFinalOrConst, '
-      '$getOrSet, '
-      '$name, '
-      '$enclosingDeclarationName)',
-    );
+    doPrint('beginMethod('
+        '$declarationKind, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$varFinalOrConst, '
+        '$getOrSet, '
+        '$name, '
+        '$enclosingDeclarationName)');
     indent++;
   }
 
   @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endClassMethod('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endClassMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endMixinMethod('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endMixinMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endExtensionMethod('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endExtensionMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endExtensionTypeMethod('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endExtensionTypeMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endClassConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endClassConstructor('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endClassConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endMixinConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endMixinConstructor('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endMixinConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endExtensionConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endExtensionConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endExtensionConstructor('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endExtensionConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
-  void endExtensionTypeConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
     indent--;
     seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
-    doPrint(
-      'endExtensionTypeConstructor('
-      '$getOrSet, '
-      '$beginToken, '
-      '$beginParam, '
-      '$beginInitializers, '
-      '$endToken)',
-    );
+    doPrint('endExtensionTypeConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
   }
 
   @override
   void beginMetadataStar(Token token) {
     seen(token);
-    doPrint(
-      'beginMetadataStar('
-      '$token)',
-    );
+    doPrint('beginMetadataStar(' '$token)');
     indent++;
   }
 
   @override
   void endMetadataStar(int count) {
     indent--;
-    doPrint(
-      'endMetadataStar('
-      '$count)',
-    );
+    doPrint('endMetadataStar(' '$count)');
   }
 
   @override
   void beginMetadata(Token token) {
     seen(token);
-    doPrint(
-      'beginMetadata('
-      '$token)',
-    );
+    doPrint('beginMetadata(' '$token)');
     indent++;
   }
 
@@ -2541,50 +1845,33 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(periodBeforeName);
     seen(endToken);
-    doPrint(
-      'endMetadata('
-      '$beginToken, '
-      '$periodBeforeName, '
-      '$endToken)',
-    );
+    doPrint('endMetadata(' '$beginToken, ' '$periodBeforeName, ' '$endToken)');
   }
 
   @override
   void beginOptionalFormalParameters(Token token) {
     seen(token);
-    doPrint(
-      'beginOptionalFormalParameters('
-      '$token)',
-    );
+    doPrint('beginOptionalFormalParameters(' '$token)');
     indent++;
   }
 
   @override
   void endOptionalFormalParameters(
-    int count,
-    Token beginToken,
-    Token endToken,
-    MemberKind kind,
-  ) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endOptionalFormalParameters('
-      '$count, '
-      '$beginToken, '
-      '$endToken, '
-      '$kind)',
-    );
+    doPrint('endOptionalFormalParameters('
+        '$count, '
+        '$beginToken, '
+        '$endToken, '
+        '$kind)');
   }
 
   @override
   void beginPart(Token token) {
     seen(token);
-    doPrint(
-      'beginPart('
-      '$token)',
-    );
+    doPrint('beginPart(' '$token)');
     indent++;
   }
 
@@ -2593,50 +1880,34 @@ class ParserTestListener implements Listener {
     indent--;
     seen(partKeyword);
     seen(semicolon);
-    doPrint(
-      'endPart('
-      '$partKeyword, '
-      '$semicolon)',
-    );
+    doPrint('endPart(' '$partKeyword, ' '$semicolon)');
   }
 
   @override
   void beginPartOf(Token token) {
     seen(token);
-    doPrint(
-      'beginPartOf('
-      '$token)',
-    );
+    doPrint('beginPartOf(' '$token)');
     indent++;
   }
 
   @override
   void endPartOf(
-    Token partKeyword,
-    Token ofKeyword,
-    Token semicolon,
-    bool hasName,
-  ) {
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     indent--;
     seen(partKeyword);
     seen(ofKeyword);
     seen(semicolon);
-    doPrint(
-      'endPartOf('
-      '$partKeyword, '
-      '$ofKeyword, '
-      '$semicolon, '
-      '$hasName)',
-    );
+    doPrint('endPartOf('
+        '$partKeyword, '
+        '$ofKeyword, '
+        '$semicolon, '
+        '$hasName)');
   }
 
   @override
   void beginRedirectingFactoryBody(Token token) {
     seen(token);
-    doPrint(
-      'beginRedirectingFactoryBody('
-      '$token)',
-    );
+    doPrint('beginRedirectingFactoryBody(' '$token)');
     indent++;
   }
 
@@ -2645,20 +1916,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endRedirectingFactoryBody('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endRedirectingFactoryBody(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginReturnStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginReturnStatement('
-      '$token)',
-    );
+    doPrint('beginReturnStatement(' '$token)');
     indent++;
   }
 
@@ -2666,90 +1930,57 @@ class ParserTestListener implements Listener {
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     seen(nativeToken);
     seen(semicolon);
-    doPrint(
-      'handleNativeFunctionBody('
-      '$nativeToken, '
-      '$semicolon)',
-    );
+    doPrint('handleNativeFunctionBody(' '$nativeToken, ' '$semicolon)');
   }
 
   @override
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     seen(nativeToken);
     seen(semicolon);
-    doPrint(
-      'handleNativeFunctionBodyIgnored('
-      '$nativeToken, '
-      '$semicolon)',
-    );
+    doPrint('handleNativeFunctionBodyIgnored(' '$nativeToken, ' '$semicolon)');
   }
 
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     seen(nativeToken);
     seen(semicolon);
-    doPrint(
-      'handleNativeFunctionBodySkipped('
-      '$nativeToken, '
-      '$semicolon)',
-    );
+    doPrint('handleNativeFunctionBodySkipped(' '$nativeToken, ' '$semicolon)');
   }
 
   @override
   void handleEmptyFunctionBody(Token semicolon) {
     seen(semicolon);
-    doPrint(
-      'handleEmptyFunctionBody('
-      '$semicolon)',
-    );
+    doPrint('handleEmptyFunctionBody(' '$semicolon)');
   }
 
   @override
   void handleExpressionFunctionBody(Token arrowToken, Token? endToken) {
     seen(arrowToken);
     seen(endToken);
-    doPrint(
-      'handleExpressionFunctionBody('
-      '$arrowToken, '
-      '$endToken)',
-    );
+    doPrint('handleExpressionFunctionBody(' '$arrowToken, ' '$endToken)');
   }
 
   @override
   void endReturnStatement(
-    bool hasExpression,
-    Token beginToken,
-    Token endToken,
-  ) {
+      bool hasExpression, Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
     seen(endToken);
     doPrint(
-      'endReturnStatement('
-      '$hasExpression, '
-      '$beginToken, '
-      '$endToken)',
-    );
+        'endReturnStatement(' '$hasExpression, ' '$beginToken, ' '$endToken)');
   }
 
   @override
   void handleSend(Token beginToken, Token endToken) {
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'handleSend('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('handleSend(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginShow(Token showKeyword) {
     seen(showKeyword);
-    doPrint(
-      'beginShow('
-      '$showKeyword)',
-    );
+    doPrint('beginShow(' '$showKeyword)');
     indent++;
   }
 
@@ -2757,19 +1988,13 @@ class ParserTestListener implements Listener {
   void endShow(Token showKeyword) {
     indent--;
     seen(showKeyword);
-    doPrint(
-      'endShow('
-      '$showKeyword)',
-    );
+    doPrint('endShow(' '$showKeyword)');
   }
 
   @override
   void beginSwitchStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginSwitchStatement('
-      '$token)',
-    );
+    doPrint('beginSwitchStatement(' '$token)');
     indent++;
   }
 
@@ -2778,20 +2003,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(switchKeyword);
     seen(endToken);
-    doPrint(
-      'endSwitchStatement('
-      '$switchKeyword, '
-      '$endToken)',
-    );
+    doPrint('endSwitchStatement(' '$switchKeyword, ' '$endToken)');
   }
 
   @override
   void beginSwitchExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginSwitchExpression('
-      '$token)',
-    );
+    doPrint('beginSwitchExpression(' '$token)');
     indent++;
   }
 
@@ -2800,20 +2018,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(switchKeyword);
     seen(endToken);
-    doPrint(
-      'endSwitchExpression('
-      '$switchKeyword, '
-      '$endToken)',
-    );
+    doPrint('endSwitchExpression(' '$switchKeyword, ' '$endToken)');
   }
 
   @override
   void beginSwitchBlock(Token token) {
     seen(token);
-    doPrint(
-      'beginSwitchBlock('
-      '$token)',
-    );
+    doPrint('beginSwitchBlock(' '$token)');
     indent++;
   }
 
@@ -2822,48 +2033,32 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endSwitchBlock('
-      '$caseCount, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endSwitchBlock(' '$caseCount, ' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginSwitchExpressionBlock(Token token) {
     seen(token);
-    doPrint(
-      'beginSwitchExpressionBlock('
-      '$token)',
-    );
+    doPrint('beginSwitchExpressionBlock(' '$token)');
     indent++;
   }
 
   @override
   void endSwitchExpressionBlock(
-    int caseCount,
-    Token beginToken,
-    Token endToken,
-  ) {
+      int caseCount, Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endSwitchExpressionBlock('
-      '$caseCount, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endSwitchExpressionBlock('
+        '$caseCount, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void beginLiteralSymbol(Token token) {
     seen(token);
-    doPrint(
-      'beginLiteralSymbol('
-      '$token)',
-    );
+    doPrint('beginLiteralSymbol(' '$token)');
     indent++;
   }
 
@@ -2871,31 +2066,20 @@ class ParserTestListener implements Listener {
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     indent--;
     seen(hashToken);
-    doPrint(
-      'endLiteralSymbol('
-      '$hashToken, '
-      '$identifierCount)',
-    );
+    doPrint('endLiteralSymbol(' '$hashToken, ' '$identifierCount)');
   }
 
   @override
   void handleThrowExpression(Token throwToken, Token endToken) {
     seen(throwToken);
     seen(endToken);
-    doPrint(
-      'handleThrowExpression('
-      '$throwToken, '
-      '$endToken)',
-    );
+    doPrint('handleThrowExpression(' '$throwToken, ' '$endToken)');
   }
 
   @override
   void beginRethrowStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginRethrowStatement('
-      '$token)',
-    );
+    doPrint('beginRethrowStatement(' '$token)');
     indent++;
   }
 
@@ -2904,54 +2088,40 @@ class ParserTestListener implements Listener {
     indent--;
     seen(rethrowToken);
     seen(endToken);
-    doPrint(
-      'endRethrowStatement('
-      '$rethrowToken, '
-      '$endToken)',
-    );
+    doPrint('endRethrowStatement(' '$rethrowToken, ' '$endToken)');
   }
 
   @override
   void endTopLevelDeclaration(Token endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endTopLevelDeclaration('
-      '$endToken)',
-    );
+    doPrint('endTopLevelDeclaration(' '$endToken)');
   }
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     seen(endToken);
-    doPrint(
-      'handleInvalidTopLevelDeclaration('
-      '$endToken)',
-    );
+    doPrint('handleInvalidTopLevelDeclaration(' '$endToken)');
   }
 
   @override
   void beginTopLevelMember(Token token) {
     seen(token);
-    doPrint(
-      'beginTopLevelMember('
-      '$token)',
-    );
+    doPrint('beginTopLevelMember(' '$token)');
     indent++;
   }
 
   @override
   void beginFields(
-    DeclarationKind declarationKind,
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    Token lastConsumed,
-  ) {
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {
     seen(abstractToken);
     seen(augmentToken);
     seen(externalToken);
@@ -2960,33 +2130,30 @@ class ParserTestListener implements Listener {
     seen(lateToken);
     seen(varFinalOrConst);
     seen(lastConsumed);
-    doPrint(
-      'beginFields('
-      '$declarationKind, '
-      '$abstractToken, '
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$lastConsumed)',
-    );
+    doPrint('beginFields('
+        '$declarationKind, '
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$lastConsumed)');
     indent++;
   }
 
   @override
   void endTopLevelFields(
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(augmentToken);
     seen(externalToken);
@@ -2996,35 +2163,28 @@ class ParserTestListener implements Listener {
     seen(varFinalOrConst);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endTopLevelFields('
-      '$augmentToken, '
-      '$externalToken, '
-      '$staticToken, '
-      '$covariantToken, '
-      '$lateToken, '
-      '$varFinalOrConst, '
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endTopLevelFields('
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
   void beginTopLevelMethod(
-    Token lastConsumed,
-    Token? augmentToken,
-    Token? externalToken,
-  ) {
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
     seen(lastConsumed);
     seen(augmentToken);
     seen(externalToken);
-    doPrint(
-      'beginTopLevelMethod('
-      '$lastConsumed, '
-      '$augmentToken, '
-      '$externalToken)',
-    );
+    doPrint('beginTopLevelMethod('
+        '$lastConsumed, '
+        '$augmentToken, '
+        '$externalToken)');
     indent++;
   }
 
@@ -3034,31 +2194,20 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(getOrSet);
     seen(endToken);
-    doPrint(
-      'endTopLevelMethod('
-      '$beginToken, '
-      '$getOrSet, '
-      '$endToken)',
-    );
+    doPrint('endTopLevelMethod(' '$beginToken, ' '$getOrSet, ' '$endToken)');
   }
 
   @override
   void beginTryStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginTryStatement('
-      '$token)',
-    );
+    doPrint('beginTryStatement(' '$token)');
     indent++;
   }
 
   @override
   void beginCatchClause(Token token) {
     seen(token);
-    doPrint(
-      'beginCatchClause('
-      '$token)',
-    );
+    doPrint('beginCatchClause(' '$token)');
     indent++;
   }
 
@@ -3066,10 +2215,7 @@ class ParserTestListener implements Listener {
   void endCatchClause(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endCatchClause('
-      '$token)',
-    );
+    doPrint('endCatchClause(' '$token)');
   }
 
   @override
@@ -3077,153 +2223,102 @@ class ParserTestListener implements Listener {
     seen(onKeyword);
     seen(catchKeyword);
     seen(comma);
-    doPrint(
-      'handleCatchBlock('
-      '$onKeyword, '
-      '$catchKeyword, '
-      '$comma)',
-    );
+    doPrint('handleCatchBlock(' '$onKeyword, ' '$catchKeyword, ' '$comma)');
   }
 
   @override
   void handleFinallyBlock(Token finallyKeyword) {
     seen(finallyKeyword);
-    doPrint(
-      'handleFinallyBlock('
-      '$finallyKeyword)',
-    );
+    doPrint('handleFinallyBlock(' '$finallyKeyword)');
   }
 
   @override
   void endTryStatement(
-    int catchCount,
-    Token tryKeyword,
-    Token? finallyKeyword,
-    Token endToken,
-  ) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     indent--;
     seen(tryKeyword);
     seen(finallyKeyword);
     seen(endToken);
-    doPrint(
-      'endTryStatement('
-      '$catchCount, '
-      '$tryKeyword, '
-      '$finallyKeyword, '
-      '$endToken)',
-    );
+    doPrint('endTryStatement('
+        '$catchCount, '
+        '$tryKeyword, '
+        '$finallyKeyword, '
+        '$endToken)');
   }
 
   @override
   void handleType(Token beginToken, Token? questionMark) {
     seen(beginToken);
     seen(questionMark);
-    doPrint(
-      'handleType('
-      '$beginToken, '
-      '$questionMark)',
-    );
+    doPrint('handleType(' '$beginToken, ' '$questionMark)');
   }
 
   @override
   void handleNonNullAssertExpression(Token bang) {
     seen(bang);
-    doPrint(
-      'handleNonNullAssertExpression('
-      '$bang)',
-    );
+    doPrint('handleNonNullAssertExpression(' '$bang)');
   }
 
   @override
   void handleNullAssertPattern(Token bang) {
     seen(bang);
-    doPrint(
-      'handleNullAssertPattern('
-      '$bang)',
-    );
+    doPrint('handleNullAssertPattern(' '$bang)');
   }
 
   @override
   void handleNullCheckPattern(Token question) {
     seen(question);
-    doPrint(
-      'handleNullCheckPattern('
-      '$question)',
-    );
+    doPrint('handleNullCheckPattern(' '$question)');
   }
 
   @override
   void handleAssignedVariablePattern(Token variable) {
     seen(variable);
-    doPrint(
-      'handleAssignedVariablePattern('
-      '$variable)',
-    );
+    doPrint('handleAssignedVariablePattern(' '$variable)');
   }
 
   @override
-  void handleDeclaredVariablePattern(
-    Token? keyword,
-    Token variable, {
-    required bool inAssignmentPattern,
-  }) {
+  void handleDeclaredVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
     seen(keyword);
     seen(variable);
-    doPrint(
-      'handleDeclaredVariablePattern('
-      '$keyword, '
-      '$variable, '
-      '$inAssignmentPattern)',
-    );
+    doPrint('handleDeclaredVariablePattern('
+        '$keyword, '
+        '$variable, '
+        '$inAssignmentPattern)');
   }
 
   @override
   void handleWildcardPattern(Token? keyword, Token wildcard) {
     seen(keyword);
     seen(wildcard);
-    doPrint(
-      'handleWildcardPattern('
-      '$keyword, '
-      '$wildcard)',
-    );
+    doPrint('handleWildcardPattern(' '$keyword, ' '$wildcard)');
   }
 
   @override
   void handleNoName(Token token) {
     seen(token);
-    doPrint(
-      'handleNoName('
-      '$token)',
-    );
+    doPrint('handleNoName(' '$token)');
   }
 
   @override
   void beginRecordType(Token leftBracket) {
     seen(leftBracket);
-    doPrint(
-      'beginRecordType('
-      '$leftBracket)',
-    );
+    doPrint('beginRecordType(' '$leftBracket)');
     indent++;
   }
 
   @override
   void endRecordType(
-    Token leftBracket,
-    Token? questionMark,
-    int count,
-    bool hasNamedFields,
-  ) {
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     indent--;
     seen(leftBracket);
     seen(questionMark);
-    doPrint(
-      'endRecordType('
-      '$leftBracket, '
-      '$questionMark, '
-      '$count, '
-      '$hasNamedFields)',
-    );
+    doPrint('endRecordType('
+        '$leftBracket, '
+        '$questionMark, '
+        '$count, '
+        '$hasNamedFields)');
   }
 
   @override
@@ -3241,10 +2336,7 @@ class ParserTestListener implements Listener {
   @override
   void beginRecordTypeNamedFields(Token leftBracket) {
     seen(leftBracket);
-    doPrint(
-      'beginRecordTypeNamedFields('
-      '$leftBracket)',
-    );
+    doPrint('beginRecordTypeNamedFields(' '$leftBracket)');
     indent++;
   }
 
@@ -3252,20 +2344,13 @@ class ParserTestListener implements Listener {
   void endRecordTypeNamedFields(int count, Token leftBracket) {
     indent--;
     seen(leftBracket);
-    doPrint(
-      'endRecordTypeNamedFields('
-      '$count, '
-      '$leftBracket)',
-    );
+    doPrint('endRecordTypeNamedFields(' '$count, ' '$leftBracket)');
   }
 
   @override
   void beginFunctionType(Token beginToken) {
     seen(beginToken);
-    doPrint(
-      'beginFunctionType('
-      '$beginToken)',
-    );
+    doPrint('beginFunctionType(' '$beginToken)');
     indent++;
   }
 
@@ -3274,20 +2359,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(functionToken);
     seen(questionMark);
-    doPrint(
-      'endFunctionType('
-      '$functionToken, '
-      '$questionMark)',
-    );
+    doPrint('endFunctionType(' '$functionToken, ' '$questionMark)');
   }
 
   @override
   void beginTypeArguments(Token token) {
     seen(token);
-    doPrint(
-      'beginTypeArguments('
-      '$token)',
-    );
+    doPrint('beginTypeArguments(' '$token)');
     indent++;
   }
 
@@ -3296,79 +2374,52 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endTypeArguments('
-      '$count, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endTypeArguments(' '$count, ' '$beginToken, ' '$endToken)');
   }
 
   @override
   void handleInvalidTypeArguments(Token token) {
     seen(token);
-    doPrint(
-      'handleInvalidTypeArguments('
-      '$token)',
-    );
+    doPrint('handleInvalidTypeArguments(' '$token)');
   }
 
   @override
   void handleNoTypeArguments(Token token) {
     seen(token);
-    doPrint(
-      'handleNoTypeArguments('
-      '$token)',
-    );
+    doPrint('handleNoTypeArguments(' '$token)');
   }
 
   @override
   void beginTypeVariable(Token token) {
     seen(token);
-    doPrint(
-      'beginTypeVariable('
-      '$token)',
-    );
+    doPrint('beginTypeVariable(' '$token)');
     indent++;
   }
 
   @override
   void handleTypeVariablesDefined(Token token, int count) {
     seen(token);
-    doPrint(
-      'handleTypeVariablesDefined('
-      '$token, '
-      '$count)',
-    );
+    doPrint('handleTypeVariablesDefined(' '$token, ' '$count)');
   }
 
   @override
   void endTypeVariable(
-    Token token,
-    int index,
-    Token? extendsOrSuper,
-    Token? variance,
-  ) {
+      Token token, int index, Token? extendsOrSuper, Token? variance) {
     indent--;
     seen(token);
     seen(extendsOrSuper);
     seen(variance);
-    doPrint(
-      'endTypeVariable('
-      '$token, '
-      '$index, '
-      '$extendsOrSuper, '
-      '$variance)',
-    );
+    doPrint('endTypeVariable('
+        '$token, '
+        '$index, '
+        '$extendsOrSuper, '
+        '$variance)');
   }
 
   @override
   void beginTypeVariables(Token token) {
     seen(token);
-    doPrint(
-      'beginTypeVariables('
-      '$token)',
-    );
+    doPrint('beginTypeVariables(' '$token)');
     indent++;
   }
 
@@ -3377,29 +2428,19 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endTypeVariables('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endTypeVariables(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
     seen(variance);
-    doPrint(
-      'reportVarianceModifierNotEnabled('
-      '$variance)',
-    );
+    doPrint('reportVarianceModifierNotEnabled(' '$variance)');
   }
 
   @override
   void beginFunctionExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginFunctionExpression('
-      '$token)',
-    );
+    doPrint('beginFunctionExpression(' '$token)');
     indent++;
   }
 
@@ -3408,28 +2449,19 @@ class ParserTestListener implements Listener {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endFunctionExpression('
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endFunctionExpression(' '$beginToken, ' '$endToken)');
   }
 
   @override
   void beginVariablesDeclaration(
-    Token token,
-    Token? lateToken,
-    Token? varFinalOrConst,
-  ) {
+      Token token, Token? lateToken, Token? varFinalOrConst) {
     seen(token);
     seen(lateToken);
     seen(varFinalOrConst);
-    doPrint(
-      'beginVariablesDeclaration('
-      '$token, '
-      '$lateToken, '
-      '$varFinalOrConst)',
-    );
+    doPrint('beginVariablesDeclaration('
+        '$token, '
+        '$lateToken, '
+        '$varFinalOrConst)');
     indent++;
   }
 
@@ -3437,20 +2469,13 @@ class ParserTestListener implements Listener {
   void endVariablesDeclaration(int count, Token? endToken) {
     indent--;
     seen(endToken);
-    doPrint(
-      'endVariablesDeclaration('
-      '$count, '
-      '$endToken)',
-    );
+    doPrint('endVariablesDeclaration(' '$count, ' '$endToken)');
   }
 
   @override
   void beginWhileStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginWhileStatement('
-      '$token)',
-    );
+    doPrint('beginWhileStatement(' '$token)');
     indent++;
   }
 
@@ -3459,20 +2484,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(whileKeyword);
     seen(endToken);
-    doPrint(
-      'endWhileStatement('
-      '$whileKeyword, '
-      '$endToken)',
-    );
+    doPrint('endWhileStatement(' '$whileKeyword, ' '$endToken)');
   }
 
   @override
   void beginAsOperatorType(Token operator) {
     seen(operator);
-    doPrint(
-      'beginAsOperatorType('
-      '$operator)',
-    );
+    doPrint('beginAsOperatorType(' '$operator)');
     indent++;
   }
 
@@ -3480,48 +2498,32 @@ class ParserTestListener implements Listener {
   void endAsOperatorType(Token operator) {
     indent--;
     seen(operator);
-    doPrint(
-      'endAsOperatorType('
-      '$operator)',
-    );
+    doPrint('endAsOperatorType(' '$operator)');
   }
 
   @override
   void handleAsOperator(Token operator) {
     seen(operator);
-    doPrint(
-      'handleAsOperator('
-      '$operator)',
-    );
+    doPrint('handleAsOperator(' '$operator)');
   }
 
   @override
   void handleCastPattern(Token operator) {
     seen(operator);
-    doPrint(
-      'handleCastPattern('
-      '$operator)',
-    );
+    doPrint('handleCastPattern(' '$operator)');
   }
 
   @override
   void handleAssignmentExpression(Token token, Token endToken) {
     seen(token);
     seen(endToken);
-    doPrint(
-      'handleAssignmentExpression('
-      '$token, '
-      '$endToken)',
-    );
+    doPrint('handleAssignmentExpression(' '$token, ' '$endToken)');
   }
 
   @override
   void beginBinaryExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginBinaryExpression('
-      '$token)',
-    );
+    doPrint('beginBinaryExpression(' '$token)');
     indent++;
   }
 
@@ -3530,20 +2532,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(token);
     seen(endToken);
-    doPrint(
-      'endBinaryExpression('
-      '$token, '
-      '$endToken)',
-    );
+    doPrint('endBinaryExpression(' '$token, ' '$endToken)');
   }
 
   @override
   void beginBinaryPattern(Token token) {
     seen(token);
-    doPrint(
-      'beginBinaryPattern('
-      '$token)',
-    );
+    doPrint('beginBinaryPattern(' '$token)');
     indent++;
   }
 
@@ -3551,30 +2546,20 @@ class ParserTestListener implements Listener {
   void endBinaryPattern(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endBinaryPattern('
-      '$token)',
-    );
+    doPrint('endBinaryPattern(' '$token)');
   }
 
   @override
   void handleEndingBinaryExpression(Token token, Token endToken) {
     seen(token);
     seen(endToken);
-    doPrint(
-      'handleEndingBinaryExpression('
-      '$token, '
-      '$endToken)',
-    );
+    doPrint('handleEndingBinaryExpression(' '$token, ' '$endToken)');
   }
 
   @override
   void beginConditionalExpression(Token question) {
     seen(question);
-    doPrint(
-      'beginConditionalExpression('
-      '$question)',
-    );
+    doPrint('beginConditionalExpression(' '$question)');
     indent++;
   }
 
@@ -3589,21 +2574,13 @@ class ParserTestListener implements Listener {
     seen(question);
     seen(colon);
     seen(endToken);
-    doPrint(
-      'endConditionalExpression('
-      '$question, '
-      '$colon, '
-      '$endToken)',
-    );
+    doPrint('endConditionalExpression(' '$question, ' '$colon, ' '$endToken)');
   }
 
   @override
   void beginConstExpression(Token constKeyword) {
     seen(constKeyword);
-    doPrint(
-      'beginConstExpression('
-      '$constKeyword)',
-    );
+    doPrint('beginConstExpression(' '$constKeyword)');
     indent++;
   }
 
@@ -3611,30 +2588,20 @@ class ParserTestListener implements Listener {
   void endConstExpression(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endConstExpression('
-      '$token)',
-    );
+    doPrint('endConstExpression(' '$token)');
   }
 
   @override
   void handleConstFactory(Token constKeyword) {
     seen(constKeyword);
-    doPrint(
-      'handleConstFactory('
-      '$constKeyword)',
-    );
+    doPrint('handleConstFactory(' '$constKeyword)');
   }
 
   @override
   void beginForControlFlow(Token? awaitToken, Token forToken) {
     seen(awaitToken);
     seen(forToken);
-    doPrint(
-      'beginForControlFlow('
-      '$awaitToken, '
-      '$forToken)',
-    );
+    doPrint('beginForControlFlow(' '$awaitToken, ' '$forToken)');
     indent++;
   }
 
@@ -3642,105 +2609,71 @@ class ParserTestListener implements Listener {
   void endForControlFlow(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endForControlFlow('
-      '$token)',
-    );
+    doPrint('endForControlFlow(' '$token)');
   }
 
   @override
   void endForInControlFlow(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endForInControlFlow('
-      '$token)',
-    );
+    doPrint('endForInControlFlow(' '$token)');
   }
 
   @override
   void beginIfControlFlow(Token ifToken) {
     seen(ifToken);
-    doPrint(
-      'beginIfControlFlow('
-      '$ifToken)',
-    );
+    doPrint('beginIfControlFlow(' '$ifToken)');
     indent++;
   }
 
   @override
   void handleThenControlFlow(Token token) {
     seen(token);
-    doPrint(
-      'handleThenControlFlow('
-      '$token)',
-    );
+    doPrint('handleThenControlFlow(' '$token)');
   }
 
   @override
   void handleElseControlFlow(Token elseToken) {
     seen(elseToken);
-    doPrint(
-      'handleElseControlFlow('
-      '$elseToken)',
-    );
+    doPrint('handleElseControlFlow(' '$elseToken)');
   }
 
   @override
   void endIfControlFlow(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endIfControlFlow('
-      '$token)',
-    );
+    doPrint('endIfControlFlow(' '$token)');
   }
 
   @override
   void endIfElseControlFlow(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endIfElseControlFlow('
-      '$token)',
-    );
+    doPrint('endIfElseControlFlow(' '$token)');
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
     seen(spreadToken);
-    doPrint(
-      'handleSpreadExpression('
-      '$spreadToken)',
-    );
+    doPrint('handleSpreadExpression(' '$spreadToken)');
   }
 
   @override
   void handleNullAwareElement(Token nullAwareToken) {
     seen(nullAwareToken);
-    doPrint(
-      'handleNullAwareElement('
-      '$nullAwareToken)',
-    );
+    doPrint('handleNullAwareElement(' '$nullAwareToken)');
   }
 
   @override
   void handleRestPattern(Token dots, {required bool hasSubPattern}) {
     seen(dots);
-    doPrint(
-      'handleRestPattern('
-      '$dots, '
-      '$hasSubPattern)',
-    );
+    doPrint('handleRestPattern(' '$dots, ' '$hasSubPattern)');
   }
 
   @override
   void beginFunctionTypedFormalParameter(Token token) {
     seen(token);
-    doPrint(
-      'beginFunctionTypedFormalParameter('
-      '$token)',
-    );
+    doPrint('beginFunctionTypedFormalParameter(' '$token)');
     indent++;
   }
 
@@ -3749,47 +2682,31 @@ class ParserTestListener implements Listener {
     indent--;
     seen(nameToken);
     seen(question);
-    doPrint(
-      'endFunctionTypedFormalParameter('
-      '$nameToken, '
-      '$question)',
-    );
+    doPrint('endFunctionTypedFormalParameter(' '$nameToken, ' '$question)');
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     seen(token);
-    doPrint(
-      'handleIdentifier('
-      '$token, '
-      '$context)',
-    );
+    doPrint('handleIdentifier(' '$token, ' '$context)');
   }
 
   @override
   void handleIndexedExpression(
-    Token? question,
-    Token openSquareBracket,
-    Token closeSquareBracket,
-  ) {
+      Token? question, Token openSquareBracket, Token closeSquareBracket) {
     seen(question);
     seen(openSquareBracket);
     seen(closeSquareBracket);
-    doPrint(
-      'handleIndexedExpression('
-      '$question, '
-      '$openSquareBracket, '
-      '$closeSquareBracket)',
-    );
+    doPrint('handleIndexedExpression('
+        '$question, '
+        '$openSquareBracket, '
+        '$closeSquareBracket)');
   }
 
   @override
   void beginIsOperatorType(Token operator) {
     seen(operator);
-    doPrint(
-      'beginIsOperatorType('
-      '$operator)',
-    );
+    doPrint('beginIsOperatorType(' '$operator)');
     indent++;
   }
 
@@ -3797,172 +2714,113 @@ class ParserTestListener implements Listener {
   void endIsOperatorType(Token operator) {
     indent--;
     seen(operator);
-    doPrint(
-      'endIsOperatorType('
-      '$operator)',
-    );
+    doPrint('endIsOperatorType(' '$operator)');
   }
 
   @override
   void handleIsOperator(Token isOperator, Token? not) {
     seen(isOperator);
     seen(not);
-    doPrint(
-      'handleIsOperator('
-      '$isOperator, '
-      '$not)',
-    );
+    doPrint('handleIsOperator(' '$isOperator, ' '$not)');
   }
 
   @override
   void handleLiteralBool(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralBool('
-      '$token)',
-    );
+    doPrint('handleLiteralBool(' '$token)');
   }
 
   @override
   void handleBreakStatement(
-    bool hasTarget,
-    Token breakKeyword,
-    Token endToken,
-  ) {
+      bool hasTarget, Token breakKeyword, Token endToken) {
     seen(breakKeyword);
     seen(endToken);
     doPrint(
-      'handleBreakStatement('
-      '$hasTarget, '
-      '$breakKeyword, '
-      '$endToken)',
-    );
+        'handleBreakStatement(' '$hasTarget, ' '$breakKeyword, ' '$endToken)');
   }
 
   @override
   void handleContinueStatement(
-    bool hasTarget,
-    Token continueKeyword,
-    Token endToken,
-  ) {
+      bool hasTarget, Token continueKeyword, Token endToken) {
     seen(continueKeyword);
     seen(endToken);
-    doPrint(
-      'handleContinueStatement('
-      '$hasTarget, '
-      '$continueKeyword, '
-      '$endToken)',
-    );
+    doPrint('handleContinueStatement('
+        '$hasTarget, '
+        '$continueKeyword, '
+        '$endToken)');
   }
 
   @override
   void handleEmptyStatement(Token token) {
     seen(token);
-    doPrint(
-      'handleEmptyStatement('
-      '$token)',
-    );
+    doPrint('handleEmptyStatement(' '$token)');
   }
 
   @override
   void beginAssert(Token assertKeyword, Assert kind) {
     seen(assertKeyword);
-    doPrint(
-      'beginAssert('
-      '$assertKeyword, '
-      '$kind)',
-    );
+    doPrint('beginAssert(' '$assertKeyword, ' '$kind)');
     indent++;
   }
 
   @override
-  void endAssert(
-    Token assertKeyword,
-    Assert kind,
-    Token leftParenthesis,
-    Token? commaToken,
-    Token endToken,
-  ) {
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
+      Token? commaToken, Token endToken) {
     indent--;
     seen(assertKeyword);
     seen(leftParenthesis);
     seen(commaToken);
     seen(endToken);
-    doPrint(
-      'endAssert('
-      '$assertKeyword, '
-      '$kind, '
-      '$leftParenthesis, '
-      '$commaToken, '
-      '$endToken)',
-    );
+    doPrint('endAssert('
+        '$assertKeyword, '
+        '$kind, '
+        '$leftParenthesis, '
+        '$commaToken, '
+        '$endToken)');
   }
 
   @override
   void handleLiteralDouble(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralDouble('
-      '$token)',
-    );
+    doPrint('handleLiteralDouble(' '$token)');
   }
 
   @override
   void handleLiteralDoubleWithSeparators(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralDoubleWithSeparators('
-      '$token)',
-    );
+    doPrint('handleLiteralDoubleWithSeparators(' '$token)');
   }
 
   @override
   void handleLiteralInt(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralInt('
-      '$token)',
-    );
+    doPrint('handleLiteralInt(' '$token)');
   }
 
   @override
   void handleLiteralIntWithSeparators(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralIntWithSeparators('
-      '$token)',
-    );
+    doPrint('handleLiteralIntWithSeparators(' '$token)');
   }
 
   @override
   void handleLiteralList(
-    int count,
-    Token leftBracket,
-    Token? constKeyword,
-    Token rightBracket,
-  ) {
+      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     seen(leftBracket);
     seen(constKeyword);
     seen(rightBracket);
-    doPrint(
-      'handleLiteralList('
-      '$count, '
-      '$leftBracket, '
-      '$constKeyword, '
-      '$rightBracket)',
-    );
+    doPrint('handleLiteralList('
+        '$count, '
+        '$leftBracket, '
+        '$constKeyword, '
+        '$rightBracket)');
   }
 
   @override
   void handleListPattern(int count, Token leftBracket, Token rightBracket) {
     seen(leftBracket);
     seen(rightBracket);
-    doPrint(
-      'handleListPattern('
-      '$count, '
-      '$leftBracket, '
-      '$rightBracket)',
-    );
+    doPrint('handleListPattern(' '$count, ' '$leftBracket, ' '$rightBracket)');
   }
 
   @override
@@ -3976,81 +2834,55 @@ class ParserTestListener implements Listener {
     seen(leftBrace);
     seen(constKeyword);
     seen(rightBrace);
-    doPrint(
-      'handleLiteralSetOrMap('
-      '$count, '
-      '$leftBrace, '
-      '$constKeyword, '
-      '$rightBrace, '
-      '$hasSetEntry)',
-    );
+    doPrint('handleLiteralSetOrMap('
+        '$count, '
+        '$leftBrace, '
+        '$constKeyword, '
+        '$rightBrace, '
+        '$hasSetEntry)');
   }
 
   @override
   void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
     seen(leftBrace);
     seen(rightBrace);
-    doPrint(
-      'handleMapPattern('
-      '$count, '
-      '$leftBrace, '
-      '$rightBrace)',
-    );
+    doPrint('handleMapPattern(' '$count, ' '$leftBrace, ' '$rightBrace)');
   }
 
   @override
   void handleLiteralNull(Token token) {
     seen(token);
-    doPrint(
-      'handleLiteralNull('
-      '$token)',
-    );
+    doPrint('handleLiteralNull(' '$token)');
   }
 
   @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     seen(nativeToken);
-    doPrint(
-      'handleNativeClause('
-      '$nativeToken, '
-      '$hasName)',
-    );
+    doPrint('handleNativeClause(' '$nativeToken, ' '$hasName)');
   }
 
   @override
   void handleNamedArgument(Token colon) {
     seen(colon);
-    doPrint(
-      'handleNamedArgument('
-      '$colon)',
-    );
+    doPrint('handleNamedArgument(' '$colon)');
   }
 
   @override
   void handlePatternField(Token? colon) {
     seen(colon);
-    doPrint(
-      'handlePatternField('
-      '$colon)',
-    );
+    doPrint('handlePatternField(' '$colon)');
   }
 
   @override
   void handleNamedRecordField(Token colon) {
     seen(colon);
-    doPrint(
-      'handleNamedRecordField('
-      '$colon)',
-    );
+    doPrint('handleNamedRecordField(' '$colon)');
   }
 
   @override
   void beginNewExpression(Token token) {
     seen(token);
-    doPrint(
-      'beginNewExpression('
-      '$token)',
-    );
+    doPrint('beginNewExpression(' '$token)');
     indent++;
   }
 
@@ -4058,113 +2890,76 @@ class ParserTestListener implements Listener {
   void endNewExpression(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endNewExpression('
-      '$token)',
-    );
+    doPrint('endNewExpression(' '$token)');
   }
 
   @override
   void handleNoArguments(Token token) {
     seen(token);
-    doPrint(
-      'handleNoArguments('
-      '$token)',
-    );
+    doPrint('handleNoArguments(' '$token)');
   }
 
   @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     seen(token);
-    doPrint(
-      'handleNoConstructorReferenceContinuationAfterTypeArguments('
-      '$token)',
-    );
+    doPrint('handleNoConstructorReferenceContinuationAfterTypeArguments('
+        '$token)');
   }
 
   @override
   void handleNoTypeNameInConstructorReference(Token token) {
     seen(token);
-    doPrint(
-      'handleNoTypeNameInConstructorReference('
-      '$token)',
-    );
+    doPrint('handleNoTypeNameInConstructorReference(' '$token)');
   }
 
   @override
   void handleNoType(Token lastConsumed) {
     seen(lastConsumed);
-    doPrint(
-      'handleNoType('
-      '$lastConsumed)',
-    );
+    doPrint('handleNoType(' '$lastConsumed)');
   }
 
   @override
   void handleNoTypeVariables(Token token) {
     seen(token);
-    doPrint(
-      'handleNoTypeVariables('
-      '$token)',
-    );
+    doPrint('handleNoTypeVariables(' '$token)');
   }
 
   @override
   void handleOperator(Token token) {
     seen(token);
-    doPrint(
-      'handleOperator('
-      '$token)',
-    );
+    doPrint('handleOperator(' '$token)');
   }
 
   @override
   void handleSwitchCaseNoWhenClause(Token token) {
     seen(token);
-    doPrint(
-      'handleSwitchCaseNoWhenClause('
-      '$token)',
-    );
+    doPrint('handleSwitchCaseNoWhenClause(' '$token)');
   }
 
   @override
   void handleSwitchExpressionCasePattern(Token token) {
     seen(token);
-    doPrint(
-      'handleSwitchExpressionCasePattern('
-      '$token)',
-    );
+    doPrint('handleSwitchExpressionCasePattern(' '$token)');
   }
 
   @override
   void handleSymbolVoid(Token token) {
     seen(token);
-    doPrint(
-      'handleSymbolVoid('
-      '$token)',
-    );
+    doPrint('handleSymbolVoid(' '$token)');
   }
 
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     seen(operatorKeyword);
     seen(token);
-    doPrint(
-      'handleOperatorName('
-      '$operatorKeyword, '
-      '$token)',
-    );
+    doPrint('handleOperatorName(' '$operatorKeyword, ' '$token)');
   }
 
   @override
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     seen(operatorKeyword);
     seen(token);
-    doPrint(
-      'handleInvalidOperatorName('
-      '$operatorKeyword, '
-      '$token)',
-    );
+    doPrint('handleInvalidOperatorName(' '$operatorKeyword, ' '$token)');
   }
 
   @override
@@ -4172,51 +2967,34 @@ class ParserTestListener implements Listener {
     seen(token);
     seen(case_);
     seen(when);
-    doPrint(
-      'handleParenthesizedCondition('
-      '$token, '
-      '$case_, '
-      '$when)',
-    );
+    doPrint('handleParenthesizedCondition(' '$token, ' '$case_, ' '$when)');
   }
 
   @override
   void beginPattern(Token token) {
     seen(token);
-    doPrint(
-      'beginPattern('
-      '$token)',
-    );
+    doPrint('beginPattern(' '$token)');
     indent++;
   }
 
   @override
   void beginPatternGuard(Token when) {
     seen(when);
-    doPrint(
-      'beginPatternGuard('
-      '$when)',
-    );
+    doPrint('beginPatternGuard(' '$when)');
     indent++;
   }
 
   @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
-    doPrint(
-      'beginParenthesizedExpressionOrRecordLiteral('
-      '$token)',
-    );
+    doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
     indent++;
   }
 
   @override
   void beginSwitchCaseWhenClause(Token when) {
     seen(when);
-    doPrint(
-      'beginSwitchCaseWhenClause('
-      '$when)',
-    );
+    doPrint('beginSwitchCaseWhenClause(' '$when)');
     indent++;
   }
 
@@ -4225,80 +3003,53 @@ class ParserTestListener implements Listener {
     indent--;
     seen(token);
     seen(constKeyword);
-    doPrint(
-      'endRecordLiteral('
-      '$token, '
-      '$count, '
-      '$constKeyword)',
-    );
+    doPrint('endRecordLiteral(' '$token, ' '$count, ' '$constKeyword)');
   }
 
   @override
   void handleRecordPattern(Token token, int count) {
     seen(token);
-    doPrint(
-      'handleRecordPattern('
-      '$token, '
-      '$count)',
-    );
+    doPrint('handleRecordPattern(' '$token, ' '$count)');
   }
 
   @override
   void endPattern(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endPattern('
-      '$token)',
-    );
+    doPrint('endPattern(' '$token)');
   }
 
   @override
   void endPatternGuard(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endPatternGuard('
-      '$token)',
-    );
+    doPrint('endPatternGuard(' '$token)');
   }
 
   @override
   void endParenthesizedExpression(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endParenthesizedExpression('
-      '$token)',
-    );
+    doPrint('endParenthesizedExpression(' '$token)');
   }
 
   @override
   void endSwitchCaseWhenClause(Token token) {
     indent--;
     seen(token);
-    doPrint(
-      'endSwitchCaseWhenClause('
-      '$token)',
-    );
+    doPrint('endSwitchCaseWhenClause(' '$token)');
   }
 
   @override
   void handleParenthesizedPattern(Token token) {
     seen(token);
-    doPrint(
-      'handleParenthesizedPattern('
-      '$token)',
-    );
+    doPrint('handleParenthesizedPattern(' '$token)');
   }
 
   @override
   void beginConstantPattern(Token? constKeyword) {
     seen(constKeyword);
-    doPrint(
-      'beginConstantPattern('
-      '$constKeyword)',
-    );
+    doPrint('beginConstantPattern(' '$constKeyword)');
     indent++;
   }
 
@@ -4306,110 +3057,80 @@ class ParserTestListener implements Listener {
   void endConstantPattern(Token? constKeyword) {
     indent--;
     seen(constKeyword);
-    doPrint(
-      'endConstantPattern('
-      '$constKeyword)',
-    );
+    doPrint('endConstantPattern(' '$constKeyword)');
   }
 
   @override
   void handleObjectPattern(
-    Token firstIdentifier,
-    Token? dot,
-    Token? secondIdentifier,
-  ) {
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     seen(firstIdentifier);
     seen(dot);
     seen(secondIdentifier);
-    doPrint(
-      'handleObjectPattern('
-      '$firstIdentifier, '
-      '$dot, '
-      '$secondIdentifier)',
-    );
+    doPrint('handleObjectPattern('
+        '$firstIdentifier, '
+        '$dot, '
+        '$secondIdentifier)');
   }
 
   @override
   void handleQualified(Token period) {
     seen(period);
-    doPrint(
-      'handleQualified('
-      '$period)',
-    );
+    doPrint('handleQualified(' '$period)');
   }
 
   @override
   void handleStringPart(Token token) {
     seen(token);
-    doPrint(
-      'handleStringPart('
-      '$token)',
-    );
+    doPrint('handleStringPart(' '$token)');
   }
 
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     seen(token);
-    doPrint(
-      'handleSuperExpression('
-      '$token, '
-      '$context)',
-    );
+    doPrint('handleSuperExpression(' '$token, ' '$context)');
   }
 
   @override
   void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
+      Token augmentToken, Token superToken, IdentifierContext context) {
     seen(augmentToken);
     seen(superToken);
-    doPrint(
-      'handleAugmentSuperExpression('
-      '$augmentToken, '
-      '$superToken, '
-      '$context)',
-    );
+    doPrint('handleAugmentSuperExpression('
+        '$augmentToken, '
+        '$superToken, '
+        '$context)');
   }
 
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     seen(beginToken);
     doPrint(
-      'beginSwitchCase('
-      '$labelCount, '
-      '$expressionCount, '
-      '$beginToken)',
-    );
+        'beginSwitchCase(' '$labelCount, ' '$expressionCount, ' '$beginToken)');
     indent++;
   }
 
   @override
   void endSwitchCase(
-    int labelCount,
-    int expressionCount,
-    Token? defaultKeyword,
-    Token? colonAfterDefault,
-    int statementCount,
-    Token beginToken,
-    Token endToken,
-  ) {
+      int labelCount,
+      int expressionCount,
+      Token? defaultKeyword,
+      Token? colonAfterDefault,
+      int statementCount,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(defaultKeyword);
     seen(colonAfterDefault);
     seen(beginToken);
     seen(endToken);
-    doPrint(
-      'endSwitchCase('
-      '$labelCount, '
-      '$expressionCount, '
-      '$defaultKeyword, '
-      '$colonAfterDefault, '
-      '$statementCount, '
-      '$beginToken, '
-      '$endToken)',
-    );
+    doPrint('endSwitchCase('
+        '$labelCount, '
+        '$expressionCount, '
+        '$defaultKeyword, '
+        '$colonAfterDefault, '
+        '$statementCount, '
+        '$beginToken, '
+        '$endToken)');
   }
 
   @override
@@ -4420,69 +3141,47 @@ class ParserTestListener implements Listener {
 
   @override
   void endSwitchExpressionCase(
-    Token beginToken,
-    Token? when,
-    Token arrow,
-    Token endToken,
-  ) {
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     indent--;
     seen(beginToken);
     seen(when);
     seen(arrow);
     seen(endToken);
-    doPrint(
-      'endSwitchExpressionCase('
-      '$beginToken, '
-      '$when, '
-      '$arrow, '
-      '$endToken)',
-    );
+    doPrint('endSwitchExpressionCase('
+        '$beginToken, '
+        '$when, '
+        '$arrow, '
+        '$endToken)');
   }
 
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     seen(token);
-    doPrint(
-      'handleThisExpression('
-      '$token, '
-      '$context)',
-    );
+    doPrint('handleThisExpression(' '$token, ' '$context)');
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     seen(token);
-    doPrint(
-      'handleUnaryPostfixAssignmentExpression('
-      '$token)',
-    );
+    doPrint('handleUnaryPostfixAssignmentExpression(' '$token)');
   }
 
   @override
   void handleUnaryPrefixExpression(Token token) {
     seen(token);
-    doPrint(
-      'handleUnaryPrefixExpression('
-      '$token)',
-    );
+    doPrint('handleUnaryPrefixExpression(' '$token)');
   }
 
   @override
   void handleRelationalPattern(Token token) {
     seen(token);
-    doPrint(
-      'handleRelationalPattern('
-      '$token)',
-    );
+    doPrint('handleRelationalPattern(' '$token)');
   }
 
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     seen(token);
-    doPrint(
-      'handleUnaryPrefixAssignmentExpression('
-      '$token)',
-    );
+    doPrint('handleUnaryPrefixAssignmentExpression(' '$token)');
   }
 
   @override
@@ -4499,54 +3198,34 @@ class ParserTestListener implements Listener {
 
   @override
   void handleValuedFormalParameter(
-    Token equals,
-    Token token,
-    FormalParameterKind kind,
-  ) {
+      Token equals, Token token, FormalParameterKind kind) {
     seen(equals);
     seen(token);
-    doPrint(
-      'handleValuedFormalParameter('
-      '$equals, '
-      '$token, '
-      '$kind)',
-    );
+    doPrint('handleValuedFormalParameter(' '$equals, ' '$token, ' '$kind)');
   }
 
   @override
   void handleFormalParameterWithoutValue(Token token) {
     seen(token);
-    doPrint(
-      'handleFormalParameterWithoutValue('
-      '$token)',
-    );
+    doPrint('handleFormalParameterWithoutValue(' '$token)');
   }
 
   @override
   void handleVoidKeyword(Token token) {
     seen(token);
-    doPrint(
-      'handleVoidKeyword('
-      '$token)',
-    );
+    doPrint('handleVoidKeyword(' '$token)');
   }
 
   @override
   void handleVoidKeywordWithTypeArguments(Token token) {
     seen(token);
-    doPrint(
-      'handleVoidKeywordWithTypeArguments('
-      '$token)',
-    );
+    doPrint('handleVoidKeywordWithTypeArguments(' '$token)');
   }
 
   @override
   void beginYieldStatement(Token token) {
     seen(token);
-    doPrint(
-      'beginYieldStatement('
-      '$token)',
-    );
+    doPrint('beginYieldStatement(' '$token)');
     indent++;
   }
 
@@ -4556,153 +3235,100 @@ class ParserTestListener implements Listener {
     seen(yieldToken);
     seen(starToken);
     seen(endToken);
-    doPrint(
-      'endYieldStatement('
-      '$yieldToken, '
-      '$starToken, '
-      '$endToken)',
-    );
+    doPrint('endYieldStatement(' '$yieldToken, ' '$starToken, ' '$endToken)');
   }
 
   @override
-  void endInvalidYieldStatement(
-    Token beginToken,
-    Token? starToken,
-    Token endToken,
-    MessageCode errorCode,
-  ) {
+  void endInvalidYieldStatement(Token beginToken, Token? starToken,
+      Token endToken, MessageCode errorCode) {
     indent--;
     seen(beginToken);
     seen(starToken);
     seen(endToken);
-    doPrint(
-      'endInvalidYieldStatement('
-      '$beginToken, '
-      '$starToken, '
-      '$endToken, '
-      '$errorCode)',
-    );
+    doPrint('endInvalidYieldStatement('
+        '$beginToken, '
+        '$starToken, '
+        '$endToken, '
+        '$errorCode)');
   }
 
   @override
   void handleRecoverableError(
-    Message message,
-    Token startToken,
-    Token endToken,
-  ) {
+      Message message, Token startToken, Token endToken) {
     seen(startToken);
     seen(endToken);
     doPrint(
-      'handleRecoverableError('
-      '$message, '
-      '$startToken, '
-      '$endToken)',
-    );
+        'handleRecoverableError(' '$message, ' '$startToken, ' '$endToken)');
     checkEof(endToken);
   }
 
   @override
   void handleExperimentNotEnabled(
-    ExperimentalFlag experimentalFlag,
-    Token startToken,
-    Token endToken,
-  ) {
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     seen(startToken);
     seen(endToken);
-    doPrint(
-      'handleExperimentNotEnabled('
-      '$experimentalFlag, '
-      '$startToken, '
-      '$endToken)',
-    );
+    doPrint('handleExperimentNotEnabled('
+        '$experimentalFlag, '
+        '$startToken, '
+        '$endToken)');
   }
 
   @override
   void handleErrorToken(ErrorToken token) {
-    doPrint(
-      'handleErrorToken('
-      '$token)',
-    );
+    doPrint('handleErrorToken(' '$token)');
     handleRecoverableError(token.assertionMessage, token, token);
   }
 
   @override
   void handleUnescapeError(
-    Message message,
-    Token location,
-    int stringOffset,
-    int length,
-  ) {
+      Message message, Token location, int stringOffset, int length) {
     seen(location);
-    doPrint(
-      'handleUnescapeError('
-      '$message, '
-      '$location, '
-      '$stringOffset, '
-      '$length)',
-    );
+    doPrint('handleUnescapeError('
+        '$message, '
+        '$location, '
+        '$stringOffset, '
+        '$length)');
   }
 
   @override
   void handleInvalidStatement(Token token, Message message) {
     seen(token);
-    doPrint(
-      'handleInvalidStatement('
-      '$token, '
-      '$message)',
-    );
+    doPrint('handleInvalidStatement(' '$token, ' '$message)');
   }
 
   @override
   void handleScript(Token token) {
     seen(token);
-    doPrint(
-      'handleScript('
-      '$token)',
-    );
+    doPrint('handleScript(' '$token)');
   }
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
     seen(openAngleBracket);
-    doPrint(
-      'handleTypeArgumentApplication('
-      '$openAngleBracket)',
-    );
+    doPrint('handleTypeArgumentApplication(' '$openAngleBracket)');
   }
 
   @override
   void handleNewAsIdentifier(Token token) {
     seen(token);
-    doPrint(
-      'handleNewAsIdentifier('
-      '$token)',
-    );
+    doPrint('handleNewAsIdentifier(' '$token)');
   }
 
   @override
   void handlePatternVariableDeclarationStatement(
-    Token keyword,
-    Token equals,
-    Token semicolon,
-  ) {
+      Token keyword, Token equals, Token semicolon) {
     seen(keyword);
     seen(equals);
     seen(semicolon);
-    doPrint(
-      'handlePatternVariableDeclarationStatement('
-      '$keyword, '
-      '$equals, '
-      '$semicolon)',
-    );
+    doPrint('handlePatternVariableDeclarationStatement('
+        '$keyword, '
+        '$equals, '
+        '$semicolon)');
   }
 
   @override
   void handlePatternAssignment(Token equals) {
     seen(equals);
-    doPrint(
-      'handlePatternAssignment('
-      '$equals)',
-    );
+    doPrint('handlePatternAssignment(' '$equals)');
   }
 }

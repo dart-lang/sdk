@@ -26,34 +26,10 @@ const zeroConst = 0;
 
 const cond1 = trueConst ? const0 : const1;
 
-
-
 const cond2 = falseConst ? const0 : const1;
-
-
-
-
-
-
-
-
-
-
 
 void main() {
   Expect.identical(var0, cond1);
 
-
-
   Expect.identical(var1, cond2);
-
-
-
-
-
-
-
-
-
-
 }

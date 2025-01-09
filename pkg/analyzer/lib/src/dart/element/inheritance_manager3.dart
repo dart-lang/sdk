@@ -1042,14 +1042,16 @@ class InheritanceManager3 {
     }
 
     // Update covariance of the parameters of the chosen executable.
-    List<ParameterElement>? transformedParameters;
+    List<ParameterElementImpl>? transformedParameters;
     for (var index = 0; index < parameters.length; index++) {
       var parameter = parameters[index];
       var shouldBeCovariant = covariantParameters.contains(
         _ParameterDesc(index, parameter),
       );
       if (parameter.isCovariant != shouldBeCovariant) {
-        transformedParameters ??= parameters.toList();
+        transformedParameters ??= [
+          for (var parameter in parameters) parameter.toImpl()
+        ];
         transformedParameters[index] = parameter.copyWith(
           isCovariant: shouldBeCovariant,
         );

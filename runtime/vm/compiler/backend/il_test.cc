@@ -62,6 +62,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
 
       Container<int> x = Container<int>();
 
+      @pragma("vm:entry-point", "call")
       foo() {
         for (int i = 0; i < 10; ++i) {
           x[i] = i;
@@ -689,6 +690,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   auto kScript = R"(
     import 'dart:ffi';
 
+    @pragma("vm:entry-point", "call")
     int myFunction() {
       return 100;
     }
@@ -780,6 +782,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
       return increment();
     }
 
+    @pragma("vm:entry-point", "call")
     int multipleIncrement() {
       int returnValue = 0;
       for(int i = 0; i < 10; i++) {
@@ -943,6 +946,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
     void placeholder() {}
 
     // Will call the "doFfiCall" and exercise its code.
+    @pragma("vm:entry-point", "call")
     bool invokeDoFfiCall() {
       final double result = doFfiCall(1, 2, 3, 1.0, 2.0, 3.0);
       if (result != (2 + 3 + 4 + 2.0 + 3.0 + 4.0)) {
@@ -971,6 +975,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
     typedef NT = Void Function();
     typedef DT = void Function();
     Pointer<NativeFunction<NT>> ptr = Pointer.fromAddress(0);
+    @pragma("vm:entry-point", "call")
     DT getFfiTrampolineClosure() => ptr.asFunction(isLeaf:true);
   )";
 

@@ -35,7 +35,10 @@ main() {
   var expectedList = [3, 2, 1];
   for (var actual in expectedList.toList()..sort()) {
     Expect.equals(
-        expectedList.removeLast(), actual, "list items should be sorted");
+      expectedList.removeLast(),
+      actual,
+      "list items should be sorted",
+    );
   }
 }
 

@@ -32,7 +32,8 @@ String deobfuscateStackTrace(String obfuscatedTrace) {
   var provider = CachingFileProvider();
   StackDeobfuscationResult result = deobfuscateStack(obfuscatedTrace, provider);
   Frame firstFrame = result.original.frames.first;
-  String translatedError = (firstFrame.uri.isScheme('error')
+  String translatedError =
+      (firstFrame.uri.isScheme('error')
           ? null
           : translate(error, provider.mappingFor(firstFrame.uri))) ??
       '<no error message found>';

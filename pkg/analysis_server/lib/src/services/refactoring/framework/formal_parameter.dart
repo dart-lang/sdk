@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 /// The kind of a formal parameter.
 enum FormalParameterKind {
@@ -40,7 +40,7 @@ enum FormalParameterKind {
     return this == requiredPositional;
   }
 
-  static FormalParameterKind fromElement(ParameterElement element) {
+  static FormalParameterKind fromElement(FormalParameterElement element) {
     if (element.isRequiredPositional) {
       return requiredPositional;
     } else if (element.isOptionalPositional) {

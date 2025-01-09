@@ -9,8 +9,10 @@ main() {
 
 breakFromIf(c) {
   label:
-  /*0@break*/ if (c) {
-    /*target=0*/ break label;
+  /*0@break*/
+  if (c) {
+    /*target=0*/
+    break label;
   }
 }
 
@@ -19,7 +21,8 @@ breakFromBlock(c) {
   /*0@break*/
   {
     if (c) {
-      /*target=0*/ break label;
+      /*target=0*/
+      break label;
     }
     print('1');
   }

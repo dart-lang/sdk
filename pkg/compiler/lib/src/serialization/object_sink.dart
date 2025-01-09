@@ -46,7 +46,7 @@ class ObjectDataSink implements DataSink {
   }
 
   @override
-  void writeDeferred(void writer()) {
+  void writeDeferred(void Function() writer) {
     final sizeIndex = length;
     writeInt(0); // placeholder
     final startIndex = length;

@@ -152,6 +152,14 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     );
   }
 
+  Future<void> setPriorityFiles2(List<File> files) async {
+    await handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams(
+        files.map((e) => e.path).toList(),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
+    );
+  }
+
   Future<void> setRoots({
     required List<String> included,
     required List<String> excluded,

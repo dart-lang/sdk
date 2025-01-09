@@ -167,7 +167,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   void _assertLanguageVersion({
     required Version package,
     required Version? override,
-  }) async {
+  }) {
     var element = result.libraryElement2;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);

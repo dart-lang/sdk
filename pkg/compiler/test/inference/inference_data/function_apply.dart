@@ -48,7 +48,8 @@ instanceTearOff() {
 }
 
 localCall() {
-  /*apply*/ local1() {}
+  /*apply*/
+  local1() {}
   local2() {}
   local3() {}
 
@@ -58,7 +59,8 @@ localCall() {
 }
 
 instantiatedCall() {
-  /*apply*/ local1<T>(T t) {}
+  /*apply*/
+  local1<T>(T t) {}
   local2<T>(T t) {}
   local3<T>(T t) {}
 

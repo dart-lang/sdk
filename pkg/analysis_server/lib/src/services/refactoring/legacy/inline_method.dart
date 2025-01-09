@@ -93,18 +93,36 @@ String _getMethodSourceForInvocation(
     }
     // replace all occurrences of this parameter
     for (var occurrence in occurrences) {
-      var range = occurrence.range;
+      AstNode nodeToReplace = occurrence.identifier;
       // prepare argument source to apply at this occurrence
       String occurrenceArgumentSource;
-      if (occurrence.inStringInterpolation && argument is! SimpleIdentifier) {
-        occurrenceArgumentSource = '{$argumentSource}';
+      if (occurrence.identifier.parent
+          case InterpolationExpression interpolation) {
+        switch (argument) {
+          case SimpleIdentifier():
+            occurrenceArgumentSource = argumentSource;
+          case SingleStringLiteral(canDiscardSingleQuotes: true):
+            nodeToReplace = interpolation;
+            occurrenceArgumentSource = argumentSource.substring(
+              1,
+              argumentSource.length - 1,
+            );
+          default:
+            occurrenceArgumentSource = '{$argumentSource}';
+        }
       } else if (argumentPrecedence < occurrence.parentPrecedence) {
         occurrenceArgumentSource = '($argumentSource)';
       } else {
         occurrenceArgumentSource = argumentSource;
       }
       // do replace
-      edits.add(newSourceEdit_range(range, occurrenceArgumentSource));
+      var nodeToReplaceRange = range.offsetBy(
+        range.node(nodeToReplace),
+        -occurrence.baseOffset,
+      );
+      edits.add(
+        newSourceEdit_range(nodeToReplaceRange, occurrenceArgumentSource),
+      );
     }
   });
   // replace static field "qualifier" with invocation target
@@ -165,7 +183,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var localsRange = _getLocalsConflictingRange(node);
     var enclosingExecutable = getEnclosingExecutableNode(node);
     if (enclosingExecutable != null) {
-      var visibleRangeMap = VisibleRangesComputer.forNode2(enclosingExecutable);
+      var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
       visibleRangeMap.forEach((element, elementRange) {
         if (elementRange.intersects(localsRange)) {
           result.add(element.displayName);
@@ -175,14 +193,14 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   }
   // fields
   {
-    var enclosingInterfaceElement = node.enclosingInterfaceElement2;
+    var enclosingInterfaceElement = node.enclosingInterfaceElement;
     if (enclosingInterfaceElement != null) {
       var elements = [
         ...enclosingInterfaceElement.allSupertypes.map((type) => type.element3),
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {
-        var classMembers = getChildren2(interfaceElement);
+        var classMembers = getChildren(interfaceElement);
         for (var classMemberElement in classMembers) {
           result.add(classMemberElement.displayName);
         }
@@ -312,7 +330,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    var references = await searchEngine.searchReferences2(methodElement);
+    var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
       var processor = _ReferenceProcessor(this, reference);
@@ -417,7 +435,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration2(
+    var declaration = await sessionHelper.getElementDeclaration(
       element.firstFragment,
     );
     var methodNode = declaration!.node;
@@ -484,12 +502,14 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 }
 
 class _ParameterOccurrence {
-  final SourceRange range;
+  final int baseOffset;
+  final SimpleIdentifier identifier;
   final Precedence parentPrecedence;
   final bool inStringInterpolation;
 
   _ParameterOccurrence({
-    required this.range,
+    required this.baseOffset,
+    required this.identifier,
     required this.parentPrecedence,
     required this.inStringInterpolation,
   });
@@ -512,7 +532,7 @@ class _ReferenceProcessor {
     refElement = reference.element2;
 
     // prepare CorrectionUtils
-    var result = await ref.sessionHelper.getResolvedUnitByElement2(refElement);
+    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
     _refUtils = CorrectionUtils(result!);
 
     // prepare node and environment
@@ -625,19 +645,38 @@ class _ReferenceProcessor {
           target,
           arguments,
         );
+
+        // If we inline the method expression into a string interpolation,
+        // and the expression is not a single identifier, wrap it into `{}`.
+        AstNode nodeToReplace = usage;
+        if (usage.parent case InterpolationExpression interpolation) {
+          if (interpolation.leftBracket.lexeme == r'$') {
+            switch (ref._methodExpression) {
+              case SimpleIdentifier():
+                break;
+              case SingleStringLiteral(canDiscardSingleQuotes: true):
+                nodeToReplace = interpolation;
+                source = source.substring(1, source.length - 1);
+              default:
+                source = '{$source}';
+            }
+          }
+        }
+
         if (getExpressionPrecedence(ref._methodExpression!) <
             getExpressionParentPrecedence(usage)) {
           source = '($source)';
         }
+
         // do replace
-        var methodUsageRange = range.node(usage);
+        var nodeToReplaceRange = range.node(nodeToReplace);
         var awaitKeyword = Keyword.AWAIT.lexeme;
         if (usage.parent is AwaitExpression &&
             source.startsWith(awaitKeyword)) {
           // remove the duplicate await keyword and the following whitespace.
           source = source.substring(awaitKeyword.length + 1);
         }
-        var edit = newSourceEdit_range(methodUsageRange, source);
+        var edit = newSourceEdit_range(nodeToReplaceRange, source);
         _addRefEdit(edit);
       } else {
         var edit = newSourceEdit_range(_refLineRange!, '');
@@ -722,14 +761,16 @@ class _ReferenceProcessor {
         Expression usage = _node;
         Expression? target;
         var cascade = false;
-        if (nodeParent is PrefixedIdentifier) {
-          var propertyAccess = nodeParent;
-          usage = propertyAccess;
-          target = propertyAccess.prefix;
+        if (nodeParent case PrefixedIdentifier prefixedIdentifier) {
+          if (prefixedIdentifier.prefix == _node) {
+            usage = prefixedIdentifier.prefix;
+          } else {
+            usage = prefixedIdentifier;
+            target = prefixedIdentifier.prefix;
+          }
           cascade = false;
         }
-        if (nodeParent is PropertyAccess) {
-          var propertyAccess = nodeParent;
+        if (nodeParent case PropertyAccess propertyAccess) {
           usage = propertyAccess;
           target = propertyAccess.realTarget;
           cascade = propertyAccess.isCascaded;
@@ -842,7 +883,7 @@ class _SourcePart {
 
   void addParameterOccurrence({
     required FormalParameterElement parameter,
-    required SourceRange identifierRange,
+    required SimpleIdentifier identifier,
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
   }) {
@@ -851,11 +892,11 @@ class _SourcePart {
       occurrences = [];
       _parameters[parameter] = occurrences;
     }
-    identifierRange = range.offsetBy(identifierRange, -_base);
     occurrences.add(
       _ParameterOccurrence(
+        baseOffset: _base,
         parentPrecedence: parentPrecedence,
-        range: identifierRange,
+        identifier: identifier,
         inStringInterpolation: inStringInterpolation,
       ),
     );
@@ -956,7 +997,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addParameter(SimpleIdentifier node) {
-    var parameterElement = getParameterElement2(node);
+    var parameterElement = getFormalParameterElement(node);
     // not a parameter
     if (parameterElement == null) {
       return;
@@ -966,21 +1007,31 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // OK, add occurrence
-    var nodeRange = range.node(node);
     var parentPrecedence = getExpressionParentPrecedence(node);
     result.addParameterOccurrence(
       parameter: parameterElement,
-      identifierRange: nodeRange,
+      identifier: node,
       parentPrecedence: parentPrecedence,
       inStringInterpolation: node.parent is InterpolationExpression,
     );
   }
 
   void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement2(node);
+    var variableElement = getLocalVariableElement(node);
     if (variableElement != null) {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);
     }
+  }
+}
+
+extension on SingleStringLiteral {
+  /// Whether this literal can be inlined as its content.
+  /// The literal can have interpolations itself.
+  bool get canDiscardSingleQuotes {
+    if (isMultiline || isRaw) {
+      return false;
+    }
+    return true;
   }
 }

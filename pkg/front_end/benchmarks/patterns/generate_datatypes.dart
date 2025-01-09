@@ -79,9 +79,9 @@ List<Test> tests = [''');
 ];
 ''');
 
-  String result =
-      new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
-          .format(sb.toString());
+  String result = new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+      .format(sb.toString());
   new File.fromUri(fileUri).writeAsStringSync(result);
 }
 
@@ -218,8 +218,8 @@ class CounterVisitor$size implements Visitor$size<void, Counter> {
 }
 ''');
 
-  String result =
-      new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
-          .format(sb.toString());
+  String result = new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+      .format(sb.toString());
   new File.fromUri(fileUri).writeAsStringSync(result);
 }

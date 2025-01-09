@@ -24,7 +24,7 @@ class KernelStringBuilder extends ir.VisitorDefault<void>
 
   @override
   void defaultNode(ir.Node node) {
-    failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected node: $node');
+    failedAt(currentElementSpannable, 'Unexpected node: $node');
   }
 
   @override
@@ -61,16 +61,20 @@ class KernelStringBuilder extends ir.VisitorDefault<void>
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    HInstruction instruction =
-        HStringConcat(left, right, _abstractValueDomain.stringType);
+    HInstruction instruction = HStringConcat(
+      left,
+      right,
+      _abstractValueDomain.stringType,
+    );
     builder.add(instruction);
     return instruction;
   }
 
   HInstruction stringify(HInstruction expression) {
-    HInstruction instruction =
-        HStringify(expression, _abstractValueDomain.stringType)
-          ..sourceInformation = expression.sourceInformation;
+    HInstruction instruction = HStringify(
+      expression,
+      _abstractValueDomain.stringType,
+    )..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;
   }

@@ -216,12 +216,14 @@ class StartSection extends Section {
   }
 }
 
-class _Element implements Serializable {
+sealed class _Element implements Serializable {}
+
+class _TableElement implements _Element {
   final ir.Table table;
   final int startIndex;
   final List<ir.BaseFunction> entries = [];
 
-  _Element(this.table, this.startIndex);
+  _TableElement(this.table, this.startIndex);
 
   @override
   void serialize(Serializer s) {
@@ -250,11 +252,31 @@ class _Element implements Serializable {
   }
 }
 
+class _DeclaredElement implements _Element {
+  final List<ir.BaseFunction> entries;
+
+  _DeclaredElement(this.entries);
+
+  @override
+  void serialize(Serializer s) {
+    if (entries.isEmpty) return;
+    s.writeByte(0x03);
+    s.writeByte(0x00);
+
+    s.writeUnsigned(entries.length);
+    for (final entry in entries) {
+      s.writeUnsigned(entry.index);
+    }
+  }
+}
+
 class ElementSection extends Section {
   final List<ir.DefinedTable> definedTables;
   final List<ir.ImportedTable> importedTables;
+  final List<ir.BaseFunction> declaredFunctions;
 
-  ElementSection(this.definedTables, this.importedTables, super.watchPoints);
+  ElementSection(this.definedTables, this.importedTables,
+      this.declaredFunctions, super.watchPoints);
 
   @override
   int get id => 9;
@@ -262,7 +284,8 @@ class ElementSection extends Section {
   @override
   bool get isNotEmpty =>
       definedTables.any((table) => table.elements.any((e) => e != null)) ||
-      importedTables.any((table) => table.setElements.isNotEmpty);
+      importedTables.any((table) => table.setElements.isNotEmpty) ||
+      declaredFunctions.isNotEmpty;
 
   @override
   void serializeContents(Serializer s) {
@@ -270,12 +293,12 @@ class ElementSection extends Section {
     // each stretch as an element.
     List<_Element> elements = [];
     for (final table in definedTables) {
-      _Element? current;
+      _TableElement? current;
       for (int i = 0; i < table.elements.length; i++) {
         ir.BaseFunction? function = table.elements[i];
         if (function != null) {
           if (current == null) {
-            current = _Element(table, i);
+            current = _TableElement(table, i);
             elements.add(current);
           }
           current.entries.add(function);
@@ -288,18 +311,21 @@ class ElementSection extends Section {
       final entries = [...table.setElements.entries]
         ..sort((a, b) => a.key.compareTo(b.key));
 
-      _Element? current;
+      _TableElement? current;
       int lastIndex = -2;
       for (final entry in entries) {
         final index = entry.key;
         final function = entry.value;
         if (index != lastIndex + 1) {
-          current = _Element(table, index);
+          current = _TableElement(table, index);
           elements.add(current);
         }
         current!.entries.add(function);
         lastIndex = index;
       }
+    }
+    for (final func in declaredFunctions) {
+      elements.add(_DeclaredElement([func]));
     }
     s.writeList(elements);
   }

@@ -162,7 +162,25 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   SourceFactoryBuilder get origin => actualOrigin ?? this;
 
   @override
-  ProcedureKind get kind => ProcedureKind.Factory;
+  // Coverage-ignore(suite): Not run.
+  bool get isRegularMethod => false;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isOperator => false;
+
+  @override
+  bool get isFactory => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   Procedure get _procedure =>
       isAugmenting ? origin._procedure : _procedureInternal;
@@ -175,10 +193,23 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference =>
+      (origin._factoryTearOff ?? _procedure).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member? get invokeTarget => _procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -277,13 +308,19 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceFactoryBuilder) {
-      if (checkAugmentation(augmentation)) {
+      if (checkAugmentation(
+          augmentationLibraryBuilder: augmentation.libraryBuilder,
+          origin: this,
+          augmentation: augmentation)) {
         augmentation.actualOrigin = this;
         (_augmentations ??= []).add(augmentation);
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(augmentation);
+      reportAugmentationMismatch(
+          originLibraryBuilder: libraryBuilder,
+          origin: this,
+          augmentation: augmentation);
     }
   }
 
@@ -321,7 +358,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+    library.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: isAbstract, isExternal: isExternal);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
@@ -445,9 +483,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i],
-                  libraryBuilder.library);
+              new TypeParameterType.withDefaultNullability(
+                  actualOrigin!.function.typeParameters[i]);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
@@ -658,7 +695,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInRedirectingFactoryBuilder(this, typeEnvironment);
+    // Default values are not required on redirecting factory constructors so
+    // we don't call [checkInitializersInFormals].
   }
 
   // Computes the function type of a given redirection target. Returns [null] if
@@ -828,9 +866,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i],
-                  libraryBuilder.library);
+              new TypeParameterType.withDefaultNullability(
+                  actualOrigin!.function.typeParameters[i]);
         }
         factoryType = substitute(factoryType, substitution) as FunctionType;
       }
@@ -841,8 +878,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     for (int i = 0; i < factoryType.typeParameters.length; i++) {
       TypeParameter functionTypeParameter = origin.function.typeParameters[i];
       substitutionMap[functionTypeParameter] =
-          new StructuralParameterType.forAlphaRenamingFromTypeParameters(
-              functionTypeParameter, factoryType.typeParameters[i]);
+          new StructuralParameterType.withDefaultNullability(
+              factoryType.typeParameters[i]);
     }
     redirecteeType = redirecteeType != null
         ? substitute(redirecteeType, substitutionMap) as FunctionType
@@ -872,14 +909,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         (redirectionTarget.target?.isConstructor ?? false) &&
         redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
+      FunctionType factoryTypeWithoutTypeParameters =
+          factoryType.withoutTypeParameters;
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,
-          factoryType.withoutTypeParameters,
+          factoryTypeWithoutTypeParameters,
           SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType, factoryType.withoutTypeParameters),
+                redirecteeType, factoryTypeWithoutTypeParameters),
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);

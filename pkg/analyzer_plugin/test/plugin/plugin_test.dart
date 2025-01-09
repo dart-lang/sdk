@@ -529,7 +529,7 @@ class _TestServerPlugin extends MockServerPlugin {
   @override
   Future<void> afterNewContextCollection({
     required AnalysisContextCollection contextCollection,
-  }) async {
+  }) {
     invoked_afterNewContextCollection = true;
     return super.afterNewContextCollection(
       contextCollection: contextCollection,

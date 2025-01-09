@@ -26,13 +26,11 @@ void main() {
 
   // 'Class<int>.named<int>' doesn't fit the grammar syntax T.id:
 
-
   new prefix.Class().value;
   // 'prefix' is not a type:
 
   new prefix.Class<int>().value;
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
-
 
   new prefix.Class.named().value;
   // 'prefix<int>.Class.named' doesn't fit the grammar syntax T.id:
@@ -48,5 +46,4 @@ void main() {
   // 'prefix.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
 
   // 'prefix<int>.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-
 }

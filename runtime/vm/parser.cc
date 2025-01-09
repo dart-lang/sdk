@@ -215,25 +215,6 @@ void ParsedFunction::AllocateVariables() {
       if (copy_parameters) {
         bool ok = scope->AddVariable(raw_parameter);
         ASSERT(ok);
-
-        // Currently our optimizer cannot prove liveness of variables properly
-        // when a function has try/catch.  It therefore makes the conservative
-        // estimate that all [LocalVariable]s in the frame are live and spills
-        // them before call sites (in some shape or form).
-        //
-        // Since we are guaranteed to not need that, we tell the try/catch
-        // sync moves mechanism not to care about this variable.
-        //
-        // Receiver (this variable) is an exception from this rule because
-        // it is immutable and we don't reload captured it from the context but
-        // instead use raw_parameter to access it. This means we must still
-        // consider it when emitting the catch entry moves.
-        const bool is_receiver_var =
-            function().HasThisParameter() && receiver_var_ == variable;
-        if (!is_receiver_var) {
-          raw_parameter->set_is_captured_parameter(true);
-        }
-
       } else {
         raw_parameter->set_index(
             VariableIndex(function().NumParameters() - param));
@@ -334,7 +315,7 @@ bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {
 
 ParsedFunction::DynamicClosureCallVars*
 ParsedFunction::EnsureDynamicClosureCallVars() {
-  ASSERT(function().IsDynamicClosureCallDispatcher(thread()));
+  ASSERT(function().IsDynamicClosureCallDispatcher());
   if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
   const auto& saved_args_desc =
       Array::Handle(zone(), function().saved_args_desc());

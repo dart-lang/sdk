@@ -48,7 +48,6 @@ class DummySnapshot : public AppSnapshot {
 
  private:
 };
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -143,6 +142,7 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
       nullptr, nullptr, isolate_data_mapping, isolate_instr_mapping);
   return app_snapshot;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 class ElfAppSnapshot : public AppSnapshot {
@@ -594,10 +594,6 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
   }
   DartUtils::MagicNumber magic_number =
       DartUtils::SniffForMagicNumber(header, sizeof(header));
-  if (magic_number == DartUtils::kAppJITMagicNumber) {
-    // Return the JIT snapshot.
-    return TryReadAppSnapshotBlobs(script_name, file);
-  }
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (!DartUtils::IsAotMagicNumber(magic_number)) {
     return nullptr;
@@ -623,6 +619,10 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
   return TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
                                force_load_elf_from_memory);
 #else
+  if (magic_number == DartUtils::kAppJITMagicNumber) {
+    // Return the JIT snapshot.
+    return TryReadAppSnapshotBlobs(script_name, file);
+  }
   // We create a dummy snapshot object just to remember the type which
   // has already been identified by sniffing the magic number.
   return new DummySnapshot(magic_number);

@@ -28,9 +28,12 @@ mixin Base {
 }
 
 extension on Future<void> {
-  Future<void> ignoreError<T>() => then((_) => null, onError: (e) {
-        if (e is! T) throw e;
-      });
+  Future<void> ignoreError<T>() => then(
+    (_) => null,
+    onError: (e) {
+      if (e is! T) throw e;
+    },
+  );
 }
 
 class Derived<T> = Object with Base implements Future<T>;

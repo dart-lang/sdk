@@ -160,6 +160,11 @@ abstract final class CustomMethods {
     'experimental/dart/textDocument/editableArguments',
   );
 
+  /// Method for adding/editing an argument at a location in a document.
+  static const dartTextDocumentEditArgument = Method(
+    'experimental/dart/textDocument/editArgument',
+  );
+
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   //  should be relying on it as we now support proper $/progress events.
   static const analyzerStatus = Method(r'$/analyzerStatus');

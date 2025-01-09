@@ -102,7 +102,7 @@ class AnalyzerUseNewElements extends LintRule {
   }) : super(
           name: code.name,
           description: _desc,
-          state: State.internal(),
+          state: const State.internal(),
         );
 
   @override

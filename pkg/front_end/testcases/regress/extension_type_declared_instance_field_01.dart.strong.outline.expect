@@ -12,8 +12,8 @@ import "dart:core" as core;
 
 extension type Foo(core::int _x) {
   abstract extension-type-member representation-field get _x() → core::int;
-  get y = get self::Foo|y;
-  set y = set self::Foo|y;
+  get y = self::Foo|get#y;
+  set y = self::Foo|set#y;
   constructor • = self::Foo|constructor#;
   constructor tearoff • = self::Foo|constructor#_#new#tearOff;
   constructor secondConstructor = self::Foo|constructor#secondConstructor;
@@ -23,8 +23,8 @@ static extension-type-member method Foo|constructor#(core::int _x) → self::Foo
   ;
 static extension-type-member method Foo|constructor#_#new#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#(_x);
-static abstract extension-type-member get Foo|y() → core::int;
-static abstract extension-type-member set Foo|y(synthesized core::int #externalFieldValue) → void;
+static abstract extension-type-member method Foo|get#y(lowered core::int #this) → core::int;
+static abstract extension-type-member method Foo|set#y(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
 static extension-type-member method Foo|constructor#secondConstructor() → self::Foo% /* erasure=core::int, declared=! */
   ;
 static extension-type-member method Foo|constructor#_#secondConstructor#tearOff() → self::Foo% /* erasure=core::int, declared=! */

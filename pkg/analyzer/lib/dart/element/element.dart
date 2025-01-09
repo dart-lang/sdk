@@ -36,7 +36,6 @@
 /// represented by an element.
 library;
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -515,6 +514,9 @@ abstract class DirectiveUri {}
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
   LibraryElement get library;
+
+  /// The library referenced by the [source].
+  LibraryElement2 get library2;
 }
 
 /// [DirectiveUriWithRelativeUriString] that can be parsed into a relative URI.
@@ -1987,6 +1989,9 @@ abstract class LibraryExportElement implements _ExistingElement {
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @override
+  CompilationUnitElement get enclosingElement3;
+
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get exportedLibrary;
 
@@ -2136,10 +2141,7 @@ sealed class NamespaceCombinator {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
-    implements
-        PromotableElement,
-        ConstantEvaluationTarget,
-        SharedNamedFunctionParameterStructure<DartType> {
+    implements PromotableElement, ConstantEvaluationTarget {
   @override
   ParameterElement get declaration;
 
@@ -2196,7 +2198,6 @@ abstract class ParameterElement
   /// change the meaning of this getter. The parameter `{@required int x}`
   /// will return `false` and the parameter `{@required required int x}`
   /// will return `true`.
-  @override
   bool get isRequired;
 
   /// Whether the parameter is both a required and named parameter.
@@ -2515,13 +2516,11 @@ abstract class TypeDefiningElement implements Element {}
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterElement
-    implements TypeDefiningElement, SharedTypeParameterStructure<DartType> {
+abstract class TypeParameterElement implements TypeDefiningElement {
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound. Being able to
   /// distinguish between an implicit and explicit bound is needed by the
   /// instantiate to bounds algorithm.
-  @override
   DartType? get bound;
 
   @override

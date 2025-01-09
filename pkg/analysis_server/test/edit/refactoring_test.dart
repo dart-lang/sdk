@@ -933,7 +933,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   }
 
   /// Tests that there is a RENAME refactoring available at the [search] offset.
-  Future<void> assertHasRenameRefactoring(String code, String search) async {
+  Future<void> assertHasRenameRefactoring(String code, String search) {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
@@ -1232,6 +1232,7 @@ void f() {
 }
 ''');
     // Start refactoring.
+    await setPriorityFiles2([testFile]);
     var result = await getRefactoringResult(() {
       return _sendInlineRequest('res =');
     });
@@ -1241,6 +1242,7 @@ void f() {
   }
 
   Future<void> test_feedback() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 42;
@@ -1272,6 +1274,7 @@ void f() {
   }
 
   Future<void> test_OK() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 42;
@@ -1513,7 +1516,7 @@ import 'dart:math';
 import 'original_folder/file.dart';
 ''');
     _setOptions('$testPackageLibPath/new_folder');
-    return assertEmptySuccessfulRefactoring(() async {
+    return assertEmptySuccessfulRefactoring(() {
       return _sendAndCancelMoveRequest(
         getFolder('$testPackageLibPath/original_folder').path,
       );
@@ -1528,7 +1531,7 @@ import 'original_folder/file.dart';
 ''');
     _setOptions('$testPackageLibPath/new_folder');
     return assertSuccessfulRefactoring(
-      () async {
+      () {
         return _sendMoveRequest(
           getFolder('$testPackageLibPath/original_folder').path,
         );
@@ -2547,6 +2550,7 @@ void f() {
   }
 
   Future<void> test_feedback() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 class Test {}
 void f() {
@@ -2770,6 +2774,7 @@ part of my.new_name;
   }
 
   Future<void> test_localVariable() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 0;
@@ -2794,6 +2799,7 @@ void f() {
   }
 
   Future<void> test_localVariable_finalCheck_shadowError() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   var newName;
@@ -2881,6 +2887,7 @@ void f(Object? x) {
   }
 
   Future<void> test_patternVariable_patternAssignment() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f(Object? x) {
   int test;

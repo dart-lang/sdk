@@ -50,8 +50,10 @@ main(List<String> arguments) async {
     return;
   }
 
-  OutputConfigurations outputConfigurations =
-      OutputConfigurations(configurations, tests.keys);
+  OutputConfigurations outputConfigurations = OutputConfigurations(
+    configurations,
+    tests.keys,
+  );
   bool generateMultiConfigs = false;
   if (configurations.length > 1 || tests.length > 1) {
     for (String config in configurations) {
@@ -63,8 +65,12 @@ main(List<String> arguments) async {
     }
     generateMultiConfigs = true;
   } else {
-    outputConfigurations.registerPathUri(configurations.first, tests.keys.first,
-        outputPath, Uri.base.resolve(nativeToUriPath(outputPath)));
+    outputConfigurations.registerPathUri(
+      configurations.first,
+      tests.keys.first,
+      outputPath,
+      Uri.base.resolve(nativeToUriPath(outputPath)),
+    );
   }
 
   List<Measurement> measurements = <Measurement>[];
@@ -72,10 +78,14 @@ main(List<String> arguments) async {
     for (String file in tests.keys) {
       List<String> options = TEST_CONFIGURATIONS[config]!;
       Measurement measurement = await runTest(
-          config, file, tests[file]!, options,
-          outputUri: outputConfigurations.getUri(config, file),
-          verbose: !measure,
-          missingOnly: missingOnly);
+        config,
+        file,
+        tests[file]!,
+        options,
+        outputUri: outputConfigurations.getUri(config, file),
+        verbose: !measure,
+        missingOnly: missingOnly,
+      );
       measurements.add(measurement);
     }
   }
@@ -110,10 +120,21 @@ class OutputConfigurations implements Configurations {
 }
 
 Future<Measurement> runTest(
-    String config, String filename, Uri uri, List<String> options,
-    {Uri? outputUri, required bool verbose, bool missingOnly = false}) async {
-  TestResult result =
-      await runTests(config, filename, uri, options, verbose: verbose);
+  String config,
+  String filename,
+  Uri uri,
+  List<String> options, {
+  Uri? outputUri,
+  required bool verbose,
+  bool missingOnly = false,
+}) async {
+  TestResult result = await runTests(
+    config,
+    filename,
+    uri,
+    options,
+    verbose: verbose,
+  );
   if (outputUri != null) {
     if (result.missingCodePointsMap.isNotEmpty) {
       result.printMissingCodePoints();
@@ -126,17 +147,19 @@ Future<Measurement> runTest(
     }
     List<SourceMapInfo> infoList = result.userInfoList;
     if (missingOnly) {
-      infoList = infoList
-          .where((info) => result.missingCodePointsMap.containsKey(info))
-          .toList();
+      infoList =
+          infoList
+              .where((info) => result.missingCodePointsMap.containsKey(info))
+              .toList();
     }
     createTraceSourceMapHtml(outputUri, result.processor, infoList);
   }
   return Measurement(
-      config,
-      filename,
-      result.missingCodePointsMap.values.fold(0, (s, i) => s + i.length),
-      result.userInfoList.fold(0, (s, i) => s + i.codePoints.length));
+    config,
+    filename,
+    result.missingCodePointsMap.values.fold(0, (s, i) => s + i.length),
+    result.userInfoList.fold(0, (s, i) => s + i.codePoints.length),
+  );
 }
 
 class Measurement {

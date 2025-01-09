@@ -54,9 +54,12 @@ void main() {
 }
 
 @Native<Struct1ByteInt Function(Struct1ByteInt)>(
-    symbol: 'ReturnStructArgumentStruct1ByteInt', isLeaf: true)
+  symbol: 'ReturnStructArgumentStruct1ByteInt',
+  isLeaf: true,
+)
 external Struct1ByteInt returnStructArgumentStruct1ByteIntNativeLeaf(
-    Struct1ByteInt a0);
+  Struct1ByteInt a0,
+);
 
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
@@ -77,19 +80,29 @@ void testReturnStructArgumentStruct1ByteIntNativeLeaf() {
 }
 
 @Native<
-        Struct1ByteInt Function(Int32, Int32, Int32, Int32, Int32, Int32, Int32,
-            Int32, Struct1ByteInt)>(
-    symbol: 'ReturnStructArgumentInt32x8Struct1ByteInt', isLeaf: true)
+  Struct1ByteInt Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Struct1ByteInt,
+  )
+>(symbol: 'ReturnStructArgumentInt32x8Struct1ByteInt', isLeaf: true)
 external Struct1ByteInt returnStructArgumentInt32x8Struct1ByteIntNativeLeaf(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    Struct1ByteInt a8);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  Struct1ByteInt a8,
+);
 
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
@@ -117,7 +130,16 @@ void testReturnStructArgumentInt32x8Struct1ByteIntNativeLeaf() {
   a8.a0 = -9;
 
   final result = returnStructArgumentInt32x8Struct1ByteIntNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -127,10 +149,13 @@ void testReturnStructArgumentInt32x8Struct1ByteIntNativeLeaf() {
 }
 
 @Native<Struct8BytesHomogeneousFloat Function(Struct8BytesHomogeneousFloat)>(
-    symbol: 'ReturnStructArgumentStruct8BytesHomogeneousFloat', isLeaf: true)
+  symbol: 'ReturnStructArgumentStruct8BytesHomogeneousFloat',
+  isLeaf: true,
+)
 external Struct8BytesHomogeneousFloat
-    returnStructArgumentStruct8BytesHomogeneousFloatNativeLeaf(
-        Struct8BytesHomogeneousFloat a0);
+returnStructArgumentStruct8BytesHomogeneousFloatNativeLeaf(
+  Struct8BytesHomogeneousFloat a0,
+);
 
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
@@ -153,10 +178,13 @@ void testReturnStructArgumentStruct8BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<Struct20BytesHomogeneousInt32 Function(Struct20BytesHomogeneousInt32)>(
-    symbol: 'ReturnStructArgumentStruct20BytesHomogeneousInt32', isLeaf: true)
+  symbol: 'ReturnStructArgumentStruct20BytesHomogeneousInt32',
+  isLeaf: true,
+)
 external Struct20BytesHomogeneousInt32
-    returnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf(
-        Struct20BytesHomogeneousInt32 a0);
+returnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf(
+  Struct20BytesHomogeneousInt32 a0,
+);
 
 /// On arm64, both argument and return value are passed in by pointer.
 void testReturnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf() {
@@ -169,8 +197,9 @@ void testReturnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf() {
   a0.a3 = 4;
   a0.a4 = -5;
 
-  final result =
-      returnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf(a0);
+  final result = returnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf(
+    a0,
+  );
 
   print("result = $result");
 
@@ -184,20 +213,30 @@ void testReturnStructArgumentStruct20BytesHomogeneousInt32NativeLeaf() {
 }
 
 @Native<
-        Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32,
-            Int32, Int32, Int32, Int32, Struct20BytesHomogeneousInt32)>(
-    symbol: 'ReturnStructArgumentInt32x8Struct20BytesHomogeneou', isLeaf: true)
+  Struct20BytesHomogeneousInt32 Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Struct20BytesHomogeneousInt32,
+  )
+>(symbol: 'ReturnStructArgumentInt32x8Struct20BytesHomogeneou', isLeaf: true)
 external Struct20BytesHomogeneousInt32
-    returnStructArgumentInt32x8Struct20BytesHomogeneouNativeLeaf(
-        int a0,
-        int a1,
-        int a2,
-        int a3,
-        int a4,
-        int a5,
-        int a6,
-        int a7,
-        Struct20BytesHomogeneousInt32 a8);
+returnStructArgumentInt32x8Struct20BytesHomogeneouNativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  Struct20BytesHomogeneousInt32 a8,
+);
 
 /// On arm64, both argument and return value are passed in by pointer.
 /// Ints exhaust registers, so that pointer is passed on stack.
@@ -228,7 +267,16 @@ void testReturnStructArgumentInt32x8Struct20BytesHomogeneouNativeLeaf() {
   a8.a4 = -13;
 
   final result = returnStructArgumentInt32x8Struct20BytesHomogeneouNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -242,10 +290,13 @@ void testReturnStructArgumentInt32x8Struct20BytesHomogeneouNativeLeaf() {
 }
 
 @Native<Struct8BytesInlineArrayInt Function(Struct8BytesInlineArrayInt)>(
-    symbol: 'ReturnStructArgumentStruct8BytesInlineArrayInt', isLeaf: true)
+  symbol: 'ReturnStructArgumentStruct8BytesInlineArrayInt',
+  isLeaf: true,
+)
 external Struct8BytesInlineArrayInt
-    returnStructArgumentStruct8BytesInlineArrayIntNativeLeaf(
-        Struct8BytesInlineArrayInt a0);
+returnStructArgumentStruct8BytesInlineArrayIntNativeLeaf(
+  Struct8BytesInlineArrayInt a0,
+);
 
 /// Test returning struct with inline array.
 void testReturnStructArgumentStruct8BytesInlineArrayIntNativeLeaf() {
@@ -273,12 +324,14 @@ void testReturnStructArgumentStruct8BytesInlineArrayIntNativeLeaf() {
 }
 
 @Native<
-        StructStruct16BytesHomogeneousFloat2 Function(
-            StructStruct16BytesHomogeneousFloat2)>(
-    symbol: 'ReturnStructArgumentStructStruct16BytesHomogeneous', isLeaf: true)
+  StructStruct16BytesHomogeneousFloat2 Function(
+    StructStruct16BytesHomogeneousFloat2,
+  )
+>(symbol: 'ReturnStructArgumentStructStruct16BytesHomogeneous', isLeaf: true)
 external StructStruct16BytesHomogeneousFloat2
-    returnStructArgumentStructStruct16BytesHomogeneousNativeLeaf(
-        StructStruct16BytesHomogeneousFloat2 a0);
+returnStructArgumentStructStruct16BytesHomogeneousNativeLeaf(
+  StructStruct16BytesHomogeneousFloat2 a0,
+);
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void testReturnStructArgumentStructStruct16BytesHomogeneousNativeLeaf() {
@@ -290,8 +343,9 @@ void testReturnStructArgumentStructStruct16BytesHomogeneousNativeLeaf() {
   a0.a1[1].a0 = -3.0;
   a0.a2 = 4.0;
 
-  final result =
-      returnStructArgumentStructStruct16BytesHomogeneousNativeLeaf(a0);
+  final result = returnStructArgumentStructStruct16BytesHomogeneousNativeLeaf(
+    a0,
+  );
 
   print("result = $result");
 
@@ -305,12 +359,14 @@ void testReturnStructArgumentStructStruct16BytesHomogeneousNativeLeaf() {
 }
 
 @Native<
-        StructStruct32BytesHomogeneousDouble2 Function(
-            StructStruct32BytesHomogeneousDouble2)>(
-    symbol: 'ReturnStructArgumentStructStruct32BytesHomogeneous', isLeaf: true)
+  StructStruct32BytesHomogeneousDouble2 Function(
+    StructStruct32BytesHomogeneousDouble2,
+  )
+>(symbol: 'ReturnStructArgumentStructStruct32BytesHomogeneous', isLeaf: true)
 external StructStruct32BytesHomogeneousDouble2
-    returnStructArgumentStructStruct32BytesHomogeneousNativeLeaf(
-        StructStruct32BytesHomogeneousDouble2 a0);
+returnStructArgumentStructStruct32BytesHomogeneousNativeLeaf(
+  StructStruct32BytesHomogeneousDouble2 a0,
+);
 
 /// Return value in FPU registers on arm64.
 void testReturnStructArgumentStructStruct32BytesHomogeneousNativeLeaf() {
@@ -322,8 +378,9 @@ void testReturnStructArgumentStructStruct32BytesHomogeneousNativeLeaf() {
   a0.a1[1].a0 = -3.0;
   a0.a2 = 4.0;
 
-  final result =
-      returnStructArgumentStructStruct32BytesHomogeneousNativeLeaf(a0);
+  final result = returnStructArgumentStructStruct32BytesHomogeneousNativeLeaf(
+    a0,
+  );
 
   print("result = $result");
 
@@ -337,10 +394,13 @@ void testReturnStructArgumentStructStruct32BytesHomogeneousNativeLeaf() {
 }
 
 @Native<StructStruct16BytesMixed3 Function(StructStruct16BytesMixed3)>(
-    symbol: 'ReturnStructArgumentStructStruct16BytesMixed3', isLeaf: true)
+  symbol: 'ReturnStructArgumentStructStruct16BytesMixed3',
+  isLeaf: true,
+)
 external StructStruct16BytesMixed3
-    returnStructArgumentStructStruct16BytesMixed3NativeLeaf(
-        StructStruct16BytesMixed3 a0);
+returnStructArgumentStructStruct16BytesMixed3NativeLeaf(
+  StructStruct16BytesMixed3 a0,
+);
 
 /// On x64 Linux, return value is split over FP and int registers.
 void testReturnStructArgumentStructStruct16BytesMixed3NativeLeaf() {
@@ -372,9 +432,14 @@ void testReturnStructArgumentStructStruct16BytesMixed3NativeLeaf() {
 }
 
 @Native<StructAlignmentInt16 Function(Int8, Int16, Int8)>(
-    symbol: 'ReturnStructAlignmentInt16', isLeaf: true)
+  symbol: 'ReturnStructAlignmentInt16',
+  isLeaf: true,
+)
 external StructAlignmentInt16 returnStructAlignmentInt16NativeLeaf(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Test alignment and padding of 16 byte int within struct.
 void testReturnStructAlignmentInt16NativeLeaf() {
@@ -396,9 +461,14 @@ void testReturnStructAlignmentInt16NativeLeaf() {
 }
 
 @Native<StructAlignmentInt32 Function(Int8, Int32, Int8)>(
-    symbol: 'ReturnStructAlignmentInt32', isLeaf: true)
+  symbol: 'ReturnStructAlignmentInt32',
+  isLeaf: true,
+)
 external StructAlignmentInt32 returnStructAlignmentInt32NativeLeaf(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Test alignment and padding of 32 byte int within struct.
 void testReturnStructAlignmentInt32NativeLeaf() {
@@ -420,9 +490,14 @@ void testReturnStructAlignmentInt32NativeLeaf() {
 }
 
 @Native<StructAlignmentInt64 Function(Int8, Int64, Int8)>(
-    symbol: 'ReturnStructAlignmentInt64', isLeaf: true)
+  symbol: 'ReturnStructAlignmentInt64',
+  isLeaf: true,
+)
 external StructAlignmentInt64 returnStructAlignmentInt64NativeLeaf(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Test alignment and padding of 64 byte int within struct.
 void testReturnStructAlignmentInt64NativeLeaf() {
@@ -444,11 +519,15 @@ void testReturnStructAlignmentInt64NativeLeaf() {
 }
 
 @Native<
-        Struct8BytesNestedInt Function(
-            Struct4BytesHomogeneousInt16, Struct4BytesHomogeneousInt16)>(
-    symbol: 'ReturnStruct8BytesNestedInt', isLeaf: true)
+  Struct8BytesNestedInt Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+  )
+>(symbol: 'ReturnStruct8BytesNestedInt', isLeaf: true)
 external Struct8BytesNestedInt returnStruct8BytesNestedIntNativeLeaf(
-    Struct4BytesHomogeneousInt16 a0, Struct4BytesHomogeneousInt16 a1);
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesHomogeneousInt16 a1,
+);
 
 /// Simple nested struct.
 void testReturnStruct8BytesNestedIntNativeLeaf() {
@@ -476,9 +555,13 @@ void testReturnStruct8BytesNestedIntNativeLeaf() {
 }
 
 @Native<Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat)>(
-    symbol: 'ReturnStruct8BytesNestedFloat', isLeaf: true)
+  symbol: 'ReturnStruct8BytesNestedFloat',
+  isLeaf: true,
+)
 external Struct8BytesNestedFloat returnStruct8BytesNestedFloatNativeLeaf(
-    Struct4BytesFloat a0, Struct4BytesFloat a1);
+  Struct4BytesFloat a0,
+  Struct4BytesFloat a1,
+);
 
 /// Simple nested struct with floats.
 void testReturnStruct8BytesNestedFloatNativeLeaf() {
@@ -502,9 +585,13 @@ void testReturnStruct8BytesNestedFloatNativeLeaf() {
 }
 
 @Native<Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float)>(
-    symbol: 'ReturnStruct8BytesNestedFloat2', isLeaf: true)
+  symbol: 'ReturnStruct8BytesNestedFloat2',
+  isLeaf: true,
+)
 external Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2NativeLeaf(
-    Struct4BytesFloat a0, double a1);
+  Struct4BytesFloat a0,
+  double a1,
+);
 
 /// The nesting is irregular, testing homogenous float rules on arm and arm64,
 /// and the fpu register usage on x64.
@@ -527,11 +614,15 @@ void testReturnStruct8BytesNestedFloat2NativeLeaf() {
 }
 
 @Native<
-        Struct8BytesNestedMixed Function(
-            Struct4BytesHomogeneousInt16, Struct4BytesFloat)>(
-    symbol: 'ReturnStruct8BytesNestedMixed', isLeaf: true)
+  Struct8BytesNestedMixed Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesFloat,
+  )
+>(symbol: 'ReturnStruct8BytesNestedMixed', isLeaf: true)
 external Struct8BytesNestedMixed returnStruct8BytesNestedMixedNativeLeaf(
-    Struct4BytesHomogeneousInt16 a0, Struct4BytesFloat a1);
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesFloat a1,
+);
 
 /// Simple nested struct with mixed members.
 void testReturnStruct8BytesNestedMixedNativeLeaf() {
@@ -557,11 +648,12 @@ void testReturnStruct8BytesNestedMixedNativeLeaf() {
 }
 
 @Native<
-        Struct16BytesNestedInt Function(
-            Struct8BytesNestedInt, Struct8BytesNestedInt)>(
-    symbol: 'ReturnStruct16BytesNestedInt', isLeaf: true)
+  Struct16BytesNestedInt Function(Struct8BytesNestedInt, Struct8BytesNestedInt)
+>(symbol: 'ReturnStruct16BytesNestedInt', isLeaf: true)
 external Struct16BytesNestedInt returnStruct16BytesNestedIntNativeLeaf(
-    Struct8BytesNestedInt a0, Struct8BytesNestedInt a1);
+  Struct8BytesNestedInt a0,
+  Struct8BytesNestedInt a1,
+);
 
 /// Deeper nested struct to test recursive member access.
 void testReturnStruct16BytesNestedIntNativeLeaf() {
@@ -597,11 +689,15 @@ void testReturnStruct16BytesNestedIntNativeLeaf() {
 }
 
 @Native<
-        Struct32BytesNestedInt Function(
-            Struct16BytesNestedInt, Struct16BytesNestedInt)>(
-    symbol: 'ReturnStruct32BytesNestedInt', isLeaf: true)
+  Struct32BytesNestedInt Function(
+    Struct16BytesNestedInt,
+    Struct16BytesNestedInt,
+  )
+>(symbol: 'ReturnStruct32BytesNestedInt', isLeaf: true)
 external Struct32BytesNestedInt returnStruct32BytesNestedIntNativeLeaf(
-    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1);
+  Struct16BytesNestedInt a0,
+  Struct16BytesNestedInt a1,
+);
 
 /// Even deeper nested struct to test recursive member access.
 void testReturnStruct32BytesNestedIntNativeLeaf() {
@@ -653,12 +749,16 @@ void testReturnStruct32BytesNestedIntNativeLeaf() {
 }
 
 @Native<
-        StructNestedIntStructAlignmentInt16 Function(
-            StructAlignmentInt16, StructAlignmentInt16)>(
-    symbol: 'ReturnStructNestedIntStructAlignmentInt16', isLeaf: true)
+  StructNestedIntStructAlignmentInt16 Function(
+    StructAlignmentInt16,
+    StructAlignmentInt16,
+  )
+>(symbol: 'ReturnStructNestedIntStructAlignmentInt16', isLeaf: true)
 external StructNestedIntStructAlignmentInt16
-    returnStructNestedIntStructAlignmentInt16NativeLeaf(
-        StructAlignmentInt16 a0, StructAlignmentInt16 a1);
+returnStructNestedIntStructAlignmentInt16NativeLeaf(
+  StructAlignmentInt16 a0,
+  StructAlignmentInt16 a1,
+);
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void testReturnStructNestedIntStructAlignmentInt16NativeLeaf() {
@@ -690,12 +790,16 @@ void testReturnStructNestedIntStructAlignmentInt16NativeLeaf() {
 }
 
 @Native<
-        StructNestedIntStructAlignmentInt32 Function(
-            StructAlignmentInt32, StructAlignmentInt32)>(
-    symbol: 'ReturnStructNestedIntStructAlignmentInt32', isLeaf: true)
+  StructNestedIntStructAlignmentInt32 Function(
+    StructAlignmentInt32,
+    StructAlignmentInt32,
+  )
+>(symbol: 'ReturnStructNestedIntStructAlignmentInt32', isLeaf: true)
 external StructNestedIntStructAlignmentInt32
-    returnStructNestedIntStructAlignmentInt32NativeLeaf(
-        StructAlignmentInt32 a0, StructAlignmentInt32 a1);
+returnStructNestedIntStructAlignmentInt32NativeLeaf(
+  StructAlignmentInt32 a0,
+  StructAlignmentInt32 a1,
+);
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void testReturnStructNestedIntStructAlignmentInt32NativeLeaf() {
@@ -727,12 +831,16 @@ void testReturnStructNestedIntStructAlignmentInt32NativeLeaf() {
 }
 
 @Native<
-        StructNestedIntStructAlignmentInt64 Function(
-            StructAlignmentInt64, StructAlignmentInt64)>(
-    symbol: 'ReturnStructNestedIntStructAlignmentInt64', isLeaf: true)
+  StructNestedIntStructAlignmentInt64 Function(
+    StructAlignmentInt64,
+    StructAlignmentInt64,
+  )
+>(symbol: 'ReturnStructNestedIntStructAlignmentInt64', isLeaf: true)
 external StructNestedIntStructAlignmentInt64
-    returnStructNestedIntStructAlignmentInt64NativeLeaf(
-        StructAlignmentInt64 a0, StructAlignmentInt64 a1);
+returnStructNestedIntStructAlignmentInt64NativeLeaf(
+  StructAlignmentInt64 a0,
+  StructAlignmentInt64 a1,
+);
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void testReturnStructNestedIntStructAlignmentInt64NativeLeaf() {
@@ -764,17 +872,20 @@ void testReturnStructNestedIntStructAlignmentInt64NativeLeaf() {
 }
 
 @Native<
-    StructNestedIrregularEvenBigger Function(
-        Uint64,
-        StructNestedIrregularBigger,
-        StructNestedIrregularBigger,
-        Double)>(symbol: 'ReturnStructNestedIrregularEvenBigger', isLeaf: true)
+  StructNestedIrregularEvenBigger Function(
+    Uint64,
+    StructNestedIrregularBigger,
+    StructNestedIrregularBigger,
+    Double,
+  )
+>(symbol: 'ReturnStructNestedIrregularEvenBigger', isLeaf: true)
 external StructNestedIrregularEvenBigger
-    returnStructNestedIrregularEvenBiggerNativeLeaf(
-        int a0,
-        StructNestedIrregularBigger a1,
-        StructNestedIrregularBigger a2,
-        double a3);
+returnStructNestedIrregularEvenBiggerNativeLeaf(
+  int a0,
+  StructNestedIrregularBigger a1,
+  StructNestedIrregularBigger a2,
+  double a3,
+);
 
 /// Return big irregular struct as smoke test.
 void testReturnStructNestedIrregularEvenBiggerNativeLeaf() {
@@ -820,8 +931,12 @@ void testReturnStructNestedIrregularEvenBiggerNativeLeaf() {
   a2.a3 = -33.0;
   a3 = 34.0;
 
-  final result =
-      returnStructNestedIrregularEvenBiggerNativeLeaf(a0, a1, a2, a3);
+  final result = returnStructNestedIrregularEvenBiggerNativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+  );
 
   print("result = $result");
 

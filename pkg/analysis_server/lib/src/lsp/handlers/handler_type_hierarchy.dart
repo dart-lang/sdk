@@ -12,11 +12,11 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 typedef StaticOptions =
     Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
@@ -141,7 +141,7 @@ class TypeHierarchySubtypesHandler
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
@@ -189,7 +189,7 @@ class TypeHierarchySupertypesHandler
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var anchor = _toServerAnchor(data);
       var calls = await computer.findSupertypes(location, anchor: anchor);
       var results = calls != null ? _convertItems(unit, calls) : null;
@@ -205,7 +205,7 @@ class TypeHierarchySupertypesHandler
     var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
-          location: ElementLocationImpl.con2(anchor.ref),
+          location: ElementLocation2.decode(anchor.ref),
           path: anchor.path,
         )
         : null;
@@ -269,7 +269,7 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// Converts multiple server [type_hierarchy.TypeHierarchyItem] to an LSP
   /// [TypeHierarchyItem].
   ///
-  /// Reads [LineInfo]s from [unit.session], caching them for items in the same
+  /// Reads [LineInfo]s from `unit.session`, caching them for items in the same
   /// file.
   List<TypeHierarchyItem> _convertItems(
     ResolvedUnitResult unit,

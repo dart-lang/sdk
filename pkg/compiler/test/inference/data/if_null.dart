@@ -28,7 +28,8 @@ ifNull() {
 
 /*member: _ifNotNullInvoke:[null|exact=JSBool]*/
 _ifNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
-  return o?.
+  return o
+      ?.
       /*[exact=JSUInt31]*/
       isEven;
 }

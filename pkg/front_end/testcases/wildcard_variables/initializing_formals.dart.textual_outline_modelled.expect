@@ -9,7 +9,9 @@ class B {
 }
 
 class C extends B {
-  C(super.x, super._, super._, this.z) : assert(x > 0), assert(_ >= 0) {}
+  C(super.x, super._, super._, this.z)
+      : assert(x > 0),
+        assert(_ >= 0) {}
   final int z;
 }
 

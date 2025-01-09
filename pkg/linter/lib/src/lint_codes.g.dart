@@ -22,12 +22,12 @@ import 'analyzer.dart';
 class LinterLintCode extends LintCode {
   static const LintCode always_declare_return_types_of_functions =
       LinterLintCode(
-        LintNames.always_declare_return_types,
-        "The function '{0}' should have a return type but doesn't.",
-        correctionMessage: "Try adding a return type to the function.",
-        hasPublishedDocs: true,
-        uniqueName: 'always_declare_return_types_of_functions',
-      );
+    LintNames.always_declare_return_types,
+    "The function '{0}' should have a return type but doesn't.",
+    correctionMessage: "Try adding a return type to the function.",
+    hasPublishedDocs: true,
+    uniqueName: 'always_declare_return_types_of_functions',
+  );
 
   static const LintCode always_declare_return_types_of_methods = LinterLintCode(
     LintNames.always_declare_return_types,
@@ -46,13 +46,13 @@ class LinterLintCode extends LintCode {
 
   static const LintCode always_put_required_named_parameters_first =
       LinterLintCode(
-        LintNames.always_put_required_named_parameters_first,
-        "Required named parameters should be before optional named parameters.",
-        correctionMessage:
-            "Try moving the required named parameter to be before any optional "
-            "named parameters.",
-        hasPublishedDocs: true,
-      );
+    LintNames.always_put_required_named_parameters_first,
+    "Required named parameters should be before optional named parameters.",
+    correctionMessage:
+        "Try moving the required named parameter to be before any optional "
+        "named parameters.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode always_specify_types_add_type = LinterLintCode(
     LintNames.always_specify_types,
@@ -113,11 +113,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode avoid_bool_literals_in_conditional_expressions =
       LinterLintCode(
-        LintNames.avoid_bool_literals_in_conditional_expressions,
-        "Conditional expressions with a 'bool' literal can be simplified.",
-        correctionMessage:
-            "Try rewriting the expression to use either '&&' or '||'.",
-      );
+    LintNames.avoid_bool_literals_in_conditional_expressions,
+    "Conditional expressions with a 'bool' literal can be simplified.",
+    correctionMessage:
+        "Try rewriting the expression to use either '&&' or '||'.",
+  );
 
   static const LintCode avoid_catches_without_on_clauses = LinterLintCode(
     LintNames.avoid_catches_without_on_clauses,
@@ -169,8 +169,8 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  static const LintCode
-  avoid_equals_and_hash_code_on_mutable_classes = LinterLintCode(
+  static const LintCode avoid_equals_and_hash_code_on_mutable_classes =
+      LinterLintCode(
     LintNames.avoid_equals_and_hash_code_on_mutable_classes,
     "The method '{0}' should not be overridden in classes not annotated with "
     "'@immutable'.",
@@ -184,8 +184,8 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try changing the outer quotes to '{1}'.",
   );
 
-  static const LintCode
-  avoid_field_initializers_in_const_classes = LinterLintCode(
+  static const LintCode avoid_field_initializers_in_const_classes =
+      LinterLintCode(
     LintNames.avoid_field_initializers_in_const_classes,
     "Fields in 'const' classes should not have initializers.",
     correctionMessage:
@@ -201,11 +201,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode avoid_function_literals_in_foreach_calls =
       LinterLintCode(
-        LintNames.avoid_function_literals_in_foreach_calls,
-        "Function literals shouldn't be passed to 'forEach'.",
-        correctionMessage: "Try using a 'for' loop.",
-        hasPublishedDocs: true,
-      );
+    LintNames.avoid_function_literals_in_foreach_calls,
+    "Function literals shouldn't be passed to 'forEach'.",
+    correctionMessage: "Try using a 'for' loop.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode avoid_futureor_void = LinterLintCode(
     LintNames.avoid_futureor_void,
@@ -242,10 +242,10 @@ class LinterLintCode extends LintCode {
 
   static const LintCode avoid_null_checks_in_equality_operators =
       LinterLintCode(
-        LintNames.avoid_null_checks_in_equality_operators,
-        "Unnecessary null comparison in implementation of '=='.",
-        correctionMessage: "Try removing the comparison.",
-      );
+    LintNames.avoid_null_checks_in_equality_operators,
+    "Unnecessary null comparison in implementation of '=='.",
+    correctionMessage: "Try removing the comparison.",
+  );
 
   static const LintCode avoid_positional_boolean_parameters = LinterLintCode(
     LintNames.avoid_positional_boolean_parameters,
@@ -299,21 +299,21 @@ class LinterLintCode extends LintCode {
 
   static const LintCode avoid_returning_null_for_void_from_function =
       LinterLintCode(
-        LintNames.avoid_returning_null_for_void,
-        "Don't return 'null' from a function with a return type of 'void'.",
-        correctionMessage: "Try removing the 'null'.",
-        hasPublishedDocs: true,
-        uniqueName: 'avoid_returning_null_for_void_from_function',
-      );
+    LintNames.avoid_returning_null_for_void,
+    "Don't return 'null' from a function with a return type of 'void'.",
+    correctionMessage: "Try removing the 'null'.",
+    hasPublishedDocs: true,
+    uniqueName: 'avoid_returning_null_for_void_from_function',
+  );
 
   static const LintCode avoid_returning_null_for_void_from_method =
       LinterLintCode(
-        LintNames.avoid_returning_null_for_void,
-        "Don't return 'null' from a method with a return type of 'void'.",
-        correctionMessage: "Try removing the 'null'.",
-        hasPublishedDocs: true,
-        uniqueName: 'avoid_returning_null_for_void_from_method',
-      );
+    LintNames.avoid_returning_null_for_void,
+    "Don't return 'null' from a method with a return type of 'void'.",
+    correctionMessage: "Try removing the 'null'.",
+    hasPublishedDocs: true,
+    uniqueName: 'avoid_returning_null_for_void_from_method',
+  );
 
   static const LintCode avoid_returning_this = LinterLintCode(
     LintNames.avoid_returning_this,
@@ -338,11 +338,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode avoid_single_cascade_in_expression_statements =
       LinterLintCode(
-        LintNames.avoid_single_cascade_in_expression_statements,
-        "Unnecessary cascade expression.",
-        correctionMessage: "Try using the operator '{0}'.",
-        hasPublishedDocs: true,
-      );
+    LintNames.avoid_single_cascade_in_expression_statements,
+    "Unnecessary cascade expression.",
+    correctionMessage: "Try using the operator '{0}'.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode avoid_slow_async_io = LinterLintCode(
     LintNames.avoid_slow_async_io,
@@ -429,8 +429,7 @@ class LinterLintCode extends LintCode {
   static const LintCode cancel_subscriptions = LinterLintCode(
     LintNames.cancel_subscriptions,
     "Uncancelled instance of 'StreamSubscription'.",
-    correctionMessage:
-        "Try invoking 'cancel' in the function in which the "
+    correctionMessage: "Try invoking 'cancel' in the function in which the "
         "'StreamSubscription' was created.",
     hasPublishedDocs: true,
   );
@@ -500,11 +499,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode curly_braces_in_flow_control_structures =
       LinterLintCode(
-        LintNames.curly_braces_in_flow_control_structures,
-        "Statements in {0} should be enclosed in a block.",
-        correctionMessage: "Try wrapping the statement in a block.",
-        hasPublishedDocs: true,
-      );
+    LintNames.curly_braces_in_flow_control_structures,
+    "Statements in {0} should be enclosed in a block.",
+    correctionMessage: "Try wrapping the statement in a block.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode dangling_library_doc_comments = LinterLintCode(
     LintNames.dangling_library_doc_comments,
@@ -543,8 +542,8 @@ class LinterLintCode extends LintCode {
     uniqueName: 'deprecated_consistency_parameter',
   );
 
-  static const LintCode
-  deprecated_member_use_from_same_package_with_message = LinterLintCode(
+  static const LintCode deprecated_member_use_from_same_package_with_message =
+      LinterLintCode(
     LintNames.deprecated_member_use_from_same_package,
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -554,7 +553,7 @@ class LinterLintCode extends LintCode {
   );
 
   static const LintCode
-  deprecated_member_use_from_same_package_without_message = LinterLintCode(
+      deprecated_member_use_from_same_package_without_message = LinterLintCode(
     LintNames.deprecated_member_use_from_same_package,
     "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
@@ -593,11 +592,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode directives_ordering_package_before_relative =
       LinterLintCode(
-        LintNames.directives_ordering,
-        "Place 'package:' {0}s before relative {0}s.",
-        correctionMessage: "Try sorting the directives.",
-        uniqueName: 'directives_ordering_package_before_relative',
-      );
+    LintNames.directives_ordering,
+    "Place 'package:' {0}s before relative {0}s.",
+    correctionMessage: "Try sorting the directives.",
+    uniqueName: 'directives_ordering_package_before_relative',
+  );
 
   static const LintCode discarded_futures = LinterLintCode(
     LintNames.discarded_futures,
@@ -714,8 +713,8 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try refactoring the expression to be valid in 3.0.",
   );
 
-  static const LintCode
-  invalid_runtime_check_with_js_interop_types_dart_as_js = LinterLintCode(
+  static const LintCode invalid_runtime_check_with_js_interop_types_dart_as_js =
+      LinterLintCode(
     LintNames.invalid_runtime_check_with_js_interop_types,
     "Cast from '{0}' to '{1}' casts a Dart value to a JS interop type, which "
     "might not be platform-consistent.",
@@ -726,16 +725,16 @@ class LinterLintCode extends LintCode {
     uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_as_js',
   );
 
-  static const LintCode
-  invalid_runtime_check_with_js_interop_types_dart_is_js = LinterLintCode(
+  static const LintCode invalid_runtime_check_with_js_interop_types_dart_is_js =
+      LinterLintCode(
     LintNames.invalid_runtime_check_with_js_interop_types,
     "Runtime check between '{0}' and '{1}' checks whether a Dart value is a JS "
     "interop type, which might not be platform-consistent.",
     uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   );
 
-  static const LintCode
-  invalid_runtime_check_with_js_interop_types_js_as_dart = LinterLintCode(
+  static const LintCode invalid_runtime_check_with_js_interop_types_js_as_dart =
+      LinterLintCode(
     LintNames.invalid_runtime_check_with_js_interop_types,
     "Cast from '{0}' to '{1}' casts a JS interop value to a Dart type, which "
     "might not be platform-consistent.",
@@ -746,17 +745,17 @@ class LinterLintCode extends LintCode {
   );
 
   static const LintCode
-  invalid_runtime_check_with_js_interop_types_js_as_incompatible_js =
+      invalid_runtime_check_with_js_interop_types_js_as_incompatible_js =
       LinterLintCode(
-        LintNames.invalid_runtime_check_with_js_interop_types,
-        "Cast from '{0}' to '{1}' casts a JS interop value to an incompatible JS "
-        "interop type, which might not be platform-consistent.",
-        uniqueName:
-            'invalid_runtime_check_with_js_interop_types_js_as_incompatible_js',
-      );
+    LintNames.invalid_runtime_check_with_js_interop_types,
+    "Cast from '{0}' to '{1}' casts a JS interop value to an incompatible JS "
+    "interop type, which might not be platform-consistent.",
+    uniqueName:
+        'invalid_runtime_check_with_js_interop_types_js_as_incompatible_js',
+  );
 
-  static const LintCode
-  invalid_runtime_check_with_js_interop_types_js_is_dart = LinterLintCode(
+  static const LintCode invalid_runtime_check_with_js_interop_types_js_is_dart =
+      LinterLintCode(
     LintNames.invalid_runtime_check_with_js_interop_types,
     "Runtime check between '{0}' and '{1}' checks whether a JS interop value "
     "is a Dart type, which might not be platform-consistent.",
@@ -764,21 +763,22 @@ class LinterLintCode extends LintCode {
   );
 
   static const LintCode
-  invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js =
+      invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js =
       LinterLintCode(
-        LintNames.invalid_runtime_check_with_js_interop_types,
-        "Runtime check between '{0}' and '{1}' involves a non-trivial runtime "
-        "check between two JS interop types that might not be "
-        "platform-consistent.",
-        correctionMessage:
-            "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
-            "check the underlying type of JS interop values.",
-        uniqueName:
-            'invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js',
-      );
+    LintNames.invalid_runtime_check_with_js_interop_types,
+    "Runtime check between '{0}' and '{1}' involves a non-trivial runtime "
+    "check between two JS interop types that might not be "
+    "platform-consistent.",
+    correctionMessage:
+        "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
+        "check the underlying type of JS interop values.",
+    uniqueName:
+        'invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js',
+  );
 
   static const LintCode
-  invalid_runtime_check_with_js_interop_types_js_is_unrelated_js = LinterLintCode(
+      invalid_runtime_check_with_js_interop_types_js_is_unrelated_js =
+      LinterLintCode(
     LintNames.invalid_runtime_check_with_js_interop_types,
     "Runtime check between '{0}' and '{1}' involves a runtime check between a "
     "JS interop value and an unrelated JS interop type that will always be "
@@ -862,17 +862,17 @@ class LinterLintCode extends LintCode {
 
   static const LintCode missing_code_block_language_in_doc_comment =
       LinterLintCode(
-        LintNames.missing_code_block_language_in_doc_comment,
-        "The code block is missing a specified language.",
-        correctionMessage: "Try adding a language to the code block.",
-      );
+    LintNames.missing_code_block_language_in_doc_comment,
+    "The code block is missing a specified language.",
+    correctionMessage: "Try adding a language to the code block.",
+  );
 
   static const LintCode missing_whitespace_between_adjacent_strings =
       LinterLintCode(
-        LintNames.missing_whitespace_between_adjacent_strings,
-        "Missing whitespace between adjacent strings.",
-        correctionMessage: "Try adding whitespace between the strings.",
-      );
+    LintNames.missing_whitespace_between_adjacent_strings,
+    "Missing whitespace between adjacent strings.",
+    correctionMessage: "Try adding whitespace between the strings.",
+  );
 
   static const LintCode no_adjacent_strings_in_list = LinterLintCode(
     LintNames.no_adjacent_strings_in_list,
@@ -898,21 +898,21 @@ class LinterLintCode extends LintCode {
 
   static const LintCode no_leading_underscores_for_library_prefixes =
       LinterLintCode(
-        LintNames.no_leading_underscores_for_library_prefixes,
-        "The library prefix '{0}' starts with an underscore.",
-        correctionMessage:
-            "Try renaming the prefix to not start with an underscore.",
-        hasPublishedDocs: true,
-      );
+    LintNames.no_leading_underscores_for_library_prefixes,
+    "The library prefix '{0}' starts with an underscore.",
+    correctionMessage:
+        "Try renaming the prefix to not start with an underscore.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode no_leading_underscores_for_local_identifiers =
       LinterLintCode(
-        LintNames.no_leading_underscores_for_local_identifiers,
-        "The local variable '{0}' starts with an underscore.",
-        correctionMessage:
-            "Try renaming the variable to not start with an underscore.",
-        hasPublishedDocs: true,
-      );
+    LintNames.no_leading_underscores_for_local_identifiers,
+    "The local variable '{0}' starts with an underscore.",
+    correctionMessage:
+        "Try renaming the variable to not start with an underscore.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode no_literal_bool_comparisons = LinterLintCode(
     LintNames.no_literal_bool_comparisons,
@@ -1017,12 +1017,6 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  static const LintCode package_api_docs = LinterLintCode(
-    LintNames.package_api_docs,
-    "Missing documentation for public API.",
-    correctionMessage: "Try adding a documentation comment.",
-  );
-
   static const LintCode package_names = LinterLintCode(
     LintNames.package_names,
     "The package name '{0}' isn't a lower_case_with_underscores identifier.",
@@ -1090,11 +1084,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_const_constructors_in_immutables =
       LinterLintCode(
-        LintNames.prefer_const_constructors_in_immutables,
-        "Constructors in '@immutable' classes should be declared as 'const'.",
-        correctionMessage: "Try adding 'const' to the constructor declaration.",
-        hasPublishedDocs: true,
-      );
+    LintNames.prefer_const_constructors_in_immutables,
+    "Constructors in '@immutable' classes should be declared as 'const'.",
+    correctionMessage: "Try adding 'const' to the constructor declaration.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode prefer_const_declarations = LinterLintCode(
     LintNames.prefer_const_declarations,
@@ -1105,19 +1099,19 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_const_literals_to_create_immutables =
       LinterLintCode(
-        LintNames.prefer_const_literals_to_create_immutables,
-        "Use 'const' literals as arguments to constructors of '@immutable' "
-        "classes.",
-        correctionMessage: "Try adding 'const' before the literal.",
-        hasPublishedDocs: true,
-      );
+    LintNames.prefer_const_literals_to_create_immutables,
+    "Use 'const' literals as arguments to constructors of '@immutable' "
+    "classes.",
+    correctionMessage: "Try adding 'const' before the literal.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode prefer_constructors_over_static_methods =
       LinterLintCode(
-        LintNames.prefer_constructors_over_static_methods,
-        "Static method should be a constructor.",
-        correctionMessage: "Try converting the method into a constructor.",
-      );
+    LintNames.prefer_constructors_over_static_methods,
+    "Static method should be a constructor.",
+    correctionMessage: "Try converting the method into a constructor.",
+  );
 
   static const LintCode prefer_contains_always_false = LinterLintCode(
     LintNames.prefer_contains,
@@ -1188,12 +1182,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_for_elements_to_map_fromIterable =
       LinterLintCode(
-        LintNames.prefer_for_elements_to_map_fromIterable,
-        "Use 'for' elements when building maps from iterables.",
-        correctionMessage:
-            "Try using a collection literal with a 'for' element.",
-        hasPublishedDocs: true,
-      );
+    LintNames.prefer_for_elements_to_map_fromIterable,
+    "Use 'for' elements when building maps from iterables.",
+    correctionMessage: "Try using a collection literal with a 'for' element.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode prefer_foreach = LinterLintCode(
     LintNames.prefer_foreach,
@@ -1202,8 +1195,8 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using 'forEach' rather than a 'for' loop.",
   );
 
-  static const LintCode
-  prefer_function_declarations_over_variables = LinterLintCode(
+  static const LintCode prefer_function_declarations_over_variables =
+      LinterLintCode(
     LintNames.prefer_function_declarations_over_variables,
     "Use a function declaration rather than a variable assignment to bind a "
     "function to a name.",
@@ -1221,11 +1214,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_if_elements_to_conditional_expressions =
       LinterLintCode(
-        LintNames.prefer_if_elements_to_conditional_expressions,
-        "Use an 'if' element to conditionally add elements.",
-        correctionMessage:
-            "Try using an 'if' element rather than a conditional expression.",
-      );
+    LintNames.prefer_if_elements_to_conditional_expressions,
+    "Use an 'if' element to conditionally add elements.",
+    correctionMessage:
+        "Try using an 'if' element rather than a conditional expression.",
+  );
 
   static const LintCode prefer_if_null_operators = LinterLintCode(
     LintNames.prefer_if_null_operators,
@@ -1266,12 +1259,12 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_interpolation_to_compose_strings =
       LinterLintCode(
-        LintNames.prefer_interpolation_to_compose_strings,
-        "Use interpolation to compose strings and values.",
-        correctionMessage:
-            "Try using string interpolation to build the composite string.",
-        hasPublishedDocs: true,
-      );
+    LintNames.prefer_interpolation_to_compose_strings,
+    "Use interpolation to compose strings and values.",
+    correctionMessage:
+        "Try using string interpolation to build the composite string.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode prefer_is_empty_always_false = LinterLintCode(
     LintNames.prefer_is_empty,
@@ -1372,15 +1365,15 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_typing_uninitialized_variables_for_field =
       LinterLintCode(
-        LintNames.prefer_typing_uninitialized_variables,
-        "An uninitialized field should have an explicit type annotation.",
-        correctionMessage: "Try adding a type annotation.",
-        hasPublishedDocs: true,
-        uniqueName: 'prefer_typing_uninitialized_variables_for_field',
-      );
+    LintNames.prefer_typing_uninitialized_variables,
+    "An uninitialized field should have an explicit type annotation.",
+    correctionMessage: "Try adding a type annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'prefer_typing_uninitialized_variables_for_field',
+  );
 
   static const LintCode
-  prefer_typing_uninitialized_variables_for_local_variable = LinterLintCode(
+      prefer_typing_uninitialized_variables_for_local_variable = LinterLintCode(
     LintNames.prefer_typing_uninitialized_variables,
     "An uninitialized variable should have an explicit type annotation.",
     correctionMessage: "Try adding a type annotation.",
@@ -1398,8 +1391,7 @@ class LinterLintCode extends LintCode {
   static const LintCode provide_deprecation_message = LinterLintCode(
     LintNames.provide_deprecation_message,
     "Missing a deprecation message.",
-    correctionMessage:
-        "Try using the constructor to provide a message "
+    correctionMessage: "Try using the constructor to provide a message "
         "('@Deprecated(\"message\")').",
     hasPublishedDocs: true,
   );
@@ -1486,15 +1478,40 @@ class LinterLintCode extends LintCode {
 
   static const LintCode specify_nonobvious_local_variable_types =
       LinterLintCode(
-        LintNames.specify_nonobvious_local_variable_types,
-        "Specify the type of a local variable when the type is non-obvious.",
-        correctionMessage: "Try adding a type annotation.",
-      );
+    LintNames.specify_nonobvious_local_variable_types,
+    "Specify the type of a local variable when the type is non-obvious.",
+    correctionMessage: "Try adding a type annotation.",
+  );
 
   static const LintCode specify_nonobvious_property_types = LinterLintCode(
     LintNames.specify_nonobvious_property_types,
     "A type annotation is needed because it isn't obvious.",
     correctionMessage: "Try adding a type annotation.",
+  );
+
+  static const LintCode strict_top_level_inference_add_type = LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage: "Try adding a type annotation.",
+    uniqueName: 'strict_top_level_inference_add_type',
+  );
+
+  static const LintCode strict_top_level_inference_replace_keyword =
+      LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage: "Try replacing '{0}' with a type annotation.",
+    uniqueName: 'strict_top_level_inference_replace_keyword',
+  );
+
+  static const LintCode strict_top_level_inference_split_to_types =
+      LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage:
+        "Try splitting the declaration and specify the different type "
+        "annotations.",
+    uniqueName: 'strict_top_level_inference_split_to_types',
   );
 
   static const LintCode test_types_in_equals = LinterLintCode(
@@ -1553,6 +1570,12 @@ class LinterLintCode extends LintCode {
         "Try using backticks around the content with angle brackets, or try "
         "replacing `<` with `&lt;` and `>` with `&gt;`.",
     hasPublishedDocs: true,
+  );
+
+  static const LintCode unnecessary_async = LinterLintCode(
+    LintNames.unnecessary_async,
+    "Don't make a function 'async' if it doesn't use 'await'.",
+    correctionMessage: "Try removing the 'async' modifier.",
   );
 
   static const LintCode unnecessary_await_in_return = LinterLintCode(
@@ -1653,7 +1676,7 @@ class LinterLintCode extends LintCode {
   );
 
   static const LintCode
-  unnecessary_null_aware_operator_on_extension_on_nullable = LinterLintCode(
+      unnecessary_null_aware_operator_on_extension_on_nullable = LinterLintCode(
     LintNames.unnecessary_null_aware_operator_on_extension_on_nullable,
     "Unnecessary use of a null-aware operator to invoke an extension method on "
     "a nullable type.",
@@ -1675,11 +1698,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode unnecessary_nullable_for_final_variable_declarations =
       LinterLintCode(
-        LintNames.unnecessary_nullable_for_final_variable_declarations,
-        "Type could be non-nullable.",
-        correctionMessage: "Try changing the type to be non-nullable.",
-        hasPublishedDocs: true,
-      );
+    LintNames.unnecessary_nullable_for_final_variable_declarations,
+    "Type could be non-nullable.",
+    correctionMessage: "Try changing the type to be non-nullable.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode unnecessary_overrides = LinterLintCode(
     LintNames.unnecessary_overrides,
@@ -1740,14 +1763,21 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_underscores = LinterLintCode(
+    LintNames.unnecessary_underscores,
+    "Unnecessary use of multiple underscores.",
+    correctionMessage: "Try using '_'.",
+    hasPublishedDocs: true,
+  );
+
   static const LintCode unreachable_from_main = LinterLintCode(
     LintNames.unreachable_from_main,
     "Unreachable member '{0}' in an executable library.",
     correctionMessage: "Try referencing the member or removing it.",
   );
 
-  static const LintCode
-  unrelated_type_equality_checks_in_expression = LinterLintCode(
+  static const LintCode unrelated_type_equality_checks_in_expression =
+      LinterLintCode(
     LintNames.unrelated_type_equality_checks,
     "The type of the right operand ('{0}') isn't a subtype or a supertype of "
     "the left operand ('{1}').",
@@ -1758,13 +1788,13 @@ class LinterLintCode extends LintCode {
 
   static const LintCode unrelated_type_equality_checks_in_pattern =
       LinterLintCode(
-        LintNames.unrelated_type_equality_checks,
-        "The type of the operand ('{0}') isn't a subtype or a supertype of the "
-        "value being matched ('{1}').",
-        correctionMessage: "Try changing one or both of the operands.",
-        hasPublishedDocs: true,
-        uniqueName: 'unrelated_type_equality_checks_in_pattern',
-      );
+    LintNames.unrelated_type_equality_checks,
+    "The type of the operand ('{0}') isn't a subtype or a supertype of the "
+    "value being matched ('{1}').",
+    correctionMessage: "Try changing one or both of the operands.",
+    hasPublishedDocs: true,
+    uniqueName: 'unrelated_type_equality_checks_in_pattern',
+  );
 
   static const LintCode unsafe_variance = LinterLintCode(
     LintNames.unsafe_variance,
@@ -1772,10 +1802,11 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using a more general type that doesn't contain any type "
         "parameters in such a position.",
+    hasPublishedDocs: true,
   );
 
-  static const LintCode
-  use_build_context_synchronously_async_use = LinterLintCode(
+  static const LintCode use_build_context_synchronously_async_use =
+      LinterLintCode(
     LintNames.use_build_context_synchronously,
     "Don't use 'BuildContext's across async gaps.",
     correctionMessage:
@@ -1785,8 +1816,8 @@ class LinterLintCode extends LintCode {
     uniqueName: 'use_build_context_synchronously_async_use',
   );
 
-  static const LintCode
-  use_build_context_synchronously_wrong_mounted = LinterLintCode(
+  static const LintCode use_build_context_synchronously_wrong_mounted =
+      LinterLintCode(
     LintNames.use_build_context_synchronously,
     "Don't use 'BuildContext's across async gaps, guarded by an unrelated "
     "'mounted' check.",
@@ -1826,11 +1857,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode use_function_type_syntax_for_parameters =
       LinterLintCode(
-        LintNames.use_function_type_syntax_for_parameters,
-        "Use the generic function type syntax to declare the parameter '{0}'.",
-        correctionMessage: "Try using the generic function type syntax.",
-        hasPublishedDocs: true,
-      );
+    LintNames.use_function_type_syntax_for_parameters,
+    "Use the generic function type syntax to declare the parameter '{0}'.",
+    correctionMessage: "Try using the generic function type syntax.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode use_if_null_to_convert_nulls_to_bools = LinterLintCode(
     LintNames.use_if_null_to_convert_nulls_to_bools,
@@ -1854,11 +1885,11 @@ class LinterLintCode extends LintCode {
 
   static const LintCode use_late_for_private_fields_and_variables =
       LinterLintCode(
-        LintNames.use_late_for_private_fields_and_variables,
-        "Use 'late' for private members with a non-nullable type.",
-        correctionMessage: "Try making adding the modifier 'late'.",
-        hasPublishedDocs: true,
-      );
+    LintNames.use_late_for_private_fields_and_variables,
+    "Use 'late' for private members with a non-nullable type.",
+    correctionMessage: "Try making adding the modifier 'late'.",
+    hasPublishedDocs: true,
+  );
 
   static const LintCode use_named_constants = LinterLintCode(
     LintNames.use_named_constants,

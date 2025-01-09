@@ -9,8 +9,11 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Helper for renaming one or more [Element]s.
@@ -28,10 +31,25 @@ class RenameProcessor {
   );
 
   /// Add the edit that updates the [element] declaration.
-  void addDeclarationEdit(Element? element) {
-    if (element != null && workspace.containsElement(element)) {
-      var edit = newSourceEdit_range(range.elementName(element), newName);
-      doSourceChange_addElementEdit(change, element, edit);
+  void addDeclarationEdit2(Element2? element) {
+    if (element == null) {
+      return;
+    } else if (element is LibraryElementImpl) {
+      // TODO(brianwilkerson): Consider adding public API to get the offset and
+      //  length of the library's name.
+      var nameRange = range.startOffsetLength(
+        element.nameOffset,
+        element.nameLength,
+      );
+      var edit = newSourceEdit_range(nameRange, newName);
+      doSourceChange_addFragmentEdit(change, element.firstFragment, edit);
+    } else if (workspace.containsElement2(element)) {
+      Fragment? fragment = element.firstFragment;
+      while (fragment != null) {
+        var edit = newSourceEdit_range(range.fragmentName(fragment)!, newName);
+        doSourceChange_addFragmentEdit(change, fragment, edit);
+        fragment = fragment.nextFragment;
+      }
     }
   }
 
@@ -39,19 +57,18 @@ class RenameProcessor {
   void addReferenceEdits(List<SearchMatch> matches) {
     var references = getSourceReferences(matches);
     for (var reference in references) {
-      if (!workspace.containsElement(reference.element)) {
+      if (!workspace.containsElement2(reference.element2)) {
         continue;
       }
       reference.addEdit(change, newName);
     }
   }
 
-  /// Update the [element] declaration and reference to it.
-  Future<void> renameElement(Element element) {
-    addDeclarationEdit(element);
-    return workspace.searchEngine
-        .searchReferences(element)
-        .then(addReferenceEdits);
+  /// Update the [element] declaration and references to it.
+  Future<void> renameElement2(Element2 element) async {
+    addDeclarationEdit2(element);
+    var matches = await workspace.searchEngine.searchReferences(element);
+    addReferenceEdits(matches);
   }
 
   /// Add an edit that replaces the specified region with [code].
@@ -64,6 +81,22 @@ class RenameProcessor {
   }) {
     var edit = SourceEdit(offset, length, code);
     doSourceChange_addElementEdit(change, referenceElement, edit);
+  }
+
+  /// Add an edit that replaces the specified region with [code].
+  /// Uses [referenceElement] to identify the file to update.
+  void replace2({
+    required Element2 referenceElement,
+    required int offset,
+    required int length,
+    required String code,
+  }) {
+    var edit = SourceEdit(offset, length, code);
+    doSourceChange_addFragmentEdit(
+      change,
+      referenceElement.firstFragment,
+      edit,
+    );
   }
 }
 
@@ -88,7 +121,15 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       elementKindName = element.kind.displayName,
       oldName = _getOldName(element);
 
+  RenameRefactoringImpl.c2(this.workspace, this.sessionHelper, Element2 element)
+    : searchEngine = workspace.searchEngine,
+      _element = element.asElement!,
+      elementKindName = element.kind.displayName,
+      oldName = _getOldName(element.asElement!);
+
   Element get element => _element;
+
+  Element2 get element2 => _element.asElement2!;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
@@ -96,16 +137,16 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     if (element.library?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        getElementKindName(element2),
+        getElementQualifiedName(element2),
       );
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
       var message = format(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        getElementKindName(element2),
+        getElementQualifiedName(element2),
       );
       result.addFatalError(message);
     }

@@ -14,6 +14,7 @@
 /// with `@JS()` annotations.
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use dart:js_interop instead.')
 library dart.js_util;
 
 // Examples can assume:
@@ -148,7 +149,16 @@ class NullRejectionException implements Exception {
 
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
-/// ```dart template:top
+/// ```dart
+/// // ignore: deprecated_member_use_from_same_package
+/// import 'dart:js_util';
+///
+/// // ignore: deprecated_member_use_from_same_package
+/// import 'package:js/js.dart';
+///
+/// @JS()
+/// class Promise<T> {}
+///
 /// @JS()
 /// external Promise<num> get threePromise; // Resolves to 3
 ///

@@ -677,6 +677,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
+            "dart2js_bot",
             "ddc_stable_test",
             "kernel_platform_files",
             "runtime"
@@ -2487,7 +2488,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "dart2js_bot"
           ]
         },
         {

@@ -27,50 +27,19 @@ class QueueElement;
 class Script;
 class SequenceNode;
 
-class CompilationPipeline : public ZoneAllocated {
+class Compiler : public AllStatic {
  public:
-  static CompilationPipeline* New(Zone* zone, const Function& function);
+  static constexpr intptr_t kNoOSRDeoptId = DeoptId::kNone;
 
-  virtual void ParseFunction(ParsedFunction* parsed_function) = 0;
-  virtual FlowGraph* BuildFlowGraph(
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Build flow graph for the given function.
+  static FlowGraph* BuildFlowGraph(
       Zone* zone,
       ParsedFunction* parsed_function,
       ZoneGrowableArray<const ICData*>* ic_data_array,
       intptr_t osr_id,
-      bool optimized) = 0;
-  virtual ~CompilationPipeline() {}
-};
-
-class DartCompilationPipeline : public CompilationPipeline {
- public:
-  void ParseFunction(ParsedFunction* parsed_function) override;
-
-  FlowGraph* BuildFlowGraph(Zone* zone,
-                            ParsedFunction* parsed_function,
-                            ZoneGrowableArray<const ICData*>* ic_data_array,
-                            intptr_t osr_id,
-                            bool optimized) override;
-};
-
-class IrregexpCompilationPipeline : public CompilationPipeline {
- public:
-  IrregexpCompilationPipeline() : backtrack_goto_(nullptr) {}
-
-  void ParseFunction(ParsedFunction* parsed_function) override;
-
-  FlowGraph* BuildFlowGraph(Zone* zone,
-                            ParsedFunction* parsed_function,
-                            ZoneGrowableArray<const ICData*>* ic_data_array,
-                            intptr_t osr_id,
-                            bool optimized) override;
-
- private:
-  IndirectGotoInstr* backtrack_goto_;
-};
-
-class Compiler : public AllStatic {
- public:
-  static constexpr intptr_t kNoOSRDeoptId = DeoptId::kNone;
+      bool optimized);
+#endif
 
   static bool IsBackgroundCompilation();
   // The result for a function may change if debugging gets turned on/off.

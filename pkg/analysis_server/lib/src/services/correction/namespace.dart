@@ -6,24 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Returns the [Element] exported from the given [LibraryElement].
-Element? getExportedElement(LibraryElement? library, String name) {
+/// Returns the [Element2] exported from the given [LibraryElement2].
+Element2? getExportedElement(LibraryElement2? library, String name) {
   if (library == null) {
     return null;
   }
-  return _getExportNamespaceForLibrary(library)[name];
-}
-
-/// Returns the [Element] exported from the given [LibraryElement].
-Element2? getExportedElement2(LibraryElement2? library, String name) {
-  if (library == null) {
-    return null;
-  }
-  return _getExportNamespaceForLibrary(
-    library as LibraryElement,
-  )[name].asElement2;
+  var namespace = NamespaceBuilder().createExportNamespaceForLibrary(library);
+  return namespace.definedNames2[name];
 }
 
 /// Return the [LibraryImportElement] that is referenced by [prefixNode], or
@@ -46,12 +36,6 @@ LibraryImport? getImportElement2(SimpleIdentifier prefixNode) {
     return parent.libraryImport;
   }
   return _getImportElementInfo2(prefixNode);
-}
-
-/// Returns the export namespace of the given [LibraryElement].
-Map<String, Element> _getExportNamespaceForLibrary(LibraryElement library) {
-  var namespace = NamespaceBuilder().createExportNamespaceForLibrary(library);
-  return namespace.definedNames;
 }
 
 /// Return the [LibraryImportElement] that declared [prefix] and imports [element].
@@ -223,7 +207,7 @@ LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   return _getImportElement(libraryElement, prefix, usedElement);
 }
 
-/// Returns the [LibraryImport2] that is referenced by [prefixNode] with a
+/// Returns the [LibraryImport] that is referenced by [prefixNode] with a
 /// [PrefixElement], maybe `null`.
 LibraryImport? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment

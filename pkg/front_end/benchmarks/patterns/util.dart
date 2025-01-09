@@ -242,7 +242,7 @@ class SeriesSet {
     }
     sb.write(']);');
     return new DartFormatter(
-            languageVersion: DartFormatter.latestLanguageVersion)
+            languageVersion: DartFormatter.latestShortStyleLanguageVersion)
         .format(sb.toString());
   }
 }

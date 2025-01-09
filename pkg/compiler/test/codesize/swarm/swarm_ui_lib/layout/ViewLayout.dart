@@ -167,8 +167,11 @@ class ViewLayout {
     }
   }
 
-  int? measureContent(ViewLayout parent, Dimension? dimension,
-      [ContentSizeMode? mode]) {
+  int? measureContent(
+    ViewLayout parent,
+    Dimension? dimension, [
+    ContentSizeMode? mode,
+  ]) {
     if (dimension == Dimension.WIDTH) {
       return measureWidth(parent, mode);
     } else if (dimension == Dimension.HEIGHT) {
@@ -191,10 +194,16 @@ class ViewLayout {
     final style = layoutParams!.style;
     if (mode == ContentSizeMode.MIN) {
       return _styleToPixels(
-          style!.minHeight, currentHeight, parent.currentHeight);
+        style!.minHeight,
+        currentHeight,
+        parent.currentHeight,
+      );
     } else if (mode == ContentSizeMode.MAX) {
       return _styleToPixels(
-          style!.maxHeight, currentHeight, parent.currentHeight);
+        style!.maxHeight,
+        currentHeight,
+        parent.currentHeight,
+      );
     }
     return null;
   }

@@ -51,29 +51,16 @@
 
 namespace dart {
 
-CompilerPassState::CompilerPassState(
-    Thread* thread,
-    FlowGraph* flow_graph,
-    SpeculativeInliningPolicy* speculative_policy,
-    Precompiler* precompiler)
+CompilerPassState::CompilerPassState(Thread* thread,
+                                     FlowGraph* flow_graph,
+                                     Precompiler* precompiler)
     : thread(thread),
       precompiler(precompiler),
       inlining_depth(0),
       sinking(nullptr),
       call_specializer(nullptr),
-      speculative_policy(speculative_policy),
       sticky_flags(0),
-      flow_graph_(flow_graph) {
-  // Top scope function is at inlining id 0.
-  inline_id_to_function.Add(&flow_graph->parsed_function().function());
-  // Top scope function has no caller (-1).
-  caller_inline_id.Add(-1);
-  // We do not add a token position for the top scope function to
-  // |inline_id_to_token_pos| because it is not (currently) inlined into
-  // another graph at a given token position. A side effect of this is that
-  // the length of |inline_id_to_function| and |caller_inline_id| is always
-  // larger than the length of |inline_id_to_token_pos| by one.
-}
+      flow_graph_(flow_graph) {}
 
 CompilerPass* CompilerPass::passes_[CompilerPass::kNumPasses] = {nullptr};
 uint8_t CompilerPass::flags_[CompilerPass::kNumPasses] = {0};
@@ -234,8 +221,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
     PrintGraph(state, kTraceAfter, round);
 #if defined(DEBUG)
     if (CompilerState::Current().is_optimizing()) {
-      FlowGraphChecker(state->flow_graph(), state->inline_id_to_function)
-          .Check(name());
+      FlowGraphChecker(state->flow_graph()).Check(name());
     }
 #endif
     CompilerState::Current().set_current_pass(nullptr, nullptr);
@@ -390,13 +376,12 @@ COMPILER_PASS(ApplyICData, { state->call_specializer->ApplyICData(); });
 
 COMPILER_PASS(TryOptimizePatterns, { flow_graph->TryOptimizePatterns(); });
 
-COMPILER_PASS(SetOuterInliningId,
-              { FlowGraphInliner::SetInliningId(flow_graph, 0); });
+COMPILER_PASS(SetOuterInliningId, {
+  FlowGraphInliner::SetInliningIdAndTryIndex(flow_graph, 0, kInvalidTryIndex);
+});
 
 COMPILER_PASS(Inlining, {
-  FlowGraphInliner inliner(
-      flow_graph, &state->inline_id_to_function, &state->inline_id_to_token_pos,
-      &state->caller_inline_id, state->speculative_policy, state->precompiler);
+  FlowGraphInliner inliner(flow_graph, state->precompiler);
   state->inlining_depth = inliner.Inline();
 });
 
@@ -506,7 +491,7 @@ COMPILER_PASS(DelayAllocations, { DelayAllocations::Optimize(flow_graph); });
 
 COMPILER_PASS(AllocationSinking_Sink, {
   // TODO(vegorov): Support allocation sinking with try-catch.
-  if (flow_graph->graph_entry()->catch_entries().is_empty()) {
+  if (flow_graph->try_entries().is_empty()) {
     state->sinking = new AllocationSinking(flow_graph);
     state->sinking->Optimize();
   }

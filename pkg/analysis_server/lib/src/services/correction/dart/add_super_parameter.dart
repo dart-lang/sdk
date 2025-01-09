@@ -33,7 +33,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+    if (!isEnabled(Feature.super_parameters)) {
       return;
     }
 

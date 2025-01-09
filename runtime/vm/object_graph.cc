@@ -1120,6 +1120,13 @@ class Pass2Visitor : public ObjectVisitor,
         writer_(writer),
         object_slots_(object_slots) {}
 
+  // A safepoint might occur between the allocation stub creating an object and
+  // filling it with nulls and the instance initializer running and populating a
+  // length field.
+  static intptr_t SmiValueOrZero(SmiPtr smi) {
+    return smi->IsSmi() ? Smi::Value(smi) : 0;
+  }
+
   void VisitObject(ObjectPtr obj) override {
     if (obj->IsPseudoObject()) return;
 
@@ -1171,16 +1178,16 @@ class Pass2Visitor : public ObjectVisitor,
           Smi::Value(static_cast<ArrayPtr>(obj)->untag()->length()));
     } else if (cid == kGrowableObjectArrayCid) {
       writer_->WriteUnsigned(kLengthData);
-      writer_->WriteUnsigned(Smi::Value(
+      writer_->WriteUnsigned(SmiValueOrZero(
           static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
     } else if (cid == kMapCid || cid == kConstMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<MapPtr>(obj)->untag()->used_data()));
+          SmiValueOrZero(static_cast<MapPtr>(obj)->untag()->used_data()));
     } else if (cid == kSetCid || cid == kConstSetCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<SetPtr>(obj)->untag()->used_data()));
+          SmiValueOrZero(static_cast<SetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);

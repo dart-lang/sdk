@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -13,7 +12,6 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -26,13 +24,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late ResolvedLibraryResult? testLibraryResult;
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
-  late CompilationUnitElement testUnitElement;
-  late LibraryElement testLibraryElement;
   late FindNode findNode;
   late FindElement findElement;
   late FindElement2 findElement2;
 
-  LibraryElement2 get testLibraryElement2 => testLibraryElement.asElement2;
+  late LibraryElement2 testLibraryElement;
 
   void addTestSource(String code) {
     testCode = code;
@@ -84,8 +80,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         isEmpty,
       );
     }
-    testUnitElement = testUnit.declaredElement!;
-    testLibraryElement = testUnitElement.library;
+
+    testLibraryElement = testUnit.declaredFragment!.element;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
     findElement2 = FindElement2(testUnit);

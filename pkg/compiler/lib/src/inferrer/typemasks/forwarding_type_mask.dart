@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 /// A type mask that wraps another one, and delegates all its
 /// implementation methods to it.
@@ -12,7 +12,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   const ForwardingTypeMask();
 
   @override
-  bool get isEmptyOrFlagged => forwardTo.isEmptyOrFlagged;
+  bool get isEmptyOrSpecial => forwardTo.isEmptyOrSpecial;
   @override
   bool get isEmpty => forwardTo.isEmpty;
   @override
@@ -88,22 +88,33 @@ abstract class ForwardingTypeMask extends TypeMask {
     }
     bool isNullable = this.isNullable || other.isNullable;
     bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
-    if (isEmptyOrFlagged) {
-      return other.withFlags(
-          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    if (isEmptyOrSpecial) {
+      return other.withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     }
-    if (other.isEmptyOrFlagged) {
-      return withFlags(
-          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    if (other.isEmptyOrSpecial) {
+      return withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     }
-    return _unionSpecialCases(other, domain,
-            isNullable: isNullable, hasLateSentinel: hasLateSentinel) ??
+    return _unionSpecialCases(
+          other,
+          domain,
+          isNullable: isNullable,
+          hasLateSentinel: hasLateSentinel,
+        ) ??
         forwardTo.union(other, domain);
   }
 
-  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
-          {required bool isNullable, required bool hasLateSentinel}) =>
-      null;
+  TypeMask? _unionSpecialCases(
+    TypeMask other,
+    CommonMasks domain, {
+    required bool isNullable,
+    required bool hasLateSentinel,
+  }) => null;
 
   @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
@@ -113,15 +124,18 @@ abstract class ForwardingTypeMask extends TypeMask {
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     TypeMask forwardIntersection = forwardTo.intersection(other, domain);
-    if (forwardIntersection.isEmptyOrFlagged) return forwardIntersection;
-    return withFlags(
-        isNullable: forwardIntersection.isNullable,
-        hasLateSentinel: forwardIntersection.hasLateSentinel);
+    if (forwardIntersection.isEmptyOrSpecial) return forwardIntersection;
+    return withSpecialValues(
+      isNullable: forwardIntersection.isNullable,
+      hasLateSentinel: forwardIntersection.hasLateSentinel,
+    );
   }
 
   @override
   bool needsNoSuchMethodHandling(
-      Selector selector, covariant JClosedWorld closedWorld) {
+    Selector selector,
+    covariant JClosedWorld closedWorld,
+  ) {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
@@ -136,10 +150,16 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
-      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+    JClosedWorld closedWorld,
+  ) {
     return forwardTo.findRootsOfTargets(
-        selector, memberHierarchyBuilder, closedWorld);
+      selector,
+      memberHierarchyBuilder,
+      closedWorld,
+    );
   }
 
   @override

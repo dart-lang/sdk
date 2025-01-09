@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.cmdline.options;
+library;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
 class Flags {

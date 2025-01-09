@@ -988,7 +988,8 @@ class LibraryMacroApplier {
     return macro.Arguments(positional, named);
   }
 
-  /// Run the [body], report [AnalyzerMacroDiagnostic]s to [onDiagnostic].
+  /// Runs the [body], report [AnalyzerMacroDiagnostic]s to
+  /// `targetElement.addMacroDiagnostic`.
   static Future<T?> _runWithCatchingExceptions<T>(
     Future<T> Function() body, {
     required MacroTargetElement targetElement,

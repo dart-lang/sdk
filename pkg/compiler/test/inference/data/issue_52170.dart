@@ -8,9 +8,11 @@ int get getInt => 42;
 /*member: foo:Union(null, [exact=JSString], [exact=JSUInt31])*/
 foo() {
   dynamic local = 3;
-  for (int i = 0;
-      i /*invoke: [subclass=JSPositiveInt]*/ < 10;
-      i /*invoke: [subclass=JSPositiveInt]*/ ++) {
+  for (
+    int i = 0;
+    i /*invoke: [subclass=JSPositiveInt]*/ < 10;
+    i /*invoke: [subclass=JSPositiveInt]*/ ++
+  ) {
     switch (getInt) {
       case 42:
         break;

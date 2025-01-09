@@ -5,7 +5,7 @@
 /// This tool compares two JSON size reports produced by
 /// --print-instructions-sizes-to and reports which symbols increased in size
 /// and which symbols decreased in size.
-library vm_snapshot_analysis.compare;
+library;
 
 import 'dart:io';
 

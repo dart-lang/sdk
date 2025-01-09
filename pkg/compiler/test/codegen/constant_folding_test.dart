@@ -61,20 +61,39 @@ main() {
   runTests() async {
     await compileAndMatch(NUMBER_FOLDING, 'main', RegExp(r"print\(7\)"));
     await compileAndMatch(
-        NEGATIVE_NUMBER_FOLDING, 'main', RegExp(r"print\(1\)"));
-    await compile(NULL_EQUALS_FOLDING, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp(r'a == null');
-      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
+      NEGATIVE_NUMBER_FOLDING,
+      'main',
+      RegExp(r"print\(1\)"),
+    );
+    await compile(
+      NULL_EQUALS_FOLDING,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp(r'a == null');
+        Expect.isTrue(
+          regexp.hasMatch(generated),
+          'No match found for ${regexp}',
+        );
 
-      regexp = RegExp(r'b == null');
-      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
+        regexp = RegExp(r'b == null');
+        Expect.isTrue(
+          regexp.hasMatch(generated),
+          'No match found for ${regexp}',
+        );
 
-      regexp = RegExp(r'4 === c');
-      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
+        regexp = RegExp(r'4 === c');
+        Expect.isTrue(
+          regexp.hasMatch(generated),
+          'No match found for ${regexp}',
+        );
 
-      regexp = RegExp('"foo" === d');
-      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
-    });
+        regexp = RegExp('"foo" === d');
+        Expect.isTrue(
+          regexp.hasMatch(generated),
+          'No match found for ${regexp}',
+        );
+      },
+    );
     await compileAndMatch(LIST_LENGTH_FOLDING, 'foo', RegExp(r"return 3"));
     await compileAndMatch(LIST_INDEX_FOLDING, 'foo', RegExp(r"return 1"));
     await compileAndDoNotMatch(LIST_INDEX_FOLDING, 'foo', RegExp(r"ioore"));

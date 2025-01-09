@@ -59,11 +59,13 @@
 ///
 /// In minified mode, the properties `int` and `X_String` can be replaced by
 /// shorter names.
-library js_backend.type_reference;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common/elements.dart' show CommonElements;
@@ -152,7 +154,8 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   TypeReference withSourceInformation(
-      js.JavaScriptNodeSourceInformation? newSourceInformation) {
+    js.JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReference._(typeRecipe, _value, newSourceInformation);
@@ -200,7 +203,8 @@ class TypeReferenceResource extends js.DeferredStatement
 
   @override
   TypeReferenceResource withSourceInformation(
-      js.JavaScriptNodeSourceInformation? newSourceInformation) {
+    js.JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReferenceResource._(_statement, newSourceInformation);
@@ -244,7 +248,11 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   final Map<TypeRecipe, _ReferenceSet> _referencesByRecipe = {};
 
   TypeReferenceFinalizerImpl(
-      this._emitter, this._commonElements, this._recipeEncoder, this._minify) {
+    this._emitter,
+    this._commonElements,
+    this._recipeEncoder,
+    this._minify,
+  ) {
     _visitor = _TypeReferenceCollectorVisitor(this);
   }
 
@@ -277,12 +285,15 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   }
 
   void _updateReferences() {
-    js.Expression helperAccess =
-        _emitter.staticFunctionAccess(_commonElements.findType);
+    js.Expression helperAccess = _emitter.staticFunctionAccess(
+      _commonElements.findType,
+    );
 
     js.Expression loadTypeCall(TypeRecipe recipe, String? helperLocal) {
-      js.Expression recipeExpression =
-          _recipeEncoder.encodeGroundRecipe(_emitter, recipe);
+      js.Expression recipeExpression = _recipeEncoder.encodeGroundRecipe(
+        _emitter,
+        recipe,
+      );
       return js.js(r'#(#)', [helperLocal ?? helperAccess, recipeExpression]);
     }
 
@@ -316,8 +327,9 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       TypeRecipe recipe = referenceSet.recipe;
       final propertyName = js.string(referenceSet.propertyName!);
-      properties
-          .add(js.Property(propertyName, loadTypeCall(recipe, helperLocal)));
+      properties.add(
+        js.Property(propertyName, loadTypeCall(recipe, helperLocal)),
+      );
       var access = js.js('#.#', [typesHolderLocalName, propertyName]);
       for (TypeReference ref in referenceSet._references) {
         ref.value = access;
@@ -327,16 +339,23 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     if (properties.isEmpty) {
       _resource!.statement = js.Block.empty();
     } else {
-      js.Expression initializer =
-          js.ObjectInitializer(properties, isOneLiner: false);
+      js.Expression initializer = js.ObjectInitializer(
+        properties,
+        isOneLiner: false,
+      );
       if (helperLocal != null) {
         // A named IIFE helps attribute startup time in profiling.
-        var function = js.js(r'function rtii(){var # = #; return #}',
-            [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
+        var function = js.js(r'function rtii(){var # = #; return #}', [
+          js.VariableDeclaration(helperLocal),
+          helperAccess,
+          initializer,
+        ]);
         initializer = js.js('#()', js.Parentheses(function));
       }
-      _resource!.statement = js.js.statement(r'var # = #',
-          [js.VariableDeclaration(typesHolderLocalName), initializer]);
+      _resource!.statement = js.js.statement(r'var # = #', [
+        js.VariableDeclaration(typesHolderLocalName),
+        initializer,
+      ]);
     }
   }
 
@@ -412,14 +431,15 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
 
     // Step 2. Sort by frequency to arrange common entries have shorter property
     // names.
-    List<_ReferenceSet> referencesByFrequency = referencesInTable.toList()
-      ..sort((a, b) {
-        assert(a.name != b.name);
-        int r = b.count.compareTo(a.count); // Decreasing frequency.
-        if (r != 0) return r;
-        return a.name!
-            .compareTo(b.name!); // Tie-break with characteristic name.
-      });
+    List<_ReferenceSet> referencesByFrequency =
+        referencesInTable.toList()..sort((a, b) {
+          assert(a.name != b.name);
+          int r = b.count.compareTo(a.count); // Decreasing frequency.
+          if (r != 0) return r;
+          return a.name!.compareTo(
+            b.name!,
+          ); // Tie-break with characteristic name.
+        });
 
     for (var referenceSet in referencesByFrequency) {
       referenceSet.hash = _hashCharacteristicString(referenceSet.name!);
@@ -432,13 +452,18 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
         referencesByFrequency[index].propertyName = name;
       } else {
         var refSet = referencesByFrequency[index];
-        refSet.propertyName = name + '_' + refSet.name!;
+        refSet.propertyName = '${name}_${refSet.name!}';
       }
     }
 
     //naiveFrequencyAssignment(
-    semistableFrequencyAssignment(referencesByFrequency.length,
-        minifiedNameSequence(), hashOf, countOf, assign);
+    semistableFrequencyAssignment(
+      referencesByFrequency.length,
+      minifiedNameSequence(),
+      hashOf,
+      countOf,
+      assign,
+    );
   }
 
   static int _hashCharacteristicString(String s) {
@@ -546,8 +571,9 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
     } else {
       final deferredExpressionData = js.getNodeDeferredExpressionData(node);
       if (deferredExpressionData != null) {
-        deferredExpressionData.typeReferences
-            .forEach(_finalizer._registerTypeReference);
+        deferredExpressionData.typeReferences.forEach(
+          _finalizer._registerTypeReference,
+        );
       } else {
         super.visitNode(node);
       }
@@ -589,8 +615,8 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
 /// interface types with the same name (i.e. from different libraries), or types
 /// with names that contain underscores or dollar signs. There is also some
 /// ambiguity in the generated names in the interest of keeping most names
-/// short, e.g. "FutureOr_int_Function" could be "FutureOr<int> Function()" or
-/// "FutureOr<int Function()>".
+/// short, e.g. `"FutureOr_int_Function"` could be `"FutureOr<int> Function()"`
+/// or `"FutureOr<int Function()>"`.
 class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   final Map<DartType, int> _backrefs = Map.identity();
   final List<String> _fragments = [];
@@ -608,7 +634,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
       int index = 0;
       for (DartType type in recipe.types) {
         ++index;
-        _add('${index}');
+        _add('$index');
         _visit(type);
       }
     } else {
@@ -616,7 +642,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     }
     String result = _fragments.join('_');
     if (namer.startsWithIdentifierCharacter(result)) return result;
-    return 'z' + result;
+    return 'z$result';
   }
 
   void _add(String text) {
@@ -682,7 +708,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   @override
   void visitFunctionTypeVariable(covariant FunctionTypeVariable type, _) {
     int index = type.index;
-    String name = index < 26 ? String.fromCharCode($A + index) : 'v\$${index}';
+    String name = index < 26 ? String.fromCharCode($A + index) : 'v\$$index';
     _add(name);
   }
 

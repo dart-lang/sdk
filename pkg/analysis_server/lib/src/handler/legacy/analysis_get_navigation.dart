@@ -13,7 +13,7 @@ import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 
 /// The handler for the `analysis.getNavigation` request.
 class AnalysisGetNavigationHandler extends LegacyHandler

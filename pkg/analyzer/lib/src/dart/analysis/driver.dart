@@ -99,7 +99,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 424;
+  static const int DATA_VERSION = 426;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -161,13 +161,13 @@ class AnalysisDriver {
   final DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
-  Uint32List _saltForUnlinked = Uint32List(0);
+  final Uint32List _saltForUnlinked;
 
   /// The salt to mix into all hashes used as keys for elements.
-  Uint32List _saltForElements = Uint32List(0);
+  final Uint32List _saltForElements;
 
   /// The salt to mix into all hashes used as keys for linked data.
-  Uint32List _saltForResolution = Uint32List(0);
+  final Uint32List _saltForResolution;
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = <String>{};
@@ -239,7 +239,7 @@ class AnalysisDriver {
   late final FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
-  late FileTracker _fileTracker;
+  late final FileTracker _fileTracker;
 
   /// Whether resolved units should be indexed.
   final bool enableIndex;
@@ -312,17 +312,19 @@ class AnalysisDriver {
         declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null,
         _enableLintRuleTiming = enableLintRuleTiming,
-        // This extra work is temporary and will get simplified when the
-        // deprecated support for passing in an `analysisOptions` is removed.
-        assert(
-          analysisOptionsMap == null || analysisOptions == null,
-          'An analysisOptionsMap or analysisOptions can be specified, but not both',
-        ),
         // This '!' is temporary. The analysisOptionsMap is effectively
         // required but can't be until Google3 is updated.
         analysisOptionsMap = analysisOptions == null
             ? analysisOptionsMap!
-            : AnalysisOptionsMap.forSharedOptions(analysisOptions) {
+            : AnalysisOptionsMap.forSharedOptions(analysisOptions),
+        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+        _saltForElements =
+            _calculateSaltForElements(declaredVariables ?? DeclaredVariables()),
+        _saltForResolution = _calculateSaltForResolution(
+          enableIndex: enableIndex,
+          analysisContext: analysisContext,
+          declaredVariables: declaredVariables ?? DeclaredVariables(),
+        ) {
     analysisContext?.driver = this;
     testView?.driver = this;
 
@@ -404,6 +406,15 @@ class AnalysisDriver {
 
   /// Return the number of files scheduled for analysis.
   int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
+
+  List<PluginConfiguration> get pluginConfigurations {
+    // We currently only support plugins which are specified at the root of a
+    // context.
+    var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
+    return rootOptionsFile != null
+        ? getAnalysisOptionsForFile(rootOptionsFile).pluginConfigurations
+        : const [];
+  }
 
   /// Return the list of files that the driver should try to analyze sooner.
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
@@ -700,7 +711,7 @@ class AnalysisDriver {
   }
 
   /// Notify the driver that the client is going to stop using it.
-  Future<void> dispose2() async {
+  Future<void> dispose2() {
     var completer = Completer<void>();
     _disposed = true;
     _disposeRequests.add(completer);
@@ -773,7 +784,7 @@ class AnalysisDriver {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  Future<SomeErrorsResult> getErrors(String path) async {
+  Future<SomeErrorsResult> getErrors(String path) {
     if (!_isAbsolutePath(path)) {
       return Future.value(
         InvalidPathResult(),
@@ -903,7 +914,7 @@ class AnalysisDriver {
         }
 
         var unitResult = await getUnitElement(file.path);
-        if (unitResult is UnitElementResult) {
+        if (unitResult is UnitElementResultImpl) {
           return LibraryElementResultImpl(unitResult.element.library);
         }
 
@@ -1288,7 +1299,7 @@ class AnalysisDriver {
     required String path,
     required int offset,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
@@ -1297,17 +1308,6 @@ class AnalysisDriver {
     _resolveForCompletionRequests.add(request);
     _scheduler.notify();
     return request.completer.future;
-  }
-
-  void _addDeclaredVariablesToSignature(ApiSignature buffer) {
-    var variableNames = declaredVariables.variableNames;
-    buffer.addInt(variableNames.length);
-
-    for (var name in variableNames) {
-      var value = declaredVariables.get(name);
-      buffer.addString(name);
-      buffer.addString(value!);
-    }
   }
 
   Future<void> _analyzeFile(String path) async {
@@ -1325,7 +1325,7 @@ class AnalysisDriver {
   Future<void> _analyzeFileImpl({
     required String path,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     // We will produce the result for this file, at least.
     // And for any other files of the same library.
     _fileTracker.fileWasAnalyzed(path);
@@ -1593,8 +1593,6 @@ class AnalysisDriver {
   ///
   /// This is used on initial construction.
   void _createFileTracker() {
-    _fillSalt();
-
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
@@ -1688,40 +1686,6 @@ class AnalysisDriver {
         }
       }
     }
-  }
-
-  void _fillSalt() {
-    _fillSaltForUnlinked();
-    _fillSaltForElements();
-    _fillSaltForResolution();
-  }
-
-  void _fillSaltForElements() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    _addDeclaredVariablesToSignature(buffer);
-    _saltForElements = buffer.toUint32List();
-  }
-
-  void _fillSaltForResolution() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    buffer.addBool(enableIndex);
-    buffer.addBool(enableDebugResolutionMarkers);
-    _addDeclaredVariablesToSignature(buffer);
-
-    var workspace = analysisContext?.contextRoot.workspace;
-    workspace?.contributeToResolutionSalt(buffer);
-
-    _saltForResolution = buffer.toUint32List();
-  }
-
-  void _fillSaltForUnlinked() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    buffer.addBool(enableIndex);
-
-    _saltForUnlinked = buffer.toUint32List();
   }
 
   Future<void> _getErrors(String path) async {
@@ -2084,7 +2048,7 @@ class AnalysisDriver {
 
   Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
     _ResolveForCompletionRequest request,
-  ) async {
+  ) {
     return request.performance.runAsync('body', (performance) async {
       var path = request.path;
       if (!_isAbsolutePath(path)) {
@@ -2208,14 +2172,57 @@ class AnalysisDriver {
   /// [FileState.hasErrorOrWarning] flag.
   void _updateHasErrorOrWarningFlag(
       FileState file, List<AnalysisError> errors) {
-    for (AnalysisError error in errors) {
-      ErrorSeverity severity = error.errorCode.errorSeverity;
+    for (var error in errors) {
+      var severity = error.errorCode.errorSeverity;
       if (severity == ErrorSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }
     }
     file.hasErrorOrWarning = false;
+  }
+
+  static void _addDeclaredVariablesToSignature(
+      ApiSignature buffer, DeclaredVariables declaredVariables) {
+    buffer.addInt(declaredVariables.variableNames.length);
+
+    for (var name in declaredVariables.variableNames) {
+      var value = declaredVariables.get(name);
+      buffer.addString(name);
+      buffer.addString(value!);
+    }
+  }
+
+  static Uint32List _calculateSaltForElements(
+      DeclaredVariables declaredVariables) {
+    var buffer = ApiSignature()..addInt(DATA_VERSION);
+    _addDeclaredVariablesToSignature(buffer, declaredVariables);
+    return buffer.toUint32List();
+  }
+
+  static Uint32List _calculateSaltForResolution({
+    required bool enableIndex,
+    required DriverBasedAnalysisContext? analysisContext,
+    required DeclaredVariables declaredVariables,
+  }) {
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex)
+      ..addBool(enableDebugResolutionMarkers);
+    _addDeclaredVariablesToSignature(buffer, declaredVariables);
+
+    var workspace = analysisContext?.contextRoot.workspace;
+    workspace?.contributeToResolutionSalt(buffer);
+
+    return buffer.toUint32List();
+  }
+
+  static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex);
+
+    return buffer.toUint32List();
   }
 }
 

@@ -13,14 +13,12 @@ import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
-import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 
 typedef StaticOptions = Either2<bool, DefinitionOptions>;
 
@@ -211,38 +209,42 @@ class DefinitionHandler
     return otherResults.isNotEmpty ? otherResults : results;
   }
 
-  /// Get the location of the code (excluding leading doc comments) for this element.
-  Future<protocol.Location?> _getCodeLocation(Element element) async {
-    Element? codeElement = element;
+  /// Get the location of the code (excluding doc comments) for this fragment.
+  Future<({int offset, int length})?> _getCodeLocation(
+    Fragment fragment,
+  ) async {
+    Fragment? codeFragment = fragment;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
-    if (codeElement is PropertyAccessorElementImpl && codeElement.isSynthetic) {
-      codeElement = codeElement.variable2!;
+    if (codeFragment is PropertyAccessorFragment &&
+        codeFragment.element.isSynthetic) {
+      codeFragment = codeFragment.element.nonSynthetic2.firstFragment;
     }
 
     // For extension types, the primary constructor has a range that covers only
     // the parameters / representation type but we want the whole declaration
     // for the code range because otherwise previews will just show `(int a)`
     // which is not what the user expects.
-    if (codeElement.enclosingElement3 case ExtensionTypeElement enclosingElement
-        when enclosingElement.primaryConstructor == codeElement) {
-      codeElement = enclosingElement;
+    if (codeFragment.element.enclosingElement2
+        case ExtensionTypeElement2 enclosingElement
+        when enclosingElement.primaryConstructor2 == codeFragment.element) {
+      codeFragment = codeFragment.enclosingFragment;
     }
 
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
     int? codeOffset, codeLength;
-    if (codeElement is ElementImpl) {
-      codeOffset = codeElement.codeOffset;
-      codeLength = codeElement.codeLength;
+    if (codeFragment case ElementImpl codeFragment) {
+      codeOffset = codeFragment.codeOffset;
+      codeLength = codeFragment.codeLength;
     }
 
-    if (codeOffset == null || codeLength == null) {
+    if (codeFragment == null || codeOffset == null || codeLength == null) {
       return null;
     }
 
     // Read the declaration so we can get the offset after the doc comments.
-    var declaration = await _parsedDeclaration(codeElement);
+    var declaration = await _parsedDeclaration(codeFragment);
     var node = declaration?.node;
 
     if (node is VariableDeclaration) {
@@ -264,11 +266,7 @@ class DefinitionHandler
       codeOffset = offsetAfterDocs;
     }
 
-    return AnalyzerConverter().locationFromElement(
-      element,
-      offset: codeOffset,
-      length: codeLength,
-    );
+    return (offset: codeOffset, length: codeLength);
   }
 
   Location? _toLocation(
@@ -308,7 +306,7 @@ class DefinitionHandler
     NavigationCollectorImpl collector,
   ) async {
     for (var targetToUpdate in collector.targetsToUpdate) {
-      var codeLocation = await _getCodeLocation(targetToUpdate.element);
+      var codeLocation = await _getCodeLocation(targetToUpdate.fragment);
       if (codeLocation != null) {
         targetToUpdate.target
           ..codeOffset = codeLocation.offset
@@ -318,14 +316,15 @@ class DefinitionHandler
   }
 
   static Future<ElementDeclarationResult?> _parsedDeclaration(
-    Element element,
+    Fragment fragment,
   ) async {
-    var session = element.session;
+    var session = fragment.element.session;
     if (session == null) {
       return null;
     }
 
-    var libraryPath = element.library?.source.fullName;
+    var libraryPath =
+        fragment.libraryFragment?.element.firstFragment.source.fullName;
     if (libraryPath == null) {
       return null;
     }
@@ -335,7 +334,7 @@ class DefinitionHandler
       return null;
     }
 
-    return parsedLibrary.getElementDeclaration(element);
+    return parsedLibrary.getElementDeclaration2(fragment);
   }
 }
 

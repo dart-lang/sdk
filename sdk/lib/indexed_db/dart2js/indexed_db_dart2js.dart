@@ -1,3 +1,11 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:indexed_db library.
+
 /// A client-side key-value store with support for indexes.
 ///
 /// > [!Note]
@@ -67,6 +75,7 @@
 /// documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.indexed_db;
 
 import 'dart:async';
@@ -78,13 +87,6 @@ import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 import 'dart:_js_helper' show convertDartClosureToJS;
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:indexed_db library.
 
 class _KeyRangeFactoryProvider {
   static KeyRange createKeyRange_only(/*Key*/ value) =>

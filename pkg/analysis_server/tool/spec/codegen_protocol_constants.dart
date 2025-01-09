@@ -38,7 +38,7 @@ String generateConstName(String domainName, String kind, String name) {
 String _fromComponents(List<String> components) =>
     components.map((String component) => component.toUpperCase()).join('_');
 
-/// Return the components of the given [string] that are indicated by an upper
+/// Returns the components of the given String that are indicated by an upper
 /// case letter.
 Iterable<String> _split(String first) {
   var regExp = RegExp('[A-Z]');

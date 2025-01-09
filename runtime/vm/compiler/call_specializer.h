@@ -16,8 +16,6 @@
 
 namespace dart {
 
-class SpeculativeInliningPolicy;
-
 // Call specialization pass is responsible for replacing instance calls by
 // faster alternatives based on type feedback (JIT), type speculations (AOT),
 // locally propagated type information or global type information.
@@ -35,11 +33,8 @@ class SpeculativeInliningPolicy;
 // optimizations and AotCallSpecializer for AOT specific optimizations.
 class CallSpecializer : public FlowGraphVisitor {
  public:
-  CallSpecializer(FlowGraph* flow_graph,
-                  SpeculativeInliningPolicy* speculative_policy,
-                  bool should_clone_fields)
+  CallSpecializer(FlowGraph* flow_graph, bool should_clone_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        speculative_policy_(speculative_policy),
         should_clone_fields_(should_clone_fields),
         flow_graph_(flow_graph) {}
 
@@ -145,7 +140,6 @@ class CallSpecializer : public FlowGraphVisitor {
                      Environment* deopt_environment,
                      Instruction* insert_before);
 
-  SpeculativeInliningPolicy* speculative_policy_;
   const bool should_clone_fields_;
 
  private:
@@ -191,14 +185,12 @@ class CallSpecializer : public FlowGraphVisitor {
   static bool TryReplaceInstanceCallWithInline(
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
-      InstanceCallInstr* call,
-      SpeculativeInliningPolicy* policy);
+      InstanceCallInstr* call);
 
   static bool TryReplaceStaticCallWithInline(
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
-      StaticCallInstr* call,
-      SpeculativeInliningPolicy* policy);
+      StaticCallInstr* call);
 
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,
@@ -211,7 +203,6 @@ class CallSpecializer : public FlowGraphVisitor {
                                         FunctionEntryInstr** entry,
                                         Instruction** last,
                                         Definition** result,
-                                        SpeculativeInliningPolicy* policy,
                                         ExactnessInfo* exactness = nullptr);
 
   FlowGraph* flow_graph_;

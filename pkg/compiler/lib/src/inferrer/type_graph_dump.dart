@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.inferrer.type_graph_dump;
+library;
 
 import '../../compiler_api.dart' as api;
 import '../elements/entities.dart';
@@ -37,7 +37,7 @@ class TypeGraphDump {
       <TypeInformation, Set<TypeInformation>>{};
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing =
       <TypeInformation, Set<TypeInformation>>{};
-  final Set<String> usedFilenames = Set<String>();
+  final Set<String> usedFilenames = <String>{};
 
   TypeGraphDump(this.compilerOutput, this.inferrer);
 
@@ -46,7 +46,7 @@ class TypeGraphDump {
   void beforeAnalysis() {
     for (TypeInformation node in inferrer.types.allTypes) {
       Set<TypeInformation> copy = node.inputs.toSet();
-      if (!copy.isEmpty) {
+      if (copy.isNotEmpty) {
         assignmentsBeforeAnalysis[node] = copy;
       }
     }
@@ -56,7 +56,7 @@ class TypeGraphDump {
   void beforeTracing() {
     for (TypeInformation node in inferrer.types.allTypes) {
       Set<TypeInformation> copy = node.inputs.toSet();
-      if (!copy.isEmpty) {
+      if (copy.isNotEmpty) {
         assignmentsBeforeTracing[node] = copy;
       }
     }
@@ -79,9 +79,16 @@ class TypeGraphDump {
       try {
         String name = filenameFromElement(element);
         output = compilerOutput.createOutputSink(
-            '$outputDir/$name', 'dot', api.OutputType.debug);
+          '$outputDir/$name',
+          'dot',
+          api.OutputType.debug,
+        );
         _GraphGenerator visitor = _GraphGenerator(
-            this, element, output, inferrer.abstractValueDomain.getCompactText);
+          this,
+          element,
+          output,
+          inferrer.abstractValueDomain.getCompactText,
+        );
         for (TypeInformation node in nodes[element]!) {
           visitor.visit(node);
         }
@@ -118,7 +125,8 @@ class TypeGraphDump {
       }
     } else {
       parts.add(
-          utils.operatorNameToIdentifier(element.name)!.replaceAll(r'$', '-'));
+        utils.operatorNameToIdentifier(element.name)!.replaceAll(r'$', '-'),
+      );
     }
     String filename = parts.where((x) => x != null && x != '').join('.');
     if (usedFilenames.add(filename)) return filename;
@@ -135,7 +143,7 @@ class TypeGraphDump {
 /// Builds the Graphviz Dot file for one function body.
 class _GraphGenerator extends TypeInformationVisitor<void> {
   final TypeGraphDump global;
-  final Set<TypeInformation> seen = Set<TypeInformation>();
+  final Set<TypeInformation> seen = <TypeInformation>{};
   final List<TypeInformation> worklist = <TypeInformation>[];
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   final String Function(AbstractValue) formatType;
@@ -145,7 +153,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   final TypeInformation returnValue;
 
   _GraphGenerator(this.global, this.element, this.output, this.formatType)
-      : returnValue = global.inferrer.types.getInferredTypeOfMember(element) {
+    : returnValue = global.inferrer.types.getInferredTypeOfMember(element) {
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
   }
@@ -179,7 +187,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   String shorten(String text) {
     if (text.length > 40) {
-      return text.substring(0, 19) + '...' + text.substring(text.length - 18);
+      return '${text.substring(0, 19)}...${text.substring(text.length - 18)}';
     }
     return text;
   }
@@ -206,8 +214,12 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   ///
   /// If [dst] is a record type node, [port] may refer to one of the fields
   /// defined in that record (e.g. `obj`, `arg0`, `arg1`, etc)
-  void addEdge(TypeInformation src, TypeInformation dst,
-      {String? port, String? color = 'black'}) {
+  void addEdge(
+    TypeInformation src,
+    TypeInformation dst, {
+    String? port,
+    String? color = 'black',
+  }) {
     if (isExternal(src) && isExternal(dst)) {
       return; // Do not add edges between external nodes.
     }
@@ -220,7 +232,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
       // graph with very long hard-to-follow edges. Copy the concrete nodes
       // for every use to enhance readability.
       int id = getFreshId();
-      String type = escapeLabel('${formatType(src.type)}');
+      String type = escapeLabel(formatType(src.type));
       String text = 'Concrete';
       String label = '{$text|<returnType> $type}';
       append('$id [shape=record,style=dotted,label="$label"]');
@@ -269,8 +281,12 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   ///
   /// [inputs] specify named inputs to the node. If omitted, edges will be
   /// based on [node.inputs].
-  void addNode(TypeInformation node, String text,
-      {String color = defaultNodeColor, Map<String, TypeInformation>? inputs}) {
+  void addNode(
+    TypeInformation node,
+    String text, {
+    String color = defaultNodeColor,
+    Map<String, TypeInformation>? inputs,
+  }) {
     seen.add(node);
     String style = getStyleForNode(node, color);
     text = appendDetails(node, text);
@@ -310,7 +326,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
         }
       }
     }
-    if (PRINT_GRAPH_ALL_NODES) {
+    if (printGraphAllNodes) {
       for (TypeInformation user in node.users) {
         if (!isExternal(user)) {
           visit(user);
@@ -322,21 +338,25 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   @override
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
     // Omit unused Narrows.
-    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
-    addNode(info, 'Narrow\n${formatType(info.typeAnnotation)}',
-        color: narrowColor);
+    if (!printGraphAllNodes && info.users.isEmpty) return;
+    addNode(
+      info,
+      'Narrow\n${formatType(info.typeAnnotation)}',
+      color: narrowColor,
+    );
   }
 
   @override
   void visitPhiElementTypeInformation(PhiElementTypeInformation info) {
     // Omit unused Phis.
-    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
+    if (!printGraphAllNodes && info.users.isEmpty) return;
     addNode(info, 'Phi ${info.variable?.name ?? ''}', color: phiColor);
   }
 
   @override
   void visitElementInContainerTypeInformation(
-      ElementInContainerTypeInformation info) {
+    ElementInContainerTypeInformation info,
+  ) {
     addNode(info, 'ElementInContainer');
   }
 
@@ -357,9 +377,14 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   @override
   void visitRecordFieldAccessTypeInformation(
-      RecordFieldAccessTypeInformation info) {
-    addNode(info, 'RecordFieldAccess(${info.getterName})',
-        color: callColor, inputs: {'obj': info.receiver});
+    RecordFieldAccessTypeInformation info,
+  ) {
+    addNode(
+      info,
+      'RecordFieldAccess(${info.getterName})',
+      color: callColor,
+      inputs: {'obj': info.receiver},
+    );
   }
 
   @override
@@ -398,9 +423,12 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
     addNode(info, 'BoolLiteral\n${info.value}');
   }
 
-  void handleCall(CallSiteTypeInformation info, String text,
-      Map<String, TypeInformation> inputs) {
-    String sourceCode = shorten('${info.debugName}');
+  void handleCall(
+    CallSiteTypeInformation info,
+    String text,
+    Map<String, TypeInformation> inputs,
+  ) {
+    String sourceCode = shorten(info.debugName);
     text = '$text\n$sourceCode';
     final arguments = info.arguments;
     if (arguments != null) {
@@ -416,7 +444,8 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {
+    ClosureCallSiteTypeInformation info,
+  ) {
     handleCall(info, 'ClosureCallSite', {});
   }
 
@@ -427,7 +456,8 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     handleCall(info, 'DynamicCallSite', {'obj': info.receiver});
   }
 
@@ -443,19 +473,19 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   @override
   void visitClosureTypeInformation(ClosureTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Closure\n$text');
   }
 
   @override
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Await\n$text');
   }
 
   @override
   void visitYieldTypeInformation(YieldTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Yield\n$text');
   }
 }

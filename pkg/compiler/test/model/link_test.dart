@@ -7,10 +7,16 @@ import "package:expect/expect.dart";
 import '../helpers/link_helper.dart';
 
 main() {
-  test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),
-      ['one', 2, 'three']);
-  test(const Link<Comparable>().prepend(3).prepend('two').prepend(1),
-      [1, 'two', 3]);
+  test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'), [
+    'one',
+    2,
+    'three',
+  ]);
+  test(const Link<Comparable>().prepend(3).prepend('two').prepend(1), [
+    1,
+    'two',
+    3,
+  ]);
   test(const Link<String>().prepend('single'), ['single']);
   test(const Link(), []);
   testFromList([]);

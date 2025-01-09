@@ -76,7 +76,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement2?> getClass(String name) async {
-    var class_ = await sessionHelper.getFlutterClass2(name);
+    var class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
       requiredElementImports.add(class_);
     }
@@ -84,7 +84,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   Future<MixinElement2?> getMixin(String name) async {
-    var mixin = await sessionHelper.getMixin2(widgetsUri, name);
+    var mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
       requiredElementImports.add(mixin);
     }

@@ -1890,6 +1890,20 @@ class B extends A {
     ]);
   }
 
+  test_instantiateGenericFunctionWithNamedParameterAsGenericArg() async {
+    // This test case reproduces the problem encountered in
+    // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+    await assertNoErrorsInCode(r'''
+abstract class C<T> {
+  S f<S>(S Function(C<T>) g);
+}
+
+T h<T>(C<T> c, {bool b = false}) => throw '';
+
+T test<T>(C<T> c) => c.f(h);
+''');
+  }
+
   test_integerLiteralOutOfRange_negative_leadingZeros() async {
     await assertNoErrorsInCode('''
 int x = -000923372036854775809;

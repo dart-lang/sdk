@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -25,6 +25,14 @@ class BodyInferenceContext {
 
   /// Types of all `return` or `yield` statements in the body.
   final List<DartType> _returnTypes = [];
+
+  /// Whether the execution flow can reach the end of the body.
+  ///
+  /// For example here, because there is no `return` at the end.
+  /// ```
+  /// void f() {}
+  /// ```
+  bool mayCompleteNormally = true;
 
   factory BodyInferenceContext({
     required TypeSystemImpl typeSystem,
@@ -79,8 +87,8 @@ class BodyInferenceContext {
 
     if (isGenerator) {
       var requiredClass = isAsynchronous
-          ? _typeProvider.streamElement
-          : _typeProvider.iterableElement;
+          ? _typeProvider.streamElement2
+          : _typeProvider.iterableElement2;
       var type = _argumentOf(expressionType, requiredClass);
       if (type != null) {
         _returnTypes.add(type);
@@ -157,8 +165,8 @@ class BodyInferenceContext {
     return _returnTypes.fold(initialType, _typeSystem.leastUpperBound);
   }
 
-  static DartType? _argumentOf(DartType type, InterfaceElement element) {
-    var elementType = type.asInstanceOf(element);
+  static DartType? _argumentOf(DartType type, InterfaceElement2 element) {
+    var elementType = type.asInstanceOf2(element);
     if (elementType != null) {
       return elementType.typeArguments[0];
     }
@@ -186,7 +194,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isAsynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.streamElement,
+        typeSystem.typeProvider.streamElement2,
       );
       if (elementType != null) {
         return elementType;
@@ -199,7 +207,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isSynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.iterableElement,
+        typeSystem.typeProvider.iterableElement2,
       );
       if (elementType != null) {
         return elementType;

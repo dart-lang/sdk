@@ -93,7 +93,7 @@ class HttpAnalysisServer {
 
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
-    httpServer.listen((HttpRequest request) async {
+    httpServer.listen((HttpRequest request) {
       var updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         _httpHandler.handleGetRequest(request);

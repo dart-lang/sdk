@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,7 +19,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
   final ErrorReporter errorReporter;
-  final LibraryElement libraryElement;
+  final LibraryElement2 libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,

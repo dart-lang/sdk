@@ -20,6 +20,8 @@ class FunctionCollector {
 
   // Wasm function for each Dart function
   final Map<Reference, w.BaseFunction> _functions = {};
+  // Wasm function for each function expression and local function.
+  final Map<Lambda, w.BaseFunction> _lambdas = {};
   // Names of exported functions
   final Map<Reference, String> _exports = {};
   // Selector IDs that are invoked via GDT.
@@ -126,6 +128,17 @@ class FunctionCollector {
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
       return function;
+    });
+  }
+
+  w.BaseFunction getLambdaFunction(
+      Lambda lambda, Member enclosingMember, Closures enclosingMemberClosures) {
+    return _lambdas.putIfAbsent(lambda, () {
+      translator.compilationQueue.add(CompilationTask(
+          lambda.function,
+          getLambdaCodeGenerator(
+              translator, lambda, enclosingMember, enclosingMemberClosures)));
+      return lambda.function;
     });
   }
 
@@ -278,7 +291,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     // context argument if context must be shared between them. Generate the
     // contexts the first time we visit a constructor.
     translator.constructorClosures[node.reference] ??=
-        Closures(translator, node);
+        translator.getClosures(node);
 
     if (target.isInitializerReference) {
       return _getInitializerType(node, target, arguments);
@@ -465,12 +478,11 @@ w.FunctionType _makeFunctionType(
     final isGetter = target.isImplicitGetter;
     final isSetter = target.isImplicitSetter;
     if (isGetter || isSetter) {
-      final global = translator.globals.getGlobalForStaticField(member);
-      final globalType = global.type.type;
+      final fieldType = translator.translateTypeOfField(member);
       if (isGetter) {
-        return translator.typesBuilder.defineFunction(const [], [globalType]);
+        return translator.typesBuilder.defineFunction(const [], [fieldType]);
       }
-      return translator.typesBuilder.defineFunction([globalType], const []);
+      return translator.typesBuilder.defineFunction([fieldType], const []);
     }
   }
 

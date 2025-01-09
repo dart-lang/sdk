@@ -26,31 +26,40 @@ main() {
     DiagnosticCollector diagnostics = DiagnosticCollector();
     OutputCollector output = OutputCollector();
 
-    var options = CompilerOptions()
-      ..target = Dart2jsTarget("dart2js", TargetFlags())
-      ..nnbdMode = NnbdMode.Strong
-      ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
-      ..additionalDills = <Uri>[
-        computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
-      ]
-      ..setExitCodeOnProblem = true
-      ..verify = true;
+    var options =
+        CompilerOptions()
+          ..target = Dart2jsTarget("dart2js", TargetFlags())
+          ..nnbdMode = NnbdMode.Strong
+          ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
+          ..additionalDills = <Uri>[
+            computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
+          ]
+          ..setExitCodeOnProblem = true
+          ..verify = true;
 
-    Uint8List kernelBinary =
-        serializeComponent((await kernelForProgram(uri, options))!.component!);
+    Uint8List kernelBinary = serializeComponent(
+      (await kernelForProgram(uri, options))!.component!,
+    );
     var compiler = compilerFor(
-        entryPoint: uri,
-        memorySourceFiles: {'main.dill': kernelBinary},
-        diagnosticHandler: diagnostics,
-        outputProvider: output);
-    load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
-        compiler.options,
-        compiler.provider,
-        compiler.reporter,
-        compiler.initializedCompilerState,
-        false)))!;
-    compiler.frontendStrategy
-        .registerLoadedLibraries(result.component, result.libraries!);
+      entryPoint: uri,
+      memorySourceFiles: {'main.dill': kernelBinary},
+      diagnosticHandler: diagnostics,
+      outputProvider: output,
+    );
+    load_kernel.Output result =
+        (await load_kernel.run(
+          load_kernel.Input(
+            compiler.options,
+            compiler.provider,
+            compiler.reporter,
+            compiler.initializedCompilerState,
+            false,
+          ),
+        ))!;
+    compiler.frontendStrategy.registerLoadedLibraries(
+      result.component,
+      result.libraries!,
+    );
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);

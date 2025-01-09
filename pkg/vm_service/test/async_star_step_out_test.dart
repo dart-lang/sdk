@@ -77,7 +77,7 @@ final tests = <IsolateTest>[
   stepOut, // step out of generator.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_H), // await for.
+  stoppedAtLineColumn(line: LINE_H, column: 46), // on '{'
   stepInto,
 
   hasStoppedAtBreakpoint, // debugger().
@@ -95,7 +95,7 @@ final tests = <IsolateTest>[
   stepOut, // step out of generator.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_H), // await for.
+  stoppedAtLineColumn(line: LINE_H, column: 46), // on '{'
   stepInto,
 
   hasStoppedAtBreakpoint, // debugger().

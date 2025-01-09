@@ -71,7 +71,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       }
     } else {
       targetElement =
-          node.enclosingInterfaceElement2 ?? node.enclosingExtensionElement2;
+          node.enclosingInterfaceElement ?? node.enclosingExtensionElement;
       if (targetElement == null) {
         return;
       }
@@ -83,7 +83,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

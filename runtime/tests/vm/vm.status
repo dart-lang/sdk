@@ -279,9 +279,6 @@ dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
 
-[ $compiler == dartkp && $system == windows ]
-dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
-
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.util.command_line;
+library;
 
 /// The accepted escapes in the input of the --batch processor.
 ///
 /// Contrary to Dart strings it does not contain hex escapes (\u or \x).
-const Map<String, String> ESCAPE_MAPPING = {
+const Map<String, String> escapeMapping = {
   'n': '\n',
   'r': '\r',
   't': '\t',
@@ -57,7 +57,7 @@ List<String> splitLine(String line, {bool windows = false}) {
         i++;
 
         c = line[i];
-        String mapped = ESCAPE_MAPPING[c] ?? c;
+        String mapped = escapeMapping[c] ?? c;
         buffer.write(mapped);
         continue;
       }

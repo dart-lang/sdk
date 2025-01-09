@@ -49,8 +49,7 @@ Component createMockSdkComponent() {
     addClass(coreLib, 'List', typeParameters: [
       T
     ], implementedTypes: [
-      new Supertype(iterable,
-          [new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)])
+      new Supertype(iterable, [new TypeParameterType.withDefaultNullability(T)])
     ]);
   }
   addClass(coreLib, 'Map', typeParameters: [typeParam('K'), typeParam('V')]);

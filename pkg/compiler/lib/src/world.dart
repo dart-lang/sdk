@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.world;
+library;
 
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -56,10 +56,12 @@ abstract class BuiltWorld {
   /// Call [f] for each generic [function] with the type arguments passed
   /// through static calls to [function].
   void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments));
+    void Function(Entity function, Set<DartType> typeArguments) f,
+  );
 
   /// Call [f] for each generic [selector] with the type arguments passed
   /// through dynamic calls to [selector].
   void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments));
+    void Function(Selector selector, Set<DartType> typeArguments) f,
+  );
 }

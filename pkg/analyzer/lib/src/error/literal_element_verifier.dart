@@ -200,8 +200,8 @@ class LiteralElementVerifier {
       return;
     }
 
-    var iterableType = expressionType.asInstanceOf(
-      typeProvider.iterableElement,
+    var iterableType = expressionType.asInstanceOf2(
+      typeProvider.iterableElement2,
     );
 
     if (iterableType == null) {
@@ -291,8 +291,8 @@ class LiteralElementVerifier {
       return;
     }
 
-    var mapType = expressionType.asInstanceOf(
-      typeProvider.mapElement,
+    var mapType = expressionType.asInstanceOf2(
+      typeProvider.mapElement2,
     );
 
     if (mapType == null) {

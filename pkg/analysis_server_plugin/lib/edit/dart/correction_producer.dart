@@ -10,8 +10,8 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -341,7 +341,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement => unitResult.libraryElement;
+  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -371,7 +371,7 @@ abstract class ResolvedCorrectionProducer
       .getAnalysisOptionsForFile(unitResult.file);
 
   InheritanceManager3 get inheritanceManager {
-    return (libraryElement as LibraryElementImpl).session.inheritanceManager;
+    return (libraryElement2 as LibraryElementImpl).session.inheritanceManager;
   }
 
   /// Whether [node] is in a static context.
@@ -389,10 +389,6 @@ abstract class ResolvedCorrectionProducer
     var method = node.thisOrAncestorOfType<MethodDeclaration>();
     return method != null && method.isStatic;
   }
-
-  /// The library element for the library in which a correction is being
-  /// produced.
-  LibraryElement get libraryElement => unitResult.libraryElement;
 
   /// The library element for the library in which a correction is being
   /// produced.
@@ -414,35 +410,12 @@ abstract class ResolvedCorrectionProducer
   /// The type for the class `bool` from `dart:core`.
   DartType get _coreTypeBool => typeProvider.boolType;
 
-  /// Returns the class declaration for the given [element], or `null` if there
-  /// is no such class.
-  Future<ClassDeclaration?> getClassDeclaration(ClassElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ClassDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
-  Future<ClassDeclaration?> getClassDeclaration2(ClassFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+  Future<ClassDeclaration?> getClassDeclaration(ClassFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
-  /// Returns the extension declaration for the given [element], or `null` if
-  /// there is no such extension.
-  Future<ExtensionDeclaration?> getExtensionDeclaration(
-      ExtensionElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ExtensionDeclaration) {
       return node;
     }
     return null;
@@ -450,9 +423,9 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the extension declaration for the given [fragment], or `null` if
   /// there is no such extension.
-  Future<ExtensionDeclaration?> getExtensionDeclaration2(
+  Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -460,36 +433,13 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  /// Returns the extension type for the given [element], or `null` if there
-  /// is no such extension type.
-  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
-      ExtensionTypeElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ExtensionTypeDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
   /// Returns the extension type for the given [fragment], or `null` if there
   /// is no such extension type.
-  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration2(
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
-  /// Returns the mixin declaration for the given [element], or `null` if there
-  /// is no such mixin.
-  Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is MixinDeclaration) {
       return node;
     }
     return null;
@@ -497,26 +447,11 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the mixin declaration for the given [fragment], or `null` if there
   /// is no such mixin.
-  Future<MixinDeclaration?> getMixinDeclaration2(MixinFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+  Future<MixinDeclaration?> getMixinDeclaration(MixinFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
-    }
-    return null;
-  }
-
-  /// Returns the class element associated with the [target], or `null` if there
-  /// is no such element.
-  InterfaceElement? getTargetInterfaceElement(Expression target) {
-    var type = target.staticType;
-    if (type is InterfaceType) {
-      return type.element;
-    } else if (target is Identifier) {
-      var element = target.staticElement;
-      if (element is InterfaceElement) {
-        return element;
-      }
     }
     return null;
   }
@@ -554,7 +489,7 @@ abstract class ResolvedCorrectionProducer
       if (conditionalExpression.condition == expression) {
         return _coreTypeBool;
       } else {
-        var type = conditionalExpression.staticParameterElement?.type;
+        var type = conditionalExpression.correspondingParameter?.type;
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
             typeFormals: const [],
@@ -568,19 +503,19 @@ abstract class ResolvedCorrectionProducer
     }
     // `=> myFunction();`.
     if (parent is ExpressionFunctionBody) {
-      var executable = expression.enclosingExecutableElement;
+      var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
-      var executable = expression.enclosingExecutableElement;
+      var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `int v = myFunction();`.
     if (parent is VariableDeclaration) {
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
-        var variableElement = variableDeclaration.declaredElement;
+        var variableElement = variableDeclaration.declaredFragment?.element;
         if (variableElement != null) {
           return variableElement.type;
         }
@@ -603,9 +538,9 @@ abstract class ResolvedCorrectionProducer
           return assignment.writeType;
         } else {
           // `v += myFunction();`.
-          var method = assignment.staticElement;
+          var method = assignment.element;
           if (method != null) {
-            var parameters = method.parameters;
+            var parameters = method.formalParameters;
             if (parameters.length == 1) {
               return parameters[0].type;
             }
@@ -616,17 +551,17 @@ abstract class ResolvedCorrectionProducer
     // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
-      var method = binary.staticElement;
+      var method = binary.element;
       if (method != null) {
         if (binary.rightOperand == expression) {
-          var parameters = method.parameters;
+          var parameters = method.formalParameters;
           return parameters.length == 1 ? parameters[0].type : null;
         }
       }
     }
     // `foo( myFunction() );`.
     if (parent is ArgumentList) {
-      var parameter = expression.staticParameterElement;
+      var parameter = expression.correspondingParameter;
       return parameter?.type;
     }
     // `bool`.
@@ -679,6 +614,9 @@ abstract class ResolvedCorrectionProducer
     // We don't know.
     return null;
   }
+
+  bool isEnabled(Feature feature) =>
+      libraryElement2.featureSet.isEnabled(feature);
 }
 
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
@@ -770,10 +708,11 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
     String baseName,
-  ) =>
-      _context.dartFixContext!.getTopLevelDeclarations(baseName);
+  ) async {
+    return await _context.dartFixContext!.getTopLevelDeclarations(baseName);
+  }
 
   /// Returns whether the selection covers an operator of the given
   /// [binaryExpression].
@@ -799,13 +738,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement> librariesWithExtensions(String memberName) {
+  Stream<LibraryElement2> librariesWithExtensions(String memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
-  }
-
-  /// Returns libraries with extensions that declare non-static public
-  /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions2(String memberName) {
-    return _context.dartFixContext!.librariesWithExtensions2(memberName);
   }
 }

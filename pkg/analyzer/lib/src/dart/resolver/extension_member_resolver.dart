@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -46,8 +47,8 @@ class ExtensionMemberResolver {
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
   DartType? computeOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.element;
-    var typeParameters = element.typeParameters;
+    var element = node.element2;
+    var typeParameters = element.typeParameters2;
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
@@ -70,7 +71,7 @@ class ExtensionMemberResolver {
       );
     }
 
-    return Substitution.fromPairs(
+    return Substitution.fromPairs2(
       typeParameters,
       typeArgumentTypes,
     ).substituteType(element.extendedType);
@@ -80,10 +81,10 @@ class ExtensionMemberResolver {
   /// that defines the member with the given [name].
   ///
   /// If no applicable extensions are found, returns
-  /// [ExtensionResolutionResult.none].
+  /// [ExtensionResolutionError.none].
   ///
   /// If the match is ambiguous, reports an error on the [nameEntity], and
-  /// returns [ExtensionResolutionResult.ambiguous].
+  /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
     var extensions = _resolver.libraryFragment.accessibleExtensions
@@ -185,8 +186,11 @@ class ExtensionMemberResolver {
   void resolveOverride(ExtensionOverride node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     var nodeImpl = node as ExtensionOverrideImpl;
-    var element = node.element;
-    var typeParameters = element.typeParameters;
+    var element = node.element2;
+    // TODO(paulberry): make this cast unnecessary by changing the type of
+    // `ExtensionOverrideImpl.element2`.
+    var typeParameters =
+        element.typeParameters2.cast<TypeParameterElementImpl2>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
@@ -221,7 +225,7 @@ class ExtensionMemberResolver {
         nodeForTesting: node)!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
-    var substitution = Substitution.fromPairs(
+    var substitution = Substitution.fromPairs2(
       typeParameters,
       typeArgumentTypes,
     );
@@ -256,7 +260,7 @@ class ExtensionMemberResolver {
   }
 
   void _checkTypeArgumentsMatchingBounds(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl2> typeParameters,
     TypeArgumentList? typeArgumentList,
     List<DartType> typeArgumentTypes,
     Substitution substitution,
@@ -272,7 +276,7 @@ class ExtensionMemberResolver {
             _errorReporter.atNode(
               typeArgumentList.arguments[i],
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              arguments: [argument, parameter.name, parameterBound],
+              arguments: [argument, parameter.name3, parameterBound],
             );
           }
         }
@@ -334,8 +338,8 @@ class ExtensionMemberResolver {
       ExtensionOverride node, DartType receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
       required AstNode? nodeForTesting}) {
-    var element = node.element;
-    var typeParameters = element.typeParameters;
+    var element = node.element2;
+    var typeParameters = element.typeParameters2;
     var typeArguments = node.typeArguments;
 
     if (typeArguments != null) {
@@ -352,13 +356,16 @@ class ExtensionMemberResolver {
         _errorReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          arguments: [element.name!, typeParameters.length, arguments.length],
+          arguments: [element.name3!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-          typeParameters, element.extendedType);
+          // TODO(paulberry): make this cast unnecessary by changing `element`
+          // to `ExtensionElementImpl2`.
+          typeParameters.cast(),
+          element.extendedType);
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,
@@ -433,7 +440,7 @@ class ExtensionMemberResolver {
   bool _isSubtypeOf(DartType type1, DartType type2) =>
       _typeSystem.isSubtypeOf(type1, type2);
 
-  List<DartType> _listOfDynamic(List<TypeParameterElement> parameters) {
+  List<DartType> _listOfDynamic(List<Object?> parameters) {
     return List<DartType>.filled(parameters.length, _dynamicType);
   }
 

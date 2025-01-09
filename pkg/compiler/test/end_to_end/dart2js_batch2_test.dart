@@ -14,8 +14,10 @@ var tmpDir;
 
 copyDirectory(Directory sourceDir, Directory destinationDir) {
   sourceDir.listSync().forEach((FileSystemEntity element) {
-    String newPath =
-        path.join(destinationDir.path, path.basename(element.path));
+    String newPath = path.join(
+      destinationDir.path,
+      path.basename(element.path),
+    );
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
@@ -27,9 +29,9 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
 }
 
 Future<Directory> createTempDir() {
-  return Directory.systemTemp
-      .createTemp('dart2js_batch_test-')
-      .then((Directory dir) {
+  return Directory.systemTemp.createTemp('dart2js_batch_test-').then((
+    Directory dir,
+  ) {
     return dir;
   });
 }
@@ -38,8 +40,9 @@ Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
     String newPath = path.join(directory.path, "dart2js_batch2_run.dart");
-    File source =
-        File.fromUri(Platform.script.resolve("data/dart2js_batch2_run.dart"));
+    File source = File.fromUri(
+      Platform.script.resolve("data/dart2js_batch2_run.dart"),
+    );
     source.copySync(newPath);
   });
 }
@@ -51,8 +54,9 @@ void cleanUp() {
 
 Future<Process> launchDart2Js(_) {
   String ext = Platform.isWindows ? '.bat' : '';
-  String command = path
-      .normalize(path.join(path.fromUri(Uri.base), 'sdk/bin/dart2js${ext}'));
+  String command = path.normalize(
+    path.join(path.fromUri(Uri.base), 'sdk/bin/dart2js${ext}'),
+  );
   print("Running '$command --batch' from '${tmpDir}'.");
   return Process.start(command, ['--batch'], workingDirectory: tmpDir.path);
 }

@@ -116,8 +116,8 @@ abstract class IntegrationTest {
   ///   The following is a list of the names of the requests that can be
   ///   specified:
   ///
-  ///   - openUrlRequest
-  ///   - showMessageRequest
+  ///   - `openUrlRequest`
+  ///   - `showMessageRequest`
   ///
   /// supportsUris: bool (optional)
   ///
@@ -125,7 +125,7 @@ abstract class IntegrationTest {
   ///   paths.
   ///
   ///   In this mode, the server will use URIs in all protocol fields with the
-  ///   type FilePath. Returned URIs may be `file://` URIs or custom schemes.
+  ///   type `FilePath`. Returned URIs may be `file://` URIs or custom schemes.
   ///   The client can fetch the file contents for URIs with custom schemes
   ///   (and receive modification events) through the LSP protocol (see the
   ///   "lsp" domain).
@@ -153,7 +153,7 @@ abstract class IntegrationTest {
   ///
   /// The request will only be sent from the server to the client if the client
   /// has indicated that it supports this request by using the
-  /// setClientCapabilities request.
+  /// `setClientCapabilities` request.
   ///
   /// Parameters
   ///
@@ -178,7 +178,7 @@ abstract class IntegrationTest {
   ///
   /// The request will only be sent from the server to the client if the client
   /// has indicated that it supports this request by using the
-  /// setClientCapabilities request.
+  /// `setClientCapabilities` request.
   ///
   /// This request is modeled after the same request from the LSP
   /// specification.
@@ -291,7 +291,7 @@ abstract class IntegrationTest {
   /// has been no change in the status represented by that parameter.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "STATUS" in the list of services passed in a
+  /// by including the value `"STATUS"` in the list of services passed in a
   /// server.setSubscriptions request.
   ///
   /// Parameters
@@ -322,7 +322,8 @@ abstract class IntegrationTest {
   /// that can be computed will be returned and the response will contain an
   /// error to indicate why the errors could not be computed. If the content of
   /// the file changes after this request was received but before a response
-  /// could be sent, then an error of type CONTENT_MODIFIED will be generated.
+  /// could be sent, then an error of type `CONTENT_MODIFIED` will be
+  /// generated.
   ///
   /// This request is intended to be used by clients that cannot asynchronously
   /// apply updated error information. Clients that can apply error information
@@ -332,7 +333,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_ERRORS_INVALID_FILE will be generated.
+  /// `GET_ERRORS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -406,7 +407,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file that does not exist, or that is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified via analysis.setAnalysisRoots), an error of type
-  /// GET_IMPORTED_ELEMENTS_INVALID_FILE will be generated.
+  /// `GET_IMPORTED_ELEMENTS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -486,7 +487,7 @@ abstract class IntegrationTest {
   /// the given file is out of date, then the response for this request will be
   /// delayed until it has been computed. If the content of the file changes
   /// after this request was received but before a response could be sent, then
-  /// an error of type CONTENT_MODIFIED will be generated.
+  /// an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// If a navigation region overlaps (but extends either before or after) the
   /// given region of the file it will be included in the result. This means
@@ -498,7 +499,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_NAVIGATION_INVALID_FILE will be generated.
+  /// `GET_NAVIGATION_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -557,7 +558,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+  /// `GET_REACHABLE_SOURCES_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -602,14 +603,14 @@ abstract class IntegrationTest {
   /// will be delayed until it has been computed. If a request is made for a
   /// file which does not exist, or which is not currently subject to analysis
   /// (e.g. because it is not associated with any analysis root specified to
-  /// analysis.setAnalysisRoots), an error of type GET_SIGNATURE_INVALID_FILE
+  /// analysis.setAnalysisRoots), an error of type `GET_SIGNATURE_INVALID_FILE`
   /// will be generated. If the location given is not inside the argument list
   /// for a function (including method and constructor) invocation, then an
-  /// error of type GET_SIGNATURE_INVALID_OFFSET will be generated. If the
+  /// error of type `GET_SIGNATURE_INVALID_OFFSET` will be generated. If the
   /// location is inside an argument list but the function is not defined or
   /// cannot be determined (such as a method invocation where the target has
-  /// type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will
-  /// be generated.
+  /// type 'dynamic') then an error of type `GET_SIGNATURE_UNKNOWN_FUNCTION`
+  /// will be generated.
   ///
   /// Parameters
   ///
@@ -883,8 +884,8 @@ abstract class IntegrationTest {
   /// Reports the paths of the files that are being analyzed.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "ANALYZED_FILES" in the list of services passed in
-  /// an analysis.setGeneralSubscriptions request.
+  /// by including the value `"ANALYZED_FILES"` in the list of services passed
+  /// in an analysis.setGeneralSubscriptions request.
   ///
   /// Parameters
   ///
@@ -901,8 +902,8 @@ abstract class IntegrationTest {
   /// Reports closing labels relevant to a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "CLOSING_LABELS" in the list of services passed in
-  /// an analysis.setSubscriptions request.
+  /// by including the value `"CLOSING_LABELS"` in the list of services passed
+  /// in an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -977,7 +978,7 @@ abstract class IntegrationTest {
   /// element such as a class.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "FOLDING" in the list of services passed in an
+  /// by including the value `"FOLDING"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -1000,8 +1001,8 @@ abstract class IntegrationTest {
   /// Reports the highlight regions associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "HIGHLIGHTS" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1028,8 +1029,8 @@ abstract class IntegrationTest {
   /// that are implemented or overridden in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "IMPLEMENTED" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"IMPLEMENTED"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1056,8 +1057,8 @@ abstract class IntegrationTest {
   /// single file has become invalid and should be re-requested.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "INVALIDATE" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"INVALIDATE"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1089,8 +1090,8 @@ abstract class IntegrationTest {
   /// Reports the navigation targets associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "NAVIGATION" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"NAVIGATION"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1111,12 +1112,12 @@ abstract class IntegrationTest {
   /// targets: List<NavigationTarget>
   ///
   ///   The navigation targets referenced in the file. They are referenced by
-  ///   NavigationRegions by their index in this array.
+  ///   `NavigationRegion`s by their index in this array.
   ///
   /// files: List<FilePath>
   ///
   ///   The files containing navigation targets referenced in the file. They
-  ///   are referenced by NavigationTargets by their index in this array.
+  ///   are referenced by `NavigationTarget`s by their index in this array.
   late final Stream<AnalysisNavigationParams> onAnalysisNavigation =
       _onAnalysisNavigation.stream.asBroadcastStream();
 
@@ -1128,8 +1129,8 @@ abstract class IntegrationTest {
   /// Reports the occurrences of references to elements within a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OCCURRENCES" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1151,7 +1152,7 @@ abstract class IntegrationTest {
   /// Reports the outline associated with a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -1186,7 +1187,7 @@ abstract class IntegrationTest {
   /// Reports the overriding members in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OVERRIDES" in the list of services passed in an
+  /// by including the value `"OVERRIDES"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -1223,13 +1224,13 @@ abstract class IntegrationTest {
   /// maxResults: int
   ///
   ///   The maximum number of suggestions to return. If the number of
-  ///   suggestions after filtering is greater than the maxResults, then
-  ///   isIncomplete is set to true.
+  ///   suggestions after filtering is greater than the `maxResults`, then
+  ///   `isIncomplete` is set to `true`.
   ///
   /// completionCaseMatchingMode: CompletionCaseMatchingMode (optional)
   ///
   ///   The mode of code completion being invoked. If no value is provided,
-  ///   MATCH_FIRST_CHAR will be assumed.
+  ///   `MATCH_FIRST_CHAR` will be assumed.
   ///
   /// Returns
   ///
@@ -1252,19 +1253,19 @@ abstract class IntegrationTest {
   ///
   ///   The completion suggestions being reported. This list is filtered by the
   ///   already existing prefix, and sorted first by relevance, and (if the
-  ///   same) by the suggestion text. The list will have at most maxResults
+  ///   same) by the suggestion text. The list will have at most `maxResults`
   ///   items. If the user types a new keystroke, the client is expected to
   ///   either do local filtering (when the returned list was complete), or ask
-  ///   the server again (if isIncomplete was true).
+  ///   the server again (if `isIncomplete` was `true`).
   ///
   ///   This list contains suggestions from both imported, and not yet imported
   ///   libraries. Items from not yet imported libraries will have
-  ///   isNotImported set to true.
+  ///   `isNotImported` set to `true`.
   ///
   /// isIncomplete: bool
   ///
   ///   True if the number of suggestions after filtering was greater than the
-  ///   requested maxResults.
+  ///   requested `maxResults`.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
     String file,
     int offset,
@@ -1297,8 +1298,8 @@ abstract class IntegrationTest {
   /// to receive completion suggestions from based on the client path. If this
   /// request is received before the client has used
   /// 'completion.setSubscriptions' to subscribe to the
-  /// AVAILABLE_SUGGESTION_SETS service, then an error of type
-  /// NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS will be generated. All
+  /// `AVAILABLE_SUGGESTION_SETS` service, then an error of type
+  /// `NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS` will be generated. All
   /// previous paths are replaced by the given set of paths.
   ///
   /// Parameters
@@ -1323,8 +1324,8 @@ abstract class IntegrationTest {
   }
 
   /// Clients must make this request when the user has selected a completion
-  /// suggestion with the isNotImported field set to true. The server will
-  /// respond with the text to insert, as well as any SourceChange that needs
+  /// suggestion with the `isNotImported` field set to `true`. The server will
+  /// respond with the text to insert, as well as any `SourceChange` that needs
   /// to be applied in case the completion requires an additional import to be
   /// added. The text to insert might be different from the original suggestion
   /// to include an import prefix if the library will be imported with a prefix
@@ -1342,23 +1343,23 @@ abstract class IntegrationTest {
   ///
   /// completion: String
   ///
-  ///   The completion from the selected CompletionSuggestion. It could be a
-  ///   name of a class, or a name of a constructor in form
+  ///   The `completion` from the selected `CompletionSuggestion`. It could be
+  ///   a name of a class, or a name of a constructor in form
   ///   "typeName.constructorName()", or an enumeration constant in form
   ///   "enumName.constantName", etc.
   ///
   /// libraryUri: String
   ///
   ///   The URI of the library to import, so that the element referenced in the
-  ///   completion becomes accessible.
+  ///   `completion` becomes accessible.
   ///
   /// Returns
   ///
   /// completion: String
   ///
   ///   The full text to insert, which possibly includes now an import prefix.
-  ///   The client should insert this text, not the completion from the
-  ///   selected CompletionSuggestion.
+  ///   The client should insert this text, not the `completion` from the
+  ///   selected `CompletionSuggestion`.
   ///
   /// change: SourceChange
   ///
@@ -1706,8 +1707,8 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// FORMAT_INVALID_FILE will be generated. If the source contains syntax
-  /// errors, an error of type FORMAT_WITH_ERRORS will be generated.
+  /// `FORMAT_INVALID_FILE` will be generated. If the source contains syntax
+  /// errors, an error of type `FORMAT_WITH_ERRORS` will be generated.
   ///
   /// Parameters
   ///
@@ -1726,8 +1727,8 @@ abstract class IntegrationTest {
   /// lineLength: int (optional)
   ///
   ///   The line length to be used by the formatter. This value is ignored if a
-  ///   formatter.page_width has been configured in the relevant
-  ///   analysis_options.yaml file.
+  ///   `formatter.page_width` has been configured in the relevant
+  ///   `analysis_options.yaml` file.
   ///
   /// Returns
   ///
@@ -1902,12 +1903,12 @@ abstract class IntegrationTest {
   ///   suggested.
   ///
   ///   If a request is made with a path that is invalid, e.g. is not absolute
-  ///   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  ///   and normalized, an error of type `INVALID_FILE_PATH_FORMAT` will be
   ///   generated. If a request is made for a file which does not exist, or
   ///   which is not currently subject to analysis (e.g. because it is not
   ///   associated with any analysis root specified to
-  ///   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
-  ///   generated.
+  ///   analysis.setAnalysisRoots), an error of type `FILE_NOT_ANALYZED` will
+  ///   be generated.
   ///
   /// inTestMode: bool (optional)
   ///
@@ -1916,7 +1917,7 @@ abstract class IntegrationTest {
   ///   for a configuration file that can modify the content of the data file
   ///   used to compute the fixes when data-driven fixes are being considered.
   ///
-  ///   If this field is omitted the flag defaults to false.
+  ///   If this field is omitted the flag defaults to `false`.
   ///
   /// updatePubspec: bool (optional)
   ///
@@ -1926,7 +1927,7 @@ abstract class IntegrationTest {
   ///   check to see if they are listed in the corresponding pubspec file, and
   ///   compute the fixes, if any.
   ///
-  ///   If this field is omitted the flag defaults to false.
+  ///   If this field is omitted the flag defaults to `false`.
   ///
   /// codes: List<String> (optional)
   ///
@@ -1974,7 +1975,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_FIXES_INVALID_FILE will be generated.
+  /// `GET_FIXES_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -2052,7 +2053,7 @@ abstract class IntegrationTest {
   /// Get the changes required to perform a refactoring.
   ///
   /// If another refactoring request is received during the processing of this
-  /// one, an error of type REFACTORING_REQUEST_CANCELLED will be generated.
+  /// one, an error of type `REFACTORING_REQUEST_CANCELLED` will be generated.
   ///
   /// Parameters
   ///
@@ -2274,7 +2275,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file that does not exist, or that is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified via analysis.setAnalysisRoots), an error of type
-  /// IMPORT_ELEMENTS_INVALID_FILE will be generated.
+  /// `IMPORT_ELEMENTS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -2327,11 +2328,11 @@ abstract class IntegrationTest {
   /// file.
   ///
   /// If a request is made for a file that does not exist, does not belong to
-  /// an analysis root or is not a Dart file, SORT_MEMBERS_INVALID_FILE will be
-  /// generated.
-  ///
-  /// If the Dart file has scan or parse errors, SORT_MEMBERS_PARSE_ERRORS will
+  /// an analysis root or is not a Dart file, `SORT_MEMBERS_INVALID_FILE` will
   /// be generated.
+  ///
+  /// If the Dart file has scan or parse errors, `SORT_MEMBERS_PARSE_ERRORS`
+  /// will be generated.
   ///
   /// Parameters
   ///
@@ -2363,12 +2364,12 @@ abstract class IntegrationTest {
   /// directives of the given Dart file according to the Dart Style Guide.
   ///
   /// If a request is made for a file that does not exist, does not belong to
-  /// an analysis root or is not a Dart file, FILE_NOT_ANALYZED will be
+  /// an analysis root or is not a Dart file, `FILE_NOT_ANALYZED` will be
   /// generated.
   ///
   /// If directives of the Dart file cannot be organized, for example because
   /// it has scan or parse errors, or by other reasons,
-  /// ORGANIZE_DIRECTIVES_ERROR will be generated. The message will provide
+  /// `ORGANIZE_DIRECTIVES_ERROR` will be generated. The message will provide
   /// details about the reason.
   ///
   /// Parameters
@@ -2552,21 +2553,22 @@ abstract class IntegrationTest {
   /// or map a file to the URI that it corresponds to in the execution context.
   ///
   /// Exactly one of the file and uri fields must be provided. If both fields
-  /// are provided, then an error of type INVALID_PARAMETER will be generated.
-  /// Similarly, if neither field is provided, then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// are provided, then an error of type `INVALID_PARAMETER` will be
+  /// generated. Similarly, if neither field is provided, then an error of type
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the file field is provided and the value is not the path of a file
   /// (either the file does not exist or the path references something other
-  /// than a file), then an error of type INVALID_PARAMETER will be generated.
+  /// than a file), then an error of type `INVALID_PARAMETER` will be
+  /// generated.
   ///
   /// If the uri field is provided and the value is not a valid URI or if the
   /// URI references something that is not a file (either a file that does not
   /// exist or something other than a file), then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the contextRoot used to create the execution context does not exist,
-  /// then an error of type INVALID_EXECUTION_CONTEXT will be generated.
+  /// then an error of type `INVALID_EXECUTION_CONTEXT` will be generated.
   ///
   /// Parameters
   ///
@@ -2614,7 +2616,7 @@ abstract class IntegrationTest {
     );
   }
 
-  /// Deprecated: the analysis server no longer fires LAUNCH_DATA events.
+  /// Deprecated: the analysis server no longer fires `LAUNCH_DATA` events.
   ///
   /// Subscribe for services. All previous subscriptions are replaced by the
   /// given set of services.
@@ -2645,7 +2647,7 @@ abstract class IntegrationTest {
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
   /// by including the value "LAUNCH_DATA" in the list of services passed in an
-  /// execution.setSubscriptions request.
+  /// `execution.setSubscriptions` request.
   ///
   /// Parameters
   ///
@@ -2692,7 +2694,7 @@ abstract class IntegrationTest {
   /// Return the port of the diagnostic web server. If the server is not
   /// running this call will start the server. If unable to start the
   /// diagnostic web server, this call will return an error of
-  /// DEBUG_PORT_COULD_NOT_BE_OPENED.
+  /// `DEBUG_PORT_COULD_NOT_BE_OPENED`.
   ///
   /// Returns
   ///
@@ -2716,13 +2718,13 @@ abstract class IntegrationTest {
   ///
   /// This flag controls whether the analysis server sends any analytics data
   /// to the cloud. If disabled, the analysis server does not send any
-  /// analytics data, and any data sent to it by clients (from sendEvent and
-  /// sendTiming) will be ignored.
+  /// analytics data, and any data sent to it by clients (from `sendEvent` and
+  /// `sendTiming`) will be ignored.
   ///
   /// The value of this flag can be changed by other tools outside of the
   /// analysis server's process. When you query the flag, you get the value of
   /// the flag at a given moment. Clients should not use the value returned to
-  /// decide whether or not to send the sendEvent and sendTiming requests.
+  /// decide whether or not to send the `sendEvent` and `sendTiming` requests.
   /// Those requests should be used unconditionally and server will determine
   /// whether or not it is appropriate to forward the information to the cloud
   /// at the time each request is received.
@@ -2751,7 +2753,7 @@ abstract class IntegrationTest {
   /// Enable or disable the sending of analytics data. Note that there are
   /// other ways for users to change this setting, so clients cannot assume
   /// that they have complete control over this setting. In particular, there
-  /// is no guarantee that the result returned by the isEnabled request will
+  /// is no guarantee that the result returned by the `isEnabled` request will
   /// match the last value set via this request.
   ///
   /// Parameters
@@ -2776,11 +2778,11 @@ abstract class IntegrationTest {
   /// in the client as part of the analytics data being sent. The data will
   /// only be included if the sending of analytics data is enabled at the time
   /// the request is processed. The action that was performed is indicated by
-  /// the value of the action field.
+  /// the value of the `action` field.
   ///
   /// The value of the action field should not include the identity of the
   /// client. The analytics data sent by server will include the client id
-  /// passed in using the --client-id command-line argument. The request will
+  /// passed in using the `--client-id` command-line argument. The request will
   /// be ignored if the client id was not provided when server was started.
   ///
   /// Parameters
@@ -2805,7 +2807,7 @@ abstract class IntegrationTest {
   ///
   /// The value of the event field should not include the identity of the
   /// client. The analytics data sent by server will include the client id
-  /// passed in using the --client-id command-line argument. The request will
+  /// passed in using the `--client-id` command-line argument. The request will
   /// be ignored if the client id was not provided when server was started.
   ///
   /// Parameters
@@ -2829,10 +2831,10 @@ abstract class IntegrationTest {
   /// Return the description of the widget instance at the given location.
   ///
   /// If the location does not have a support widget, an error of type
-  /// FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
+  /// `FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET` will be generated.
   ///
   /// If a change to a file happens while widget descriptions are computed, an
-  /// error of type FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED will be
+  /// error of type `FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED` will be
   /// generated.
   ///
   /// Parameters
@@ -2850,7 +2852,7 @@ abstract class IntegrationTest {
   /// properties: List<FlutterWidgetProperty>
   ///
   ///   The list of properties of the widget. Some of the properties might be
-  ///   read only, when their editor is not set. This might be because they
+  ///   read only, when their `editor` is not set. This might be because they
   ///   have type that we don't know how to edit, or for compound properties
   ///   that work as containers for sub-properties.
   Future<FlutterGetWidgetDescriptionResult> sendFlutterGetWidgetDescription(
@@ -2884,9 +2886,9 @@ abstract class IntegrationTest {
   /// id: int
   ///
   ///   The identifier of the property, previously returned as a part of a
-  ///   FlutterWidgetProperty.
+  ///   `FlutterWidgetProperty`.
   ///
-  ///   An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  ///   An error of type `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID` is
   ///   generated if the identifier is not valid.
   ///
   /// value: FlutterWidgetPropertyValue (optional)
@@ -2895,11 +2897,11 @@ abstract class IntegrationTest {
   ///
   ///   If absent, indicates that the property should be removed. If the
   ///   property corresponds to an optional parameter, the corresponding named
-  ///   argument is removed. If the property isRequired is true,
-  ///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///   argument is removed. If the property `isRequired` is true,
+  ///   `FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED` error is generated.
   ///
-  ///   If the expression is not a syntactically valid Dart code, then
-  ///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+  ///   If the `expression` is not a syntactically valid Dart code, then
+  ///   `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION` is reported.
   ///
   /// Returns
   ///
@@ -2967,7 +2969,7 @@ abstract class IntegrationTest {
   /// Reports the Flutter outline associated with a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// flutter.setSubscriptions request.
   ///
   /// Parameters

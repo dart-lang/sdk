@@ -756,15 +756,13 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   ASSERT(type.IsFinalized());
-  const Class& cls = Class::Handle(
-      type.IsFunctionType()
-          ? IsolateGroup::Current()->object_store()->closure_class()
-          : type.type_class());
-  ASSERT(!cls.IsNull());
-  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsNeverClass()) {
+  if (!type.IsType() || type.IsDynamicType() || type.IsVoidType() ||
+      type.IsNeverType()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
+  const Class& cls = Class::Handle(type.type_class());
+  ASSERT(!cls.IsNull());
   return CreateClassMirror(cls, AbstractType::Handle(cls.DeclarationType()),
                            Bool::True(),  // is_declaration
                            Object::null_instance());
@@ -1221,6 +1219,8 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 0, 1) {
   return param.bound();
 }
 
+static constexpr bool kNoStrictEntryPointChecks = false;
+
 DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 0, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1230,7 +1230,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 0, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-  RETURN_OR_PROPAGATE(reflectee.Invoke(function_name, args, arg_names));
+  RETURN_OR_PROPAGATE(reflectee.Invoke(function_name, args, arg_names,
+                                       kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 0, 3) {
@@ -1239,7 +1240,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 0, 3) {
   // with its cousins.
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  RETURN_OR_PROPAGATE(reflectee.InvokeGetter(getter_name));
+  RETURN_OR_PROPAGATE(
+      reflectee.InvokeGetter(getter_name, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 0, 4) {
@@ -1249,7 +1251,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 0, 4) {
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-  RETURN_OR_PROPAGATE(reflectee.InvokeSetter(setter_name, value));
+  RETURN_OR_PROPAGATE(
+      reflectee.InvokeSetter(setter_name, value, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 0, 1) {
@@ -1309,7 +1312,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 0, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-  RETURN_OR_PROPAGATE(klass.Invoke(function_name, args, arg_names));
+  RETURN_OR_PROPAGATE(
+      klass.Invoke(function_name, args, arg_names, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 0, 3) {
@@ -1324,7 +1328,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 0, 3) {
     UNREACHABLE();
   }
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  RETURN_OR_PROPAGATE(klass.InvokeGetter(getter_name, true));
+  RETURN_OR_PROPAGATE(
+      klass.InvokeGetter(getter_name, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 0, 4) {
@@ -1335,7 +1340,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 0, 4) {
   const Class& klass = Class::Handle(ref.GetClassReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-  RETURN_OR_PROPAGATE(klass.InvokeSetter(setter_name, value));
+  RETURN_OR_PROPAGATE(
+      klass.InvokeSetter(setter_name, value, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
@@ -1488,7 +1494,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 0, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-  RETURN_OR_PROPAGATE(library.Invoke(function_name, args, arg_names));
+  RETURN_OR_PROPAGATE(library.Invoke(function_name, args, arg_names,
+                                     kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 0, 3) {
@@ -1498,7 +1505,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& library = Library::Handle(ref.GetLibraryReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  RETURN_OR_PROPAGATE(library.InvokeGetter(getter_name, true));
+  RETURN_OR_PROPAGATE(
+      library.InvokeGetter(getter_name, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 0, 4) {
@@ -1509,7 +1517,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 0, 4) {
   const Library& library = Library::Handle(ref.GetLibraryReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-  RETURN_OR_PROPAGATE(library.InvokeSetter(setter_name, value));
+  RETURN_OR_PROPAGATE(
+      library.InvokeSetter(setter_name, value, kNoStrictEntryPointChecks));
 }
 
 DEFINE_NATIVE_ENTRY(MethodMirror_owner, 0, 2) {

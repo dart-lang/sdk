@@ -31,6 +31,9 @@ extension OneByteStringUncheckedOperations on OneByteString {
 
   @pragma('wasm:prefer-inline')
   void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI8> get array => _array;
 }
 
 extension TwoByteStringUncheckedOperations on TwoByteString {
@@ -43,6 +46,9 @@ extension TwoByteStringUncheckedOperations on TwoByteString {
 
   @pragma('wasm:prefer-inline')
   void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI16> get array => _array;
 }
 
 /// Static function for `OneByteString._array` to avoid making `_array` public.

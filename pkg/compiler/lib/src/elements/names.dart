@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.elements.names;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show $_;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
@@ -60,7 +61,7 @@ abstract class Name {
   Uri? get uri;
 
   /// Returns `true` when [s] is private if used as an identifier.
-  static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
+  static bool isPrivateName(String s) => s.isNotEmpty && s.codeUnitAt(0) == $_;
 
   /// Returns `true` when [s] is public if used as an identifier.
   static bool isPublicName(String s) => !isPrivateName(s);
@@ -144,5 +145,5 @@ class PrivateName extends PublicName {
   bool matches(Name other) => super.matches(other) && uri == other.uri;
 
   @override
-  String toString() => '${uri}#${super.toString()}';
+  String toString() => '$uri#${super.toString()}';
 }

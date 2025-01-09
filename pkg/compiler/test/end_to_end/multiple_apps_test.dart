@@ -15,8 +15,11 @@ Future<Directory> createTempDir() {
   return Directory.systemTemp.createTemp('dart2js_multiple_apps_test-');
 }
 
-Future<ProcessResult> getOldCompilationResult(Uri mainFile, Uri outputFile,
-    {List<String> options = const []}) async {
+Future<ProcessResult> getOldCompilationResult(
+  Uri mainFile,
+  Uri outputFile, {
+  List<String> options = const [],
+}) async {
   print('Running: hardened dart2js');
 
   ProcessResult result = Process.runSync('tools/sdks/dart-sdk/bin/dart', [
@@ -26,11 +29,14 @@ Future<ProcessResult> getOldCompilationResult(Uri mainFile, Uri outputFile,
     '-o',
     outputFile.toFilePath(),
     if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
-    ...options
+    ...options,
   ]);
 
   Expect.equals(
-      0, result.exitCode, 'Failed to compile $mainFile with hardened SDK.');
+    0,
+    result.exitCode,
+    'Failed to compile $mainFile with hardened SDK.',
+  );
   print('Done: created old result for $mainFile');
   return result;
 }
@@ -40,8 +46,10 @@ Future<void> runTestWithOptions(List<Uri> jsFiles) async {
 
   final result = executeJsWithD8(jsFiles);
   if (result.exitCode != 0) {
-    Expect.fail('Expected exit code 0 for $jsFiles. D8 results:\n'
-        '${(result.stdout as String).trim()}');
+    Expect.fail(
+      'Expected exit code 0 for $jsFiles. D8 results:\n'
+      '${(result.stdout as String).trim()}',
+    );
   }
   Expect.equals(0, result.exitCode);
 }

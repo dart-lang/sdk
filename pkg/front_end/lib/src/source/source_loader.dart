@@ -40,7 +40,6 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
-import '../base/modifiers.dart';
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
@@ -79,7 +78,6 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
-import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -95,7 +93,6 @@ import 'source_library_builder.dart'
         LibraryAccess,
         SourceCompilationUnitImpl,
         SourceLibraryBuilder;
-import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
@@ -921,6 +918,25 @@ severity: $severity
 
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
 
+  void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
+    MemberBuilder constructor = getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(
+          constructor.invokeTarget as Constructor, arguments)
+        ..isConst = true;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      annotation =
+          new StaticInvocation(constructor.invokeTarget as Procedure, arguments)
+            ..isConst = true;
+    }
+
+    annotatable.addAnnotation(annotation);
+  }
+
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext,
@@ -1172,7 +1188,7 @@ severity: $severity
             templateUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
           loadedLibraries ??=
-              new LoadedLibrariesImpl(rootLibrary, compilationUnits);
+              new LoadedLibrariesImpl([rootLibrary], compilationUnits);
           Set<String> importChain = computeImportChainsFor(
               rootLibrary.importUri, loadedLibraries, importUri,
               verbose: false);
@@ -1310,7 +1326,7 @@ severity: $severity
       SourceLibraryBuilder libraryBuilder,
       String? enclosingClassOrExtension,
       bool isClassInstanceMember,
-      FunctionNode parameters,
+      Procedure procedure,
       VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder.compilationUnit,
         suppressLexicalErrors: false, allowLazyStrings: false);
@@ -1320,14 +1336,12 @@ severity: $severity
         // support members from source, so we provide an empty [DeclarationMap].
         new OffsetMap(libraryBuilder.fileUri));
 
-    DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
           .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1337,7 +1351,6 @@ severity: $severity
                   parent: TypeParameterScope.fromList(
                       dietListener.memberScope, builder.typeParameters));
           case ExtensionBuilder():
-            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1358,37 +1371,14 @@ severity: $severity
         }
       }
     }
-    SourceProcedureBuilder builder = new SourceProcedureBuilder(
-        metadata: null,
-        modifiers: Modifiers.empty,
-        returnType: const ImplicitTypeBuilder(),
-        name: "debugExpr",
-        typeParameters: null,
-        formals: null,
-        kind: ProcedureKind.Method,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        fileUri: libraryBuilder.fileUri,
-        startOffset: 0,
-        nameOffset: 0,
-        formalsOffset: -1,
-        endOffset: -1,
-        procedureReference: null,
-        tearOffReference: null,
-        asyncModifier: AsyncMarker.Sync,
-        nameScheme: new NameScheme(
-            containerName: null,
-            containerType: ContainerType.Library,
-            isInstanceMember: false,
-            libraryName: libraryBuilder.libraryName));
+
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(
-            dietListener, builder, builder.invokeTarget!,
+        new ExpressionCompilerProcedureBodyBuildContext(dietListener, procedure,
             isDeclarationInstanceMember: isClassInstanceMember),
         dietListener.memberScope,
         thisVariable: extensionThis);
-    builder.procedure.function = parameters..parent = builder.procedure;
-    for (VariableDeclaration variable in parameters.positionalParameters) {
+    for (VariableDeclaration variable
+        in procedure.function.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }
 
@@ -1397,7 +1387,7 @@ severity: $severity
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
             allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled),
         token,
-        parameters);
+        procedure.function);
   }
 
   DietListener createDietListener(

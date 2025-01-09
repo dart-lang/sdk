@@ -11,7 +11,10 @@ import 'dart:io';
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
+import 'package:dart_style/dart_style.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
@@ -226,20 +229,29 @@ class DartFormat {
   static String get _dartPath => Platform.resolvedExecutable;
 
   static void formatFile(File file) {
-    var result = Process.runSync(
-        _dartPath, ['format', '--language-version=latest', file.path]);
+    var result = Process.runSync(_dartPath, ['format', file.path]);
     _throwIfExitCode(result);
   }
 
-  static String formatText(String text) {
-    var tmpDir = Directory.systemTemp.createTempSync('format');
-    var file = File(join(tmpDir.path, 'gen.dart'));
-    file.writeAsStringSync(text);
-    formatFile(file);
-    var result = file.readAsStringSync();
-    file.deleteSync();
-    tmpDir.deleteSync();
-    return result;
+  static Future<String> _formatText(String text,
+      {required String pkgPath}) async {
+    var packageConfig = await findPackageConfig(Directory(pkgPath));
+    if (packageConfig == null) {
+      throw StateError(
+          'Could not find the shared Dart SDK package_config.json file, for '
+          '"$pkgPath"');
+    }
+    var package =
+        packageConfig.packageOf(Uri.file(join(pkgPath, 'pubspec.yaml')));
+    if (package == null) {
+      throw StateError('Could not find the package for "$pkgPath"');
+    }
+    var languageVersion = package.languageVersion;
+    if (languageVersion == null) {
+      throw StateError('Could not find a Dart language version for "$pkgPath"');
+    }
+    var version = Version(languageVersion.major, languageVersion.minor, 0);
+    return DartFormatter(languageVersion: version).format(text);
   }
 
   static void _throwIfExitCode(ProcessResult result) {
@@ -405,7 +417,8 @@ class GeneratedFile extends GeneratedContent {
     var outputFile = output(pkgPath);
     var expectedContents = await computeContents(pkgPath);
     if (isDartFile) {
-      expectedContents = DartFormat.formatText(expectedContents);
+      expectedContents = await DartFormat._formatText(expectedContents,
+          pkgPath: dirname(outputFile.path));
     }
     try {
       var actualContents = outputFile.readAsStringSync();
@@ -435,7 +448,7 @@ class GeneratedFile extends GeneratedContent {
 
   @override
   File output(String pkgPath) =>
-      File(join(pkgPath, joinAll(posix.split(outputPath))));
+      File(normalize(join(pkgPath, joinAll(posix.split(outputPath)))));
 }
 
 /// Mixin class for generating HTML representations of code that are suitable

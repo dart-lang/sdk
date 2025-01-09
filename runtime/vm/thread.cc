@@ -253,24 +253,6 @@ ErrorPtr Thread::StealStickyError() {
   return return_value;
 }
 
-const char* Thread::TaskKindToCString(TaskKind kind) {
-  switch (kind) {
-    case kUnknownTask:
-      return "kUnknownTask";
-    case kMutatorTask:
-      return "kMutatorTask";
-    case kCompilerTask:
-      return "kCompilerTask";
-    case kSweeperTask:
-      return "kSweeperTask";
-    case kMarkerTask:
-      return "kMarkerTask";
-    default:
-      UNREACHABLE();
-      return "";
-  }
-}
-
 void Thread::AssertNonMutatorInvariants() {
   ASSERT(BypassSafepoints());
   ASSERT(store_buffer_block_ == nullptr);
@@ -474,7 +456,8 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
     thread->ResetMutatorState();
     thread->ResetState();
     SuspendDartMutatorThreadInternal(thread, VMTag::kInvalidTagId);
-    FreeActiveThread(thread, /*bypass_safepoint=*/false);
+    FreeActiveThread(thread, isolate, /*is_dart_mutator=*/true,
+                     /*bypass_safepoint=*/false);
   }
 
   // To let VM's thread pool (if we run on it) know that this thread is
@@ -488,7 +471,7 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        TaskKind kind,
                                        bool bypass_safepoint) {
-  Thread* thread = AddActiveThread(isolate_group, nullptr,
+  Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    /*is_dart_mutator=*/false, bypass_safepoint);
   if (thread != nullptr) {
     thread->SetupState(kind);
@@ -512,13 +495,14 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   thread->ResetMutatorState();
   thread->ResetState();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
-  FreeActiveThread(thread, bypass_safepoint);
+  FreeActiveThread(thread, /*isolate=*/nullptr, /*is_dart_mutator=*/false,
+                   bypass_safepoint);
 }
 
 bool Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
                                            TaskKind kind) {
   Thread* thread =
-      AddActiveThread(isolate_group, nullptr,
+      AddActiveThread(isolate_group, /*isolate=*/nullptr,
                       /*is_dart_mutator=*/false, /*bypass_safepoint=*/true);
   if (thread != nullptr) {
     thread->SetupState(kind);
@@ -537,7 +521,8 @@ void Thread::ExitIsolateGroupAsNonMutator() {
 
   thread->ResetState();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
-  FreeActiveThread(thread, /*bypass_safepoint=*/true);
+  FreeActiveThread(thread, /*isolate=*/nullptr, /*is_dart_mutator=*/false,
+                   /*bypass_safepoint=*/true);
 }
 
 void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
@@ -621,6 +606,10 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
   thread->isolate_ = isolate;  // May be nullptr.
   thread->isolate_group_ = group;
   thread->scheduled_dart_mutator_isolate_ = isolate;
+  if (is_dart_mutator) {
+    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
+    isolate->mutator_thread_ = thread;
+  }
 
   // We start at being at-safepoint (in case any safepoint operation is
   // in-progress, we'll check into it once leaving the safepoint)
@@ -632,7 +621,10 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
   return thread;
 }
 
-void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
+void Thread::FreeActiveThread(Thread* thread,
+                              Isolate* isolate,
+                              bool is_dart_mutator,
+                              bool bypass_safepoint) {
   ASSERT(!thread->HasActiveState());
   ASSERT(!thread->IsAtSafepoint());
 
@@ -672,6 +664,10 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
   thread->isolate_ = nullptr;
   thread->isolate_group_ = nullptr;
   thread->scheduled_dart_mutator_isolate_ = nullptr;
+  if (is_dart_mutator) {
+    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
+    isolate->mutator_thread_ = nullptr;
+  }
   thread->set_execution_state(Thread::kThreadInNative);
   thread->stack_limit_.store(0);
   thread->safepoint_state_ = 0;
@@ -743,7 +739,10 @@ uword Thread::GetAndClearInterrupts() {
 }
 
 ErrorPtr Thread::HandleInterrupts() {
-  uword interrupt_bits = GetAndClearInterrupts();
+  return HandleInterrupts(GetAndClearInterrupts());
+}
+
+ErrorPtr Thread::HandleInterrupts(uword interrupt_bits) {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
@@ -1454,7 +1453,6 @@ void Thread::ResetMutatorState() {
 
 void Thread::SetupDartMutatorState(Isolate* isolate) {
   field_table_values_ = isolate->field_table_->table();
-  isolate->mutator_thread_ = this;
 
   SetupDartMutatorStateDependingOnSnapshot(isolate->group());
 }
@@ -1490,7 +1488,6 @@ void Thread::SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group) {
 void Thread::ResetDartMutatorState(Isolate* isolate) {
   ASSERT(execution_state() == Thread::kThreadInVM);
 
-  isolate->mutator_thread_ = nullptr;
   is_unwind_in_progress_ = false;
 
   field_table_values_ = nullptr;

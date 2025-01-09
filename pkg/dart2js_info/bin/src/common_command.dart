@@ -19,20 +19,29 @@ class CommonCommand extends Command<void> with PrintUsageException {
       "See code element commonalities between two dump-info files.";
 
   CommonCommand() {
-    argParser.addFlag('packages-only',
-        defaultsTo: false,
-        help: "Show only packages in common. "
-            "Cannot be used with `main-only`.");
-    argParser.addFlag('order-by-size',
-        defaultsTo: false,
-        help: "Show output ordered by size in bytes (decreasing). "
-            "If there are size discrepancies, orders by the first "
-            "dump-info file's reported size.");
-    argParser.addFlag('main-only',
-        defaultsTo: false,
-        help: "Only shows output comparison for main output unit. Provides "
-            "results by class and member rather than by library. "
-            "Cannot be used with `packages-only`.");
+    argParser.addFlag(
+      'packages-only',
+      defaultsTo: false,
+      help:
+          "Show only packages in common. "
+          "Cannot be used with `main-only`.",
+    );
+    argParser.addFlag(
+      'order-by-size',
+      defaultsTo: false,
+      help:
+          "Show output ordered by size in bytes (decreasing). "
+          "If there are size discrepancies, orders by the first "
+          "dump-info file's reported size.",
+    );
+    argParser.addFlag(
+      'main-only',
+      defaultsTo: false,
+      help:
+          "Only shows output comparison for main output unit. Provides "
+          "results by class and member rather than by library. "
+          "Cannot be used with `packages-only`.",
+    );
   }
 
   @override
@@ -41,7 +50,8 @@ class CommonCommand extends Command<void> with PrintUsageException {
     final args = argRes.rest;
     if (args.length < 2) {
       usageException(
-          'Missing arguments, expected two dump-info files to compare');
+        'Missing arguments, expected two dump-info files to compare',
+      );
     }
 
     var oldInfo = await infoFromFile(args[0]);
@@ -51,11 +61,15 @@ class CommonCommand extends Command<void> with PrintUsageException {
     bool mainOnly = argRes['main-only'];
     if (packagesOnly && mainOnly) {
       throw ArgumentError(
-          'Only one of `main-only` and `packages-only` can be provided.');
+        'Only one of `main-only` and `packages-only` can be provided.',
+      );
     }
 
-    var commonElements =
-        findCommonalities(oldInfo, newInfo, mainOnly: mainOnly);
+    var commonElements = findCommonalities(
+      oldInfo,
+      newInfo,
+      mainOnly: mainOnly,
+    );
 
     if (packagesOnly) {
       reportPackages(commonElements, orderBySize: orderBySize);
@@ -78,10 +92,12 @@ void report(List<CommonElement> commonElements, {orderBySize = false}) {
     }
   }
 
-  _section('COMMON ELEMENTS',
-      elementCount: commonElements.length,
-      oldSizeTotal: oldSizeTotal,
-      newSizeTotal: newSizeTotal);
+  _section(
+    'COMMON ELEMENTS',
+    elementCount: commonElements.length,
+    oldSizeTotal: oldSizeTotal,
+    newSizeTotal: newSizeTotal,
+  );
 
   if (orderBySize) {
     commonElements.sort((a, b) => b.oldInfo.size.compareTo(a.oldInfo.size));
@@ -95,8 +111,10 @@ void report(List<CommonElement> commonElements, {orderBySize = false}) {
     if (oldSize == newSize) {
       print('${element.name}: ${element.oldInfo.size} bytes');
     } else {
-      print('${element.name}: ${element.oldInfo.size} -> '
-          '${element.newInfo.size} bytes');
+      print(
+        '${element.name}: ${element.oldInfo.size} -> '
+        '${element.newInfo.size} bytes',
+      );
     }
   }
 }
@@ -128,10 +146,12 @@ void reportPackages(List<CommonElement> commonElements, {orderBySize = false}) {
     newSizeTotal += newPackageSize;
   });
 
-  _section('COMMON ELEMENTS (PACKAGES)',
-      elementCount: oldPackageInfo.keys.length,
-      oldSizeTotal: oldSizeTotal,
-      newSizeTotal: newSizeTotal);
+  _section(
+    'COMMON ELEMENTS (PACKAGES)',
+    elementCount: oldPackageInfo.keys.length,
+    oldSizeTotal: oldSizeTotal,
+    newSizeTotal: newSizeTotal,
+  );
 
   var packageInfoEntries = oldPackageInfo.entries.toList();
 
@@ -152,15 +172,19 @@ void reportPackages(List<CommonElement> commonElements, {orderBySize = false}) {
   }
 }
 
-void _section(String title,
-    {required int elementCount,
-    required int oldSizeTotal,
-    required int newSizeTotal}) {
+void _section(
+  String title, {
+  required int elementCount,
+  required int oldSizeTotal,
+  required int newSizeTotal,
+}) {
   if (oldSizeTotal == newSizeTotal) {
     print('$title ($elementCount common elements, $oldSizeTotal bytes)');
   } else {
-    print('$title ($elementCount common elements, '
-        '$oldSizeTotal bytes -> $newSizeTotal bytes)');
+    print(
+      '$title ($elementCount common elements, '
+      '$oldSizeTotal bytes -> $newSizeTotal bytes)',
+    );
   }
   print('=' * 72);
 }

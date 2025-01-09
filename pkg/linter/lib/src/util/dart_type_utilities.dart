@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
@@ -13,17 +13,18 @@ import '../extensions.dart';
 
 bool argumentsMatchParameters(
     NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
-  var namedParameters = <String, Element?>{};
-  var namedArguments = <String, Element>{};
-  var positionalParameters = <Element?>[];
-  var positionalArguments = <Element>[];
+  var namedParameters = <String, Element2?>{};
+  var namedArguments = <String, Element2>{};
+  var positionalParameters = <Element2?>[];
+  var positionalArguments = <Element2>[];
   for (var parameter in parameters) {
     var identifier = parameter.name;
+    var parameterElement = parameter.declaredFragment?.element;
     if (identifier != null) {
       if (parameter.isNamed) {
-        namedParameters[identifier.lexeme] = parameter.declaredElement;
+        namedParameters[identifier.lexeme] = parameterElement;
       } else {
-        positionalParameters.add(parameter.declaredElement);
+        positionalParameters.add(parameterElement);
       }
     }
   }
@@ -63,8 +64,8 @@ bool argumentsMatchParameters(
 
 /// Returns whether the canonical elements of [element1] and [element2] are
 /// equal.
-bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
-    element1?.canonicalElement == element2?.canonicalElement;
+bool canonicalElementsAreEqual(Element2? element1, Element2? element2) =>
+    element1?.canonicalElement2 == element2?.canonicalElement2;
 
 /// Returns whether the canonical elements from two nodes are equal.
 ///
@@ -106,8 +107,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
 
   if (expression1 is PrefixedIdentifier) {
     return expression2 is PrefixedIdentifier &&
-        canonicalElementsAreEqual(expression1.prefix.staticElement,
-            expression2.prefix.staticElement) &&
+        canonicalElementsAreEqual(
+            expression1.prefix.element, expression2.prefix.element) &&
         canonicalElementsAreEqual(getWriteOrReadElement(expression1.identifier),
             getWriteOrReadElement(expression2.identifier));
   }
@@ -174,8 +175,8 @@ bool typesAreUnrelated(
         promotedLeftType, promotedRightType);
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
-        promotedRightType.element.bound);
+    return typesAreUnrelated(typeSystem, promotedLeftType.element3.bound,
+        promotedRightType.element3.bound);
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
       return true;
@@ -197,9 +198,11 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
     return false;
   }
   if (type2 is InterfaceType) {
-    var element2 = type2.element;
-    if (element2 is ClassElement &&
-        element2.lookUpConcreteMethod('call', element2.library) != null) {
+    var element2 = type2.element3;
+    if (element2 is ClassElement2 &&
+        element2.thisType
+                .lookUpMethod3('call', element2.library2, concrete: true) !=
+            null) {
       return false;
     }
   }
@@ -231,8 +234,8 @@ class InterfaceTypeDefinition {
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
       InterfaceType leftType, InterfaceType rightType) {
-    var leftElement = leftType.element;
-    var rightElement = rightType.element;
+    var leftElement = leftType.element3;
+    var rightElement = rightType.element3;
     if (leftElement == rightElement) {
       // In this case, [leftElement] and [rightElement] represent the same
       // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
@@ -259,7 +262,7 @@ extension on TypeSystem {
 
       // Unrelated Enums have the same supertype, but they are not the same element, so
       // they are unrelated.
-      if (sameSupertypes && leftElement is EnumElement) {
+      if (sameSupertypes && leftElement is EnumElement2) {
         return true;
       }
 

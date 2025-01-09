@@ -51,7 +51,9 @@ class Module implements Serializable {
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
     StartSection(functions.start, watchPoints).serialize(s);
-    ElementSection(tables.defined, tables.imported, watchPoints).serialize(s);
+    ElementSection(
+            tables.defined, tables.imported, functions.declared, watchPoints)
+        .serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);

@@ -59,10 +59,43 @@ main() {
   and with a `Flexible` widget.
 - Offer an assist to "inline" an else-block's inner if-statement with the
   else-block to read `else if`.
-  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhacements!
-- Add the experimental `specify_nonobvious_property_types` lint rule.
-- Add the experimental `omit_obvious_property_types` lint rule.
-- Deprecate the `package_api_docs` lint rule.
+- Add an additional fix to import an unknown prefixed identifier by updating
+  the `show` combinator on an existing import.
+- Add a fix to import an unknown prefixed identifier by adding an
+  import directive with the given prefix.
+- Add a fix to import an unknown prefixed identifier by removing a `hide`
+  combinator.
+- Add a fix to import an unknown identifier by adding an import directive with a
+  `show` combinator, and optionally a prefix.
+- Code completion now suggests instance variables when completing inside the
+  initializer of a _late_ field.
+- Assists and quick fixes that add a const keyword now consider the
+  `prefer_const_declarations` lint rule, prefering to add `const` to a variable
+  declaration rather than the initial value.
+- Add a fix to add a missing `on` keyword in an extension declaration.
+- Add a fix to wrap an ambiguous property access or method call in an extension
+  override.
+  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhancements!
+- The 'sort members' command now considers the `sort_constructors_first` lint
+  rule.
+- The 'extract method' refactoring now uses generic method syntax for
+  function-typed parameters.
+- Add quick fixes for more than 30 diagnostics.
+- Add the [`strict_top_level_inference`] lint rule.
+- Add the [`unnecessary_underscores`][] lint rule.
+- Add the experimental [`specify_nonobvious_property_types`][] lint rule.
+- Add the experimental [`omit_obvious_property_types`][] lint rule.
+- Add the experimental [`unsafe_variance`][] lint rule.
+- Remove the [`package_api_docs`][] lint rule.
+- Remove the [`unsafe_html`][] lint rule.
+
+[`strict_top_level_inference`]: https://dart.dev/tools/linter-rules/strict_top_level_inference
+[`unnecessary_underscores`]: https://dart.dev/lints/unnecessary_underscores
+[`specify_nonobvious_property_types`]: https://dart.dev/tools/linter-rules/specify_nonobvious_property_types
+[`omit_obvious_property_types`]: https://dart.dev/tools/linter-rules/omit_obvious_property_types
+[`unsafe_variance`]: https://dart.dev/tools/linter-rules/unsafe_variance
+[`package_api_docs`]: https://dart.dev/tools/linter-rules/package_api_docs
+[`unsafe_html`]: https://dart.dev/tools/linter-rules/unsafe_html
 
 #### Dart format
 
@@ -207,6 +240,55 @@ AOT snapshot instead of a JIT snapshot, the SDK build still includes a JIT
 snapshot of these tools as package build/build_web_compiler depends on it. The
 AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
 <dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+
+### Libraries
+
+#### `dart:html`
+
+- `dart:html` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:indexed_db`
+
+- `dart:indexed_db` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:io`
+
+- `HttpException` will be thrown by `HttpClient` and `HttpServer` if a `NUL`
+  (`0x00`) appears in a received HTTP header value.
+
+#### `dart:svg`
+
+- `dart:svg` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:web_audio`
+
+- `dart:web_audio` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:web_gl`
+
+- `dart:web_gl` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:js`
+
+- `dart:js` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop`. See [#59716][].
+
+#### `dart:js_util`
+
+- `dart:js_util` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop`. See [#59716][].
+
+[#59716]: https://github.com/dart-lang/sdk/issues/59716
 
 ## 3.6.0
 

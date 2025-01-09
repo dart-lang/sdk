@@ -73,6 +73,34 @@ void main() {
     ]);
   }
 
+  test_invalid_MissingType2() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo();
+
+void main() {
+  print(Native.addressOf(foo));
+}
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 74, 21),
+    ]);
+  }
+
+  test_invalid_MissingType3() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer<IntPtr> global;
+
+void main() => print(Native.addressOf(global));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 85, 24),
+    ]);
+  }
+
   test_invalid_NotAConstant() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -87,6 +115,32 @@ void entry(bool condition) {
 }
 ''', [
       error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 171, 21),
+    ]);
+  }
+
+  test_invalid_NotAPreciseType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+
+void main() => print(Native.addressOf<NativeFunction>(foo));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 90, 37),
+    ]);
+  }
+
+  test_invalid_NotAPreciseType2() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo();
+
+void main() => print(Native.addressOf<NativeFunction>(foo));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 73, 37),
     ]);
   }
 
@@ -108,10 +162,14 @@ import 'dart:ffi';
 external void foo();
 
 @Native()
+external void foo2();
+
+@Native()
 external Pointer<IntPtr> global;
 
 void main() {
   print(Native.addressOf<NativeFunction<Void Function()>>(foo));
+  print(Native.addressOf<NativeFunction<Void Function()>>(foo2));
   print(Native.addressOf<Pointer<IntPtr>>(global));
 }
 ''');
@@ -209,7 +267,7 @@ import 'dart:ffi';
 @Native()
 external int foo();
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 43, 3),
+      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3),
     ]);
   }
 
@@ -544,7 +602,7 @@ import 'dart:ffi';
 @Native()
 external int foo();
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 43, 3),
+      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3),
     ]);
   }
 
@@ -557,7 +615,7 @@ const a = Native();
 @a
 external int foo();
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 57, 3),
+      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 57, 3),
     ]);
   }
 
@@ -586,6 +644,234 @@ external int foo();
 ''', [
       error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
     ]);
+  }
+
+  test_InferPointerReturnNoParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer foo();
+''');
+  }
+
+  test_InferPointerReturnPointerParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer foo(Pointer x);
+''');
+  }
+
+  test_InferPointerReturnStructParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer foo(MyStruct x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+''');
+  }
+
+  test_InferPointerReturnUnionParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer foo(MyUnion x);
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferStructReturnNoParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyStruct foo();
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+''');
+  }
+
+  test_InferStructReturnPointerParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyStruct foo(Pointer x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+''');
+  }
+
+  test_InferStructReturnStructParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyStruct foo(MyStruct x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+''');
+  }
+
+  test_InferStructReturnUnionParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyStruct foo(MyUnion x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferUnionReturnNoParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyUnion foo();
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferUnionReturnPointerParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyUnion foo(Pointer x);
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferUnionReturnStructParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyUnion foo(MyStruct x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferUnionReturnUnionParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external MyUnion foo(MyUnion x);
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
+  }
+
+  test_InferVoidReturnNoParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo();
+''');
+  }
+
+  test_InferVoidReturnPointerParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo(Pointer x);
+''');
+  }
+
+  test_InferVoidReturnStructParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo(MyStruct x);
+
+final class MyStruct extends Struct {
+  @Int8()
+  external int value;
+}
+''');
+  }
+
+  test_InferVoidReturnUnionParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external void foo(MyUnion x);
+
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+''');
   }
 
   test_NativeCanUseHandles() async {

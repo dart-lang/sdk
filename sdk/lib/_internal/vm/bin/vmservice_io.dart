@@ -69,6 +69,23 @@ bool _serveObservatory = false;
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _printDtd = false;
 
+File? _residentCompilerInfoFile = null;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+void _populateResidentCompilerInfoFile(
+  /// If either `--resident-compiler-info-file` or `--resident-server-info-file`
+  /// was supplied on the command line, the CLI argument should be forwarded as
+  /// the argument to this parameter. If neither option was supplied, the
+  /// argument to this parameter should be [null].
+  final String? residentCompilerInfoFilePathArgumentFromCli,
+) {
+  _residentCompilerInfoFile = getResidentCompilerInfoFileConsideringArgsImpl(
+    residentCompilerInfoFilePathArgumentFromCli,
+  );
+}
+
+File? _getResidentCompilerInfoFile() => _residentCompilerInfoFile;
+
 // HTTP server.
 late final Server server;
 
@@ -270,6 +287,9 @@ void main() {
   VMServiceEmbedderHooks.acceptNewWebSocketConnections =
       webServerAcceptNewWebSocketConnections;
   VMServiceEmbedderHooks.serveObservatory = serveObservatoryCallback;
+  VMServiceEmbedderHooks.getResidentCompilerInfoFile =
+      _getResidentCompilerInfoFile;
+
   server = Server(
     // Always instantiate the vmservice object so that the exit message
     // can be delivered and waiting loaders can be cancelled.

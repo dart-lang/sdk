@@ -397,7 +397,7 @@ class TreeStringSink {
 
   Future<void> writeFlags(Map<String, bool> flags) async {
     if (flags.values.any((flag) => flag)) {
-      await writeIndentedLine(() async {
+      await writeIndentedLine(() {
         write('flags:');
         for (var entry in flags.entries) {
           if (entry.value) {
@@ -737,7 +737,7 @@ class _Printer {
     ExpressionCode code, {
     String? name,
   }) async {
-    await sink.writeIndentedLine(() async {
+    await sink.writeIndentedLine(() {
       if (name != null) {
         sink.write('$name: ');
       }

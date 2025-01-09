@@ -6,11 +6,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -35,7 +36,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._errorReporter, LibraryElement library)
+  DeadCodeVerifier(this._errorReporter, LibraryElement2 library)
       : _wildCardVariablesEnabled =
             library.featureSet.isEnabled(Feature.wildcard_variables);
 
@@ -51,10 +52,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
-    if (exportElement != null) {
+    var libraryExport = node.libraryExport;
+    if (libraryExport != null) {
       // The element is null when the URI is invalid.
-      LibraryElement? library = exportElement.exportedLibrary;
+      LibraryElement2? library = libraryExport.exportedLibrary2;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -66,12 +67,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment!.element;
     // TODO(pq): ask the FunctionElement once implemented
     if (_wildCardVariablesEnabled &&
-        element is FunctionElement &&
-        element.isLocal &&
-        element.name == '_') {
+        element is LocalFunctionElement &&
+        element.name3 == '_') {
       _errorReporter.atNode(node, WarningCode.DEAD_CODE);
     }
     super.visitFunctionDeclaration(node);
@@ -79,11 +79,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
-    if (importElement != null) {
+    var libraryImport = node.libraryImport;
+    if (libraryImport != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
-      LibraryElement? library = importElement.importedLibrary;
+      LibraryElement2? library = libraryImport.importedLibrary2;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -115,11 +115,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     var initializer = node.initializer;
     if (initializer != null && node.isLate) {
-      var element = node.declaredElement;
+      var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
-          element is LocalVariableElement &&
-          element.name == '_') {
+          element is LocalVariableElement2 &&
+          element.name3 == '_') {
         _errorReporter.atNode(initializer,
             WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER);
       }
@@ -130,7 +130,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
-  void _checkCombinator(LibraryElement library, Combinator combinator) {
+  void _checkCombinator(LibraryElement2 library, Combinator combinator) {
     Namespace namespace =
         NamespaceBuilder().createExportNamespaceForLibrary(library);
     NodeList<SimpleIdentifier> names;
@@ -144,8 +144,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
-      Element? element = namespace.get(nameStr);
-      element ??= namespace.get("$nameStr=");
+      Element2? element = namespace.get2(nameStr);
+      element ??= namespace.get2("$nameStr=");
       if (element == null) {
         _errorReporter.atNode(
           name,
@@ -336,6 +336,14 @@ class NullSafetyDeadCodeVerifier {
     _firstDeadNode = null;
   }
 
+  /// Rewites [_firstDeadNode] if it is equal to [oldNode], as [oldNode] is
+  /// being rewritten into [newNode] in the syntax tree.
+  void maybeRewriteFirstDeadNode(AstNode oldNode, AstNode newNode) {
+    if (_firstDeadNode == oldNode) {
+      _firstDeadNode = newNode;
+    }
+  }
+
   void tryStatementEnter(TryStatement node) {
     var verifier = _CatchClausesVerifier(
       _typeSystem,
@@ -458,8 +466,8 @@ class NullSafetyDeadCodeVerifier {
 
     target = target?.unParenthesized;
     if (target is SimpleIdentifier) {
-      var element = target.staticElement;
-      if (element is PromotableElement &&
+      var element = target.element;
+      if (element is PromotableElementImpl2 &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent;
         while (parent is MethodInvocation ||
@@ -587,12 +595,6 @@ class _LabelTracker {
       }
     }
   }
-}
-
-extension on FunctionElement {
-  bool get isLocal =>
-      enclosingElement3 is FunctionElement ||
-      enclosingElement3 is MethodElement;
 }
 
 extension DoStatementExtension on DoStatement {

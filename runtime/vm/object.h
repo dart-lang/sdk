@@ -511,14 +511,15 @@ class Object {
   V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
-  V(LanguageError, speculative_inlining_error)                                 \
   V(LanguageError, background_compilation_error)                               \
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
-  V(AbstractType, null_abstract_type)
+  V(AbstractType, null_abstract_type)                                          \
+  V(TypedData, uninitialized_index)                                            \
+  V(Array, uninitialized_data)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
   static const Type& name() {                                                  \
@@ -1878,16 +1879,16 @@ class Class : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool throw_nsm_if_absent,
+                         bool check_is_entrypoint = true,
                          bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool for_invocation = false) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
@@ -2973,6 +2974,14 @@ enum class FfiCallbackKind : uint8_t {
   kAsyncCallback,
 };
 
+enum class EntryPointPragma {
+  kAlways,
+  kNever,
+  kGetterOnly,
+  kSetterOnly,
+  kCallOnly
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return untag()->name(); }
@@ -3312,14 +3321,17 @@ class Function : public Object {
            IsDynamicInvocationForwarderName(name());
   }
 
-  // Performs all the checks that don't require the current thread first, to
-  // avoid retrieving it unless they all pass. If you have a handle on the
-  // current thread, call the version that takes one instead.
-  bool IsDynamicClosureCallDispatcher() const {
-    if (!IsDynamicInvokeFieldDispatcher()) return false;
-    return IsDynamicClosureCallDispatcher(Thread::Current());
-  }
-  bool IsDynamicClosureCallDispatcher(Thread* thread) const;
+  // Returns true if this function is _Closure.dyn:call, which implements
+  // dynamically checked closure calls.
+  bool IsDynamicClosureCallDispatcher() const;
+
+  // Returns true if this function is _Closure.call, which implements the
+  // Function interface for closures.
+  bool IsClosureCallDispatcher() const;
+
+  // Returns true if this function is _Closure.get:call, which returns the
+  // closure object for invocation.
+  bool IsClosureCallGetter() const;
 
   bool IsDynamicInvocationForwarder() const {
     return kind() == UntaggedFunction::kDynamicInvocationForwarder;
@@ -3993,10 +4005,7 @@ class Function : public Object {
   bool IsUnmodifiableTypedDataViewFactory() const;
 
   DART_WARN_UNUSED_RESULT
-  ErrorPtr VerifyCallEntryPoint() const;
-
-  DART_WARN_UNUSED_RESULT
-  ErrorPtr VerifyClosurizedEntryPoint() const;
+  ErrorPtr VerifyEntryPoint(EntryPointPragma pragma) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedFunction));
@@ -4363,14 +4372,6 @@ class ClosureData : public Object {
   friend class Class;
   friend class Function;
   friend class Precompiler;  // To wrap parent functions in WSRs.
-};
-
-enum class EntryPointPragma {
-  kAlways,
-  kNever,
-  kGetterOnly,
-  kSetterOnly,
-  kCallOnly
 };
 
 class FfiTrampolineData : public Object {
@@ -5129,16 +5130,16 @@ class Library : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool throw_nsm_if_absent,
+                         bool check_is_entrypoint = true,
                          bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool for_invocation = false) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
@@ -8347,12 +8348,6 @@ class Instance : public Object {
                     const TypeArguments& other_instantiator_type_arguments,
                     const TypeArguments& other_function_type_arguments) const;
 
-  // Check if this instance is assignable to the given other type.
-  // The type argument vectors are used to instantiate the other type if needed.
-  bool IsAssignableTo(const AbstractType& other,
-                      const TypeArguments& other_instantiator_type_arguments,
-                      const TypeArguments& other_function_type_arguments) const;
-
   // Return true if the null instance can be assigned to a variable of [other]
   // type. Return false if null cannot be assigned or we cannot tell (if
   // [other] is a type parameter in NNBD strong mode). Only used for checks at
@@ -8391,15 +8386,15 @@ class Instance : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   ObjectPtr EvaluateCompiledExpression(
       const Class& klass,
@@ -8475,12 +8470,6 @@ class Instance : public Object {
   // Returns false if other type is not a FutureOr.
   bool RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
                                       const AbstractType& other) const;
-
-  // Return true if the null instance is an instance of other type.
-  static bool NullIsInstanceOf(
-      const AbstractType& other,
-      const TypeArguments& other_instantiator_type_arguments,
-      const TypeArguments& other_function_type_arguments);
 
   CompressedObjectPtr* FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));
@@ -12148,10 +12137,10 @@ class LinkedHashBase : public Instance {
   virtual uint32_t CanonicalizeHash() const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
- protected:
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
   static constexpr intptr_t kInitialIndexBits = 2;
   static constexpr intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  static constexpr intptr_t kUninitializedIndexSize = 1;
 
  private:
   LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
@@ -13668,12 +13657,6 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* isolate_group,
                                       const Array& metadata,
                                       Field* reusable_field_handle,
                                       Object* reusable_object_handle);
-
-DART_WARN_UNUSED_RESULT
-ErrorPtr EntryPointFieldInvocationError(const String& getter_name);
-
-DART_WARN_UNUSED_RESULT
-ErrorPtr EntryPointMemberInvocationError(const Object& member);
 
 #undef PRECOMPILER_WSR_FIELD_DECLARATION
 
