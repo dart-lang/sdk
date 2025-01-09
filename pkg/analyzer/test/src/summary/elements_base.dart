@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -68,6 +69,6 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
 
 extension on SomeLibraryElementResult {
   LibraryElementImpl get element {
-    return (this as LibraryElementResult).element as LibraryElementImpl;
+    return (this as LibraryElementResultImpl).element2;
   }
 }

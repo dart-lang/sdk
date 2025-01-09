@@ -177,7 +177,6 @@ test/src/summary/element_text.dart
 test/src/summary/elements/metadata_test.dart
 test/src/summary/elements/top_level_variable_test.dart
 test/src/summary/elements/type_inference_test.dart
-test/src/summary/elements_base.dart
 test/src/summary/macro_test.dart
 test/src/summary/resolved_ast_printer.dart
 test/src/task/strong/dart2_inference_test.dart
