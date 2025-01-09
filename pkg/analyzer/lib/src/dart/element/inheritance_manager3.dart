@@ -1140,7 +1140,7 @@ class InheritanceManager3 {
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      result.parameters = resultType.parameters.toImpl();
       result.element = MethodElementImpl2(
         Reference.root(), // TODO(scheglov): wrong
         firstMethod.name,
@@ -1158,7 +1158,7 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      result.parameters = resultType.parameters.toImpl();
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;
