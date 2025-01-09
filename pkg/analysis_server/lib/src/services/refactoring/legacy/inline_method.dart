@@ -515,7 +515,7 @@ class _ParameterOccurrence {
   });
 }
 
-/// Processor for single [SearchMatch] reference to [methodElement].
+/// Processor for single [SearchMatch] reference to an [Element2].
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
@@ -915,7 +915,7 @@ class _SourcePart {
 
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
 class _VariablesVisitor extends GeneralizingAstVisitor<void> {
-  /// The [ExecutableElement] being inlined.
+  /// The [ExecutableElement2] being inlined.
   final ExecutableElement2 methodElement;
 
   /// The [SourceRange] of the element body.

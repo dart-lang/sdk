@@ -108,8 +108,8 @@ abstract class ExtractLocalRefactoring implements Refactoring {
 
   /// The lengths of the expressions that would be replaced by a reference to
   /// the variable. The lengths correspond to the offsets. In other words, for a
-  /// given expression, if the offset of that expression is offsets[i], then the
-  /// length of that expression is lengths[i].
+  /// given expression, if the offset of that expression is `offsets[i]`, then
+  /// the length of that expression is `lengths[i]`.
   List<int> get lengths;
 
   /// The name that the local variable should be given.
@@ -175,8 +175,8 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /// The lengths of the expressions or statements that would be replaced by an
   /// invocation of the method. The lengths correspond to the offsets.
   /// In other words, for a given expression (or block of statements), if the
-  /// offset of that expression is offsets[i], then the length of that
-  /// expression is lengths[i].
+  /// offset of that expression is `offsets[i]`, then the length of that
+  /// expression is `lengths[i]`.
   List<int> get lengths;
 
   /// The name that the method should be given.
@@ -386,7 +386,7 @@ abstract class Refactoring {
   /// This check should be quick because it is used often as arguments change.
   Future<RefactoringStatus> checkInitialConditions();
 
-  /// Returns the [Change] to apply to perform this refactoring.
+  /// Returns the [SourceChange] to apply to perform this refactoring.
   Future<SourceChange> createChange();
 }
 

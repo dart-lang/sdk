@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
-/// A [Refactoring] for renaming [ParameterElement]s.
+/// A [Refactoring] for renaming [FormalParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   List<FormalParameterElement> elements = [];
 
@@ -101,7 +101,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /// Fills [elements] with [Element]s to rename.
+  /// Fills [elements] with [Element2]s to rename.
   Future<void> _prepareElements() async {
     var element = element2;
     if (element.isNamed) {

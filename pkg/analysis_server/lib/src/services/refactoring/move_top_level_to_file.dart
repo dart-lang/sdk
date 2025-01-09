@@ -442,8 +442,7 @@ class _MembersToMove {
   /// The members to be moved, in groups of contiguous members.
   final List<_MemberGroup> groups;
 
-  /// Initialize a newly created instance representing the [member] with the
-  /// given [name].
+  /// Initialize a newly created instance representing [groups].
   _MembersToMove(this.containingFile, this.groups);
 
   /// Return the name that should be used for the file to which the members will
@@ -545,7 +544,7 @@ class _SealedSubclassIndex {
 }
 
 extension on CompilationUnitMember {
-  /// Gets all sealed [ClassElement]s that are superclasses of this member.
+  /// Gets all sealed [ClassElement2]s that are superclasses of this member.
   Iterable<ClassElement2> get sealedSuperclassElements {
     return superclasses
         .map((type) => type?.element2)
