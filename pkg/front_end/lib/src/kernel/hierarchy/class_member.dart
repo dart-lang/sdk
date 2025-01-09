@@ -170,6 +170,8 @@ class ExtensionTypeMemberResult implements MemberResult {
   @override
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    assert(member.getterType is FunctionType,
+        "Unexpected member type for $member (${member.runtimeType}).");
     FunctionType type = member.getterType as FunctionType;
     if (type.typeParameters.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.

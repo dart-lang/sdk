@@ -32,7 +32,6 @@ import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_method_builder.dart';
@@ -1481,9 +1480,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
-        final bool isExtensionMember = containerType == ContainerType.Extension;
-        final bool isExtensionTypeMember =
-            containerType == ContainerType.ExtensionType;
 
         NameScheme nameScheme = new NameScheme(
             isInstanceMember: isInstanceMember,
@@ -1494,107 +1490,26 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 : enclosingLibraryBuilder.libraryName);
         indexedContainer ??= indexedLibrary;
 
-        Reference? fieldReference;
-        Reference? fieldGetterReference;
-        Reference? fieldSetterReference;
-        Reference? lateIsSetFieldReference;
-        Reference? lateIsSetGetterReference;
-        Reference? lateIsSetSetterReference;
-        Reference? lateGetterReference;
-        Reference? lateSetterReference;
-        if (indexedContainer != null) {
-          if ((isExtensionMember || isExtensionTypeMember) &&
-              isInstanceMember &&
-              fragment.modifiers.isExternal) {
-            /// An external extension (type) instance field is special. It is
-            /// treated as an external getter/setter pair and is therefore
-            /// encoded as a pair of top level methods using the extension
-            /// instance member naming convention.
-            fieldGetterReference = indexedContainer!.lookupGetterReference(
-                nameScheme
-                    .getProcedureMemberName(ProcedureKind.Getter, name)
-                    .name);
-            fieldSetterReference = indexedContainer!.lookupGetterReference(
-                nameScheme
-                    .getProcedureMemberName(ProcedureKind.Setter, name)
-                    .name);
-          } else if (isExtensionTypeMember && isInstanceMember) {
-            Name nameToLookup = nameScheme
-                .getFieldMemberName(FieldNameType.RepresentationField, name,
-                    isSynthesized: true)
-                .name;
-            fieldGetterReference =
-                indexedContainer!.lookupGetterReference(nameToLookup);
-          } else {
-            Name nameToLookup = nameScheme
-                .getFieldMemberName(FieldNameType.Field, name,
-                    isSynthesized: fieldIsLateWithLowering)
-                .name;
-            fieldReference =
-                indexedContainer!.lookupFieldReference(nameToLookup);
-            fieldGetterReference =
-                indexedContainer!.lookupGetterReference(nameToLookup);
-            fieldSetterReference =
-                indexedContainer!.lookupSetterReference(nameToLookup);
-          }
+        FieldReference references = new FieldReference(
+            name, nameScheme, indexedContainer,
+            fieldIsLateWithLowering: fieldIsLateWithLowering,
+            isExternal: fragment.modifiers.isExternal);
 
-          if (fieldIsLateWithLowering) {
-            Name lateIsSetName = nameScheme
-                .getFieldMemberName(FieldNameType.IsSetField, name,
-                    isSynthesized: fieldIsLateWithLowering)
-                .name;
-            lateIsSetFieldReference =
-                indexedContainer!.lookupFieldReference(lateIsSetName);
-            lateIsSetGetterReference =
-                indexedContainer!.lookupGetterReference(lateIsSetName);
-            lateIsSetSetterReference =
-                indexedContainer!.lookupSetterReference(lateIsSetName);
-            lateGetterReference = indexedContainer!.lookupGetterReference(
-                nameScheme
-                    .getFieldMemberName(FieldNameType.Getter, name,
-                        isSynthesized: fieldIsLateWithLowering)
-                    .name);
-            lateSetterReference = indexedContainer!.lookupSetterReference(
-                nameScheme
-                    .getFieldMemberName(FieldNameType.Setter, name,
-                        isSynthesized: fieldIsLateWithLowering)
-                    .name);
-          }
-        }
-        SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-            metadata: fragment.metadata,
-            type: fragment.type,
-            name: name,
-            modifiers: fragment.modifiers,
-            isTopLevel: fragment.isTopLevel,
-            isPrimaryConstructorField: fragment.isPrimaryConstructorField,
-            libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
-            nameScheme: nameScheme,
-            fieldReference: fieldReference,
-            fieldGetterReference: fieldGetterReference,
-            fieldSetterReference: fieldSetterReference,
-            lateIsSetFieldReference: lateIsSetFieldReference,
-            lateIsSetGetterReference: lateIsSetGetterReference,
-            lateIsSetSetterReference: lateIsSetSetterReference,
-            lateGetterReference: lateGetterReference,
-            lateSetterReference: lateSetterReference,
-            initializerToken: fragment.initializerToken,
-            constInitializerToken: fragment.constInitializerToken);
-        fragment.builder = fieldBuilder;
-        builders.add(new _AddBuilder(fragment.name, fieldBuilder,
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forField(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: fragment.modifiers.isStatic,
+                nameScheme: nameScheme,
+                fragment: fragment,
+                references: references);
+        fragment.builder = propertyBuilder;
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
-        if (fieldGetterReference != null) {
-          loader.buildersCreatedWithReferences[fieldGetterReference] =
-              fieldBuilder;
-        }
-        if (fieldSetterReference != null) {
-          loader.buildersCreatedWithReferences[fieldSetterReference] =
-              fieldBuilder;
-        }
+        references.registerReference(loader, propertyBuilder);
       case GetterFragment():
         String name = fragment.name;
         final bool isInstanceMember = containerType != ContainerType.Library &&
@@ -1604,7 +1519,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
         ) = _createTypeParametersAndFormals(
-            declarationBuilder, null, null, unboundNominalParameters,
+            declarationBuilder, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1621,19 +1536,15 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 ? new LibraryName(indexedLibrary.library.reference)
                 : enclosingLibraryBuilder.libraryName);
 
-        Reference? procedureReference;
         indexedContainer ??= indexedLibrary;
 
         bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
             fragment.modifiers.isAugment;
 
-        ProcedureKind kind = ProcedureKind.Getter;
-        if (indexedContainer != null && !isAugmentation) {
-          Name nameToLookup =
-              nameScheme.getProcedureMemberName(kind, name).name;
-          procedureReference =
-              indexedContainer!.lookupGetterReference(nameToLookup);
-        }
+        GetterReference references = new GetterReference(
+            name, nameScheme, indexedContainer,
+            isAugmentation: isAugmentation);
+
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forGetter(
                 fileUri: fragment.fileUri,
@@ -1644,14 +1555,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 isStatic: fragment.modifiers.isStatic,
                 fragment: fragment,
                 nameScheme: nameScheme,
-                getterReference: procedureReference);
+                references: references);
         fragment.setBuilder(propertyBuilder, typeParameters, formals);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
-        if (procedureReference != null) {
-          loader.buildersCreatedWithReferences[procedureReference] =
-              propertyBuilder;
-        }
+        references.registerReference(loader, propertyBuilder);
       case SetterFragment():
         String name = fragment.name;
         final bool isInstanceMember = containerType != ContainerType.Library &&
@@ -1661,7 +1569,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
         ) = _createTypeParametersAndFormals(
-            declarationBuilder, null, null, unboundNominalParameters,
+            declarationBuilder, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1669,10 +1577,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         fragment.typeParameterNameSpace.addTypeParameters(
             problemReporting, typeParameters,
             ownerName: name, allowNameConflict: true);
-
-        final bool isExtensionMember = containerType == ContainerType.Extension;
-        final bool isExtensionTypeMember =
-            containerType == ContainerType.ExtensionType;
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -1682,26 +1586,15 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 ? new LibraryName(indexedLibrary.library.reference)
                 : enclosingLibraryBuilder.libraryName);
 
-        Reference? procedureReference;
         indexedContainer ??= indexedLibrary;
 
         bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
             fragment.modifiers.isAugment;
 
-        ProcedureKind kind = ProcedureKind.Setter;
-        if (indexedContainer != null && !isAugmentation) {
-          Name nameToLookup =
-              nameScheme.getProcedureMemberName(kind, name).name;
-          if ((isExtensionMember || isExtensionTypeMember) &&
-              isInstanceMember) {
-            // Extension (type) instance setters are encoded as methods.
-            procedureReference =
-                indexedContainer!.lookupGetterReference(nameToLookup);
-          } else {
-            procedureReference =
-                indexedContainer!.lookupSetterReference(nameToLookup);
-          }
-        }
+        SetterReference references = new SetterReference(
+            name, nameScheme, indexedContainer,
+            isAugmentation: isAugmentation);
+
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forSetter(
                 fileUri: fragment.fileUri,
@@ -1712,14 +1605,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 isStatic: fragment.modifiers.isStatic,
                 fragment: fragment,
                 nameScheme: nameScheme,
-                setterReference: procedureReference);
+                references: references);
         fragment.setBuilder(propertyBuilder, typeParameters, formals);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
-        if (procedureReference != null) {
-          loader.buildersCreatedWithReferences[procedureReference] =
-              propertyBuilder;
-        }
+        references.registerReference(loader, propertyBuilder);
         if (conflictingSetter) {
           propertyBuilder.isConflictingSetter = true;
         }
@@ -1732,7 +1622,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
         ) = _createTypeParametersAndFormals(
-            declarationBuilder, null, null, unboundNominalParameters,
+            declarationBuilder, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -2605,14 +2495,13 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
 (
   List<NominalParameterBuilder>? typeParameters,
   List<FormalParameterBuilder>? formals
-) _createTypeParametersAndFormals(
-    DeclarationBuilder? declarationBuilder,
-    List<NominalParameterBuilder>? typeParameters,
-    List<FormalParameterBuilder>? formals,
+) _createTypeParametersAndFormals(DeclarationBuilder? declarationBuilder,
     List<NominalParameterBuilder> _unboundNominalVariables,
     {required bool isInstanceMember,
     required Uri fileUri,
     required int nameOffset}) {
+  List<NominalParameterBuilder>? typeParameters;
+  List<FormalParameterBuilder>? formals;
   if (isInstanceMember) {
     switch (declarationBuilder) {
       case ExtensionBuilder():
@@ -2624,13 +2513,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
                     InstanceTypeParameterAccessState.Allowed);
 
         if (nominalVariableCopy != null) {
-          if (typeParameters != null) {
-            // Coverage-ignore-block(suite): Not run.
-            typeParameters = nominalVariableCopy.newParameterBuilders
-              ..addAll(typeParameters);
-          } else {
-            typeParameters = nominalVariableCopy.newParameterBuilders;
-          }
+          typeParameters = nominalVariableCopy.newParameterBuilders;
         }
 
         TypeBuilder thisType = declarationBuilder.onType;
@@ -2647,10 +2530,6 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
               isExtensionThis: true,
               hasImmediatelyDeclaredInitializer: false)
         ];
-        if (formals != null) {
-          // Coverage-ignore-block(suite): Not run.
-          synthesizedFormals.addAll(formals);
-        }
         formals = synthesizedFormals;
       case ExtensionTypeDeclarationBuilder():
         NominalParameterCopy? nominalVariableCopy =
@@ -2661,13 +2540,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
                     InstanceTypeParameterAccessState.Allowed);
 
         if (nominalVariableCopy != null) {
-          if (typeParameters != null) {
-            // Coverage-ignore-block(suite): Not run.
-            typeParameters = nominalVariableCopy.newParameterBuilders
-              ..addAll(typeParameters);
-          } else {
-            typeParameters = nominalVariableCopy.newParameterBuilders;
-          }
+          typeParameters = nominalVariableCopy.newParameterBuilders;
         }
 
         TypeBuilder thisType =
@@ -2699,10 +2572,6 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
               isExtensionThis: true,
               hasImmediatelyDeclaredInitializer: false)
         ];
-        if (formals != null) {
-          // Coverage-ignore-block(suite): Not run.
-          synthesizedFormals.addAll(formals);
-        }
         formals = synthesizedFormals;
       case ClassFragment():
       case MixinFragment():

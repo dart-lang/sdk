@@ -182,6 +182,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
+
   Procedure get _procedure =>
       isAugmenting ? origin._procedure : _procedureInternal;
 

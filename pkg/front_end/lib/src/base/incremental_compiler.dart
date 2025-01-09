@@ -73,7 +73,6 @@ import '../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
-import '../builder/field_builder.dart' show FieldBuilder;
 import '../builder/library_builder.dart'
     show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
 import '../builder/member_builder.dart' show MemberBuilder;
@@ -741,7 +740,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (sourceBuilder == null) {
         sourceBuilder = sourceLibraryBuilder.exportNameSpace
             .lookupLocalMember(name, setter: false);
-        if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
+        if (sourceBuilder is MemberBuilder &&
+            sourceBuilder.isField &&
+            sourceBuilder.isAssignable) {
           // Assignable fields can be lowered into a getter and setter.
           return;
         }

@@ -125,11 +125,9 @@ class SetterFragment implements Fragment, FunctionFragment {
   }
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference setterReference,
-      required List<TypeParameter>? classTypeParameters}) {
-    _encoding.buildOutlineNode(libraryBuilder, nameScheme, f,
-        setterReference: setterReference,
+      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
+      {required List<TypeParameter>? classTypeParameters}) {
+    _encoding.buildOutlineNode(libraryBuilder, nameScheme, f, references,
         isAbstractOrExternal: modifiers.isAbstract || modifiers.isExternal,
         classTypeParameters: classTypeParameters);
   }
@@ -153,20 +151,23 @@ class SetterFragment implements Fragment, FunctionFragment {
         createFileUriExpression: createFileUriExpression);
   }
 
-  void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder enclosingClassBuilder,
+  Iterable<Reference> getExportedMemberReferences(SetterReference references) =>
+      [references.setterReference];
+
+  void ensureTypes(ClassMembersBuilder membersBuilder,
       Set<ClassMember>? setterOverrideDependencies) {
     if (setterOverrideDependencies != null) {
       membersBuilder.inferSetterType(
-          enclosingClassBuilder, declaredFormals, setterOverrideDependencies,
+          builder.declarationBuilder as SourceClassBuilder,
+          declaredFormals,
+          setterOverrideDependencies,
           name: name,
           fileUri: fileUri,
           nameOffset: nameOffset,
           nameLength: name.length);
     }
     _encoding.ensureTypes(
-        enclosingClassBuilder.libraryBuilder, membersBuilder.hierarchyBuilder);
+        builder.libraryBuilder, membersBuilder.hierarchyBuilder);
   }
 
   void checkTypes(
@@ -266,9 +267,8 @@ sealed class _SetterEncoding {
   Procedure get writeTarget;
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference setterReference,
-      required bool isAbstractOrExternal,
+      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
+      {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
   void buildOutlineExpressions(
@@ -353,9 +353,8 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference setterReference,
-      required bool isAbstractOrExternal,
+      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
+      {required bool isAbstractOrExternal,
       List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
         isAbstractOrExternal ? null : new EmptyStatement(),
@@ -385,7 +384,7 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Setter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Setter, function,
-        reference: setterReference, fileUri: _fragment.fileUri)
+        reference: references.setterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset
@@ -580,9 +579,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference setterReference,
-      required bool isAbstractOrExternal,
+      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
+      {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;
     if (_clonedDeclarationTypeParameters != null) {
@@ -630,7 +628,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Setter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Method, function,
-        reference: setterReference, fileUri: _fragment.fileUri)
+        reference: references.setterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset

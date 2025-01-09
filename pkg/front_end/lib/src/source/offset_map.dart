@@ -14,7 +14,6 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
-import 'source_field_builder.dart';
 
 /// Map from offsets of directives and declarations to the objects the define.
 ///
@@ -99,9 +98,9 @@ class OffsetMap {
     _fields[identifier.nameOffset] = fragment;
   }
 
-  SourceFieldBuilder lookupField(Identifier identifier) {
-    return _checkBuilder(_fields[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  FieldFragment lookupField(Identifier identifier) {
+    return _checkFragment(
+        _fields[identifier.nameOffset], identifier.name, identifier.nameOffset);
   }
 
   void registerPrimaryConstructor(

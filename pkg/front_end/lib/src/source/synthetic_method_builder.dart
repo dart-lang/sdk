@@ -133,6 +133,14 @@ class SyntheticMethodBuilder extends SourceMemberBuilderImpl
   bool get isProperty => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => true;
+
+  @override
   late final List<ClassMember> localMembers = [
     new _SyntheticMethodClassMember(this)
   ];
