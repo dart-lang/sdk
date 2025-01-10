@@ -269,14 +269,15 @@ class ExtensionMemberResolver {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
         var argument = typeArgumentTypes[i];
         var parameter = typeParameters[i];
+        var name = parameter.name3;
         var parameterBound = parameter.bound;
-        if (parameterBound != null) {
+        if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.atNode(
               typeArgumentList.arguments[i],
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              arguments: [argument, parameter.name3, parameterBound],
+              arguments: [argument, name, parameterBound],
             );
           }
         }

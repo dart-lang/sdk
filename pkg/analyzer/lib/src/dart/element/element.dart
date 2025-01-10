@@ -10851,7 +10851,7 @@ class TypeParameterElementImpl extends ElementImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
       firstFragment: firstFragment,
-      name3: firstFragment.name,
+      name3: firstFragment.name.nullIfEmpty,
       bound: firstFragment.bound,
     );
   }
@@ -10971,7 +10971,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   final TypeParameterElementImpl firstFragment;
 
   @override
-  final String name3;
+  final String? name3;
 
   @override
   DartType? bound;

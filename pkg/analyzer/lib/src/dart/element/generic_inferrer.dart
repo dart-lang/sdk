@@ -237,13 +237,14 @@ class GenericInferrer {
 
       // If everything else succeeded, check the `extends` constraint.
       if (success) {
+        var name = parameter.name3;
         var parameterBoundRaw = parameter.bound;
-        if (parameterBoundRaw != null) {
+        if (name != null && parameterBoundRaw != null) {
           var parameterBound =
               Substitution.fromPairs2(_typeFormals, inferredTypes)
                   .substituteType(parameterBoundRaw);
           var extendsConstraint = MergedTypeConstraint.fromExtends(
-            typeParameterName: parameter.name3,
+            typeParameterName: name,
             boundType: SharedTypeView(parameterBoundRaw),
             extendsType: SharedTypeView(parameterBound),
             typeAnalyzerOperations: _typeSystemOperations,
@@ -260,13 +261,16 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
+
+        var name = parameter.name3;
+        if (name == null) {
+          return null;
+        }
+
         errorReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
-          arguments: [
-            parameter.name3,
-            _formatError(parameter, inferred, constraints)
-          ],
+          arguments: [name, _formatError(parameter, inferred, constraints)],
         );
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -284,13 +288,19 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
+
+        var name = parameter.name3;
+        if (name == null) {
+          return null;
+        }
+
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter!.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            parameter.name3,
+            name,
             ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
                 ' [$typeFormalsStr], but a function with'
                 ' type parameters cannot be used as a type argument.'
@@ -329,6 +339,12 @@ class GenericInferrer {
         }
         hasErrorReported = true;
         TypeParameterElementImpl2 typeParam = _typeFormals[i];
+
+        var name = typeParam.name3;
+        if (name == null) {
+          return null;
+        }
+
         var typeParamBound =
             Substitution.fromPairs2(_typeFormals, inferredTypes)
                 .substituteType(typeParam.bound ?? typeProvider.objectType);
@@ -337,7 +353,7 @@ class GenericInferrer {
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            typeParam.name3,
+            name,
             "\nRecursive bound cannot be instantiated: '$typeParamBound'."
                 "\nConsider passing explicit type argument(s) "
                 "to the generic.\n\n'"
@@ -374,6 +390,11 @@ class GenericInferrer {
         continue;
       }
 
+      var name = parameter.name3;
+      if (name == null) {
+        continue;
+      }
+
       var substitution = Substitution.fromPairs2(
           _typeFormals.map((e) => e).toList(), typeArguments);
       var bound = substitution.substituteType(rawBound);
@@ -382,7 +403,7 @@ class GenericInferrer {
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            parameter.name3,
+            name,
             "\n'${_typeStr(argument)}' doesn't conform to "
                 "the bound '${_typeStr(bound)}'"
                 ", instantiated from '${_typeStr(rawBound)}'"
@@ -472,10 +493,11 @@ class GenericInferrer {
       // variance is added to the interface.
       var typeParam = _typeFormals[i];
       MergedTypeConstraint? extendsClause;
+      var name = typeParam.name3;
       var bound = typeParam.bound;
-      if (bound != null) {
+      if (name != null && bound != null) {
         extendsClause = MergedTypeConstraint.fromExtends(
-          typeParameterName: typeParam.name3,
+          typeParameterName: name,
           boundType: SharedTypeView(bound),
           extendsType: SharedTypeView(
               Substitution.fromPairs2(_typeFormals, inferredTypes)
