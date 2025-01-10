@@ -1048,6 +1048,7 @@ class FrontendCompiler implements CompilerInterface {
             _options['filesystem-scheme'], _options['dartdevc-module-format'],
             fullComponent: false);
       } catch (e) {
+        _outputStream.writeln('$e');
         errors.add(e.toString());
       }
     } else {

@@ -22,16 +22,28 @@ class MemoryCompilerResult {
       this.ddcResult, this.compiler, this.program, this.errors);
 }
 
+/// Result of compiling using [componentFromMemory].
+///
+/// This is meant for use in tests and performs the front end compilation to
+/// components without calling DDC.
+class MemoryComponentResult {
+  final fe.DdcResult ddcResult;
+  final List<fe.DiagnosticMessage> errors;
+
+  MemoryComponentResult(this.ddcResult, this.errors);
+}
+
 /// Uri used as the base uri for files provided in memory through the
 /// [MemoryFileSystem].
 Uri memoryDirectory = Uri.parse('memory://');
 
-/// Compiles [entryPoint] using the [memoryFiles] as sources.
+/// Compiles [entryPoint] to a kernel `Component` using the [memoryFiles] as
+/// sources.
 ///
 /// [memoryFiles] maps relative paths to their source text. [entryPoint] must
-/// be absolute, using [memoryDirectory] as base uri to refer to a file from
+/// be absolute, using [memoryDirectory] as a base uri to refer to a file from
 /// [memoryFiles].
-Future<MemoryCompilerResult> compileFromMemory(
+Future<MemoryComponentResult> componentFromMemory(
     Map<String, String> memoryFiles, Uri entryPoint,
     {Map<fe.ExperimentalFlag, bool>? explicitExperimentalFlags}) async {
   var errors = <fe.DiagnosticMessage>[];
@@ -48,7 +60,6 @@ Future<MemoryCompilerResult> compileFromMemory(
         .entityForUri(memoryDirectory.resolve(entry.key))
         .writeAsStringSync(entry.value);
   }
-  var options = Options(moduleName: 'test');
   var compilerState = fe.initializeCompiler(
       null,
       false,
@@ -68,6 +79,20 @@ Future<MemoryCompilerResult> compileFromMemory(
   if (result == null) {
     throw 'Memory compilation failed';
   }
+  return MemoryComponentResult(result, errors);
+}
+
+/// Compiles [entryPoint] to JavaScript using the [memoryFiles] as sources.
+///
+/// [memoryFiles] maps relative paths to their source text. [entryPoint] must
+/// be absolute, using [memoryDirectory] as a base uri to refer to a file from
+/// [memoryFiles].
+Future<MemoryCompilerResult> compileFromMemory(
+    Map<String, String> memoryFiles, Uri entryPoint,
+    {Map<fe.ExperimentalFlag, bool>? explicitExperimentalFlags}) async {
+  var MemoryComponentResult(ddcResult: result, :errors) =
+      await componentFromMemory(memoryFiles, entryPoint);
+  var options = Options(moduleName: 'test');
   var compiler =
       // TODO(nshahan): Do we need to support [importToSummary] and
       // [summaryToModule].
