@@ -690,13 +690,13 @@ class FlowGraph : public ZoneAllocated {
   void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
-                  const GrowableArray<BitVector*>& assigned_vars,
+                  VariableLivenessAnalysis& variable_liveness,
                   const GrowableArray<BitVector*>& dom_frontier,
                   GrowableArray<PhiInstr*>* live_phis);
   void AddCatchEntryParameter(intptr_t var_index,
                               CatchBlockEntryInstr* catch_entry);
   void InsertCatchBlockParams(const GrowableArray<BlockEntryInstr*>& preorder,
-                              const GrowableArray<BitVector*>& assigned_vars);
+                              VariableLivenessAnalysis& variable_liveness);
 
   void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
