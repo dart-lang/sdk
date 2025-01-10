@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 /// Defines the element model. The element model describes the semantic (as
 /// opposed to syntactic) structure of Dart code. The syntactic structure of the
 /// code is modeled by the [AST
