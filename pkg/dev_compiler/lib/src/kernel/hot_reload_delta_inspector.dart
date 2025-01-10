@@ -34,7 +34,10 @@ class HotReloadDeltaInspector {
           // No previous version of the class to compare with.
           continue;
         }
-        _checkConstClassConsistency(acceptedClass, deltaClass);
+        if (acceptedClass.hasConstConstructor) {
+          _checkConstClassConsistency(acceptedClass, deltaClass);
+          _checkConstClassDeletedFields(acceptedClass, deltaClass);
+        }
       }
     }
     return _rejectionMessages;
@@ -46,8 +49,34 @@ class HotReloadDeltaInspector {
   /// [acceptedClass] and [deltaClass] must represent the same class in the
   /// last known accepted and delta components respectively.
   void _checkConstClassConsistency(Class acceptedClass, Class deltaClass) {
-    if (acceptedClass.hasConstConstructor && !deltaClass.hasConstConstructor) {
+    assert(acceptedClass.hasConstConstructor);
+    if (!deltaClass.hasConstConstructor) {
       _rejectionMessages.add('Const class cannot become non-const: '
+          "Library:'${deltaClass.enclosingLibrary.importUri}' "
+          'Class: ${deltaClass.name}');
+    }
+  }
+
+  /// Records a rejection error when [acceptedClass] and [deltaClass] are both
+  /// const but fields have been removed from [deltaClass].
+  ///
+  /// [acceptedClass] and [deltaClass] must represent the same class in the
+  /// last known accepted and delta components respectively.
+  void _checkConstClassDeletedFields(Class acceptedClass, Class deltaClass) {
+    assert(acceptedClass.hasConstConstructor);
+    if (!deltaClass.hasConstConstructor) {
+      // Avoid reporting errors when fields are removed but the delta class is
+      // also no longer const. That is already reported by
+      // [_checkConstClassConsistency].
+      return;
+    }
+    // Verify all fields are still present.
+    final acceptedFields = {
+      for (var field in acceptedClass.fields) field.name.text
+    };
+    final deltaFields = {for (var field in deltaClass.fields) field.name.text};
+    if (acceptedFields.difference(deltaFields).isNotEmpty) {
+      _rejectionMessages.add('Const class cannot remove fields: '
           "Library:'${deltaClass.enclosingLibrary.importUri}' "
           'Class: ${deltaClass.name}');
     }

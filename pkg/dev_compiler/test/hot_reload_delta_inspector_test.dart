@@ -155,6 +155,108 @@ Future<void> main() async {
           await compileComponents(initialSource, deltaSource);
       expect(deltaInspector.compareGenerations(initial, delta), isEmpty);
     });
+    test('rejection when removing a field', () async {
+      final initialSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t, w;
+            const A(this.s, this.t, this.w);
+          }
+
+          main() {
+            globalVariable = const A('hello', 'world', '!');
+            print(globalVariable.s);
+          }
+          ''';
+      final deltaSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t;
+            const A(this.s, this.t);
+          }
+
+          main() {
+            print('hello world');
+          }
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(
+          deltaInspector.compareGenerations(initial, delta),
+          unorderedEquals([
+            'Const class cannot remove fields: '
+                "Library:'memory:///main.dart' Class: A"
+          ]));
+    });
+    test('rejection when removing a field while adding another', () async {
+      final initialSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t, w;
+            const A(this.s, this.t, this.w);
+          }
+
+          main() {
+            globalVariable = const A('hello', 'world', '!');
+            print(globalVariable.s);
+          }
+          ''';
+      final deltaSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t, x;
+            const A(this.s, this.t, this.x);
+          }
+
+          main() {
+            print('hello world');
+          }
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(
+          deltaInspector.compareGenerations(initial, delta),
+          unorderedEquals([
+            'Const class cannot remove fields: '
+                "Library:'memory:///main.dart' Class: A"
+          ]));
+    });
+    test('no error when removing field while also making class const',
+        () async {
+      final initialSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t, w;
+            A(this.s, this.t, this.w);
+          }
+
+          main() {
+            globalVariable = A('hello', 'world', '!');
+            print(globalVariable.s);
+          }
+          ''';
+      final deltaSource = '''
+          var globalVariable;
+
+          class A {
+            final String s, t;
+            const A(this.s, this.t);
+          }
+
+          main() {
+            print('hello world');
+          }
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(() => deltaInspector.compareGenerations(initial, delta),
+          returnsNormally);
+    });
   });
 }
 
