@@ -234,6 +234,12 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
+  List<DartType> get positionalParameterTypesShared => positionalParameterTypes;
+
+  @override
+  DartType get returnTypeShared => returnType;
+
+  @override
   // TODO(paulberry): see if this type can be changed to
   // `List<FormalParameterElementImpl>`. See
   // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
@@ -1404,7 +1410,14 @@ class RecordTypeImpl extends TypeImpl
   List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
+  List<DartType> get positionalTypesShared => positionalTypes;
+
+  @override
   List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
+
+  @override
+  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypesShared =>
+      sortedNamedTypes;
 
   @override
   bool operator ==(Object other) {
@@ -1515,6 +1528,9 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
 
   @override
   String get nameShared => name;
+
+  @override
+  DartType get typeShared => type;
 }
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl

@@ -1195,6 +1195,9 @@ class ParameterMember extends VariableMember
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
   @override
+  DartType get typeShared => type;
+
+  @override
   FormalParameterElement get _element2 => declaration.asElement2;
 
   @override

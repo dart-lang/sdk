@@ -19,14 +19,14 @@ abstract interface class SharedFunctionTypeStructure<
         TypeStructure>> implements SharedTypeStructure<TypeStructure> {
   /// All the positional parameter types, starting with the required ones, and
   /// followed by the optional ones.
-  List<TypeStructure> get positionalParameterTypes;
+  List<TypeStructure> get positionalParameterTypesShared;
 
-  /// The number of elements of [positionalParameterTypes] that are required
-  /// parameters.
+  /// The number of elements of [positionalParameterTypesShared] that are
+  /// required parameters.
   int get requiredPositionalParameterCount;
 
   /// The return type.
-  TypeStructure get returnType;
+  TypeStructure get returnTypeShared;
 
   /// All the named parameters, sorted by name.
   List<FunctionParameterStructure> get sortedNamedParametersShared;
@@ -55,7 +55,7 @@ abstract interface class SharedNamedFunctionParameterStructure<
   String get nameShared;
 
   /// The type of the parameter.
-  TypeStructure get type;
+  TypeStructure get typeShared;
 }
 
 /// Common interface for data structures used by the implementations to
@@ -63,7 +63,7 @@ abstract interface class SharedNamedFunctionParameterStructure<
 abstract interface class SharedNamedTypeStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
   String get nameShared;
-  TypeStructure get type;
+  TypeStructure get typeShared;
 }
 
 /// Common interface for data structures used by implementations to represent
@@ -77,10 +77,10 @@ abstract interface class SharedNullTypeStructure<
 abstract interface class SharedRecordTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {
-  List<TypeStructure> get positionalTypes;
+  List<TypeStructure> get positionalTypesShared;
 
   /// All the named fields, sorted by name.
-  List<SharedNamedTypeStructure<TypeStructure>> get sortedNamedTypes;
+  List<SharedNamedTypeStructure<TypeStructure>> get sortedNamedTypesShared;
 }
 
 /// Common interface for data structures used by the implementations to
@@ -88,7 +88,7 @@ abstract interface class SharedRecordTypeStructure<
 abstract interface class SharedTypeParameterStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
   /// The bound of the type parameter.
-  TypeStructure? get bound;
+  TypeStructure? get boundShared;
 
   /// The name of the type parameter, for display to the user.
   String get displayName;
@@ -159,7 +159,7 @@ extension type SharedNamedTypeView<
   String get name => _namedTypeStructure.nameShared;
 
   SharedTypeView<TypeStructure> get type =>
-      new SharedTypeView(_namedTypeStructure.type);
+      new SharedTypeView(_namedTypeStructure.typeShared);
 }
 
 extension type SharedRecordTypeSchemaView<
@@ -167,12 +167,12 @@ extension type SharedRecordTypeSchemaView<
         SharedRecordTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeSchemaView<TypeStructure> {
   List<SharedNamedTypeSchemaView<TypeStructure>> get namedTypes {
-    return _typeStructure.sortedNamedTypes
+    return _typeStructure.sortedNamedTypesShared
         as List<SharedNamedTypeSchemaView<TypeStructure>>;
   }
 
   List<SharedTypeSchemaView<TypeStructure>> get positionalTypes {
-    return _typeStructure.positionalTypes
+    return _typeStructure.positionalTypesShared
         as List<SharedTypeSchemaView<TypeStructure>>;
   }
 }
@@ -182,12 +182,12 @@ extension type SharedRecordTypeView<
         SharedRecordTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeView<TypeStructure> {
   List<SharedNamedTypeView<TypeStructure>> get namedTypes {
-    return _typeStructure.sortedNamedTypes
+    return _typeStructure.sortedNamedTypesShared
         as List<SharedNamedTypeView<TypeStructure>>;
   }
 
   List<SharedTypeView<TypeStructure>> get positionalTypes {
-    return _typeStructure.positionalTypes
+    return _typeStructure.positionalTypesShared
         as List<SharedTypeView<TypeStructure>>;
   }
 }

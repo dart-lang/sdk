@@ -967,7 +967,7 @@ mixin TypeAnalyzerOperationsMixin<
     // constraints (i.e. `X <: B` in this example), then they are added to
     // the set of constraints just before choosing the final type.
 
-    TypeStructure typeParameterToInferBound = typeParameterToInfer.bound!;
+    TypeStructure typeParameterToInferBound = typeParameterToInfer.boundShared!;
 
     // TODO(cstefantsova): Pass [dataForTesting] when
     // [InferenceDataForTesting] is merged with [TypeInferenceResultForTesting].
@@ -1231,16 +1231,16 @@ abstract class TypeConstraintGenerator<
     // with respect to `L` under constraints `C0 + ... + Cm`
     // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect
     // to `L` under constraints `Ci`.
-    if (p.positionalTypes.length != q.positionalTypes.length ||
-        p.sortedNamedTypes.length != q.sortedNamedTypes.length) {
+    if (p.positionalTypesShared.length != q.positionalTypesShared.length ||
+        p.sortedNamedTypesShared.length != q.sortedNamedTypesShared.length) {
       return false;
     }
 
     final TypeConstraintGeneratorState state = currentState;
 
-    for (int i = 0; i < p.positionalTypes.length; ++i) {
+    for (int i = 0; i < p.positionalTypesShared.length; ++i) {
       if (!performSubtypeConstraintGenerationInternal(
-          p.positionalTypes[i], q.positionalTypes[i],
+          p.positionalTypesShared[i], q.positionalTypesShared[i],
           leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
         restoreState(state);
         return false;
@@ -1251,12 +1251,14 @@ abstract class TypeConstraintGenerator<
     // parameters, and the named parameters are sorted, it's sufficient to
     // check that the named parameters at the same index have the same name
     // and matching types.
-    for (int i = 0; i < p.sortedNamedTypes.length; ++i) {
-      if (p.sortedNamedTypes[i].nameShared !=
-              q.sortedNamedTypes[i].nameShared ||
+    for (int i = 0; i < p.sortedNamedTypesShared.length; ++i) {
+      if (p.sortedNamedTypesShared[i].nameShared !=
+              q.sortedNamedTypesShared[i].nameShared ||
           !performSubtypeConstraintGenerationInternal(
-              p.sortedNamedTypes[i].type, q.sortedNamedTypes[i].type,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+              p.sortedNamedTypesShared[i].typeShared,
+              q.sortedNamedTypesShared[i].typeShared,
+              leftSchema: leftSchema,
+              astNodeForTesting: astNodeForTesting)) {
         restoreState(state);
         return false;
       }
@@ -1506,11 +1508,11 @@ abstract class TypeConstraintGenerator<
         when qNullability == NullabilitySuffix.none &&
             typeParametersToConstrain.contains(qParameter) &&
             (!inferenceUsingBoundsIsEnabled ||
-                (qParameter.bound == null ||
+                (qParameter.boundShared == null ||
                     typeAnalyzerOperations.isSubtypeOfInternal(
                         p,
                         typeAnalyzerOperations.greatestClosureOfTypeInternal(
-                            qParameter.bound!,
+                            qParameter.boundShared!,
                             [...typeParametersToConstrain]))))) {
       addLowerConstraintForParameter(qParameter, p,
           astNodeForTesting: astNodeForTesting);
@@ -1704,16 +1706,16 @@ abstract class TypeConstraintGenerator<
       for (int i = 0; isMatch && i < p.typeParametersShared.length; ++i) {
         isMatch = isMatch &&
             performSubtypeConstraintGenerationInternal(
-                p.typeParametersShared[i].bound ??
+                p.typeParametersShared[i].boundShared ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                q.typeParametersShared[i].bound ??
+                q.typeParametersShared[i].boundShared ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
                 leftSchema: leftSchema,
                 astNodeForTesting: astNodeForTesting) &&
             performSubtypeConstraintGenerationInternal(
-                q.typeParametersShared[i].bound ??
+                q.typeParametersShared[i].boundShared ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                p.typeParametersShared[i].bound ??
+                p.typeParametersShared[i].boundShared ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
                 leftSchema: !leftSchema,
                 astNodeForTesting: astNodeForTesting);
@@ -1767,27 +1769,29 @@ abstract class TypeConstraintGenerator<
         q.sortedNamedParametersShared.isEmpty &&
         p.requiredPositionalParameterCount <=
             q.requiredPositionalParameterCount &&
-        p.positionalParameterTypes.length >=
-            q.positionalParameterTypes.length) {
+        p.positionalParameterTypesShared.length >=
+            q.positionalParameterTypesShared.length) {
       final TypeConstraintGeneratorState state = currentState;
 
       if (!performSubtypeConstraintGenerationInternal(
-          p.returnType, q.returnType,
+          p.returnTypeShared, q.returnTypeShared,
           leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
         return false;
       }
-      for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
+      for (int i = 0; i < q.positionalParameterTypesShared.length; ++i) {
         if (!performSubtypeConstraintGenerationInternal(
-            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
-            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+            q.positionalParameterTypesShared[i],
+            p.positionalParameterTypesShared[i],
+            leftSchema: !leftSchema,
+            astNodeForTesting: astNodeForTesting)) {
           restoreState(state);
           return false;
         }
       }
       return true;
-    } else if (p.positionalParameterTypes.length ==
+    } else if (p.positionalParameterTypesShared.length ==
             p.requiredPositionalParameterCount &&
-        q.positionalParameterTypes.length ==
+        q.positionalParameterTypesShared.length ==
             q.requiredPositionalParameterCount &&
         p.requiredPositionalParameterCount ==
             q.requiredPositionalParameterCount &&
@@ -1800,14 +1804,16 @@ abstract class TypeConstraintGenerator<
       final TypeConstraintGeneratorState state = currentState;
 
       if (!performSubtypeConstraintGenerationInternal(
-          p.returnType, q.returnType,
+          p.returnTypeShared, q.returnTypeShared,
           leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
         return false;
       }
-      for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
+      for (int i = 0; i < p.positionalParameterTypesShared.length; ++i) {
         if (!performSubtypeConstraintGenerationInternal(
-            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
-            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+            q.positionalParameterTypesShared[i],
+            p.positionalParameterTypesShared[i],
+            leftSchema: !leftSchema,
+            astNodeForTesting: astNodeForTesting)) {
           restoreState(state);
           return false;
         }
@@ -1859,8 +1865,8 @@ abstract class TypeConstraintGenerator<
         } else {
           // The next parameter in p and q matches, so match their types.
           if (!performSubtypeConstraintGenerationInternal(
-              q.sortedNamedParametersShared[j].type,
-              p.sortedNamedParametersShared[i].type,
+              q.sortedNamedParametersShared[j].typeShared,
+              p.sortedNamedParametersShared[i].typeShared,
               leftSchema: !leftSchema,
               astNodeForTesting: astNodeForTesting)) {
             restoreState(state);
