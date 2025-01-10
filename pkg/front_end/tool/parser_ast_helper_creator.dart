@@ -77,6 +77,40 @@ abstract class ParserAstNode {
     }
   }
 
+
+
+  void debugPrint() {
+    StringBuffer sb = new StringBuffer();
+    _debugPrintImpl(0, sb);
+    print(sb.toString());
+  }
+
+  void _debugPrintImpl(int indentation, StringBuffer sb) {
+    sb.write(" " * indentation);
+    sb.write(what);
+    sb.write(type.name);
+    Token? tokenWithSmallestOffset;
+    for (Object? value in deprecatedArguments.values) {
+      if (value is Token) {
+        if (tokenWithSmallestOffset == null ||
+            value.charOffset < tokenWithSmallestOffset.charOffset) {
+          tokenWithSmallestOffset = value;
+        }
+      }
+    }
+    if (tokenWithSmallestOffset != null) {
+      sb.write(
+          " (${tokenWithSmallestOffset.lexeme} @ "
+          "${tokenWithSmallestOffset.charOffset})");
+    }
+    sb.writeln();
+    List<ParserAstNode>? children = this.children;
+    if (children == null) return;
+    for (ParserAstNode child in children) {
+      child._debugPrintImpl(indentation + 2, sb);
+    }
+  }
+
   // TODO(jensj): Compare two ASTs.
 }
 
@@ -113,6 +147,22 @@ abstract class AbstractParserAstListener implements Listener {
   for (String name in listener.visitNames) {
     out.write("  @override\n");
     out.write("  void $name => node.visitChildren(this);\n\n");
+  }
+  out.write(r"}");
+
+  out.write("class RecursiveParserAstVisitorWithDefaultNodeAsync "
+      "implements ParserAstVisitor<Future<void>> {");
+  out.write("Future<void> defaultNode(ParserAstNode node) async {");
+  out.write("  List<ParserAstNode>? children = node.children;");
+  out.write("  if (children == null) return;");
+  out.write("  for (ParserAstNode child in children) {");
+  out.write("    await child.accept(this);");
+  out.write("  }");
+  out.write("}");
+
+  for (String name in listener.visitNames) {
+    out.write("  @override\n");
+    out.write("  Future<void> $name => defaultNode(node);\n\n");
   }
   out.write(r"}");
 

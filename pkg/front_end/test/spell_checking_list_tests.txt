@@ -38,6 +38,8 @@ amend
 amended
 amortized
 analyses
+analytics
+analyzerinput
 andahalf
 animal
 animated
@@ -126,6 +128,7 @@ ca
 cafebabe
 calloc
 camel
+cap
 capacity
 capitalized
 caption
@@ -202,6 +205,7 @@ ctrl
 cumulative
 cursor
 cuts
+cutting
 cx
 da
 dacoharkes
@@ -246,6 +250,7 @@ di
 diagnosticable
 dictionaries
 dictionary
+dicy
 differentiate
 dijkstra
 dijkstras
@@ -314,6 +319,7 @@ exercised
 exercises
 exitcode
 exiting
+exotic
 expanded
 expansive
 explainer
@@ -349,6 +355,7 @@ foos
 forbidden
 forces
 foreground
+forever
 forgot
 forrest
 forth
@@ -367,6 +374,7 @@ futu
 futures
 fuzz
 fuzzed
+fuzzer
 fuzzing
 fx
 gallery
@@ -469,6 +477,7 @@ jc
 jk
 jlcontreras
 joo
+jsonrpc
 jumped
 kernels
 kitty
@@ -491,12 +500,14 @@ lints
 listening
 listing
 ln
+locale
 locating
 logd
 logs
 loo
 lookahead
 loopback
+lsp
 ma
 mac
 maker
@@ -513,6 +524,7 @@ micro
 migrations
 mimicking
 minimize
+minimized
 minimizer
 minimizing
 minitest
@@ -559,6 +571,7 @@ nondefault
 nonexisting
 noo
 noted
+notification
 noting
 nottest
 nq
@@ -590,12 +603,14 @@ oracle
 ot
 outbound
 outliers
+outstanding
 overflows
 overhead
 overlay
 overly
 ox
 pack
+packet
 paging
 paint
 parallax
@@ -678,6 +693,7 @@ refname
 refusing
 regards
 regenerate
+regex
 regressions
 reify
 reject
@@ -685,6 +701,7 @@ relinked
 remap
 remapping
 remaps
+removeable
 rendition
 reorder
 reordering
@@ -727,6 +744,7 @@ sdkroot
 sdks
 secondary
 secondtest
+secure
 seemingly
 segment
 selection
@@ -752,6 +770,7 @@ sigwinch
 silence
 simplistic
 slashes
+sleep
 slight
 sliver
 smoke
@@ -773,6 +792,7 @@ spurious
 sqrt
 squared
 ss
+ssls
 sssp
 stacks
 stashed
@@ -788,6 +808,7 @@ stringy
 strip
 strongest
 stub's
+stuck
 stupid
 subcommand
 subdir
@@ -813,6 +834,7 @@ tails
 taskset
 te
 templates
+testfile
 theoretically
 there'll
 thereby
@@ -889,6 +911,7 @@ vf
 virtually
 visualization
 vp
+vscode
 vt
 vte
 waited
@@ -906,6 +929,7 @@ wins
 wording
 workers
 workflow
+workspace
 worlds
 worse
 wrongly
