@@ -286,3 +286,9 @@ extension RecordTypeExtension on RecordType {
     return null;
   }
 }
+
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
+  bool get isWildcardVariable {
+    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
+  }
+}

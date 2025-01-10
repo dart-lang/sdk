@@ -64,7 +64,7 @@ class ElementFactory {
 
   static ClassElementImpl classElement3({
     required String name,
-    List<TypeParameterElement>? typeParameters,
+    List<TypeParameterElementImpl>? typeParameters,
     List<String> typeParameterNames = const [],
     InterfaceType? supertype,
     List<InterfaceType> mixins = const [],
@@ -246,7 +246,7 @@ class ElementFactory {
 
   static MixinElementImpl mixinElement(
       {required String name,
-      List<TypeParameterElement>? typeParameters,
+      List<TypeParameterElementImpl>? typeParameters,
       List<String> typeParameterNames = const [],
       List<InterfaceType> constraints = const [],
       List<InterfaceType> interfaces = const [],
@@ -352,7 +352,7 @@ class ElementFactory {
     return TypeParameterElementImpl(name, 0);
   }
 
-  static List<TypeParameterElement> typeParameters(List<String> names) {
+  static List<TypeParameterElementImpl> typeParameters(List<String> names) {
     return names.map((name) => typeParameterWithType(name)).toList();
   }
 
