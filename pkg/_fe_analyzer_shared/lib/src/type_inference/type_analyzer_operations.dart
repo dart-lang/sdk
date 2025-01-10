@@ -5,6 +5,7 @@
 import '../flow_analysis/flow_analysis_operations.dart';
 import '../types/shared_type.dart';
 import 'nullability_suffix.dart';
+import 'type_constraint.dart';
 
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
@@ -698,6 +699,40 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns [type] suffixed with the [suffix].
   TypeStructure withNullabilitySuffixInternal(
       TypeStructure type, NullabilitySuffix suffix);
+
+  TypeConstraintGenerator<
+          TypeStructure,
+          SharedNamedFunctionParameterStructure<TypeStructure>,
+          Variable,
+          TypeParameterStructure,
+          TypeDeclarationType,
+          TypeDeclaration,
+          Object>
+      createTypeConstraintGenerator(
+          {required TypeConstraintGenerationDataForTesting<TypeStructure,
+                  TypeParameterStructure, Variable, Object>?
+              typeConstraintGenerationDataForTesting,
+          required List<TypeParameterStructure> typeParametersToInfer,
+          required TypeAnalyzerOperations<TypeStructure, Variable,
+                  TypeParameterStructure, TypeDeclarationType, TypeDeclaration>
+              typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled});
+
+  MergedTypeConstraint<TypeStructure, TypeParameterStructure, Variable,
+          TypeDeclarationType, TypeDeclaration>
+      mergeInConstraintsFromBound(
+          {required TypeParameterStructure typeParameterToInfer,
+          required List<TypeParameterStructure> typeParametersToInfer,
+          required TypeStructure lower,
+          required Map<
+                  TypeParameterStructure,
+                  MergedTypeConstraint<TypeStructure, TypeParameterStructure,
+                      Variable, TypeDeclarationType, TypeDeclaration>>
+              inferencePhaseConstraints,
+          required TypeConstraintGenerationDataForTesting<TypeStructure,
+                  TypeParameterStructure, Variable, Object>?
+              dataForTesting,
+          required bool inferenceUsingBoundsIsEnabled});
 }
 
 mixin TypeAnalyzerOperationsMixin<
@@ -892,6 +927,96 @@ mixin TypeAnalyzerOperationsMixin<
   SharedTypeSchemaView<TypeStructure> typeToSchema(
       SharedTypeView<TypeStructure> type) {
     return new SharedTypeSchemaView(type.unwrapTypeView());
+  }
+
+  @override
+  MergedTypeConstraint<TypeStructure, TypeParameterStructure, Variable,
+          TypeDeclarationType, TypeDeclaration>
+      mergeInConstraintsFromBound(
+          {required TypeParameterStructure typeParameterToInfer,
+          required List<TypeParameterStructure> typeParametersToInfer,
+          required TypeStructure lower,
+          required Map<
+                  TypeParameterStructure,
+                  MergedTypeConstraint<TypeStructure, TypeParameterStructure,
+                      Variable, TypeDeclarationType, TypeDeclaration>>
+              inferencePhaseConstraints,
+          required TypeConstraintGenerationDataForTesting<TypeStructure,
+                  TypeParameterStructure, Variable, Object>?
+              dataForTesting,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    // The type parameter's bound may refer to itself (or other type
+    // parameters), so we might have to create an additional constraint.
+    // Consider this example from
+    // https://github.com/dart-lang/language/issues/3009:
+    //
+    //     class A<X extends A<X>> {}
+    //     class B extends A<B> {}
+    //     class C extends B {}
+    //     void f<X extends A<X>>(X x) {}
+    //     void main() {
+    //       f(C()); // should infer f<B>(C()).
+    //     }
+    //
+    // In order for `f(C())` to be inferred as `f<B>(C())`, we need to
+    // generate the constraint `X <: B`. To do this, we first take the lower
+    // constraint we've accumulated so far (which, in this example, is `C`,
+    // due to the presence of the actual argument `C()`), and use subtype
+    // constraint generation to match it against the explicit bound (which
+    // is `A<X>`; hence we perform `C <# A<X>`). If this produces any
+    // constraints (i.e. `X <: B` in this example), then they are added to
+    // the set of constraints just before choosing the final type.
+
+    TypeStructure typeParameterToInferBound = typeParameterToInfer.bound!;
+
+    // TODO(cstefantsova): Pass [dataForTesting] when
+    // [InferenceDataForTesting] is merged with [TypeInferenceResultForTesting].
+    TypeConstraintGenerator<
+            TypeStructure,
+            SharedNamedFunctionParameterStructure<TypeStructure>,
+            Variable,
+            TypeParameterStructure,
+            TypeDeclarationType,
+            TypeDeclaration,
+            Object> typeConstraintGatherer =
+        createTypeConstraintGenerator(
+            typeConstraintGenerationDataForTesting: null,
+            typeParametersToInfer: typeParametersToInfer,
+            typeAnalyzerOperations: this,
+            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+    typeConstraintGatherer.performSubtypeConstraintGenerationInternal(
+        lower, typeParameterToInferBound,
+        leftSchema: true, astNodeForTesting: null);
+    Map<
+            TypeParameterStructure,
+            MergedTypeConstraint<
+                TypeStructure,
+                TypeParameterStructure,
+                Variable,
+                TypeDeclarationType,
+                TypeDeclaration>> constraintsPerTypeVariable =
+        typeConstraintGatherer.computeConstraints();
+    for (TypeParameterStructure typeParameter
+        in constraintsPerTypeVariable.keys) {
+      MergedTypeConstraint<TypeStructure, TypeParameterStructure, Variable,
+              TypeDeclarationType, TypeDeclaration> constraint =
+          constraintsPerTypeVariable[typeParameter]!;
+      constraint.origin = new TypeConstraintFromExtendsClause(
+          typeParameterName: typeParameterToInfer.displayName,
+          boundType: new SharedTypeView(typeParameterToInferBound),
+          extendsType: new SharedTypeView(typeParameterToInferBound));
+      if (!constraint.isEmpty(this)) {
+        MergedTypeConstraint? constraintForParameter =
+            inferencePhaseConstraints[typeParameter];
+        if (constraintForParameter == null) {
+          inferencePhaseConstraints[typeParameter] = constraint;
+        } else {
+          constraintForParameter.mergeInTypeSchemaUpper(constraint.upper, this);
+          constraintForParameter.mergeInTypeSchemaLower(constraint.lower, this);
+        }
+      }
+    }
+    return constraintsPerTypeVariable[typeParameterToInfer]!;
   }
 }
 
@@ -1832,6 +1957,12 @@ abstract class TypeConstraintGenerator<
 
     return false;
   }
+
+  /// Returns the set of type constraints that was gathered.
+  Map<
+      TypeParameterStructure,
+      MergedTypeConstraint<TypeStructure, TypeParameterStructure, Variable,
+          TypeDeclarationType, TypeDeclaration>> computeConstraints();
 }
 
 mixin TypeConstraintGeneratorMixin<

@@ -5,15 +5,14 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:telemetry/telemetry.dart' as telemetry show isRunningOnBot;
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'sdk.dart';
 
 const String _dartDirectoryName = '.dart';
 
-const String analyticsDisabledNoticeMessage =
-    'Analytics reporting disabled. In order to enable it, run: dart --enable-analytics';
+const String analyticsDisabledNoticeMessage = 'Analytics reporting disabled. '
+    'In order to enable it, run: dart --enable-analytics';
 
 /// Create the `Analytics` instance to be used to report analytics.
 Analytics createUnifiedAnalytics({bool disableAnalytics = false}) {
@@ -56,7 +55,7 @@ Directory? getDartStorageDirectory() {
 
 /// The method used by dartdev to determine if this machine is a bot such as a
 /// CI machine.
-bool isBot() => telemetry.isRunningOnBot();
+bool isBot() => _isRunningOnBot();
 
 // Matches file:/, non-ws, /, non-ws, .dart
 final RegExp _pathRegex = RegExp(r'file:/\S+/(\S+\.dart)');
@@ -90,4 +89,71 @@ String sanitizeStacktrace(dynamic st, {bool shorten = true}) {
   }
 
   return str;
+}
+
+/// Detect whether we're running on a bot / a continuous testing environment.
+///
+/// We should periodically keep this code up to date with:
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/bot_detector.dart#L30
+/// and
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/reporting/usage.dart#L200.
+bool _isRunningOnBot() {
+  final Map<String, String> env = Platform.environment;
+
+  if (
+      // Explicitly stated to not be a bot.
+      env['BOT'] == 'false'
+          // Set by the IDEs to the IDE name, so a strong signal that this is
+          // not a bot.
+          ||
+          env.containsKey('FLUTTER_HOST')
+          // When set, GA logs to a local file (normally for tests) so we don't
+          // need to filter.
+          ||
+          env.containsKey('FLUTTER_ANALYTICS_LOG_FILE')) {
+    return false;
+  }
+
+  // TODO(jwren): Azure detection -- each call for this detection requires an
+  // http connection, the flutter cli tool captures the result on the first run,
+  // we should consider the same caching here.
+
+  return env.containsKey('BOT')
+      // https://docs.travis-ci.com/user/environment-variables/
+      // Example .travis.yml file:
+      // https://github.com/flutter/devtools/blob/master/.travis.yml
+      ||
+      env['TRAVIS'] == 'true' ||
+      env['CONTINUOUS_INTEGRATION'] == 'true' ||
+      env.containsKey('CI') // Travis and AppVeyor
+
+      // https://www.appveyor.com/docs/environment-variables/
+      ||
+      env.containsKey('APPVEYOR')
+
+      // https://cirrus-ci.org/guide/writing-tasks/#environment-variables
+      ||
+      env.containsKey('CIRRUS_CI')
+
+      // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+      ||
+      (env.containsKey('AWS_REGION') && env.containsKey('CODEBUILD_INITIATOR'))
+
+      // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
+      ||
+      env.containsKey('JENKINS_URL')
+
+      // https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables#default-environment-variables
+      ||
+      env.containsKey('GITHUB_ACTIONS')
+
+      // Properties on Flutter's Chrome Infra bots.
+      ||
+      env['CHROME_HEADLESS'] == '1' ||
+      env.containsKey('BUILDBOT_BUILDERNAME') ||
+      env.containsKey('SWARMING_TASK_ID')
+
+      // Property when running on borg.
+      ||
+      env.containsKey('BORG_ALLOC_DIR');
 }

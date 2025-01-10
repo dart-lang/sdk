@@ -820,7 +820,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: fileKind.docImports[i],
+          state: fileKind.docLibraryImports[i],
           errorReporter: containerErrorReporter,
         );
       }
@@ -855,7 +855,7 @@ class LibraryAnalyzer {
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
     var docImportLibraries = [
-      for (var import in _library.docImports)
+      for (var import in _library.docLibraryImports)
         if (import is LibraryImportWithFile)
           _libraryElement.session.elementFactory
               .libraryOfUri2(import.importedFile.uri)

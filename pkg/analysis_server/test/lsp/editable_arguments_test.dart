@@ -137,10 +137,10 @@ class MyWidget extends StatelessWidget {
     expect(
       result,
       hasArgs(
-        orderedEquals([
+        unorderedEquals([
           isArg('aPositionalSupplied', hasArgument: true),
-          isArg('aNamedSupplied', hasArgument: true),
           isArg('aPositionalNotSupplied', hasArgument: false),
+          isArg('aNamedSupplied', hasArgument: true),
           isArg('aNamedNotSupplied', hasArgument: false),
         ]),
       ),
@@ -727,8 +727,14 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  /// Arguments should be returned in the order at the call site followed by
-  /// by the unspecified parameters.
+  /// Arguments should be returned in the order of the parameters in the source
+  /// code. This keeps things consistent across different instances of the same
+  /// Widget class and prevents the order from changing as a user adds/removes
+  /// arguments.
+  ///
+  /// If an editor wants to sort provided arguments first (and keep these stable
+  /// across add/removes) it could still do so client-side, whereas if server
+  /// orders them that way, the opposite (using source-order) is not possible.
   test_order() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -749,11 +755,11 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          isArg('b1'),
-          isArg('a1'),
           isArg('c1'),
           isArg('c2'),
+          isArg('a1'),
           isArg('a2'),
+          isArg('b1'),
           isArg('b2'),
         ]),
       ),

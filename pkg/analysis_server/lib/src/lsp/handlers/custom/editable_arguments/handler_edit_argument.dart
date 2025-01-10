@@ -267,6 +267,22 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     );
   }
 
+  /// Returns whether [argument] is a [NamedExpression] with a name of
+  /// 'child' or 'children'.
+  bool _isNamedChildOrChildren(Expression argument) {
+    if (argument is! NamedExpression) {
+      return false;
+    }
+
+    return argument.name.label.name == 'child' ||
+        argument.name.label.name == 'children';
+  }
+
+  /// Returns whether [argument] is _not_ a [NamedExpression] with a name of
+  /// 'child' or 'children'.
+  bool _isNotNamedChildOrChildren(Expression argument) =>
+      !_isNamedChildOrChildren(argument);
+
   /// Sends [workspaceEdit] to the client and returns `null` if applied
   /// successfully or an error otherwise.
   Future<ErrorOr<Null>> _sendEditToClient(WorkspaceEdit workspaceEdit) async {
@@ -367,22 +383,27 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
     var argumentCodeToInsert = '$prefix$newValueCode';
 
+    // Usually we insert at the end (after the last argument), but if the last
+    // argument is child/children we should go before it.
+    var argumentToInsertAfter = argumentList.arguments.lastWhereOrNull(
+      _isNotNamedChildOrChildren,
+    );
+
     // Build the final code to insert.
     var newCode = StringBuffer();
-    var hasTrailingComma =
-        argumentList.arguments.lastOrNull?.endToken.next?.lexeme == ',';
-    if (!hasTrailingComma && argumentList.arguments.isNotEmpty) {
+    if (argumentToInsertAfter != null) {
+      // If we're being inserted after an argument, put a new comma between us.
       newCode.write(', ');
-    } else if (hasTrailingComma) {
-      newCode.write(' ');
     }
     newCode.write(argumentCodeToInsert);
-    if (hasTrailingComma) {
-      newCode.write(',');
+    if (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) {
+      // If we're not inserted after an existing argument but there are future
+      // arguments, add a comma in between us.
+      newCode.write(', ');
     }
 
     builder.addSimpleInsertion(
-      argumentList.rightParenthesis.offset,
+      argumentToInsertAfter?.end ?? argumentList.leftParenthesis.end,
       newCode.toString(),
     );
   }

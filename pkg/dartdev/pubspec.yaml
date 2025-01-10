@@ -31,7 +31,6 @@ dependencies:
   native_assets_cli: any
   path: any
   pub: any
-  telemetry: any
   unified_analytics: any
   vm: any
   vm_service: any

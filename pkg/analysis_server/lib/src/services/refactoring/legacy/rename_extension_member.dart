@@ -19,7 +19,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
-/// A [Refactoring] for renaming extension member [Element]s.
+/// A [Refactoring] for renaming extension member [Element2]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   final ExtensionElement2 extensionElement;
 
@@ -92,7 +92,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/// Helper to check if the created or renamed [Element] will cause any
+/// Helper to check if the created or renamed [Element2] will cause any
 /// conflicts.
 class _ExtensionMemberValidator {
   final SearchEngine searchEngine;

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
-/// A [Refactoring] for renaming [LabelElement]s.
+/// A [Refactoring] for renaming [LabelElement2]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   RenameLabelRefactoringImpl(
     super.workspace,

@@ -337,7 +337,7 @@ class ExtensionMemberResolver {
   List<DartType>? _inferTypeArguments(
       ExtensionOverride node, DartType receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNode? nodeForTesting}) {
+      required AstNodeImpl? nodeForTesting}) {
     var element = node.element2;
     var typeParameters = element.typeParameters2;
     var typeArguments = node.typeArguments;

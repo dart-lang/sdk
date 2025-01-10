@@ -688,6 +688,14 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isAbstract => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
+
+  @override
   bool get isConflictingSetter => false;
 
   @override
@@ -1503,8 +1511,9 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceMethodBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceExtensionTypeDeclarationBuilder) {
-      // Coverage-ignore-block(suite): Not run.
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

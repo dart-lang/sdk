@@ -273,12 +273,66 @@ class EditArgumentTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  test_named_addAfterNamed_afterChildNotAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, Widget? child })',
+      originalArgs: '(child: null, x: 1)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(child: null, x: 1, y: 2)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, Widget? child })',
+      originalArgs: '(x: 1, child: null)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(x: 1, y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildrenAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, List<Widget>? children })',
+      originalArgs: '(x: 1, children: [])',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(x: 1, y: 2, children: [])',
+    );
+  }
+
   test_named_addAfterPositional() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y })',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
       expectedArgs: '(1, y: 2)',
+    );
+  }
+
+  test_named_addAfterPositional_afterChildNotAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, Widget? child })',
+      originalArgs: '(child: null, 1)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(child: null, 1, y: 2)',
+    );
+  }
+
+  test_named_addAfterPositional_beforeChildAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, Widget? child })',
+      originalArgs: '(1, child: null)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(1, y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterPositional_beforeChildrenAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, List<Widget>? children })',
+      originalArgs: '(1, children: [])',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(1, y: 2, children: [])',
     );
   }
 

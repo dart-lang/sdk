@@ -56,6 +56,7 @@ final class _Closure implements Function {
 
   @pragma("wasm:entry-point")
   @pragma("wasm:prefer-inline")
+  @pragma("wasm:intrinsic")
   external static _FunctionType _getClosureRuntimeType(_Closure closure);
 
   @override
@@ -84,35 +85,42 @@ final class _Closure implements Function {
   // Helpers for implementing `hashCode`, `operator ==`.
 
   /// Whether the closure is an instantiation.
+  @pragma("wasm:intrinsic")
   external bool get _isInstantiationClosure;
 
   /// When the closure is an instantiation, get the instantiated closure.
   ///
   /// Traps when the closure is not an instantiation.
+  @pragma("wasm:intrinsic")
   external _Closure get _instantiatedClosure;
 
   /// When the closure is an instantiation, returns the combined hash code of
   /// the captured types.
   ///
   /// Traps when the closure is not an instantiation.
+  @pragma("wasm:intrinsic")
   external int _instantiationClosureTypeHash();
 
   /// When this [_Closure] and [other] are instantiations, compare captured
   /// types for equality.
   ///
   /// Traps when one or both of the closures are not an instantiation.
+  @pragma("wasm:intrinsic")
   external bool _instantiationClosureTypeEquals(_Closure other);
 
   /// Whether the closure is an instance tear-off.
   ///
   /// Instance tear-offs will have receivers.
+  @pragma("wasm:intrinsic")
   external bool get _isInstanceTearOff;
 
   /// When the closure is an instance tear-off, returns the receiver.
   ///
   /// Traps when the closure is not an instance tear-off.
+  @pragma("wasm:intrinsic")
   external Object? get _instanceTearOffReceiver;
 
   /// The vtable of the closure.
+  @pragma("wasm:intrinsic")
   external WasmAnyRef get _vtable;
 }

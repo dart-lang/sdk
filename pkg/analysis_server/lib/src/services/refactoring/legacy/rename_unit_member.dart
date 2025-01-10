@@ -42,7 +42,7 @@ Future<RefactoringStatus> validateRenameTopLevel(
   return _RenameUnitMemberValidator(searchEngine, element, name).validate();
 }
 
-/// A [Refactoring] for renaming compilation unit member [Element]s.
+/// A [Refactoring] for renaming compilation unit member [Element2]s.
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
 
@@ -228,7 +228,7 @@ class _BaseUnitMemberValidator {
   }
 
   /// Validates if an element with the [name] will conflict with another
-  /// top-level [Element] in the same library.
+  /// top-level [Element2] in the same library.
   void _validateWillConflict() {
     for (var element in library.children2) {
       if (hasDisplayName(element, name)) {
@@ -242,7 +242,7 @@ class _BaseUnitMemberValidator {
     }
   }
 
-  /// Validates if renamed [element] will shadow any [Element] named [name].
+  /// Validates if renamed [element] will shadow any [Element2] named [name].
   Future<void> _validateWillShadow(Element2? element) async {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {

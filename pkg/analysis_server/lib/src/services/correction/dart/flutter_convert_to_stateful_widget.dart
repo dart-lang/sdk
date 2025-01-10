@@ -127,7 +127,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeReference2(statefulWidgetClass);
+        builder.writeReference(statefulWidgetClass);
       });
 
       var replaceOffset = 0;
@@ -157,7 +157,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
             }
             builder.writeln('  @override');
             builder.write('  ');
-            builder.writeReference2(stateClass);
+            builder.writeReference(stateClass);
             builder.write('<${widgetClass.name.lexeme}$typeParams>');
             builder.writeln(' createState() => $stateName$typeParams();');
             if (hasEmptyLineAfterCreateState) {
@@ -217,7 +217,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         builder.writeln();
 
         builder.write('class $stateName$typeParams extends ');
-        builder.writeReference2(stateClass);
+        builder.writeReference(stateClass);
 
         // Write just param names (and not bounds, metadata and docs).
         builder.write('<${widgetClass.name.lexeme}');

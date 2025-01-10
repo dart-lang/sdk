@@ -236,7 +236,7 @@ class ElementFactory {
       ClassElement enclosingElement,
       String methodName,
       DartType returnType,
-      List<ParameterElement> parameters) {
+      List<ParameterElementImpl> parameters) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.enclosingElement3 = enclosingElement;
     method.parameters = parameters;
@@ -338,7 +338,7 @@ class ElementFactory {
     setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable2 = field;
-    setter.parameters = <ParameterElement>[parameter];
+    setter.parameters = [parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.isStatic = isStatic;
     field.setter = setter;

@@ -42,7 +42,7 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeReference2(streamBuilderElement);
+        builder.writeReference(streamBuilderElement);
 
         builder.write('<');
         builder.addSimpleLinkedEdit('type', 'Object');

@@ -67,6 +67,7 @@ abstract class WasmStringBase implements String {}
 //
 // Important: this is unsafe and must be used with care.
 @patch
+@pragma("wasm:intrinsic")
 external T unsafeCast<T>(Object? v);
 
 // A version of [unsafeCast] that is opaque to the TFA. The TFA knows about the
@@ -75,12 +76,14 @@ external T unsafeCast<T>(Object? v);
 // used. One such situation is when either the source or destination type is not
 // an ordinary Dart type, for instance if it is one of the special Wasm types
 // from wasm_types.dart.
+@pragma("wasm:intrinsic")
 external T unsafeCastOpaque<T>(Object? v);
 
 // This function can be used to keep an object alive till that point.
 void reachabilityFence(Object? object) {}
 
 // This function can be used to encode native side effects.
+@pragma("wasm:intrinsic")
 external void _nativeEffect(Object object);
 
 // Thomas Wang 64-bit mix.
@@ -96,9 +99,13 @@ int mix64(int n) {
   return n;
 }
 
+@pragma("wasm:intrinsic")
 external int floatToIntBits(double value);
+@pragma("wasm:intrinsic")
 external double intBitsToFloat(int value);
+@pragma("wasm:intrinsic")
 external int doubleToIntBits(double value);
+@pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
 
 /// Used to invoke a Dart closure from JS (for microtasks and other callbacks),

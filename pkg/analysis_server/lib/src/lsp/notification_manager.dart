@@ -11,8 +11,8 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 class LspNotificationManager extends AbstractNotificationManager {
   /// The analysis server, used to fetch LineInfo in order to map plugin
   /// data structures to LSP structures.
-  late LspAnalysisServer
-  server; // Set externally immediately after construction
+  // Set externally immediately after construction.
+  late final LspAnalysisServer server;
 
   LspNotificationManager(super.pathContext);
 

@@ -118,6 +118,14 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   bool get isAugment => _modifiers.isAugment;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
+
   // TODO(johnniwinther): What is this supposed to return?
   @override
   // Coverage-ignore(suite): Not run.

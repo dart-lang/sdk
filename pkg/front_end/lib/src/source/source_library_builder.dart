@@ -70,7 +70,6 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
@@ -874,7 +873,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       while (memberIterator.moveNext()) {
         SourceMemberBuilder member = memberIterator.current;
         if (member.isStatic) continue;
-        if (member is SourceFieldBuilder) {
+        if (member.isField) {
           if (member.isSynthesized) continue;
           PropertyNonPromotabilityReason? reason = fieldPromotability.addField(
               classInfo, member, member.name,
@@ -882,7 +881,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               isAbstract: member.isAbstract,
               isExternal: member.isExternal);
           if (reason != null) {
-            individualPropertyReasons[member.readTarget] = reason;
+            individualPropertyReasons[member.readTarget!] = reason;
           }
         } else if (member.isGetter) {
           if (member.isSynthetic) continue;
@@ -1655,26 +1654,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  void checkTypesInField(
-      SourceFieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
+  void checkTypesInField(TypeEnvironment typeEnvironment,
+      {required bool isInstanceMember,
+      required bool isLate,
+      required bool isExternal,
+      required bool hasInitializer,
+      required DartType fieldType,
+      required String name,
+      required int nameLength,
+      required int nameOffset,
+      required Uri fileUri}) {
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
 
     // Only static and top-level fields are checked here.  Instance fields are
     // checked elsewhere.
-    DartType fieldType = fieldBuilder.fieldType;
-    if (!fieldBuilder.isDeclarationInstanceMember &&
-        !fieldBuilder.isLate &&
-        !fieldBuilder.isExternal &&
+    if (!isInstanceMember &&
+        !isLate &&
+        !isExternal &&
         fieldType is! InvalidType &&
         fieldType.isPotentiallyNonNullable &&
-        !fieldBuilder.hasInitializer) {
+        !hasInitializer) {
       addProblem(
           templateFieldNonNullableWithoutInitializerError.withArguments(
-              fieldBuilder.name, fieldBuilder.fieldType),
-          fieldBuilder.fileOffset,
-          fieldBuilder.name.length,
-          fieldBuilder.fileUri);
+              name, fieldType),
+          nameOffset,
+          nameLength,
+          fileUri);
     }
   }
 
@@ -2212,8 +2218,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
 /// This class examines all the [Class]es in a library and determines which
 /// fields are promotable within that library.
-class _FieldPromotability
-    extends FieldPromotability<Class, SourceFieldBuilder, SourceMemberBuilder> {
+class _FieldPromotability extends FieldPromotability<Class, SourceMemberBuilder,
+    SourceMemberBuilder> {
   @override
   Iterable<Class> getSuperclasses(Class class_,
       {required bool ignoreImplements}) {
@@ -2253,7 +2259,7 @@ class FieldNonPromotabilityInfo {
   /// see [individualPropertyReasons].
   final Map<
       String,
-      FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
+      FieldNameNonPromotabilityInfo<Class, SourceMemberBuilder,
           SourceMemberBuilder>> fieldNameInfo;
 
   /// Map whose keys are the members that a property get might resolve to, and

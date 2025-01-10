@@ -5,7 +5,9 @@
 part of "core_patch.dart";
 
 @patch
+@pragma("wasm:intrinsic")
 external bool identical(Object? a, Object? b);
 
 @patch
+@pragma("wasm:intrinsic")
 external int identityHashCode(Object? object);

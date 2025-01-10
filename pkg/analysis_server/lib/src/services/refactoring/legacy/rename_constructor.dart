@@ -19,7 +19,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [ConstructorElement]s.
+/// A [Refactoring] for renaming [ConstructorElement2]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RenameConstructorRefactoringImpl(
     super.workspace,

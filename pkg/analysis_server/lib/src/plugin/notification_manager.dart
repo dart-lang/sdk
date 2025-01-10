@@ -14,6 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 /// The object used to coordinate the results of notifications from the analysis
@@ -27,58 +28,56 @@ abstract class AbstractNotificationManager {
   ClientUriConverter? uriConverter;
 
   /// The path context.
-  final Context pathContext;
+  final Context _pathContext;
 
   /// A list of the paths of files and directories that are included for
   /// analysis.
-  List<String> includedPaths = <String>[];
+  List<String> _includedPaths = <String>[];
 
   /// A list of the paths of files and directories that are excluded from
   /// analysis.
-  List<String> excludedPaths = <String>[];
+  List<String> _excludedPaths = <String>[];
 
   /// The current set of subscriptions to which the client has subscribed.
-  Map<server.AnalysisService, Set<String>> currentSubscriptions =
+  Map<server.AnalysisService, Set<String>> _currentSubscriptions =
       <server.AnalysisService, Set<String>>{};
 
   /// The collector being used to collect the analysis errors from the plugins.
   // TODO(brianwilkerson): Consider the possibility of not passing the predicate
   //  in to the collector, but instead to the testing in this class.
-  late ResultCollector<List<AnalysisError>> errors =
+  late final ResultCollector<List<AnalysisError>> errors =
       ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
 
   /// The collector being used to collect the folding regions from the plugins.
-  ResultCollector<List<FoldingRegion>> folding;
+  final ResultCollector<List<FoldingRegion>> folding;
 
   /// The collector being used to collect the highlight regions from the
   /// plugins.
-  ResultCollector<List<HighlightRegion>> highlights;
+  final ResultCollector<List<HighlightRegion>> highlights;
 
   /// The collector being used to collect the navigation parameters from the
   /// plugins.
-  ResultCollector<server.AnalysisNavigationParams> navigation;
+  final ResultCollector<server.AnalysisNavigationParams> _navigation;
 
   /// The collector being used to collect the occurrences from the plugins.
-  ResultCollector<List<Occurrences>> occurrences;
+  final ResultCollector<List<Occurrences>> _occurrences;
 
   /// The collector being used to collect the outlines from the plugins.
-  ResultCollector<List<Outline>> outlines;
+  final ResultCollector<List<Outline>> _outlines;
 
   /// The object used to convert results.
-  final ResultConverter converter = ResultConverter();
+  final ResultConverter _converter = ResultConverter();
 
   /// The object used to merge results.
   final ResultMerger merger = ResultMerger();
 
   /// Initialize a newly created notification manager.
-  AbstractNotificationManager(this.pathContext)
-    : // errors =
-      //     ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded),
-      folding = ResultCollector<List<FoldingRegion>>(serverId),
+  AbstractNotificationManager(this._pathContext)
+    : folding = ResultCollector<List<FoldingRegion>>(serverId),
       highlights = ResultCollector<List<HighlightRegion>>(serverId),
-      navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
-      occurrences = ResultCollector<List<Occurrences>>(serverId),
-      outlines = ResultCollector<List<Outline>>(serverId);
+      _navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
+      _occurrences = ResultCollector<List<Occurrences>>(serverId),
+      _outlines = ResultCollector<List<Outline>>(serverId);
 
   /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
@@ -107,7 +106,7 @@ abstract class AbstractNotificationManager {
         recordNavigationParams(
           pluginId,
           params.file,
-          converter.convertAnalysisNavigationParams(params),
+          _converter.convertAnalysisNavigationParams(params),
         );
       case plugin.ANALYSIS_NOTIFICATION_OCCURRENCES:
         var params = plugin.AnalysisOccurrencesParams.fromNotification(
@@ -176,9 +175,9 @@ abstract class AbstractNotificationManager {
     String filePath,
     server.AnalysisNavigationParams navigationData,
   ) {
-    if (navigation.isCollectingFor(filePath)) {
-      navigation.putResults(filePath, pluginId, navigationData);
-      var unmergedNavigations = navigation.getResults(filePath);
+    if (_navigation.isCollectingFor(filePath)) {
+      _navigation.putResults(filePath, pluginId, navigationData);
+      var unmergedNavigations = _navigation.getResults(filePath);
       var mergedNavigations = merger.mergeNavigation(unmergedNavigations);
       if (mergedNavigations != null) {
         sendNavigations(mergedNavigations);
@@ -193,9 +192,9 @@ abstract class AbstractNotificationManager {
     String filePath,
     List<Occurrences> occurrencesData,
   ) {
-    if (occurrences.isCollectingFor(filePath)) {
-      occurrences.putResults(filePath, pluginId, occurrencesData);
-      var unmergedOccurrences = occurrences.getResults(filePath);
+    if (_occurrences.isCollectingFor(filePath)) {
+      _occurrences.putResults(filePath, pluginId, occurrencesData);
+      var unmergedOccurrences = _occurrences.getResults(filePath);
       var mergedOccurrences = merger.mergeOccurrences(unmergedOccurrences);
       sendOccurrences(filePath, mergedOccurrences);
     }
@@ -208,42 +207,49 @@ abstract class AbstractNotificationManager {
     String filePath,
     List<Outline> outlineData,
   ) {
-    if (outlines.isCollectingFor(filePath)) {
-      outlines.putResults(filePath, pluginId, outlineData);
-      var unmergedOutlines = outlines.getResults(filePath);
+    if (_outlines.isCollectingFor(filePath)) {
+      _outlines.putResults(filePath, pluginId, outlineData);
+      var unmergedOutlines = _outlines.getResults(filePath);
       var mergedOutlines = merger.mergeOutline(unmergedOutlines);
       sendOutlines(filePath, mergedOutlines);
     }
   }
 
   /// Sends errors for a file to the client.
+  @visibleForOverriding
   void sendAnalysisErrors(String filePath, List<AnalysisError> mergedErrors);
 
   /// Sends folding regions for a file to the client.
+  @visibleForOverriding
   void sendFoldingRegions(String filePath, List<FoldingRegion> mergedFolding);
 
   /// Sends highlight regions for a file to the client.
+  @visibleForOverriding
   void sendHighlightRegions(
     String filePath,
     List<HighlightRegion> mergedHighlights,
   );
 
   /// Sends navigation regions for a file to the client.
+  @visibleForOverriding
   void sendNavigations(server.AnalysisNavigationParams mergedNavigations);
 
   /// Sends occurrences for a file to the client.
+  @visibleForOverriding
   void sendOccurrences(String filePath, List<Occurrences> mergedOccurrences);
 
   /// Sends outlines for a file to the client.
+  @visibleForOverriding
   void sendOutlines(String filePath, List<Outline> mergedOutlines);
 
   /// Sends plugin errors to the client.
+  @visibleForOverriding
   void sendPluginErrorNotification(plugin.Notification notification);
 
   /// Set the lists of [included] and [excluded] files.
   void setAnalysisRoots(List<String> included, List<String> excluded) {
-    includedPaths = included;
-    excludedPaths = excluded;
+    _includedPaths = included;
+    _excludedPaths = excluded;
   }
 
   /// Set the current subscriptions to the given set of [newSubscriptions].
@@ -256,20 +262,20 @@ abstract class AbstractNotificationManager {
       return switch (service) {
         server.AnalysisService.FOLDING => folding,
         server.AnalysisService.HIGHLIGHTS => highlights,
-        server.AnalysisService.NAVIGATION => navigation,
-        server.AnalysisService.OCCURRENCES => occurrences,
-        server.AnalysisService.OUTLINE => outlines,
+        server.AnalysisService.NAVIGATION => _navigation,
+        server.AnalysisService.OCCURRENCES => _occurrences,
+        server.AnalysisService.OUTLINE => _outlines,
         _ => null,
       };
     }
 
     Set<server.AnalysisService> services = HashSet<server.AnalysisService>();
-    services.addAll(currentSubscriptions.keys);
+    services.addAll(_currentSubscriptions.keys);
     services.addAll(newSubscriptions.keys);
     for (var service in services) {
       var collector = collectorFor(service);
       if (collector != null) {
-        var currentPaths = currentSubscriptions[service];
+        var currentPaths = _currentSubscriptions[service];
         var newPaths = newSubscriptions[service];
         if (currentPaths == null) {
           if (newPaths == null) {
@@ -300,16 +306,16 @@ abstract class AbstractNotificationManager {
         }
       }
     }
-    currentSubscriptions = newSubscriptions;
+    _currentSubscriptions = newSubscriptions;
   }
 
   /// Return `true` if errors should be collected for the file with the given
   /// [path] (because it is being analyzed).
   bool _isIncluded(String path) {
     bool isIncluded() {
-      for (var includedPath in includedPaths) {
-        if (pathContext.isWithin(includedPath, path) ||
-            pathContext.equals(includedPath, path)) {
+      for (var includedPath in _includedPaths) {
+        if (_pathContext.isWithin(includedPath, path) ||
+            _pathContext.equals(includedPath, path)) {
           return true;
         }
       }
@@ -317,8 +323,8 @@ abstract class AbstractNotificationManager {
     }
 
     bool isExcluded() {
-      for (var excludedPath in excludedPaths) {
-        if (pathContext.isWithin(excludedPath, path)) {
+      for (var excludedPath in _excludedPaths) {
+        if (_pathContext.isWithin(excludedPath, path)) {
           return true;
         }
       }
@@ -336,15 +342,15 @@ class NotificationManager extends AbstractNotificationManager {
   static const String serverId = AbstractNotificationManager.serverId;
 
   /// The channel used to send notifications to the client.
-  final ServerCommunicationChannel channel;
+  final ServerCommunicationChannel _channel;
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this.channel, super.pathContext);
+  NotificationManager(this._channel, super.pathContext);
 
   /// Sends errors for a file to the client.
   @override
   void sendAnalysisErrors(String filePath, List<AnalysisError> mergedErrors) {
-    channel.sendNotification(
+    _channel.sendNotification(
       server.AnalysisErrorsParams(
         filePath,
         mergedErrors,
@@ -355,7 +361,7 @@ class NotificationManager extends AbstractNotificationManager {
   /// Sends folding regions for a file to the client.
   @override
   void sendFoldingRegions(String filePath, List<FoldingRegion> mergedFolding) {
-    channel.sendNotification(
+    _channel.sendNotification(
       server.AnalysisFoldingParams(
         filePath,
         mergedFolding,
@@ -369,7 +375,7 @@ class NotificationManager extends AbstractNotificationManager {
     String filePath,
     List<HighlightRegion> mergedHighlights,
   ) {
-    channel.sendNotification(
+    _channel.sendNotification(
       server.AnalysisHighlightsParams(
         filePath,
         mergedHighlights,
@@ -380,7 +386,7 @@ class NotificationManager extends AbstractNotificationManager {
   /// Sends navigation regions for a file to the client.
   @override
   void sendNavigations(server.AnalysisNavigationParams mergedNavigations) {
-    channel.sendNotification(
+    _channel.sendNotification(
       mergedNavigations.toNotification(clientUriConverter: uriConverter),
     );
   }
@@ -388,7 +394,7 @@ class NotificationManager extends AbstractNotificationManager {
   /// Sends occurrences for a file to the client.
   @override
   void sendOccurrences(String filePath, List<Occurrences> mergedOccurrences) {
-    channel.sendNotification(
+    _channel.sendNotification(
       server.AnalysisOccurrencesParams(
         filePath,
         mergedOccurrences,
@@ -399,7 +405,7 @@ class NotificationManager extends AbstractNotificationManager {
   /// Sends outlines for a file to the client.
   @override
   void sendOutlines(String filePath, List<Outline> mergedOutlines) {
-    channel.sendNotification(
+    _channel.sendNotification(
       server.AnalysisOutlineParams(
         filePath,
         server.FileKind.LIBRARY,
@@ -419,7 +425,7 @@ class NotificationManager extends AbstractNotificationManager {
     // fact that the error came from a plugin, let alone which plugin it
     // came from. We should consider whether we really want to send them to
     // the client.
-    channel.sendNotification(
+    _channel.sendNotification(
       server.ServerErrorParams(
         params.isFatal,
         params.message,

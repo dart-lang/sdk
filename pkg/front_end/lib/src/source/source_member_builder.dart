@@ -28,6 +28,14 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
 
+  @override
+  Uri get fileUri;
+
+  bool get isFinal;
+
+  // TODO(johnniwinther): Avoid this or define a clear semantics.
+  bool get isSynthesized;
+
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
 

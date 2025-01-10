@@ -561,11 +561,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
-      List<ParameterElement> superParameters = superclassConstructor.parameters;
+      var superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       var argumentsForSuperInvocation = <ExpressionImpl>[];
       if (count > 0) {
-        var implicitParameters = <ParameterElement>[];
+        var implicitParameters = <ParameterElementImpl>[];
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
@@ -3649,7 +3649,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     implements ExecutableElement, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
-  List<ParameterElement> _parameters = const [];
+  List<ParameterElementImpl> _parameters = const [];
 
   /// The inferred return type of this executable element.
   DartType? _returnType;
@@ -3772,16 +3772,16 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     linkedData?.read(this);
     return _parameters;
   }
 
   /// Set the parameters defined by this executable element to the given
   /// [parameters].
-  set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement3 = this;
+  set parameters(List<ParameterElementImpl> parameters) {
+    for (var parameter in parameters) {
+      parameter.enclosingElement3 = this;
     }
     _parameters = parameters;
   }
@@ -4384,6 +4384,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
     with
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
         FragmentedElementMixin<FormalParameterFragment>,
+        FormalParameterElementMixin,
         _NonTopLevelVariableOrParameter
     implements FormalParameterElementOrMember {
   final ParameterElementImpl wrappedElement;
@@ -4501,12 +4502,6 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   }
 
   @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    // TODO(augmentations): Implement the merge of formal parameters.
-    wrappedElement.appendToWithoutDelimiters(buffer);
-  }
-
-  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   DartObject? computeConstantValue() => wrappedElement.computeConstantValue();
 
@@ -4519,6 +4514,23 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   // firstFragment.typeParameters
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
+}
+
+/// A mixin that provides a common implementation for methods defined in
+/// [FormalParameterElement].
+mixin FormalParameterElementMixin implements FormalParameterElement {
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    buffer.write(
+      type.getDisplayString(),
+    );
+    buffer.write(' ');
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      buffer.write(' = ');
+      buffer.write(defaultValueCode);
+    }
+  }
 }
 
 abstract class FormalParameterElementOrMember
@@ -9844,7 +9856,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   Element get nonSynthetic => variable2;
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     if (_parameters.isNotEmpty) {
       return _parameters;
     }

@@ -27,18 +27,19 @@ class ConstructorInitializerScope extends EnclosedScope {
   }
 }
 
-/// The scope that looks up elements in doc imports.
+/// The scope that looks up elements in documentation comments.
 ///
 /// Attempts to look up elements in its [innerScope] before searching
-/// through the doc imports.
-class DocImportScope with _GettersAndSetters implements Scope {
+/// through any doc imports.
+class DocumentationCommentScope with _GettersAndSetters implements Scope {
   /// The scope that will be prioritized in look ups before searching in doc
   /// imports.
   ///
   /// Will be set for each specific comment scope in the `ScopeResolverVisitor`.
   Scope innerScope;
 
-  DocImportScope(this.innerScope, List<LibraryElement> docImportLibraries) {
+  DocumentationCommentScope(
+      this.innerScope, List<LibraryElement> docImportLibraries) {
     for (var importedLibrary in docImportLibraries) {
       if (importedLibrary is LibraryElementImpl) {
         // TODO(kallentu): Handle combinators.

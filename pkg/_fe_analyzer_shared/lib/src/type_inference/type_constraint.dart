@@ -365,3 +365,41 @@ class UnknownTypeConstraintOrigin<
     return <String>[];
   }
 }
+
+/// Data structure maintaining intermediate type inference results, such as
+/// type constraints, for testing purposes.  Under normal execution, no
+/// instance of this class should be created.
+class TypeConstraintGenerationDataForTesting<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
+    Variable extends Object,
+    AstNode extends Object> {
+  /// Map from nodes requiring type inference to the generated type constraints
+  /// for the node.
+  final Map<
+      AstNode,
+      List<
+          GeneratedTypeConstraint<TypeStructure, TypeParameterStructure,
+              Variable>>> generatedTypeConstraints = {};
+
+  /// Merges [other] into the receiver, combining the constraints.
+  ///
+  /// The method reuses data structures from [other] whenever possible, to
+  /// avoid extra memory allocations. This process is destructive to [other]
+  /// because the changes made to the reused structures will be visible to
+  /// [other].
+  void mergeIn(
+      TypeConstraintGenerationDataForTesting<TypeStructure,
+              TypeParameterStructure, Variable, AstNode>
+          other) {
+    for (AstNode node in other.generatedTypeConstraints.keys) {
+      List<GeneratedTypeConstraint>? constraints =
+          generatedTypeConstraints[node];
+      if (constraints != null) {
+        constraints.addAll(other.generatedTypeConstraints[node]!);
+      } else {
+        generatedTypeConstraints[node] = other.generatedTypeConstraints[node]!;
+      }
+    }
+  }
+}

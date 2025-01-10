@@ -5,5 +5,7 @@
 library dart._object_helper;
 
 // Access hidden identity hash code field.
+@pragma("wasm:intrinsic")
 external int getIdentityHashField(Object obj);
+@pragma("wasm:intrinsic")
 external void setIdentityHashField(Object obj, int hash);

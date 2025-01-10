@@ -54,18 +54,18 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
       : null;
   final cCompilerConfig = getCCompilerConfig();
   final buildResult = await nativeAssetsBuildRunner.build(
-    configCreator: () => BuildConfigBuilder()
-      ..setupCodeConfig(
+    inputCreator: () => BuildInputBuilder()
+      ..config.setupCode(
         targetOS: target.os,
         targetArchitecture: target.architecture,
         // When running in JIT mode, only dynamic libraries are supported.
         linkModePreference: LinkModePreference.dynamic,
-        macOSConfig: macOSConfig,
-        cCompilerConfig: cCompilerConfig,
+        macOS: macOSConfig,
+        cCompiler: cCompilerConfig,
       ),
-    configValidator: (config) async => [
-      ...await validateCodeAssetBuildConfig(config),
-      ...await validateDataAssetBuildConfig(config),
+    inputValidator: (config) async => [
+      ...await validateCodeAssetBuildInput(config),
+      ...await validateDataAssetBuildInput(config),
     ],
     workingDirectory: workingDirectory,
     runPackageName: runPackageName,

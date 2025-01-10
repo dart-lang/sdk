@@ -24,8 +24,10 @@ import '../../builder/never_type_declaration_builder.dart';
 import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/procedure_builder.dart';
+import '../../builder/property_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_method_builder.dart';
+import '../../source/source_property_builder.dart';
 
 // Coverage-ignore(suite): Not run.
 final Uri dummyUri = Uri.parse('dummy:uri');
@@ -79,6 +81,11 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
     if (element is SourceFieldBuilder) {
       return element.initializerExpression;
     }
+  } else if (reference is PropertyReference) {
+    PropertyBuilder element = reference.builder;
+    if (element is SourcePropertyBuilder) {
+      return element.initializerExpression;
+    }
   } else {
     assert(false,
         "Unexpected field reference $reference (${reference.runtimeType})");
@@ -90,6 +97,8 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
 shared.Proto builderToProto(Builder builder, String name) {
   if (builder is FieldBuilder) {
     return new shared.FieldProto(new FieldReference(builder));
+  } else if (builder is PropertyBuilder) {
+    return new shared.FieldProto(new PropertyReference(builder));
   } else if (builder is ProcedureBuilder) {
     return new shared.FunctionProto(new FunctionReference(builder));
   } else if (builder is SourceMethodBuilder) {
@@ -347,6 +356,16 @@ class FieldReference extends shared.FieldReference {
   final FieldBuilder builder;
 
   FieldReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class PropertyReference extends shared.FieldReference {
+  final PropertyBuilder builder;
+
+  PropertyReference(this.builder);
 
   @override
   String get name => builder.name;

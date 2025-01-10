@@ -402,7 +402,7 @@ mixin ElementsTypesMixin {
     DartType returnType, {
     bool isStatic = false,
     List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic

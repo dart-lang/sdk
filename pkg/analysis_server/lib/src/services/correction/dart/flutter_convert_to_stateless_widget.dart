@@ -148,7 +148,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeReference2(statelessWidgetClass);
+        builder.writeReference(statelessWidgetClass);
       });
 
       builder.addDeletion(range.deletionRange(stateClass));

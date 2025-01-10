@@ -189,7 +189,7 @@ class InstanceMemberInferrer {
       if (parameters.isEmpty) {
         return;
       }
-      var parameter = parameters[0] as ParameterElementImpl;
+      var parameter = parameters[0];
 
       if (overriddenSetters.any(_isCovariantSetter)) {
         parameter.inheritsCovariant = true;
@@ -227,7 +227,7 @@ class InstanceMemberInferrer {
     if (field != null) {
       if (field.setter != null) {
         if (overriddenSetters.any(_isCovariantSetter)) {
-          var parameter = field.setter!.parameters[0] as ParameterElementImpl;
+          var parameter = field.setter!.parameters[0];
           parameter.inheritsCovariant = true;
         }
       }
@@ -579,7 +579,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    var parameter = parameters[0] as ParameterElementImpl;
+    var parameter = parameters[0];
     if (!parameter.hasImplicitType) {
       element.isOperatorEqualWithParameterTypeFromObject = false;
       return;
