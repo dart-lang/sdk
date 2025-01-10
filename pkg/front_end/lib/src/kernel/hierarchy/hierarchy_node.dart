@@ -89,7 +89,6 @@ abstract class HierarchyNodeBuilder {
         if (interfaces.length == 1) {
           return null;
         } else {
-          // Coverage-ignore-block(suite): Not run.
           interfaces = interfaces.toList();
           interfaces.removeAt(i);
           return _ignoreFunction(interfaces);

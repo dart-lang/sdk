@@ -2653,6 +2653,10 @@ class Definition : public Instruction {
     return ValueListIterable(input_use_list_);
   }
 
+  ValueListIterable environment_uses() const {
+    return ValueListIterable(env_use_list_);
+  }
+
   void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
   void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
 

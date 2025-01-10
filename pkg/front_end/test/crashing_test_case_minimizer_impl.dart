@@ -1403,6 +1403,12 @@ worlds:
             decl.token.offset - 1, decl.token.offset + decl.token.length));
         shouldCompile = true;
         what = "script";
+      } else if (child.isExtensionType()) {
+        ExtensionTypeDeclarationEnd decl = child.asExtensionType();
+        helper.replacements.add(new _Replacement(
+            decl.extensionKeyword.offset - 1, decl.endToken.charEnd));
+        shouldCompile = true;
+        what = "extension type";
       }
 
       if (shouldCompile) {
@@ -1426,80 +1432,7 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (ParserAstNode child in body.children!) {
-                shouldCompile = false;
-                if (child is MemberEnd) {
-                  if (child.isClassConstructor()) {
-                    ClassConstructorEnd memberDecl =
-                        child.getClassConstructor();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class constructor";
-                    shouldCompile = true;
-                  } else if (child.isClassFields()) {
-                    ClassFieldsEnd memberDecl = child.getClassFields();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class fields";
-                    shouldCompile = true;
-                  } else if (child.isClassMethod()) {
-                    ClassMethodEnd memberDecl = child.getClassMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class method";
-                    shouldCompile = true;
-                  } else if (child.isClassFactoryMethod()) {
-                    ClassFactoryMethodEnd memberDecl =
-                        child.getClassFactoryMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class factory method";
-                    shouldCompile = true;
-                  } else {
-                    // throw "$child --- ${child.children}";
-                    continue;
-                  }
-                } else if (child.isMetadata()) {
-                  MetadataStarEnd decl = child.asMetadata();
-                  List<MetadataEnd> metadata = decl.getMetadataEntries();
-                  if (metadata.isNotEmpty) {
-                    helper.replacements.add(new _Replacement(
-                        metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.charEnd));
-                    shouldCompile = true;
-                  }
-                  what = "metadata";
-                }
-                if (shouldCompile) {
-                  success = await _tryReplaceAndCompile(
-                      helper, uri, initialComponent, what);
-                  if (helper.shouldQuit) return;
-                  if (!success) {
-                    BlockFunctionBodyEnd? decl;
-                    if (child is MemberEnd) {
-                      if (child.isClassMethod()) {
-                        decl = child.getClassMethod().getBlockFunctionBody();
-                      } else if (child.isClassConstructor()) {
-                        decl =
-                            child.getClassConstructor().getBlockFunctionBody();
-                      }
-                    }
-                    if (decl != null &&
-                        decl.beginToken.offset + 2 < decl.endToken.offset) {
-                      helper.replacements.add(new _Replacement(
-                          decl.beginToken.offset, decl.endToken.offset));
-                      what = "class member content";
-                      await _tryReplaceAndCompile(
-                          helper, uri, initialComponent, what);
-                      if (helper.shouldQuit) return;
-                    }
-                  }
-                }
-              }
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
             }
 
             // Try to remove "extends", "implements" etc.
@@ -1549,82 +1482,205 @@ worlds:
             }
 
             if (!success) {
-              // Also try to remove members one at a time.
-              for (ParserAstNode child in body.children!) {
-                shouldCompile = false;
-                if (child is MemberEnd) {
-                  if (child.isMixinConstructor()) {
-                    MixinConstructorEnd memberDecl =
-                        child.getMixinConstructor();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin constructor";
-                    shouldCompile = true;
-                  } else if (child.isMixinFields()) {
-                    MixinFieldsEnd memberDecl = child.getMixinFields();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin fields";
-                    shouldCompile = true;
-                  } else if (child.isMixinMethod()) {
-                    MixinMethodEnd memberDecl = child.getMixinMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin method";
-                    shouldCompile = true;
-                  } else if (child.isMixinFactoryMethod()) {
-                    MixinFactoryMethodEnd memberDecl =
-                        child.getMixinFactoryMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin factory method";
-                    shouldCompile = true;
-                  } else {
-                    // throw "$child --- ${child.children}";
-                    continue;
-                  }
-                } else if (child.isMetadata()) {
-                  MetadataStarEnd decl = child.asMetadata();
-                  List<MetadataEnd> metadata = decl.getMetadataEntries();
-                  if (metadata.isNotEmpty) {
-                    helper.replacements.add(new _Replacement(
-                        metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.charEnd));
-                    shouldCompile = true;
-                  }
-                  what = "metadata";
-                }
-                if (shouldCompile) {
-                  success = await _tryReplaceAndCompile(
-                      helper, uri, initialComponent, what);
-                  if (helper.shouldQuit) return;
-                  if (!success) {
-                    BlockFunctionBodyEnd? decl;
-                    if (child is MemberEnd) {
-                      if (child.isClassMethod()) {
-                        decl = child.getClassMethod().getBlockFunctionBody();
-                      } else if (child.isClassConstructor()) {
-                        decl =
-                            child.getClassConstructor().getBlockFunctionBody();
-                      }
-                    }
-                    if (decl != null &&
-                        decl.beginToken.offset + 2 < decl.endToken.offset) {
-                      helper.replacements.add(new _Replacement(
-                          decl.beginToken.offset, decl.endToken.offset));
-                      what = "class member content";
-                      await _tryReplaceAndCompile(
-                          helper, uri, initialComponent, what);
-                      if (helper.shouldQuit) return;
-                    }
-                  }
-                }
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+            }
+          } else if (child.isExtensionType()) {
+            // Also try to remove all content of the extension type.
+            ExtensionTypeDeclarationEnd decl = child.asExtensionType();
+            ClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
+            if (body.beginToken.offset + 2 < body.endToken.offset) {
+              helper.replacements.add(new _Replacement(
+                  body.beginToken.offset, body.endToken.offset));
+              what = "extension type body";
+              success = await _tryReplaceAndCompile(
+                  helper, uri, initialComponent, what);
+              if (helper.shouldQuit) return;
+            }
+
+            if (!success) {
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+            }
+          } else if (child.isTopLevelMethod()) {
+            // Try to remove parameters.
+            TopLevelMethodEnd decl = child.asTopLevelMethod();
+            FormalParametersEnd? formal =
+                decl.children?.whereType<FormalParametersEnd>().firstOrNull;
+            if (formal != null) {
+              if (formal.beginToken.offset + 2 < formal.endToken.offset) {
+                helper.replacements.add(new _Replacement(
+                    formal.beginToken.offset, formal.endToken.offset));
+                what = "top level formals";
+                success = await _tryReplaceAndCompile(
+                    helper, uri, initialComponent, what);
+                if (helper.shouldQuit) return;
               }
             }
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteBlocksHelper(
+      ClassOrMixinOrExtensionBodyEnd body,
+      _CompilationHelperClass helper,
+      final Uri uri,
+      Component initialComponent) async {
+    for (ParserAstNode child in body.children!) {
+      bool shouldCompile = false;
+      String what = "";
+      if (child is MemberEnd) {
+        if (child.isClassConstructor()) {
+          ClassConstructorEnd memberDecl = child.getClassConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class constructor";
+          shouldCompile = true;
+        } else if (child.isClassFields()) {
+          ClassFieldsEnd memberDecl = child.getClassFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class fields";
+          shouldCompile = true;
+        } else if (child.isClassMethod()) {
+          ClassMethodEnd memberDecl = child.getClassMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class method";
+          shouldCompile = true;
+        } else if (child.isClassFactoryMethod()) {
+          ClassFactoryMethodEnd memberDecl = child.getClassFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class factory method";
+          shouldCompile = true;
+        } else if (child.isMixinConstructor()) {
+          MixinConstructorEnd memberDecl = child.getMixinConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin constructor";
+          shouldCompile = true;
+        } else if (child.isMixinFields()) {
+          MixinFieldsEnd memberDecl = child.getMixinFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin fields";
+          shouldCompile = true;
+        } else if (child.isMixinMethod()) {
+          MixinMethodEnd memberDecl = child.getMixinMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin method";
+          shouldCompile = true;
+        } else if (child.isMixinFactoryMethod()) {
+          MixinFactoryMethodEnd memberDecl = child.getMixinFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin factory method";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeConstructor()) {
+          var memberDecl = child.getExtensionTypeConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type constructor";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeFields()) {
+          ExtensionTypeFieldsEnd memberDecl = child.getExtensionTypeFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type fields";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeMethod()) {
+          ExtensionTypeMethodEnd memberDecl = child.getExtensionTypeMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type method";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeFactoryMethod()) {
+          ExtensionTypeFactoryMethodEnd memberDecl =
+              child.getExtensionTypeFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type factory method";
+          shouldCompile = true;
+        } else if (child.isExtensionConstructor()) {
+          var memberDecl = child.getExtensionConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension constructor";
+          shouldCompile = true;
+        } else if (child.isExtensionFields()) {
+          ExtensionFieldsEnd memberDecl = child.getExtensionFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension fields";
+          shouldCompile = true;
+        } else if (child.isExtensionMethod()) {
+          ExtensionMethodEnd memberDecl = child.getExtensionMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension method";
+          shouldCompile = true;
+        } else if (child.isExtensionFactoryMethod()) {
+          ExtensionFactoryMethodEnd memberDecl =
+              child.getExtensionFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension factory method";
+          shouldCompile = true;
+        } else {
+          // throw "$child --- ${child.children}";
+          continue;
+        }
+      } else if (child.isMetadata()) {
+        MetadataStarEnd decl = child.asMetadata();
+        List<MetadataEnd> metadata = decl.getMetadataEntries();
+        if (metadata.isNotEmpty) {
+          helper.replacements.add(new _Replacement(
+              metadata.first.beginToken.offset - 1,
+              metadata.last.endToken.charEnd));
+          shouldCompile = true;
+        }
+        what = "metadata";
+      }
+      if (shouldCompile) {
+        bool success =
+            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+        if (helper.shouldQuit) return;
+        if (!success) {
+          BlockFunctionBodyEnd? decl;
+          if (child is MemberEnd) {
+            if (child.isClassMethod()) {
+              decl = child.getClassMethod().getBlockFunctionBody();
+            } else if (child.isClassConstructor()) {
+              decl = child.getClassConstructor().getBlockFunctionBody();
+            }
+            // TODO(jensj): The other ones too maybe?
+          }
+          if (decl != null &&
+              decl.beginToken.offset + 2 < decl.endToken.offset) {
+            helper.replacements.add(
+                new _Replacement(decl.beginToken.offset, decl.endToken.offset));
+            what = "class member content";
+            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+            if (helper.shouldQuit) return;
           }
         }
       }
@@ -1820,6 +1876,11 @@ worlds:
   }
 
   Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
+    if (_latestCrashingKnownInitialBuilders == null) {
+      // It crashed on the first compile so we have no builders.
+      // We'll just return something.
+      return ExperimentalFlag.nonNullable.enabledVersion;
+    }
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
         _latestCrashingKnownInitialBuilders![asImportUri];

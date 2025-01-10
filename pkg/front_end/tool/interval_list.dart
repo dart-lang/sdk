@@ -102,4 +102,10 @@ class IntervalList {
     }
     return low == high && (low & 1) == 0;
   }
+
+  void forEach(void action(int open, int close)) {
+    for (int i = 0; i < _intervalList.length; i += 2) {
+      action(_intervalList[i], _intervalList[i + 1]);
+    }
+  }
 }
