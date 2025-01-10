@@ -623,7 +623,7 @@ class _MockSdkElementsBuilder {
     _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
-    objectElement.typeParameters = const <TypeParameterElement>[];
+    objectElement.typeParameters = const <TypeParameterElementImpl>[];
     objectElement.constructors = [
       _constructor(isConst: true),
     ];
@@ -974,7 +974,7 @@ class _MockSdkElementsBuilder {
   ClassElementImpl _class({
     required String name,
     bool isAbstract = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     required CompilationUnitElementImpl unit,
   }) {
     var element = ClassElementImpl(name, 0);
@@ -1013,7 +1013,7 @@ class _MockSdkElementsBuilder {
   FunctionElementImpl _function(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
     return FunctionElementImpl(name, 0)
@@ -1070,7 +1070,7 @@ class _MockSdkElementsBuilder {
   MethodElementImpl _method(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)

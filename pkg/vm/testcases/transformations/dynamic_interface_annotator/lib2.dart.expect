@@ -96,6 +96,7 @@ abstract class H extends core::Object /*isMixinDeclaration*/  {
     self::_smethod13();
   }
 }
+@#C11
 @#C7
 class _I1<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::_I1<self::_I1::T%>
@@ -117,8 +118,8 @@ class _I3 extends core::Object {
 @#C3
 @#C7
 mixin class J extends core::Object implements self::_I1<self::_I2> {
-  static const field core::Map<core::String, self::_E2> _const14 = #C14;
-  field core::Map<core::String, self::_E2> _ifield16 = #C14;
+  static const field core::Map<core::String, self::_E2> _const14 = #C16;
+  field core::Map<core::String, self::_E2> _ifield16 = #C16;
   field core::int _ifield17 = self::J::_smethod15();
   field self::_I3? _ifield18 = null;
   synthetic constructor •() → self::J
@@ -145,9 +146,11 @@ constants  {
   #C7 = core::pragma {name:#C6, options:#C2}
   #C8 = "dyn-module:can-be-overridden"
   #C9 = core::pragma {name:#C8, options:#C2}
-  #C10 = "key"
-  #C11 = 4
-  #C12 = 3
-  #C13 = self::_E2 {_y:#C11, _x:#C12}
-  #C14 = <core::String, self::_E2>{#C10:#C13}
+  #C10 = "dyn-module:implicitly-extendable"
+  #C11 = core::pragma {name:#C10, options:#C2}
+  #C12 = "key"
+  #C13 = 4
+  #C14 = 3
+  #C15 = self::_E2 {_y:#C13, _x:#C14}
+  #C16 = <core::String, self::_E2>{#C12:#C15}
 }

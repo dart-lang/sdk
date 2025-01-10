@@ -1068,7 +1068,7 @@ class InheritanceManager3 {
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
-      result.typeParameters = executable.typeParameters;
+      result.typeParameters = executable.typeParameters.cast();
       return result;
     }
 
@@ -1138,7 +1138,7 @@ class InheritanceManager3 {
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
-      result.typeParameters = resultType.typeFormals;
+      result.typeParameters = resultType.typeFormals.cast();
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters.toImpl();
       result.element = MethodElementImpl2(

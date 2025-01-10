@@ -5598,7 +5598,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterElementImpl).element)
+          .map((fragment) => fragment.element)
           .toList();
 
   @override
@@ -11035,7 +11035,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
         _ExistingElementImpl,
         TypeParameterizedElement,
         TypeParameterizedFragment {
-  List<TypeParameterElement> _typeParameters = const [];
+  List<TypeParameterElementImpl> _typeParameters = const [];
 
   @override
   List<Fragment> get children3 => children.whereType<Fragment>().toList();
@@ -11049,14 +11049,14 @@ mixin TypeParameterizedElementMixin on ElementImpl
   ElementLinkedData? get linkedData;
 
   @override
-  List<TypeParameterElement> get typeParameters {
+  List<TypeParameterElementImpl> get typeParameters {
     linkedData?.read(this);
     return _typeParameters;
   }
 
-  set typeParameters(List<TypeParameterElement> typeParameters) {
+  set typeParameters(List<TypeParameterElementImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement3 = this;
+      typeParameter.enclosingElement3 = this;
     }
     _typeParameters = typeParameters;
   }

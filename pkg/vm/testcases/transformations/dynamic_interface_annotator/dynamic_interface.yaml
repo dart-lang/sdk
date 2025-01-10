@@ -13,12 +13,12 @@ callable:
 
 extendable:
   - library: 'lib1.dart'
-    class: 'A'
+    class: ['A', 'O', 'Q', 'S', 'T', 'V']
   - library: 'lib2.dart'
 
 can-be-overridden:
   - library: 'lib1.dart'
-    class: 'A'
+    class: ['A', 'U']
   - library: 'lib2.dart'
     class: 'D'
     member: 'build'

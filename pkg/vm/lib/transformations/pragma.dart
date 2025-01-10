@@ -23,6 +23,8 @@ const kWasmExportPragmaName = "wasm:export";
 
 // Dynamic modules pragmas, recognized both by the VM and dart2wasm
 const kDynModuleExtendablePragmaName = "dyn-module:extendable";
+const kDynModuleImplicitlyExtendablePragmaName =
+    "dyn-module:implicitly-extendable";
 const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
 const kDynModuleCallablePragmaName = "dyn-module:callable";
 const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
