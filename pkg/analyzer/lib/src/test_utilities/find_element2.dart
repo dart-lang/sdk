@@ -507,6 +507,15 @@ abstract class _FindElementBase {
     );
   }
 
+  ExtensionElement2 unnamedExtension() {
+    for (var extension_ in libraryElement.extensions) {
+      if (extension_.name3 == null) {
+        return extension_;
+      }
+    }
+    throw StateError('Not found: an unnamed extension');
+  }
+
   T _findInClassesLike<T extends Element2>({
     required String? className,
     required T? Function(InterfaceElement2 element) fromClass,
