@@ -10,7 +10,29 @@ final class _CompileExpressionErrorDetails {
   _CompileExpressionErrorDetails(this.details);
 }
 
+/// The message in an error response from the resident frontend compiler can
+/// either be in the 'errorMessage' property or the 'compilerOutputLines'
+/// property of the response.
+String _extractErrorMessageFromResidentFrontendCompilerResponse(
+  Map<String, dynamic> response,
+) {
+  const errorMessageString = 'errorMessage';
+
+  if (response[errorMessageString] != null) {
+    return response[errorMessageString];
+  } else {
+    return (response['compilerOutputLines'] as List<dynamic>)
+        .cast<String>()
+        .join('\n');
+  }
+}
+
 class RunningIsolates implements MessageRouter {
+  static const _isolateIdString = 'isolateId';
+  static const _successString = 'success';
+  static const _useCachedCompilerOptionsAsBaseString =
+      'useCachedCompilerOptionsAsBase';
+
   final isolates = <int, RunningIsolate>{};
   int? _rootPortId;
 
@@ -29,6 +51,78 @@ class RunningIsolates implements MessageRouter {
       _rootPortId = null;
     }
     (isolates.remove(portId))?.onIsolateExit();
+  }
+
+  Future<Response> _handleReloadSourcesRequest(
+    VMService service,
+    Message message,
+    RunningIsolate isolate,
+  ) async {
+    if (VMServiceEmbedderHooks.getResidentCompilerInfoFile!() == null) {
+      // If there isn't a resident frontend compiler available, we let the VM
+      // take care of the request.
+      return isolate.routeRequest(service, message);
+    } else {
+      const rootLibUriString = 'rootLibUri';
+
+      final String rootLibUri;
+      if (message.params[rootLibUriString] == null) {
+        // If a 'rootLibUri' property was not included in the request, we have
+        // to ask the VM for [isolate]'s root library URI.
+        final getIsolateRequest = Message.forMethod('getIsolate');
+        getIsolateRequest.params[_isolateIdString] =
+            message.params[isolate.serviceId];
+
+        final getIsolateResponse = await isolate.routeRequest(
+          service,
+          getIsolateRequest,
+        );
+        final isolateJson =
+            (getIsolateResponse.decodeJson() as Map<String, dynamic>)['result']
+                as Map<String, dynamic>;
+        final rootLibJson = isolateJson['rootLib'] as Map<String, dynamic>;
+        rootLibUri = rootLibJson['uri'];
+      } else {
+        rootLibUri = message.params[rootLibUriString];
+      }
+
+      final tempDirectory = Directory.systemTemp.createTempSync();
+      final outputDill = File(
+        '${tempDirectory.path}${Platform.pathSeparator}for_hot_reload.dill',
+      );
+      final responseFromResidentCompiler =
+          await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
+            jsonEncode(<String, Object?>{
+              'command': 'compile',
+              _useCachedCompilerOptionsAsBaseString: true,
+              'executable': Uri.parse(rootLibUri).toFilePath(),
+              'output-dill': outputDill.path,
+            }),
+            VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
+          );
+
+      if (responseFromResidentCompiler[_successString] == false) {
+        return Response.from(
+          encodeRpcError(
+            message,
+            kInternalError,
+            details: _extractErrorMessageFromResidentFrontendCompilerResponse(
+              responseFromResidentCompiler,
+            ),
+          ),
+        );
+      }
+
+      final reloadKernelRequest = Message.forMethod('_reloadKernel');
+      reloadKernelRequest.params[_isolateIdString] =
+          message.params[isolate.serviceId];
+      reloadKernelRequest.params['kernelFilePath'] =
+          outputDill.uri.toFilePath();
+      final response = isolate.routeRequest(service, message);
+
+      tempDirectory.deleteSync(recursive: true);
+      return response;
+    }
   }
 
   @override
@@ -71,6 +165,8 @@ class RunningIsolates implements MessageRouter {
 
     if (message.method == 'evaluateInFrame' || message.method == 'evaluate') {
       return _Evaluator(message, isolate, service).run();
+    } else if (message.method == 'reloadSources') {
+      return _handleReloadSourcesRequest(service, message, isolate);
     } else {
       return isolate.routeRequest(service, message);
     }
@@ -128,8 +224,59 @@ final class _ResidentCompilerInfo {
   });
 }
 
+// NOTE: The following function is a duplicate of one in
+// 'package:frontend_server/resident_frontend_server_utils.dart'. We are
+// forced to duplicate it because `dart:_vmservice` is not allowed to import
+// `package:frontend_server`.
+
+/// Sends a compilation [request] to the resident frontend compiler associated
+/// with [serverInfoFile], and returns the compiler's JSON response.
+///
+/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
+Future<Map<String, dynamic>>
+_sendRequestToResidentFrontendCompilerAndRecieveResponse(
+  String request,
+  File serverInfoFile,
+) async {
+  Socket? client;
+  Map<String, dynamic> jsonResponse;
+  final residentCompilerInfo = _ResidentCompilerInfo.fromFile(serverInfoFile);
+
+  try {
+    client = await Socket.connect(
+      residentCompilerInfo.address,
+      residentCompilerInfo.port,
+    );
+    client.write(request);
+    final data = String.fromCharCodes(await client.first);
+    jsonResponse = jsonDecode(data);
+  } catch (e) {
+    jsonResponse = <String, dynamic>{
+      'success': false,
+      'errorMessage': e.toString(),
+    };
+  }
+  client?.destroy();
+  return jsonResponse;
+}
+
 /// Class that knows how to orchestrate expression evaluation in dart2 world.
 class _Evaluator {
+  static const _kernelBytesString = 'kernelBytes';
+  static const _compileExpressionString = 'compileExpression';
+  static const _expressionString = 'expression';
+  static const _definitionsString = 'definitions';
+  static const _definitionTypesString = 'definitionTypes';
+  static const _typeDefinitionsString = 'typeDefinitions';
+  static const _typeBoundsString = 'typeBounds';
+  static const _typeDefaultsString = 'typeDefaults';
+  static const _libraryUriString = 'libraryUri';
+  static const _tokenPosString = 'tokenPos';
+  static const _isStaticString = 'isStatic';
+  static const _scriptUriString = 'scriptUri';
+  static const _methodString = 'method';
+  static const _rootLibraryUriString = 'rootLibraryUri';
+
   _Evaluator(this._message, this._isolate, this._service);
 
   Future<Response> run() async {
@@ -196,48 +343,12 @@ class _Evaluator {
     Map<String, dynamic> response,
   ) {
     if (response['result'] != null) {
-      return (response['result'] as Map<String, dynamic>)['kernelBytes']
+      return (response['result'] as Map<String, dynamic>)[_kernelBytesString]
           as String;
     }
     final error = response['error'] as Map<String, dynamic>;
     final data = error['data'] as Map<String, dynamic>;
     throw _CompileExpressionErrorDetails(data['details']);
-  }
-
-  // NOTE: The following function is a duplicate of one in
-  // 'package:frontend_server/resident_frontend_server_utils.dart'. We are
-  // forced to duplicate it because `dart:_vmservice` is not allowed to import
-  // `package:frontend_server`.
-
-  /// Sends a compilation [request] to the resident frontend compiler associated
-  /// with [serverInfoFile], and returns the compiler's JSON response.
-  ///
-  /// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
-  static Future<Map<String, dynamic>>
-  _sendRequestToResidentFrontendCompilerAndRecieveResponse(
-    String request,
-    File serverInfoFile,
-  ) async {
-    Socket? client;
-    Map<String, dynamic> jsonResponse;
-    final residentCompilerInfo = _ResidentCompilerInfo.fromFile(serverInfoFile);
-
-    try {
-      client = await Socket.connect(
-        residentCompilerInfo.address,
-        residentCompilerInfo.port,
-      );
-      client.write(request);
-      final data = String.fromCharCodes(await client.first);
-      jsonResponse = jsonDecode(data);
-    } catch (e) {
-      jsonResponse = <String, dynamic>{
-        'success': false,
-        'errorMessage': e.toString(),
-      };
-    }
-    client?.destroy();
-    return jsonResponse;
   }
 
   /// If compilation fails, this method will throw a
@@ -248,36 +359,37 @@ class _Evaluator {
     Map<String, dynamic> buildScopeResponseResult,
   ) async {
     Client? externalClient = _service._findFirstClientThatHandlesService(
-      'compileExpression',
+      _compileExpressionString,
     );
 
     final compileParams = <String, dynamic>{
-      'isolateId': _message.params['isolateId']!,
-      'expression': _message.params['expression']!,
-      'definitions': buildScopeResponseResult['param_names']!,
-      'definitionTypes': buildScopeResponseResult['param_types']!,
-      'typeDefinitions': buildScopeResponseResult['type_params_names']!,
-      'typeBounds': buildScopeResponseResult['type_params_bounds']!,
-      'typeDefaults': buildScopeResponseResult['type_params_defaults']!,
-      'libraryUri': buildScopeResponseResult['libraryUri']!,
-      'tokenPos': buildScopeResponseResult['tokenPos']!,
-      'isStatic': buildScopeResponseResult['isStatic']!,
+      RunningIsolates._isolateIdString:
+          _message.params[RunningIsolates._isolateIdString]!,
+      _expressionString: _message.params[_expressionString]!,
+      _definitionsString: buildScopeResponseResult['param_names']!,
+      _definitionTypesString: buildScopeResponseResult['param_types']!,
+      _typeDefinitionsString: buildScopeResponseResult['type_params_names']!,
+      _typeBoundsString: buildScopeResponseResult['type_params_bounds']!,
+      _typeDefaultsString: buildScopeResponseResult['type_params_defaults']!,
+      _libraryUriString: buildScopeResponseResult[_libraryUriString]!,
+      _tokenPosString: buildScopeResponseResult[_tokenPosString]!,
+      _isStaticString: buildScopeResponseResult[_isStaticString]!,
     };
     final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
     }
-    final scriptUri = buildScopeResponseResult['scriptUri'];
+    final scriptUri = buildScopeResponseResult[_scriptUriString];
     if (scriptUri != null) {
-      compileParams['scriptUri'] = scriptUri;
+      compileParams[_scriptUriString] = scriptUri;
     }
-    final method = buildScopeResponseResult['method'];
+    final method = buildScopeResponseResult[_methodString];
     if (method != null) {
-      compileParams['method'] = method;
+      compileParams[_methodString] = method;
     }
     if (externalClient != null) {
       // Let the external client handle expression compilation.
-      final compileExpression = Message.forMethod('compileExpression');
+      final compileExpression = Message.forMethod(_compileExpressionString);
       compileExpression.client = externalClient;
       compileExpression.params.addAll(compileParams);
 
@@ -295,7 +407,7 @@ class _Evaluator {
         Response.json(
           compileExpression.forwardToJson({
             'id': id,
-            'method': 'compileExpression',
+            _methodString: _compileExpressionString,
           }),
         ),
       );
@@ -311,32 +423,32 @@ class _Evaluator {
       final response =
           await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
             jsonEncode({
-              'command': 'compileExpression',
-              'expression': compileParams['expression'],
-              'definitions': compileParams['definitions'],
-              'definitionTypes': compileParams['definitionTypes'],
-              'typeDefinitions': compileParams['typeDefinitions'],
-              'typeBounds': compileParams['typeBounds'],
-              'typeDefaults': compileParams['typeDefaults'],
-              'libraryUri': compileParams['libraryUri'],
-              'offset': compileParams['tokenPos'],
-              'isStatic': compileParams['isStatic'],
+              'command': _compileExpressionString,
+              RunningIsolates._useCachedCompilerOptionsAsBaseString: true,
+              _expressionString: compileParams[_expressionString],
+              _definitionsString: compileParams[_definitionsString],
+              _definitionTypesString: compileParams[_definitionTypesString],
+              _typeDefinitionsString: compileParams[_typeDefinitionsString],
+              _typeBoundsString: compileParams[_typeBoundsString],
+              _typeDefaultsString: compileParams[_typeDefaultsString],
+              _libraryUriString: compileParams[_libraryUriString],
+              'offset': compileParams[_tokenPosString],
+              _isStaticString: compileParams[_isStaticString],
               'class': compileParams['klass'],
-              'scriptUri': compileParams['scriptUri'],
-              'method': compileParams['method'],
-              'rootLibraryUri': buildScopeResponseResult['rootLibraryUri'],
+              _scriptUriString: compileParams[_scriptUriString],
+              _methodString: compileParams[_methodString],
+              _rootLibraryUriString:
+                  buildScopeResponseResult[_rootLibraryUriString],
             }),
             VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
           );
 
-      if (response['success'] == true) {
-        return response['kernelBytes'];
-      } else if (response['errorMessage'] != null) {
-        throw _CompileExpressionErrorDetails(response['errorMessage']);
+      if (response[RunningIsolates._successString] == true) {
+        return response[_kernelBytesString];
       } else {
-        final compilerOutputLines =
-            (response['compilerOutputLines'] as List<dynamic>).cast<String>();
-        throw _CompileExpressionErrorDetails(compilerOutputLines.join('\n'));
+        throw _CompileExpressionErrorDetails(
+          _extractErrorMessageFromResidentFrontendCompilerResponse(response),
+        );
       }
     } else {
       // fallback to compile using kernel service

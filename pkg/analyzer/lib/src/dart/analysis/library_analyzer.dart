@@ -181,9 +181,12 @@ class LibraryAnalyzer {
           file.uri, inferenceDataForTesting!);
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(ScopeResolverVisitor(
-          _libraryElement, file.source, _typeProvider, errorListener,
-          nameScope: unitElement.scope));
+      parsedUnit.accept(
+        ScopeResolverVisitor(
+          fileAnalysis.errorReporter,
+          nameScope: unitElement.scope,
+        ),
+      );
 
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
           _testingData != null, _libraryElement.featureSet,
@@ -817,7 +820,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: fileKind.docImports[i],
+          state: fileKind.docLibraryImports[i],
           errorReporter: containerErrorReporter,
         );
       }
@@ -852,16 +855,13 @@ class LibraryAnalyzer {
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
     var docImportLibraries = [
-      for (var import in _library.docImports)
+      for (var import in _library.docLibraryImports)
         if (import is LibraryImportWithFile)
           _libraryElement.session.elementFactory
               .libraryOfUri2(import.importedFile.uri)
     ];
     unit.accept(ScopeResolverVisitor(
-      _libraryElement,
-      source,
-      _typeProvider,
-      errorListener,
+      fileAnalysis.errorReporter,
       nameScope: unitElement.scope,
       docImportLibraries: docImportLibraries,
     ));

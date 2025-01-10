@@ -170,7 +170,7 @@ void newMethod() {
     // Respond to any applyEdit requests from the server with successful responses
     // and capturing the last edit.
     late WorkspaceEdit edit;
-    requestsFromServer.listen((request) async {
+    requestsFromServer.listen((request) {
       if (request.method == Method.workspace_applyEdit) {
         var params = ApplyWorkspaceEditParams.fromJson(
           request.params as Map<String, Object?>,

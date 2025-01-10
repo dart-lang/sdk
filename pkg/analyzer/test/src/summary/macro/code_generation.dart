@@ -13,14 +13,14 @@ import 'package:macros/macros.dart';
   const AugmentForOmittedTypes();
 
   @override
-  FutureOr<void> buildDefinitionForField(declaration, builder) async {
+  FutureOr<void> buildDefinitionForField(declaration, builder) {
     builder.augment(
       initializer: ExpressionCode.fromString('0'),
     );
   }
 
   @override
-  FutureOr<void> buildDefinitionForFunction(declaration, builder) async {
+  FutureOr<void> buildDefinitionForFunction(declaration, builder) {
     builder.augment(
       FunctionBodyCode.fromString('{}'),
     );
@@ -149,7 +149,7 @@ import 'package:macros/macros.dart';
   FutureOr<void> buildDefinitionForMethod(
     MethodDeclaration method,
     FunctionDefinitionBuilder builder,
-  ) async {
+  ) {
     builder.augment(
       FunctionBodyCode.fromString("=> '${method.definingType.name}';"),
     );

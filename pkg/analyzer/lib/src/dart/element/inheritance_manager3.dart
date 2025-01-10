@@ -1042,14 +1042,16 @@ class InheritanceManager3 {
     }
 
     // Update covariance of the parameters of the chosen executable.
-    List<ParameterElement>? transformedParameters;
+    List<ParameterElementImpl>? transformedParameters;
     for (var index = 0; index < parameters.length; index++) {
       var parameter = parameters[index];
       var shouldBeCovariant = covariantParameters.contains(
         _ParameterDesc(index, parameter),
       );
       if (parameter.isCovariant != shouldBeCovariant) {
-        transformedParameters ??= parameters.toList();
+        transformedParameters ??= [
+          for (var parameter in parameters) parameter.toImpl()
+        ];
         transformedParameters[index] = parameter.copyWith(
           isCovariant: shouldBeCovariant,
         );
@@ -1066,7 +1068,7 @@ class InheritanceManager3 {
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
-      result.typeParameters = executable.typeParameters;
+      result.typeParameters = executable.typeParameters.cast();
       return result;
     }
 
@@ -1136,9 +1138,9 @@ class InheritanceManager3 {
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
-      result.typeParameters = resultType.typeFormals;
+      result.typeParameters = resultType.typeFormals.cast();
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      result.parameters = resultType.parameters.toImpl();
       result.element = MethodElementImpl2(
         Reference.root(), // TODO(scheglov): wrong
         firstMethod.name,
@@ -1156,7 +1158,7 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      result.parameters = resultType.parameters.toImpl();
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;

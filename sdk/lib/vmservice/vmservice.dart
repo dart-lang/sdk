@@ -7,7 +7,7 @@ library dart._vmservice;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
-import 'dart:io' show File, InternetAddress, Socket;
+import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
 import 'dart:math';
 import 'dart:typed_data';
 

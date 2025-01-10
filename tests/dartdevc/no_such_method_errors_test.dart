@@ -263,8 +263,7 @@ void main() {
       dynamic tearoff = A().arity1;
       Expect.throws<NoSuchMethodError>(
         () => tearoff(),
-        (error) =>
-            error.toString().contains("NoSuchMethodError: 'bound arity1'"),
+        (error) => error.toString().contains("NoSuchMethodError: 'arity1'"),
       );
     });
     test('class instance generic method', () {
@@ -279,9 +278,8 @@ void main() {
       dynamic tearoff = A().genericArity2;
       Expect.throws<NoSuchMethodError>(
         () => tearoff(10),
-        (error) => error.toString().contains(
-          "NoSuchMethodError: 'bound genericArity2'",
-        ),
+        (error) =>
+            error.toString().contains("NoSuchMethodError: 'genericArity2'"),
       );
     });
     test('class instance generic method tearoff instantiated', () {

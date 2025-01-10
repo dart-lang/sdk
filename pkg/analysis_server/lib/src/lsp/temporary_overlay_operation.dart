@@ -86,7 +86,7 @@ abstract class TemporaryOverlayOperation {
   /// temporary overlays and re-enabled after the overlays are restored.
   Future<T> lockRequestsWithTemporaryOverlays<T>(
     Future<T> Function() operation,
-  ) async {
+  ) {
     return server.lockRequestsWhile(() async {
       // Wait for any in-progress analysis to complete before we start
       // suppressing analysis results.

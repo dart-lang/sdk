@@ -89,8 +89,8 @@ class DynamicTypeImpl extends TypeImpl
 class FunctionTypeImpl extends TypeImpl
     implements
         FunctionType,
-        SharedFunctionTypeStructure<DartType, TypeParameterElement,
-            ParameterElementMixin> {
+        SharedFunctionTypeStructure<DartType, TypeParameterElementImpl2,
+            FormalParameterElementOrMember> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -234,9 +234,21 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
-  List<TypeParameterElement2> get typeParameters => typeFormals
-      .map((fragment) => (fragment as TypeParameterFragment).element)
+  // TODO(paulberry): see if this type can be changed to
+  // `List<FormalParameterElementImpl>`. See
+  // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+  List<FormalParameterElementOrMember> get sortedNamedParametersShared =>
+      sortedNamedParameters
+          .map((p) => p.asElement2 as FormalParameterElementOrMember)
+          .toList();
+
+  @override
+  List<TypeParameterElementImpl2> get typeParameters => typeFormals
+      .map((fragment) => (fragment as TypeParameterElementImpl).element)
       .toList();
+
+  @override
+  List<TypeParameterElementImpl2> get typeParametersShared => typeParameters;
 
   @override
   bool operator ==(Object other) {
@@ -335,6 +347,33 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     return (returnType as TypeImpl).referencesAny(parameters);
+  }
+
+  @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    if (typeFormals.any((element) {
+      var elementImpl = element as TypeParameterElementImpl;
+      assert(!parameters.contains(elementImpl.asElement2));
+
+      var bound = elementImpl.bound as TypeImpl?;
+      if (bound != null && bound.referencesAny2(parameters)) {
+        return true;
+      }
+
+      var defaultType = elementImpl.defaultType as TypeImpl;
+      return defaultType.referencesAny2(parameters);
+    })) {
+      return true;
+    }
+
+    if (this.parameters.any((element) {
+      var type = element.type as TypeImpl;
+      return type.referencesAny2(parameters);
+    })) {
+      return true;
+    }
+
+    return (returnType as TypeImpl).referencesAny2(parameters);
   }
 
   @override
@@ -649,7 +688,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceElement2 get element3 => (element as InterfaceFragment).element;
+  InterfaceElementImpl2 get element3 =>
+      (element as InterfaceElementImpl).element;
 
   @override
   List<GetterElement> get getters => accessors
@@ -1118,6 +1158,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return typeArguments.any((argument) {
+      var argumentImpl = argument as TypeImpl;
+      return argumentImpl.referencesAny2(parameters);
+    });
+  }
+
+  @override
   InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
@@ -1295,7 +1343,8 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
   });
 }
 
-class RecordTypeImpl extends TypeImpl implements RecordType {
+class RecordTypeImpl extends TypeImpl
+    implements RecordType, SharedRecordTypeStructure<DartType> {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1352,10 +1401,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   String? get name => null;
 
-  List<SharedNamedTypeStructure<DartType>> get namedTypes => namedFields;
+  List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes => namedTypes;
+  List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
   bool operator ==(Object other) {
@@ -1463,6 +1512,9 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
     required this.name,
     required super.type,
   });
+
+  @override
+  String get nameShared => name;
 }
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
@@ -1581,6 +1633,10 @@ abstract class TypeImpl implements DartType {
     return false;
   }
 
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return false;
+  }
+
   @override
   String toString() {
     return getDisplayString();
@@ -1644,8 +1700,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   ElementLocation get definition => element.location!;
 
   @override
-  TypeParameterElement2 get element3 =>
-      (element as TypeParameterFragment).element;
+  TypeParameterElementImpl2 get element3 =>
+      (element as TypeParameterElementImpl).element;
 
   @override
   int get hashCode => element.hashCode;
@@ -1730,6 +1786,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
+  }
+
+  @override
+  bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
+    return parameters.contains(element3);
   }
 
   @override

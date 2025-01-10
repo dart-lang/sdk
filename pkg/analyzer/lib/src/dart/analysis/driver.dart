@@ -99,7 +99,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 424;
+  static const int DATA_VERSION = 426;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -597,7 +597,7 @@ class AnalysisDriver {
       var uriStr = uri.toString();
       var libraryResult = await getLibraryByUri(uriStr);
       if (libraryResult is LibraryElementResult) {
-        var libraryElement = libraryResult.element as LibraryElementImpl;
+        var libraryElement = libraryResult.element2 as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
         packageBundleBuilder.addLibrary(
@@ -711,7 +711,7 @@ class AnalysisDriver {
   }
 
   /// Notify the driver that the client is going to stop using it.
-  Future<void> dispose2() async {
+  Future<void> dispose2() {
     var completer = Completer<void>();
     _disposed = true;
     _disposeRequests.add(completer);
@@ -784,7 +784,7 @@ class AnalysisDriver {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  Future<SomeErrorsResult> getErrors(String path) async {
+  Future<SomeErrorsResult> getErrors(String path) {
     if (!_isAbsolutePath(path)) {
       return Future.value(
         InvalidPathResult(),
@@ -894,7 +894,7 @@ class AnalysisDriver {
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
       var reference = rootReference.getChild('$uriObj');
-      var element = reference.element;
+      var element = reference.element2;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }
@@ -1299,7 +1299,7 @@ class AnalysisDriver {
     required String path,
     required int offset,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
@@ -1325,7 +1325,7 @@ class AnalysisDriver {
   Future<void> _analyzeFileImpl({
     required String path,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     // We will produce the result for this file, at least.
     // And for any other files of the same library.
     _fileTracker.fileWasAnalyzed(path);
@@ -1374,7 +1374,7 @@ class AnalysisDriver {
           },
         );
 
-        for (var import in library.docImports) {
+        for (var import in library.docLibraryImports) {
           if (import is LibraryImportWithFile) {
             if (import.importedLibrary case var libraryFileKind?) {
               await libraryContext.load(
@@ -2048,7 +2048,7 @@ class AnalysisDriver {
 
   Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
     _ResolveForCompletionRequest request,
-  ) async {
+  ) {
     return request.performance.runAsync('body', (performance) async {
       var path = request.path;
       if (!_isAbsolutePath(path)) {

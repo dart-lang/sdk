@@ -60,7 +60,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
     var dartBuilder = builder as DartFileEditBuilderImpl;
     await Future.wait(
       requiredElementImports.map(
-        (element) => dartBuilder.importElementLibrary2(
+        (element) => dartBuilder.importElementLibrary(
           element,
           resultCache: _elementImportCache,
         ),

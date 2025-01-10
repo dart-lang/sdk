@@ -133,6 +133,62 @@ void f() {
     }
   }
 
+  Future<void> test_partFile_issue59572() async {
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - empty_statements
+    - prefer_const_constructors
+    ''');
+
+    newFile(join(projectFolderPath, 'lib', 'part.dart'), '''
+part of 'main.dart';
+
+class C {
+  const C();
+}
+
+C b() {
+  // dart fix should only add a single const
+  return C();
+}
+''');
+
+    newFile(join(projectFolderPath, 'lib', 'main.dart'), '''
+part 'part.dart';
+
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  ;
+  b();
+}
+''');
+
+    await initialize();
+    await verifyCommandEdits(Command(command: commandId, title: 'UNUSED'), '''
+>>>>>>>>>> lib/main.dart
+>>>>>>>>>>   Remove empty statement: lines 5-6
+part 'part.dart';
+
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  b();
+}
+>>>>>>>>>> lib/part.dart
+>>>>>>>>>>   Add 'const' modifier: line 9
+part of 'main.dart';
+
+class C {
+  const C();
+}
+
+C b() {
+  // dart fix should only add a single const
+  return const C();
+}
+''');
+  }
+
   Future<void> test_serverAdvertisesCommand() async {
     await initialize();
     expect(

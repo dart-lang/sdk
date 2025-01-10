@@ -175,9 +175,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
       // The nullability is fully determined by the bound so we pass the
       // default nullability for the declared nullability.
       return new IntersectionType(
-          new TypeParameterType(node.parameter,
-              TypeParameterType.computeNullabilityFromBound(node.parameter)),
-          bound);
+          new TypeParameterType.withDefaultNullability(node.parameter), bound);
     }
   }
 

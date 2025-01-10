@@ -1572,6 +1572,12 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_async = LinterLintCode(
+    LintNames.unnecessary_async,
+    "Don't make a function 'async' if it doesn't use 'await'.",
+    correctionMessage: "Try removing the 'async' modifier.",
+  );
+
   static const LintCode unnecessary_await_in_return = LinterLintCode(
     LintNames.unnecessary_await_in_return,
     "Unnecessary 'await'.",
@@ -1757,6 +1763,13 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_underscores = LinterLintCode(
+    LintNames.unnecessary_underscores,
+    "Unnecessary use of multiple underscores.",
+    correctionMessage: "Try using '_'.",
+    hasPublishedDocs: true,
+  );
+
   static const LintCode unreachable_from_main = LinterLintCode(
     LintNames.unreachable_from_main,
     "Unreachable member '{0}' in an executable library.",
@@ -1789,6 +1802,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using a more general type that doesn't contain any type "
         "parameters in such a position.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_build_context_synchronously_async_use =

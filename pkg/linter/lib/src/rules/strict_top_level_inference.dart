@@ -36,7 +36,6 @@ class StrictTopLevelInference extends LintRule {
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
-    registry.addSimpleFormalParameter(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
   }
 }

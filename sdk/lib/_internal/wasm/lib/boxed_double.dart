@@ -182,6 +182,7 @@ final class BoxedDouble implements double {
     return intBitsToDouble(aBits);
   }
 
+  @pragma("wasm:intrinsic")
   external double operator -();
 
   @pragma("wasm:prefer-inline")
@@ -283,8 +284,11 @@ final class BoxedDouble implements double {
     return intBitsToDouble(rounded);
   }
 
+  @pragma("wasm:intrinsic")
   external double floorToDouble();
+  @pragma("wasm:intrinsic")
   external double ceilToDouble();
+  @pragma("wasm:intrinsic")
   external double truncateToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {
@@ -337,7 +341,12 @@ final class BoxedDouble implements double {
       }
     }
     String result = jsStringToDartString(
-      JSStringImpl(JS<WasmExternRef>("v => v.toString()", value)),
+      JSStringImpl(
+        JS<WasmExternRef?>(
+          'Function.prototype.call.bind(Number.prototype.toString)',
+          WasmF64.fromDouble(value),
+        ),
+      ),
     );
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';

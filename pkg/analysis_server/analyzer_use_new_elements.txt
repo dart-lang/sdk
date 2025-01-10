@@ -12,6 +12,4 @@ lib/src/services/refactoring/legacy/refactoring_manager.dart
 lib/src/services/refactoring/legacy/rename.dart
 lib/src/services/refactoring/legacy/rename_import.dart
 lib/src/services/search/element_visitors.dart
-test/abstract_single_unit.dart
 test/services/refactoring/legacy/abstract_rename.dart
-test/services/search/element_visitors_test.dart

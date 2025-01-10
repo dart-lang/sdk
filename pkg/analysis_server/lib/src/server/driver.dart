@@ -512,7 +512,7 @@ class Driver implements ServerStarter {
 
     capture(instrumentationService, () {
       var stdioServer = LspStdioAnalysisServer(socketServer);
-      stdioServer.serveStdio().then((_) async {
+      stdioServer.serveStdio().then((_) {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {

@@ -318,8 +318,7 @@ class NativeCodeOracle {
             returnType = translator.instantiateConcreteType(
                 returnType as ConcreteType,
                 member.function!.typeParameters
-                    .map((t) => TypeParameterType(
-                        t, TypeParameterType.computeNullabilityFromBound(t)))
+                    .map((t) => TypeParameterType.withDefaultNullability(t))
                     .toList());
           }
           continue;

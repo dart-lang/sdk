@@ -561,11 +561,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
-      List<ParameterElement> superParameters = superclassConstructor.parameters;
+      var superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       var argumentsForSuperInvocation = <ExpressionImpl>[];
       if (count > 0) {
-        var implicitParameters = <ParameterElement>[];
+        var implicitParameters = <ParameterElementImpl>[];
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
@@ -3466,39 +3466,6 @@ class ElementLocationImpl implements ElementLocation {
     _components = _decode(encoding);
   }
 
-  /// Initialize a newly created location from the given [components].
-  ElementLocationImpl.con3(List<String> components) {
-    _components = components;
-  }
-
-  /// Initialize a newly created location to represent the given [element].
-  ElementLocationImpl.fromElement(Element2 element) {
-    List<String> components = <String>[];
-    Element2? ancestor = element;
-    while (ancestor != null) {
-      if (ancestor is! ElementImpl2) {
-        if (ancestor is LibraryElementImpl) {
-          components.insert(0, ancestor.identifier);
-        } else if (ancestor is AugmentableElement) {
-          components.insert(0, ancestor.identifier);
-        } else {
-          throw '${ancestor.runtimeType} is not an ElementImpl2';
-        }
-        ancestor = ancestor.enclosingElement2;
-      } else {
-        components.insert(0, ancestor.identifier);
-        if (ancestor is LocalFunctionElementImpl) {
-          ancestor = (ancestor.wrappedElement._enclosingElement3
-                  as ExecutableElementImpl)
-              .element;
-        } else {
-          ancestor = ancestor.enclosingElement2;
-        }
-      }
-    }
-    _components = components.toFixedList();
-  }
-
   @override
   List<String> get components => _components;
 
@@ -3682,7 +3649,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     implements ExecutableElement, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
-  List<ParameterElement> _parameters = const [];
+  List<ParameterElementImpl> _parameters = const [];
 
   /// The inferred return type of this executable element.
   DartType? _returnType;
@@ -3805,16 +3772,16 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     linkedData?.read(this);
     return _parameters;
   }
 
   /// Set the parameters defined by this executable element to the given
   /// [parameters].
-  set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement3 = this;
+  set parameters(List<ParameterElementImpl> parameters) {
+    for (var parameter in parameters) {
+      parameter.enclosingElement3 = this;
     }
     _parameters = parameters;
   }
@@ -4365,8 +4332,8 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   });
 
   @override
-  FieldFormalParameterElement2 get element =>
-      super.element as FieldFormalParameterElement2;
+  FieldFormalParameterElementImpl2 get element =>
+      super.element as FieldFormalParameterElementImpl2;
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -4393,7 +4360,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
       visitor.visitFieldFormalParameterElement(this);
 
   @override
-  FormalParameterElement _createElement(
+  FieldFormalParameterElementImpl2 _createElement(
           FormalParameterFragment firstFragment) =>
       FieldFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
 }
@@ -4417,8 +4384,9 @@ class FormalParameterElementImpl extends PromotableElementImpl2
     with
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
         FragmentedElementMixin<FormalParameterFragment>,
+        FormalParameterElementMixin,
         _NonTopLevelVariableOrParameter
-    implements FormalParameterElement {
+    implements FormalParameterElementOrMember {
   final ParameterElementImpl wrappedElement;
 
   FormalParameterElementImpl(this.wrappedElement) {
@@ -4509,12 +4477,13 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  LibraryElement2 get library2 =>
-      wrappedElement.thisOrAncestorOfType<LibraryElementImpl>()
-          as LibraryElement2;
+  LibraryElement2? get library2 => wrappedElement.library2;
 
   @override
   String? get name3 => wrappedElement.name;
+
+  @override
+  String get nameShared => wrappedElement.name;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -4533,12 +4502,6 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   }
 
   @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    // TODO(augmentations): Implement the merge of formal parameters.
-    wrappedElement.appendToWithoutDelimiters(buffer);
-  }
-
-  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   DartObject? computeConstantValue() => wrappedElement.computeConstantValue();
 
@@ -4552,6 +4515,28 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
 }
+
+/// A mixin that provides a common implementation for methods defined in
+/// [FormalParameterElement].
+mixin FormalParameterElementMixin implements FormalParameterElement {
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    buffer.write(
+      type.getDisplayString(),
+    );
+    buffer.write(' ');
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      buffer.write(' = ');
+      buffer.write(defaultValueCode);
+    }
+  }
+}
+
+abstract class FormalParameterElementOrMember
+    implements
+        FormalParameterElement,
+        SharedNamedFunctionParameterStructure<DartType> {}
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
@@ -4884,8 +4869,10 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
       -1, metadata.cast<ElementAnnotationImpl>(), () => sinceSdkVersion);
 
   Version? get sinceSdkVersion {
-    var annotations = metadata.cast<ElementAnnotationImpl>();
-    return SinceSdkVersionComputer.fromAnnotations(annotations);
+    if (this is Element2) {
+      return SinceSdkVersionComputer().compute2(this as Element2);
+    }
+    return null;
   }
 }
 
@@ -5609,9 +5596,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       .toList();
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .map((fragment) => fragment.element)
           .toList();
 
   @override
@@ -8994,7 +8981,7 @@ class ParameterElementImpl extends VariableElementImpl
   bool inheritsCovariant = false;
 
   /// The element corresponding to this fragment.
-  FormalParameterElement? _element;
+  FormalParameterElementImpl? _element;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -9030,7 +9017,7 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElement get declaration => this;
 
   @override
-  FormalParameterElement get element {
+  FormalParameterElementImpl get element {
     if (_element != null) {
       return _element!;
     }
@@ -9045,7 +9032,7 @@ class ParameterElementImpl extends VariableElementImpl
     return _createElement(firstFragment);
   }
 
-  set element(FormalParameterElement element) => _element = element;
+  set element(FormalParameterElementImpl element) => _element = element;
 
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
@@ -9135,7 +9122,7 @@ class ParameterElementImpl extends VariableElementImpl
     builder.writeFormalParameter(this);
   }
 
-  FormalParameterElement _createElement(
+  FormalParameterElementImpl _createElement(
           FormalParameterFragment firstFragment) =>
       FormalParameterElementImpl(firstFragment as ParameterElementImpl);
 }
@@ -9206,10 +9193,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-mixin ParameterElementMixin
-    implements
-        ParameterElement,
-        SharedNamedFunctionParameterStructure<DartType> {
+mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind.isNamed;
 
@@ -9872,7 +9856,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   Element get nonSynthetic => variable2;
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     if (_parameters.isNotEmpty) {
       return _parameters;
     }
@@ -10216,8 +10200,8 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   });
 
   @override
-  SuperFormalParameterElement2 get element =>
-      super.element as SuperFormalParameterElement2;
+  SuperFormalParameterElementImpl2 get element =>
+      super.element as SuperFormalParameterElementImpl2;
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -10271,7 +10255,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   }
 
   @override
-  FormalParameterElement _createElement(
+  FormalParameterElementImpl _createElement(
           FormalParameterFragment firstFragment) =>
       SuperFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
 }
@@ -10768,7 +10752,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters2
           .map((fragment) => fragment.element)
           .toList();
@@ -10867,7 +10851,7 @@ class TypeParameterElementImpl extends ElementImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
       firstFragment: firstFragment,
-      name3: firstFragment.name,
+      name3: firstFragment.name.nullIfEmpty,
       bound: firstFragment.bound,
     );
   }
@@ -10982,12 +10966,12 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements TypeParameterElement2 {
+    implements TypeParameterElement2, SharedTypeParameterStructure<DartType> {
   @override
   final TypeParameterElementImpl firstFragment;
 
   @override
-  final String name3;
+  final String? name3;
 
   @override
   DartType? bound;
@@ -11007,11 +10991,15 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   @override
   TypeParameterElement2 get baseElement => this;
 
+  bool get isLegacyCovariant => firstFragment.isLegacyCovariant;
+
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
   LibraryElement2? get library2 => firstFragment.library2;
+
+  shared.Variance get variance => firstFragment.variance;
 
   @override
   Element? get _enclosingFunction => firstFragment._enclosingElement3;
@@ -11047,7 +11035,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
         _ExistingElementImpl,
         TypeParameterizedElement,
         TypeParameterizedFragment {
-  List<TypeParameterElement> _typeParameters = const [];
+  List<TypeParameterElementImpl> _typeParameters = const [];
 
   @override
   List<Fragment> get children3 => children.whereType<Fragment>().toList();
@@ -11061,21 +11049,21 @@ mixin TypeParameterizedElementMixin on ElementImpl
   ElementLinkedData? get linkedData;
 
   @override
-  List<TypeParameterElement> get typeParameters {
+  List<TypeParameterElementImpl> get typeParameters {
     linkedData?.read(this);
     return _typeParameters;
   }
 
-  set typeParameters(List<TypeParameterElement> typeParameters) {
+  set typeParameters(List<TypeParameterElementImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement3 = this;
+      typeParameter.enclosingElement3 = this;
     }
     _typeParameters = typeParameters;
   }
 
   @override
-  List<TypeParameterFragment> get typeParameters2 =>
-      typeParameters.cast<TypeParameterFragment>();
+  List<TypeParameterElementImpl> get typeParameters2 =>
+      typeParameters.cast<TypeParameterElementImpl>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

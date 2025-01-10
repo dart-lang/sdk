@@ -54,10 +54,10 @@ class StringTokenImpl extends SimpleToken implements StringToken {
       TokenType type, String data, int start, int end, int charOffset,
       {bool canonicalize = false,
       CommentToken? precedingComments,
-      bool allowLazyFoo = true})
+      bool allowLazy = true})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
-    if (!allowLazyFoo || length <= LAZY_THRESHOLD) {
+    if (!allowLazy || length <= LAZY_THRESHOLD) {
       valueOrLazySubstring = canonicalize
           ? canonicalizeSubString(data, start, end)
           : data.substring(start, end);
@@ -73,10 +73,10 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    */
   StringTokenImpl.fromUtf8Bytes(TokenType type, Uint8List data, int start,
       int end, bool asciiOnly, int charOffset,
-      {CommentToken? precedingComments, bool allowLazyFoo = true})
+      {CommentToken? precedingComments, bool allowLazy = true})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
-    if (!allowLazyFoo || length <= LAZY_THRESHOLD) {
+    if (!allowLazy || length <= LAZY_THRESHOLD) {
       valueOrLazySubstring =
           canonicalizeUtf8SubString(data, start, end, asciiOnly);
     } else {

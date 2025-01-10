@@ -68,15 +68,15 @@ class FlutterStatefulWidgetWithAnimationController
         builder.write('class _');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
-        builder.writeReference2(classState);
+        builder.writeReference(classState);
         builder.write('<');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('>');
         builder.write('    with ');
-        builder.writeReference2(classSingleTickerProviderStateMixin);
+        builder.writeReference(classSingleTickerProviderStateMixin);
         builder.writeln(' {');
         builder.write('  late ');
-        builder.writeReference2(classAnimationController);
+        builder.writeReference(classAnimationController);
         builder.writeln(' _controller;');
         builder.writeln();
         {
@@ -90,7 +90,7 @@ class FlutterStatefulWidgetWithAnimationController
               builder.writeln('{');
               builder.writeln('    super.initState();');
               builder.write('    _controller = ');
-              builder.writeReference2(classAnimationController);
+              builder.writeReference(classAnimationController);
               builder.writeln('(vsync: this);');
               builder.writeln('  }');
             },

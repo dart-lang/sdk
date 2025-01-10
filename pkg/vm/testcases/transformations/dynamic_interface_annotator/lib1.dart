@@ -74,3 +74,23 @@ class _L {
 }
 
 class _M extends _L implements K {}
+
+class N {}
+
+class O extends N {}
+
+class P {}
+
+class Q implements P {}
+
+final class R {}
+
+final class S extends R {}
+
+final class T {}
+
+final class U {
+  void foo() => print(3);
+}
+
+base class V {}

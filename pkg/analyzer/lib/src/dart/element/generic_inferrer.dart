@@ -6,19 +6,12 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/ast.dart'
-    show
-        Annotation,
-        AsExpression,
-        AstNode,
-        ConstructorName,
-        Expression,
-        InvocationExpression,
-        SimpleIdentifier;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -58,11 +51,12 @@ import 'package:collection/collection.dart';
 /// infer a single call and discarded immediately afterwards.
 class GenericInferrer {
   final TypeSystemImpl _typeSystem;
-  final Set<TypeParameterElement> _typeParameters = Set.identity();
-  final Map<TypeParameterElement, List<MergedTypeConstraint>> _constraints = {};
+  final Set<TypeParameterElementImpl2> _typeParameters = Set.identity();
+  final Map<TypeParameterElementImpl2, List<MergedTypeConstraint>>
+      _constraints = {};
 
   /// The list of type parameters being inferred.
-  final List<TypeParameterElement> _typeFormals;
+  final List<TypeParameterElementImpl2> _typeFormals;
 
   /// The [ErrorReporter] to which inference errors should be reported, or
   /// `null` if errors shouldn't be reported.
@@ -106,13 +100,13 @@ class GenericInferrer {
   /// is explicitly specified using the as-yet-unreleased "variance" feature,
   /// since type parameters whose variance is explicitly specified don't undergo
   /// implicit runtime checks).
-  final Map<TypeParameterElement, DartType> _typesInferredSoFar = {};
+  final Map<TypeParameterElementImpl2, DartType> _typesInferredSoFar = {};
 
   final TypeSystemOperations _typeSystemOperations;
 
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  GenericInferrer(this._typeSystem, this._typeFormals,
+  GenericInferrer(this._typeSystem, List<TypeParameterElement2> typeFormals,
       {this.errorReporter,
       this.errorEntity,
       required this.genericMetadataIsEnabled,
@@ -120,7 +114,10 @@ class GenericInferrer {
       required bool strictInference,
       required TypeSystemOperations typeSystemOperations,
       required this.dataForTesting})
-      : _strictInference = strictInference,
+      // TODO(paulberry): make this cast unnecessary by changing `typeFormals`
+      // to `List<TypeParameterElementImpl2>`.
+      : _typeFormals = typeFormals.cast(),
+        _strictInference = strictInference,
         _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
       assert(errorEntity != null);
@@ -149,7 +146,7 @@ class GenericInferrer {
   /// type is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
-      {InterfaceElement? genericClass, required AstNode? nodeForTesting}) {
+      {InterfaceElement? genericClass, required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromArgument(
       argumentType: SharedTypeView(argumentType),
       parameterType: SharedTypeView(parameterType),
@@ -170,7 +167,7 @@ class GenericInferrer {
       {InterfaceElement? genericClass,
       required List<ParameterElement> parameters,
       required List<DartType> argumentTypes,
-      required AstNode? nodeForTesting}) {
+      required AstNodeImpl? nodeForTesting}) {
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
@@ -188,7 +185,7 @@ class GenericInferrer {
   /// [contextType].
   void constrainGenericFunctionInContext(
       FunctionType fnType, DartType contextType,
-      {required AstNode? nodeForTesting}) {
+      {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromFunctionContext(
         functionType: fnType, contextType: contextType);
 
@@ -212,7 +209,7 @@ class GenericInferrer {
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType,
-      {required AstNode? nodeForTesting}) {
+      {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromReturnType(
         declaredType: declaredType, contextType: contextType);
     inferenceLogWriter?.enterConstraintGeneration(
@@ -231,7 +228,7 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, DartType>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
-      TypeParameterElement parameter = _typeFormals[i];
+      TypeParameterElementImpl2 parameter = _typeFormals[i];
       var constraints = _constraints[parameter]!;
 
       var inferred = inferredTypes[i];
@@ -240,13 +237,14 @@ class GenericInferrer {
 
       // If everything else succeeded, check the `extends` constraint.
       if (success) {
+        var name = parameter.name3;
         var parameterBoundRaw = parameter.bound;
-        if (parameterBoundRaw != null) {
+        if (name != null && parameterBoundRaw != null) {
           var parameterBound =
-              Substitution.fromPairs(_typeFormals, inferredTypes)
+              Substitution.fromPairs2(_typeFormals, inferredTypes)
                   .substituteType(parameterBoundRaw);
           var extendsConstraint = MergedTypeConstraint.fromExtends(
-            typeParameterName: parameter.name,
+            typeParameterName: name,
             boundType: SharedTypeView(parameterBoundRaw),
             extendsType: SharedTypeView(parameterBound),
             typeAnalyzerOperations: _typeSystemOperations,
@@ -263,13 +261,16 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
+
+        var name = parameter.name3;
+        if (name == null) {
+          return null;
+        }
+
         errorReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
-          arguments: [
-            parameter.name,
-            _formatError(parameter, inferred, constraints)
-          ],
+          arguments: [name, _formatError(parameter, inferred, constraints)],
         );
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -287,13 +288,19 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
+
+        var name = parameter.name3;
+        if (name == null) {
+          return null;
+        }
+
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter!.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            parameter.name,
+            name,
             ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
                 ' [$typeFormalsStr], but a function with'
                 ' type parameters cannot be used as a type argument.'
@@ -302,7 +309,7 @@ class GenericInferrer {
       }
 
       if (UnknownInferredType.isKnown(inferred)) {
-        knownTypes[parameter] = inferred;
+        knownTypes[parameter.firstFragment] = inferred;
       } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
@@ -318,8 +325,10 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = List<bool>.filled(_typeFormals.length, false);
-    var result = _typeSystem.instantiateTypeFormalsToBounds(_typeFormals,
-        hasError: hasError, knownTypes: knownTypes);
+    var result = _typeSystem.instantiateTypeFormalsToBounds(
+        _typeFormals.map((e) => e.firstFragment).toList(),
+        hasError: hasError,
+        knownTypes: knownTypes);
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
@@ -329,15 +338,22 @@ class GenericInferrer {
           return null;
         }
         hasErrorReported = true;
-        TypeParameterElement typeParam = _typeFormals[i];
-        var typeParamBound = Substitution.fromPairs(_typeFormals, inferredTypes)
-            .substituteType(typeParam.bound ?? typeProvider.objectType);
+        TypeParameterElementImpl2 typeParam = _typeFormals[i];
+
+        var name = typeParam.name3;
+        if (name == null) {
+          return null;
+        }
+
+        var typeParamBound =
+            Substitution.fromPairs2(_typeFormals, inferredTypes)
+                .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
         errorReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            typeParam.name,
+            name,
             "\nRecursive bound cannot be instantiated: '$typeParamBound'."
                 "\nConsider passing explicit type argument(s) "
                 "to the generic.\n\n'"
@@ -374,14 +390,20 @@ class GenericInferrer {
         continue;
       }
 
-      var substitution = Substitution.fromPairs(_typeFormals, typeArguments);
+      var name = parameter.name3;
+      if (name == null) {
+        continue;
+      }
+
+      var substitution = Substitution.fromPairs2(
+          _typeFormals.map((e) => e).toList(), typeArguments);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
         errorReporter?.atEntity(
           errorEntity!,
           CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
-            parameter.name,
+            name,
             "\n'${_typeStr(argument)}' doesn't conform to "
                 "the bound '${_typeStr(bound)}'"
                 ", instantiated from '${_typeStr(rawBound)}'"
@@ -417,13 +439,10 @@ class GenericInferrer {
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType _chooseTypeFromConstraints(
-      Iterable<MergedTypeConstraint> constraints,
-      {bool toKnownType = false,
-      required bool isContravariant}) {
-    var (:lower, :upper) =
-        _computeLowerAndUpperBoundsOfConstraints(constraints);
-
+  DartType _chooseTypeFromConstraint(MergedTypeConstraint constraint,
+      {bool toKnownType = false, required bool isContravariant}) {
+    DartType upper = constraint.upper.unwrapTypeSchemaView();
+    DartType lower = constraint.lower.unwrapTypeSchemaView();
     // Prefer the known bound, if any.
     // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
     //
@@ -467,43 +486,44 @@ class GenericInferrer {
         _typeFormals.length, UnknownInferredType.instance);
     var inferencePhaseConstraints = {
       for (var typeParameter in _constraints.keys)
-        typeParameter: [...?_constraints[typeParameter]]
+        typeParameter: _squashConstraints(_constraints[typeParameter]!)
     };
     for (int i = 0; i < _typeFormals.length; i++) {
       // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
-      var typeParam = _typeFormals[i] as TypeParameterElementImpl;
+      var typeParam = _typeFormals[i];
       MergedTypeConstraint? extendsClause;
+      var name = typeParam.name3;
       var bound = typeParam.bound;
-      if (bound != null) {
+      if (name != null && bound != null) {
         extendsClause = MergedTypeConstraint.fromExtends(
-          typeParameterName: typeParam.name,
+          typeParameterName: name,
           boundType: SharedTypeView(bound),
           extendsType: SharedTypeView(
-              Substitution.fromPairs(_typeFormals, inferredTypes)
+              Substitution.fromPairs2(_typeFormals, inferredTypes)
                   .substituteType(bound)),
           typeAnalyzerOperations: _typeSystemOperations,
         );
       }
 
-      var constraints = inferencePhaseConstraints[typeParam]!;
+      var constraint = inferencePhaseConstraints[typeParam]!;
       var previouslyInferredType = _typesInferredSoFar[typeParam];
       if (previouslyInferredType != null) {
         inferredTypes[i] = previouslyInferredType;
       } else if (preliminary) {
         var inferredType = _inferTypeParameterFromContext(
-            constraints, extendsClause,
+            constraint, extendsClause,
             isContravariant: typeParam.variance.isContravariant,
             typeParameterToInfer: typeParam,
             inferencePhaseConstraints: inferencePhaseConstraints);
+
         inferredTypes[i] = inferredType;
         if (typeParam.isLegacyCovariant &&
             UnknownInferredType.isKnown(inferredType)) {
           _typesInferredSoFar[typeParam] = inferredType;
         }
       } else {
-        inferredTypes[i] = _inferTypeParameterFromAll(
-            constraints, extendsClause,
+        inferredTypes[i] = _inferTypeParameterFromAll(constraint, extendsClause,
             isContravariant: typeParam.variance.isContravariant,
             typeParameterToInfer: typeParam,
             inferencePhaseConstraints: inferencePhaseConstraints);
@@ -511,32 +531,6 @@ class GenericInferrer {
     }
 
     return inferredTypes;
-  }
-
-  ({DartType lower, DartType upper}) _computeLowerAndUpperBoundsOfConstraints(
-      Iterable<MergedTypeConstraint> constraints) {
-    DartType lower = UnknownInferredType.instance;
-    DartType upper = UnknownInferredType.instance;
-    for (var constraint in constraints) {
-      // Given constraints:
-      //
-      //     L1 <: T <: U1
-      //     L2 <: T <: U2
-      //
-      // These can be combined to produce:
-      //
-      //     LUB(L1, L2) <: T <: GLB(U1, U2).
-      //
-      // This can then be done for all constraints in sequence.
-      //
-      // This resulting constraint may be unsatisfiable; in that case inference
-      // will fail.
-      upper = _typeSystem.greatestLowerBound(
-          upper, constraint.upper.unwrapTypeSchemaView());
-      lower = _typeSystem.leastUpperBound(
-          lower, constraint.lower.unwrapTypeSchemaView());
-    }
-    return (lower: lower, upper: upper);
   }
 
   void _demoteTypes(List<DartType> types) {
@@ -549,10 +543,10 @@ class GenericInferrer {
     return element.getDisplayString();
   }
 
-  String _formatError(TypeParameterElement typeParam, DartType inferred,
+  String _formatError(TypeParameterElementImpl2 typeParam, DartType inferred,
       Iterable<MergedTypeConstraint> constraints) {
     var inferredStr = inferred.getDisplayString();
-    var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
+    var intro = "Tried to infer '$inferredStr' for '${typeParam.name3}'"
         " which doesn't work:";
 
     var constraintsByOrigin =
@@ -584,52 +578,52 @@ class GenericInferrer {
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 
-  DartType _inferTypeParameterFromAll(List<MergedTypeConstraint> constraints,
-      MergedTypeConstraint? extendsClause,
+  DartType _inferTypeParameterFromAll(
+      MergedTypeConstraint constraint, MergedTypeConstraint? extendsClause,
       {required bool isContravariant,
-      required TypeParameterElement typeParameterToInfer,
-      required Map<TypeParameterElement, List<MergedTypeConstraint>>
+      required TypeParameterElementImpl2 typeParameterToInfer,
+      required Map<TypeParameterElementImpl2, MergedTypeConstraint>
           inferencePhaseConstraints}) {
     if (extendsClause != null) {
-      var (:lower, upper: _) =
-          _computeLowerAndUpperBoundsOfConstraints(constraints);
-
       MergedTypeConstraint? boundConstraint;
       if (inferenceUsingBoundsIsEnabled) {
-        if (!identical(lower, UnknownInferredType.instance)) {
-          boundConstraint = _mergeInConstraintsFromBound(
+        if (!identical(constraint.lower.unwrapTypeSchemaView(),
+            UnknownInferredType.instance)) {
+          boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              lower: lower,
-              inferencePhaseConstraints: inferencePhaseConstraints);
+              typeParametersToInfer: _typeFormals,
+              lower: constraint.lower.unwrapTypeSchemaView(),
+              inferencePhaseConstraints: inferencePhaseConstraints,
+              dataForTesting: dataForTesting,
+              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
         }
       }
 
-      constraints = [
-        ...constraints,
+      constraint = _squashConstraints([
+        constraint,
         extendsClause,
         if (boundConstraint != null &&
             !boundConstraint.isEmpty(_typeSystemOperations))
           boundConstraint
-      ];
+      ]);
     }
 
-    var choice = _chooseTypeFromConstraints(constraints,
+    var choice = _chooseTypeFromConstraint(constraint,
         toKnownType: true, isContravariant: isContravariant);
     return choice;
   }
 
   DartType _inferTypeParameterFromContext(
-      Iterable<MergedTypeConstraint> constraints,
-      MergedTypeConstraint? extendsClause,
+      MergedTypeConstraint constraint, MergedTypeConstraint? extendsClause,
       {required bool isContravariant,
-      required TypeParameterElement typeParameterToInfer,
-      required Map<TypeParameterElement, List<MergedTypeConstraint>>
+      required TypeParameterElementImpl2 typeParameterToInfer,
+      required Map<TypeParameterElementImpl2, MergedTypeConstraint>
           inferencePhaseConstraints}) {
     // Both bits of the bound information should be available at the same time.
     assert(extendsClause == null || typeParameterToInfer.bound != null);
 
-    DartType t = _chooseTypeFromConstraints(constraints,
-        isContravariant: isContravariant);
+    DartType t =
+        _chooseTypeFromConstraint(constraint, isContravariant: isContravariant);
     if (UnknownInferredType.isUnknown(t)) {
       return t;
     }
@@ -642,81 +636,31 @@ class GenericInferrer {
     //
     // If we consider the `T extends num` we conclude `<num>`, which works.
     if (extendsClause != null) {
-      var (:lower, upper: _) =
-          _computeLowerAndUpperBoundsOfConstraints(constraints);
-
       MergedTypeConstraint? boundConstraint;
       if (inferenceUsingBoundsIsEnabled) {
-        if (!identical(lower, UnknownInferredType.instance)) {
-          boundConstraint = _mergeInConstraintsFromBound(
+        if (!identical(constraint.lower.unwrapTypeSchemaView(),
+            UnknownInferredType.instance)) {
+          boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              lower: lower,
-              inferencePhaseConstraints: inferencePhaseConstraints);
+              typeParametersToInfer: _typeFormals,
+              lower: constraint.lower.unwrapTypeSchemaView(),
+              inferencePhaseConstraints: inferencePhaseConstraints,
+              dataForTesting: dataForTesting,
+              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
         }
       }
 
-      constraints = [
-        ...constraints,
+      constraint = _squashConstraints([
+        constraint,
         extendsClause,
         if (boundConstraint != null &&
             !boundConstraint.isEmpty(_typeSystemOperations))
           boundConstraint
-      ];
-      return _chooseTypeFromConstraints(constraints,
+      ]);
+      return _chooseTypeFromConstraint(constraint,
           isContravariant: isContravariant);
     }
     return t;
-  }
-
-  MergedTypeConstraint _mergeInConstraintsFromBound(
-      {required TypeParameterElement typeParameterToInfer,
-      required DartType lower,
-      required Map<TypeParameterElement, List<MergedTypeConstraint>>
-          inferencePhaseConstraints}) {
-    // The type parameter's bound may refer to itself (or other type
-    // parameters), so we might have to create an additional constraint.
-    // Consider this example from
-    // https://github.com/dart-lang/language/issues/3009:
-    //
-    //     class A<X extends A<X>> {}
-    //     class B extends A<B> {}
-    //     class C extends B {}
-    //     void f<X extends A<X>>(X x) {}
-    //     void main() {
-    //       f(C()); // should infer f<B>(C()).
-    //     }
-    //
-    // In order for `f(C())` to be inferred as `f<B>(C())`, we need to
-    // generate the constraint `X <: B`. To do this, we first take the lower
-    // constraint we've accumulated so far (which, in this example, is `C`,
-    // due to the presence of the actual argument `C()`), and use subtype
-    // constraint generation to match it against the explicit bound (which
-    // is `A<X>`; hence we perform `C <# A<X>`). If this produces any
-    // constraints (i.e. `X <: B` in this example), then they are added to
-    // the set of constraints just before choosing the final type.
-
-    DartType typeParameterToInferBound = typeParameterToInfer.bound!;
-    TypeConstraintGatherer typeConstraintGatherer = TypeConstraintGatherer(
-        typeSystemOperations: _typeSystemOperations,
-        typeParameters: _typeFormals,
-        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-        dataForTesting: null);
-    typeConstraintGatherer.performSubtypeConstraintGenerationInternal(
-        lower, typeParameterToInferBound,
-        leftSchema: true, astNodeForTesting: null);
-    var constraintsPerTypeVariable =
-        typeConstraintGatherer.computeConstraints();
-    for (var typeParameter in constraintsPerTypeVariable.keys) {
-      var constraint = constraintsPerTypeVariable[typeParameter]!;
-      constraint.origin = TypeConstraintFromExtendsClause(
-          typeParameterName: typeParameterToInfer.name,
-          boundType: SharedTypeView(typeParameterToInferBound),
-          extendsType: SharedTypeView(typeParameterToInferBound));
-      if (!constraint.isEmpty(_typeSystemOperations)) {
-        (inferencePhaseConstraints[typeParameter] ??= []).add(constraint);
-      }
-    }
-    return constraintsPerTypeVariable[typeParameterToInfer]!;
   }
 
   /// Reports an inference failure on [errorEntity] according to its type.
@@ -800,13 +744,44 @@ class GenericInferrer {
     }
   }
 
+  MergedTypeConstraint _squashConstraints(
+      Iterable<MergedTypeConstraint> constraints) {
+    DartType lower = UnknownInferredType.instance;
+    DartType upper = UnknownInferredType.instance;
+    TypeConstraintOrigin origin = UnknownTypeConstraintOrigin();
+
+    for (var constraint in constraints) {
+      // Given constraints:
+      //
+      //     L1 <: T <: U1
+      //     L2 <: T <: U2
+      //
+      // These can be combined to produce:
+      //
+      //     LUB(L1, L2) <: T <: GLB(U1, U2).
+      //
+      // This can then be done for all constraints in sequence.
+      //
+      // This resulting constraint may be unsatisfiable; in that case inference
+      // will fail.
+      upper = _typeSystem.greatestLowerBound(
+          upper, constraint.upper.unwrapTypeSchemaView());
+      lower = _typeSystem.leastUpperBound(
+          lower, constraint.lower.unwrapTypeSchemaView());
+    }
+    return MergedTypeConstraint(
+        lower: SharedTypeSchemaView(lower),
+        upper: SharedTypeSchemaView(upper),
+        origin: origin);
+  }
+
   /// Tries to make [t1] a subtype of [t2] and accumulate constraints as needed.
   ///
   /// The return value indicates whether the match was successful.  If it was
   /// unsuccessful, any constraints that were accumulated during the match
   /// attempt have been rewound.
   bool _tryMatchSubtypeOf(DartType t1, DartType t2, TypeConstraintOrigin origin,
-      {required bool covariant, required AstNode? nodeForTesting}) {
+      {required bool covariant, required AstNodeImpl? nodeForTesting}) {
     var gatherer = TypeConstraintGatherer(
         typeParameters: _typeParameters,
         typeSystemOperations: _typeSystemOperations,

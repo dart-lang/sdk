@@ -18,7 +18,7 @@ class InvalidInternalAnnotationTest extends PubPackageResolutionTest {
   String get testPackageLibSrcFilePath => '$testPackageLibPath/src/foo.dart';
 
   @override
-  void setUp() async {
+  void setUp() {
     super.setUp();
     writeTestPackageConfigWithMeta();
     newPubspecYamlFile(testPackageRootPath, r'''

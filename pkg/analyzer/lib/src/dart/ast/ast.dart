@@ -15928,6 +15928,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Token get beginToken => token;
 
+  set element(Element2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken => token;
 

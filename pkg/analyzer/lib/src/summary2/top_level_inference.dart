@@ -178,7 +178,7 @@ class _InitializerInference {
 
     _toInfer.add(element);
 
-    var node = _linker.getLinkingNode(element) as VariableDeclaration;
+    var node = _linker.getLinkingNode(element) as VariableDeclarationImpl;
     element.typeInference = _PropertyInducingElementTypeInference(_linker,
         _inferring, _unitElement, _scope, element, node, _libraryBuilder);
   }
@@ -200,7 +200,7 @@ class _PropertyInducingElementTypeInference
   final CompilationUnitElementImpl _unitElement;
   final Scope _scope;
   final PropertyInducingElementImpl _element;
-  final VariableDeclaration _node;
+  final VariableDeclarationImpl _node;
 
   _PropertyInducingElementTypeInference(
       this._linker,

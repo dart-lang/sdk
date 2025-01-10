@@ -131,7 +131,7 @@ class LibraryMap {
   /// not map to a library.
   SdkLibrary? getLibrary(String uri) => _libraryMap[uri];
 
-  /// Set the library with the given 'dart:' [uri] to the given [library].
+  /// Set the library with the given 'dart:' [dartUri] to the given [library].
   void setLibrary(String dartUri, SdkLibraryImpl library) {
     _libraryMap[dartUri] = library;
   }
@@ -193,7 +193,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// the library can be used.
   static const String _PLATFORMS = "platforms";
 
-  /// The value of the [PLATFORMS] parameter used to specify that the library
+  /// The value of the [_PLATFORMS] parameter used to specify that the library
   /// can be used on the VM.
   static const String _VM_PLATFORM = "VM_PLATFORM";
 
@@ -333,7 +333,7 @@ class SdkLibraryImpl implements SdkLibrary {
   int _platforms = 0;
 
   /// Initialize a newly created library to represent the library with the given
-  /// [name].
+  /// [shortName].
   SdkLibraryImpl(this.shortName);
 
   /// Set whether the library is documented.

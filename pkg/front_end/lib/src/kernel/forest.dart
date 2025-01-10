@@ -671,8 +671,7 @@ class Forest {
 
   TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
       TypeParameter typeParameter, Library library) {
-    return new TypeParameterType.withDefaultNullabilityForLibrary(
-        typeParameter, library);
+    return new TypeParameterType.withDefaultNullability(typeParameter);
   }
 
   Expression createExpressionInvocation(

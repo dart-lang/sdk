@@ -26597,7 +26597,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-        
+        <null-name>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new

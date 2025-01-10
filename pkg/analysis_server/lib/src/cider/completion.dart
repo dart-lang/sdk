@@ -55,11 +55,11 @@ class CiderCompletionComputer {
     required int column,
     @visibleForTesting
     void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
-  }) async {
+  }) {
     return _performanceRoot.runAsync('completion', (performance) async {
       var resolvedUnit = await performance.runAsync('resolution', (
         performance,
-      ) async {
+      ) {
         return _fileResolver.resolveForCompletion(
           completionLine: line,
           completionColumn: column,

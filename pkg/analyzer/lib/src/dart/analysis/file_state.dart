@@ -204,7 +204,7 @@ abstract class FileKind {
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
   List<PartIncludeState>? _partIncludes;
-  List<LibraryImportState>? _docImports;
+  List<LibraryImportState>? _docLibraryImports;
 
   FileKind({
     required this.file,
@@ -222,13 +222,10 @@ abstract class FileKind {
     );
   }
 
-  /// The import states of each `@docImport` on the library directive.
-  List<LibraryImportState> get docImports {
-    if (_docImports case var existing?) {
-      return existing;
-    }
-
-    return _docImports =
+  /// The import states of each `@docImport` on the library directive or
+  /// part-of directive.
+  List<LibraryImportState> get docLibraryImports {
+    return _docLibraryImports ??=
         _unlinkedDocImports.map(_buildLibraryImportState).toFixedList();
   }
 
@@ -382,7 +379,7 @@ abstract class FileKind {
     libraryExports;
     libraryImports;
     partIncludes;
-    docImports;
+    docLibraryImports;
   }
 
   @mustCallSuper
@@ -392,7 +389,7 @@ abstract class FileKind {
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
     _partIncludes?.disposeAll();
-    _docImports?.disposeAll();
+    _docLibraryImports?.disposeAll();
   }
 
   /// Dispose the containing [LibraryFileKind] cycle.

@@ -4,9 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 final bool _assertionsEnabled = () {
@@ -74,7 +74,8 @@ enum ExpressionVisitCodePath {
 /// functionality.
 abstract interface class InferenceLogWriter
     implements
-        SharedInferenceLogWriter<DartType, DartType, TypeParameterElement> {
+        SharedInferenceLogWriter<DartType, DartType,
+            TypeParameterElementImpl2> {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
@@ -109,7 +110,9 @@ abstract interface class InferenceLogWriter
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
 final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
-    DartType, DartType, TypeParameterElement> implements InferenceLogWriter {
+    DartType,
+    DartType,
+    TypeParameterElementImpl2> implements InferenceLogWriter {
   /// Whether type inference is currently inside the body of a top level
   /// function or method, or the initializer of a top level variable or field,
   /// or the initializers and body of a constructor.

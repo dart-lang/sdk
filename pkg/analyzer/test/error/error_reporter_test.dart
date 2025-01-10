@@ -24,34 +24,37 @@ class ErrorReporterTest extends PubPackageResolutionTest {
 
   test_atElement_named() async {
     await resolveTestCode('class A {}');
-    var element = findElement.class_('A');
-    var reporter = ErrorReporter(listener, element.source);
-    reporter.atElement(
+    var element = findElement2.class_('A');
+    var firstFragment = element.firstFragment;
+    var reporter =
+        ErrorReporter(listener, firstFragment.libraryFragment.source);
+    reporter.atElement2(
       element,
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
       arguments: ['A'],
     );
 
     var error = listener.errors[0];
-    expect(error.offset, element.nameOffset);
+    expect(error.offset, firstFragment.nameOffset2);
   }
 
   test_atElement_unnamed() async {
     await resolveTestCode(r'''
-import 'dart:async';
-import 'dart:math';
+extension on int {}
 ''');
-    var element = findElement.import('dart:math');
+    var element = findElement2.unnamedExtension();
 
-    var reporter = ErrorReporter(listener, element.source);
-    reporter.atElement(
+    var firstFragment = element.firstFragment;
+    var reporter =
+        ErrorReporter(listener, firstFragment.libraryFragment.source);
+    reporter.atElement2(
       element,
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
       arguments: ['A'],
     );
 
     var error = listener.errors[0];
-    expect(error.offset, element.nameOffset);
+    expect(error.offset, -1);
   }
 
   test_atNode_types_differentNames() async {
@@ -65,8 +68,8 @@ main() {
   x;
 }
 ''');
-    var aImport = findElement.importFind('package:test/a.dart');
-    var bImport = findElement.importFind('package:test/b.dart');
+    var aImport = findElement2.importFind('package:test/a.dart');
+    var bImport = findElement2.importFind('package:test/b.dart');
 
     var firstType = aImport.class_('A').instantiate(
       typeArguments: [],
@@ -77,7 +80,8 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(listener, firstType.element.source);
+    var reporter = ErrorReporter(
+        listener, firstType.element3.firstFragment.libraryFragment.source);
 
     reporter.atNode(
       findNode.simple('x'),
@@ -100,8 +104,8 @@ main() {
   x;
 }
 ''');
-    var aImport = findElement.importFind('package:test/a.dart');
-    var bImport = findElement.importFind('package:test/b.dart');
+    var aImport = findElement2.importFind('package:test/a.dart');
+    var bImport = findElement2.importFind('package:test/b.dart');
 
     var firstType = aImport.class_('A').instantiate(
       typeArguments: [],
@@ -112,7 +116,8 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(listener, firstType.element.source);
+    var reporter = ErrorReporter(
+        listener, firstType.element3.firstFragment.libraryFragment.source);
     reporter.atNode(
       findNode.simple('x'),
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -140,7 +145,7 @@ main() {
     var fa = findNode.topLevelVariableDeclaration('fa');
     var fb = findNode.topLevelVariableDeclaration('fb');
 
-    var source = result.unit.declaredElement!.source;
+    var source = result.unit.declaredFragment!.libraryFragment!.source;
     var reporter = ErrorReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
@@ -171,7 +176,7 @@ main() {
     var ba = findNode.topLevelVariableDeclaration('ba');
     var bb = findNode.topLevelVariableDeclaration('bb');
 
-    var source = result.unit.declaredElement!.source;
+    var source = result.unit.declaredFragment!.libraryFragment!.source;
     var reporter = ErrorReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),

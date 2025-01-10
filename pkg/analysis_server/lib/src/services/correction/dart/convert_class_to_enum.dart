@@ -39,7 +39,7 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement2.featureSet.isEnabled(Feature.enhanced_enums)) {
+    if (!isEnabled(Feature.enhanced_enums)) {
       // If the library doesn't support enhanced_enums then the class can't be
       // converted.
       return;

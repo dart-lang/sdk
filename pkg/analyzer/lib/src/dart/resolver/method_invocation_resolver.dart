@@ -499,7 +499,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverNever(
     MethodInvocationImpl node,
-    Expression receiver,
+    ExpressionImpl receiver,
     DartType receiverType,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required DartType contextType,
@@ -804,7 +804,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverType({
     required MethodInvocationImpl node,
-    required Expression? receiver,
+    required ExpressionImpl? receiver,
     required DartType receiverType,
     required SimpleIdentifierImpl nameNode,
     required String name,

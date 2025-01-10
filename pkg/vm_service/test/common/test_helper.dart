@@ -364,6 +364,16 @@ $st
     });
 
     final exitCode = await process.exitCode;
+    if (shouldTesteeBeLaunchedWithDartRunResident) {
+      print(
+        '** Shutting down resident frontend compiler that was used by VM '
+        'Service tests',
+      );
+      await io.Process.run(
+        io.Platform.executable,
+        ['compilation-server', 'shutdown'],
+      );
+    }
     if (exitCode != 0) {
       if (!(process.killedByTester || allowForNonZeroExitCode)) {
         throw 'Testee exited with unexpected exitCode: $exitCode';

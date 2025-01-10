@@ -64,7 +64,7 @@ class ElementFactory {
 
   static ClassElementImpl classElement3({
     required String name,
-    List<TypeParameterElement>? typeParameters,
+    List<TypeParameterElementImpl>? typeParameters,
     List<String> typeParameterNames = const [],
     InterfaceType? supertype,
     List<InterfaceType> mixins = const [],
@@ -236,7 +236,7 @@ class ElementFactory {
       ClassElement enclosingElement,
       String methodName,
       DartType returnType,
-      List<ParameterElement> parameters) {
+      List<ParameterElementImpl> parameters) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.enclosingElement3 = enclosingElement;
     method.parameters = parameters;
@@ -246,7 +246,7 @@ class ElementFactory {
 
   static MixinElementImpl mixinElement(
       {required String name,
-      List<TypeParameterElement>? typeParameters,
+      List<TypeParameterElementImpl>? typeParameters,
       List<String> typeParameterNames = const [],
       List<InterfaceType> constraints = const [],
       List<InterfaceType> interfaces = const [],
@@ -338,7 +338,7 @@ class ElementFactory {
     setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable2 = field;
-    setter.parameters = <ParameterElement>[parameter];
+    setter.parameters = [parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.isStatic = isStatic;
     field.setter = setter;
@@ -352,7 +352,7 @@ class ElementFactory {
     return TypeParameterElementImpl(name, 0);
   }
 
-  static List<TypeParameterElement> typeParameters(List<String> names) {
+  static List<TypeParameterElementImpl> typeParameters(List<String> names) {
     return names.map((name) => typeParameterWithType(name)).toList();
   }
 

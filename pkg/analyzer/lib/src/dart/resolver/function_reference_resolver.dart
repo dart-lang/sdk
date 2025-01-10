@@ -391,7 +391,7 @@ class FunctionReferenceResolver {
   /// function element, tearing off an extension element declared on [Function],
   /// and tearing off an extension element declared on a function type.
   Element? _resolveFunctionTypeFunction(
-    Expression receiver,
+    ExpressionImpl receiver,
     SimpleIdentifier methodName,
     FunctionType receiverType,
   ) {
@@ -869,11 +869,11 @@ class FunctionReferenceResolver {
   /// Returns `null` if [receiver]'s type is `null`, a [TypeParameterType],
   /// or a type alias for a non-interface type.
   DartType? _resolveTypeProperty({
-    required Expression receiver,
+    required ExpressionImpl receiver,
     required SimpleIdentifierImpl name,
     required SyntacticEntity nameErrorEntity,
   }) {
-    if (receiver is Identifier) {
+    if (receiver is IdentifierImpl) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is InterfaceElement) {
         var element = _resolveStaticElement(receiverElement, name);

@@ -1979,6 +1979,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       } else if (getterBuilder.isField) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
+        assert(
+            memberBuilder.invokeTarget is Procedure?,
+            "Unexpected invoke target ${memberBuilder.invokeTarget} "
+            "(${memberBuilder.invokeTarget.runtimeType}) on ${memberBuilder}.");
         readTarget = memberBuilder.invokeTarget as Procedure?;
       } else {
         return unhandled(

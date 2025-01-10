@@ -22,9 +22,6 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow, Pass
 LibTest/core/List/List_class_A01_t02: Slow, Pass
 LibTest/core/List/List_class_A01_t03: Slow, Pass
 
-[ $runtime == dart_precompiled && $system == windows ]
-LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
-
 [ $runtime == dart_precompiled && $simulator ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Issue 43036
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036

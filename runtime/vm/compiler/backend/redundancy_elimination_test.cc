@@ -1480,6 +1480,7 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
     @pragma("vm:never-inline")
     dynamic use(v) {}
 
+    @pragma("vm:entry-point", "call")
     void test() {
       A a = new A(foo(1), foo(2));
       use(a);
@@ -1738,10 +1739,12 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
           return x is int;
         }
 
+        @pragma("vm:entry-point", "call")
         bool %s() {
           return %s(0xABCC);
         }
 
+        @pragma("vm:entry-point", "call")
         bool %s() {
           return %s(1.0);
         }

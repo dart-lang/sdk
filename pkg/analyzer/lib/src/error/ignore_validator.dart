@@ -118,10 +118,15 @@ class IgnoreValidator {
     // TODO(brianwilkerson): Uncomment the code below after the unignorable
     //  ignores in the Flutter code base have been cleaned up.
     // for (var unignorableName in unignorable) {
-    //   var name = unignorableName.name;
-    //   _errorReporter.reportErrorForOffset(WarningCode.UNIGNORABLE_IGNORE,
-    //       unignorableName.offset, name.length, [name]);
-    //   list.remove(unignorableName);
+    //   if (unignorableName is IgnoredDiagnosticName) {
+    //     var name = unignorableName.name;
+    //     _errorReporter.atOffset(
+    //         errorCode: WarningCode.UNIGNORABLE_IGNORE,
+    //         offset: unignorableName.offset,
+    //         length: name.length,
+    //         data: [name]);
+    //     list.remove(unignorableName);
+    //   }
     // }
     for (var ignoredElement in duplicated) {
       if (ignoredElement is IgnoredDiagnosticName) {
@@ -151,7 +156,7 @@ class IgnoreValidator {
     // TODO(pq): find the right way to roll-out enablement and uncomment
     // https://github.com/dart-lang/sdk/issues/51214
     // for (var ignoredName in ignoredNames) {
-    //   if (ignoredName is DiagnosticName) {
+    //   if (ignoredName is IgnoredDiagnosticName) {
     //     var name = ignoredName.name;
     //     var rule = Registry.ruleRegistry.getRule(name);
     //     if (rule != null) {
@@ -162,22 +167,30 @@ class IgnoreValidator {
     //       } else if (state is RemovedState) {
     //         var replacedBy = state.replacedBy;
     //         if (replacedBy != null) {
-    //           _errorReporter.reportErrorForOffset(HintCode.REPLACED_LINT_USE,
-    //               ignoredName.offset, name.length, [name, since, replacedBy]);
+    //           _errorReporter.atOffset(
+    //               errorCode: WarningCode.REPLACED_LINT_USE,
+    //               offset: ignoredName.offset,
+    //               length: name.length,
+    //               data: [name, since, replacedBy]);
     //           continue;
     //         } else {
-    //           _errorReporter.reportErrorForOffset(HintCode.REMOVED_LINT_USE,
-    //               ignoredName.offset, name.length, [name, since]);
+    //           _errorReporter.atOffset(
+    //               errorCode: WarningCode.REMOVED_LINT_USE,
+    //               offset: ignoredName.offset,
+    //               length: name.length,
+    //               data: [name, since]);
     //           continue;
     //         }
     //       }
     //     }
-    //
-    // TODO(brianwilkerson): Uncomment the code below after the unnecessary
-    // ignores in the Flutter code base have been cleaned up.
-    //     _errorReporter.reportErrorForOffset(
-    //            WarningCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
-    //            [name]);
+
+    //     // TODO(brianwilkerson): Uncomment the code below after the unnecessary
+    //     // ignores in the Flutter code base have been cleaned up.
+    //     _errorReporter.atOffset(
+    //         errorCode: WarningCode.UNNECESSARY_IGNORE,
+    //         offset: ignoredName.offset,
+    //         length: name.length,
+    //         data: [name]);
     //   }
     // }
   }

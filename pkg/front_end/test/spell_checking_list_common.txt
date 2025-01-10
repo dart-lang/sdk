@@ -105,6 +105,7 @@ all
 allocated
 allocating
 allocation
+allocations
 allow
 allowed
 allowing
@@ -1359,6 +1360,7 @@ generate
 generated
 generates
 generating
+generations
 generative
 generator
 generators
@@ -1470,6 +1472,7 @@ horns
 horribly
 host
 hostnames
+hot
 how
 however
 http
@@ -2574,6 +2577,7 @@ regular
 reinsert
 reissue
 rejected
+rejections
 rejects
 relate
 related

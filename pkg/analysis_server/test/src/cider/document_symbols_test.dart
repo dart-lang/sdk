@@ -304,7 +304,7 @@ void f() {
     );
   }
 
-  Future<List<DocumentSymbol>> _compute(String content) async {
+  Future<List<DocumentSymbol>> _compute(String content) {
     newFile(testPath, content);
     return CiderDocumentSymbolsComputer(
       fileResolver,

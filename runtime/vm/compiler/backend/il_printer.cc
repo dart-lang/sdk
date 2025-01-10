@@ -185,7 +185,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   WriteDescriptor<ShortName##Instr>(#ShortName);
 
-      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION);
 
 #undef DECLARE_VISIT_INSTRUCTION
     }

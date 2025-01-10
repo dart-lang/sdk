@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helpers for working with the output of `--trace-precompiler-to` VM flag.
-library vm_snapshot_analysis.precompiler_trace;
+library;
 
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';

@@ -1,0 +1,8 @@
+bar<T extends num>(T t) {}
+
+class A<X> {
+  A(this.foo);
+  Function<Y extends X>(Y) foo;
+}
+
+main() {}

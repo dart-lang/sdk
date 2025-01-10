@@ -8436,15 +8436,23 @@ static void SubtypeTestCacheTest(Thread* thread,
                                  intptr_t num_classes,
                                  bool expect_hash) {
   TextBuffer buffer(MB);
-  buffer.AddString("class D {}\n");
-  buffer.AddString("D createInstanceD() => D();");
-  buffer.AddString("D Function() createClosureD() => () => D();\n");
+  buffer.AddString(R"(
+    class D {}
+
+    @pragma('vm:entry-point', 'call')
+    D createInstanceD() => D();
+
+    @pragma('vm:entry-point', 'call')
+    D Function() createClosureD() => () => D();
+    )");
   for (intptr_t i = 0; i < num_classes; i++) {
     buffer.Printf(R"(class C%)" Pd R"( extends D {}
 )"
+                  "@pragma('vm:entry-point', 'call')\n"
                   R"(C%)" Pd R"( createInstanceC%)" Pd R"(() => C%)" Pd
                   R"(();
 )"
+                  "@pragma('vm:entry-point', 'call')\n"
                   R"(C%)" Pd R"( Function() createClosureC%)" Pd
                   R"(() => () => C%)" Pd
                   R"(();

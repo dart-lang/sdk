@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -59,7 +59,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     // Named arguments are checked in [NamedExpression].
     for (var argument in node.arguments) {
       if (argument is! NamedExpression) {
-        var parameter = argument.staticParameterElement;
+        var parameter = argument.correspondingParameter;
         _checkSinceSdkVersion(parameter, node, errorEntity: argument);
       }
     }
@@ -69,8 +69,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _checkSinceSdkVersion(node.readElement, node);
-    _checkSinceSdkVersion(node.writeElement, node);
+    _checkSinceSdkVersion(node.readElement2, node);
+    _checkSinceSdkVersion(node.writeElement2, node);
     super.visitAssignmentExpression(node);
   }
 
@@ -90,13 +90,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    _checkSinceSdkVersion(node.staticElement, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitConstructorName(node);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkSinceSdkVersion(node.staticElement, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -107,7 +107,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _checkSinceSdkVersion(node.staticElement, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitIndexExpression(node);
   }
 
@@ -124,25 +124,25 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _checkSinceSdkVersion(node.methodName.staticElement, node);
+    _checkSinceSdkVersion(node.methodName.element, node);
     super.visitMethodInvocation(node);
   }
 
   @override
   void visitNamedType(NamedType node) {
-    _checkSinceSdkVersion(node.element, node);
+    _checkSinceSdkVersion(node.element2, node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkSinceSdkVersion(node.staticElement, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitPrefixedIdentifier(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _checkSinceSdkVersion(node.propertyName.staticElement, node);
+    _checkSinceSdkVersion(node.propertyName.element, node);
     super.visitPropertyAccess(node);
   }
 
@@ -156,20 +156,21 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    _checkSinceSdkVersion(node.staticElement, node);
+    _checkSinceSdkVersion(node.element, node);
   }
 
   void _checkSinceSdkVersion(
-    Element? element,
+    Element2? element,
     AstNode target, {
     SyntacticEntity? errorEntity,
   }) {
-    if (element != null) {
-      var sinceSdkVersion = element.sinceSdkVersion;
+    element = element?.nonSynthetic2;
+    if (element is Annotatable) {
+      var sinceSdkVersion = (element as Annotatable).metadata2.sinceSdkVersion;
       if (sinceSdkVersion != null) {
         if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
           if (errorEntity == null) {
-            if (!_shouldReportEnumIndex(target, element)) {
+            if (!_shouldReportEnumIndex(target, element!)) {
               return;
             }
             if (target is AssignmentExpression) {
@@ -217,8 +218,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` if [element] is something else, or if the target is a
   /// concrete enum. The `index` was always available for concrete enums,
   /// but there was no common `Enum` supertype for all enums.
-  static bool _shouldReportEnumIndex(AstNode node, Element element) {
-    if (element is PropertyAccessorElement && element.name == 'index') {
+  static bool _shouldReportEnumIndex(AstNode node, Element2 element) {
+    if (element is PropertyAccessorElement2 && element.name3 == 'index') {
       DartType? targetType;
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;
@@ -226,8 +227,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         targetType = node.realTarget.staticType;
       }
       if (targetType != null) {
-        var targetElement = targetType.element;
-        return targetElement is ClassElement && targetElement.isDartCoreEnum;
+        var targetElement = targetType.element3;
+        return targetElement is ClassElement2 && targetElement.isDartCoreEnum;
       }
       return false;
     } else {

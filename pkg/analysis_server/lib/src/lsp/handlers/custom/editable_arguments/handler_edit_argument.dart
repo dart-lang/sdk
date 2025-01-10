@@ -101,9 +101,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         );
       }
 
+      var argument = parameterArguments[parameter];
+      var valueExpression =
+          argument is NamedExpression ? argument.expression : argument;
+
       // Determine whether a value for this parameter is editable.
       var notEditableReason = getNotEditableReason(
-        argument: parameterArguments[parameter],
+        argument: valueExpression,
         positionalIndex: positionalParameterIndexes[parameter],
         numPositionals: numPositionals,
         numSuppliedPositionals: numSuppliedPositionals,
@@ -119,7 +123,11 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       // Compute the new expression for this argument.
-      var newValueCode = _computeValueCode(parameter, params.edit);
+      var newValueCode = _computeValueCode(
+        parameter,
+        valueExpression,
+        params.edit,
+      );
 
       // Build the edit and send it to the client.
       var workspaceEdit = await newValueCode.mapResult(
@@ -139,35 +147,6 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     });
   }
 
-  /// Computes the string of Dart code (including quotes) for [value].
-  String _computeStringValueCode(String value) {
-    const singleQuote = "'";
-    const doubleQuote = '"';
-
-    // Use single quotes unless the string contains a single quote and no
-    // double quotes.
-    var surroundingQuote =
-        value.contains(singleQuote) && !value.contains(doubleQuote)
-            ? doubleQuote
-            : singleQuote;
-
-    // TODO(dantup): Determine if we already have reusable code for this
-    //  anywhere.
-    // TODO(dantup): Decide whether we should write multiline and/or raw strings
-    //  for some cases.
-    var escaped = value
-        .replaceAll(r'\', r'\\') // Escape backslashes
-        .replaceAll(
-          surroundingQuote,
-          '\\$surroundingQuote',
-        ) // Escape surrounding quotes we'll use
-        .replaceAll('\r', r'\r')
-        .replaceAll('\n', r'\n')
-        .replaceAll(r'$', r'\$');
-
-    return '$surroundingQuote$escaped$surroundingQuote';
-  }
-
   /// Computes the string of Dart code that should be used as the new value
   /// for this argument.
   ///
@@ -175,6 +154,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// the parameter name or any commas that may be required.
   ErrorOr<String> _computeValueCode(
     FormalParameterElement parameter,
+    Expression? argument,
     ArgumentEdit edit,
   ) {
     // TODO(dantup): Should we accept arbitrary strings for all values? For
@@ -202,9 +182,17 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       return success(value.toString());
     } else if (type.isDartCoreBool && value is bool) {
       return success(value.toString());
-    } else if (type.isDartCoreString && value is String) {
-      return success(_computeStringValueCode(value));
-    } else if (type case InterfaceType(
+    } else if (parameter.type.isDartCoreString && value is String) {
+      var simpleString = argument is SimpleStringLiteral ? argument : null;
+      return success(
+        computeStringValueCode(
+          value,
+          preferSingleQuotes: simpleString?.isSingleQuoted ?? true,
+          preferMultiline: simpleString?.isMultiline ?? false,
+          preferRaw: simpleString?.isRaw ?? false,
+        ),
+      );
+    } else if (parameter.type case InterfaceType(
       :EnumElement2 element3,
     ) when value is String?) {
       var allowedValues = getQualifiedEnumConstantNames(element3);
@@ -278,6 +266,22 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       ]),
     );
   }
+
+  /// Returns whether [argument] is a [NamedExpression] with a name of
+  /// 'child' or 'children'.
+  bool _isNamedChildOrChildren(Expression argument) {
+    if (argument is! NamedExpression) {
+      return false;
+    }
+
+    return argument.name.label.name == 'child' ||
+        argument.name.label.name == 'children';
+  }
+
+  /// Returns whether [argument] is _not_ a [NamedExpression] with a name of
+  /// 'child' or 'children'.
+  bool _isNotNamedChildOrChildren(Expression argument) =>
+      !_isNamedChildOrChildren(argument);
 
   /// Sends [workspaceEdit] to the client and returns `null` if applied
   /// successfully or an error otherwise.
@@ -379,23 +383,71 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
     var argumentCodeToInsert = '$prefix$newValueCode';
 
+    // Usually we insert at the end (after the last argument), but if the last
+    // argument is child/children we should go before it.
+    var argumentToInsertAfter = argumentList.arguments.lastWhereOrNull(
+      _isNotNamedChildOrChildren,
+    );
+
     // Build the final code to insert.
     var newCode = StringBuffer();
-    var hasTrailingComma =
-        argumentList.arguments.lastOrNull?.endToken.next?.lexeme == ',';
-    if (!hasTrailingComma && argumentList.arguments.isNotEmpty) {
+    if (argumentToInsertAfter != null) {
+      // If we're being inserted after an argument, put a new comma between us.
       newCode.write(', ');
-    } else if (hasTrailingComma) {
-      newCode.write(' ');
     }
     newCode.write(argumentCodeToInsert);
-    if (hasTrailingComma) {
-      newCode.write(',');
+    if (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) {
+      // If we're not inserted after an existing argument but there are future
+      // arguments, add a comma in between us.
+      newCode.write(', ');
     }
 
     builder.addSimpleInsertion(
-      argumentList.rightParenthesis.offset,
+      argumentToInsertAfter?.end ?? argumentList.leftParenthesis.end,
       newCode.toString(),
     );
+  }
+
+  /// Computes the string of Dart code (including quotes) for the String
+  /// [value].
+  ///
+  /// [preferSingleQuotes], [preferMultiline] and [preferRaw] are used to
+  /// control the kinds of delimeters used for the string but are not
+  /// guaranteed because the contents of the strings might prevent some
+  /// delimeters (for example raw strings can't be used where there need to be
+  /// escape sequences).
+  static String computeStringValueCode(
+    String value, {
+    bool preferSingleQuotes = true,
+    bool preferMultiline = false,
+    bool preferRaw = false,
+  }) {
+    var quoteCharacter = preferSingleQuotes ? "'" : '"';
+    var useMultiline = preferMultiline /* && value.contains('\n') ??? */;
+    var numQuotes = useMultiline ? 3 : 1;
+    var surroundingQuote = quoteCharacter * numQuotes;
+    // Only use raw if requested _and_ the string doesn't contain the
+    // quotes that'll be used to surround it or newlines.
+    var useRaw =
+        preferRaw &&
+        !value.contains(surroundingQuote) &&
+        !value.contains('\r') &&
+        !value.contains('\n');
+
+    // Escape non-quote characters.
+    if (!useRaw) {
+      value = value
+          .replaceAll(r'\', r'\\') // Escape backslashes
+          .replaceAll('\r', r'\r')
+          .replaceAll('\n', r'\n')
+          .replaceAll(r'$', r'\$');
+    }
+
+    // Escape quotes.
+    var escapedSurroundingQuote = '\\$quoteCharacter' * numQuotes;
+    value = value.replaceAll(surroundingQuote, escapedSurroundingQuote);
+
+    var prefix = useRaw ? 'r' : '';
+    return '$prefix$surroundingQuote$value$surroundingQuote';
   }
 }

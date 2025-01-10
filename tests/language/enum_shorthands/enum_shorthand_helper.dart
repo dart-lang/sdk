@@ -45,14 +45,34 @@ class _IntegerWithMixin extends Integer with IntegerMixin {
 
 class ConstructorClass {
   final int? x;
+
   ConstructorClass(this.x);
   ConstructorClass.regular(this.x);
   ConstructorClass.named({this.x});
   ConstructorClass.optional([this.x]);
 
+  ConstructorClass.integer(Integer integer) : x = 1;
+
+  ConstructorClass.staticMember(StaticMember member) : x = 1;
+  ConstructorClass.staticMemberExt(StaticMemberExt member) : x = 1;
+
+  ConstructorClass.ctor(ConstructorClass ctor) : x = 1;
+
   const ConstructorClass.constRegular(this.x);
   const ConstructorClass.constNamed({this.x});
   const ConstructorClass.constOptional([this.x]);
+}
+
+class ConstructorWithNonFinal {
+  final int x;
+
+  ConstructorWithNonFinal field = ConstructorWithNonFinal(1);
+
+  ConstructorWithNonFinal(this.x);
+
+  ConstructorWithNonFinal method() => ConstructorWithNonFinal(1);
+
+  ConstructorWithNonFinal? methodNullable() => null;
 }
 
 class UnnamedConstructor {}
@@ -75,8 +95,18 @@ class StaticMember<T> {
   static StaticMember<U> memberType<U, V>(U u) => StaticMember(u);
   static StaticMember<U>? memberTypeNullable<U, V>(U u) => null;
 
+  static StaticMember<ConstructorClass> ctor(ConstructorClass c) =>
+      StaticMember(c);
+
+  static StaticMember<Integer> property(Integer i) => StaticMember(i);
+
   final T t;
+  StaticMember field = StaticMember.member();
+
   StaticMember(this.t);
+
+  StaticMember method() => StaticMember.member();
+  StaticMember? methodNullable() => null;
 }
 
 extension type StaticMemberExt<T>(T x) {
@@ -84,4 +114,9 @@ extension type StaticMemberExt<T>(T x) {
   static StaticMemberExt<int>? memberNullable() => null;
   static StaticMemberExt<U> memberType<U, V>(U u) => StaticMemberExt(u);
   static StaticMemberExt<U>? memberTypeNullable<U, V>(U u) => null;
+
+  static StaticMemberExt<ConstructorClass> ctor(ConstructorClass c) =>
+      StaticMemberExt(c);
+
+  static StaticMemberExt<Integer> property(Integer i) => StaticMemberExt(i);
 }

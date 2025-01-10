@@ -55,7 +55,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var contextMessages = <analyzer.DiagnosticMessageImpl>[];
 
     await resolveTestCode('');
-    var testSource = result.unit.declaredElement!.source;
+    var testSource = result.unit.declaredFragment!.source;
 
     if (contextMessage != null) {
       contextMessages.add(
@@ -213,7 +213,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
 abstract class _A {}
 class B<K, V> {}''');
     {
-      var engineElement = findElement.class_('_A');
+      var engineElement = findElement2.class_('_A');
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.CLASS);
@@ -235,7 +235,7 @@ class B<K, V> {}''');
               plugin.Element.FLAG_PRIVATE);
     }
     {
-      var engineElement = findElement.class_('B');
+      var engineElement = findElement2.class_('B');
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.CLASS);
@@ -250,7 +250,7 @@ class B<K, V> {}''');
 class A {
   const A.myConstructor(int a, [String? b]);
 }''');
-    var engineElement = findElement.constructor('myConstructor');
+    var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.CONSTRUCTOR);
@@ -270,7 +270,7 @@ class A {
   }
 
   void test_convertElement_dynamic() {
-    var engineElement = analyzer.DynamicElementImpl.instance;
+    var engineElement = analyzer.DynamicElementImpl2.instance;
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.UNKNOWN);
@@ -287,8 +287,8 @@ class A {
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      var engineElement = findElement.enum_('_E1');
-      expect(engineElement.hasDeprecated, isTrue);
+      var engineElement = findElement2.enum_('_E1');
+      expect(engineElement.metadata2.hasDeprecated, isTrue);
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM);
@@ -305,11 +305,13 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
           element.flags,
-          (engineElement.hasDeprecated ? plugin.Element.FLAG_DEPRECATED : 0) |
+          (engineElement.metadata2.hasDeprecated
+                  ? plugin.Element.FLAG_DEPRECATED
+                  : 0) |
               plugin.Element.FLAG_PRIVATE);
     }
     {
-      var engineElement = findElement.enum_('E2');
+      var engineElement = findElement2.enum_('E2');
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM);
@@ -325,7 +327,7 @@ enum E2 { three, four }''');
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      var engineElement = findElement.field('one');
+      var engineElement = findElement2.field('one');
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM_CONSTANT);
@@ -349,7 +351,7 @@ enum E2 { three, four }''');
           plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement.field('three');
+      var engineElement = findElement2.field('three');
       // create notification Element
       var element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.ENUM_CONSTANT);
@@ -368,7 +370,7 @@ enum E2 { three, four }''');
           plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement.field('values', of: 'E2');
+      var engineElement = findElement2.field('values', of: 'E2');
 
       // create notification Element
       var element = converter.convertElement(engineElement);
@@ -394,7 +396,7 @@ enum E2 { three, four }''');
 class A {
   static const myField = 42;
 }''');
-    var engineElement = findElement.field('myField');
+    var engineElement = findElement2.field('myField');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.FIELD);
@@ -417,7 +419,7 @@ class A {
     await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
-    var engineElement = findElement.typeAlias('F');
+    var engineElement = findElement2.typeAlias('F');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.TYPE_ALIAS);
@@ -441,7 +443,7 @@ typedef int F<T>(String x);
 class A {
   int get myGetter => 42;
 }''');
-    var engineElement = findElement.getter('myGetter');
+    var engineElement = findElement2.getter('myGetter');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.GETTER);
@@ -467,7 +469,7 @@ myLabel:
     break myLabel;
   }
 }''');
-    var engineElement = findElement.label('myLabel');
+    var engineElement = findElement2.label('myLabel');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.LABEL);
@@ -492,7 +494,7 @@ class A {
     return [];
   }
 }''');
-    var engineElement = findElement.method('myMethod');
+    var engineElement = findElement2.method('myMethod');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.METHOD);
@@ -515,7 +517,7 @@ class A {
 class A {
   set mySetter(String x) {}
 }''');
-    var engineElement = findElement.setter('mySetter');
+    var engineElement = findElement2.setter('mySetter');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.SETTER);
@@ -537,7 +539,7 @@ class A {
     await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
-    var engineElement = findElement.typeAlias('F');
+    var engineElement = findElement2.typeAlias('F');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.TYPE_ALIAS);
@@ -560,7 +562,7 @@ typedef F<T> = int Function(String x);
     await resolveTestCode('''
 typedef A<T> = Map<int, T>;
 ''');
-    var engineElement = findElement.typeAlias('A');
+    var engineElement = findElement2.typeAlias('A');
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.TYPE_ALIAS);

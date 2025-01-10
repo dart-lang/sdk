@@ -1956,8 +1956,11 @@ const bool _isJsCompatibility = bool.fromEnvironment(
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getMasqueradedRuntimeType(object);
 
+@pragma("wasm:intrinsic")
 external bool _isObjectClassId(WasmI32 classId);
+@pragma("wasm:intrinsic")
 external bool _isClosureClassId(WasmI32 classId);
+@pragma("wasm:intrinsic")
 external bool _isRecordClassId(WasmI32 classId);
 
 // Used by the generated code to compare types captured by instantiation

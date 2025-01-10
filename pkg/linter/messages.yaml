@@ -10837,7 +10837,7 @@ LintCode:
         type argument, but not C(14) if C accepts one or more type arguments.
       - e is a cascade whose target has an obvious type. For instance,
         1..isEven..isEven has an obvious type because 1 has an obvious type.
-      - e is a type cast. For instance, myComplexpression as int.
+      - e is a type cast. For instance, `myComplexExpression as int`.
 
       **BAD:**
       ```dart
@@ -11631,6 +11631,35 @@ LintCode:
       /// `<assignment> -> <variable> = <expression>`
       /// \<assignment\> -> \<variable\> = \<expression\>`
       /// <http://foo.bar.baz>
+      ```
+  unnecessary_async:
+    problemMessage: "Don't make a function 'async' if it doesn't use 'await'."
+    correctionMessage: "Try removing the 'async' modifier."
+    state:
+      experimental: "3.7"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Functions that don't do `await` don't have to be `async`.
+
+      Usually such functions also don't have to return a `Future`, which allows
+      an invoker to avoid `await` in its code, etc. Synchronous code in
+      general runs faster, and is easier to reason about.
+
+      **BAD:**
+      ```dart
+      void f() async {
+        // await Future.delayed(const Duration(seconds: 2));
+        print(0);
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f() {
+        // await Future.delayed(const Duration(seconds: 2));
+        print(0);
+      }
       ```
   unnecessary_await_in_return:
     problemMessage: "Unnecessary 'await'."
@@ -13005,6 +13034,49 @@ LintCode:
         ...['foo', 'bar', 'baz'].map((String s) => Text(s)),
       ]
       ```
+  unnecessary_underscores:
+    problemMessage: "Unnecessary use of multiple underscores."
+    correctionMessage: "Try using '_'."
+    state:
+      experimental: "3.7"
+    categories: [brevity, style]
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an unused variable is named
+      with multiple underscores (for example `__`). A single `_` wildcard variable
+      can be used instead.
+
+      #### Example
+
+      The following code produces this diagnostic because the `__` parameter is unused:
+
+      ```dart
+      void function(int [!__!]) { }
+      ```
+
+      #### Common fixes
+
+      Replace the name with a single underscore:
+
+      ```dart
+      void function(int _) { }
+      ```
+    deprecatedDetails: |-
+      **AVOID** using multiple underscores when a single wildcard will do.
+
+      **BAD:**
+      ```dart
+      void function(int __) { }
+      ```
+
+      **GOOD:**
+      ```dart
+      void function(int _) { }
+      ```
+
+
   unreachable_from_main:
     problemMessage: "Unreachable member '{0}' in an executable library."
     correctionMessage: "Try referencing the member or removing it."
@@ -13252,7 +13324,7 @@ LintCode:
     state:
       experimental: "3.7"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

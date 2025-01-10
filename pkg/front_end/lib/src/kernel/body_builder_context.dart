@@ -15,6 +15,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
 import '../source/constructor_declaration.dart';
@@ -49,6 +50,10 @@ abstract class BodyBuilderContext {
       : _isDeclarationInstanceMember = isDeclarationInstanceMember,
         _declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
+
+  /// Returns `true` if the enclosing declaration declares a const constructor.
+  bool get declarationDeclaresConstConstructor =>
+      _declarationContext.declaresConstConstructor;
 
   /// Returns the file offset of the name of the member whose body is being
   /// built.
@@ -282,7 +287,7 @@ abstract class BodyBuilderContext {
 
   /// Registers that the field [builder] has been initialized in generative
   /// constructor whose body is being built.
-  void registerInitializedField(SourceFieldBuilder builder) {
+  void registerInitializedField(PropertyBuilder builder) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
@@ -748,15 +753,19 @@ class FieldBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isLateField => _member.isLate;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstractField => _member.isAbstract;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExternalField => _member.isExternal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     if (_member.isExtensionMember && !_member.isExternal) {
       return InstanceTypeParameterAccessState.Invalid;
@@ -766,6 +775,7 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ConstantContext get constantContext {
     return _member.isConst
         ? ConstantContext.inferred
@@ -852,7 +862,7 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
   }
 
   @override
-  void registerInitializedField(SourceFieldBuilder builder) {
+  void registerInitializedField(PropertyBuilder builder) {
     _member.registerInitializedField(builder);
   }
 

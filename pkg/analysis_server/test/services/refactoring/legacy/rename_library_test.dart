@@ -93,6 +93,6 @@ part of the.new.name;
   }
 
   void _createRenameRefactoring() {
-    createRenameRefactoringForElement2(testLibraryElement2);
+    createRenameRefactoringForElement2(testLibraryElement);
   }
 }

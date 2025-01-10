@@ -7,6 +7,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide Variance;
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -28,11 +30,11 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
+import 'type_constraint_gatherer.dart';
 import 'type_inferrer.dart';
 import 'type_schema.dart';
 import 'type_schema_elimination.dart' as type_schema_elimination;
-import 'type_schema_environment.dart'
-    show GeneratedTypeConstraint, TypeSchemaEnvironment;
+import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
@@ -392,7 +394,10 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 }
 
-class InferenceDataForTesting {
+// TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
+class InferenceDataForTesting
+    extends shared.TypeConstraintGenerationDataForTesting<DartType,
+        StructuralParameter, VariableDeclaration, TreeNode> {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
 
   final TypeInferenceResultForTesting typeInferenceResult =
@@ -669,8 +674,7 @@ class OperationsCfe
           // `x != null && x is T`.
           return new SharedTypeView(new IntersectionType(
               unwrappedFrom.withDeclaredNullability(
-                  TypeParameterType.computeNullabilityFromBound(
-                      unwrappedFrom.parameter)),
+                  unwrappedFrom.parameter.computeNullabilityFromBound()),
               unwrappedTo));
         } else {
           return new SharedTypeView(
@@ -1011,12 +1015,31 @@ class OperationsCfe
   bool isNullableInternal(DartType type) {
     return type.nullability == Nullability.nullable;
   }
+
+  @override
+  TypeConstraintGenerator<DartType, NamedType, VariableDeclaration,
+          StructuralParameter, TypeDeclarationType, TypeDeclaration, TreeNode>
+      createTypeConstraintGenerator(
+          {required covariant TypeInferenceResultForTesting?
+              typeConstraintGenerationDataForTesting,
+          required List<StructuralParameter> typeParametersToInfer,
+          required covariant OperationsCfe typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    // TODO(cstefantsova): Pass [typeConstraintGenerationDataForTesting] when
+    // [InferenceDataForTesting] is merged with [TypeInferenceResultForTesting].
+    return new TypeConstraintGatherer(
+        typeAnalyzerOperations.typeEnvironment as TypeSchemaEnvironment,
+        typeParametersToInfer,
+        typeOperations: typeAnalyzerOperations,
+        inferenceResultForTesting: null,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+  }
 }
 
 /// Type inference results used for testing.
-class TypeInferenceResultForTesting {
+class TypeInferenceResultForTesting
+    extends shared.TypeConstraintGenerationDataForTesting<DartType,
+        StructuralParameter, VariableDeclaration, TreeNode> {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
-  final Map<TreeNode, List<GeneratedTypeConstraint>> generatedTypeConstraints =
-      {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

@@ -52,7 +52,7 @@ class Serializer {
     _data[_index++] = byte;
   }
 
-  void writeBytes(List<int> bytes) {
+  void writeBytes(Uint8List bytes) {
     if (traceEnabled) debugTrace(StackTrace.current);
     _ensure(bytes.length);
     _data.setRange(_index, _index += bytes.length, bytes);
@@ -75,24 +75,22 @@ class Serializer {
     writeByte(value);
   }
 
+  static final ByteData _f32ByteData = ByteData(4);
+  static final Uint8List _f32Uint8List = _f32ByteData.buffer.asUint8List();
   void writeF32(double value) {
-    // Get the binary representation of the F32.
-    List<int> bytes = Float32List.fromList([value]).buffer.asUint8List();
-    assert(bytes.length == 4);
-    if (Endian.host == Endian.big) bytes = bytes.reversed.toList();
-    writeBytes(bytes);
+    _f32ByteData.setFloat32(0, value, Endian.little);
+    writeBytes(_f32Uint8List);
   }
 
+  static final ByteData _f64ByteData = ByteData(8);
+  static final Uint8List _f64Uint8List = _f64ByteData.buffer.asUint8List();
   void writeF64(double value) {
-    // Get the binary representation of the F64.
-    List<int> bytes = Float64List.fromList([value]).buffer.asUint8List();
-    assert(bytes.length == 8);
-    if (Endian.host == Endian.big) bytes = bytes.reversed.toList();
-    writeBytes(bytes);
+    _f64ByteData.setFloat64(0, value, Endian.little);
+    writeBytes(_f64Uint8List);
   }
 
   void writeName(String name) {
-    List<int> bytes = utf8.encode(name);
+    final bytes = utf8.encode(name);
     writeUnsigned(bytes.length);
     writeBytes(bytes);
   }

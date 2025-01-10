@@ -253,6 +253,7 @@ import 'type_literal_in_constant_pattern_test.dart'
 import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unintended_html_in_doc_comment_test.dart'
     as unintended_html_in_doc_comment;
+import 'unnecessary_async_test.dart' as unnecessary_async;
 import 'unnecessary_await_in_return_test.dart' as unnecessary_await_in_return;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
@@ -286,6 +287,7 @@ import 'unnecessary_string_interpolations_test.dart'
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
+import 'unnecessary_underscores_test.dart' as unnecessary_underscores;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
@@ -358,8 +360,8 @@ void main() {
   avoid_relative_lib_imports.main();
   avoid_renaming_method_parameters.main();
   avoid_return_types_on_setters.main();
-  avoid_returning_null.main();
   avoid_returning_null_for_void.main();
+  avoid_returning_null.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
@@ -505,6 +507,7 @@ void main() {
   type_literal_in_constant_pattern.main();
   unawaited_futures.main();
   unintended_html_in_doc_comment.main();
+  unnecessary_async.main();
   unnecessary_await_in_return.main();
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();
@@ -530,6 +533,7 @@ void main() {
   unnecessary_string_interpolations.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
+  unnecessary_underscores.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
   unsafe_variance.main();

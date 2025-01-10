@@ -38,7 +38,6 @@ import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
 import '../source/source_constructor_builder.dart';
-import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
@@ -2165,12 +2164,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Let `[T/S]` denote the type substitution where each `Si` is replaced
       // with the corresponding `Ti`.
       instantiator = new FunctionTypeInstantiator.fromIterables(
-          typeContext.typeParameters,
-          new List<DartType>.generate(
-              typeContext.typeParameters.length,
-              (int i) => new TypeParameterType
-                  .forAlphaRenamingFromStructuralParameters(
-                  typeContext.typeParameters[i], functionTypeParameters[i])));
+          typeContext.typeParameters, [
+        for (TypeParameter parameter in functionTypeParameters)
+          new TypeParameterType.withDefaultNullability(parameter)
+      ]);
     } else {
       // If the match is not successful because  `K` is `_`, let all `Si`, all
       // `Qi`, and `N` all be `_`.
@@ -4418,16 +4415,16 @@ class _WhyNotPromotedVisitor
       // libraries, so just don't generate a context message.
       return const [];
     }
-    FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
+    FieldNameNonPromotabilityInfo<Class, SourceMemberBuilder,
             SourceMemberBuilder>? fieldNameInfo =
         fieldNonPromotabilityInfo.fieldNameInfo[reason.propertyName];
     List<LocatedMessage> messages = [];
     if (fieldNameInfo != null) {
-      for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
+      for (SourceMemberBuilder field in fieldNameInfo.conflictingFields) {
         messages.add(templateFieldNotPromotedBecauseConflictingField
             .withArguments(
                 reason.propertyName,
-                field.readTarget.enclosingClass!.name,
+                field.readTarget!.enclosingClass!.name,
                 NonPromotionDocumentationLink.conflictingNonPromotableField.url)
             .withLocation(field.fileUri, field.fileOffset, noLength));
       }
@@ -4437,7 +4434,7 @@ class _WhyNotPromotedVisitor
                 reason.propertyName,
                 getter.readTarget!.enclosingClass!.name,
                 NonPromotionDocumentationLink.conflictingGetter.url)
-            .withLocation(getter.fileUri!, getter.fileOffset, noLength));
+            .withLocation(getter.fileUri, getter.fileOffset, noLength));
       }
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder

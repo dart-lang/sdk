@@ -203,9 +203,20 @@ extension LibraryExtension2 on LibraryElement2? {
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ParameterElementExtensions on ParameterElement {
+extension ListOfParameterElementExtension on List<ParameterElement> {
+  /// Returns `this` as `List<ParameterElementImpl>`, converting if it isn't
+  /// one already.
+  List<ParameterElementImpl> toImpl() {
+    return switch (this) {
+      List<ParameterElementImpl> already => already,
+      _ => [for (var p in this) p.toImpl()],
+    };
+  }
+}
+
+extension ParameterElementExtension on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({
+  ParameterElementImpl copyWith({
     DartType? type,
     ParameterKind? kind,
     bool? isCovariant,
@@ -216,6 +227,15 @@ extension ParameterElementExtensions on ParameterElement {
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
+  }
+
+  /// Returns `this`, converted to a [ParameterElementImpl] if it isn't one
+  /// already.
+  ParameterElementImpl toImpl() {
+    return switch (this) {
+      ParameterElementImpl p => p,
+      _ => copyWith(),
+    };
   }
 }
 
@@ -264,5 +284,11 @@ extension RecordTypeExtension on RecordType {
       if (position != null) return position - 1;
     }
     return null;
+  }
+}
+
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
+  bool get isWildcardVariable {
+    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }
 }

@@ -73,6 +73,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
@@ -91,9 +92,9 @@ import '../codes/cfe_codes.dart'
         templateLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+import '../fragment/fragment.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
-import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/stack_listener_impl.dart'
@@ -977,16 +978,16 @@ class BodyBuilder extends StackListenerImpl
       ]));
       Expression? initializer = pop() as Expression?;
       Identifier identifier = pop() as Identifier;
-      SourceFieldBuilder fieldBuilder = offsetMap.lookupField(identifier);
+      FieldFragment fieldFragment = offsetMap.lookupField(identifier);
       if (initializer != null) {
-        if (!fieldBuilder.hasBodyBeenBuilt) {
+        if (!fieldFragment.hasBodyBeenBuilt) {
           initializer = typeInferrer
-              .inferFieldInitializer(this, fieldBuilder.builtType, initializer)
+              .inferFieldInitializer(this, fieldFragment.fieldType, initializer)
               .expression;
-          fieldBuilder.buildBody(coreTypes, initializer);
+          fieldFragment.buildBody(coreTypes, initializer);
         }
-      } else if (!fieldBuilder.hasBodyBeenBuilt) {
-        fieldBuilder.buildBody(coreTypes, null);
+      } else if (!fieldFragment.hasBodyBeenBuilt) {
+        fieldFragment.buildBody(coreTypes, null);
       }
     }
     assert(checkState(
@@ -1421,8 +1422,8 @@ class BodyBuilder extends StackListenerImpl
   RedirectionTarget _getRedirectionTarget(Procedure factory) {
     List<DartType> typeArguments = new List<DartType>.generate(
         factory.function.typeParameters.length, (int i) {
-      return new TypeParameterType.withDefaultNullabilityForLibrary(
-          factory.function.typeParameters[i], factory.enclosingLibrary);
+      return new TypeParameterType.withDefaultNullability(
+          factory.function.typeParameters[i]);
     }, growable: true);
 
     // Cyclic factories are detected earlier, so we're guaranteed to
@@ -9070,7 +9071,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Initializer buildDuplicatedInitializer(
-      SourceFieldBuilder fieldBuilder,
+      PropertyBuilder fieldBuilder,
       Expression value,
       String name,
       int offset,
@@ -9105,7 +9106,9 @@ class BodyBuilder extends StackListenerImpl
     if (builder?.next != null) {
       // Duplicated name, already reported.
       while (builder != null) {
-        if (builder.next == null && builder is SourceFieldBuilder) {
+        if (builder.next == null &&
+            builder is PropertyBuilder &&
+            builder.isField) {
           // Assume the first field has been initialized.
           _context.registerInitializedField(builder);
         }
@@ -9122,7 +9125,8 @@ class BodyBuilder extends StackListenerImpl
             ),
             fieldNameOffset)
       ];
-    } else if (builder is SourceFieldBuilder &&
+    } else if (builder is PropertyBuilder &&
+        builder.isField &&
         builder.isDeclarationInstanceMember) {
       if (builder.isExtensionTypeDeclaredInstanceField) {
         // Operating on an invalid field. Don't report anything though

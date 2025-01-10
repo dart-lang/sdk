@@ -8,7 +8,7 @@
 /// intentionally broad to make sure they get everything, possibly at the
 /// expense of readability for the error message.  Use care when reducing
 /// their scope.
-library pii_regexp;
+library;
 
 /// Contain an ordered list of regular expressions to be applied in sequence
 /// with [applyTo] to a string, with any matches being substituted with

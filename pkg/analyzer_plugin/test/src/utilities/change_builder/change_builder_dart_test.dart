@@ -6,7 +6,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -146,31 +146,31 @@ class A {}
   }
 
   Future<void> test_writeType_function_nullable() async {
-    await _assertWriteType('int Function(double a, String b)?');
+    await _assertwriteType2('int Function(double a, String b)?');
   }
 
   Future<void> test_writeType_Never_none() async {
-    await _assertWriteType('Never');
+    await _assertwriteType2('Never');
   }
 
   Future<void> test_writeType_Never_question() async {
-    await _assertWriteType('Never?');
+    await _assertwriteType2('Never?');
   }
 
   Future<void> test_writeType_recordType_mixed() async {
-    await _assertWriteType('(int, {int y})');
+    await _assertwriteType2('(int, {int y})');
   }
 
   Future<void> test_writeType_recordType_named() async {
-    await _assertWriteType('({int x, int y})');
+    await _assertwriteType2('({int x, int y})');
   }
 
   Future<void> test_writeType_recordType_nullable() async {
-    await _assertWriteType('(int, {int y})?');
+    await _assertwriteType2('(int, {int y})?');
   }
 
   Future<void> test_writeType_recordType_positional() async {
-    await _assertWriteType('(int, int)');
+    await _assertwriteType2('(int, int)');
   }
 }
 
@@ -888,7 +888,7 @@ class MyClass {}''';
           initializerWriter: () {
             builder.write('null');
           },
-          type: A.declaredElement?.instantiate(
+          type: A.declaredFragment!.element.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -916,7 +916,7 @@ class MyClass {}''';
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
           'foo',
-          type: A.declaredElement?.instantiate(
+          type: A.declaredFragment!.element.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -953,7 +953,7 @@ class MyClass {}''';
         builder.writeLocalVariableDeclaration(
           'foo',
           isFinal: true,
-          type: A.declaredElement?.instantiate(
+          type: A.declaredFragment!.element.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -1138,12 +1138,13 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+    var elements =
+        parameters?.parameters.map((p) => p.declaredFragment!.element);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameters(elements!);
+        builder.writeFormalParameters(elements!);
       });
     });
     var edit = getEdit(builder);
@@ -1159,12 +1160,13 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+    var elements =
+        parameters?.parameters.map((p) => p.declaredFragment!.element);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameters(elements!, includeDefaultValues: false);
+        builder.writeFormalParameters(elements!, includeDefaultValues: false);
       });
     });
     var edit = getEdit(builder);
@@ -1179,12 +1181,13 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+    var elements =
+        parameters?.parameters.map((p) => p.declaredFragment!.element);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameters(elements!);
+        builder.writeFormalParameters(elements!);
       });
     });
     var edit = getEdit(builder);
@@ -1199,12 +1202,13 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+    var elements =
+        parameters?.parameters.map((p) => p.declaredFragment!.element);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameters(elements!);
+        builder.writeFormalParameters(elements!);
       });
     });
     var edit = getEdit(builder);
@@ -1218,12 +1222,13 @@ class A {}
     var unit = (await resolveFile(path)).unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
-    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+    var elements =
+        parameters?.parameters.map((p) => p.declaredFragment!.element);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameters(elements!, requiredTypes: true);
+        builder.writeFormalParameters(elements!, requiredTypes: true);
       });
     });
     var edit = getEdit(builder);
@@ -1292,7 +1297,7 @@ import 'a.dart';
     addSource(path, content);
 
     var aElement = await _getClassElement(aPath, 'A');
-    var fooElement = aElement.methods[0];
+    var fooElement = aElement.methods2[0];
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1314,7 +1319,7 @@ import 'a.dart';
 ''';
     addSource(path, content);
 
-    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+    var aElement = await _getTopLevelGetter(aPath, 'a');
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1336,7 +1341,7 @@ import 'a.dart' as p;
 ''';
     addSource(path, content);
 
-    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+    var aElement = await _getTopLevelGetter(aPath, 'a');
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1356,7 +1361,7 @@ import 'a.dart' as p;
     var content = '';
     addSource(path, content);
 
-    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+    var aElement = await _getTopLevelGetter(aPath, 'a');
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1459,12 +1464,12 @@ a''');
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
     addSource(path, content);
-    var unit = (await resolveFile(path)).unit;
+    var unitResult = await resolveFile(path);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unit.declaredElement!.library.typeProvider;
+        var typeProvider = unitResult.libraryElement2.typeProvider;
         builder.writeType(typeProvider.dynamicType);
       });
     });
@@ -1473,27 +1478,27 @@ a''');
   }
 
   Future<void> test_writeType_function() async {
-    await _assertWriteType('int Function(double a, String b)');
+    await _assertwriteType2('int Function(double a, String b)');
   }
 
   Future<void> test_writeType_function_generic() async {
-    await _assertWriteType('T Function<T, U>(T a, U b)');
+    await _assertwriteType2('T Function<T, U>(T a, U b)');
   }
 
   Future<void> test_writeType_function_noReturnType() async {
-    await _assertWriteType('Function()');
+    await _assertwriteType2('Function()');
   }
 
   Future<void> test_writeType_function_parameters_named() async {
-    await _assertWriteType('int Function(int a, {int b, int c})');
+    await _assertwriteType2('int Function(int a, {int b, int c})');
   }
 
   Future<void> test_writeType_function_parameters_noName() async {
-    await _assertWriteType('int Function(double p1, String p2)');
+    await _assertwriteType2('int Function(double p1, String p2)');
   }
 
   Future<void> test_writeType_function_parameters_positional() async {
-    await _assertWriteType('int Function(int a, [int b, int c])');
+    await _assertwriteType2('int Function(int a, [int b, int c])');
   }
 
   Future<void> test_writeType_genericType() async {
@@ -1571,7 +1576,7 @@ a''');
     addSource(path, content);
 
     var classA = await _getClassElement(path, 'A');
-    DartType typeT = classA.typeParameters.single.instantiate(
+    DartType typeT = classA.typeParameters2.single.instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
@@ -1587,11 +1592,11 @@ a''');
   }
 
   Future<void> test_writeType_interface_typeArguments() async {
-    await _assertWriteType('Map<int, List<String>>');
+    await _assertwriteType2('Map<int, List<String>>');
   }
 
   Future<void> test_writeType_interface_typeArguments_allDynamic() async {
-    await _assertWriteType('Map');
+    await _assertwriteType2('Map');
   }
 
   Future<void> test_writeType_null() async {
@@ -1763,12 +1768,12 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
     addSource(path, content);
-    var unit = (await resolveFile(path)).unit;
+    var unitResult = await resolveFile(path);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unit.declaredElement!.library.typeProvider;
+        var typeProvider = unitResult.libraryElement2.typeProvider;
         builder.writeType(typeProvider.dynamicType, required: true);
       });
     });
@@ -2055,12 +2060,12 @@ A'''));
   }
 
   Future<void> test_writeType_typedef_typeArguments() async {
-    await _assertWriteType('F<int, String>',
+    await _assertwriteType2('F<int, String>',
         declarations: 'typedef void F<T, U>(T t, U u);');
   }
 
   Future<void> test_writeType_void() async {
-    await _assertWriteType('void Function()');
+    await _assertwriteType2('void Function()');
   }
 
   Future<void> test_writeTypes_empty() async {
@@ -2127,12 +2132,13 @@ A'''));
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<void> _assertWriteType(String typeCode, {String? declarations}) async {
+  Future<void> _assertwriteType2(String typeCode,
+      {String? declarations}) async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '${declarations ?? ''}$typeCode v;';
     addSource(path, content);
 
-    var f = await _getTopLevelAccessorElement(path, 'v');
+    var f = await _getTopLevelGetter(path, 'v');
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -2144,15 +2150,15 @@ A'''));
     expect(edit.replacement, typeCode);
   }
 
-  Future<ClassElement> _getClassElement(String path, String name) async {
-    var result = (await resolveFile(path)).unit;
-    return result.declaredElement!.getClass(name)!;
+  Future<ClassElement2> _getClassElement(String path, String name) async {
+    var unitResult = await resolveFile(path);
+    return unitResult.libraryElement2.getClass2(name)!;
   }
 
-  Future<PropertyAccessorElement> _getTopLevelAccessorElement(
+  Future<PropertyAccessorElement2> _getTopLevelGetter(
       String path, String name) async {
-    var result = (await resolveFile(path)).unit;
-    return result.declaredElement!.accessors.firstWhere((v) => v.name == name);
+    var unitResult = await resolveFile(path);
+    return unitResult.libraryElement2.getGetter(name)!;
   }
 
   Future<InterfaceType> _getType(
@@ -2171,7 +2177,7 @@ A'''));
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  Future<ResolvedUnitResult> resolveContent(String path, String content) async {
+  Future<ResolvedUnitResult> resolveContent(String path, String content) {
     path = convertPath(path);
     addSource(path, content);
     return resolveFile(path);
@@ -2392,8 +2398,8 @@ void functionAfter() {
         await resolveContent('/home/test/lib/a.dart', 'class A {}');
 
     var findNode = FindNode(resolvedLibUnit.content, resolvedLibUnit.unit);
-    var classElement = findNode.classDeclaration('A').declaredElement!;
-    var cache = <Element, LibraryElement?>{};
+    var classElement = findNode.classDeclaration('A').declaredFragment!.element;
+    var cache = <Element2, LibraryElement2?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2404,7 +2410,7 @@ void functionAfter() {
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
-    expect(cache[classElement], resolvedLibUnit.libraryElement);
+    expect(cache[classElement], resolvedLibUnit.libraryElement2);
   }
 
   /// If `importElementLibrary` adds a pending import 'a.dart' and a subsequent
@@ -2426,12 +2432,14 @@ class B {}
 
     var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
         .classDeclaration('A')
-        .declaredElement!;
+        .declaredFragment!
+        .element;
     var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
         .classDeclaration('B')
-        .declaredElement!;
+        .declaredFragment!
+        .element;
 
-    var cache = <Element, LibraryElement?>{};
+    var cache = <Element2, LibraryElement2?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2447,7 +2455,7 @@ class B {}
 
   /// [test_importElementLibrary_replacesPendingImports] verifies that
   /// `importElementLibrary` can replace pending imports, but it must not do so
-  /// if they were added explicitly (and not to satisfy a given [Element]).
+  /// if they were added explicitly (and not to satisfy a given [Element2]).
   Future<void>
       test_importElementLibrary_replacesPendingImports_unlessImportedExplicitly() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
@@ -2464,12 +2472,14 @@ class B {}
 
     var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
         .classDeclaration('A')
-        .declaredElement!;
+        .declaredFragment!
+        .element;
     var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
         .classDeclaration('B')
-        .declaredElement!;
+        .declaredFragment!
+        .element;
 
-    var cache = <Element, LibraryElement?>{};
+    var cache = <Element2, LibraryElement2?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2491,8 +2501,8 @@ import 'package:test/all.dart';
   Future<void> test_importElementLibrary_sdkElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
-    var cache = <Element, LibraryElement?>{};
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var cache = <Element2, LibraryElement2?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2504,7 +2514,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(
         edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
-    expect(cache[futureOrElement], futureOrElement.library);
+    expect(cache[futureOrElement], futureOrElement.library2);
   }
 
   Future<void> test_importElementLibrary_srcElement() async {
@@ -2517,8 +2527,8 @@ import 'package:test/all.dart';
         await resolveContent('/home/test/lib/a.dart', "export 'src/a.dart'");
 
     var findNode = FindNode(resolvedSrcUnit.content, resolvedSrcUnit.unit);
-    var classElement = findNode.classDeclaration('A').declaredElement!;
-    var cache = <Element, LibraryElement?>{};
+    var classElement = findNode.classDeclaration('A').declaredFragment!.element;
+    var cache = <Element2, LibraryElement2?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2529,7 +2539,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
-    expect(cache[classElement], resolvedExportUnit.libraryElement);
+    expect(cache[classElement], resolvedExportUnit.libraryElement2);
   }
 
   Future<void> test_importElementLibrary_usesCache() async {
@@ -2538,9 +2548,9 @@ import 'package:test/all.dart';
     // Create a fake file to put into the cache to verify it's being used.
     var resolvedFakeUnit = await resolveContent('/home/test/lib/fake.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
-    var cache = <Element, LibraryElement?>{
-      futureOrElement: resolvedFakeUnit.libraryElement,
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var cache = <Element2, LibraryElement2?>{
+      futureOrElement: resolvedFakeUnit.libraryElement2,
     };
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
@@ -2553,7 +2563,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/fake.dart';"));
-    expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
+    expect(cache[futureOrElement], resolvedFakeUnit.libraryElement2);
   }
 
   /// Test that importing elements where the library is already imported
@@ -2821,7 +2831,7 @@ import 'z.dart';
       var builderImpl = builder as DartFileEditBuilderImpl;
       for (var className in classNames) {
         var classElement =
-            findNode.classDeclaration(className).declaredElement!;
+            findNode.classDeclaration(className).declaredFragment!.element;
         await builderImpl.importElementLibrary(classElement, useShow: useShow);
       }
     });
@@ -2843,7 +2853,7 @@ class C extends B {}
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
+      classC.declaredFragment!.element.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -2865,7 +2875,7 @@ class C extends B {}
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
+      classC.declaredFragment!.element.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.question,
       ),
@@ -4125,19 +4135,17 @@ class B extends A {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
-    InterfaceElement? targetElement;
+    InterfaceElement2? targetElement;
     {
-      var unitResult = (await resolveFile(path)).unit;
+      var unitResult = await resolveFile(path);
       if (targetMixinName != null) {
-        targetElement = unitResult.declaredElement!.mixins
-            .firstWhere((e) => e.name == targetMixinName);
+        targetElement = unitResult.libraryElement2.getMixin2(targetMixinName)!;
       } else {
-        targetElement = unitResult.declaredElement!.classes
-            .firstWhere((e) => e.name == targetClassName);
+        targetElement = unitResult.libraryElement2.getClass2(targetClassName)!;
       }
     }
 
-    var inherited = InheritanceManager3().getInherited2(
+    var inherited = InheritanceManager3().getInherited4(
       targetElement,
       Name(null, nameToOverride),
     );

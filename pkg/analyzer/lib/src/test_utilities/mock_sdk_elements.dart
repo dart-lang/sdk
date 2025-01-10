@@ -623,7 +623,7 @@ class _MockSdkElementsBuilder {
     _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
-    objectElement.typeParameters = const <TypeParameterElement>[];
+    objectElement.typeParameters = const <TypeParameterElementImpl>[];
     objectElement.constructors = [
       _constructor(isConst: true),
     ];
@@ -974,7 +974,7 @@ class _MockSdkElementsBuilder {
   ClassElementImpl _class({
     required String name,
     bool isAbstract = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     required CompilationUnitElementImpl unit,
   }) {
     var element = ClassElementImpl(name, 0);
@@ -990,7 +990,7 @@ class _MockSdkElementsBuilder {
     String name = '',
     bool isConst = false,
     bool isFactory = false,
-    List<ParameterElement> parameters = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
     element.name2 = name.ifNotEmptyOrElse('new');
@@ -1013,8 +1013,8 @@ class _MockSdkElementsBuilder {
   FunctionElementImpl _function(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return FunctionElementImpl(name, 0)
       ..parameters = parameters
@@ -1070,8 +1070,8 @@ class _MockSdkElementsBuilder {
   MethodElementImpl _method(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..parameters = parameters
@@ -1079,7 +1079,7 @@ class _MockSdkElementsBuilder {
       ..typeParameters = typeFormals;
   }
 
-  ParameterElement _namedParameter(String name, DartType type,
+  ParameterElementImpl _namedParameter(String name, DartType type,
       {String? initializerCode}) {
     var parameter = DefaultParameterElementImpl(
       name: name,
@@ -1155,7 +1155,7 @@ class _MockSdkElementsBuilder {
     ];
   }
 
-  ParameterElement _positionalParameter(String name, DartType type) {
+  ParameterElementImpl _positionalParameter(String name, DartType type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -1165,7 +1165,7 @@ class _MockSdkElementsBuilder {
     return parameter;
   }
 
-  ParameterElement _requiredParameter(String name, DartType type) {
+  ParameterElementImpl _requiredParameter(String name, DartType type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,

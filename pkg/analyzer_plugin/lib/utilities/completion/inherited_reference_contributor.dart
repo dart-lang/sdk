@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -20,7 +20,7 @@ class InheritedReferenceContributor
     with ElementSuggestionBuilder
     implements CompletionContributor {
   @override
-  LibraryElement? containingLibrary;
+  LibraryElement2? containingLibrary;
 
   @override
   CompletionSuggestionKind? kind;
@@ -41,19 +41,19 @@ class InheritedReferenceContributor
       return;
     }
     var classDecl = _enclosingClass(target);
-    if (classDecl == null || classDecl.declaredElement == null) {
+    if (classDecl == null || classDecl.declaredFragment == null) {
       return;
     }
-    containingLibrary = request.result.libraryElement;
+    containingLibrary = request.result.libraryElement2;
     _computeSuggestionsForClass2(
-        collector, target, classDecl.declaredElement!, optype);
+        collector, target, classDecl.declaredFragment!.element, optype);
   }
 
   /// Clients should not overload this function.
   Future<void> computeSuggestionsForClass(
     DartCompletionRequest request,
     CompletionCollector collector,
-    ClassElement? classElement, {
+    ClassElement2? classElement, {
     AstNode? entryPoint,
     bool skipChildClass = true,
     CompletionTarget? target,
@@ -67,32 +67,31 @@ class InheritedReferenceContributor
     }
     if (classElement == null) {
       var classDecl = _enclosingClass(target);
-      if (classDecl == null || classDecl.declaredElement == null) {
+      if (classDecl == null || classDecl.declaredFragment == null) {
         return;
       }
-      classElement = classDecl.declaredElement;
+      classElement = classDecl.declaredFragment!.element;
     }
-    containingLibrary = request.result.libraryElement;
-    _computeSuggestionsForClass2(collector, target, classElement!, optype,
+    containingLibrary = request.result.libraryElement2;
+    _computeSuggestionsForClass2(collector, target, classElement, optype,
         skipChildClass: skipChildClass);
   }
 
   void _addSuggestionsForType(InterfaceType type, OpType optype,
       {bool isFunctionalArgument = false}) {
     if (!isFunctionalArgument) {
-      for (var elem in type.accessors) {
-        if (elem.isGetter) {
-          if (optype.includeReturnValueSuggestions) {
-            addSuggestion(elem);
-          }
-        } else {
-          if (optype.includeVoidReturnSuggestions) {
-            addSuggestion(elem);
-          }
+      for (var elem in type.getters) {
+        if (optype.includeReturnValueSuggestions) {
+          addSuggestion(elem);
+        }
+      }
+      for (var elem in type.setters) {
+        if (optype.includeVoidReturnSuggestions) {
+          addSuggestion(elem);
         }
       }
     }
-    for (var elem in type.methods) {
+    for (var elem in type.methods2) {
       if (elem.returnType is! VoidType) {
         if (optype.includeReturnValueSuggestions) {
           addSuggestion(elem);
@@ -106,7 +105,7 @@ class InheritedReferenceContributor
   }
 
   void _computeSuggestionsForClass2(CompletionCollector collector,
-      CompletionTarget target, ClassElement classElement, OpType optype,
+      CompletionTarget target, ClassElement2 classElement, OpType optype,
       {bool skipChildClass = true}) {
     var isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument

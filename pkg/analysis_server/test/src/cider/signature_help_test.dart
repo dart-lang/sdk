@@ -191,7 +191,7 @@ class Foo {
     expect(result.callStart == leftParenLocation, isTrue);
   }
 
-  Future<SignatureHelpResponse?> _compute(String content) async {
+  Future<SignatureHelpResponse?> _compute(String content) {
     _updateFile(content);
 
     return CiderSignatureHelpComputer(fileResolver).compute2(

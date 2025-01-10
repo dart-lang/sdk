@@ -43,7 +43,7 @@ import 'package:meta/meta.dart';
 const String _tokenSeparator = '\uFFFF';
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
-/// imported into the given [targetLibrary].
+/// imported into the given [targetLibrary2].
 @visibleForTesting
 Future<void> addLibraryImports(
   AnalysisSession session,
@@ -667,8 +667,8 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  /// Checks if [selectionRange] selects [Expression] which can be extracted,
-  /// and location of this [DartExpression] in AST allows extracting.
+  /// Checks if [_selectionRange] selects [Expression] which can be extracted,
+  /// and location of this [Expression] in AST allows extracting.
   RefactoringStatus _checkSelection() {
     if (_selectionOffset <= 0) {
       return RefactoringStatus.fatal(
@@ -784,7 +784,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return true;
   }
 
-  /// If the [selectionRange] is associated with a [FunctionExpression], return
+  /// If the [_selectionRange] is associated with a [FunctionExpression], return
   /// this [FunctionExpression].
   FunctionExpression? _findFunctionExpression() {
     if (_selectionRange.length != 0) {
@@ -1050,7 +1050,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  /// Checks if the given [element] is declared in [selectionRange].
+  /// Checks if the given [element] is declared in [_selectionRange].
   bool _isDeclaredInSelection(Element element) {
     return _selectionRange.contains(element.nameOffset);
   }
@@ -1096,7 +1096,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return false;
   }
 
-  /// Checks if [element] is referenced after [selectionRange].
+  /// Checks if [element] is referenced after [_selectionRange].
   bool _isUsedAfterSelection(Element element) {
     var visitor = _IsUsedAfterSelectionVisitor(this, element);
     _parentMember!.accept(visitor);

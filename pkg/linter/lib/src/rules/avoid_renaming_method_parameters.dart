@@ -30,8 +30,7 @@ class AvoidRenamingMethodParameters extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     if (!context.isInLibDir) return;
 
-    var visitor =
-        _Visitor(this, context.libraryElement2, context.inheritanceManager);
+    var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -44,9 +43,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LibraryElement2? library, this.inheritanceManager)
+  _Visitor(this.rule, LinterContext context)
       : _wildCardVariablesEnabled =
-            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
+            context.isEnabled(Feature.wildcard_variables),
+        inheritanceManager = context.inheritanceManager;
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';

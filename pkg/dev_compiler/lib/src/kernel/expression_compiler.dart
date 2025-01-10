@@ -233,9 +233,9 @@ class ExpressionCompiler {
 
       var args = localJsScope.join(',\n    ');
       jsExpression = jsExpression.split('\n').join('\n  ');
-      var callExpression = '\n  ($jsExpression('
-          '\n    $args'
-          '\n  ))';
+      // We check for '_boundMethod' in case tearoffs are returned.
+      var callExpression = '((() => {var output = $jsExpression($args); '
+          'return output?._boundMethod || output;})())';
 
       _log('Compiled expression \n$expression to $callExpression');
       return callExpression;

@@ -4,7 +4,7 @@ description: A library to facilitate reporting analytics and crash reports.
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ^3.0.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -14,4 +14,5 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  lints: any
   test: any

@@ -107,7 +107,7 @@ class MemberSorter {
     }
   }
 
-  /// Sorts all members of the given [classDeclaration].
+  /// Sorts the [membersToSort].
   void _sortClassMembers(List<ClassMember> membersToSort) {
     var members = <_MemberInfo>[];
     for (var member in membersToSort) {

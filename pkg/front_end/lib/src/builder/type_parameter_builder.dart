@@ -248,8 +248,7 @@ class NominalParameterBuilder extends TypeParameterBuilder {
             kind: TypeParameterKind.fromKernel,
             bound: loader?.computeTypeBuilder(parameter.bound),
             defaultType: loader?.computeTypeBuilder(parameter.defaultType)) {
-    _nullabilityFromParameterBound =
-        TypeParameterType.computeNullabilityFromBound(parameter);
+    _nullabilityFromParameterBound = parameter.computeNullabilityFromBound();
   }
 
   @override
@@ -585,8 +584,7 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
         //  parameters from kernel?
         super(parameter.name ?? "", parameter.fileOffset, null,
             kind: TypeParameterKind.fromKernel) {
-    _nullabilityFromParameterBound =
-        StructuralParameterType.computeNullabilityFromBound(parameter);
+    _nullabilityFromParameterBound = parameter.computeNullabilityFromBound();
   }
 
   @override

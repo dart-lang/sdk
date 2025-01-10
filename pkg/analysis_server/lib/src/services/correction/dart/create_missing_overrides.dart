@@ -114,7 +114,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
           addSeparatorBetweenDeclarations();
           // When only 1 override is being added, we delegate the
           // selection-setting to `builder.writeOverride`.
-          builder.writeOverride2(element, setSelection: _numElements == 1);
+          builder.writeOverride(element, setSelection: _numElements == 1);
         }
       });
     });

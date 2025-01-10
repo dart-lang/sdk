@@ -1078,8 +1078,8 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with ParameterElementMixin
-    implements ParameterElement, FormalParameterElement {
+    with ParameterElementMixin, FormalParameterElementMixin
+    implements ParameterElement, FormalParameterElementOrMember {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -1168,6 +1168,9 @@ class ParameterMember extends VariableMember
   String? get name3 => _element2.name3;
 
   @override
+  String get nameShared => name;
+
+  @override
   Element2 get nonSynthetic2 => _element2;
 
   @deprecated
@@ -1206,11 +1209,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    _element2.appendToWithoutDelimiters2(buffer);
   }
 
   @override

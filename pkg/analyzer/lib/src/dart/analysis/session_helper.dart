@@ -84,7 +84,7 @@ class AnalysisSessionHelper {
     return null;
   }
 
-  /// Return the resolved unit that declares the given [element].
+  /// Return the resolved unit that declares the given [element2].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(
       Element2 element2) async {
     var element = element2.asElement;

@@ -115,7 +115,8 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A [Refactoring] for renaming [LocalElement]s (excluding [ParameterElement]).
+/// A [Refactoring] for renaming [LocalElement2]s (excluding
+/// [FormalParameterElement]s).
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   RenameLocalRefactoringImpl(
     super.workspace,

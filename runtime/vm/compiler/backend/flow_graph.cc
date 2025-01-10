@@ -1013,10 +1013,9 @@ void FlowGraph::ComputeSSA(
 
   GrowableArray<PhiInstr*> live_phis;
 
-  InsertCatchBlockParams(preorder_, variable_liveness.ComputeAssignedVars());
+  InsertCatchBlockParams(preorder_, variable_liveness);
   // Inserted catch block parameters add to the set of assigned variables.
-  InsertPhis(preorder_, variable_liveness.ComputeAssignedVars(),
-             dominance_frontier, &live_phis);
+  InsertPhis(preorder_, variable_liveness, dominance_frontier, &live_phis);
 
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
@@ -1144,9 +1143,11 @@ void FlowGraph::CompressPath(intptr_t start_index,
 }
 
 void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
-                           const GrowableArray<BitVector*>& assigned_vars,
+                           VariableLivenessAnalysis& variable_liveness,
                            const GrowableArray<BitVector*>& dom_frontier,
                            GrowableArray<PhiInstr*>* live_phis) {
+  const auto& assigned_vars = variable_liveness.ComputeAssignedVars();
+
   const intptr_t block_count = preorder.length();
   // Map preorder block number to the highest variable index that has a phi
   // in that block.  Use it to avoid inserting multiple phis for the same
@@ -1183,6 +1184,14 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
            !it.Done(); it.Advance()) {
         int index = it.Current();
         if (has_already[index] < var_index) {
+          if (!always_live && !variable_liveness.GetLiveInSet(preorder[index])
+                                   ->Contains(var_index)) {
+            // Avoid inserting Phis for variables which are not
+            // live into the join block. Such Phis instructions can not
+            // have real uses: they correspond to dead variables which can
+            // be pruned from the environment (e.g. by RenameRecursive).
+            continue;
+          }
           JoinEntryInstr* join = preorder[index]->AsJoinEntry();
           ASSERT(join != nullptr);
           PhiInstr* phi = join->InsertPhi(
@@ -1243,25 +1252,80 @@ void FlowGraph::AddCatchEntryParameter(intptr_t var_index,
 
 void FlowGraph::InsertCatchBlockParams(
     const GrowableArray<BlockEntryInstr*>& preorder,
-    const GrowableArray<BitVector*>& assigned_vars) {
+    VariableLivenessAnalysis& variable_liveness) {
+  // Parameters at CatchBlockEntry serve the same function as Phis at Joins.
+  //
+  // They represent a merge between versions of a variable which arrive on
+  // different control flow edges. For Joins these are explicit control flow
+  // edges between blocks, for CatchBlockEntry these are implicit edges
+  // from throwing instructions covered by this catch block.
+  // Consider two blocks A and B. If the block A has an assignment into a
+  // variable V and there is a path from A to B: B0 = A, B1, B2, ..., Bn = B
+  // such that B{i+1} is a successor of B{i} and B{i} does not dominate B{i+1}
+  // then B needs a Phi function or Parameter corresponding
+  // to the variable V. (for the purposes of shortening the definition we
+  // consider catch entry to be an immediate successor of a block
+  // that it covers).
+  //
+  // Now let us consider two distinct cases:
+  // 1) normal flow graph for a function
+  // 2) OSR relinked flow graph.
+  //
+  // In the first case we have the property that if a path B0, ..., Bn ends up
+  // in the CatchEntry and none of Bi is CatchEntry then this path either fully
+  // contained within the corresponding try block or crosses into the try
+  // block via TryEntry. This property means that if a block A contains an
+  // assignment to a variable V then this assignment can only induce
+  // a Parameter instruction in the surrounding catches (if any).
+  //
+  // This property does hold for the OSR relinked graph because all TryEntry
+  // blocks are lifted up to the graph entry. That means there can exist paths
+  // from a block with an assignment to a variable which itself is not
+  // covered by a try/catch to the catch block which do not cross through
+  // the try entry. This means when inserting Parameter instructions for OSR
+  // relinked graph we can't limit insertion using a list of variables assigned
+  // inside blocks covered by catch and instead we should insert parameters for
+  // all live variables.
+  //
+  // Note: if we computed dominance frontier treating catch block entries as
+  // successors to blocks they cover then we could combine Parameter and Phi
+  // insertion into a single pass algorithm and remove distinction between
+  // OSR and non-OSR case.
   intptr_t fixed_slot_count = Utils::Maximum(
       graph_entry_->fixed_slot_count(),
       (IsCompiledForOsr() ? osr_variable_count() : variable_count()) -
           num_direct_parameters());
   if (IsCompiledForOsr()) {
-    for (intptr_t i = 0; i < try_entries_.length(); i++) {
-      if (try_entries_[i] == nullptr) {
+    for (auto try_entry : try_entries_) {
+      if (try_entry == nullptr) {
         continue;
       }
-      CatchBlockEntryInstr* catch_entry = try_entries_[i]->catch_target();
-      // Will insert parameters for all variables
-      for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
-        // Local variables will arrive on the stack while exception and
-        // stack trace will be passed in fixed registers.
-        AddCatchEntryParameter(i, catch_entry);
+      auto catch_entry = try_entry->catch_target();
+      const auto exception_var_index =
+          EnvIndex(catch_entry->raw_exception_var());
+      const auto stacktrace_var_index =
+          EnvIndex(catch_entry->raw_stacktrace_var());
+      for (intptr_t var_index = 0, n = variable_count(); var_index < n;
+           ++var_index) {
+        const bool always_live = !FLAG_prune_dead_locals ||
+                                 IsImmortalVariable(var_index) ||
+                                 var_index == exception_var_index ||
+                                 var_index == stacktrace_var_index;
+
+        if (!always_live &&
+            !variable_liveness.GetLiveInSet(catch_entry)->Contains(var_index)) {
+          // Avoid inserting Parameter for variables which are not
+          // live into the catch block. Such Parameter instructions can not
+          // have real uses: they correspond to dead variables which can
+          // be pruned from the environment (e.g. by RenameRecursive).
+          continue;
+        }
+        AddCatchEntryParameter(var_index, catch_entry);
       }
     }
   } else {
+    const auto& assigned_vars = variable_liveness.ComputeAssignedVars();
+
     const intptr_t block_count = preorder.length();
     // Map preorder block number to the highest variable index that has an
     // assignment in that block.  Use it to avoid inserting multiple parameters
@@ -1276,11 +1340,11 @@ void FlowGraph::InsertCatchBlockParams(
     has_already.EnsureLength(block_count, -1);
     work.EnsureLength(block_count, -1);
 
-    for (intptr_t i = 0; i < try_entries_.length(); i++) {
-      if (try_entries_[i] == nullptr) {
+    for (auto try_entry : try_entries_) {
+      if (try_entry == nullptr) {
         continue;
       }
-      CatchBlockEntryInstr* catch_block = try_entries_[i]->catch_target();
+      auto catch_block = try_entry->catch_target();
 
       AddCatchEntryParameter(EnvIndex(catch_block->raw_exception_var()),
                              catch_block);
@@ -1295,6 +1359,9 @@ void FlowGraph::InsertCatchBlockParams(
     GrowableArray<BlockEntryInstr*> worklist;
     // Look at every variable in turn.
     for (intptr_t var_index = 0; var_index < variable_count(); ++var_index) {
+      const bool always_live =
+          !FLAG_prune_dead_locals || IsImmortalVariable(var_index);
+
       // Add to the worklist each block containing an assignment to this
       // variable.
       for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
@@ -1312,6 +1379,14 @@ void FlowGraph::InsertCatchBlockParams(
               GetCatchBlockByTryIndex(try_index);
           intptr_t catch_entry_index = catch_entry->preorder_number();
           if (has_already[catch_entry_index] < var_index) {
+            if (!always_live && !variable_liveness.GetLiveInSet(catch_entry)
+                                     ->Contains(var_index)) {
+              // Avoid inserting Parameter for variables which are not
+              // live into the catch block. Such Parameter instructions can not
+              // have real uses: they correspond to dead variables which can
+              // be pruned from the environment (e.g. by RenameRecursive).
+              continue;
+            }
             AddCatchEntryParameter(var_index, catch_entry);
             has_already[catch_entry_index] = var_index;
             if (work[catch_entry_index] < var_index) {
@@ -1590,17 +1665,18 @@ void FlowGraph::RenameRecursive(
     PopulateEnvironmentFromCatchEntry(catch_entry, env);
   }
 
-  if (!block_entry->IsGraphEntry() &&
-      !block_entry->IsBlockEntryWithInitialDefs()) {
-    // Prune non-live variables at block entry by replacing their environment
-    // slots with null.
-    BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
-    for (intptr_t i = 0; i < variable_count(); i++) {
-      // TODO(fschneider): Make sure that live_in always contains the
-      // CurrentContext variable to avoid the special case here.
-      if (FLAG_prune_dead_locals && !live_in->Contains(i) &&
-          !IsImmortalVariable(i)) {
-        (*env)[i] = constant_dead();
+  if (FLAG_prune_dead_locals) {
+    if (!block_entry->IsBlockEntryWithInitialDefs() ||
+        block_entry->IsCatchBlockEntry()) {
+      // Prune non-live variables at block entry by replacing their environment
+      // slots with null.
+      BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
+      for (intptr_t i = 0; i < variable_count(); i++) {
+        // TODO(fschneider): Make sure that live_in always contains the
+        // CurrentContext variable to avoid the special case here.
+        if (!live_in->Contains(i) && !IsImmortalVariable(i)) {
+          (*env)[i] = constant_dead();
+        }
       }
     }
   }

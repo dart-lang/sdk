@@ -9,8 +9,8 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:telemetry/src/pii_regexp.dart';
 
+import 'src/pii_regexp.dart';
 import 'src/utils.dart';
 
 /// Tells crash backend that this is a Dart error (as opposed to, say, Java).
@@ -58,8 +58,8 @@ class CrashReportSender {
     http.Client? httpClient,
     String endpointPath = _crashEndpointPathStaging,
   })  : _httpClient = httpClient ?? http.Client(),
-        _baseUri = Uri(
-            scheme: 'https', host: _crashServerHost, path: endpointPath);
+        _baseUri =
+            Uri(scheme: 'https', host: _crashServerHost, path: endpointPath);
 
   /// Create a new [CrashReportSender] connected to the staging endpoint.
   CrashReportSender.staging(
@@ -195,7 +195,7 @@ class CrashReportAttachment {
   CrashReportAttachment.string({
     required String field,
     required String value,
-  })   : _field = field,
+  })  : _field = field,
         _value = value;
 }
 

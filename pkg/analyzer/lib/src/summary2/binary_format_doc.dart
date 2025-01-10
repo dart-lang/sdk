@@ -77,11 +77,11 @@ class AstUnitIndexItem {
   /// The tag of the declaration from [Tag].
   Byte? tag;
 
-  /// If not [Tag.TopLevelVariableDeclaration], the name of the declaration.
+  /// If not [Tag.VariableDeclaration], the name of the declaration.
   /// Otherwise absent, [topLevelVariableNames] instead.
   StringRef? name;
 
-  /// If [Tag.TopLevelVariableDeclaration], the names of the variables.
+  /// If [Tag.VariableDeclaration], the names of the variables.
   /// Otherwise absent, [name] instead.
   List<StringRef>? topLevelVariableNames;
 }

@@ -429,24 +429,15 @@ class CachedCpuSamples extends CpuSamples {
   CachedCpuSamples({
     required this.userTag,
     this.truncated,
-    required int? samplePeriod,
-    required int? maxStackDepth,
-    required int? sampleCount,
-    required int? timeOriginMicros,
-    required int? timeExtentMicros,
-    required int? pid,
-    required List<ProfileFunction>? functions,
-    required List<CpuSample>? samples,
-  }) : super(
-          samplePeriod: samplePeriod,
-          maxStackDepth: maxStackDepth,
-          sampleCount: sampleCount,
-          timeOriginMicros: timeOriginMicros,
-          timeExtentMicros: timeExtentMicros,
-          pid: pid,
-          functions: functions,
-          samples: samples,
-        );
+    required super.samplePeriod,
+    required super.maxStackDepth,
+    required super.sampleCount,
+    required super.timeOriginMicros,
+    required super.timeExtentMicros,
+    required super.pid,
+    required super.functions,
+    required super.samples,
+  });
 
   CachedCpuSamples._fromJson(Map<String, dynamic> json)
       : userTag = json['userTag']!,

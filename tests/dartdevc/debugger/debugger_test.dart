@@ -168,9 +168,10 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+  var embedder_suffix = dartDevEmbedder != null ? '_ddc' : '';
   var goldenUrl =
       '/root_dart/tests/dartdevc/debugger/'
-      'debugger_test_golden.txt?cacheBlock=$cacheBlocker';
+      'debugger${embedder_suffix}_test_golden.txt?cacheBlock=$cacheBlocker';
 
   String? golden;
   try {

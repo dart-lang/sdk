@@ -756,15 +756,13 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   ASSERT(type.IsFinalized());
-  const Class& cls = Class::Handle(
-      type.IsFunctionType()
-          ? IsolateGroup::Current()->object_store()->closure_class()
-          : type.type_class());
-  ASSERT(!cls.IsNull());
-  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsNeverClass()) {
+  if (!type.IsType() || type.IsDynamicType() || type.IsVoidType() ||
+      type.IsNeverType()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
+  const Class& cls = Class::Handle(type.type_class());
+  ASSERT(!cls.IsNull());
   return CreateClassMirror(cls, AbstractType::Handle(cls.DeclarationType()),
                            Bool::True(),  // is_declaration
                            Object::null_instance());

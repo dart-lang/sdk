@@ -235,9 +235,10 @@ abstract class LintRule {
 
   set reporter(ErrorReporter value) => _reporter = value;
 
-  /// Return a visitor to be passed to pubspecs to perform lint
+  /// Returns a visitor to be passed to pubspecs to perform lint
   /// analysis.
-  /// Lint errors are reported via this [Linter]'s error [reporter].
+  ///
+  /// Lint errors are reported via this [LintRule]'s error [reporter].
   PubspecVisitor? getPubspecVisitor() => null;
 
   /// Registers node processors in the given [registry].

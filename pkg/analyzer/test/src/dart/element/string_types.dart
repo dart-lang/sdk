@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:test/test.dart';
@@ -470,21 +470,21 @@ class _TypeParameterCollector extends TypeVisitor<void> {
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = {};
+  final Set<TypeParameterElement2> functionTypeParameters = {};
 
   @override
   void visitDynamicType(DynamicType type) {}
 
   @override
   void visitFunctionType(FunctionType type) {
-    functionTypeParameters.addAll(type.typeFormals);
-    for (var typeParameter in type.typeFormals) {
+    functionTypeParameters.addAll(type.typeParameters);
+    for (var typeParameter in type.typeParameters) {
       var bound = typeParameter.bound;
       if (bound != null) {
         bound.accept(this);
       }
     }
-    for (var parameter in type.parameters) {
+    for (var parameter in type.formalParameters) {
       parameter.type.accept(this);
     }
     type.returnType.accept(this);
@@ -516,8 +516,8 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType type) {
-    if (!functionTypeParameters.contains(type.element)) {
-      var bound = type.element.bound;
+    if (!functionTypeParameters.contains(type.element3)) {
+      var bound = type.element3.bound;
 
       if (bound == null) {
         return;
@@ -526,7 +526,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       var str = '';
 
       var boundStr = bound.getDisplayString();
-      str += '${type.element.name} extends $boundStr';
+      str += '${type.element3.name3} extends $boundStr';
 
       typeParameters.add(str);
     }

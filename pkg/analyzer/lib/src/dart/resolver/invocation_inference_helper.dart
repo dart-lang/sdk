@@ -120,8 +120,8 @@ class InvocationInferenceHelper {
   /// Given an uninstantiated generic function type, referenced by the
   /// [identifier] in the tear-off [expression], try to infer the instantiated
   /// generic function type from the surrounding context.
-  DartType inferTearOff(Expression expression, SimpleIdentifierImpl identifier,
-      DartType tearOffType,
+  DartType inferTearOff(ExpressionImpl expression,
+      SimpleIdentifierImpl identifier, DartType tearOffType,
       {required DartType contextType}) {
     if (contextType is FunctionType && tearOffType is FunctionType) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(

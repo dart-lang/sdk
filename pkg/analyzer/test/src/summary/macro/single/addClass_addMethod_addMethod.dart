@@ -29,7 +29,7 @@ import 'package:macros/macros.dart';
   const AddMethodBar();
 
   @override
-  buildDeclarationsForMethod(method, builder) async {
+  buildDeclarationsForMethod(method, builder) {
     builder.declareInType(
       DeclarationCode.fromString('  void bar() {}'),
     );

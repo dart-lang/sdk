@@ -254,7 +254,7 @@ class FileResolver {
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
   Future<List<CiderSearchMatch>> findReferences2(Element element,
-      {OperationPerformanceImpl? performance}) async {
+      {OperationPerformanceImpl? performance}) {
     return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
@@ -302,7 +302,7 @@ class FileResolver {
   Future<ErrorsResult> getErrors2({
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
@@ -514,7 +514,7 @@ class FileResolver {
   Future<ResolvedUnitResult> resolve({
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');
@@ -552,7 +552,7 @@ class FileResolver {
     required int completionColumn,
     required String path,
     OperationPerformanceImpl? performance,
-  }) async {
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     performance ??= OperationPerformanceImpl('<default>');

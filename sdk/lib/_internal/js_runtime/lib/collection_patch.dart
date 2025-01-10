@@ -402,7 +402,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
 base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
+  final bool Function(Object?) _validKey;
 
   _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
@@ -569,7 +569,7 @@ class LinkedHashMap<K, V> {
 base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
+  final bool Function(Object?) _validKey;
 
   _LinkedCustomHashMap(
       this._equals, this._hashCode, bool validKey(potentialKey)?)
@@ -955,7 +955,7 @@ base class _IdentityHashSet<E> extends _HashSet<E> {
 base class _CustomHashSet<E> extends _HashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
-  _Predicate _validKey;
+  bool Function(Object?) _validKey;
   _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
@@ -1429,7 +1429,7 @@ base class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
 base class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
-  _Predicate _validKey;
+  bool Function(Object?) _validKey;
   _LinkedCustomHashSet(
       this._equality, this._hasher, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);

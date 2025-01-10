@@ -1184,7 +1184,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validate that the [annotations] include exactly one annotation that
-  /// satisfies the [requiredTypes]. If an error is produced that cannot be
+  /// satisfies the [requiredType]. If an error is produced that cannot be
   /// associated with an annotation, associate it with the [errorNode].
   void _validateAnnotations(TypeAnnotation errorNode,
       NodeList<Annotation> annotations, _PrimitiveDartType requiredType) {

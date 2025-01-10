@@ -283,7 +283,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(selectedRange, (builder) {
-        builder.writeReference2(parentClassElement);
+        builder.writeReference(parentClassElement);
         builder.write('(');
 
         var indentOld = utils.getLinePrefix(firstWidget.offset);
@@ -355,7 +355,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {
-          builder.writeReference2(parentClassElement);
+          builder.writeReference(parentClassElement);
         }
         builder.write('(');
         // When there's no linked edit for the widget name, leave the selection

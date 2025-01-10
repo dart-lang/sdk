@@ -38,10 +38,7 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    _unitElement.library,
-    _unitElement.source,
-    _unitElement.library.typeProvider,
-    _errorListener,
+    ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
   );
   late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
@@ -101,16 +98,16 @@ class AstResolver {
   }
 
   void resolveExpression(
-    Expression Function() getNode, {
+    ExpressionImpl Function() getNode, {
     DartType contextType = UnknownInferredType.instance,
   }) {
-    Expression node = getNode();
+    ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node.parent!, null);
+    _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();

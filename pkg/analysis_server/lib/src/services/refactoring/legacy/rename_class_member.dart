@@ -475,7 +475,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     return null;
   }
 
-  /// Fills [elements] with [Element]s to rename.
+  /// Fills [elements] with [Element2]s to rename.
   Future<void> _prepareElements() async {
     var element = this.element;
     if (element is FieldElement2 || element is MethodElement2) {

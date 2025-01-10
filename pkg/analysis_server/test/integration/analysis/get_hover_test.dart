@@ -65,7 +65,7 @@ void f() {
     Matcher? parameter = isNull,
   }) {
     var offset = text.indexOf(target);
-    return sendAnalysisGetHover(pathname, offset).then((result) async {
+    return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(1));
       var info = result.hovers[0];
       expect(info.offset, equals(offset));

@@ -141,7 +141,7 @@ extension BlockExtension on Block {
   }
 }
 
-extension ClassElement2Extension on ClassElement2 {
+extension ClassElementExtension on ClassElement2 {
   bool get hasImmutableAnnotation {
     var inheritedAndSelfElements = <InterfaceElement2>[
       ...allSupertypes.map((t) => t.element3),
@@ -309,7 +309,7 @@ extension DartTypeExtension on DartType? {
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
-extension ElementExtension2 on Element2? {
+extension ElementExtension on Element2? {
   Element2? get canonicalElement2 => switch (this) {
         PropertyAccessorElement2(:var variable3?) => variable3,
         _ => this,
@@ -482,7 +482,7 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   }
 }
 
-extension InterfaceElement2Extension on InterfaceElement2 {
+extension InterfaceElementExtension on InterfaceElement2 {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>

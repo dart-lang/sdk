@@ -9,7 +9,10 @@ import 'dart:io';
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show computeCachedDillPath, ResidentCompilerInfo, sendAndReceiveResponse;
+    show
+        computeCachedDillAndCompilerOptionsPaths,
+        ResidentCompilerInfo,
+        sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show sdkHashNull;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
@@ -987,8 +990,10 @@ void residentRun() {
     serverInfoDirectory = project(mainSrc: 'void main() {}');
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
 
-    final cachedDillFile =
-        File(computeCachedDillPath(serverInfoDirectory.mainPath));
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(serverInfoDirectory.mainPath)
+          .cachedDillPath,
+    );
     expect(cachedDillFile.existsSync(), false);
 
     final result = await serverInfoDirectory.run([
@@ -1054,7 +1059,9 @@ void residentRun() {
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
 
-    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+    );
     expect(cachedDillFile.existsSync(), false);
 
     final result = await p.run([
@@ -1081,7 +1088,9 @@ void residentRun() {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.deleteFile('.dart_tool/package_config.json');
 
-    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+    );
     expect(cachedDillFile.existsSync(), false);
 
     final result = await p.run([
@@ -1108,7 +1117,9 @@ void residentRun() {
       () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
 
-    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+    );
     expect(cachedDillFile.existsSync(), false);
 
     final result = await p.run([
@@ -1135,7 +1146,9 @@ void residentRun() {
       () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
 
-    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+    );
     expect(cachedDillFile.existsSync(), false);
 
     final result = await p.run([
@@ -1257,8 +1270,12 @@ void residentRun() {
       ),
     );
 
-    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    final (:cachedDillPath, :cachedCompilerOptionsPath) =
+        computeCachedDillAndCompilerOptionsPaths(p.mainPath);
+    final cachedDillFile = File(cachedDillPath);
     expect(cachedDillFile.existsSync(), false);
+    final cachedCompilerOptionsFile = File(cachedCompilerOptionsPath);
+    expect(cachedCompilerOptionsFile.existsSync(), false);
 
     final result = await p.run([
       'run',
@@ -1277,8 +1294,24 @@ void residentRun() {
       ),
     );
     expect(result.exitCode, 0);
+
     expect(cachedDillFile.existsSync(), true);
     cachedDillFile.deleteSync();
+
+    expect(cachedCompilerOptionsFile.existsSync(), true);
+    final cachedCompilerOptionsFileContents =
+        cachedCompilerOptionsFile.readAsStringSync();
+    cachedCompilerOptionsFile.deleteSync();
+
+    // [cachedCompilerOptionsFileContents] should be a valid JSON list that
+    // contains the enabled experiment.
+    final cachedCompilerOptionsAsList =
+        (jsonDecode(cachedCompilerOptionsFileContents) as List<dynamic>)
+            .cast<String>();
+    expect(
+      cachedCompilerOptionsAsList,
+      contains('--enable-experiment=test-experiment'),
+    );
   });
 
   test('same server used from different directories', () async {
@@ -1320,12 +1353,18 @@ void residentRun() {
     p.file('lib/main.dart', 'void main() {}');
     p.file('bin/main.dart', 'void main() {}');
 
-    final cachedDillForLibMain =
-        File(computeCachedDillPath(path.join(p.dirPath, 'lib/main.dart')));
+    final cachedDillForLibMain = File(
+      computeCachedDillAndCompilerOptionsPaths(
+        path.join(p.dirPath, 'lib/main.dart'),
+      ).cachedDillPath,
+    );
     expect(cachedDillForLibMain.existsSync(), false);
 
-    final cachedDillForBinMain =
-        File(computeCachedDillPath(path.join(p.dirPath, 'bin/main.dart')));
+    final cachedDillForBinMain = File(
+      computeCachedDillAndCompilerOptionsPaths(
+        path.join(p.dirPath, 'bin/main.dart'),
+      ).cachedDillPath,
+    );
     expect(cachedDillForBinMain.existsSync(), false);
 
     final runResult1 = await p.run([

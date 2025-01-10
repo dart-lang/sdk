@@ -147,17 +147,17 @@ class BuildCommand extends DartdevCommand {
     final cCompilerConfig = getCCompilerConfig();
 
     final buildResult = await nativeAssetsBuildRunner.build(
-      configCreator: () => BuildConfigBuilder()
-        ..setupCodeConfig(
+      inputCreator: () => BuildInputBuilder()
+        ..config.setupCode(
           targetOS: target.os,
           linkModePreference: LinkModePreference.dynamic,
           targetArchitecture: target.architecture,
-          macOSConfig: macOSConfig,
-          cCompilerConfig: cCompilerConfig,
+          macOS: macOSConfig,
+          cCompiler: cCompilerConfig,
         ),
-      configValidator: (config) async => [
-        ...await validateDataAssetBuildConfig(config),
-        ...await validateCodeAssetBuildConfig(config),
+      inputValidator: (config) async => [
+        ...await validateDataAssetBuildInput(config),
+        ...await validateCodeAssetBuildInput(config),
       ],
       workingDirectory: workingDirectory,
 
@@ -205,17 +205,17 @@ class BuildCommand extends DartdevCommand {
 
       // Start linking here.
       final linkResult = await nativeAssetsBuildRunner.link(
-        configCreator: () => LinkConfigBuilder()
-          ..setupCodeConfig(
+        inputCreator: () => LinkInputBuilder()
+          ..config.setupCode(
             targetOS: target.os,
             targetArchitecture: target.architecture,
             linkModePreference: LinkModePreference.dynamic,
-            macOSConfig: macOSConfig,
-            cCompilerConfig: cCompilerConfig,
+            macOS: macOSConfig,
+            cCompiler: cCompilerConfig,
           ),
-        configValidator: (config) async => [
-          ...await validateDataAssetLinkConfig(config),
-          ...await validateCodeAssetLinkConfig(config),
+        inputValidator: (config) async => [
+          ...await validateDataAssetLinkInput(config),
+          ...await validateCodeAssetLinkInput(config),
         ],
         resourceIdentifiers:
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,

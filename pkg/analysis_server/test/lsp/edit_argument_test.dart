@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/editable_arguments/handler_edit_argument.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,10 +12,209 @@ import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
+// ignore_for_file: prefer_single_quotes
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EditArgumentTest);
+    defineReflectiveTests(ComputeStringValueTest);
   });
+}
+
+@reflectiveTest
+class ComputeStringValueTest {
+  test_doubleQuote_multi_notRaw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (r""" ' """, r'''""" ' """'''),
+        // Double quotes (not escaped).
+        (r""" " """, r'''""" " """'''),
+        // Dollars (escaped).
+        (r""" $ """, r'''""" \$ """'''),
+        // Newlines (escaped).
+        (""" \r\n """, r'''""" \r\n """'''),
+      ],
+      single: false,
+      multi: true,
+      raw: false,
+    );
+  }
+
+  test_doubleQuote_multi_raw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (" ' ", r'''r""" ' """'''),
+        // Double quotes (not escaped).
+        (' " ', r'''r""" " """'''),
+        // Three Single quotes (not escaped, backslashes are to nest quotes here).
+        (" ''' ", '''r""" \''' """'''),
+        // Three Double quotes (escaped, changed to non-raw because quotes in string).
+        (' """ ', r'""" \"\"\" """'),
+        // Dollars (not escaped).
+        (r' $ ', r'r""" $ """'),
+        // Newlines (escaped, changed to non-raw because newlines in string).
+        (' \r\n ', r'""" \r\n """'),
+      ],
+      single: false,
+      multi: true,
+      raw: true,
+    );
+  }
+
+  test_doubleQuote_notMulti_notRaw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (" ' ", r'''" ' "'''),
+        // Double quotes (escaped).
+        (' " ', r'''" \" "'''),
+        // Three Single quotes (not escaped, backslashes are to nest quotes here).
+        (" ''' ", '''" \'\'\' "'''),
+        // Three Double quotes (escaped).
+        (' """ ', r'" \"\"\" "'),
+        // Dollars (escaped).
+        (r' $ ', r'" \$ "'),
+        // Newlines (escaped).
+        (' \r\n ', r'" \r\n "'),
+      ],
+      single: false,
+      multi: false,
+      raw: false,
+    );
+  }
+
+  test_doubleQuote_notMulti_raw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (" ' ", r'''r" ' "'''),
+        // Double quotes  (escaped, changed to non-raw because quotes in string).
+        (' " ', r'" \" "'),
+        // Three Single quotes (not escaped, backslashes are to nest quotes here).
+        (" ''' ", '''r" \''' "'''),
+        // Three Double quotes (escaped, changed to non-raw because quotes in string).
+        (' """ ', r'" \"\"\" "'),
+        // Dollars (not escaped).
+        (r' $ ', r'r" $ "'),
+        // Newlines (escaped, changed to non-raw because newlines in string).
+        (' \r\n ', r'" \r\n "'),
+      ],
+      single: false,
+      multi: false,
+      raw: true,
+    );
+  }
+
+  test_singleQuote_multi_notRaw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (r""" ' """, r"""''' ' '''"""),
+        // Double quotes (not escaped).
+        (r""" " """, r"""''' " '''"""),
+        // Dollars (escaped).
+        (r""" $ """, r"""''' \$ '''"""),
+        // Newlines (escaped).
+        (""" \r\n """, r"""''' \r\n '''"""),
+      ],
+      single: true,
+      multi: true,
+      raw: false,
+    );
+  }
+
+  test_singleQuote_multi_raw() async {
+    verifyStrings(
+      [
+        // Single quotes (not escaped).
+        (" ' ", r"r''' ' '''"),
+        // Double quotes (not escaped).
+        (' " ', r"""r''' " '''"""),
+        // Three Single quotes (escaped, changed to non-raw because quotes in string).
+        (" ''' ", r"''' \'\'\' '''"),
+        // Three Double quotes (not escaped, backslashes are to nest quotes here).
+        (' """ ', """r''' \""" '''"""),
+        // Dollars (not escaped).
+        (r' $ ', r"r''' $ '''"),
+        // Newlines (escaped, changed to non-raw because newlines in string).
+        (' \r\n ', r"''' \r\n '''"),
+      ],
+      single: true,
+      multi: true,
+      raw: true,
+    );
+  }
+
+  test_singleQuote_notMulti_notRaw() async {
+    verifyStrings(
+      [
+        // Single quotes (escaped).
+        (" ' ", r"' \' '"),
+        // Double quotes (not escaped).
+        (' " ', r"""' " '"""),
+        // Three Single quotes (escaped).
+        (" ''' ", r"' \'\'\' '"),
+        // Three Double quotes (not escaped, backslashes are to nest quotes here).
+        (' """ ', """' \""" '"""),
+        // Dollars (escaped).
+        (r' $ ', r"' \$ '"),
+        // Newlines (escaped).
+        (' \r\n ', r"' \r\n '"),
+      ],
+      single: true,
+      multi: false,
+      raw: false,
+    );
+  }
+
+  test_singleQuote_notMulti_raw() async {
+    verifyStrings(
+      [
+        // Single quotes (escaped, changed to non-raw because quotes in string).
+        (" ' ", r"' \' '"),
+        // Double quotes (not escaped).
+        (' " ', r"""r' " '"""),
+        // Three Single quotes (escaped, changed to non-raw because quotes in string).
+        (" ''' ", r"' \'\'\' '"),
+        // Three Double quotes (not escaped, backslashes are to nest quotes here).
+        (' """ ', """r' \""" '"""),
+        // Dollars (not escaped).
+        (r' $ ', r"r' $ '"),
+        // Newlines (escaped, changed to non-raw because newlines in string).
+        (' \r\n ', r"' \r\n '"),
+      ],
+      single: true,
+      multi: false,
+      raw: true,
+    );
+  }
+
+  /// Verifies a set of strings in [tests] are written correctly as literal
+  /// Dart strings.
+  void verifyStrings(
+    List<(String, String)> tests, {
+    required bool single,
+    required bool multi,
+    required bool raw,
+  }) {
+    for (var (input, expected) in tests) {
+      var result = EditArgumentHandler.computeStringValueCode(
+        input,
+        preferSingleQuotes: single,
+        preferMultiline: multi,
+        preferRaw: raw,
+      );
+
+      expect(
+        result,
+        expected,
+        reason:
+            '[$input] should be represented by the literal Dart code [$expected] but was [$result]',
+      );
+    }
+  }
 }
 
 @reflectiveTest
@@ -73,12 +273,66 @@ class EditArgumentTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  test_named_addAfterNamed_afterChildNotAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, Widget? child })',
+      originalArgs: '(child: null, x: 1)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(child: null, x: 1, y: 2)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, Widget? child })',
+      originalArgs: '(x: 1, child: null)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(x: 1, y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildrenAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, List<Widget>? children })',
+      originalArgs: '(x: 1, children: [])',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(x: 1, y: 2, children: [])',
+    );
+  }
+
   test_named_addAfterPositional() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y })',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
       expectedArgs: '(1, y: 2)',
+    );
+  }
+
+  test_named_addAfterPositional_afterChildNotAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, Widget? child })',
+      originalArgs: '(child: null, 1)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(child: null, 1, y: 2)',
+    );
+  }
+
+  test_named_addAfterPositional_beforeChildAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, Widget? child })',
+      originalArgs: '(1, child: null)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(1, y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterPositional_beforeChildrenAtEnd() async {
+    await _expectSimpleArgumentEdit(
+      params: '(int? x, { int? y, List<Widget>? children })',
+      originalArgs: '(1, children: [])',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(1, y: 2, children: [])',
     );
   }
 
@@ -454,7 +708,7 @@ const myConst = E.one;
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x', newValue: "a'b"),
-      expectedArgs: '''(x: "a'b")''',
+      expectedArgs: r'''(x: 'a\'b')''',
     );
   }
 
@@ -494,6 +748,60 @@ const myConst = E.one;
     );
   }
 
+  test_type_string_quotes_dollar_escapedNonRaw() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: "(x: '')",
+      edit: ArgumentEdit(name: 'x', newValue: r'$'),
+      expectedArgs: r"(x: '\$')",
+    );
+  }
+
+  test_type_string_quotes_dollar_notEscapedRaw() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: "(x: r'')",
+      edit: ArgumentEdit(name: 'x', newValue: r'$'),
+      expectedArgs: r"(x: r'$')",
+    );
+  }
+
+  test_type_string_quotes_usesExistingDouble() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: '(x: "a")',
+      edit: ArgumentEdit(name: 'x', newValue: 'a'),
+      expectedArgs: '(x: "a")',
+    );
+  }
+
+  test_type_string_quotes_usesExistingSingle() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: "(x: 'a')",
+      edit: ArgumentEdit(name: 'x', newValue: 'a'),
+      expectedArgs: "(x: 'a')",
+    );
+  }
+
+  test_type_string_quotes_usesExistingTripleDouble() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: '(x: """a""")',
+      edit: ArgumentEdit(name: 'x', newValue: 'a'),
+      expectedArgs: '(x: """a""")',
+    );
+  }
+
+  test_type_string_quotes_usesExistingTripleSingle() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ String? x })',
+      originalArgs: "(x: '''a''')",
+      edit: ArgumentEdit(name: 'x', newValue: 'a'),
+      expectedArgs: "(x: '''a''')",
+    );
+  }
+
   test_type_string_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
@@ -508,7 +816,7 @@ const myConst = E.one;
       params: '({ String? x })',
       originalArgs: "(x: r'a')",
       edit: ArgumentEdit(name: 'x', newValue: 'b'),
-      expectedArgs: "(x: 'b')",
+      expectedArgs: "(x: r'b')",
     );
   }
 
@@ -517,7 +825,7 @@ const myConst = E.one;
       params: '({ String? x })',
       originalArgs: "(x: '''a''')",
       edit: ArgumentEdit(name: 'x', newValue: 'b'),
-      expectedArgs: "(x: 'b')",
+      expectedArgs: "(x: '''b''')",
     );
   }
 

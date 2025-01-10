@@ -85,7 +85,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
           return;
         }
 
-        builder.writeOverride2(element, invokeSuper: true);
+        builder.writeOverride(element, invokeSuper: true);
       });
     });
   }

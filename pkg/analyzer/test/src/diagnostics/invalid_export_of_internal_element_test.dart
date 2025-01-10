@@ -33,7 +33,7 @@ class InvalidExportOfInternalElement_BlazePackageTest
   String get testPackageLibPath => myPackageLibPath;
 
   @override
-  void setUp() async {
+  void setUp() {
     super.setUp();
     addMeta();
     newFile('$testPackageBlazeBinPath/my.packages', '');
@@ -279,7 +279,7 @@ export 'package:test/src/foo.dart';
 class InvalidExportOfInternalElement_PubPackageTest
     extends PubPackageResolutionTest with InvalidExportOfInternalElementTest {
   @override
-  void setUp() async {
+  void setUp() {
     super.setUp();
     writeTestPackageConfigWithMeta();
     newPubspecYamlFile(testPackageRootPath, r'''

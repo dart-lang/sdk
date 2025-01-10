@@ -200,9 +200,11 @@ class Class extends NamedNode implements TypeDeclaration {
     // mixedInType) of constraints, where all the interior nodes are anonymous
     // mixin applications.
     Supertype? current = supertype;
-    while (current != null && current.classNode.isAnonymousMixin) {
+    while (current != null &&
+        current.classNode.isAnonymousMixin &&
+        // While we expect 2, with erroneous code we don't always have that.
+        current.classNode.implementedTypes.length == 2) {
       Class currentClass = current.classNode;
-      assert(currentClass.implementedTypes.length == 2);
       Substitution substitution = Substitution.fromSupertype(current);
       constraints.add(
           substitution.substituteSupertype(currentClass.implementedTypes[1]));

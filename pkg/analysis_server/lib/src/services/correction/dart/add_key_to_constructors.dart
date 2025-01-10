@@ -95,7 +95,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
         }
         builder.write(className);
         builder.write('({');
-        if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+        if (isEnabled(Feature.super_parameters)) {
           builder.write('super.key});');
         } else {
           builder.writeType(keyType);
@@ -115,9 +115,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (keyType == null) {
       return;
     }
-    var superParameters = libraryElement2.featureSet.isEnabled(
-      Feature.super_parameters,
-    );
+    var superParameters = isEnabled(Feature.super_parameters);
 
     void writeKey(DartEditBuilder builder) {
       if (superParameters) {

@@ -395,6 +395,7 @@ class FfiCode extends ErrorCode {
     correctionMessage:
         "Try adding a type parameter extending `NativeType` to the `@Native` "
         "annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -402,6 +403,7 @@ class FfiCode extends ErrorCode {
     'NEGATIVE_VARIABLE_DIMENSION',
     "The variable dimension of a variable-length array must be non-negative.",
     correctionMessage: "Try using a value that is zero or greater.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

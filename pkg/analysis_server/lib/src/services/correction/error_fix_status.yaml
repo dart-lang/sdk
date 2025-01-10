@@ -2401,6 +2401,10 @@ LintCode.unintended_html_in_doc_comment:
   status: needsFix
   notes: |-
     The fix is to encode the angle brackets.
+LintCode.unnecessary_async:
+  status: needsFix
+  notes: |-
+    And probably also quick assist that works even if returns `Future`.
 LintCode.unnecessary_await_in_return:
   status: hasFix
 LintCode.unnecessary_brace_in_string_interps:
@@ -2455,6 +2459,8 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_underscores:
+  status: hasFix  
 LintCode.unreachable_from_main:
   status: hasFix
 LintCode.unrelated_type_equality_checks_in_expression:

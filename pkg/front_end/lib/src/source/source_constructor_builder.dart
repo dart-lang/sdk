@@ -30,6 +30,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -51,7 +52,6 @@ import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
-import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart'
@@ -396,6 +396,14 @@ abstract class AbstractSourceConstructorBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
 }
 
 class DeclaredSourceConstructorBuilder
@@ -405,7 +413,7 @@ class DeclaredSourceConstructorBuilder
   @override
   late final Procedure? _constructorTearOff;
 
-  Set<SourceFieldBuilder>? _initializedFields;
+  Set<PropertyBuilder>? _initializedFields;
 
   DeclaredSourceConstructorBuilder? actualOrigin;
 
@@ -925,9 +933,8 @@ class DeclaredSourceConstructorBuilder
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     InterfaceType type = new InterfaceType(
         enclosingClass, Nullability.nonNullable, typeParameterTypes);
@@ -1001,7 +1008,7 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void registerInitializedField(SourceFieldBuilder fieldBuilder) {
+  void registerInitializedField(PropertyBuilder fieldBuilder) {
     if (isAugmenting) {
       origin.registerInitializedField(fieldBuilder);
     } else {
@@ -1010,8 +1017,8 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  Set<SourceFieldBuilder>? takeInitializedFields() {
-    Set<SourceFieldBuilder>? result = _initializedFields;
+  Set<PropertyBuilder>? takeInitializedFields() {
+    Set<PropertyBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }
@@ -1125,6 +1132,14 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   bool get isConstructor => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1303,7 +1318,7 @@ class SourceExtensionTypeConstructorBuilder
   @override
   late final Procedure? _constructorTearOff;
 
-  Set<SourceFieldBuilder>? _initializedFields;
+  Set<PropertyBuilder>? _initializedFields;
 
   @override
   List<Initializer> initializers = [];
@@ -1490,9 +1505,8 @@ class SourceExtensionTypeConstructorBuilder
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {
       TypeParameter typeParameter = function.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     ExtensionType type = new ExtensionType(
         extensionTypeDeclaration, Nullability.nonNullable, typeParameterTypes);
@@ -1544,13 +1558,13 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void registerInitializedField(SourceFieldBuilder fieldBuilder) {
+  void registerInitializedField(PropertyBuilder fieldBuilder) {
     (_initializedFields ??= {}).add(fieldBuilder);
   }
 
   @override
-  Set<SourceFieldBuilder>? takeInitializedFields() {
-    Set<SourceFieldBuilder>? result = _initializedFields;
+  Set<PropertyBuilder>? takeInitializedFields() {
+    Set<PropertyBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }
@@ -1581,10 +1595,8 @@ class SourceExtensionTypeConstructorBuilder
           declarationBuilder.extensionTypeDeclaration.typeParameters,
           new List<DartType>.generate(
               declarationBuilder.typeParameters!.length,
-              (int index) =>
-                  new TypeParameterType.withDefaultNullabilityForLibrary(
-                      function.typeParameters[index],
-                      libraryBuilder.origin.library)));
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
     } else {
       _substitutionCache = Substitution.empty;
     }

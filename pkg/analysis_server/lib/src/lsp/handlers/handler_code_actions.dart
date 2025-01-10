@@ -39,7 +39,7 @@ class CodeActionHandler
     CodeActionParams params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
+  ) {
     var performance = message.performance;
 
     var textDocument = params.textDocument;

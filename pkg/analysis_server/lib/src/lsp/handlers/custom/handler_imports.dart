@@ -69,17 +69,17 @@ class ImportsHandler
         return success(null);
       }
 
-      String? prefix;
+      String? prefixName;
       if (node is NamedType) {
-        prefix = node.importPrefix?.name.lexeme;
+        prefixName = node.importPrefix?.name.lexeme;
       } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
-          case PrefixedIdentifier identifier) {
-        prefix = identifier.prefix.name;
+          case PrefixedIdentifier(:var prefix) when prefix != node) {
+        prefixName = prefix.name;
       } else if (node is SimpleIdentifier) {
         if (node.parent case MethodInvocation(
           target: SimpleIdentifier target?,
         )) {
-          prefix = target.toString();
+          prefixName = target.toString();
         }
       }
 
@@ -88,7 +88,7 @@ class ImportsHandler
         element = enclosingElement;
       }
 
-      var locations = _getImportLocations(library, unit, element, prefix);
+      var locations = _getImportLocations(library, unit, element, prefixName);
 
       return success(nullIfEmpty(locations));
     });

@@ -48,7 +48,6 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
@@ -1037,21 +1036,26 @@ class SourceClassBuilder extends ClassBuilderImpl
     return supertype;
   }
 
-  void checkVarianceInField(SourceFieldBuilder fieldBuilder,
-      TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
-    for (TypeParameter typeParameter in typeParameters) {
-      Variance fieldVariance =
-          computeVariance(typeParameter, fieldBuilder.fieldType);
-      if (fieldBuilder.isClassInstanceMember) {
-        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.fileOffset);
-      }
-      if (fieldBuilder.isClassInstanceMember &&
-          fieldBuilder.isAssignable &&
-          !fieldBuilder.isCovariantByDeclaration) {
-        fieldVariance = Variance.contravariant.combine(fieldVariance);
-        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.fileOffset);
+  void checkVarianceInField(TypeEnvironment typeEnvironment,
+      {required DartType fieldType,
+      required bool isInstanceMember,
+      required bool hasSetter,
+      required bool isCovariantByDeclaration,
+      required Uri fileUri,
+      required int fileOffset}) {
+    List<TypeParameter> typeParameters = cls.typeParameters;
+    if (typeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in typeParameters) {
+        Variance fieldVariance = computeVariance(typeParameter, fieldType);
+        if (isInstanceMember) {
+          reportVariancePositionIfInvalid(
+              fieldVariance, typeParameter, fileUri, fileOffset);
+        }
+        if (isInstanceMember && hasSetter && !isCovariantByDeclaration) {
+          fieldVariance = Variance.contravariant.combine(fieldVariance);
+          reportVariancePositionIfInvalid(
+              fieldVariance, typeParameter, fileUri, fileOffset);
+        }
       }
     }
   }
@@ -1498,14 +1502,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else if (declaredFunction.typeParameters.length == 1) {
         substitution = Substitution.fromSingleton(
             interfaceFunction.typeParameters[0],
-            new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[0],
+            new TypeParameterType.withDefaultNullability(
                 declaredFunction.typeParameters[0]));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
             <TypeParameter, DartType>{};
         for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
           substitutionMap[interfaceFunction.typeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[i],
+              new TypeParameterType.withDefaultNullability(
                   declaredFunction.typeParameters[i]);
         }
         substitution = Substitution.fromMap(substitutionMap);

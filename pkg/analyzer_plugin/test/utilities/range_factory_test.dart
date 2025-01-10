@@ -508,12 +508,6 @@ class B {}
 ''');
   }
 
-  Future<void> test_elementName() async {
-    await resolveTestCode('class ABC {}');
-    var element = findElement.class_('ABC');
-    expect(range.elementName(element), SourceRange(6, 3));
-  }
-
   Future<void> test_endEnd() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;

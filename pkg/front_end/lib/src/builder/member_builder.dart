@@ -186,6 +186,7 @@ abstract class BuilderClassMember implements ClassMember {
   Uri get fileUri => memberBuilder.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeMember => memberBuilder.isExtensionTypeMember;
 
   @override
@@ -206,6 +207,7 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isDuplicate => memberBuilder.isDuplicate;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => memberBuilder.isField;
 
   @override
@@ -231,9 +233,11 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isSynthesized => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isInternalImplementation => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNoSuchMethodForwarder => false;
 
   @override

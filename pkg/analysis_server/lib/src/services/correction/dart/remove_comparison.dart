@@ -188,8 +188,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Use the [builder] to add an edit to delete the operator and given
-  /// [operand] from the [binary] expression.
+  /// Adds an edit with [builder] to delete the operator and [node] from the
+  /// [binary] expression (where [node] is assumed to be one of the operands).
   Future<void> _removeOperatorAndOperand(
     ChangeBuilder builder,
     BinaryExpression binary,

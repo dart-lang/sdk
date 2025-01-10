@@ -202,7 +202,10 @@ group("tools") {
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
-  deps = [ ":create_sdk" ]
+  deps = [
+    ":create_sdk",
+    "utils/compiler:compile_dart2js_platform_unsound",
+  ]
 }
 
 # This rule and the compressed_observatory_archive rule are for the Fuchsia

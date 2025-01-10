@@ -73,7 +73,7 @@ enum IndexRelationKind : byte {
   IS_WRITTEN_BY
 }
 
-/// When we need to reference a synthetic element in [PackageIndex] we use a
+/// When we need to reference a synthetic element in PackageIndex we use a
 /// value of this enum to specify which kind of the synthetic element we
 /// actually reference.
 enum IndexSyntheticElementKind : byte {
@@ -147,12 +147,12 @@ table AnalysisDriverResolvedUnit {
 /// Information about a subtype of one or more classes.
 table AnalysisDriverSubtype {
   /// The names of defined instance members.
-  /// They are indexes into [AnalysisDriverUnitError.strings] list.
+  /// They are indexes into [AnalysisDriverUnitIndex.strings] list.
   /// The list is sorted in ascending order.
   members:[uint] (id: 1);
 
   /// The name of the class.
-  /// It is an index into [AnalysisDriverUnitError.strings] list.
+  /// It is an index into [AnalysisDriverUnitIndex.strings] list.
   name:uint (id: 0);
 }
 

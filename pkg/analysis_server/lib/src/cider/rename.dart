@@ -98,7 +98,8 @@ class CanRenameResponse {
   }
 
   FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
-    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
+    if (element is ClassElement &&
+        element.asElement2.isStatefulWidgetDeclaration) {
       var oldStateName = '${element.displayName}State';
       var library = element.library;
       var state =

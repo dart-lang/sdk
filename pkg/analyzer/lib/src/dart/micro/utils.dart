@@ -24,7 +24,19 @@ Element? getElementOfNode(AstNode? node) {
   if (node is StringLiteral && node.parent is UriBasedDirective) {
     return null;
   }
-  var element = ElementLocator.locate(node);
+
+  Element? element;
+  switch (node) {
+    case ExportDirective():
+      element = node.element;
+    case ImportDirective():
+      element = node.element;
+    case PartOfDirective():
+      element = node.element;
+    default:
+      element = ElementLocator.locate2(node).asElement;
+  }
+
   if (node is SimpleIdentifier && element is PrefixElement) {
     var parent = node.parent;
     if (parent is ImportDirective) {
@@ -33,6 +45,7 @@ Element? getElementOfNode(AstNode? node) {
       element = _getImportElementInfo(node);
     }
   }
+
   return element;
 }
 
