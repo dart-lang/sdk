@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_02/main.dart:1:15: Error: Type 'E' not found.
+// mixin A on D, E {}
+//               ^
+//
+// pkg/front_end/testcases/general/crashes/crash_02/main.dart:3:7: Error: 'C' doesn't implement '_A&D&E' so it can't be used with 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/general/crashes/crash_02/main.dart'.
+//  - 'D with E' is from 'pkg/front_end/testcases/general/crashes/crash_02/main.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/crashes/crash_02/main.dart'.
+// class B extends C with A {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class _A&D&E extends core::Object implements self::D /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&D&E
+    : super core::Object::•()
+    ;
+}
+abstract class A extends self::_A&D&E /*isMixinDeclaration*/  {
+}
+abstract class _B&C&A extends self::C implements self::A /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_B&C&A
+    : super self::C::•()
+    ;
+}
+class B extends self::_B&C&A {
+  synthetic constructor •() → self::B
+    : super self::_B&C&A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

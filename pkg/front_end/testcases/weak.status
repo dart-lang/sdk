@@ -194,8 +194,6 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/continue_label_invalid: RuntimeError
 general/covariant_field: TypeCheckError
-general/crashes/crash_02/main: Crash
-general/crashes/crash_06/main: Crash
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError

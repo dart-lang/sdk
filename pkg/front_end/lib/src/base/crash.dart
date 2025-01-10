@@ -65,7 +65,10 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     await stderr.flush();
   }
 
-  if (hasCrashed) return new Future<T>.error(error, trace);
+  if (hasCrashed) {
+    // Coverage-ignore-block(suite): Not run.
+    return new Future<T>.error(error, trace);
+  }
   if (error is Crash) {
     // Coverage-ignore-block(suite): Not run.
     trace = error.trace ?? trace;
@@ -137,7 +140,9 @@ Future<T> withCrashReporting<T>(
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
-    if (e is Crash && e._hasBeenReported) {
+    if (e is Crash &&
+        // Coverage-ignore(suite): Not run.
+        e._hasBeenReported) {
       rethrow;
     }
     UriOffset? uriOffset = currentUriOffset();

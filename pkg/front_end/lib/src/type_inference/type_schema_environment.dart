@@ -481,7 +481,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (inferenceUsingBoundsIsEnabled &&
         constraint.lower is! SharedUnknownTypeSchemaView<DartType> &&
         !hasOmittedBound(typeParameterToInfer)) {
-      // Coverage-ignore-block(suite): Not run.
       MergedTypeConstraint constraintFromBound =
           operations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
