@@ -138,7 +138,6 @@ lib/src/test_utilities/find_element.dart
 lib/src/test_utilities/find_node.dart
 lib/src/test_utilities/mock_sdk_elements.dart
 lib/src/utilities/extensions/element.dart
-test/error/error_reporter_test.dart
 test/generated/elements_types_mixin.dart
 test/generated/non_error_resolver_test.dart
 test/generated/resolver_test_case.dart
