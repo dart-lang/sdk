@@ -341,7 +341,12 @@ final class BoxedDouble implements double {
       }
     }
     String result = jsStringToDartString(
-      JSStringImpl(JS<WasmExternRef>("v => v.toString()", value)),
+      JSStringImpl(
+        JS<WasmExternRef?>(
+          'Function.prototype.call.bind(Number.prototype.toString)',
+          WasmF64.fromDouble(value),
+        ),
+      ),
     );
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';
