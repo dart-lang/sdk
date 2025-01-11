@@ -286,7 +286,6 @@ class StructuralParameter extends Node
   /// This is set to [unsetBoundSentinel] temporarily during IR construction.
   /// This is set to the `Object?` for type parameters without an explicit
   /// bound.
-  @override
   DartType bound;
 
   /// Sentinel value used for the [defaultType] that has not yet been computed.
@@ -309,6 +308,9 @@ class StructuralParameter extends Node
 
   @override
   String get displayName => name ?? '<unknown>';
+
+  @override
+  DartType? get boundShared => bound;
 
   Variance get variance => _variance ?? Variance.covariant;
 
@@ -1023,7 +1025,6 @@ class FunctionType extends DartType
   @override
   final Nullability declaredNullability;
 
-  @override
   final DartType returnType;
 
   @override
@@ -1053,10 +1054,13 @@ class FunctionType extends DartType
       };
 
   @override
-  List<DartType> get positionalParameterTypes => positionalParameters;
+  List<DartType> get positionalParameterTypesShared => positionalParameters;
 
   @override
   int get requiredPositionalParameterCount => requiredParameterCount;
+
+  @override
+  DartType get returnTypeShared => returnType;
 
   @override
   List<NamedType> get sortedNamedParametersShared => namedParameters;
@@ -1606,7 +1610,6 @@ class NamedType extends Node
   static const int FlagRequiredNamedType = 1 << 0;
 
   final String name;
-  @override
   final DartType type;
   @override
   final bool isRequired;
@@ -1615,6 +1618,9 @@ class NamedType extends Node
 
   @override
   String get nameShared => name;
+
+  @override
+  DartType get typeShared => type;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -2219,7 +2225,7 @@ class RecordType extends DartType
   List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes {
+  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypesShared {
     return namedTypes;
   }
 
@@ -2238,7 +2244,7 @@ class RecordType extends DartType
       };
 
   @override
-  List<DartType> get positionalTypes => positional;
+  List<DartType> get positionalTypesShared => positional;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {

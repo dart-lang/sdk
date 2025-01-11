@@ -4494,6 +4494,9 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   List<TypeParameterElement2> get typeParameters2 => const [];
 
   @override
+  DartType get typeShared => type;
+
+  @override
   Element? get _enclosingFunction => wrappedElement._enclosingElement3;
 
   @override
@@ -10851,7 +10854,7 @@ class TypeParameterElementImpl extends ElementImpl
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
       firstFragment: firstFragment,
-      name3: firstFragment.name,
+      name3: firstFragment.name.nullIfEmpty,
       bound: firstFragment.bound,
     );
   }
@@ -10971,7 +10974,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   final TypeParameterElementImpl firstFragment;
 
   @override
-  final String name3;
+  final String? name3;
 
   @override
   DartType? bound;
@@ -10990,6 +10993,9 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   TypeParameterElement2 get baseElement => this;
+
+  @override
+  DartType? get boundShared => bound;
 
   bool get isLegacyCovariant => firstFragment.isLegacyCovariant;
 
