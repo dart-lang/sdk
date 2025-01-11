@@ -12,6 +12,7 @@
 /// [element model](../element/element.dart).
 library;
 
+// ignore_for_file: analyzer_use_new_elements
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';

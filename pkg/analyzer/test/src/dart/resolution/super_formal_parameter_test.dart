@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';

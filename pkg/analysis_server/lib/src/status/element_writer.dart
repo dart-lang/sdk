@@ -163,7 +163,6 @@ class ElementWriter with TreeWriter {
       properties['imports'] = {
         for (var import in fragment.libraryImports2)
           {
-            // ignore: analyzer_use_new_elements
             'combinators': import.combinators,
             if (import.prefix2 != null) 'prefix': import.prefix2?.name2,
             'isDeferred': import.prefix2?.isDeferred ?? false,
@@ -173,7 +172,6 @@ class ElementWriter with TreeWriter {
       properties['imports'] = {
         for (var export in fragment.libraryExports2)
           {
-            // ignore: analyzer_use_new_elements
             'combinators': export.combinators,
             'library': export.exportedLibrary2,
           },
