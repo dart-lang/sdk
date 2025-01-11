@@ -106,17 +106,14 @@ class TypeSystemImpl implements TypeSystem {
     _subtypeHelper = SubtypeHelper(this);
   }
 
-  InterfaceTypeImpl get nullNone =>
-      _nullNone ??= (typeProvider.nullType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.none);
+  InterfaceTypeImpl get nullNone => _nullNone ??=
+      typeProvider.nullType.withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectNone =>
-      _objectNone ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.none);
+  InterfaceTypeImpl get objectNone => _objectNone ??=
+      typeProvider.objectType.withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectQuestion =>
-      _objectQuestion ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get objectQuestion => _objectQuestion ??=
+      typeProvider.objectType.withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.

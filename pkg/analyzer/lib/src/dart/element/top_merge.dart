@@ -172,7 +172,7 @@ class TopMergeHelper {
       throw _TopMergeStateError(T, S, 'Different number of formal parameters');
     }
 
-    var R_parameters = <ParameterElement>[];
+    var R_parameters = <ParameterElementImpl>[];
     for (var i = 0; i < T_parameters.length; i++) {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];
