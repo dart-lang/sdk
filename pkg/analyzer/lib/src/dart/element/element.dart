@@ -1191,7 +1191,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  ClassElement? getClass(String className) {
+  ClassElementImpl? getClass(String className) {
     for (var class_ in classes) {
       if (class_.name == className) {
         return class_;
@@ -5900,11 +5900,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   /// The non-nullable instance of this element, without alias.
   /// Should be used only when the element has no type parameters.
-  InterfaceType? _nonNullableInstance;
+  InterfaceTypeImpl? _nonNullableInstance;
 
   /// The nullable instance of this element, without alias.
   /// Should be used only when the element has no type parameters.
-  InterfaceType? _nullableInstance;
+  InterfaceTypeImpl? _nullableInstance;
 
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
@@ -6077,7 +6077,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  InterfaceType instantiate({
+  InterfaceTypeImpl instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -7090,7 +7090,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  ClassElement? getClass(String name) {
+  ClassElementImpl? getClass(String name) {
     for (var unitElement in units) {
       var element = unitElement.getClass(name);
       if (element != null) {

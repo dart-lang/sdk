@@ -4,10 +4,10 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -28,8 +28,8 @@ class TestTypeProvider extends TypeProviderImpl {
   }
 
   TestTypeProvider._(
-    LibraryElement coreLibrary,
-    LibraryElement asyncLibrary,
+    LibraryElementImpl coreLibrary,
+    LibraryElementImpl asyncLibrary,
   ) : super(
           coreLibrary: coreLibrary,
           asyncLibrary: asyncLibrary,
