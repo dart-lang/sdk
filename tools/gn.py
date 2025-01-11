@@ -174,7 +174,7 @@ def ParseStringMap(key, string_map):
 
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
-    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
+    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux' or gn_args['target_os'] != 'linux_packaged' and HOST_OS != 'linux':
         return False
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
@@ -225,9 +225,11 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     # We only want the fallback root certs in the standalone VM on
     # Linux and Windows.
     if gn_args['target_os'] in ['linux', 'win']:
+        # This condition also covers the case of 'linux_packaged', which is a special case to cater for 
+        # the needs of Linux distributions, which do not accept packages with prebuilt binary contents
         gn_args['dart_use_fallback_root_certificates'] = True
 
-    if gn_args['target_os'] == 'linux':
+    if gn_args['target_os'] == 'linux' or gn_args['target_os'] == 'linux_packaged':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
             # specifying a gnueabihf compiler in //build/toolchain/linux/BUILD.gn.
@@ -354,7 +356,7 @@ def ProcessOptions(args):
     for os_name in oses:
         if not os_name in [
                 'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia',
-                'ios', 'ios_simulator'
+                'ios', 'ios_simulator', 'linux_packaged'
         ]:
             print("Unknown os %s" % os_name)
             return False
@@ -561,7 +563,7 @@ def AddCommonConfigurationArgs(parser):
     parser.add_argument('--os',
                         type=str,
                         help='Target OSs (comma-separated).',
-                        metavar='[all,host,android,fuchsia,ios,ios_simulator]',
+                        metavar='[all,host,android,fuchsia,ios,ios_simulator,linux_packaged]',
                         default='host')
     parser.add_argument('--sanitizer',
                         type=str,
