@@ -1142,7 +1142,11 @@ class InheritanceManager3 {
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals.cast();
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters.toImpl();
+      // `resultType` is guaranteed to have been produced by
+      // `TypeSystemImpl.topMerge`; when that function merges function types, it
+      // always produces a `FunctionType` whose parameter list is a
+      // `List<ParameterElementImpl>`.
+      result.parameters = resultType.parameters as List<ParameterElementImpl>;
       result.element = MethodElementImpl2(
         Reference.root(), // TODO(scheglov): wrong
         firstMethod.name,
@@ -1160,7 +1164,11 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters.toImpl();
+      // `resultType` is guaranteed to have been produced by
+      // `TypeSystemImpl.topMerge`; when that function merges function types, it
+      // always produces a `FunctionType` whose parameter list is a
+      // `List<ParameterElementImpl>`.
+      result.parameters = resultType.parameters as List<ParameterElementImpl>;
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;

@@ -3679,8 +3679,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  List<FormalParameterFragment> get formalParameters =>
-      parameters.cast<FormalParameterFragment>();
+  List<ParameterElementImpl> get formalParameters => parameters;
 
   @override
   bool get hasImplicitReturnType {

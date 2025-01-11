@@ -205,17 +205,6 @@ extension LibraryExtension2 on LibraryElement2? {
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ListOfParameterElementExtension on List<ParameterElement> {
-  /// Returns `this` as `List<ParameterElementImpl>`, converting if it isn't
-  /// one already.
-  List<ParameterElementImpl> toImpl() {
-    return switch (this) {
-      List<ParameterElementImpl> already => already,
-      _ => [for (var p in this) p.toImpl()],
-    };
-  }
-}
-
 extension ParameterElementExtension on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
   ParameterElementImpl copyWith({
