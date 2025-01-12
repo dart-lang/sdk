@@ -11,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -73,8 +72,7 @@ class InterfaceLeastUpperBoundHelper {
       for (int i = 0; i < args1.length; i++) {
         // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
-        Variance parameterVariance =
-            (params[i] as TypeParameterElementImpl).variance;
+        Variance parameterVariance = params[i].variance;
         if (parameterVariance.isCovariant) {
           args.add(typeSystem.leastUpperBound(args1[i], args2[i]));
         } else if (parameterVariance.isContravariant) {

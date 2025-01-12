@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -574,7 +573,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
 /// A concrete implementation of an [InterfaceType].
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
-  final InterfaceElement element;
+  final InterfaceElementImpl element;
 
   @override
   final List<DartType> typeArguments;
@@ -596,6 +595,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       required List<DartType> typeArguments,
       required NullabilitySuffix nullabilitySuffix,
       InstantiatedTypeAliasElement? alias}) {
+    // TODO(paulberry): avoid this cast by changing the type of `element`
+    element as InterfaceElementImpl;
     if (element.name == 'FutureOr' && element.library.isDartAsync) {
       return FutureOrTypeImpl(
           element: element,
@@ -696,8 +697,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceElementImpl2 get element3 =>
-      (element as InterfaceElementImpl).element;
+  InterfaceElementImpl2 get element3 => element.element;
 
   @override
   List<GetterElement> get getters => accessors
@@ -744,7 +744,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   bool get isDartCoreEnum {
     var element = this.element;
-    return element is ClassElement && element.isDartCoreEnum;
+    return element is ClassElementImpl && element.isDartCoreEnum;
   }
 
   @override
@@ -881,7 +881,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   InheritanceManager3 get _inheritanceManager =>
-      (element.library.session as AnalysisSessionImpl).inheritanceManager;
+      element.library.session.inheritanceManager;
 
   @override
   bool operator ==(Object other) {
@@ -1021,7 +1021,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -1077,7 +1076,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -1133,7 +1131,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 
