@@ -83,7 +83,7 @@ void main(List<String> args) {
   }
 
   if (warnings.scalingInEffect) {
-    print("Be aware the the above was with scaling in effect.");
+    print("Be aware the above was with scaling in effect.");
     print("As such the results are likely useless.");
     print("Possibly some other process is using the hardware counters.");
     print("Running this tool");

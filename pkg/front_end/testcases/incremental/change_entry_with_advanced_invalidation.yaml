@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# If changing the the entry and marking the previous entry as changed but where
+# If changing the entry and marking the previous entry as changed but where
 # the previous entry is no longer used (and reference another library only that
 # one uses) we have come into a situation where we'll keep something we
 # shouldn't, which (on top of being bad in itself) can lead to problems if we

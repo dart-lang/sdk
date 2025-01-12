@@ -59,7 +59,7 @@ enum ConstraintGenerationSource {
   /// `GenericInferrer.constrainGenericFunctionInContext` method.
   genericFunctionInContext(description: 'GENERIC FUNCTION IN CONTEXT'),
 
-  /// The source of the constraint is the the context of the invocation whose
+  /// The source of the constraint is the context of the invocation whose
   /// type is being inferred, being matched against the return type in function
   /// or method being invoked.
   returnType(description: 'RETURN TYPE');
