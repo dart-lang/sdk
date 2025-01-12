@@ -905,7 +905,7 @@ code | message | meaning
 142 | Permission denied | Permission has been denied for the requested action.
 143 | File scheme expected on uri | The uri parameter should be passed as a uri with a file scheme.
 
- Success Responses
+### Success Responses
 
 Methods that respond with `Success` do so with the following RPC.
 
