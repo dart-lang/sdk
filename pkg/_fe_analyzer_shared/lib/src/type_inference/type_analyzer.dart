@@ -2642,7 +2642,7 @@ abstract class TypeAnalyzerErrors<
 
   /// Called for variable that is assigned more than once.
   ///
-  /// Returns an error object that is passed on the the caller.
+  /// Returns an error object that is passed on to the caller.
   Error duplicateAssignmentPatternVariable({
     required Variable variable,
     required Pattern original,

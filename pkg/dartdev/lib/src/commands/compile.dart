@@ -845,7 +845,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       flags.removeWhere((option) => option == '--no-$name');
       flags.removeWhere((option) => option == '--$name');
 
-      // Explicitly use the the flag value, irrespective of -O settings.
+      // Explicitly use the flag value, irrespective of -O settings.
       value ? flags.add('--$name') : flags.add('--no-$name');
     }
 

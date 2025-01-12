@@ -286,7 +286,7 @@ LintCode:
       const int quux = 20;
       ```
 
-      NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
+      NOTE: Using the `@optionalTypeArgs` annotation in the `meta` package, API
       authors can special-case type parameters whose type needs to be dynamic but whose
       declaration should be treated as optional.  For example, suppose you have a
       `Key` object whose type parameter you'd like to treat as optional.  Using the
@@ -4692,7 +4692,7 @@ LintCode:
       it's possible, or open an issue asking the package authors to make it part
       of the public API.
     deprecatedDetails: |-
-      From the the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
+      From the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
 
       **DON'T** import implementation files from another package.
 

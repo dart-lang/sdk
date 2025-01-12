@@ -63,7 +63,7 @@ class PercentileCalculator {
   /// Return a map that can be encoded as JSON that represents the state of this
   /// calculator.
   Map<String, Object> toJson() {
-    // It's important the the encoded form of the list of percentile values be
+    // It's important that the encoded form of the list of percentile values be
     // less than 100 characters long.
     return {
       'count': _valueCount,

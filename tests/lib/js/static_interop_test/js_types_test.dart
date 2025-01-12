@@ -264,7 +264,7 @@ void syncTests() {
   dartArr = arr.toDart;
   dartArrN = arrN.toDart;
   if (isJSBackend) {
-    // A cast-list should not be introduced if the the array is already the
+    // A cast-list should not be introduced if the array is already the
     // right list type.
     expect(dartArr, listN);
     expect(dartArrN, listN);
