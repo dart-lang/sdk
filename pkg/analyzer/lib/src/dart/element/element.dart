@@ -1662,6 +1662,11 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  ConstructorElementImpl get lastFragment {
+    return super.lastFragment as ConstructorElementImpl;
+  }
+
+  @override
   Element2 get nonSynthetic2 {
     if (isSynthetic) {
       return enclosingElement2;
@@ -3855,6 +3860,17 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
     return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
   }
 
+  ExecutableElementImpl get lastFragment {
+    var result = firstFragment as ExecutableElementImpl;
+    while (true) {
+      if (result.nextFragment case ExecutableElementImpl nextFragment) {
+        result = nextFragment;
+      } else {
+        return result;
+      }
+    }
+  }
+
   @override
   LibraryElement2 get library2 {
     var firstFragment = this.firstFragment as ExecutableElementImpl;
@@ -5601,9 +5617,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<TypeParameterElementImpl2> get typeParameters2 =>
-      firstFragment.typeParameters
-          .map((fragment) => fragment.element)
-          .toList();
+      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
   @override
   String displayString2(
@@ -8125,6 +8139,11 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.METHOD;
 
   @override
+  MethodElementImpl get lastFragment {
+    return super.lastFragment as MethodElementImpl;
+  }
+
+  @override
   String? get lookupName {
     if (name3 == '-' && formalParameters.isEmpty) {
       return 'unary-';
@@ -9763,6 +9782,11 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   bool get isExternal => firstFragment.isExternal;
 
   @override
+  PropertyAccessorElementImpl get lastFragment {
+    return super.lastFragment as PropertyAccessorElementImpl;
+  }
+
+  @override
   String? get name3 => firstFragment.name2;
 
   @override
@@ -10319,6 +10343,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  FunctionElementImpl get lastFragment {
+    return super.lastFragment as FunctionElementImpl;
+  }
 
   @override
   LibraryElement2 get library2 {
