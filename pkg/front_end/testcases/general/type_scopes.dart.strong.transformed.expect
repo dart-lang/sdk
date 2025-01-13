@@ -56,12 +56,10 @@ abstract class Mixin<T6 extends dynamic> extends self::S<self::Mixin::T6%> imple
 }
 class NamedMixinApplication<T9 extends dynamic> extends self::Class<self::NamedMixinApplication::T9%> implements self::Mixin<self::NamedMixinApplication::T9%> /*isEliminatedMixin*/  {
   field dynamic instanceField = null;
-  static field dynamic staticField = null;
   synthetic constructor •(self::NamedMixinApplication::T9% t3) → self::NamedMixinApplication<self::NamedMixinApplication::T9%>
     : super self::Class::•(t3)
     ;
   method instanceMethod<T7 extends dynamic>(covariant-by-class self::NamedMixinApplication::T9% t6, self::NamedMixinApplication::instanceMethod::T7% t7) → void {}
-  static method staticMethod<T8 extends dynamic>(self::NamedMixinApplication::staticMethod::T8% t8) → void {}
 }
 abstract class _Enum&_Enum&M<T10 extends dynamic> extends core::_Enum implements self::M<self::_Enum&_Enum&M::T10%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>

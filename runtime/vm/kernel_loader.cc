@@ -1310,6 +1310,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
     klass->set_is_abstract();
   }
   if (class_helper->is_transformed_mixin_application()) {
+    ASSERT(interface_count > 0);
     klass->set_is_transformed_mixin_application();
   }
   if (class_helper->has_const_constructor()) {

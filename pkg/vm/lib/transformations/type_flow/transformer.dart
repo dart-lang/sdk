@@ -1983,17 +1983,18 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
     if (!shaker.isClassUsedInType(node)) {
       debugPrint('Dropped supers from class ${node.name}');
-      // The class is only a namespace for static members.  Remove its
-      // hierarchy information.   This is mandatory, since these references
-      // might otherwise become dangling.
+      // The class is only a namespace for static members or
+      // unreachable members annotated with entry point pragmas.
+      // Remove its hierarchy information. This is mandatory,
+      // since these references might otherwise become dangling.
       node.supertype = shaker
           .typeFlowAnalysis.environment.coreTypes.objectClass.asRawSupertype;
       node.implementedTypes.clear();
       node.typeParameters.clear();
       node.isAbstract = true;
       node.isEnum = false;
-      // Mixin applications cannot have static members.
-      assert(node.mixedInType == null);
+      node.isEliminatedMixin = false;
+      node.mixedInType = null;
       node.annotations = const <Expression>[];
     }
 

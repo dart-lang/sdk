@@ -242,45 +242,6 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
   }
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toString() → core::String
     return core::Iterable::iterableToShortString(this, "(", ")");
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%> source) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>
-    return _in::CastIterable::•<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%, self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>(source);
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
-    if(_in::isToStringVisiting(iterable)) {
-      if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
-        return "(...)";
-      }
-      return "${leftDelimiter}...${rightDelimiter}";
-    }
-    core::List<core::String> parts = core::_GrowableList::•<core::String>(0);
-    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
-    try {
-      core::_iterablePartsToStrings(iterable, parts);
-    }
-    finally {
-      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
-      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
-    }
-    return (let final core::StringBuffer #t2 = new core::StringBuffer::•(leftDelimiter) in block {
-      #t2.{core::StringBuffer::writeAll}(parts, ", "){(core::Iterable<dynamic>, [core::String]) → void};
-      #t2.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
-    } =>#t2).{core::StringBuffer::toString}(){() → core::String};
-  }
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
-    if(_in::isToStringVisiting(iterable)) {
-      return "${leftDelimiter}...${rightDelimiter}";
-    }
-    core::StringBuffer buffer = new core::StringBuffer::•(leftDelimiter);
-    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
-    try {
-      buffer.{core::StringBuffer::writeAll}(iterable, ", "){(core::Iterable<dynamic>, [core::String]) → void};
-    }
-    finally {
-      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
-      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
-    }
-    buffer.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
-    return buffer.{core::StringBuffer::toString}(){() → core::String};
-  }
 }
 abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
   synthetic constructor •() → self::MixesInMixesInMixin
@@ -390,10 +351,10 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     }
     else {
       do {
-        let final core::StringBuffer #t3 = buffer in block {
-          #t3.{core::StringBuffer::write}(separator){(core::Object?) → void};
-          #t3.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
-        } =>#t3;
+        let final core::StringBuffer #t2 = buffer in block {
+          #t2.{core::StringBuffer::write}(separator){(core::Object?) → void};
+          #t2.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
+        } =>#t2;
       }
       while (iterator.{core::Iterator::moveNext}(){() → core::bool})
     }
@@ -530,51 +491,10 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
   }
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toString() → core::String
     return core::Iterable::iterableToShortString(this, "(", ")");
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<iss::MixesInMixin::castFrom::S%> source) → core::Iterable<iss::MixesInMixin::castFrom::T%>
-    return _in::CastIterable::•<iss::MixesInMixin::castFrom::S%, iss::MixesInMixin::castFrom::T%>(source);
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
-    if(_in::isToStringVisiting(iterable)) {
-      if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
-        return "(...)";
-      }
-      return "${leftDelimiter}...${rightDelimiter}";
-    }
-    core::List<core::String> parts = core::_GrowableList::•<core::String>(0);
-    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
-    try {
-      core::_iterablePartsToStrings(iterable, parts);
-    }
-    finally {
-      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
-      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
-    }
-    return (let final core::StringBuffer #t4 = new core::StringBuffer::•(leftDelimiter) in block {
-      #t4.{core::StringBuffer::writeAll}(parts, ", "){(core::Iterable<dynamic>, [core::String]) → void};
-      #t4.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
-    } =>#t4).{core::StringBuffer::toString}(){() → core::String};
-  }
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
-    if(_in::isToStringVisiting(iterable)) {
-      return "${leftDelimiter}...${rightDelimiter}";
-    }
-    core::StringBuffer buffer = new core::StringBuffer::•(leftDelimiter);
-    _in::toStringVisiting.{core::List::add}(iterable){(core::Object) → void};
-    try {
-      buffer.{core::StringBuffer::writeAll}(iterable, ", "){(core::Iterable<dynamic>, [core::String]) → void};
-    }
-    finally {
-      assert(core::identical(_in::toStringVisiting.{core::Iterable::last}{core::Object}, iterable));
-      _in::toStringVisiting.{core::List::removeLast}(){() → core::Object};
-    }
-    buffer.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
-    return buffer.{core::StringBuffer::toString}(){() → core::String};
-  }
 }
 
 constants  {
   #C1 = ""
   #C2 = true
   #C3 = null
-  #C4 = "("
-  #C5 = ")"
 }

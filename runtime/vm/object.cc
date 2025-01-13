@@ -3126,6 +3126,7 @@ const char* Class::NameCString(NameVisibility name_visibility) const {
 ClassPtr Class::Mixin() const {
   if (is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(this->interfaces());
+    ASSERT(interfaces.Length() > 0);
     const Type& mixin_type =
         Type::Handle(Type::RawCast(interfaces.At(interfaces.Length() - 1)));
     return mixin_type.type_class();
