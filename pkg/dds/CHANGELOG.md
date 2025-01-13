@@ -7,7 +7,7 @@
   lifetime of instance references returned. This should avoid instances being
   collected while execution is paused, while releasing them once execution
   resumes.
-- Updated `vm_service` constraint to `>=14.0.0 <16.0.0`.
+- Updated `vm_service` constraint to `>=14.3.0 <16.0.0`.
 - [DAP] Updated `dap` constraint to ^1.4.0.
 - [DAP] Set `supportsANSIStyling` to `true` in debug adapter capabilities to indicate that `Output` events might contain ansi color codes.
 - [DAP] Stack traces in more formats will be parsed and have locations attached to `OutputEvents`s.
