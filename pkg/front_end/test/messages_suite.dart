@@ -89,7 +89,7 @@ class MessageTestSuite extends ChainContext {
   final bool fastOnly;
   final bool interactive;
 
-  final Set<String> reportedWords = {};
+  final Map<String, List<String>?> reportedWordsAndAlternatives = {};
   final Set<String> reportedWordsDenylisted = {};
 
   @override
@@ -103,7 +103,7 @@ class MessageTestSuite extends ChainContext {
     }
     String suitePath = suiteFile.path;
     spell.spellSummarizeAndInteractiveMode(
-        reportedWords,
+        reportedWordsAndAlternatives,
         reportedWordsDenylisted,
         [spell.Dictionaries.cfeMessages],
         interactive,
@@ -182,7 +182,8 @@ class MessageTestSuite extends ChainContext {
             messageToUse = messageForDenyListed;
             reportedWordsDenylisted.add(spellResult.misspelledWords![i]);
           } else {
-            reportedWords.add(spellResult.misspelledWords![i]);
+            reportedWordsAndAlternatives[spellResult.misspelledWords![i]] =
+                spellResult.misspelledWordsAlternatives![i];
           }
           result.add(command_line_reporting.formatErrorMessage(
               source!.getTextLine(location.line),

@@ -90,6 +90,33 @@ void main() {
       "explicitley", ["explicitly"], {"foo", "explicitly", "bar"});
   expectAlternative("explicitlqqqqy", null, {"foo", "explicitly", "bar"});
 
+  // Insert first letter.
+  expectAlternative("ar", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Insert middle letter.
+  expectAlternative("br", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Insert last letter.
+  expectAlternative("ba", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Delete first letter.
+  expectAlternative("xbar", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Delete middle letter.
+  expectAlternative("bxar", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Delete last letter.
+  expectAlternative("barx", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Replace first letter.
+  expectAlternative("car", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Replace middle letter.
+  expectAlternative("bcr", ["bar"], {"foo", "explicitly", "bar"});
+
+  // Replace last letter.
+  expectAlternative("bac", ["bar"], {"foo", "explicitly", "bar"});
+
   print("OK");
 }
 

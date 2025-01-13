@@ -36,7 +36,7 @@ abstract class SpellContext extends ChainContext {
 
   String get repoRelativeSuitePath;
 
-  Set<String> reportedWords = {};
+  Map<String, List<String>?> reportedWordsAndAlternatives = {};
   Set<String> reportedWordsDenylisted = {};
 
   @override
@@ -54,7 +54,7 @@ abstract class SpellContext extends ChainContext {
     }
     String suitePath = suiteFile.path;
     spell.spellSummarizeAndInteractiveMode(
-        reportedWords,
+        reportedWordsAndAlternatives,
         reportedWordsDenylisted,
         dictionaries,
         interactive,
@@ -92,7 +92,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
         context.reportedWordsDenylisted.add(word);
       } else {
         message = "The word '$word' is not in our dictionary.";
-        context.reportedWords.add(word);
+        context.reportedWordsAndAlternatives[word] = alternatives;
       }
       if (alternatives != null && alternatives.isNotEmpty) {
         message += "\n\nThe following word(s) was 'close' "
