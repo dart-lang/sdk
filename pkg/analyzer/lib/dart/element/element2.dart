@@ -256,7 +256,8 @@ abstract class ClassFragment implements InterfaceFragment {
 /// type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorElement2 implements ExecutableElement2 {
+abstract class ConstructorElement2
+    implements ExecutableElement2, HasSinceSdkVersion {
   @override
   ConstructorElement2 get baseElement;
 
@@ -845,7 +846,11 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, Annotatable, LocalElement2 {
+    implements
+        PromotableElement2,
+        Annotatable,
+        HasSinceSdkVersion,
+        LocalElement2 {
   @override
   FormalParameterElement get baseElement;
 
@@ -1140,11 +1145,35 @@ abstract class GetterFragment implements PropertyAccessorFragment {
   // GetterElement get element;
 }
 
+/// The interface that is implemented by elements that can have `@Since()`
+/// annotation.
+abstract class HasSinceSdkVersion {
+  /// The version where the associated SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in the SDK, or doesn't have
+  /// a `@Since()` annotation applied to it.
+  Version? get sinceSdkVersion;
+}
+
 /// An element whose instance members can refer to `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement2
-    implements TypeDefiningElement2, TypeParameterizedElement2 {
+    implements
+        TypeDefiningElement2,
+        TypeParameterizedElement2,
+        HasSinceSdkVersion {
   @override
   LibraryElement2 get enclosingElement2;
 
@@ -1474,7 +1503,8 @@ abstract class LabelFragment implements Fragment {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement2 implements Element2, Annotatable {
+abstract class LibraryElement2
+    implements Element2, Annotatable, HasSinceSdkVersion {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1958,23 +1988,6 @@ abstract class Metadata {
 
   /// Whether the receiver has an annotation of the form `@widgetFactory`.
   bool get hasWidgetFactory;
-
-  /// The version where the associated SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in the SDK, or doesn't have
-  /// a `@Since()` annotation applied to it.
-  Version? get sinceSdkVersion;
 }
 
 /// A method.
@@ -1983,7 +1996,8 @@ abstract class Metadata {
 /// method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement2 implements ExecutableElement2 {
+abstract class MethodElement2
+    implements ExecutableElement2, HasSinceSdkVersion {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
@@ -2277,7 +2291,7 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, Annotatable {
+    implements VariableElement2, Annotatable, HasSinceSdkVersion {
   @override
   PropertyInducingFragment get firstFragment;
 
@@ -2439,7 +2453,8 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 /// A top-level function.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelFunctionElement implements ExecutableElement2 {
+abstract class TopLevelFunctionElement
+    implements ExecutableElement2, HasSinceSdkVersion {
   @override
   TopLevelFunctionElement get baseElement;
 
@@ -2512,7 +2527,10 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement2
-    implements TypeParameterizedElement2, TypeDefiningElement2 {
+    implements
+        TypeParameterizedElement2,
+        TypeDefiningElement2,
+        HasSinceSdkVersion {
   /// If the aliased type has structure, return the corresponding element.
   /// For example, it could be [GenericFunctionTypeElement].
   ///

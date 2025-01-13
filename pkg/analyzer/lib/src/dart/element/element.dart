@@ -1612,7 +1612,8 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
         FragmentedFunctionTypedElementMixin<ConstructorFragment>,
         FragmentedTypeParameterizedElementMixin<ConstructorFragment>,
         FragmentedAnnotatableElementMixin<ConstructorFragment>,
-        FragmentedElementMixin<ConstructorFragment>
+        FragmentedElementMixin<ConstructorFragment>,
+        _HasSinceSdkVersionMixin
     implements ConstructorElement2 {
   @override
   final String? name3;
@@ -2077,7 +2078,7 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Metadata get metadata2 {
-    return MetadataImpl(0, const [], () => null);
+    return MetadataImpl(0, const []);
   }
 
   @override
@@ -2506,14 +2507,6 @@ abstract class ElementImpl implements Element, Element2 {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
-
-  /// Cached values for [sinceSdkVersion].
-  ///
-  /// Only very few elements have `@Since()` annotations, so instead of adding
-  /// an instance field to [ElementImpl], we attach this information this way.
-  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
-  /// don't pay for a hash lookup when we know that the result is `null`.
-  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
 
   static int _NEXT_ID = 0;
 
@@ -3010,8 +3003,7 @@ abstract class ElementImpl implements Element, Element2 {
     _metadata = metadata;
   }
 
-  Metadata get metadata2 =>
-      MetadataImpl(_getMetadataFlags(), metadata, () => sinceSdkVersion);
+  Metadata get metadata2 => MetadataImpl(_getMetadataFlags(), metadata);
 
   @override
   String? get name => _name;
@@ -3049,18 +3041,7 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   Version? get sinceSdkVersion {
-    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
-      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
-      var result = SinceSdkVersionComputer().compute(this);
-      if (result != null) {
-        _sinceSdkVersion[this] = result;
-        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
-      }
-    }
-    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
-      return _sinceSdkVersion[this];
-    }
-    return null;
+    return asElement2.ifTypeOrNull<HasSinceSdkVersion>()?.sinceSdkVersion;
   }
 
   @override
@@ -3315,6 +3296,9 @@ abstract class ElementImpl2 implements Element2 {
   @override
   final int id = ElementImpl._NEXT_ID++;
 
+  /// The modifiers associated with this element.
+  EnumSet<Modifier> _modifiers = EnumSet.empty();
+
   @override
   Element2 get baseElement => this;
 
@@ -3401,6 +3385,9 @@ abstract class ElementImpl2 implements Element2 {
     return "$shortName (${source?.fullName})";
   }
 
+  /// Whether this element has the [modifier].
+  bool hasModifier(Modifier modifier) => _modifiers[modifier];
+
   @override
   bool isAccessibleIn2(LibraryElement2 library) {
     var name3 = this.name3;
@@ -3408,6 +3395,11 @@ abstract class ElementImpl2 implements Element2 {
       return library == library2;
     }
     return true;
+  }
+
+  /// Update [modifier] of this element to [value].
+  void setModifier(Modifier modifier, bool value) {
+    _modifiers = _modifiers.updated(modifier, value);
   }
 
   @override
@@ -4003,6 +3995,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 }
 
 class ExtensionElementImpl2 extends InstanceElementImpl2
+    with _HasSinceSdkVersionMixin
     implements AugmentedExtensionElement, ExtensionElement2 {
   @override
   final Reference reference;
@@ -4254,7 +4247,8 @@ class FieldElementImpl extends PropertyInducingElementImpl
 class FieldElementImpl2 extends PropertyInducingElementImpl2
     with
         FragmentedAnnotatableElementMixin<FieldElementImpl>,
-        FragmentedElementMixin<FieldElementImpl>
+        FragmentedElementMixin<FieldElementImpl>,
+        _HasSinceSdkVersionMixin
     implements FieldElement2 {
   @override
   final FieldElementImpl firstFragment;
@@ -4402,6 +4396,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
         FragmentedElementMixin<FormalParameterFragment>,
         FormalParameterElementMixin,
+        _HasSinceSdkVersionMixin,
         _NonTopLevelVariableOrParameter
     implements FormalParameterElementOrMember {
   final ParameterElementImpl wrappedElement;
@@ -4885,12 +4880,12 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     return result;
   }
 
-  Metadata get metadata2 => MetadataImpl(
-      -1, metadata.cast<ElementAnnotationImpl>(), () => sinceSdkVersion);
+  Metadata get metadata2 =>
+      MetadataImpl(-1, metadata.cast<ElementAnnotationImpl>());
 
   Version? get sinceSdkVersion {
     if (this is Element2) {
-      return SinceSdkVersionComputer().compute2(this as Element2);
+      return SinceSdkVersionComputer().compute(this as Element2);
     }
     return null;
   }
@@ -5332,7 +5327,8 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
         FragmentedFunctionTypedElementMixin<GetterFragment>,
         FragmentedTypeParameterizedElementMixin<GetterFragment>,
         FragmentedAnnotatableElementMixin<GetterFragment>,
-        FragmentedElementMixin<GetterFragment>
+        FragmentedElementMixin<GetterFragment>,
+        _HasSinceSdkVersionMixin
     implements GetterElement {
   @override
   final PropertyAccessorElementImpl firstFragment;
@@ -5363,6 +5359,14 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
       return variable.nonSynthetic2;
     }
     throw StateError('Synthetic getter has no variable');
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (isSynthetic) {
+      return variable3?.sinceSdkVersion;
+    }
+    return super.sinceSdkVersion;
   }
 
   @override
@@ -6353,6 +6357,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 }
 
 abstract class InterfaceElementImpl2 extends InstanceElementImpl2
+    with _HasSinceSdkVersionMixin
     implements AugmentedInterfaceElement, InterfaceElement2 {
   @override
   List<InterfaceType> interfaces = [];
@@ -7043,6 +7048,11 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  Version? get sinceSdkVersion {
+    return SinceSdkVersionComputer().compute(this);
+  }
+
+  @override
   Source get source {
     return _definingCompilationUnit.source;
   }
@@ -7642,10 +7652,7 @@ final class MetadataImpl implements Metadata {
   @override
   final List<ElementAnnotationImpl> annotations;
 
-  final Version? Function() _sinceSdkVersionComputer;
-
-  MetadataImpl(
-      this._metadataFlags, this.annotations, this._sinceSdkVersionComputer);
+  MetadataImpl(this._metadataFlags, this.annotations);
 
   @override
   bool get hasAlwaysThrows {
@@ -8003,9 +8010,6 @@ final class MetadataImpl implements Metadata {
     }
     return false;
   }
-
-  @override
-  Version? get sinceSdkVersion => _sinceSdkVersionComputer();
 }
 
 /// A concrete implementation of a [MethodElement].
@@ -8109,7 +8113,8 @@ class MethodElementImpl2 extends ExecutableElementImpl2
         FragmentedFunctionTypedElementMixin<MethodFragment>,
         FragmentedTypeParameterizedElementMixin<MethodFragment>,
         FragmentedAnnotatableElementMixin<MethodFragment>,
-        FragmentedElementMixin<MethodFragment>
+        FragmentedElementMixin<MethodFragment>,
+        _HasSinceSdkVersionMixin
     implements MethodElement2 {
   @override
   final Reference reference;
@@ -8922,7 +8927,7 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Metadata get metadata2 {
-    return MetadataImpl(0, const [], () => null);
+    return MetadataImpl(0, const []);
   }
 
   @override
@@ -10141,7 +10146,8 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
         FragmentedFunctionTypedElementMixin<SetterFragment>,
         FragmentedTypeParameterizedElementMixin<SetterFragment>,
         FragmentedAnnotatableElementMixin<SetterFragment>,
-        FragmentedElementMixin<SetterFragment>
+        FragmentedElementMixin<SetterFragment>,
+        _HasSinceSdkVersionMixin
     implements SetterElement {
   @override
   final PropertyAccessorElementImpl firstFragment;
@@ -10183,6 +10189,14 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
       return variable.nonSynthetic2;
     }
     throw StateError('Synthetic setter has no variable');
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (isSynthetic) {
+      return variable3?.sinceSdkVersion;
+    }
+    return super.sinceSdkVersion;
   }
 
   @override
@@ -10316,7 +10330,8 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
         FragmentedFunctionTypedElementMixin<TopLevelFunctionFragment>,
         FragmentedTypeParameterizedElementMixin<TopLevelFunctionFragment>,
         FragmentedAnnotatableElementMixin<TopLevelFunctionFragment>,
-        FragmentedElementMixin<TopLevelFunctionFragment>
+        FragmentedElementMixin<TopLevelFunctionFragment>,
+        _HasSinceSdkVersionMixin
     implements TopLevelFunctionElement {
   @override
   final Reference reference;
@@ -10415,7 +10430,8 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableElementImpl>,
-        FragmentedElementMixin<TopLevelVariableElementImpl>
+        FragmentedElementMixin<TopLevelVariableElementImpl>,
+        _HasSinceSdkVersionMixin
     implements TopLevelVariableElement2 {
   @override
   final Reference reference;
@@ -10736,7 +10752,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
     with
         FragmentedAnnotatableElementMixin<TypeAliasFragment>,
-        FragmentedElementMixin<TypeAliasFragment>
+        FragmentedElementMixin<TypeAliasFragment>,
+        _HasSinceSdkVersionMixin
     implements TypeAliasElement2 {
   @override
   final Reference reference;
@@ -11314,6 +11331,34 @@ mixin _HasLibraryMixin on ElementImpl {
   Source get source => enclosingElement3!.source!;
 }
 
+mixin _HasSinceSdkVersionMixin
+    on ElementImpl2, Annotatable
+    implements HasSinceSdkVersion {
+  /// Cached values for [sinceSdkVersion].
+  ///
+  /// Only very few elements have `@Since()` annotations, so instead of adding
+  /// an instance field to [ElementImpl2], we attach this information this way.
+  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
+  /// don't pay for a hash lookup when we know that the result is `null`.
+  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
+
+  @override
+  Version? get sinceSdkVersion {
+    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
+      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
+      var result = SinceSdkVersionComputer().compute(this);
+      if (result != null) {
+        _sinceSdkVersion[this] = result;
+        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
+      }
+    }
+    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
+      return _sinceSdkVersion[this];
+    }
+    return null;
+  }
+}
+
 mixin _NonTopLevelVariableOrParameter on Element2 {
   @override
   Element2? get enclosingElement2 {
@@ -11381,7 +11426,7 @@ extension on Fragment {
   Metadata get metadataOrEmpty {
     return switch (this) {
       Annotatable(:var metadata2) => metadata2,
-      _ => MetadataImpl(-1, const [], () => null),
+      _ => MetadataImpl(-1, const []),
     };
   }
 }

@@ -17,7 +17,6 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../../util/element_printer.dart';
@@ -247,6 +246,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       // _writeList(
       //   'libraryExports',
@@ -313,6 +313,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeDisplayName(e);
 
       _writeElementList(
@@ -566,7 +567,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      // _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
@@ -682,6 +683,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -899,6 +901,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -1035,7 +1038,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.metadata2.sinceSdkVersion);
+      _writeSinceSdkVersion(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
@@ -1181,7 +1184,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeMetadata(f.metadata2, includeSince: false);
+      _writeMetadata(f.metadata2);
 
       if (configuration.withImports) {
         var imports = f.libraryImports2.where((import) {
@@ -1246,7 +1249,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata2, includeSince: false);
+      _writeMetadata(e.metadata2);
       // _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1521,7 +1524,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMetadata(Metadata metadata, {bool includeSince = true}) {
+  void _writeMetadata(Metadata metadata) {
     if (configuration.withMetadata) {
       var annotations = metadata.annotations;
       if (annotations.isNotEmpty) {
@@ -1533,9 +1536,6 @@ class _Element2Writer extends _AbstractElementWriter {
           }
         });
       }
-    }
-    if (includeSince) {
-      _writeSinceSdkVersion(metadata.sinceSdkVersion);
     }
   }
 
@@ -1555,6 +1555,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeTypeInferenceError(e);
 
       _writeElementList(
@@ -1687,6 +1688,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -1766,9 +1768,12 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeSinceSdkVersion(Version? version) {
-    if (version != null) {
-      _sink.writelnWithIndent('sinceSdkVersion: $version');
+  void _writeSinceSdkVersion(Element2 element) {
+    if (element case HasSinceSdkVersion hasSince) {
+      var version = hasSince.sinceSdkVersion;
+      if (version != null) {
+        _sink.writelnWithIndent('sinceSdkVersion: $version');
+      }
     }
   }
 
@@ -1787,6 +1792,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -1886,6 +1892,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
@@ -1983,6 +1990,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
@@ -2063,7 +2071,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(e.metadata2, includeSince: false);
+      _writeMetadata(e.metadata2);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2089,7 +2097,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(f.metadata2, includeSince: false);
+      _writeMetadata(f.metadata2);
     });
 
     // _assertNonSyntheticElementSelf(f);
