@@ -62,6 +62,16 @@ class ConstructorMember extends ExecutableMember
   ConstructorFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<ConstructorFragment> get fragments {
+    return [
+      for (ConstructorFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   bool get isConst => declaration.isConst;
 
   @override
@@ -227,6 +237,16 @@ abstract class ExecutableMember extends Member
   @override
   List<FormalParameterElement> get formalParameters =>
       parameters.map((fragment) => fragment.asElement2).toList();
+
+  @override
+  List<ExecutableFragment> get fragments {
+    return [
+      for (ExecutableFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
 
   @override
   bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
@@ -520,6 +540,16 @@ class FieldMember extends VariableMember
   FieldFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<FieldFragment> get fragments {
+    return [
+      for (FieldFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   PropertyAccessorElement? get getter {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
@@ -706,6 +736,16 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
 
   @override
   GetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  List<GetterFragment> get fragments {
+    return [
+      for (GetterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment as GetterFragment?)
+        fragment,
+    ];
+  }
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -1015,6 +1055,16 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<MethodFragment> get fragments {
+    return [
+      for (MethodFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   LibraryElement2 get library2 => _element2.library2;
 
   @override
@@ -1144,6 +1194,16 @@ class ParameterMember extends VariableMember
   // TODO(brianwilkerson): This loses type information.
   List<FormalParameterElement> get formalParameters =>
       _element2.formalParameters;
+
+  @override
+  List<FormalParameterFragment> get fragments {
+    return [
+      for (FormalParameterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1430,6 +1490,16 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
 
   @override
   SetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  List<SetterFragment> get fragments {
+    return [
+      for (SetterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment as SetterFragment?)
+        fragment,
+    ];
+  }
 
   @override
   String? get lookupName => _element2.lookupName;

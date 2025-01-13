@@ -25,17 +25,6 @@ extension ClassElementExtension on ClassElement {
   }
 }
 
-extension ClassElementImpl2Extension on ClassElementImpl2 {
-  List<ClassElementImpl> get fragments {
-    return [
-      for (ClassElementImpl? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
-        fragment,
-    ];
-  }
-}
-
 extension CompilationUnitElementExtension on CompilationUnitElement {
   LibraryFragment get asElement2 {
     return this as LibraryFragment;
@@ -77,15 +66,6 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension Element2Extension on Element2 {
-  List<Fragment> get fragments {
-    return [
-      for (Fragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
-        fragment,
-    ];
-  }
-
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
