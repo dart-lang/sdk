@@ -528,13 +528,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_extension() {
-    _assertKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: true));
-  }
-
-  void test_keyword_extension_old() {
-    _assertNotKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: false));
+    _assertKeywordToken("extension", configuration: ScannerConfiguration());
   }
 
   void test_keyword_factory() {

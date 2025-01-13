@@ -73,9 +73,6 @@ abstract class AbstractScanner implements Scanner {
   /// based upon the specified language version.
   final LanguageVersionChanged? languageVersionChanged;
 
-  /// Experimental flag for enabling scanning of the `extension` token.
-  bool _enableExtensionMethods = false;
-
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'.
   bool _enableNonNullable = false;
@@ -165,7 +162,6 @@ abstract class AbstractScanner implements Scanner {
         allowLazyStrings = true {
     this.tail = this.tokens;
     this.errorTail = this.tokens;
-    this._enableExtensionMethods = copyFrom._enableExtensionMethods;
     this._enableNonNullable = copyFrom._enableNonNullable;
     this._enableTripleShift = copyFrom._enableTripleShift;
     this.tokenStart = copyFrom.tokenStart;
@@ -175,7 +171,6 @@ abstract class AbstractScanner implements Scanner {
   @override
   set configuration(ScannerConfiguration? config) {
     if (config != null) {
-      _enableExtensionMethods = config.enableExtensionMethods;
       _enableNonNullable = config.enableNonNullable;
       _enableTripleShift = config.enableTripleShift;
       _forAugmentationLibrary = config.forAugmentationLibrary;
@@ -1745,9 +1740,6 @@ abstract class AbstractScanner implements Scanner {
     if (keyword == null) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
-    if (!_enableExtensionMethods && keyword == Keyword.EXTENSION) {
-      return tokenizeIdentifier(next, start, allowDollar);
-    }
     if (!_enableNonNullable &&
         (keyword == Keyword.LATE || keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
@@ -2172,9 +2164,6 @@ class ScannerConfiguration {
   static const ScannerConfiguration nonNullable =
       const ScannerConfiguration(enableNonNullable: true);
 
-  /// Experimental flag for enabling scanning of the `extension` keyword.
-  final bool enableExtensionMethods;
-
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'
   final bool enableNonNullable;
@@ -2188,7 +2177,6 @@ class ScannerConfiguration {
   final bool forAugmentationLibrary;
 
   const ScannerConfiguration({
-    this.enableExtensionMethods = false,
     this.enableNonNullable = false,
     this.enableTripleShift = false,
     this.forAugmentationLibrary = false,

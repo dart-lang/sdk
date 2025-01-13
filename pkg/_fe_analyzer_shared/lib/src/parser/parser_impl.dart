@@ -3787,20 +3787,7 @@ class Parser {
     if (semicolon.isA(TokenType.SEMICOLON)) {
       token = semicolon;
     } else {
-      // Recovery
-      if (kind == DeclarationKind.TopLevel &&
-          beforeType.next!.isIdentifier &&
-          beforeType.next!.lexeme == 'extension') {
-        // Looks like an extension method
-        // TODO(danrubel): Remove when extension methods are enabled by default
-        // because then 'extension' will be interpreted as a built-in
-        // and this code will never be executed
-        reportExperimentNotEnabled(ExperimentalFlag.extensionMethods,
-            beforeType.next!, beforeType.next!);
-        token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
-      } else {
-        token = ensureSemicolon(token);
-      }
+      token = ensureSemicolon(token);
     }
     switch (kind) {
       case DeclarationKind.TopLevel:

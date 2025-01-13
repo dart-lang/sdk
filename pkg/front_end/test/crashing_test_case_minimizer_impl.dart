@@ -561,7 +561,6 @@ class TestMinimizer {
       CompilationUnitEnd ast = getAST(originalBytes,
           includeBody: false,
           includeComments: false,
-          enableExtensionMethods: true,
           enableNonNullable: _isUriNnbd(uri!));
       // Find all imports/exports of this file (if any).
       // If finding any:
@@ -602,7 +601,6 @@ class TestMinimizer {
       ast = getAST(withoutInlineable,
           includeBody: false,
           includeComments: false,
-          enableExtensionMethods: true,
           enableNonNullable: _isUriNnbd(uri));
       for (ImportEnd import in ast.getImports()) {
         offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
@@ -704,10 +702,7 @@ class TestMinimizer {
       Uint8List oldData, Uri newUri, Uri oldUri, bool nnbd,
       {bool convertExportToImport = false}) {
     CompilationUnitEnd ast = getAST(oldData,
-        includeBody: false,
-        includeComments: false,
-        enableExtensionMethods: true,
-        enableNonNullable: nnbd);
+        includeBody: false, includeComments: false, enableNonNullable: nnbd);
     List<_Replacement> replacements = [];
     for (ImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
@@ -1300,7 +1295,6 @@ worlds:
     CompilationUnitEnd ast = getAST(data,
         includeBody: true,
         includeComments: false,
-        enableExtensionMethods: true,
         enableNonNullable: _isUriNnbd(uri));
 
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
@@ -1867,8 +1861,6 @@ worlds:
 
   ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableExtensionMethods:
-            languageVersion >= ExperimentalFlag.extensionMethods.enabledVersion,
         enableNonNullable:
             languageVersion >= ExperimentalFlag.nonNullable.enabledVersion,
         enableTripleShift:
@@ -2171,14 +2163,10 @@ worlds:
   }
 
   ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: true);
+      enableTripleShift: true, enableNonNullable: true);
 
   ScannerConfiguration _scannerConfigurationNonNNBD = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: false);
+      enableTripleShift: true, enableNonNullable: false);
 
   List<int>? _dataCache;
   String? _dataCacheString;

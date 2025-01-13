@@ -335,9 +335,7 @@ class ErrorCommentChecker
     Utf8BytesScanner scanner = new Utf8BytesScanner(
       rawBytes,
       configuration: const ScannerConfiguration(
-          enableExtensionMethods: true,
-          enableNonNullable: true,
-          enableTripleShift: true),
+          enableNonNullable: true, enableTripleShift: true),
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         // Nothing - but don't overwrite the previous settings.

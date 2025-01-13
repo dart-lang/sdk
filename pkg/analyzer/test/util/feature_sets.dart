@@ -8,11 +8,6 @@ import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSets {
-  static final FeatureSet language_2_3 = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.3.0'),
-    flags: [],
-  );
-
   static final FeatureSet language_2_9 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.9.0'),
     flags: [],

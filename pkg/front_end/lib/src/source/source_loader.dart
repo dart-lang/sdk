@@ -1051,11 +1051,6 @@ severity: $severity
                 ExperimentalFlag.tripleShift,
                 compilationUnit.importUri,
                 compilationUnit.packageLanguageVersion.version),
-            enableExtensionMethods:
-                target.isExperimentEnabledInLibraryByVersion(
-                    ExperimentalFlag.extensionMethods,
-                    compilationUnit.importUri,
-                    compilationUnit.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.nonNullable,
                 compilationUnit.importUri,
@@ -1072,8 +1067,6 @@ severity: $severity
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift:
               compilationUnit.libraryFeatures.tripleShift.isEnabled,
-          enableExtensionMethods:
-              compilationUnit.libraryFeatures.extensionMethods.isEnabled,
           enableNonNullable: true);
     }, allowLazyStrings: allowLazyStrings);
     Token token = result.tokens;

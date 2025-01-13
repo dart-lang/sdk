@@ -143,7 +143,7 @@ class Foo {
       Keyword.CLASS,
       Keyword.ENUM,
       Keyword.EXPORT,
-      //Keyword.EXTENSION, <-- when "extension methods" is enabled by default
+      Keyword.EXTENSION,
       Keyword.IMPORT,
       Keyword.LIBRARY,
       Keyword.MIXIN,

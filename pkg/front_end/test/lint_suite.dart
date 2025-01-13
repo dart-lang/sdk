@@ -30,8 +30,7 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     displayName: "lint suite",
     configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {"onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -137,9 +136,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       Utf8BytesScanner scanner = new Utf8BytesScanner(
         bytes,
         configuration: const ScannerConfiguration(
-            enableExtensionMethods: true,
-            enableNonNullable: true,
-            enableTripleShift: true),
+            enableNonNullable: true, enableTripleShift: true),
         includeComments: true,
         languageVersionChanged: (scanner, languageVersion) {
           // Nothing - but don't overwrite the previous settings.

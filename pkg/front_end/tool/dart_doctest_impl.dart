@@ -531,9 +531,7 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableExtensionMethods: true,
-      enableNonNullable: true,
-      enableTripleShift: true);
+      enableNonNullable: true, enableTripleShift: true);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
     rawBytes,

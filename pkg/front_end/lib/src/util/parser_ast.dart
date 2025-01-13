@@ -28,7 +28,6 @@ CompilationUnitEnd getAST(
   Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
-  bool enableExtensionMethods = false,
   bool enableNonNullable = false,
   bool enableTripleShift = false,
   bool allowPatterns = false,
@@ -36,7 +35,6 @@ CompilationUnitEnd getAST(
   List<int>? lineStarts,
 }) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableExtensionMethods: enableExtensionMethods,
       enableNonNullable: enableNonNullable,
       enableTripleShift: enableTripleShift);
 

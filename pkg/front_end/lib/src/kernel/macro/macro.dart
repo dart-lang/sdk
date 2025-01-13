@@ -1355,7 +1355,6 @@ class MacroApplications {
 
       ScannerResult scannerResult = scan(sourceUtf8,
           configuration: new ScannerConfiguration(
-              enableExtensionMethods: true,
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));

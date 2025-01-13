@@ -73,27 +73,23 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
     enableTripleShift: true,
-    enableExtensionMethods: true,
     enableNonNullable: true,
     forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
     enableTripleShift: true,
-    enableExtensionMethods: true,
     enableNonNullable: false,
     forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationNonTripleShift =
     new ScannerConfiguration(
         enableTripleShift: false,
-        enableExtensionMethods: true,
         enableNonNullable: true,
         forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationAugmentation =
     new ScannerConfiguration(
         enableTripleShift: true,
-        enableExtensionMethods: true,
         enableNonNullable: true,
         forAugmentationLibrary: true);
 
