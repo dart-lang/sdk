@@ -16,8 +16,8 @@ void main(List<String> args) {
 }
 """;
 
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableNonNullable: true, enableTripleShift: true);
+  ScannerConfiguration scannerConfiguration =
+      new ScannerConfiguration(enableTripleShift: true);
 
   StringScanner scanner = new StringScanner(
     source,

@@ -200,7 +200,6 @@ class Scanner {
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(
               enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-              enableNonNullable: featureSet.isEnabled(Feature.non_nullable),
               forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
             );
 }

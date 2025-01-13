@@ -73,10 +73,6 @@ abstract class AbstractScanner implements Scanner {
   /// based upon the specified language version.
   final LanguageVersionChanged? languageVersionChanged;
 
-  /// Experimental flag for enabling scanning of NNBD tokens
-  /// such as 'required' and 'late'.
-  bool _enableNonNullable = false;
-
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
@@ -162,7 +158,6 @@ abstract class AbstractScanner implements Scanner {
         allowLazyStrings = true {
     this.tail = this.tokens;
     this.errorTail = this.tokens;
-    this._enableNonNullable = copyFrom._enableNonNullable;
     this._enableTripleShift = copyFrom._enableTripleShift;
     this.tokenStart = copyFrom.tokenStart;
     this.groupingStack = copyFrom.groupingStack;
@@ -171,7 +166,6 @@ abstract class AbstractScanner implements Scanner {
   @override
   set configuration(ScannerConfiguration? config) {
     if (config != null) {
-      _enableNonNullable = config.enableNonNullable;
       _enableTripleShift = config.enableTripleShift;
       _forAugmentationLibrary = config.forAugmentationLibrary;
     }
@@ -1048,11 +1042,9 @@ abstract class AbstractScanner implements Scanner {
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
     } else if (next == $PERIOD) {
       next = advance();
-      if (_enableNonNullable) {
-        if ($PERIOD == next) {
-          appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
-          return advance();
-        }
+      if ($PERIOD == next) {
+        appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
+        return advance();
       }
       appendPrecedenceToken(TokenType.QUESTION_PERIOD);
       return next;
@@ -1572,10 +1564,6 @@ abstract class AbstractScanner implements Scanner {
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
       languageVersionChanged!(this, languageVersion);
-    } else {
-      // TODO(danrubel): remove this hack and require listener to update
-      // the scanner's configuration.
-      configuration = ScannerConfiguration.classic;
     }
     if (includeComments) {
       _appendToCommentStream(languageVersion);
@@ -1738,10 +1726,6 @@ abstract class AbstractScanner implements Scanner {
     }
     Keyword? keyword = state.keyword;
     if (keyword == null) {
-      return tokenizeIdentifier(next, start, allowDollar);
-    }
-    if (!_enableNonNullable &&
-        (keyword == Keyword.LATE || keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (!_forAugmentationLibrary && keyword == Keyword.AUGMENT) {
@@ -2160,13 +2144,7 @@ class LineStarts extends Object with ListMixin<int> {
 /// [ScannerConfiguration] contains information for configuring which tokens
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
-  static const ScannerConfiguration classic = const ScannerConfiguration();
-  static const ScannerConfiguration nonNullable =
-      const ScannerConfiguration(enableNonNullable: true);
-
-  /// Experimental flag for enabling scanning of NNBD tokens
-  /// such as 'required' and 'late'
-  final bool enableNonNullable;
+  static const ScannerConfiguration nonNullable = const ScannerConfiguration();
 
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
@@ -2177,7 +2155,6 @@ class ScannerConfiguration {
   final bool forAugmentationLibrary;
 
   const ScannerConfiguration({
-    this.enableNonNullable = false,
     this.enableTripleShift = false,
     this.forAugmentationLibrary = false,
   });

@@ -740,7 +740,6 @@ void assertEdits({
     code,
     libraryDeclarationNames: libraryDeclarationNames,
     scannerConfiguration: ScannerConfiguration(
-      enableNonNullable: true,
       forAugmentationLibrary: true,
     ),
     throwIfHasErrors: throwIfHasErrors,

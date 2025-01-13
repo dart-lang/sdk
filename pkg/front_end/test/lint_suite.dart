@@ -135,8 +135,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       Uint8List bytes = description.cache.rawBytes = f.readAsBytesSync();
       Utf8BytesScanner scanner = new Utf8BytesScanner(
         bytes,
-        configuration: const ScannerConfiguration(
-            enableNonNullable: true, enableTripleShift: true),
+        configuration: const ScannerConfiguration(enableTripleShift: true),
         includeComments: true,
         languageVersionChanged: (scanner, languageVersion) {
           // Nothing - but don't overwrite the previous settings.

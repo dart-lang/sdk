@@ -267,7 +267,6 @@ CoverageInfo _process(
   CompilationUnitEnd ast = getAST(
     rawBytes,
     includeComments: true,
-    enableNonNullable: true,
     enableTripleShift: true,
     allowPatterns: true,
     lineStarts: lineStarts,

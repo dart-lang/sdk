@@ -19,7 +19,6 @@ void main(List<String> args) {
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
   ParserAstNode ast = getAST(
     bytes,
-    enableNonNullable: true,
     enableTripleShift: true,
     allowPatterns: true,
   );

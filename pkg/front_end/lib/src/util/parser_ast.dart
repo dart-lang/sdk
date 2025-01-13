@@ -28,15 +28,13 @@ CompilationUnitEnd getAST(
   Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
-  bool enableNonNullable = false,
   bool enableTripleShift = false,
   bool allowPatterns = false,
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableNonNullable: enableNonNullable,
-      enableTripleShift: enableTripleShift);
+  ScannerConfiguration scannerConfiguration =
+      new ScannerConfiguration(enableTripleShift: enableTripleShift);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
     rawBytes,

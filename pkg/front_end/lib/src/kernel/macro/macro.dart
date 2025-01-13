@@ -1355,9 +1355,7 @@ class MacroApplications {
 
       ScannerResult scannerResult = scan(sourceUtf8,
           configuration: new ScannerConfiguration(
-              enableNonNullable: true,
-              enableTripleShift: true,
-              forAugmentationLibrary: true));
+              enableTripleShift: true, forAugmentationLibrary: true));
       _sourceLoader.target.addSourceInformation(augmentationImportUri,
           augmentationFileUri, scannerResult.lineStarts, sourceUtf8);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {

@@ -12,16 +12,16 @@ required r = required();
 }
 
 
-class[KeywordToken] late[StringToken] {[BeginToken]
+class[KeywordToken] late[KeywordToken] {[BeginToken]
 int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 1[StringToken];[SimpleToken]
 }[SimpleToken]
 
-class[KeywordToken] required[StringToken] {[BeginToken]
+class[KeywordToken] required[KeywordToken] {[BeginToken]
 int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 2[StringToken];[SimpleToken]
 }[SimpleToken]
 
 class[KeywordToken] C[StringToken] {[BeginToken]
-late[StringToken] l[StringToken] =[SimpleToken] late[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
-required[StringToken] r[StringToken] =[SimpleToken] required[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+late[KeywordToken] l[StringToken] =[SimpleToken] late[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+required[KeywordToken] r[StringToken] =[SimpleToken] required[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

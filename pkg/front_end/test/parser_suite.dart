@@ -72,26 +72,15 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-    enableNonNullable: true,
-    forAugmentationLibrary: false);
-
-ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
-    enableTripleShift: true,
-    enableNonNullable: false,
-    forAugmentationLibrary: false);
+    enableTripleShift: true, forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationNonTripleShift =
     new ScannerConfiguration(
-        enableTripleShift: false,
-        enableNonNullable: true,
-        forAugmentationLibrary: false);
+        enableTripleShift: false, forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationAugmentation =
     new ScannerConfiguration(
-        enableTripleShift: true,
-        enableNonNullable: true,
-        forAugmentationLibrary: true);
+        enableTripleShift: true, forAugmentationLibrary: true);
 
 class Context extends ChainContext with MatchContext {
   @override
@@ -401,8 +390,8 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   ScannerConfiguration config;
 
   String firstDir = shortName.split("/")[0];
-  if (firstDir == "non-nnbd") {
-    config = scannerConfigurationNonNNBD;
+  if (firstDir == "also-nnbd") {
+    config = scannerConfigurationNonTripleShift;
   } else if (firstDir == "no-triple-shift") {
     config = scannerConfigurationNonTripleShift;
   } else if (firstDir == "augmentation") {

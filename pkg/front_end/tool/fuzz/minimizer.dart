@@ -33,7 +33,6 @@ Future<void> main(List<String> args) async {
   CompilationUnitEnd ast = getAST(
     rawBytes,
     includeComments: true,
-    enableNonNullable: true,
     enableTripleShift: true,
     allowPatterns: true,
   );

@@ -257,10 +257,7 @@ class FastaParserTestCase
     var languageVersion = LibraryLanguageVersion(
         package: ExperimentStatus.currentVersion, override: null);
     var result = scanString(content,
-        configuration: featureSet.isEnabled(Feature.non_nullable)
-            ? ScannerConfiguration.nonNullable
-            : ScannerConfiguration.classic,
-        includeComments: true,
+        configuration: ScannerConfiguration.nonNullable, includeComments: true,
         languageVersionChanged: (scanner, overrideVersion) {
       languageVersion = LibraryLanguageVersion(
         package: ExperimentStatus.currentVersion,

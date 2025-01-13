@@ -39,7 +39,6 @@ void canParseTopLevelIshOfAllFrontendFiles() {
           data,
           includeBody: true,
           includeComments: true,
-          enableNonNullable: true,
           enableTripleShift: true,
         );
         splitIntoChunks(ast, data);
@@ -80,8 +79,8 @@ void testTopLevelStuff() {
   File file = new File.fromUri(
       base.resolve("parser_ast_test_data/top_level_stuff.txt"));
   Uint8List data = file.readAsBytesSync();
-  CompilationUnitEnd ast = getAST(data,
-      includeBody: true, includeComments: true, enableNonNullable: false);
+  CompilationUnitEnd ast =
+      getAST(data, includeBody: true, includeComments: true);
   expect(2, ast.getImports().length);
   expect(2, ast.getExports().length);
 
@@ -134,8 +133,7 @@ void testTopLevelStuff() {
   file = new File.fromUri(
       base.resolve("parser_ast_test_data/top_level_stuff_helper.txt"));
   data = file.readAsBytesSync();
-  ast = getAST(data,
-      includeBody: true, includeComments: true, enableNonNullable: false);
+  ast = getAST(data, includeBody: true, includeComments: true);
   foundChunks = splitIntoChunks(ast, data);
   expect(1, foundChunks.length);
   expect("part of 'top_level_stuff.txt';", foundChunks[0]);
@@ -143,8 +141,7 @@ void testTopLevelStuff() {
   file =
       new File.fromUri(base.resolve("parser_ast_test_data/script_handle.txt"));
   data = file.readAsBytesSync();
-  ast = getAST(data,
-      includeBody: true, includeComments: true, enableNonNullable: false);
+  ast = getAST(data, includeBody: true, includeComments: true);
   foundChunks = splitIntoChunks(ast, data);
   expect(1, foundChunks.length);
   expect("#!/usr/bin/env dart -c", foundChunks[0]);
@@ -153,8 +150,8 @@ void testTopLevelStuff() {
 void testClassStuff() {
   File file = new File.fromUri(base.resolve("parser_ast_test_data/class.txt"));
   Uint8List data = file.readAsBytesSync();
-  CompilationUnitEnd ast = getAST(data,
-      includeBody: true, includeComments: true, enableNonNullable: false);
+  CompilationUnitEnd ast =
+      getAST(data, includeBody: true, includeComments: true);
   List<TopLevelDeclarationEnd> classes = ast.getClasses();
   expect(2, classes.length);
 
@@ -234,8 +231,8 @@ void testClassStuff() {
 void testMixinStuff() {
   File file = new File.fromUri(base.resolve("parser_ast_test_data/mixin.txt"));
   Uint8List data = file.readAsBytesSync();
-  CompilationUnitEnd ast = getAST(data,
-      includeBody: true, includeComments: true, enableNonNullable: false);
+  CompilationUnitEnd ast =
+      getAST(data, includeBody: true, includeComments: true);
   List<TopLevelDeclarationEnd> mixins = ast.getMixinDeclarations();
   expect(mixins.length, 1);
 

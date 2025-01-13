@@ -53,7 +53,6 @@ void main(List<String> args) {
         hasErrors = scanString(
           content,
           configuration: new ScannerConfiguration(
-            enableNonNullable: true,
             enableTripleShift: true,
           ),
           includeComments: true,
@@ -65,7 +64,6 @@ void main(List<String> args) {
         hasErrors = scan(
           contentBytes,
           configuration: new ScannerConfiguration(
-            enableNonNullable: true,
             enableTripleShift: true,
           ),
           includeComments: true,
@@ -78,7 +76,6 @@ void main(List<String> args) {
         hasErrors = scan(
           tmp,
           configuration: new ScannerConfiguration(
-            enableNonNullable: true,
             enableTripleShift: true,
           ),
           includeComments: true,
