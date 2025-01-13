@@ -5562,18 +5562,23 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   LibraryElement2 get enclosingElement2 => firstFragment.library;
 
   @override
-  List<FieldElement2> get fields2 =>
-      fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
+  List<FieldElement2> get fields2 {
+    _readMembers();
+    return fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
+  }
 
   @override
   InstanceElementImpl get firstFragment;
 
   @override
-  List<GetterElement> get getters2 => accessors
-      .where((e) => e.isGetter)
-      .map((e) => e.asElement2 as GetterElement?)
-      .nonNulls
-      .toList();
+  List<GetterElement> get getters2 {
+    _readMembers();
+    return accessors
+        .where((e) => e.isGetter)
+        .map((e) => e.asElement2 as GetterElement?)
+        .nonNulls
+        .toList();
+  }
 
   @override
   String get identifier => name3 ?? firstFragment.identifier;
@@ -5613,11 +5618,14 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   AnalysisSession? get session => firstFragment.session;
 
   @override
-  List<SetterElement> get setters2 => accessors
-      .where((e) => e.isSetter)
-      .map((e) => e.asElement2 as SetterElement?)
-      .nonNulls
-      .toList();
+  List<SetterElement> get setters2 {
+    _readMembers();
+    return accessors
+        .where((e) => e.isSetter)
+        .map((e) => e.asElement2 as SetterElement?)
+        .nonNulls
+        .toList();
+  }
 
   @override
   List<TypeParameterElementImpl2> get typeParameters2 =>
@@ -5891,6 +5899,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   Iterable<PropertyAccessorElement2> _implementationsOfSetter2(String name) {
     return _implementationsOfSetter(name).map((e) => e.asElement2);
+  }
+
+  void _readMembers() {
+    // TODO(scheglov): use better implementation
+    firstFragment.element;
   }
 }
 
