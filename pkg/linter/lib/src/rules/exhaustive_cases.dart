@@ -14,17 +14,16 @@ const _desc = r'Define case clauses for all constants in enum-like classes.';
 
 class ExhaustiveCases extends LintRule {
   ExhaustiveCases()
-      : super(
-          name: LintNames.exhaustive_cases,
-          description: _desc,
-        );
+    : super(name: LintNames.exhaustive_cases, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.exhaustive_cases;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -82,14 +81,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         var end = statement.rightParenthesis.end;
         var elements = enumConstants[constant]!;
         var preferredElement = elements.firstWhere(
-            (element) => !element.metadata2.hasDeprecated,
-            orElse: () => elements.first);
+          (element) => !element.metadata2.hasDeprecated,
+          orElse: () => elements.first,
+        );
         if (preferredElement.name3 case var name?) {
-          rule.reportLintForOffset(
-            offset,
-            end - offset,
-            arguments: [name],
-          );
+          rule.reportLintForOffset(offset, end - offset, arguments: [name]);
         }
       }
     }

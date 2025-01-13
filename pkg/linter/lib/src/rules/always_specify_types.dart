@@ -16,30 +16,29 @@ const _desc = r'Specify type annotations.';
 
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
-      : super(
-          name: LintNames.always_specify_types,
-          description: _desc,
-        );
+    : super(name: LintNames.always_specify_types, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [
-        LintNames.avoid_types_on_closure_parameters,
-        LintNames.omit_local_variable_types,
-        LintNames.omit_obvious_local_variable_types,
-        LintNames.omit_obvious_property_types,
-      ];
+    LintNames.avoid_types_on_closure_parameters,
+    LintNames.omit_local_variable_types,
+    LintNames.omit_obvious_local_variable_types,
+    LintNames.omit_obvious_property_types,
+  ];
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.always_specify_types_add_type,
-        LinterLintCode.always_specify_types_replace_keyword,
-        LinterLintCode.always_specify_types_specify_type,
-        LinterLintCode.always_specify_types_split_to_types
-      ];
+    LinterLintCode.always_specify_types_add_type,
+    LinterLintCode.always_specify_types_replace_keyword,
+    LinterLintCode.always_specify_types_specify_type,
+    LinterLintCode.always_specify_types_split_to_types,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
@@ -58,8 +57,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
-      rule.reportLintForToken(literal.beginToken,
-          errorCode: LinterLintCode.always_specify_types_add_type);
+      rule.reportLintForToken(
+        literal.beginToken,
+        errorCode: LinterLintCode.always_specify_types_add_type,
+      );
     }
   }
 
@@ -70,13 +71,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       var element = node.declaredElement2;
       if (element is VariableElement2) {
         if (keyword.keyword == Keyword.VAR) {
-          rule.reportLintForToken(keyword,
-              arguments: [keyword.lexeme, element!.type],
-              errorCode: LinterLintCode.always_specify_types_replace_keyword);
+          rule.reportLintForToken(
+            keyword,
+            arguments: [keyword.lexeme, element!.type],
+            errorCode: LinterLintCode.always_specify_types_replace_keyword,
+          );
         } else {
-          rule.reportLintForToken(keyword,
-              arguments: [element!.type],
-              errorCode: LinterLintCode.always_specify_types_specify_type);
+          rule.reportLintForToken(
+            keyword,
+            arguments: [element!.type],
+            errorCode: LinterLintCode.always_specify_types_specify_type,
+          );
         }
       }
     }
@@ -89,13 +94,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       var keyword = node.keyword;
       var tokenToLint = keyword ?? node.name;
       if (keyword != null && keyword.keyword == Keyword.VAR) {
-        rule.reportLintForToken(tokenToLint,
-            arguments: [keyword.lexeme, type],
-            errorCode: LinterLintCode.always_specify_types_replace_keyword);
+        rule.reportLintForToken(
+          tokenToLint,
+          arguments: [keyword.lexeme, type],
+          errorCode: LinterLintCode.always_specify_types_replace_keyword,
+        );
       } else {
-        rule.reportLintForToken(tokenToLint,
-            arguments: [type],
-            errorCode: LinterLintCode.always_specify_types_specify_type);
+        rule.reportLintForToken(
+          tokenToLint,
+          arguments: [type],
+          errorCode: LinterLintCode.always_specify_types_specify_type,
+        );
       }
     }
   }
@@ -115,8 +124,10 @@ class _Visitor extends SimpleAstVisitor<void> {
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.metadata2.hasOptionalTypeArgs) {
-        rule.reportLint(namedType,
-            errorCode: LinterLintCode.always_specify_types_add_type);
+        rule.reportLint(
+          namedType,
+          errorCode: LinterLintCode.always_specify_types_add_type,
+        );
       }
     }
   }
@@ -136,21 +147,29 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.type == Keyword.VAR &&
             type != null &&
             type is! DynamicType) {
-          rule.reportLintForToken(keyword,
-              arguments: [keyword.lexeme, type],
-              errorCode: LinterLintCode.always_specify_types_replace_keyword);
+          rule.reportLintForToken(
+            keyword,
+            arguments: [keyword.lexeme, type],
+            errorCode: LinterLintCode.always_specify_types_replace_keyword,
+          );
         } else {
-          rule.reportLintForToken(keyword,
-              errorCode: LinterLintCode.always_specify_types_add_type);
+          rule.reportLintForToken(
+            keyword,
+            errorCode: LinterLintCode.always_specify_types_add_type,
+          );
         }
       } else if (type != null) {
         if (type is DynamicType) {
-          rule.reportLint(param,
-              errorCode: LinterLintCode.always_specify_types_add_type);
+          rule.reportLint(
+            param,
+            errorCode: LinterLintCode.always_specify_types_add_type,
+          );
         } else {
-          rule.reportLint(param,
-              arguments: [type],
-              errorCode: LinterLintCode.always_specify_types_specify_type);
+          rule.reportLint(
+            param,
+            arguments: [type],
+            errorCode: LinterLintCode.always_specify_types_specify_type,
+          );
         }
       }
     }
@@ -198,8 +217,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           errorCode = LinterLintCode.always_specify_types_add_type;
         }
       }
-      rule.reportLintForToken(keyword,
-          arguments: arguments, errorCode: errorCode);
+      rule.reportLintForToken(
+        keyword,
+        arguments: arguments,
+        errorCode: errorCode,
+      );
     }
   }
 

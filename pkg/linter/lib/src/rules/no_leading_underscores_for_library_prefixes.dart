@@ -14,10 +14,10 @@ const _desc = r'Avoid leading underscores for library prefixes.';
 
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   NoLeadingUnderscoresForLibraryPrefixes()
-      : super(
-          name: LintNames.no_leading_underscores_for_library_prefixes,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.no_leading_underscores_for_library_prefixes,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +25,9 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addImportDirective(this, visitor);
   }
@@ -38,8 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-      : _wildCardVariablesEnabled =
-            context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
 
   void checkIdentifier(SimpleIdentifier? id) {
     if (id == null) return;

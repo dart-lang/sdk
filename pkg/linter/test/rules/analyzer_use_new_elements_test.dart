@@ -37,10 +37,7 @@ class AnalyzerUseNewElementsTest extends LintRuleTest {
     newPackageConfigJsonFileFromBuilder(
       testPackageRootPath,
       PackageConfigFileBuilder()
-        ..add(
-          name: 'analyzer',
-          rootPath: analyzerFolder.path,
-        ),
+        ..add(name: 'analyzer', rootPath: analyzerFolder.path),
     );
   }
 
@@ -78,51 +75,55 @@ import 'package:analyzer/dart/element/element.dart';
 List<ClassElement> getAllClasses() => [];
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 
 void f() {
   getAllClasses();
 }
-''', [
-      lint(31, 13),
-    ]);
+''',
+      [lint(31, 13)],
+    );
   }
 
   test_namedType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/dart/element/element.dart';
 
 ClassElement f() {
   throw 42;
 }
-''', [
-      lint(54, 12),
-    ]);
+''',
+      [lint(54, 12)],
+    );
   }
 
   test_propertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/dart/ast/ast.dart';
 
 void f(ClassDeclaration a) {
   a.declaredElement;
 }
-''', [
-      lint(79, 15),
-    ]);
+''',
+      [lint(79, 15)],
+    );
   }
 
   test_propertyAccess_declaredElement_src() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 void f(ClassDeclarationImpl a) {
   a.declaredElement;
 }
-''', [
-      lint(87, 15),
-    ]);
+''',
+      [lint(87, 15)],
+    );
   }
 
   test_propertyAccess_nestedType() async {
@@ -132,14 +133,15 @@ import 'package:analyzer/dart/element/element.dart';
 List<ClassElement> get allClasses => [];
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 
 void f() {
   allClasses;
 }
-''', [
-      lint(31, 10),
-    ]);
+''',
+      [lint(31, 10)],
+    );
   }
 }

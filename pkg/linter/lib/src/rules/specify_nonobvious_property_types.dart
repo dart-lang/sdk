@@ -15,11 +15,11 @@ const _desc =
 
 class SpecifyNonObviousPropertyTypes extends LintRule {
   SpecifyNonObviousPropertyTypes()
-      : super(
-          name: LintNames.specify_nonobvious_property_types,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.specify_nonobvious_property_types,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   List<String> get incompatibleRules => const [];
@@ -29,7 +29,9 @@ class SpecifyNonObviousPropertyTypes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
@@ -43,15 +45,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) =>
-      _visitVariableDeclarationList(node.fields,
-          isInstanceVariable: !node.isStatic);
+      _visitVariableDeclarationList(
+        node.fields,
+        isInstanceVariable: !node.isStatic,
+      );
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       _visitVariableDeclarationList(node.variables, isInstanceVariable: false);
 
-  void _visitVariableDeclarationList(VariableDeclarationList node,
-      {required bool isInstanceVariable}) {
+  void _visitVariableDeclarationList(
+    VariableDeclarationList node, {
+    required bool isInstanceVariable,
+  }) {
     var staticType = node.type?.type;
     if (staticType != null && !staticType.isDartCoreNull) {
       return;

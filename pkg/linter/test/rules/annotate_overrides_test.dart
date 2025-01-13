@@ -55,15 +55,16 @@ class A {
 class B extends A { }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class B {
   void a() {}
 }
-''', [
-      lint(44, 1),
-    ]);
+''',
+      [lint(44, 1)],
+    );
   }
 
   test_augmentationMethodWithAnnotation() async {
@@ -108,7 +109,8 @@ class B extends A {
   // Test setters and operators.
 
   test_class_fieldWithoutAnnotation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int get x => 4;
 }
@@ -116,9 +118,9 @@ class A {
 class B extends A {
   int x = 5;
 }
-''', [
-      lint(57, 1),
-    ]);
+''',
+      [lint(57, 1)],
+    );
   }
 
   test_class_getterWithAnnotation() async {
@@ -150,7 +152,8 @@ class B extends A {
   }
 
   test_class_getterWithoutAnnotation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int get x => 4;
 }
@@ -158,9 +161,9 @@ class A {
 class B extends A {
   int get x => 5;
 }
-''', [
-      lint(61, 1),
-    ]);
+''',
+      [lint(61, 1)],
+    );
   }
 
   test_class_methodWithAnnotation() async {
@@ -177,7 +180,8 @@ class B extends A {
   }
 
   test_class_methodWithoutAnnotation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void f() {}
 }
@@ -185,9 +189,9 @@ class A {
 class B extends A {
   void f() {}
 }
-''', [
-      lint(54, 1),
-    ]);
+''',
+      [lint(54, 1)],
+    );
   }
 
   test_enum_fieldWithAnnotation() async {
@@ -205,7 +209,8 @@ enum A implements O {
   }
 
   test_enum_fieldWithoutAnnotation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class O {
   int get x => 0;
 }
@@ -214,9 +219,9 @@ enum A implements O {
   a,b,c;
   int get x => 0;
 }
-''', [
-      lint(72, 1),
-    ]);
+''',
+      [lint(72, 1)],
+    );
   }
 
   test_enum_methodWithAnnotation() async {
@@ -234,18 +239,20 @@ enum A implements O {
   }
 
   test_enum_methodWithoutAnnotation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   String toString() => '';
 }
-''', [
-      lint(27, 8),
-    ]);
+''',
+      [lint(27, 8)],
+    );
   }
 
   test_extensionTypes_field() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int i = 0;
 }
@@ -253,10 +260,16 @@ class A {
 extension type B(A a) implements A {
   int i = 0;
 }
-''', [
-      // No lint.
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 69, 1),
-    ]);
+''',
+      [
+        // No lint.
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+          69,
+          1,
+        ),
+      ],
+    );
   }
 
   test_extensionTypes_getter() async {

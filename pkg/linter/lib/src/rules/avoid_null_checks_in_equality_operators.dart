@@ -17,7 +17,9 @@ bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
 
 bool _isComparingParameterWithNull(
-        BinaryExpression node, Element2? parameter) =>
+  BinaryExpression node,
+  Element2? parameter,
+) =>
     _isComparingEquality(node.operator.type) &&
     ((node.leftOperand.isNullLiteral &&
             _isParameter(node.rightOperand, parameter)) ||
@@ -28,16 +30,18 @@ bool _isParameter(Expression expression, Element2? parameter) =>
     expression.canonicalElement == parameter;
 
 bool _isParameterWithQuestionQuestion(
-        BinaryExpression node, Element2? parameter) =>
+  BinaryExpression node,
+  Element2? parameter,
+) =>
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends LintRule {
   AvoidNullChecksInEqualityOperators()
-      : super(
-          name: LintNames.avoid_null_checks_in_equality_operators,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_null_checks_in_equality_operators,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -45,7 +49,9 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

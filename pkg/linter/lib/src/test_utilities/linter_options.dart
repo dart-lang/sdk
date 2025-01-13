@@ -16,7 +16,6 @@ class LinterOptions {
   /// Whether to gather timing data during analysis.
   bool enableTiming = false;
 
-  LinterOptions({
-    Iterable<LintRule>? enabledRules,
-  }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
+  LinterOptions({Iterable<LintRule>? enabledRules})
+    : enabledRules = enabledRules ?? Registry.ruleRegistry;
 }

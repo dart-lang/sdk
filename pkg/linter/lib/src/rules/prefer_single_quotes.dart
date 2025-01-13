@@ -11,10 +11,7 @@ const _desc = r'Only use double quotes for strings containing single quotes.';
 
 class PreferSingleQuotes extends LintRule {
   PreferSingleQuotes()
-      : super(
-          name: LintNames.prefer_single_quotes,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_single_quotes, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];
@@ -24,7 +21,9 @@ class PreferSingleQuotes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = QuoteVisitor(this, useSingle: true);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
@@ -35,16 +34,14 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final bool useSingle;
 
-  QuoteVisitor(
-    this.rule, {
-    required this.useSingle,
-  });
+  QuoteVisitor(this.rule, {required this.useSingle});
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
     var checkHasString = _IsOrContainsStringVisitor();
-    return string.elements
-        .any((child) => child.accept(checkHasString) ?? false);
+    return string.elements.any(
+      (child) => child.accept(checkHasString) ?? false,
+    );
   }
 
   /// Strings can be within interpolations (ie, nested). Check like this.
@@ -73,10 +70,12 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
     }
 
     // slightly more complicated check there are no single quotes
-    if (node.elements.any((e) =>
-        e is InterpolationString &&
-        (useSingle && e.value.contains("'") ||
-            !useSingle && e.value.contains('"')))) {
+    if (node.elements.any(
+      (e) =>
+          e is InterpolationString &&
+          (useSingle && e.value.contains("'") ||
+              !useSingle && e.value.contains('"')),
+    )) {
       return;
     }
 

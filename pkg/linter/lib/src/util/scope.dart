@@ -48,14 +48,14 @@ class LinterNameInScopeResolutionResult {
   final _LinterNameInScopeResolutionResultState _state;
 
   const LinterNameInScopeResolutionResult._differentName(this.element)
-      : _state = _LinterNameInScopeResolutionResultState.differentName;
+    : _state = _LinterNameInScopeResolutionResultState.differentName;
 
   const LinterNameInScopeResolutionResult._none()
-      : element = null,
-        _state = _LinterNameInScopeResolutionResultState.none;
+    : element = null,
+      _state = _LinterNameInScopeResolutionResultState.none;
 
   const LinterNameInScopeResolutionResult._requestedName(this.element)
-      : _state = _LinterNameInScopeResolutionResultState.requestedName;
+    : _state = _LinterNameInScopeResolutionResultState.requestedName;
 
   bool get isDifferentName =>
       _state == _LinterNameInScopeResolutionResultState.differentName;
@@ -79,5 +79,5 @@ enum _LinterNameInScopeResolutionResultState {
 
   /// Indicates that an element with the same basename, but different name
   /// was found.
-  differentName
+  differentName,
 }

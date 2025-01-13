@@ -18,7 +18,8 @@ class UseFullHexValuesForFlutterColorsTest extends LintRuleTest {
   String get lintRule => LintNames.use_full_hex_values_for_flutter_colors;
 
   test_decimal() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library dart.ui;
 
 var c = Color(1);
@@ -26,9 +27,9 @@ var c = Color(1);
 class Color {
   Color(int v);
 }
-''', [
-      lint(32, 1),
-    ]);
+''',
+      [lint(32, 1)],
+    );
   }
 
   test_dynamicArgument() async {
@@ -69,7 +70,8 @@ class Color {
   }
 
   test_sixDigitHex_lower() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library dart.ui;
 
 var c = Color(0x000000);
@@ -77,13 +79,14 @@ var c = Color(0x000000);
 class Color {
   Color(int v);
 }
-''', [
-      lint(32, 8),
-    ]);
+''',
+      [lint(32, 8)],
+    );
   }
 
   test_sixDigitHex_upper() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library dart.ui;
 
 var c = Color(0X000000);
@@ -91,13 +94,14 @@ var c = Color(0X000000);
 class Color {
   Color(int v);
 }
-''', [
-      lint(32, 8),
-    ]);
+''',
+      [lint(32, 8)],
+    );
   }
 
   test_sixDigitHex_withSeparators() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 library dart.ui;
 
 var c = Color(0x00_00_00);
@@ -105,8 +109,8 @@ var c = Color(0x00_00_00);
 class Color {
   Color(int v);
 }
-''', [
-      lint(32, 10),
-    ]);
+''',
+      [lint(32, 10)],
+    );
   }
 }

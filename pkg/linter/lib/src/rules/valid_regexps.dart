@@ -10,18 +10,16 @@ import '../analyzer.dart';
 const _desc = r'Use valid regular expression syntax.';
 
 class ValidRegexps extends LintRule {
-  ValidRegexps()
-      : super(
-          name: LintNames.valid_regexps,
-          description: _desc,
-        );
+  ValidRegexps() : super(name: LintNames.valid_regexps, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.valid_regexps;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -43,10 +41,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       bool isTrue(Expression e) => e is BooleanLiteral && e.value;
 
-      var unicode = args.any((arg) =>
-          arg is NamedExpression &&
-          arg.name.label.name == 'unicode' &&
-          isTrue(arg.expression));
+      var unicode = args.any(
+        (arg) =>
+            arg is NamedExpression &&
+            arg.name.label.name == 'unicode' &&
+            isTrue(arg.expression),
+      );
 
       var sourceExpression = args.first;
       if (sourceExpression is StringLiteral) {

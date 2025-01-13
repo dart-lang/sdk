@@ -32,7 +32,8 @@ Future<int> g() async => 0;
   }
 
   test_constructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A() {
     g();
@@ -40,13 +41,14 @@ class A {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(22, 1),
-    ]);
+''',
+      [lint(22, 1)],
+    );
   }
 
   test_field_assignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var a = () {
     g();
@@ -54,13 +56,14 @@ class A {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(29, 1),
-    ]);
+''',
+      [lint(29, 1)],
+    );
   }
 
   test_function() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void recreateDir(String path) {
   deleteDir(path);
   createDir(path);
@@ -68,14 +71,14 @@ void recreateDir(String path) {
 
 Future<void> deleteDir(String path) async {}
 Future<void> createDir(String path) async {}
-''', [
-      lint(34, 9),
-      lint(53, 9),
-    ]);
+''',
+      [lint(34, 9), lint(53, 9)],
+    );
   }
 
   test_function_closure() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   () {
     createDir('.');
@@ -83,9 +86,9 @@ void f() {
 }
 
 Future<void> createDir(String path) async {}
-''', [
-      lint(22, 9),
-    ]);
+''',
+      [lint(22, 9)],
+    );
   }
 
   test_function_closure_ok() async {
@@ -101,7 +104,8 @@ Future<void> createDir(String path) async {}
   }
 
   test_function_expression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var x = h(() => g());
   print(x);
@@ -110,9 +114,9 @@ void f() {
 int h(Function f) => 0;
 
 Future<int> g() async => 0;
-''', [
-      lint(29, 1),
-    ]);
+''',
+      [lint(29, 1)],
+    );
   }
 
   test_function_ok_async() async {
@@ -151,7 +155,8 @@ Future<void> createDir(String path) async {}
   }
 
   test_method() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Dir{
   void recreateDir(String path) {
     deleteDir(path);
@@ -161,32 +166,33 @@ class Dir{
   Future<void> deleteDir(String path) async {}
   Future<void> createDir(String path) async {}
 }
-''', [
-      lint(49, 9),
-      lint(70, 9),
-    ]);
+''',
+      [lint(49, 9), lint(70, 9)],
+    );
   }
 
   test_topLevel_assignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = () {
   g();
 };
 
 Future<int> g() async => 0;
-''', [
-      lint(15, 1),
-    ]);
+''',
+      [lint(15, 1)],
+    );
   }
 
   test_topLevel_assignment_expression_body() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = () => g();
 
 Future<int> g() async => 0;
-''', [
-      lint(14, 1),
-    ]);
+''',
+      [lint(14, 1)],
+    );
   }
 
   test_topLevel_assignment_ok_async() async {
@@ -208,7 +214,8 @@ Future<int> g() async => 0;
   }
 
   test_variable_assignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var handler = <String, Function>{};
 
 void ff(String command) {
@@ -218,8 +225,8 @@ void ff(String command) {
 }
 
 Future<int> g() async => 0;
-''', [
-      lint(93, 1),
-    ]);
+''',
+      [lint(93, 1)],
+    );
   }
 }

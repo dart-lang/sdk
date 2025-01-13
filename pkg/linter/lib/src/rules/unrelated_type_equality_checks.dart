@@ -15,20 +15,19 @@ const _desc =
 
 class UnrelatedTypeEqualityChecks extends LintRule {
   UnrelatedTypeEqualityChecks()
-      : super(
-          name: LintNames.unrelated_type_equality_checks,
-          description: _desc,
-        );
+    : super(name: LintNames.unrelated_type_equality_checks, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.unrelated_type_equality_checks_in_expression,
-        LinterLintCode.unrelated_type_equality_checks_in_pattern
-      ];
+    LinterLintCode.unrelated_type_equality_checks_in_expression,
+    LinterLintCode.unrelated_type_equality_checks_in_pattern,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
     registry.addRelationalPattern(this, visitor);
@@ -61,10 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportLintForToken(
       node.operator,
       errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
-      arguments: [
-        rightType.getDisplayString(),
-        leftType.getDisplayString(),
-      ],
+      arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
 
@@ -80,10 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportLint(
       node,
       errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
-      arguments: [
-        operandType.getDisplayString(),
-        valueType.getDisplayString(),
-      ],
+      arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }
 

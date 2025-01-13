@@ -16,17 +16,16 @@ const _desc =
 
 class UnnecessaryOverrides extends LintRule {
   UnnecessaryOverrides()
-      : super(
-          name: LintNames.unnecessary_overrides,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_overrides;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -231,7 +230,9 @@ class _UnnecessaryMethodOverrideVisitor
     if (declarationParameters != null &&
         node.methodName.name == _inheritedMethod.name3 &&
         argumentsMatchParameters(
-            node.argumentList.arguments, declarationParameters.parameters)) {
+          node.argumentList.arguments,
+          declarationParameters.parameters,
+        )) {
       node.target?.accept(this);
     }
   }

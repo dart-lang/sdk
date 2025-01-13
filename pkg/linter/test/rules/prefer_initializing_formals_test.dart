@@ -17,28 +17,30 @@ main() {
 class PreferInitializingFormalsTest extends LintRuleTest {
   @override
   List<ErrorCode> get ignoredErrorCodes => [
-        WarningCode.UNUSED_LOCAL_VARIABLE,
-        WarningCode.UNUSED_FIELD,
-      ];
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.UNUSED_FIELD,
+  ];
 
   @override
   String get lintRule => LintNames.prefer_initializing_formals;
 
   test_assignedInBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   num x = 0;
   C(num x) {
     this.x = x;
   }
 }
-''', [
-      lint(40, 10),
-    ]);
+''',
+      [lint(40, 10)],
+    );
   }
 
   test_assignedInBody_andHasSuperInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -50,10 +52,9 @@ class C extends A {
     this.d = d;
   }
 }
-''', [
-      lint(116, 10),
-      lint(132, 10),
-    ]);
+''',
+      [lint(116, 10), lint(132, 10)],
+    );
   }
 
   test_assignedInBody_justSetters() async {
@@ -70,7 +71,8 @@ class C {
   }
 
   test_assignedInBody_namedParameters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   num? x, y;
   C({num? x, num y = 1}) {
@@ -78,10 +80,9 @@ class C {
     this.y = y;
   }
 }
-''', [
-      lint(54, 10),
-      lint(70, 10),
-    ]);
+''',
+      [lint(54, 10), lint(70, 10)],
+    );
   }
 
   test_assignedInBody_namedParameters_renamed() async {
@@ -97,7 +98,8 @@ class C {
   }
 
   test_assignedInBody_subsequent() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   num x = 0, y = 0;
   C(num x, num y) {
@@ -105,14 +107,14 @@ class C {
     this.y = y;
   }
 }
-''', [
-      lint(54, 10),
-      lint(70, 10),
-    ]);
+''',
+      [lint(54, 10), lint(70, 10)],
+    );
   }
 
   test_assignedInInitializer_andHasSuperInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -124,10 +126,9 @@ class C extends A {
         this.d = d,
         super(c, d);
 }
-''', [
-      lint(103, 10),
-      lint(123, 10),
-    ]);
+''',
+      [lint(103, 10), lint(123, 10)],
+    );
   }
 
   test_assignedInInitializer_assignmentWithCalculation() async {
@@ -141,17 +142,17 @@ class C {
   }
 
   test_assignedInInitializer_namedParameters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   num? x, y;
   C({num? x, num y = 1})
       : this.x = x,
         this.y = y;
 }
-''', [
-      lint(56, 10),
-      lint(76, 10),
-    ]);
+''',
+      [lint(56, 10), lint(76, 10)],
+    );
   }
 
   test_assignedInInitializer_renamedParameter() async {

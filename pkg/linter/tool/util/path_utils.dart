@@ -13,8 +13,10 @@ List<String> get _packageRoot {
   while (parts.last != 'linter') {
     parts.removeLast();
     if (parts.isEmpty) {
-      throw StateError("Script is not located inside a 'linter' directory? "
-          "'${Platform.script.path}'");
+      throw StateError(
+        "Script is not located inside a 'linter' directory? "
+        "'${Platform.script.path}'",
+      );
     }
   }
   return parts;

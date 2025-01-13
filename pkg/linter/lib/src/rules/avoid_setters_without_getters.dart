@@ -12,17 +12,16 @@ const _desc = r'Avoid setters without getters.';
 
 class AvoidSettersWithoutGetters extends LintRule {
   AvoidSettersWithoutGetters()
-      : super(
-          name: LintNames.avoid_setters_without_getters,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_setters_without_getters, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_setters_without_getters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
@@ -73,8 +72,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Check for a declared (static) getter.
       ExecutableElement2? getter = interface.getGetter2(getterName);
       // Then look up for an inherited one.
-      getter ??= inheritanceManager.getMember4(interface, name.forGetter,
-          concrete: true);
+      getter ??= inheritanceManager.getMember4(
+        interface,
+        name.forGetter,
+        concrete: true,
+      );
 
       if (getter == null) {
         rule.reportLintForToken(member.name);

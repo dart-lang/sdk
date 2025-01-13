@@ -12,17 +12,16 @@ const _desc = r'Attach library doc comments to library directives.';
 
 class DanglingLibraryDocComments extends LintRule {
   DanglingLibraryDocComments()
-      : super(
-          name: LintNames.dangling_library_doc_comments,
-          description: _desc,
-        );
+    : super(name: LintNames.dangling_library_doc_comments, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.dangling_library_doc_comments;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

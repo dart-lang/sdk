@@ -13,17 +13,19 @@ const _desc = r'Prefer putting asserts in initializer lists.';
 
 class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
-      : super(
-          name: LintNames.prefer_asserts_in_initializer_lists,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_asserts_in_initializer_lists,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
@@ -43,11 +45,13 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     var element = getWriteOrReadElement(node);
 
     // use method
-    needInstance = needInstance ||
+    needInstance =
+        needInstance ||
         element is MethodElement2 && !element.isStatic && _hasMethod(element);
 
     // use property accessor not used as field formal parameter
-    needInstance = needInstance ||
+    needInstance =
+        needInstance ||
         (element is PropertyAccessorElement2) &&
             !element.isStatic &&
             _hasAccessor(element) &&
@@ -69,8 +73,10 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     return classes != null && classes.contains(element.enclosingElement2);
   }
 
-  bool _paramMatchesField(PropertyAccessorElement2 element,
-      List<FormalParameterElement> parameters) {
+  bool _paramMatchesField(
+    PropertyAccessorElement2 element,
+    List<FormalParameterElement> parameters,
+  ) {
     for (var p in parameters) {
       FormalParameterElement? parameterElement = p;
       if (parameterElement is SuperFormalParameterElement2) {
@@ -122,8 +128,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _classAndSuperClasses =
-        _ClassAndSuperClasses(node.declaredFragment?.element);
+    _classAndSuperClasses = _ClassAndSuperClasses(
+      node.declaredFragment?.element,
+    );
   }
 
   @override
@@ -136,8 +143,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (var statement in body.block.statements) {
         if (statement is! AssertStatement) break;
 
-        var assertVisitor =
-            _AssertVisitor(declaredElement, _classAndSuperClasses);
+        var assertVisitor = _AssertVisitor(
+          declaredElement,
+          _classAndSuperClasses,
+        );
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
           rule.reportLintForToken(statement.beginToken);

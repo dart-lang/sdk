@@ -12,7 +12,9 @@ import '../ast.dart';
 import '../extensions.dart';
 
 bool argumentsMatchParameters(
-    NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
+  NodeList<Expression> arguments,
+  NodeList<FormalParameter> parameters,
+) {
   var namedParameters = <String, Element2?>{};
   var namedArguments = <String, Element2>{};
   var positionalParameters = <Element2?>[];
@@ -93,7 +95,9 @@ bool canonicalElementsAreEqual(Element2? element1, Element2? element2) =>
 /// and 3 are considered to be equal, even though `A.b` may have side effects
 /// which alter the returned value.
 bool canonicalElementsFromIdentifiersAreEqual(
-    Expression? rawExpression1, Expression? rawExpression2) {
+  Expression? rawExpression1,
+  Expression? rawExpression2,
+) {
   if (rawExpression1 == null || rawExpression2 == null) return false;
 
   var expression1 = rawExpression1.unParenthesized;
@@ -101,16 +105,22 @@ bool canonicalElementsFromIdentifiersAreEqual(
 
   if (expression1 is SimpleIdentifier) {
     return expression2 is SimpleIdentifier &&
-        canonicalElementsAreEqual(getWriteOrReadElement(expression1),
-            getWriteOrReadElement(expression2));
+        canonicalElementsAreEqual(
+          getWriteOrReadElement(expression1),
+          getWriteOrReadElement(expression2),
+        );
   }
 
   if (expression1 is PrefixedIdentifier) {
     return expression2 is PrefixedIdentifier &&
         canonicalElementsAreEqual(
-            expression1.prefix.element, expression2.prefix.element) &&
-        canonicalElementsAreEqual(getWriteOrReadElement(expression1.identifier),
-            getWriteOrReadElement(expression2.identifier));
+          expression1.prefix.element,
+          expression2.prefix.element,
+        ) &&
+        canonicalElementsAreEqual(
+          getWriteOrReadElement(expression1.identifier),
+          getWriteOrReadElement(expression2.identifier),
+        );
   }
 
   if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
@@ -118,8 +128,9 @@ bool canonicalElementsFromIdentifiersAreEqual(
     var target2 = expression2.target;
     return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
         canonicalElementsAreEqual(
-            getWriteOrReadElement(expression1.propertyName),
-            getWriteOrReadElement(expression2.propertyName));
+          getWriteOrReadElement(expression1.propertyName),
+          getWriteOrReadElement(expression2.propertyName),
+        );
   }
 
   return false;
@@ -172,11 +183,16 @@ bool typesAreUnrelated(
   }
   if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
     return typeSystem.interfaceTypesAreUnrelated(
-        promotedLeftType, promotedRightType);
+      promotedLeftType,
+      promotedRightType,
+    );
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(typeSystem, promotedLeftType.element3.bound,
-        promotedRightType.element3.bound);
+    return typesAreUnrelated(
+      typeSystem,
+      promotedLeftType.element3.bound,
+      promotedRightType.element3.bound,
+    );
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
       return true;
@@ -200,8 +216,11 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
   if (type2 is InterfaceType) {
     var element2 = type2.element3;
     if (element2 is ClassElement2 &&
-        element2.thisType
-                .lookUpMethod3('call', element2.library2, concrete: true) !=
+        element2.thisType.lookUpMethod3(
+              'call',
+              element2.library2,
+              concrete: true,
+            ) !=
             null) {
       return false;
     }
@@ -233,7 +252,9 @@ class InterfaceTypeDefinition {
 
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
-      InterfaceType leftType, InterfaceType rightType) {
+    InterfaceType leftType,
+    InterfaceType rightType,
+  ) {
     var leftElement = leftType.element3;
     var rightElement = rightType.element3;
     if (leftElement == rightElement) {
@@ -251,7 +272,10 @@ extension on TypeSystem {
         // If any of the pair-wise type arguments are unrelated, then
         // [leftType] and [rightType] are unrelated.
         if (typesAreUnrelated(
-            this, leftTypeArguments[i], rightTypeArguments[i])) {
+          this,
+          leftTypeArguments[i],
+          rightTypeArguments[i],
+        )) {
           return true;
         }
       }

@@ -11,17 +11,16 @@ const _desc = r'Use spread collections when possible.';
 
 class PreferSpreadCollections extends LintRule {
   PreferSpreadCollections()
-      : super(
-          name: LintNames.prefer_spread_collections,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_spread_collections, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_spread_collections;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

@@ -16,30 +16,34 @@ main() {
 @reflectiveTest
 class StrictTopLevelInferenceTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_ELEMENT, WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_ELEMENT,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.strict_top_level_inference;
 
   test_constructorParameter_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C({p1}) {}
 }
-''', [
-      lint(15, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(15, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_constructorParameter_named_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C({final p1});
 }
-''', [
-      lint(21, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(21, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_constructorParameter_named_initializingFormal() async {
@@ -71,34 +75,42 @@ class C {
   }
 
   test_constructorParameter_named_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C({var p1});
 }
-''', [
-      lint(19, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          19,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_constructorParameter_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(p1);
 }
-''', [
-      lint(14, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(14, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_constructorParameter_positional_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(final p1);
 }
-''', [
-      lint(20, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(20, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_constructorParameter_positional_initializingFormal() async {
@@ -130,14 +142,20 @@ class C {
   }
 
   test_constructorParameter_positional_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(var p1);
 }
-''', [
-      lint(18, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          18,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceField_final() async {
@@ -149,14 +167,15 @@ class C {
   }
 
   test_instanceField_final_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final f;
   C(this.f);
 }
-''', [
-      lint(18, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(18, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceField_final_override_noInitializer() async {
@@ -180,13 +199,14 @@ class C {
   }
 
   test_instanceField_multiple_someMissingInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var x = '', y = '', z;
 }
-''', [
-      lint(32, 1, correctionContains: 'Try splitting the declaration'),
-    ]);
+''',
+      [lint(32, 1, correctionContains: 'Try splitting the declaration')],
+    );
   }
 
   test_instanceField_multiple_someMissingInitializer_butOverride() async {
@@ -217,14 +237,20 @@ class C {
   }
 
   test_instanceField_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var x;
 }
-''', [
-      lint(16, 1,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          16,
+          1,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceField_var_noInitializer_override() async {
@@ -239,54 +265,64 @@ class D implements C {
   }
 
   test_instanceGetter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   get g => 1;
 }
-''', [
-      lint(16, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(16, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceGetter_inExtension() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int {
   get g => 1;
 }
-''', [
-      lint(27, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(27, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m({p1}) {}
 }
-''', [
-      lint(20, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(20, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_named_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m({final p1}) {}
 }
-''', [
-      lint(26, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(26, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_named_hasDefault() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m({var p1 = false}) {}
 }
-''', [
-      lint(24, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          24,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceMethod_parameter_named_hasDefault_typed() async {
@@ -306,27 +342,34 @@ class C {
   }
 
   test_instanceMethod_parameter_named_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m({var p1}) {}
 }
-''', [
-      lint(24, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          24,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceMethod_parameter_override_additionalNamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(int p1) {}
 }
 class D implements C {
   void m(p1, {p2}) {}
 }
-''', [
-      lint(69, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(69, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_override_additionalNamed_typed() async {
@@ -341,16 +384,17 @@ class D implements C {
   }
 
   test_instanceMethod_parameter_override_additionalPositional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(int p1) {}
 }
 class D implements C {
   void m(p1, [p2]) {}
 }
-''', [
-      lint(69, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(69, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_override_additionalPositional_typed() async {
@@ -387,34 +431,42 @@ class D implements C {
   }
 
   test_instanceMethod_parameter_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(p1) {}
 }
-''', [
-      lint(19, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(19, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_positional_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(final p1) {}
 }
-''', [
-      lint(25, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(25, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_positional_hasDefault() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m([var p1 = false]) {}
 }
-''', [
-      lint(24, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          24,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceMethod_parameter_positional_hasDefault_typed() async {
@@ -426,23 +478,25 @@ class C {
   }
 
   test_instanceMethod_parameter_positional_onExtension() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int {
   void m(p1) {}
 }
-''', [
-      lint(30, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(30, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_positional_onExtensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type ET(int it) {
   void m(p1) {}
 }
-''', [
-      lint(37, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(37, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_parameter_positional_typed() async {
@@ -454,44 +508,53 @@ class C {
   }
 
   test_instanceMethod_parameter_positional_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(var p1) {}
 }
-''', [
-      lint(23, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          23,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_instanceMethod_returnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   m() {}
 }
-''', [
-      lint(12, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(12, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_returnType_onExtension() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int {
   m() {}
 }
-''', [
-      lint(23, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(23, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_returnType_onExtensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type ET(int it) {
   m() {}
 }
-''', [
-      lint(30, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(30, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceMethod_returnType_override() async {
@@ -509,7 +572,8 @@ abstract class C implements I, J {
   }
 
   test_instanceMethod_returnType_override_inconsistentCombinedSuperSignature() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 abstract class I {
   int m();
 }
@@ -519,10 +583,12 @@ abstract class J {
 abstract class C implements I, J {
   m();
 }
-''', [
-      // In the presense of this error, we do not report.
-      error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 104, 1),
-    ]);
+''',
+      [
+        // In the presense of this error, we do not report.
+        error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 104, 1),
+      ],
+    );
   }
 
   test_instanceMethod_returnType_typed() async {
@@ -534,13 +600,14 @@ class C {
   }
 
   test_instanceOperator_parameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void operator +(p1) {}
 }
-''', [
-      lint(28, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(28, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceOperator_parameter_typed() async {
@@ -552,13 +619,14 @@ class C {
   }
 
   test_instanceOperator_returnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   operator +(int p1) {}
 }
-''', [
-      lint(21, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(21, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceOperator_returnType_typed() async {
@@ -570,23 +638,25 @@ class C {
   }
 
   test_instanceSetter_parameterType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   set s(value) {}
 }
-''', [
-      lint(16, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(16, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceSetter_parameterType_inExtension() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int {
   set s(value) {}
 }
-''', [
-      lint(27, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(27, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_instanceSetter_returnType() async {
@@ -630,13 +700,14 @@ class C {
   }
 
   test_staticField_multiple_someMissingInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static var x = '', y = '', z;
 }
-''', [
-      lint(39, 1, correctionContains: 'Try splitting the declaration'),
-    ]);
+''',
+      [lint(39, 1, correctionContains: 'Try splitting the declaration')],
+    );
   }
 
   test_staticField_typed() async {
@@ -656,34 +727,42 @@ class C {
   }
 
   test_staticField_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static var f;
 }
-''', [
-      lint(23, 1,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          23,
+          1,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_staticMethod_parameter_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m({p1}) {}
 }
-''', [
-      lint(27, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(27, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_staticMethod_parameter_named_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m({final p1}) {}
 }
-''', [
-      lint(33, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(33, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_staticMethod_parameter_named_typed() async {
@@ -695,34 +774,42 @@ class C {
   }
 
   test_staticMethod_parameter_named_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m({var p1}) {}
 }
-''', [
-      lint(31, 2,
-          correctionContains: "Try replacing 'var' with a type annotation."),
-    ]);
+''',
+      [
+        lint(
+          31,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation.",
+        ),
+      ],
+    );
   }
 
   test_staticMethod_parameter_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m(p1) {}
 }
-''', [
-      lint(26, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(26, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_staticMethod_parameter_positional_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m(final p1) {}
 }
-''', [
-      lint(32, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(32, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_staticMethod_parameter_positional_typed() async {
@@ -734,24 +821,31 @@ class C {
   }
 
   test_staticMethod_parameter_positional_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void m(var p1) {}
 }
-''', [
-      lint(30, 2,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          30,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 
   test_staticMethod_returnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static m() {}
 }
-''', [
-      lint(19, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(19, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_staticMethod_returnType_typed() async {
@@ -763,19 +857,21 @@ class C {
   }
 
   test_topLevelFunction_parameter_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m({p1}) {}
-''', [
-      lint(8, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(8, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelFunction_parameter_named_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m({final p1}) {}
-''', [
-      lint(14, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(14, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelFunction_parameter_named_typed() async {
@@ -785,28 +881,36 @@ void m({int? p1}) {}
   }
 
   test_topLevelFunction_parameter_named_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m({var p1}) {}
-''', [
-      lint(12, 2,
-          correctionContains: "Try replacing 'var' with a type annotation."),
-    ]);
+''',
+      [
+        lint(
+          12,
+          2,
+          correctionContains: "Try replacing 'var' with a type annotation.",
+        ),
+      ],
+    );
   }
 
   test_topLevelFunction_parameter_positional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m(p1) {}
-''', [
-      lint(7, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(7, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelFunction_parameter_positional_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m(final p1) {}
-''', [
-      lint(13, 2, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(13, 2, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelFunction_parameter_positional_typed() async {
@@ -816,19 +920,21 @@ void m(int p1) {}
   }
 
   test_topLevelFunction_parameter_positional_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void m(var p1) {}
-''', [
-      lint(11, 2),
-    ]);
+''',
+      [lint(11, 2)],
+    );
   }
 
   test_topLevelFunction_returnType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 m() {}
-''', [
-      lint(0, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(0, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelFunction_returnType_typed() async {
@@ -838,19 +944,21 @@ void m() {}
   }
 
   test_topLevelGetter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 get g => 1;
-''', [
-      lint(4, 1, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(4, 1, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelSetter_parameterType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 set s(value) {}
-''', [
-      lint(6, 5, correctionContains: 'Try adding a type annotation'),
-    ]);
+''',
+      [lint(6, 5, correctionContains: 'Try adding a type annotation')],
+    );
   }
 
   test_topLevelVariable_final() async {
@@ -872,11 +980,12 @@ var x = '', y = '';
   }
 
   test_topLevelVariable_multiple_someMissingInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = '', y = '', z;
-''', [
-      lint(20, 1, correctionContains: 'Try splitting the declaration'),
-    ]);
+''',
+      [lint(20, 1, correctionContains: 'Try splitting the declaration')],
+    );
   }
 
   test_topLevelVariable_typed() async {
@@ -892,11 +1001,17 @@ var f = 0;
   }
 
   test_topLevelVariable_var_noInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f;
-''', [
-      lint(4, 1,
-          correctionContains: "Try replacing 'var' with a type annotation"),
-    ]);
+''',
+      [
+        lint(
+          4,
+          1,
+          correctionContains: "Try replacing 'var' with a type annotation",
+        ),
+      ],
+    );
   }
 }

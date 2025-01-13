@@ -12,17 +12,16 @@ const _desc = r'Use truncating division.';
 
 class UseTruncatingDivision extends LintRule {
   UseTruncatingDivision()
-      : super(
-          name: LintNames.use_truncating_division,
-          description: _desc,
-        );
+    : super(name: LintNames.use_truncating_division, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_truncating_division;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }
@@ -55,9 +54,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
     if (parent is! ParenthesizedExpression) return;
 
-    var outermostParentheses = parent.thisOrAncestorMatching(
-            (e) => e.parent is! ParenthesizedExpression)!
-        as ParenthesizedExpression;
+    var outermostParentheses =
+        parent.thisOrAncestorMatching(
+              (e) => e.parent is! ParenthesizedExpression,
+            )!
+            as ParenthesizedExpression;
     var grandParent = outermostParentheses.parent;
     if (grandParent is MethodInvocation &&
         grandParent.methodName.name == 'toInt' &&

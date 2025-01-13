@@ -15,17 +15,16 @@ const _desc = r'Use collection literals when possible.';
 
 class PreferCollectionLiterals extends LintRule {
   PreferCollectionLiterals()
-      : super(
-          name: LintNames.prefer_collection_literals,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_collection_literals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_collection_literals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeProvider);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);

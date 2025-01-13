@@ -18,13 +18,14 @@ class AvoidMultipleDeclarationsPerLineTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_multiple_declarations_per_line;
 
   test_extensionField_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on Object {
   static String? a, b, c;
 }
-''', [
-      lint(44, 1),
-    ]);
+''',
+      [lint(44, 1)],
+    );
   }
 
   test_extensionField_single() async {
@@ -36,13 +37,14 @@ extension E on Object {
   }
 
   test_field_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? a, b, c;
 }
-''', [
-      lint(23, 1),
-    ]);
+''',
+      [lint(23, 1)],
+    );
   }
 
   test_field_single() async {
@@ -63,13 +65,14 @@ void f() {
   }
 
   test_functionVariable_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   String? a, b, c;
 }
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_functionVariable_single() async {
@@ -81,11 +84,12 @@ void f() {
   }
 
   test_topLevel_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 String? a, b, c;
-''', [
-      lint(11, 1),
-    ]);
+''',
+      [lint(11, 1)],
+    );
   }
 
   test_topLevel_single() async {

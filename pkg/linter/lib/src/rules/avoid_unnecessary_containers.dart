@@ -12,17 +12,16 @@ const _desc = r'Avoid unnecessary containers.';
 
 class AvoidUnnecessaryContainers extends LintRule {
   AvoidUnnecessaryContainers()
-      : super(
-          name: LintNames.avoid_unnecessary_containers,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_unnecessary_containers, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_unnecessary_containers;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);

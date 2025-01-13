@@ -13,17 +13,19 @@ const _desc = r'Tighten type of initializing formal.';
 
 class TightenTypeOfInitializingFormals extends LintRule {
   TightenTypeOfInitializingFormals()
-      : super(
-          name: LintNames.tighten_type_of_initializing_formals,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.tighten_type_of_initializing_formals,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.tighten_type_of_initializing_formals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -70,8 +72,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _check(Element2? element, ConstructorDeclaration node) {
     if (element is FieldFormalParameterElement2 ||
         element is SuperFormalParameterElement2) {
-      rule.reportLint(node.parameters.parameters
-          .firstWhere((p) => p.declaredFragment?.element == element));
+      rule.reportLint(
+        node.parameters.parameters.firstWhere(
+          (p) => p.declaredFragment?.element == element,
+        ),
+      );
     }
   }
 }

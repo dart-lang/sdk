@@ -9,11 +9,11 @@ const _desc =
 
 class InvariantBooleans extends LintRule {
   InvariantBooleans()
-      : super(
-          name: LintNames.invariant_booleans,
-          description: _desc,
-          state: State.removed(since: dart3),
-        );
+    : super(
+        name: LintNames.invariant_booleans,
+        description: _desc,
+        state: State.removed(since: dart3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

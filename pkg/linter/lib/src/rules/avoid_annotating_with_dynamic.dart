@@ -13,17 +13,16 @@ const _desc = r'Avoid annotating with `dynamic` when not required.';
 
 class AvoidAnnotatingWithDynamic extends LintRule {
   AvoidAnnotatingWithDynamic()
-      : super(
-          name: LintNames.avoid_annotating_with_dynamic,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_annotating_with_dynamic, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_annotating_with_dynamic;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldFormalParameter(this, visitor);
     registry.addSimpleFormalParameter(this, visitor);

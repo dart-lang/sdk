@@ -81,8 +81,9 @@ extension DartTypeExtensions on DartType? {
     var self = this; // Enable promotion.
     if (self == null) return null;
     if (self is InterfaceType) {
-      var iterableInterfaces =
-          self.implementedInterfaces.where((type) => type.isDartCoreIterable);
+      var iterableInterfaces = self.implementedInterfaces.where(
+        (type) => type.isDartCoreIterable,
+      );
       if (iterableInterfaces.length == 1) {
         return iterableInterfaces.first.typeArguments.first;
       }
@@ -94,8 +95,9 @@ extension DartTypeExtensions on DartType? {
     var self = this; // Enable promotion.
     if (self == null) return null;
     if (self is InterfaceType) {
-      var mapInterfaces =
-          self.implementedInterfaces.where((type) => type.isDartCoreMap);
+      var mapInterfaces = self.implementedInterfaces.where(
+        (type) => type.isDartCoreMap,
+      );
       if (mapInterfaces.length == 1) {
         var [key, value] = mapInterfaces.first.typeArguments;
         return (key: key, value: value);
@@ -118,7 +120,7 @@ extension ExpressionExtensions on Expression {
         DartType? theObviousType, theObviousKeyType, theObviousValueType;
         NodeList<CollectionElement> elements = switch (self) {
           ListLiteral() => self.elements,
-          SetOrMapLiteral() => self.elements
+          SetOrMapLiteral() => self.elements,
         };
         for (var element in elements) {
           if (element.hasObviousType) {

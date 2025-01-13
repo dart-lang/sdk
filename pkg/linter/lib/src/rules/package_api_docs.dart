@@ -8,10 +8,11 @@ import '../analyzer.dart';
 
 class PackageApiDocs extends LintRule {
   PackageApiDocs()
-      : super(
-            name: LintNames.package_api_docs,
-            description: r'Provide doc comments for all public APIs.',
-            state: State.removed(since: Version(3, 7, 0)));
+    : super(
+        name: LintNames.package_api_docs,
+        description: r'Provide doc comments for all public APIs.',
+        state: State.removed(since: Version(3, 7, 0)),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

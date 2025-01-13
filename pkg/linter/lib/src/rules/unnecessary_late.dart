@@ -11,17 +11,16 @@ const _desc = r"Don't specify the `late` modifier when it is not needed.";
 
 class UnnecessaryLate extends LintRule {
   UnnecessaryLate()
-      : super(
-          name: LintNames.unnecessary_late,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_late, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_late;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);

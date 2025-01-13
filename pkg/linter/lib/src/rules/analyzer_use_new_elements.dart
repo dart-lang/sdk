@@ -61,9 +61,11 @@ bool _isOldModelElement(Element2? element) {
 bool _isOldModelType(DartType? type) {
   if (type is InterfaceType) {
     if (type.element3.isExactly(
-        'FlowAnalysis',
-        Uri.parse(
-            'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'))) {
+      'FlowAnalysis',
+      Uri.parse(
+        'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart',
+      ),
+    )) {
       return false;
     }
   }
@@ -83,20 +85,17 @@ class AnalyzerUseNewElements extends LintRule {
   /// Whether to use or bypass the opt-in file.
   bool useOptInFile;
 
-  AnalyzerUseNewElements({
-    this.useOptInFile = true,
-  }) : super(
-          name: code.name,
-          description: _desc,
-          state: const State.internal(),
-        );
+  AnalyzerUseNewElements({this.useOptInFile = true})
+    : super(name: code.name, description: _desc, state: const State.internal());
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
     registry.addNamedType(this, visitor);

@@ -17,10 +17,13 @@ class PreferGenericFunctionTypeAliasesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_generic_function_type_aliases;
 
-  @FailingTest(reason: '''
+  @FailingTest(
+    reason: '''
     ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]
     CompileTimeErrorCode.DUPLICATE_DEFINITION [48, 1, The name 'F' is already defined.]
-''', issue: 'https://github.com/dart-lang/linter/issues/4942')
+''',
+    issue: 'https://github.com/dart-lang/linter/issues/4942',
+  )
   test_augmentedTypeAlias() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -36,11 +39,12 @@ augment typedef void F();
   }
 
   test_classicTypedef() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef void F();
-''', [
-      lint(13, 1),
-    ]);
+''',
+      [lint(13, 1)],
+    );
   }
 
   test_genericFunctionType() async {
@@ -51,12 +55,15 @@ typedef F = void Function();
 
   /// https://github.com/dart-lang/linter/issues/2777
   test_undefinedFunction() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef Cb2
-''', [
-      // No lint
-      error(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
-      error(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 12, 0),
-    ]);
+''',
+      [
+        // No lint
+        error(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
+        error(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 12, 0),
+      ],
+    );
   }
 }

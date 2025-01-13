@@ -11,17 +11,16 @@ const _desc = r'Avoid relative imports for files in `lib/`.';
 
 class AvoidRelativeLibImports extends LintRule {
   AvoidRelativeLibImports()
-      : super(
-          name: LintNames.avoid_relative_lib_imports,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_relative_lib_imports, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_relative_lib_imports;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addImportDirective(this, visitor);
   }

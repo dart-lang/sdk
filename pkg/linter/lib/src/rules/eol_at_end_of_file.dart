@@ -11,17 +11,16 @@ const _desc = r'Put a single newline at end of file.';
 
 class EolAtEndOfFile extends LintRule {
   EolAtEndOfFile()
-      : super(
-          name: LintNames.eol_at_end_of_file,
-          description: _desc,
-        );
+    : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.eol_at_end_of_file;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }

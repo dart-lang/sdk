@@ -30,15 +30,12 @@ Future<void> main() async {
   }
 }
 
-var customChecks = [
-  VisitRegisteredNodes(),
-  NoSoloTests(),
-  NoTrailingSpaces(),
-];
+var customChecks = [VisitRegisteredNodes(), NoSoloTests(), NoTrailingSpaces()];
 
 Future<List<AnalysisError>> runChecks() async {
-  var rules =
-      path.normalize(io.File(path.join('lib', 'src', 'rules')).absolute.path);
+  var rules = path.normalize(
+    io.File(path.join('lib', 'src', 'rules')).absolute.path,
+  );
   var tests = path.normalize(io.File(path.join('test')).absolute.path);
   var results = await Driver(customChecks).analyze([rules, tests]);
   return results;
@@ -64,7 +61,9 @@ class Driver {
   }
 
   Future<List<AnalysisError>> _analyzeFiles(
-      ResourceProvider resourceProvider, List<String> analysisRoots) async {
+    ResourceProvider resourceProvider,
+    List<String> analysisRoots,
+  ) async {
     _print('Analyzing...');
 
     // Register our checks.

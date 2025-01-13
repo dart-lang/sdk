@@ -11,17 +11,19 @@ const _desc = r'Sort unnamed constructor declarations first.';
 
 class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
-      : super(
-          name: LintNames.sort_unnamed_constructors_first,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.sort_unnamed_constructors_first,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_unnamed_constructors_first;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);

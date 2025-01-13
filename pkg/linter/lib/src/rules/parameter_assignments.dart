@@ -15,7 +15,9 @@ bool _isDefaultFormalParameterWithDefaultValue(FormalParameter parameter) =>
     parameter is DefaultFormalParameter && parameter.defaultValue != null;
 
 bool _isFormalParameterReassigned(
-    FormalParameter parameter, AssignmentExpression assignment) {
+  FormalParameter parameter,
+  AssignmentExpression assignment,
+) {
   var leftHandSide = assignment.leftHandSide;
   return leftHandSide is SimpleIdentifier &&
       leftHandSide.element == parameter.declaredFragment?.element;
@@ -23,17 +25,16 @@ bool _isFormalParameterReassigned(
 
 class ParameterAssignments extends LintRule {
   ParameterAssignments()
-      : super(
-          name: LintNames.parameter_assignments,
-          description: _desc,
-        );
+    : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.parameter_assignments;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -47,9 +48,12 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   final bool paramDefaultsToNull;
   bool hasBeenAssigned = false;
 
-  _DeclarationVisitor(this.parameter, this.rule,
-      {required this.paramIsNotNullByDefault,
-      required this.paramDefaultsToNull});
+  _DeclarationVisitor(
+    this.parameter,
+    this.rule, {
+    required this.paramIsNotNullByDefault,
+    required this.paramDefaultsToNull,
+  });
 
   Element2? get parameterElement => parameter.declaredFragment?.element;
 
@@ -141,7 +145,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkParameters(
-        node.functionExpression.parameters, node.functionExpression.body);
+      node.functionExpression.parameters,
+      node.functionExpression.body,
+    );
   }
 
   @override
@@ -156,14 +162,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
           body.isPotentiallyMutatedInScope2(declaredElement)) {
-        var paramIsNotNullByDefault = parameter is SimpleFormalParameter ||
+        var paramIsNotNullByDefault =
+            parameter is SimpleFormalParameter ||
             _isDefaultFormalParameterWithDefaultValue(parameter);
-        var paramDefaultsToNull = parameter is DefaultFormalParameter &&
+        var paramDefaultsToNull =
+            parameter is DefaultFormalParameter &&
             parameter.defaultValue == null;
         if (paramDefaultsToNull || paramIsNotNullByDefault) {
-          body.accept(_DeclarationVisitor(parameter, rule,
+          body.accept(
+            _DeclarationVisitor(
+              parameter,
+              rule,
               paramDefaultsToNull: paramDefaultsToNull,
-              paramIsNotNullByDefault: paramIsNotNullByDefault));
+              paramIsNotNullByDefault: paramIsNotNullByDefault,
+            ),
+          );
         }
       }
     }
@@ -172,7 +185,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode {
   Element2? get element => switch (this) {
-        AssignedVariablePattern(:var element2) => element2,
-        _ => null,
-      };
+    AssignedVariablePattern(:var element2) => element2,
+    _ => null,
+  };
 }

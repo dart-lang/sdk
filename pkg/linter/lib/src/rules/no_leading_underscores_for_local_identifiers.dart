@@ -14,10 +14,10 @@ const _desc = r'Avoid leading underscores for local identifiers.';
 
 class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
   NoLeadingUnderscoresForLocalIdentifiers()
-      : super(
-          name: LintNames.no_leading_underscores_for_local_identifiers,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.no_leading_underscores_for_local_identifiers,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +25,9 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
     registry.addDeclaredIdentifier(this, visitor);

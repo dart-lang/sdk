@@ -85,8 +85,7 @@ void f() {}
   test_functionDeclaration_annotationWithTargetKindLibrary() async {
     // In this library, `invalid_annotation_target` is reported (and
     // suppressed), so we do not also report `library_annotations`.
-    await assertNoDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.library})
@@ -97,8 +96,7 @@ class TestOn {
 // ignore: invalid_annotation_target
 @TestOn('browser')
 class C {}
-''',
-    );
+''');
   }
 
   test_genericTypedefDeclaration() async {
@@ -152,15 +150,16 @@ mixin M {}
 part of 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 @pragma('dart2js:late:trust')
 
 part 'part.dart';
 
 class C {}
-''', [
-      lint(0, 29),
-    ]);
+''',
+      [lint(0, 29)],
+    );
   }
 
   test_partOfFile() async {

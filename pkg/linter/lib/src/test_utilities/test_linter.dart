@@ -34,11 +34,9 @@ class TestLinter implements AnalysisErrorListener {
   final LinterOptions options;
   final file_system.ResourceProvider _resourceProvider;
 
-  TestLinter(
-    this.options, {
-    file_system.ResourceProvider? resourceProvider,
-  }) : _resourceProvider =
-            resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
+  TestLinter(this.options, {file_system.ResourceProvider? resourceProvider})
+    : _resourceProvider =
+          resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
   Future<List<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     var errors = <AnalysisErrorInfo>[];

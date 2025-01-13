@@ -12,20 +12,19 @@ const _desc = r"Don't explicitly catch `Error` or types that implement it.";
 
 class AvoidCatchingErrors extends LintRule {
   AvoidCatchingErrors()
-      : super(
-          name: LintNames.avoid_catching_errors,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_catching_errors, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.avoid_catching_errors_class,
-        LinterLintCode.avoid_catching_errors_subclass
-      ];
+    LinterLintCode.avoid_catching_errors_class,
+    LinterLintCode.avoid_catching_errors_subclass,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }
@@ -41,12 +40,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     var exceptionType = node.exceptionType?.type;
     if (exceptionType.implementsInterface('Error', 'dart.core')) {
       if (exceptionType.isSameAs('Error', 'dart.core')) {
-        rule.reportLint(node,
-            errorCode: LinterLintCode.avoid_catching_errors_class);
+        rule.reportLint(
+          node,
+          errorCode: LinterLintCode.avoid_catching_errors_class,
+        );
       } else {
-        rule.reportLint(node,
-            errorCode: LinterLintCode.avoid_catching_errors_subclass,
-            arguments: [exceptionType!.getDisplayString()]);
+        rule.reportLint(
+          node,
+          errorCode: LinterLintCode.avoid_catching_errors_subclass,
+          arguments: [exceptionType!.getDisplayString()],
+        );
       }
     }
   }

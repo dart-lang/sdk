@@ -12,17 +12,16 @@ const _desc = r'`SizedBox` for whitespace.';
 
 class SizedBoxForWhitespace extends LintRule {
   SizedBoxForWhitespace()
-      : super(
-          name: LintNames.sized_box_for_whitespace,
-          description: _desc,
-        );
+    : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);

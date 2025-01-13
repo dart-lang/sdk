@@ -361,8 +361,11 @@ List<String> _collectReservedWords() {
   return reserved;
 }
 
-int? _getIntValue(Expression expression, LinterContext? context,
-    {bool negated = false}) {
+int? _getIntValue(
+  Expression expression,
+  LinterContext? context, {
+  bool negated = false,
+}) {
   int? value;
   if (expression is IntegerLiteral) {
     value = expression.value;

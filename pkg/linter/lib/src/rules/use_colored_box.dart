@@ -12,18 +12,16 @@ import '../util/flutter_utils.dart';
 const _desc = r'Use `ColoredBox`.';
 
 class UseColoredBox extends LintRule {
-  UseColoredBox()
-      : super(
-          name: LintNames.use_colored_box,
-          description: _desc,
-        );
+  UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_colored_box;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);

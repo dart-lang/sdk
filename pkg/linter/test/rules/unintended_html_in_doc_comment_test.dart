@@ -53,13 +53,16 @@ class C {}
   }
 
   test_codeSpan_backSlashEscaped() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// \\\`List<int> <tag>`
 class C {}
-''', [
-      lint(12, 5), // <int>
-      lint(18, 5), // <tag>
-    ]);
+''',
+      [
+        lint(12, 5), // <int>
+        lint(18, 5), // <tag>
+      ],
+    );
   }
 
   test_codeSpan_longQuote() async {
@@ -78,12 +81,15 @@ class C {}
 
   test_codeSpan_unterminated() async {
     // An unterminated long code span has no effect.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// A ```List<int> and quoted `<tag>` example
 class C {}
-''', [
-      lint(13, 5), // <int>
-    ]);
+''',
+      [
+        lint(13, 5), // <int>
+      ],
+    );
   }
 
   test_hangingAngleBracket_left() async {
@@ -174,21 +180,27 @@ class C {}
   }
 
   test_unintendedHtml() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text List<int>.
 class C {}
-''', [
-      lint(13, 5), // <int>
-    ]);
+''',
+      [
+        lint(13, 5), // <int>
+      ],
+    );
   }
 
   test_unintendedHtml_javaDoc() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /** Text List<int>. */
 class C {}
-''', [
-      lint(13, 5), // <int>
-    ]);
+''',
+      [
+        lint(13, 5), // <int>
+      ],
+    );
   }
 
   test_unintendedHtml_javaDoc_codeSpan() async {
@@ -199,47 +211,59 @@ class C {}
   }
 
   test_unintendedHtml_javaDoc_multiline() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /**
  *  Text List<int>.
  */
 class C {}
-''', [
-      lint(17, 5), // <int>
-    ]);
+''',
+      [
+        lint(17, 5), // <int>
+      ],
+    );
   }
 
   test_unintendedHtml_multipleDocComments() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text List.
 class A {}
 
 /// Text List<int>.
 class C {}
-''', [
-      lint(40, 5), // <int>
-    ]);
+''',
+      [
+        lint(40, 5), // <int>
+      ],
+    );
   }
 
   test_unintendedHtml_multipleLines() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text List.
 /// Text List<int>.
 class C {}
-''', [
-      lint(28, 5), // <int>
-    ]);
+''',
+      [
+        lint(28, 5), // <int>
+      ],
+    );
   }
 
   test_unintendedHtml_nested() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text List<List<int>>.
 class C {}
-''', [
-      // This is how HTML parses the tag, from the first opening angle bracket
-      // to the first closing angle bracket.
-      lint(13, 10), // <List<int>
-    ]);
+''',
+      [
+        // This is how HTML parses the tag, from the first opening angle bracket
+        // to the first closing angle bracket.
+        lint(13, 10), // <List<int>
+      ],
+    );
   }
 
   test_unintendedHtml_reference_withTypeArgument() async {
@@ -250,22 +274,28 @@ class C {}
   }
 
   test_unintendedHtml_spaces() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// Text <your name here>.
 class C {}
-''', [
-      lint(9, 16), // <your name here>
-    ]);
+''',
+      [
+        lint(9, 16), // <your name here>
+      ],
+    );
   }
 
   test_unintendedHtml_tags_slash() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// </bad> <bad/>
 class C {}
-''', [
-      lint(4, 6), // </bad>
-      lint(11, 6), // <bad/>
-    ]);
+''',
+      [
+        lint(4, 6), // </bad>
+        lint(11, 6), // <bad/>
+      ],
+    );
   }
 
   test_unintendedHtml_tagsEntity() async {
@@ -283,13 +313,16 @@ class C {}
   }
 
   test_unintendedHtml_tagsMultiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 /// <assignment> -> <variable> = <expression>
 class C {}
-''', [
-      lint(4, 12), // <assignment>
-      lint(20, 10), // <variable>
-      lint(33, 12), // <expression>
-    ]);
+''',
+      [
+        lint(4, 12), // <assignment>
+        lint(20, 10), // <variable>
+        lint(33, 12), // <expression>
+      ],
+    );
   }
 }

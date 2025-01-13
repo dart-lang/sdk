@@ -25,11 +25,12 @@ class C {}
   }
 
   test_withoutMessage() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 @deprecated
 class C {}
-''', [
-      lint(0, 11),
-    ]);
+''',
+      [lint(0, 11)],
+    );
   }
 }

@@ -11,20 +11,19 @@ const _desc = r'Inline list item declarations where possible.';
 
 class PreferInlinedAdds extends LintRule {
   PreferInlinedAdds()
-      : super(
-          name: LintNames.prefer_inlined_adds,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_inlined_adds, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.prefer_inlined_adds_multiple,
-        LinterLintCode.prefer_inlined_adds_single
-      ];
+    LinterLintCode.prefer_inlined_adds_multiple,
+    LinterLintCode.prefer_inlined_adds_single,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
@@ -58,9 +57,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLint(invocation.methodName,
-        errorCode: addAll
-            ? LinterLintCode.prefer_inlined_adds_multiple
-            : LinterLintCode.prefer_inlined_adds_single);
+    rule.reportLint(
+      invocation.methodName,
+      errorCode:
+          addAll
+              ? LinterLintCode.prefer_inlined_adds_multiple
+              : LinterLintCode.prefer_inlined_adds_single,
+    );
   }
 }

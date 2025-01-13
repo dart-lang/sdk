@@ -30,7 +30,8 @@ abstract class A {
   }
 
   test_identifierEqualEqualNull_null_elseMethodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   a == null ? null : a.b();
 }
@@ -38,13 +39,14 @@ void f(A? a) {
 abstract class A {
   void b();
 }
-''', [
-      lint(17, 24),
-    ]);
+''',
+      [lint(17, 24)],
+    );
   }
 
   test_identifierEqualEqualNull_null_elsePrefixedIdentifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   a == null ? null : a.b;
 }
@@ -52,13 +54,14 @@ void f(A? a) {
 abstract class A {
   int get b;
 }
-''', [
-      lint(17, 22),
-    ]);
+''',
+      [lint(17, 22)],
+    );
   }
 
   test_identifierEqualEqualNull_null_elsePropertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   a == null ? null : a.b.c;
 }
@@ -67,9 +70,9 @@ abstract class A {
   A get b;
   int get c;
 }
-''', [
-      lint(17, 24),
-    ]);
+''',
+      [lint(17, 24)],
+    );
   }
 
   test_identifierEqualEqualNull_unrelatedBranch() async {
@@ -90,7 +93,8 @@ void f(int? a, int b) {
   }
 
   test_identifierNotEqualNull_prefixedIdentifier_elseNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   a != null ? a.b : null;
 }
@@ -98,13 +102,14 @@ void f(A? a) {
 abstract class A {
   int get b;
 }
-''', [
-      lint(17, 22),
-    ]);
+''',
+      [lint(17, 22)],
+    );
   }
 
   test_identifierNotEqualNull_prefixedIdentifier_null() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   a != null ? a.b : null;
 }
@@ -112,13 +117,14 @@ void f(A? a) {
 abstract class A {
   int get b;
 }
-''', [
-      lint(17, 22),
-    ]);
+''',
+      [lint(17, 22)],
+    );
   }
 
   test_nullEqualEqualIdentifier_null_elseMethodInvocation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   null == a ? null : a.b();
 }
@@ -126,13 +132,14 @@ void f(A? a) {
 abstract class A {
   void b();
 }
-''', [
-      lint(17, 24),
-    ]);
+''',
+      [lint(17, 24)],
+    );
   }
 
   test_nullEqualEqualIdentifier_null_elsePrefixedIdentifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   null == a ? null : a.b;
 }
@@ -140,13 +147,14 @@ void f(A? a) {
 abstract class A {
   int get b;
 }
-''', [
-      lint(17, 22),
-    ]);
+''',
+      [lint(17, 22)],
+    );
   }
 
   test_nullEqualEqualPrefixedIdentifier_null_elsePropertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A a) {
   null == a.b ? null : a.b!.c;
 }
@@ -155,13 +163,14 @@ abstract class A {
   A? get b;
   int get c;
 }
-''', [
-      lint(16, 27),
-    ]);
+''',
+      [lint(16, 27)],
+    );
   }
 
   test_nullNotEqualIdentifier_prefixedIdentifier_elseNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A? a) {
   null != a ? a.b : null;
 }
@@ -169,13 +178,14 @@ void f(A? a) {
 abstract class A {
   int get b;
 }
-''', [
-      lint(17, 22),
-    ]);
+''',
+      [lint(17, 22)],
+    );
   }
 
   test_nullNotEqualPrefixedIdentifier_propertyAccess_elseNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A a) {
   null != a.b ? a.b!.c : null;
 }
@@ -184,13 +194,14 @@ abstract class A {
   A? get b;
   int get c;
 }
-''', [
-      lint(16, 27),
-    ]);
+''',
+      [lint(16, 27)],
+    );
   }
 
   test_prefixedIdentifierEqualEqualNull_null_elseMethodInvocation() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A a) {
   a.b == null ? null : a.b!.c();
 }
@@ -199,13 +210,14 @@ abstract class A {
   A? get b;
   void c();
 }
-''', [
-      lint(16, 29),
-    ]);
+''',
+      [lint(16, 29)],
+    );
   }
 
   test_prefixedIdentifierEqualEqualNull_null_elsePropertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A a) {
   a.b == null ? null : a.b!.c;
 }
@@ -214,9 +226,9 @@ abstract class A {
   A? get b;
   int get c;
 }
-''', [
-      lint(16, 27),
-    ]);
+''',
+      [lint(16, 27)],
+    );
   }
 
   test_prefixedIdentifierNotEqualNull_prefixedIdentifier_elseNull() async {
@@ -232,7 +244,8 @@ abstract class A {
   }
 
   test_prefixedIdentifierNotEqualNull_propertyAccess_elseNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A a) {
   a.b != null ? a.b!.c : null;
 }
@@ -241,8 +254,8 @@ abstract class A {
   A? get b;
   int get c;
 }
-''', [
-      lint(16, 27),
-    ]);
+''',
+      [lint(16, 27)],
+    );
   }
 }

@@ -13,17 +13,16 @@ const _desc = r'Prefer `const` over `final` for declarations.';
 
 class PreferConstDeclarations extends LintRule {
   PreferConstDeclarations()
-      : super(
-          name: LintNames.prefer_const_declarations,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_const_declarations, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_const_declarations;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);

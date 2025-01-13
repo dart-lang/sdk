@@ -18,7 +18,8 @@ class UnnecessaryBreaksTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_breaks;
 
   test_default() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   switch (1) {
     case 1:
@@ -28,9 +29,9 @@ f() {
       break;
   }
 }
-''', [
-      lint(74, 6),
-    ]);
+''',
+      [lint(74, 6)],
+    );
   }
 
   test_default_empty() async {
@@ -55,7 +56,8 @@ f() {
 
   test_default_notLast_ok() async {
     // No lint is needed because there is already a DEAD_CODE warning.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(bool c) {
   switch (1) {
     case 1:
@@ -65,10 +67,12 @@ f(bool c) {
       f(true);
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.DEAD_CODE, 86, 8),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.DEAD_CODE, 86, 8),
+      ],
+    );
   }
 
   test_switch_pre30_default_ok() async {
@@ -98,7 +102,8 @@ f() {
   }
 
   test_switchPatternCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   switch (1) {
     case 1:
@@ -108,9 +113,9 @@ f() {
       f();
   }
 }
-''', [
-      lint(50, 6),
-    ]);
+''',
+      [lint(50, 6)],
+    );
   }
 
   test_switchPatternCase_default_ok() async {
@@ -141,8 +146,7 @@ f() {
   }
 
   test_switchPatternCase_labeled_ok() async {
-    await assertNoDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 f() {
   l:
   switch (1) {
@@ -152,8 +156,7 @@ f() {
       f();
   }
 }
-''',
-    );
+''');
   }
 
   test_switchPatternCase_notDirectChild_ok() async {
@@ -171,7 +174,8 @@ f(bool c) {
   }
 
   test_switchPatternCase_notLast_ok() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(bool c) {
   switch (1) {
     case 1:
@@ -181,9 +185,11 @@ f(bool c) {
       f(true);
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.DEAD_CODE, 58, 8),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.DEAD_CODE, 58, 8),
+      ],
+    );
   }
 }

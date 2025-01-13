@@ -8,11 +8,11 @@ const _desc = r'Prefer using a boolean as the assert condition.';
 
 class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
-      : super(
-          name: LintNames.prefer_bool_in_asserts,
-          description: _desc,
-          state: State.removed(since: dart3),
-        );
+    : super(
+        name: LintNames.prefer_bool_in_asserts,
+        description: _desc,
+        state: State.removed(since: dart3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

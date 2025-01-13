@@ -18,46 +18,50 @@ class NoLiteralBoolComparisonsTest extends LintRuleTest {
   String get lintRule => LintNames.no_literal_bool_comparisons;
 
   test_true_eqeq_x_localVariable_nonNullableBool() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(bool x) {
   while (true == x) {}
 }
-''', [
-      lint(26, 4),
-    ]);
+''',
+      [lint(26, 4)],
+    );
   }
 
   test_x_bangeq_true_expression_nonNullableBool() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(bool x, bool y) {
   print((x && y) != true);
 }
-''', [
-      lint(45, 4),
-    ]);
+''',
+      [lint(45, 4)],
+    );
   }
 
   test_x_eqeq_true_field_nonNullableBool() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(C c) {
   if (c.x == true) {}
 }
 abstract class C {
   bool get x;
 }
-''', [
-      lint(27, 4),
-    ]);
+''',
+      [lint(27, 4)],
+    );
   }
 
   test_x_eqeq_true_localVariable_nonNullableBool() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(bool x) {
   if (x == true) {}
 }
-''', [
-      lint(28, 4),
-    ]);
+''',
+      [lint(28, 4)],
+    );
   }
 
   test_x_eqeq_true_nullableBool() async {

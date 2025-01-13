@@ -15,17 +15,19 @@ const _desc =
 
 class NullCheckOnNullableTypeParameter extends LintRule {
   NullCheckOnNullableTypeParameter()
-      : super(
-          name: LintNames.null_check_on_nullable_type_parameter,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.null_check_on_nullable_type_parameter,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.null_check_on_nullable_type_parameter;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addPostfixExpression(this, visitor);
     registry.addNullAssertPattern(this, visitor);

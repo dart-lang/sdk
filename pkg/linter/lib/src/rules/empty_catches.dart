@@ -11,18 +11,16 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid empty catch blocks.';
 
 class EmptyCatches extends LintRule {
-  EmptyCatches()
-      : super(
-          name: LintNames.empty_catches,
-          description: _desc,
-        );
+  EmptyCatches() : super(name: LintNames.empty_catches, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.empty_catches;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }

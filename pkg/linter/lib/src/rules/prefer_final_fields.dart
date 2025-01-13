@@ -14,17 +14,16 @@ const _desc = r'Private field could be `final`.';
 
 class PreferFinalFields extends LintRule {
   PreferFinalFields()
-      : super(
-          name: LintNames.prefer_final_fields,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_final_fields;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -38,8 +37,10 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   bool overridesField(FieldElement2 field) {
     var enclosingElement = field.enclosingElement2;
     if (enclosingElement is! InterfaceElement2) return false;
-    return inheritanceManager.getOverridden4(enclosingElement,
-            Name.forLibrary(field.library2, '${field.name3!}=')) !=
+    return inheritanceManager.getOverridden4(
+          enclosingElement,
+          Name.forLibrary(field.library2, '${field.name3!}='),
+        ) !=
         null;
   }
 
@@ -111,8 +112,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationsCollector =
-        _DeclarationsCollector(context.inheritanceManager);
+    var declarationsCollector = _DeclarationsCollector(
+      context.inheritanceManager,
+    );
     node.accept(declarationsCollector);
     var fields = declarationsCollector.fields;
 
@@ -126,16 +128,19 @@ class _Visitor extends SimpleAstVisitor<void> {
       // of which fields are initialized by any, and a set of which fields are
       // initialized by all. This would conceivably improve performance.
       var classDeclaration = variable.parent?.parent?.parent;
-      var constructors = classDeclaration is ClassDeclaration
-          ? classDeclaration.members.whereType<ConstructorDeclaration>()
-          : <ConstructorDeclaration>[];
+      var constructors =
+          classDeclaration is ClassDeclaration
+              ? classDeclaration.members.whereType<ConstructorDeclaration>()
+              : <ConstructorDeclaration>[];
 
-      var isSetInAnyConstructor = constructors
-          .any((constructor) => field.isSetInConstructor(constructor));
+      var isSetInAnyConstructor = constructors.any(
+        (constructor) => field.isSetInConstructor(constructor),
+      );
 
       if (isSetInAnyConstructor) {
-        var isSetInEveryConstructor = constructors
-            .every((constructor) => field.isSetInConstructor(constructor));
+        var isSetInEveryConstructor = constructors.every(
+          (constructor) => field.isSetInConstructor(constructor),
+        );
 
         if (isSetInEveryConstructor) {
           rule.reportLint(variable, arguments: [variable.name.lexeme]);

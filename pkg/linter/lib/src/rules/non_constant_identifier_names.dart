@@ -15,17 +15,16 @@ const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
-      : super(
-          name: LintNames.non_constant_identifier_names,
-          description: _desc,
-        );
+    : super(name: LintNames.non_constant_identifier_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.non_constant_identifier_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
     registry.addConstructorDeclaration(this, visitor);

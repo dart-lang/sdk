@@ -9,22 +9,22 @@ import 'package:analyzer/dart/element/element2.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'`Future` results in `async` function bodies must be '
+const _desc =
+    r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';
 
 class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
-      : super(
-          name: LintNames.unawaited_futures,
-          description: _desc,
-        );
+    : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unawaited_futures;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);

@@ -11,17 +11,16 @@ const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 
 class AvoidEscapingInnerQuotes extends LintRule {
   AvoidEscapingInnerQuotes()
-      : super(
-          name: LintNames.avoid_escaping_inner_quotes,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_escaping_inner_quotes, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_escaping_inner_quotes;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
@@ -54,8 +53,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _check(AstNode node, String text, bool isSingleQuoted) {
     if (_isChangeable(text, isSingleQuoted: isSingleQuoted)) {
-      rule.reportLint(node,
-          arguments: [isSingleQuoted ? "'" : '"', isSingleQuoted ? '"' : "'"]);
+      rule.reportLint(
+        node,
+        arguments: [isSingleQuoted ? "'" : '"', isSingleQuoted ? '"' : "'"],
+      );
     }
   }
 

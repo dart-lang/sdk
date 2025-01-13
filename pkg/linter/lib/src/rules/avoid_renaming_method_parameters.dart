@@ -17,17 +17,19 @@ const _desc = r"Don't rename parameters of overridden methods.";
 
 class AvoidRenamingMethodParameters extends LintRule {
   AvoidRenamingMethodParameters()
-      : super(
-          name: LintNames.avoid_renaming_method_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_renaming_method_parameters,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_renaming_method_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
@@ -44,9 +46,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-      : _wildCardVariablesEnabled =
-            context.isEnabled(Feature.wildcard_variables),
-        inheritanceManager = context.inheritanceManager;
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables),
+      inheritanceManager = context.inheritanceManager;
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
@@ -74,8 +75,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parentElement.isPrivate) return;
 
       var parentMethod = inheritanceManager.getMember4(
-          parentElement, Name(parentElement.library2.uri, node.name.lexeme),
-          forSuper: true);
+        parentElement,
+        Name(parentElement.library2.uri, node.name.lexeme),
+        forSuper: true,
+      );
       if (parentMethod == null) return;
 
       parentParameters = parentMethod.formalParameters.positional;
@@ -105,8 +108,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (isWildcardIdentifier(paramLexeme)) continue;
 
       if (paramLexeme != parentParameterName) {
-        rule.reportLintForToken(parameterName,
-            arguments: [paramLexeme, parentParameterName]);
+        rule.reportLintForToken(
+          parameterName,
+          arguments: [paramLexeme, parentParameterName],
+        );
       }
     }
   }

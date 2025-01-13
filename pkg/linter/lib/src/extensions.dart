@@ -10,8 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
-    show
-        InvalidTypeImpl;
+    show InvalidTypeImpl;
 import 'package:collection/collection.dart';
 
 import 'analyzer.dart';
@@ -54,7 +53,7 @@ extension AstNodeExtension on AstNode {
       TopLevelVariableDeclaration() => self.augmentKeyword != null,
       VariableDeclaration(declaredFragment: var fragment?) =>
         fragment is PropertyInducingFragment && fragment.isAugmentation,
-      _ => false
+      _ => false,
     };
   }
 
@@ -299,10 +298,11 @@ extension DartTypeExtension on DartType? {
   }
 
   static bool _extendsClass(
-          InterfaceType? type,
-          Set<InterfaceElement2> seenElements,
-          String? className,
-          String? library) =>
+    InterfaceType? type,
+    Set<InterfaceElement2> seenElements,
+    String? className,
+    String? library,
+  ) =>
       type != null &&
       seenElements.add(type.element3) &&
       (type.isSameAs(className, library) ||
@@ -311,9 +311,9 @@ extension DartTypeExtension on DartType? {
 
 extension ElementExtension on Element2? {
   Element2? get canonicalElement2 => switch (this) {
-        PropertyAccessorElement2(:var variable3?) => variable3,
-        _ => this,
-      };
+    PropertyAccessorElement2(:var variable3?) => variable3,
+    _ => this,
+  };
 
   bool get isDartCorePrint {
     var self = this;
@@ -323,9 +323,9 @@ extension ElementExtension on Element2? {
   }
 
   bool get isMacro => switch (this) {
-        ClassElement2(:var isMacro) => isMacro,
-        _ => false,
-      };
+    ClassElement2(:var isMacro) => isMacro,
+    _ => false,
+  };
 }
 
 extension ExpressionExtension on Expression? {
@@ -494,9 +494,10 @@ extension InterfaceTypeExtension on InterfaceType {
   /// including itself.
   Iterable<InterfaceType> get implementedInterfaces {
     void searchSupertypes(
-        InterfaceType? type,
-        Set<InterfaceElement2> alreadyVisited,
-        List<InterfaceType> interfaceTypes) {
+      InterfaceType? type,
+      Set<InterfaceElement2> alreadyVisited,
+      List<InterfaceType> interfaceTypes,
+    ) {
       if (type == null || !alreadyVisited.add(type.element3)) {
         return;
       }
@@ -516,8 +517,9 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 
   GetterElement? getGetter2(String name, {LibraryElement2? library}) =>
-      getters.firstWhereOrNull((s) =>
-          s.name3 == name && (library == null || (s.library2 == library)));
+      getters.firstWhereOrNull(
+        (s) => s.name3 == name && (library == null || (s.library2 == library)),
+      );
 
   SetterElement? getSetter2(String name) =>
       setters.firstWhereOrNull((s) => s.canonicalName == name);
@@ -544,16 +546,19 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
     if (isGetter) {
       // Search supertypes for a getter of the same name.
-      return parentElement.allSupertypes
-          .any((t) => t.lookUpGetter3(name, parentLibrary) != null);
+      return parentElement.allSupertypes.any(
+        (t) => t.lookUpGetter3(name, parentLibrary) != null,
+      );
     } else if (isSetter) {
       // Search supertypes for a setter of the same name.
-      return parentElement.allSupertypes
-          .any((t) => t.lookUpSetter3(name, parentLibrary) != null);
+      return parentElement.allSupertypes.any(
+        (t) => t.lookUpSetter3(name, parentLibrary) != null,
+      );
     } else {
       // Search supertypes for a method of the same name.
-      return parentElement.allSupertypes
-          .any((t) => t.lookUpMethod3(name, parentLibrary) != null);
+      return parentElement.allSupertypes.any(
+        (t) => t.lookUpMethod3(name, parentLibrary) != null,
+      );
     }
   }
 
@@ -561,7 +566,8 @@ extension MethodDeclarationExtension on MethodDeclaration {
       lookUpInheritedMethod(inheritanceManager) != null;
 
   MethodElement2? lookUpInheritedMethod(
-      InheritanceManager3 inheritanceManager) {
+    InheritanceManager3 inheritanceManager,
+  ) {
     var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement2;
@@ -605,10 +611,10 @@ extension TokenExtension on Token? {
 
 extension TokenTypeExtension on TokenType {
   TokenType get inverted => switch (this) {
-        TokenType.LT_EQ => TokenType.GT_EQ,
-        TokenType.LT => TokenType.GT,
-        TokenType.GT => TokenType.LT,
-        TokenType.GT_EQ => TokenType.LT_EQ,
-        _ => this
-      };
+    TokenType.LT_EQ => TokenType.GT_EQ,
+    TokenType.LT => TokenType.GT,
+    TokenType.GT => TokenType.LT,
+    TokenType.GT_EQ => TokenType.LT_EQ,
+    _ => this,
+  };
 }

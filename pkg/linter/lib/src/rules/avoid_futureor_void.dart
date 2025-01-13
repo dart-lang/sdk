@@ -13,17 +13,20 @@ const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
 
 class AvoidFutureOrVoid extends LintRule {
   AvoidFutureOrVoid()
-      : super(
-            name: LintNames.avoid_futureor_void,
-            description: _desc,
-            state: const State.experimental());
+    : super(
+        name: LintNames.avoid_futureor_void,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_futureor_void;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addAsExpression(this, visitor);
     registry.addCastPattern(this, visitor);
@@ -89,10 +92,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     checker.checkOut(node.returnType);
     var functionExpression = node.functionExpression;
-    functionExpression.typeParameters?.typeParameters
-        .forEach(checker.checkBound);
-    functionExpression.parameters?.parameters
-        .forEach(checker.checkFormalParameterIn);
+    functionExpression.typeParameters?.typeParameters.forEach(
+      checker.checkBound,
+    );
+    functionExpression.parameters?.parameters.forEach(
+      checker.checkFormalParameterIn,
+    );
   }
 
   @override

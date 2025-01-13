@@ -11,17 +11,19 @@ const _desc = r"Don't use constant patterns with type literals.";
 
 class TypeLiteralInConstantPattern extends LintRule {
   TypeLiteralInConstantPattern()
-      : super(
-          name: LintNames.type_literal_in_constant_pattern,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.type_literal_in_constant_pattern,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.type_literal_in_constant_pattern;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstantPattern(this, visitor);
   }

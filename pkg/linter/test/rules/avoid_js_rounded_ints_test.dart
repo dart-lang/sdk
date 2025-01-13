@@ -30,19 +30,21 @@ final r = -9007199254740991;
   }
 
   test_maxSafeInteger_plusTwo() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final r = 9007199254740993;
-''', [
-      lint(10, 16),
-    ]);
+''',
+      [lint(10, 16)],
+    );
   }
 
   test_maxSafeInteger_plusTwo_negative() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final r = -9007199254740993;
-''', [
-      lint(11, 16),
-    ]);
+''',
+      [lint(11, 16)],
+    );
   }
 
   test_smallInt() async {
@@ -64,11 +66,12 @@ final r = 1000000000000000000;
   }
 
   test_tenToTheEighteen_plusOne() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final r = 1000000000000000001;
-''', [
-      lint(10, 19),
-    ]);
+''',
+      [lint(10, 19)],
+    );
   }
 
   test_twoToTheSixtyThree_negative() async {

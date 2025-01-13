@@ -11,17 +11,16 @@ const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
 class TestTypesInEquals extends LintRule {
   TestTypesInEquals()
-      : super(
-          name: LintNames.test_types_in_equals,
-          description: _desc,
-        );
+    : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.test_types_in_equals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAsExpression(this, visitor);
   }

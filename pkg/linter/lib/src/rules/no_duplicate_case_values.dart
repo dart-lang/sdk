@@ -13,17 +13,16 @@ const _desc = r"Don't use more than one case with same value.";
 
 class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
-      : super(
-          name: LintNames.no_duplicate_case_values,
-          description: _desc,
-        );
+    : super(name: LintNames.no_duplicate_case_values, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_duplicate_case_values;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -53,8 +52,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         // TODO(brianwilkeson): This would benefit from having a context message
         //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
-          rule.reportLint(expression,
-              arguments: [expression.toString(), duplicateValue.toString()]);
+          rule.reportLint(
+            expression,
+            arguments: [expression.toString(), duplicateValue.toString()],
+          );
         } else {
           values[value] = expression;
         }

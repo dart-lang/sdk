@@ -13,23 +13,22 @@ const _desc =
 
 class PreferFinalInForEach extends LintRule {
   PreferFinalInForEach()
-      : super(
-          name: LintNames.prefer_final_in_for_each,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.prefer_final_in_for_each_pattern,
-        LinterLintCode.prefer_final_in_for_each_variable
-      ];
+    LinterLintCode.prefer_final_in_for_each_pattern,
+    LinterLintCode.prefer_final_in_for_each_variable,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addForEachPartsWithDeclaration(this, visitor);
     registry.addForEachPartsWithPattern(this, visitor);
@@ -52,9 +51,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         loopVariableElement != null &&
         !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
       var name = loopVariable.name;
-      rule.reportLintForToken(name,
-          errorCode: LinterLintCode.prefer_final_in_for_each_variable,
-          arguments: [name.lexeme]);
+      rule.reportLintForToken(
+        name,
+        errorCode: LinterLintCode.prefer_final_in_for_each_variable,
+        arguments: [name.lexeme],
+      );
     }
   }
 
@@ -68,24 +69,33 @@ class _Visitor extends SimpleAstVisitor<void> {
     var pattern = node.pattern;
     if (pattern is RecordPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(pattern,
-            errorCode: LinterLintCode.prefer_final_in_for_each_pattern);
+        rule.reportLint(
+          pattern,
+          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+        );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(pattern,
-            errorCode: LinterLintCode.prefer_final_in_for_each_pattern);
+        rule.reportLint(
+          pattern,
+          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+        );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
-        rule.reportLint(pattern,
-            errorCode: LinterLintCode.prefer_final_in_for_each_pattern);
+        rule.reportLint(
+          pattern,
+          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+        );
       }
     } else if (pattern is MapPattern) {
-      if (!pattern.elements.any((e) =>
-          e is! MapPatternEntry || function.potentiallyMutates(e.value))) {
-        rule.reportLint(pattern,
-            errorCode: LinterLintCode.prefer_final_in_for_each_pattern);
+      if (!pattern.elements.any(
+        (e) => e is! MapPatternEntry || function.potentiallyMutates(e.value),
+      )) {
+        rule.reportLint(
+          pattern,
+          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+        );
       }
     }
   }

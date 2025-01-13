@@ -13,17 +13,16 @@ const _desc = r"Don't have a library name in a `library` declaration.";
 
 class UnnecessaryLibraryName extends LintRule {
   UnnecessaryLibraryName()
-      : super(
-          name: LintNames.unnecessary_library_name,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_library_name, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_library_name;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isEnabled(Feature.unnamedLibraries)) return;
 
     var visitor = _Visitor(this);

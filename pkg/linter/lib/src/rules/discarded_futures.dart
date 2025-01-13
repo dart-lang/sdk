@@ -13,17 +13,16 @@ const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
 
 class DiscardedFutures extends LintRule {
   DiscardedFutures()
-      : super(
-          name: LintNames.discarded_futures,
-          description: _desc,
-        );
+    : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.discarded_futures;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);

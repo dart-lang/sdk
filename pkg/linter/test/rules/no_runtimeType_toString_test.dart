@@ -28,14 +28,15 @@ extension E on C {
   }
 
   test_extension_onClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {}
 extension E on C {
   String f() => '$runtimeType';
 }
-''', [
-      lint(48, 11),
-    ]);
+''',
+      [lint(48, 11)],
+    );
   }
 
   test_inAbstractClass() async {
@@ -82,27 +83,29 @@ class C {
   }
 
   test_interpolation_implicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void f() {
     '$runtimeType';
   }
 }
-''', [
-      lint(29, 11),
-    ]);
+''',
+      [lint(29, 11)],
+    );
   }
 
   test_interpolation_withBraces() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void f() {
     '${runtimeType}';
   }
 }
-''', [
-      lint(30, 11),
-    ]);
+''',
+      [lint(30, 11)],
+    );
   }
 
   test_inThrowExpression() async {
@@ -137,15 +140,16 @@ class C {
   }
 
   test_toString_explicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void f() {
     this.runtimeType.toString();
   }
 }
-''', [
-      lint(44, 8),
-    ]);
+''',
+      [lint(44, 8)],
+    );
   }
 
   test_toString_expression() async {
@@ -170,14 +174,15 @@ class C {
   }
 
   test_toString_super() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void f() {
     super.runtimeType.toString();
   }
 }
-''', [
-      lint(45, 8),
-    ]);
+''',
+      [lint(45, 8)],
+    );
   }
 }

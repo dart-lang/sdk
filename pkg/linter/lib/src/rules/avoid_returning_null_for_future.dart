@@ -8,10 +8,11 @@ const _desc = r'Avoid returning null for Future.';
 
 class AvoidReturningNullForFuture extends LintRule {
   AvoidReturningNullForFuture()
-      : super(
-            name: LintNames.avoid_returning_null_for_future,
-            description: _desc,
-            state: State.removed(since: dart3_3));
+    : super(
+        name: LintNames.avoid_returning_null_for_future,
+        description: _desc,
+        state: State.removed(since: dart3_3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

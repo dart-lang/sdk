@@ -11,17 +11,19 @@ const _desc = r"Don't declare multiple variables on a single line.";
 
 class AvoidMultipleDeclarationsPerLine extends LintRule {
   AvoidMultipleDeclarationsPerLine()
-      : super(
-          name: LintNames.avoid_multiple_declarations_per_line,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_multiple_declarations_per_line,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_multiple_declarations_per_line;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }

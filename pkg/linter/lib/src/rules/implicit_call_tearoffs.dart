@@ -12,17 +12,16 @@ const _desc =
 
 class ImplicitCallTearoffs extends LintRule {
   ImplicitCallTearoffs()
-      : super(
-          name: LintNames.implicit_call_tearoffs,
-          description: _desc,
-        );
+    : super(name: LintNames.implicit_call_tearoffs, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.implicit_call_tearoffs;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addImplicitCallReference(this, visitor);
   }

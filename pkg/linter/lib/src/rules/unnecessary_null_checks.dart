@@ -12,8 +12,9 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary `null` checks.';
 
 DartType? getExpectedType(PostfixExpression node) {
-  var realNode =
-      node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
+  var realNode = node.thisOrAncestorMatching(
+    (e) => e.parent is! ParenthesizedExpression,
+  );
   var parent = realNode?.parent;
   var withAwait = parent is AwaitExpression;
   if (withAwait) {
@@ -134,18 +135,20 @@ DartType? getExpectedType(PostfixExpression node) {
 
 class UnnecessaryNullChecks extends LintRule {
   UnnecessaryNullChecks()
-      : super(
-          name: LintNames.unnecessary_null_checks,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.unnecessary_null_checks,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_checks;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addNullAssertPattern(this, visitor);
     registry.addPostfixExpression(this, visitor);

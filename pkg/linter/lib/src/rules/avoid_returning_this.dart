@@ -16,17 +16,16 @@ bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
 class AvoidReturningThis extends LintRule {
   AvoidReturningThis()
-      : super(
-          name: LintNames.avoid_returning_this,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_returning_this, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_returning_this;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

@@ -17,17 +17,16 @@ const _desc = r'Unnecessary underscores can be removed.';
 
 class UnnecessaryUnderscores extends LintRule {
   UnnecessaryUnderscores()
-      : super(
-          name: LintNames.unnecessary_underscores,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_underscores, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_underscores;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isEnabled(Feature.wildcard_variables)) return;
     var visitor = _Visitor(this);
     registry.addFormalParameterList(this, visitor);

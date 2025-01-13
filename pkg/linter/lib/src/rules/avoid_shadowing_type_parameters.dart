@@ -13,17 +13,19 @@ const _desc = r'Avoid shadowing type parameters.';
 
 class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
-      : super(
-          name: LintNames.avoid_shadowing_type_parameters,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_shadowing_type_parameters,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_shadowing_type_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
@@ -38,8 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-      : _wildCardVariablesEnabled =
-            context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
@@ -71,7 +72,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   // Check the ancestors of [node] for type parameter shadowing.
   void _checkAncestorParameters(
-      TypeParameterList? typeParameters, AstNode node) {
+    TypeParameterList? typeParameters,
+    AstNode node,
+  ) {
     var parent = node.parent;
 
     while (parent != null) {
@@ -83,36 +86,48 @@ class _Visitor extends SimpleAstVisitor<void> {
         _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
       } else if (parent is ExtensionTypeDeclaration) {
         _checkForShadowing(
-            typeParameters, parent.typeParameters, 'extension type');
+          typeParameters,
+          parent.typeParameters,
+          'extension type',
+        );
       } else if (parent is MethodDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'method');
       } else if (parent is MixinDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'mixin');
       } else if (parent is FunctionDeclaration) {
-        _checkForShadowing(typeParameters,
-            parent.functionExpression.typeParameters, 'function');
+        _checkForShadowing(
+          typeParameters,
+          parent.functionExpression.typeParameters,
+          'function',
+        );
       }
       parent = parent.parent;
     }
   }
 
   // Check whether any of [typeParameters] shadow [ancestorTypeParameters].
-  void _checkForShadowing(TypeParameterList? typeParameters,
-      TypeParameterList? ancestorTypeParameters, String ancestorKind) {
+  void _checkForShadowing(
+    TypeParameterList? typeParameters,
+    TypeParameterList? ancestorTypeParameters,
+    String ancestorKind,
+  ) {
     if (typeParameters == null || ancestorTypeParameters == null) {
       return;
     }
 
-    var ancestorTypeParameterNames = ancestorTypeParameters.typeParameters
-        .map((tp) => tp.name.lexeme)
-        .toSet();
+    var ancestorTypeParameterNames =
+        ancestorTypeParameters.typeParameters
+            .map((tp) => tp.name.lexeme)
+            .toSet();
 
     for (var parameter in typeParameters.typeParameters) {
       var lexeme = parameter.name.lexeme;
       if (_wildCardVariablesEnabled && lexeme == '_') continue;
       if (ancestorTypeParameterNames.contains(lexeme)) {
-        rule.reportLint(parameter,
-            arguments: [parameter.name.lexeme, ancestorKind]);
+        rule.reportLint(
+          parameter,
+          arguments: [parameter.name.lexeme, ancestorKind],
+        );
       }
     }
   }

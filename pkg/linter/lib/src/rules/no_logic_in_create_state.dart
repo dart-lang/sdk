@@ -12,17 +12,16 @@ const _desc = r"Don't put any logic in createState.";
 
 class NoLogicInCreateState extends LintRule {
   NoLogicInCreateState()
-      : super(
-          name: LintNames.no_logic_in_create_state,
-          description: _desc,
-        );
+    : super(name: LintNames.no_logic_in_create_state, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_logic_in_create_state;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

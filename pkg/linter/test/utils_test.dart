@@ -10,31 +10,34 @@ import 'util/test_utils.dart';
 void main() {
   group('isDartFileName', () {
     testEach(['foo.dart'], isDartFileName, isTrue);
-    testEach([
-      'foo.d', 'foo',
-      // Analysis server cares about case.
-      'baz.DART',
-    ], isDartFileName, isFalse);
+    testEach(
+      [
+        'foo.d', 'foo',
+        // Analysis server cares about case.
+        'baz.DART',
+      ],
+      isDartFileName,
+      isFalse,
+    );
   });
 
   group('isValidPackageName', () {
-    testEach([
-      'foo',
-      '_foo',
-      '__foo',
-      'async',
-    ], isValidPackageName, isTrue);
-    testEach([
-      'break', // reserved word
-      'fOO',
-      'foo_',
-      'foo_Bar',
-      'fooBar',
-      'Foo',
-      '_',
-      '__',
-      '1',
-    ], isValidPackageName, isFalse);
+    testEach(['foo', '_foo', '__foo', 'async'], isValidPackageName, isTrue);
+    testEach(
+      [
+        'break', // reserved word
+        'fOO',
+        'foo_',
+        'foo_Bar',
+        'fooBar',
+        'Foo',
+        '_',
+        '__',
+        '1',
+      ],
+      isValidPackageName,
+      isFalse,
+    );
   });
 
   group('pubspec', () {
@@ -56,7 +59,7 @@ void main() {
         '\$Foo',
         'Bar\$',
         'Foo\$Generated',
-        'Foo\$Generated\$Bar'
+        'Foo\$Generated\$Bar',
       ];
       testEach(good, isCamelCase, isTrue);
       var bad = ['fooBar', 'foo', 'f', '_f', 'F_B'];
@@ -65,8 +68,10 @@ void main() {
 
     group('CamelCaseString', () {
       test('invalid creation', () {
-        expect(() => CamelCaseString('invalid'),
-            throwsA(TypeMatcher<ArgumentError>()));
+        expect(
+          () => CamelCaseString('invalid'),
+          throwsA(TypeMatcher<ArgumentError>()),
+        );
       });
       test('toString', () {
         expect(CamelCaseString('CamelCase').toString(), 'CamelCase');
@@ -162,16 +167,7 @@ void main() {
     ];
     testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
 
-    var bad = [
-      'Foo',
-      'fooBar.',
-      '.foo_Bar',
-      '_.',
-      '.',
-      'F_B',
-      'JS',
-      'JSON',
-    ];
+    var bad = ['Foo', 'fooBar.', '.foo_Bar', '_.', '.', 'F_B', 'JS', 'JSON'];
 
     testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
   });

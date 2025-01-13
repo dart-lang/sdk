@@ -10,10 +10,7 @@ const _desc =
 
 class PreferDoubleQuotes extends LintRule {
   PreferDoubleQuotes()
-      : super(
-          name: LintNames.prefer_double_quotes,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_double_quotes, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_single_quotes];
@@ -23,7 +20,9 @@ class PreferDoubleQuotes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = QuoteVisitor(this, useSingle: false);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);

@@ -13,17 +13,19 @@ const _desc = r'Avoid using `null` in `??` operators.';
 
 class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
-      : super(
-          name: LintNames.unnecessary_null_in_if_null_operators,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.unnecessary_null_in_if_null_operators,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_in_if_null_operators;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

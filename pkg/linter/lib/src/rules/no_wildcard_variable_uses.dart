@@ -14,17 +14,16 @@ const _desc = r"Don't use wildcard parameters or variables.";
 
 class NoWildcardVariableUses extends LintRule {
   NoWildcardVariableUses()
-      : super(
-          name: LintNames.no_wildcard_variable_uses,
-          description: _desc,
-        );
+    : super(name: LintNames.no_wildcard_variable_uses, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_wildcard_variable_uses;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (context.libraryElement2.hasWildcardVariablesFeatureEnabled2) return;
 
     var visitor = _Visitor(this);

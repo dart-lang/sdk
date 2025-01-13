@@ -30,16 +30,17 @@ class A {
   }
 
   test_assertContainsFieldFormalParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int? f;
   C({this.f}) {
     assert(f != null);
   }
 }
-''', [
-      lint(40, 6),
-    ]);
+''',
+      [lint(40, 6)],
+    );
   }
 
   test_assertContainsInstanceMethod() async {
@@ -140,42 +141,44 @@ class D extends C {
   }
 
   test_assertContainsParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(int? p) {
     assert(p != null);
   }
 }
-''', [
-      lint(28, 6),
-    ]);
+''',
+      [lint(28, 6)],
+    );
   }
 
   test_assertContainsParameter_consecutive() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C(int? p) {
     assert(p != null);
     assert(p != null);
   }
 }
-''', [
-      lint(28, 6),
-      lint(51, 6),
-    ]);
+''',
+      [lint(28, 6), lint(51, 6)],
+    );
   }
 
   test_assertContainsParameter_usedInInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int? f;
   C({int? f}) : f = f ?? 7 {
     assert(f != null);
   }
 }
-''', [
-      lint(53, 6),
-    ]);
+''',
+      [lint(53, 6)],
+    );
   }
 
   test_assertContainsSimpleParameter() async {
@@ -192,33 +195,36 @@ class C {
   }
 
   test_assertContainsStaticMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static int? m() => null;
   C() {
     assert(m() != null);
   }
 }
-''', [
-      lint(49, 6),
-    ]);
+''',
+      [lint(49, 6)],
+    );
   }
 
   test_assertContainsStaticProperty() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static int? get f => null;
   C() {
     assert(f != null);
   }
 }
-''', [
-      lint(51, 6),
-    ]);
+''',
+      [lint(51, 6)],
+    );
   }
 
   test_assertContainsTopLevelMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int? m() => null;
 
 class C {
@@ -226,13 +232,14 @@ class C {
     assert(m() != null);
   }
 }
-''', [
-      lint(41, 6),
-    ]);
+''',
+      [lint(41, 6)],
+    );
   }
 
   test_assertContainsTopLevelProperty() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int? get f => null;
 
 class C {
@@ -240,9 +247,9 @@ class C {
     assert(f != null);
   }
 }
-''', [
-      lint(43, 6),
-    ]);
+''',
+      [lint(43, 6)],
+    );
   }
 
   test_assertFollowsStatement() async {
@@ -257,15 +264,16 @@ class C {
   }
 
   test_extensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(int? i) {
   E.e(this.i) {
     assert(i != null);
   }
 }
-''', [
-      lint(47, 6),
-    ]);
+''',
+      [lint(47, 6)],
+    );
   }
 
   test_extensionType_initializer() async {
@@ -277,16 +285,17 @@ extension type E(int? i) {
   }
 
   test_firstStatement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A.named(a) {
     assert(a != null);
   }
 }
 
-''', [
-      lint(29, 6),
-    ]);
+''',
+      [lint(29, 6)],
+    );
   }
 
   test_initializer() async {
@@ -307,7 +316,8 @@ class C {
   }
 
   test_nonBoolExpression() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   bool? f;
   A() {
@@ -318,14 +328,17 @@ class A {
     });
   }
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
+      ],
+    );
   }
 
   test_super() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   final int a;
   A(this.a);
@@ -336,8 +349,8 @@ class B extends A {
     assert(a != 0);
   }
 }
-''', [
-      lint(80, 6),
-    ]);
+''',
+      [lint(80, 6)],
+    );
   }
 }

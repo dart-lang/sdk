@@ -12,17 +12,16 @@ const _desc = r'Cancel instances of `dart:async` `StreamSubscription`.';
 
 class CancelSubscriptions extends LintRule {
   CancelSubscriptions()
-      : super(
-          name: LintNames.cancel_subscriptions,
-          description: _desc,
-        );
+    : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.cancel_subscriptions;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -30,9 +29,7 @@ class CancelSubscriptions extends LintRule {
 }
 
 class _Visitor extends LeakDetectorProcessors {
-  static final _predicates = {
-    _isSubscription: 'cancel',
-  };
+  static final _predicates = {_isSubscription: 'cancel'};
 
   _Visitor(super.rule);
 

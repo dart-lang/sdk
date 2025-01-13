@@ -14,21 +14,21 @@ const _desc = r'Prefer relative imports for files in `lib/`.';
 
 class PreferRelativeImports extends LintRule {
   PreferRelativeImports()
-      : super(
-          name: LintNames.prefer_relative_imports,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.always_use_package_imports];
+  List<String> get incompatibleRules => const [
+    LintNames.always_use_package_imports,
+  ];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_relative_imports;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isInLibDir) return;
 
     var sourceUri = context.libraryElement2?.uri;

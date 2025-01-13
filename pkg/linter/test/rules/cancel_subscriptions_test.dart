@@ -43,14 +43,15 @@ void f(Stream stream) {
   }
 
   test_localVariable_notCanceled() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 void f(Stream stream) {
   StreamSubscription s = stream.listen((_) {});
 }
-''', [
-      lint(66, 25),
-    ]);
+''',
+      [lint(66, 25)],
+    );
   }
 
   test_privateField_canceled() async {
@@ -84,14 +85,15 @@ class A {
   }
 
   @FailingTest(
-      reason:
-          'It seems this is not implemented. In the previous incarnation of '
-          'this test, at `test_data/integration/cancel_subscriptions.dart`, an '
-          'end-of-line comment (`// OK`) indicated that the subscription '
-          'should be counted as canceled. However, that is not how an '
-          'expectation is set in an integration test, and a Lint is indeed '
-          'reported for this case. We have the test written here with what was '
-          'presumably the intention of the previous test.')
+    reason:
+        'It seems this is not implemented. In the previous incarnation of '
+        'this test, at `test_data/integration/cancel_subscriptions.dart`, an '
+        'end-of-line comment (`// OK`) indicated that the subscription '
+        'should be counted as canceled. However, that is not how an '
+        'expectation is set in an integration test, and a Lint is indeed '
+        'reported for this case. We have the test written here with what was '
+        'presumably the intention of the previous test.',
+  )
   test_privateField_canceled_outsideTheClass() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
@@ -111,7 +113,8 @@ class B {
   }
 
   test_privateField_notCanceled() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 class A {
   late StreamSubscription _subscription;
@@ -119,9 +122,8 @@ class A {
     _subscription = stream.listen((_) {});
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 57, 13),
-      lint(57, 13),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 57, 13), lint(57, 13)],
+    );
   }
 }

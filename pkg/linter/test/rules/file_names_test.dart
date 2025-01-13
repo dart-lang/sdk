@@ -22,11 +22,12 @@ class FileNamesInvalidTest extends LintRuleTest {
   String get testFilePath => '$testPackageLibPath/a-test.dart';
 
   test_invalidName() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A { }
-''', [
-      lint(0, 0),
-    ]);
+''',
+      [lint(0, 0)],
+    );
   }
 }
 

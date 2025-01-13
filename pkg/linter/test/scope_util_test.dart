@@ -58,7 +58,8 @@ class B extends A {
     newFile('$testPackageLibPath/a.dart', r'''
 set foo(int _) {}
 ''');
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 import 'a.dart';
 
 class A {
@@ -70,9 +71,9 @@ class B extends A {
     this.foo;
   }
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+    );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterDifferent(import.topSet('foo'));
   }
@@ -89,9 +90,7 @@ class B extends A {
   }
 }
 ''');
-    _checkGetterRequested(
-      findElement.parameter('foo'),
-    );
+    _checkGetterRequested(findElement.parameter('foo'));
   }
 
   test_class_getter_fromExtends_expressionBody() async {
@@ -104,9 +103,7 @@ class B extends A {
   void bar(int foo) => this.foo;
 }
 ''');
-    _checkGetterRequested(
-      findElement.parameter('foo'),
-    );
+    _checkGetterRequested(findElement.parameter('foo'));
   }
 
   test_class_getter_none_fromExtends() async {
@@ -128,7 +125,8 @@ class B extends A {
     newFile('$testPackageLibPath/a.dart', r'''
 int get foo => 0;
 ''');
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 import 'a.dart';
 
 class A {
@@ -140,9 +138,9 @@ class B extends A {
     this.foo;
   }
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+    );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterRequested(import.topGet('foo'));
   }
@@ -288,7 +286,8 @@ var foo = 0;
     newFile('$testPackageLibPath/a.dart', r'''
 void foo() {}
 ''');
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 import 'a.dart';
 
 class A {
@@ -300,9 +299,9 @@ class B extends A {
     this.foo();
   }
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+    );
     var import = findElement.importFind('package:test/a.dart');
     _checkMethodRequested(import.topFunction('foo'));
   }
@@ -595,7 +594,8 @@ var foo = 0;
     newFile('$testPackageLibPath/a.dart', r'''
 set foo(int _) {}
 ''');
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 import 'a.dart';
 
 class A {
@@ -607,9 +607,9 @@ class B extends A {
     this.foo = 0;
   }
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+    );
     var import = findElement.importFind('package:test/a.dart');
     _checkSetterRequested(import.topSet('foo'));
   }
@@ -683,7 +683,8 @@ class A<T> {
   }
 
   test_extension_method_none_fromExtended() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 class A {
   void foo() {}
 }
@@ -693,14 +694,15 @@ extension on A {
     this.foo();
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 53, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
+    );
     _checkMethodNone();
   }
 
   test_extension_method_requested_formalParameter_method() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 class A {}
 
 extension on A {
@@ -710,14 +712,15 @@ extension on A {
     this.foo();
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 53, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
+    );
     _checkMethodRequested(findElement.parameter('foo'));
   }
 
   test_extension_method_requested_fromExtended_topLevelVariable() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 class A {
   void foo() {}
 }
@@ -729,14 +732,15 @@ extension on A {
 }
 
 var foo = 0;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 53, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
+    );
     _checkMethodRequested(findElement.topGet('foo'));
   }
 
   test_extension_method_requested_fromThisExtension() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 class A {}
 
 extension on A {
@@ -746,9 +750,9 @@ extension on A {
     this.foo();
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 53, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
+    );
     _checkMethodRequested(findElement.method('foo'));
   }
 
@@ -883,7 +887,11 @@ mixin A<T> {
   }
 
   void _resultDifferent(
-      AstNode node, String id, bool setter, Element2 element) {
+    AstNode node,
+    String id,
+    bool setter,
+    Element2 element,
+  ) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isDifferentName || result.element != element) {
       fail('Expected different $element, actual: $result');
@@ -898,7 +906,11 @@ mixin A<T> {
   }
 
   void _resultRequested(
-      AstNode node, String id, bool setter, Element2 element) {
+    AstNode node,
+    String id,
+    bool setter,
+    Element2 element,
+  ) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isRequestedName || result.element != element) {
       fail('Expected requested $element, actual: $result');

@@ -13,17 +13,16 @@ const _desc = r"Don't compare boolean expressions to boolean literals.";
 
 class NoLiteralBoolComparisons extends LintRule {
   NoLiteralBoolComparisons()
-      : super(
-          name: LintNames.no_literal_bool_comparisons,
-          description: _desc,
-        );
+    : super(name: LintNames.no_literal_bool_comparisons, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_literal_bool_comparisons;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }

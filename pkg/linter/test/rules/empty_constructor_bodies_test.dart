@@ -18,13 +18,14 @@ class EmptyConstructorBodiesTest extends LintRuleTest {
   String get lintRule => LintNames.empty_constructor_bodies;
 
   test_empty() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A() {}
 }
-''', [
-      lint(16, 2),
-    ]);
+''',
+      [lint(16, 2)],
+    );
   }
 
   test_empty_withComment() async {

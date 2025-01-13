@@ -12,17 +12,16 @@ const _desc = r'Prefer using `null`-aware operators.';
 
 class PreferNullAwareOperators extends LintRule {
   PreferNullAwareOperators()
-      : super(
-          name: LintNames.prefer_null_aware_operators,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_null_aware_operators, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_null_aware_operators;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }

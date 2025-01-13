@@ -34,11 +34,12 @@ var s = RegExp('( $r');
   }
 
   test_invalid() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var s = RegExp('(');
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_valid() async {

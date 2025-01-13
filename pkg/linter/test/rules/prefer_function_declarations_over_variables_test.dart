@@ -18,13 +18,14 @@ class PreferFunctionDeclarationsOverVariablesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_function_declarations_over_variables;
 
   test_instanceVariable_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final f = () {};
 }
-''', [
-      lint(18, 9),
-    ]);
+''',
+      [lint(18, 9)],
+    );
   }
 
   test_instanceVariable_public() async {
@@ -45,13 +46,14 @@ void f() {
   }
 
   test_localVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var g = () {};
 }
-''', [
-      lint(17, 9),
-    ]);
+''',
+      [lint(17, 9)],
+    );
   }
 
   test_localVariable_nonFunctionLiteral() async {
@@ -72,11 +74,12 @@ void f() {
   }
 
   test_topLevelVariable_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final f = () {};
-''', [
-      lint(6, 9),
-    ]);
+''',
+      [lint(6, 9)],
+    );
   }
 
   test_topLevelVariable_public() async {

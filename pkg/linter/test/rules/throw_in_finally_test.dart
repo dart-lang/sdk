@@ -47,7 +47,8 @@ class C {}
   }
 
   test_throwInFinally() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
   void f() {
   try {
   } catch (e) {
@@ -59,9 +60,9 @@ class C {}
     }
   }
 }
-''', [
-      lint(74, 8),
-    ]);
+''',
+      [lint(74, 8)],
+    );
   }
 
   test_throwInInnerClosureInFinally() async {

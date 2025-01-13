@@ -25,8 +25,9 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_renaming_method_parameters;
 
   @FailingTest(
-      reason: 'lint is limited to methods',
-      issue: 'https://github.com/dart-lang/linter/issues/4891')
+    reason: 'lint is limited to methods',
+    issue: 'https://github.com/dart-lang/linter/issues/4891',
+  )
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -34,13 +35,14 @@ part 'test.dart';
 void f(int p) {}
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment void f(int q) {}
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_augmentedMethod() async {
@@ -52,20 +54,24 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment void m(int q) {}
   augment void m(int q) {}
 }
-''', [
-      lint(58, 1), // Only the first augmentation gets linted.
-    ]);
+''',
+      [
+        lint(58, 1), // Only the first augmentation gets linted.
+      ],
+    );
   }
 
   test_enumMixingIn() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 mixin class C {
   int f(int f) => f;
 }
@@ -74,22 +80,23 @@ enum A with C {
   @override
   int f(int x) => x;
 }
-''', [
-      lint(88, 1),
-    ]);
+''',
+      [lint(88, 1)],
+    );
   }
 
   test_optionalPositional_renamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m([int p = 0]) {}
 }
 class B extends A {
   void m([int q = 0]) {}
 }
-''', [
-      lint(71, 1),
-    ]);
+''',
+      [lint(71, 1)],
+    );
   }
 
   test_positional_docComments() async {
@@ -117,16 +124,17 @@ class _B extends A {
   }
 
   test_positional_renamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m(int p) {}
 }
 class B extends A {
   void m(int q) {}
 }
-''', [
-      lint(64, 1),
-    ]);
+''',
+      [lint(64, 1)],
+    );
   }
 
   test_positional_renamed_nonLibSource() async {
@@ -167,7 +175,8 @@ class B extends A {
   }
 
   test_wildcard_featureDisabledFails() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -177,9 +186,9 @@ class A {
 class B extends A {
   void m(_) {}
 }
-''', [
-      lint(104, 1),
-    ]);
+''',
+      [lint(104, 1)],
+    );
   }
 
   test_wildcard_mixed() async {
@@ -194,16 +203,17 @@ class B extends A {
   }
 
   test_wildcard_mixedFails() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m(int a, int b, int c) {}
 }
 class B extends A {
   void m(_, c, _) {}
 }
-''', [
-      lint(77, 1),
-    ]);
+''',
+      [lint(77, 1)],
+    );
   }
 
   test_wildcard_multipleWildcards() async {
@@ -218,29 +228,31 @@ class B extends A {
   }
 
   test_wildcard_nonWildcardButUnderscoreBefore() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m(int a, int b) {}
 }
 class B extends A {
   void m(_, _b) {}
 }
-''', [
-      lint(70, 2),
-    ]);
+''',
+      [lint(70, 2)],
+    );
   }
 
   test_wildcard_nonWildcardButUnderscoresAround() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   void m(int p) {}
 }
 class B extends A {
   void m(_p_) {}
 }
-''', [
-      lint(60, 3),
-    ]);
+''',
+      [lint(60, 3)],
+    );
   }
 
   test_wildcardInBase() async {

@@ -12,10 +12,10 @@ const _desc = r'A code block is missing a specified language.';
 
 class MissingCodeBlockLanguageInDocComment extends LintRule {
   MissingCodeBlockLanguageInDocComment()
-      : super(
-          name: LintNames.missing_code_block_language_in_doc_comment,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.missing_code_block_language_in_doc_comment,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -23,7 +23,9 @@ class MissingCodeBlockLanguageInDocComment extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addComment(this, visitor);
   }
