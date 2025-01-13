@@ -307,7 +307,8 @@ class ParserCreatorListener extends Listener {
       troubleParameterTokens[currentFormalParameterToken] = nameToken;
     }
     currentFormalParameterToken = null;
-    if (kind == FormalParameterKind.optionalNamed) {
+    if (kind == FormalParameterKind.optionalNamed ||
+        kind == FormalParameterKind.requiredNamed) {
       parametersNamed.add(nameToken.lexeme);
     } else {
       parameters.add(nameToken.lexeme);

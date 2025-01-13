@@ -116,11 +116,6 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       String? result = textualOutline(
         bytes,
         new ScannerConfiguration(
-          enableExtensionMethods: isExperimentEnabled(
-              ExperimentalFlag.extensionMethods,
-              explicitExperimentalFlags: experimentalFlags),
-          enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
-              explicitExperimentalFlags: experimentalFlags),
           enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
               explicitExperimentalFlags: experimentalFlags),
         ),

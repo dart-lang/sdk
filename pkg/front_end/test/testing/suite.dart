@@ -1625,8 +1625,6 @@ class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
     CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
-        enableExtensionMethods: true,
-        enableNonNullable: true,
         allowPatterns: allowPatterns);
     ast.accept(this);
 

@@ -1232,8 +1232,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
         ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-            enableExtensionMethods: true /* can't be disabled */,
-            enableNonNullable: true /* can't be disabled */,
             enableTripleShift:
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */

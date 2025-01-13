@@ -1,16 +1,12 @@
 Problems reported:
 
-parser/non-nnbd/use_required_in_non_nnbd:1:12: The modifier 'required' is only available in null safe libraries.
-void foo1({required int x1}) {
-           ^^^^^^^^
+parser/also-nnbd/use_required_in_non_nnbd:9:21: The modifier 'required' was already specified.
+void foo3({required required x3}) {
+                    ^^^^^^^^
 
-parser/non-nnbd/use_required_in_non_nnbd:9:12: The modifier 'required' is only available in null safe libraries.
+parser/also-nnbd/use_required_in_non_nnbd:9:12: Can't have modifier 'required' here.
 void foo3({required required x3}) {
            ^^^^^^^^
-
-parser/non-nnbd/use_required_in_non_nnbd:14:14: The modifier 'required' is only available in null safe libraries.
-  void foo4({required covariant int x4}) {
-             ^^^^^^^^
 
 beginCompilationUnit(void)
   beginMetadataStar(void)
@@ -24,14 +20,13 @@ beginCompilationUnit(void)
         beginOptionalFormalParameters({)
           beginMetadataStar(required)
           endMetadataStar(0)
-          handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'required' is only available in null safe libraries., null, {lexeme: required}], required, required)
-          beginFormalParameter(int, MemberKind.TopLevelMethod, required, null, null)
+          beginFormalParameter(required, MemberKind.TopLevelMethod, required, null, null)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(x1)
             handleType(int, null)
             handleIdentifier(x1, formalParameterDeclaration)
             handleFormalParameterWithoutValue(})
-          endFormalParameter(null, null, null, x1, null, null, FormalParameterKind.optionalNamed, MemberKind.TopLevelMethod)
+          endFormalParameter(null, null, null, x1, null, null, FormalParameterKind.requiredNamed, MemberKind.TopLevelMethod)
         endOptionalFormalParameters(1, {, }, MemberKind.TopLevelMethod)
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
@@ -60,13 +55,11 @@ beginCompilationUnit(void)
         beginOptionalFormalParameters({)
           beginMetadataStar(required)
           endMetadataStar(0)
-          beginFormalParameter(required, MemberKind.TopLevelMethod, null, null, null)
-            handleIdentifier(required, typeReference)
-            handleNoTypeArguments(x2)
-            handleType(required, null)
+          beginFormalParameter(required, MemberKind.TopLevelMethod, required, null, null)
+            handleNoType(required)
             handleIdentifier(x2, formalParameterDeclaration)
             handleFormalParameterWithoutValue(})
-          endFormalParameter(null, null, null, x2, null, null, FormalParameterKind.optionalNamed, MemberKind.TopLevelMethod)
+          endFormalParameter(null, null, null, x2, null, null, FormalParameterKind.requiredNamed, MemberKind.TopLevelMethod)
         endOptionalFormalParameters(1, {, }, MemberKind.TopLevelMethod)
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
@@ -95,14 +88,13 @@ beginCompilationUnit(void)
         beginOptionalFormalParameters({)
           beginMetadataStar(required)
           endMetadataStar(0)
-          handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'required' is only available in null safe libraries., null, {lexeme: required}], required, required)
+          handleRecoverableError(Message[DuplicatedModifier, The modifier 'required' was already specified., Try removing all but one occurrence of the modifier., {lexeme: required}], required, required)
+          handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'required' here., Try removing 'required'., {lexeme: required}], required, required)
           beginFormalParameter(required, MemberKind.TopLevelMethod, required, null, null)
-            handleIdentifier(required, typeReference)
-            handleNoTypeArguments(x3)
-            handleType(required, null)
+            handleNoType(required)
             handleIdentifier(x3, formalParameterDeclaration)
             handleFormalParameterWithoutValue(})
-          endFormalParameter(null, null, null, x3, null, null, FormalParameterKind.optionalNamed, MemberKind.TopLevelMethod)
+          endFormalParameter(null, null, null, x3, null, null, FormalParameterKind.requiredNamed, MemberKind.TopLevelMethod)
         endOptionalFormalParameters(1, {, }, MemberKind.TopLevelMethod)
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
@@ -143,14 +135,13 @@ beginCompilationUnit(void)
               beginOptionalFormalParameters({)
                 beginMetadataStar(required)
                 endMetadataStar(0)
-                handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'required' is only available in null safe libraries., null, {lexeme: required}], required, required)
-                beginFormalParameter(covariant, MemberKind.NonStaticMethod, required, covariant, null)
+                beginFormalParameter(required, MemberKind.NonStaticMethod, required, covariant, null)
                   handleIdentifier(int, typeReference)
                   handleNoTypeArguments(x4)
                   handleType(int, null)
                   handleIdentifier(x4, formalParameterDeclaration)
                   handleFormalParameterWithoutValue(})
-                endFormalParameter(null, null, null, x4, null, null, FormalParameterKind.optionalNamed, MemberKind.NonStaticMethod)
+                endFormalParameter(null, null, null, x4, null, null, FormalParameterKind.requiredNamed, MemberKind.NonStaticMethod)
               endOptionalFormalParameters(1, {, }, MemberKind.NonStaticMethod)
             endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()

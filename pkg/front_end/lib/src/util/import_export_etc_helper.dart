@@ -13,8 +13,6 @@ FileInfoHelper getFileInfoHelper(Uint8List rawBytes) {
       new ImportExportPartLibraryHelperVisitor();
   getAST(
     rawBytes,
-    enableExtensionMethods: true,
-    enableNonNullable: true,
     enableTripleShift: true,
     includeBody: false,
     includeComments: false,

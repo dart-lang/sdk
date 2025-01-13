@@ -329,10 +329,7 @@ List<ExtendedLines>? _extend(List<Line> lines,
 
 Token _scan(String data) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: true,
-      forAugmentationLibrary: false);
+      enableTripleShift: true, forAugmentationLibrary: false);
 
   StringScanner scanner =
       new StringScanner(data, configuration: scannerConfiguration);

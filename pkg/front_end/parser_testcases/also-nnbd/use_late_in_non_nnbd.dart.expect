@@ -1,62 +1,38 @@
 Problems reported:
 
-parser/non-nnbd/use_late_in_non_nnbd:4:1: The modifier 'late' is only available in null safe libraries.
-late int x2;
-^^^^
+parser/also-nnbd/use_late_in_non_nnbd:7:6: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+late x5;
+     ^^
 
-parser/non-nnbd/use_late_in_non_nnbd:5:1: The modifier 'late' is only available in null safe libraries.
-late List<int> x3;
-^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:6:1: The modifier 'late' is only available in null safe libraries.
-late final int x4;
-^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:8:1: Unexpected token ';'.
+parser/also-nnbd/use_late_in_non_nnbd:8:1: Unexpected token ';'.
 ; // Meant to confuse so `.next`-ing makes it look like the end of a field.
 ^
 
-parser/non-nnbd/use_late_in_non_nnbd:9:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/also-nnbd/use_late_in_non_nnbd:9:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 late;
 ^^^^
 
-parser/non-nnbd/use_late_in_non_nnbd:10:1: Unexpected token ';'.
+parser/also-nnbd/use_late_in_non_nnbd:10:1: Unexpected token ';'.
 ; // Meant to confuse so `.next`-ing makes it look like the end of a field.
 ^
 
-parser/non-nnbd/use_late_in_non_nnbd:14:3: The modifier 'late' is only available in null safe libraries.
-  late int y2;
-  ^^^^
+parser/also-nnbd/use_late_in_non_nnbd:17:8: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  late y5;
+       ^^
 
-parser/non-nnbd/use_late_in_non_nnbd:15:3: The modifier 'late' is only available in null safe libraries.
-  late List<int> y3;
-  ^^^^
+parser/also-nnbd/use_late_in_non_nnbd:28:8: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  late z5;
+       ^^
 
-parser/non-nnbd/use_late_in_non_nnbd:16:3: The modifier 'late' is only available in null safe libraries.
-  late final int y4;
-  ^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:25:3: The modifier 'late' is only available in null safe libraries.
-  late int z2;
-  ^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:26:3: The modifier 'late' is only available in null safe libraries.
-  late List<int> x3;
-  ^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:27:3: The modifier 'late' is only available in null safe libraries.
-  late final int z4;
-  ^^^^
-
-parser/non-nnbd/use_late_in_non_nnbd:29:3: Expected a class member, but got ';'.
+parser/also-nnbd/use_late_in_non_nnbd:29:3: Expected a class member, but got ';'.
   ; // Meant to confuse so `.next`-ing makes it look like the end of a field.
   ^
 
-parser/non-nnbd/use_late_in_non_nnbd:30:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/also-nnbd/use_late_in_non_nnbd:30:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   late;
   ^^^^
 
-parser/non-nnbd/use_late_in_non_nnbd:31:3: Expected a class member, but got ';'.
+parser/also-nnbd/use_late_in_non_nnbd:31:3: Expected a class member, but got ';'.
   ; // Meant to confuse so `.next`-ing makes it look like the end of a field.
   ^
 
@@ -75,20 +51,18 @@ beginCompilationUnit(int)
   beginMetadataStar(late)
   endMetadataStar(0)
   beginTopLevelMember(late)
-    handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, null, late)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, null, ;)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(x2)
       handleType(int, null)
       handleIdentifier(x2, topLevelVariableDeclaration)
       handleNoFieldInitializer(;)
-    endTopLevelFields(null, null, null, null, late, null, 1, int, ;)
+    endTopLevelFields(null, null, null, null, late, null, 1, late, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(late)
   endMetadataStar(0)
   beginTopLevelMember(late)
-    handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, null, late)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, null, ;)
       handleIdentifier(List, typeReference)
       beginTypeArguments(<)
         handleIdentifier(int, typeReference)
@@ -98,30 +72,28 @@ beginCompilationUnit(int)
       handleType(List, null)
       handleIdentifier(x3, topLevelVariableDeclaration)
       handleNoFieldInitializer(;)
-    endTopLevelFields(null, null, null, null, late, null, 1, List, ;)
+    endTopLevelFields(null, null, null, null, late, null, 1, late, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(late)
   endMetadataStar(0)
   beginTopLevelMember(late)
-    handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, final, late)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, final, ;)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(x4)
       handleType(int, null)
       handleIdentifier(x4, topLevelVariableDeclaration)
       handleNoFieldInitializer(;)
-    endTopLevelFields(null, null, null, null, late, final, 1, final, ;)
+    endTopLevelFields(null, null, null, null, late, final, 1, late, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(late)
   endMetadataStar(0)
   beginTopLevelMember(late)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleIdentifier(late, typeReference)
-      handleNoTypeArguments(x5)
-      handleType(late, null)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, late, null, ;)
+      handleRecoverableError(MissingConstFinalVarOrType, x5, x5)
+      handleNoType(late)
       handleIdentifier(x5, topLevelVariableDeclaration)
       handleNoFieldInitializer(;)
-    endTopLevelFields(null, null, null, null, null, null, 1, late, ;)
+    endTopLevelFields(null, null, null, null, late, null, 1, late, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(;)
   endMetadataStar(0)
@@ -180,8 +152,7 @@ beginCompilationUnit(int)
             handleNoVariableInitializer(y1)
           endInitializedIdentifier(y1)
         endVariablesDeclaration(1, ;)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-        beginMetadataStar(int)
+        beginMetadataStar(late)
         endMetadataStar(0)
         handleIdentifier(int, typeReference)
         handleNoTypeArguments(y2)
@@ -192,8 +163,7 @@ beginCompilationUnit(int)
             handleNoVariableInitializer(y2)
           endInitializedIdentifier(y2)
         endVariablesDeclaration(1, ;)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-        beginMetadataStar(List)
+        beginMetadataStar(late)
         endMetadataStar(0)
         handleIdentifier(List, typeReference)
         beginTypeArguments(<)
@@ -208,8 +178,7 @@ beginCompilationUnit(int)
             handleNoVariableInitializer(y3)
           endInitializedIdentifier(y3)
         endVariablesDeclaration(1, ;)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
-        beginMetadataStar(int)
+        beginMetadataStar(late)
         endMetadataStar(0)
         handleIdentifier(int, typeReference)
         handleNoTypeArguments(y4)
@@ -220,12 +189,11 @@ beginCompilationUnit(int)
             handleNoVariableInitializer(y4)
           endInitializedIdentifier(y4)
         endVariablesDeclaration(1, ;)
+        handleRecoverableError(MissingConstFinalVarOrType, y5, y5)
         beginMetadataStar(late)
         endMetadataStar(0)
-        handleIdentifier(late, typeReference)
-        handleNoTypeArguments(y5)
-        handleType(late, null)
-        beginVariablesDeclaration(y5, null, null)
+        handleNoType(late)
+        beginVariablesDeclaration(y5, late, null)
           handleIdentifier(y5, localVariableDeclaration)
           beginInitializedIdentifier(y5)
             handleNoVariableInitializer(y5)
@@ -266,21 +234,19 @@ beginCompilationUnit(int)
         endMember()
         beginMetadataStar(late)
         endMetadataStar(0)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, late)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, ;)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(z2)
             handleType(int, null)
             handleIdentifier(z2, fieldDeclaration)
             handleNoFieldInitializer(;)
-          endClassFields(null, null, null, null, null, late, null, 1, int, ;)
+          endClassFields(null, null, null, null, null, late, null, 1, late, ;)
         endMember()
         beginMetadataStar(late)
         endMetadataStar(0)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, late)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, ;)
             handleIdentifier(List, typeReference)
             beginTypeArguments(<)
               handleIdentifier(int, typeReference)
@@ -290,30 +256,28 @@ beginCompilationUnit(int)
             handleType(List, null)
             handleIdentifier(x3, fieldDeclaration)
             handleNoFieldInitializer(;)
-          endClassFields(null, null, null, null, null, late, null, 1, List, ;)
+          endClassFields(null, null, null, null, null, late, null, 1, late, ;)
         endMember()
         beginMetadataStar(late)
         endMetadataStar(0)
-        handleRecoverableError(Message[UnexpectedModifierInNonNnbd, The modifier 'late' is only available in null safe libraries., null, {lexeme: late}], late, late)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, late, final, late)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, late, final, ;)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(z4)
             handleType(int, null)
             handleIdentifier(z4, fieldDeclaration)
             handleNoFieldInitializer(;)
-          endClassFields(null, null, null, null, null, late, final, 1, final, ;)
+          endClassFields(null, null, null, null, null, late, final, 1, late, ;)
         endMember()
         beginMetadataStar(late)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, ;)
-            handleIdentifier(late, typeReference)
-            handleNoTypeArguments(z5)
-            handleType(late, null)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, ;)
+            handleRecoverableError(MissingConstFinalVarOrType, z5, z5)
+            handleNoType(late)
             handleIdentifier(z5, fieldDeclaration)
             handleNoFieldInitializer(;)
-          endClassFields(null, null, null, null, null, null, null, 1, late, ;)
+          endClassFields(null, null, null, null, null, late, null, 1, late, ;)
         endMember()
         beginMetadataStar(;)
         endMetadataStar(0)

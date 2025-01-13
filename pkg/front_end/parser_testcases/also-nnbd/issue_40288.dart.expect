@@ -1,7 +1,30 @@
+Problems reported:
+
+parser/also-nnbd/issue_40288:1:7: Can't use 'late' as a name here.
+class late {
+      ^^^^
+
+parser/also-nnbd/issue_40288:5:7: Can't use 'required' as a name here.
+class required {
+      ^^^^^^^^
+
+parser/also-nnbd/issue_40288:10:8: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  late l = late();
+       ^
+
+parser/also-nnbd/issue_40288:11:3: Can't have modifier 'required' here.
+  required r = required();
+  ^^^^^^^^
+
+parser/also-nnbd/issue_40288:11:12: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  required r = required();
+           ^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
   beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleRecoverableError(Message[BuiltInIdentifierInDeclaration, Can't use 'late' as a name here., null, {lexeme: late}], late, late)
     handleIdentifier(late, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, late)
@@ -33,6 +56,7 @@ beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
   beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleRecoverableError(Message[BuiltInIdentifierInDeclaration, Can't use 'required' as a name here., null, {lexeme: required}], required, required)
     handleIdentifier(required, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, required)
@@ -76,10 +100,9 @@ beginCompilationUnit(class)
         beginMetadataStar(late)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, {)
-            handleIdentifier(late, typeReference)
-            handleNoTypeArguments(l)
-            handleType(late, null)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, late, null, {)
+            handleRecoverableError(MissingConstFinalVarOrType, l, l)
+            handleNoType(late)
             handleIdentifier(l, fieldDeclaration)
             beginFieldInitializer(=)
               handleIdentifier(late, expression)
@@ -88,15 +111,15 @@ beginCompilationUnit(class)
               endArguments(0, (, ))
               handleSend(late, ))
             endFieldInitializer(=, ))
-          endClassFields(null, null, null, null, null, null, null, 1, late, ;)
+          endClassFields(null, null, null, null, null, late, null, 1, late, ;)
         endMember()
         beginMetadataStar(required)
         endMetadataStar(0)
+        handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'required' here., Try removing 'required'., {lexeme: required}], required, required)
         beginMember()
           beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, ;)
-            handleIdentifier(required, typeReference)
-            handleNoTypeArguments(r)
-            handleType(required, null)
+            handleRecoverableError(MissingConstFinalVarOrType, r, r)
+            handleNoType(required)
             handleIdentifier(r, fieldDeclaration)
             beginFieldInitializer(=)
               handleIdentifier(required, expression)

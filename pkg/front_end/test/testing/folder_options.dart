@@ -145,8 +145,6 @@ class SuiteFolderOptions {
     }
 
     addForcedExperimentalFlag(
-        "enableExtensionMethods", ExperimentalFlag.extensionMethods);
-    addForcedExperimentalFlag(
         "enableNonNullable", ExperimentalFlag.nonNullable);
     return experimentalFlags;
   }

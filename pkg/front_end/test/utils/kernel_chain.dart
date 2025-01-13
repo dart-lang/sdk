@@ -334,10 +334,7 @@ class ErrorCommentChecker
     Uint8List rawBytes = f.readAsBytesSync();
     Utf8BytesScanner scanner = new Utf8BytesScanner(
       rawBytes,
-      configuration: const ScannerConfiguration(
-          enableExtensionMethods: true,
-          enableNonNullable: true,
-          enableTripleShift: true),
+      configuration: const ScannerConfiguration(enableTripleShift: true),
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         // Nothing - but don't overwrite the previous settings.

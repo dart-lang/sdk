@@ -321,8 +321,7 @@ class TestMinimizer {
       } else {
         try {
           if (_knownByCompiler(uri!)) {
-            String parsedString =
-                _getFileAsStringContent(_fs.data[uri]!, _isUriNnbd(uri));
+            String parsedString = _getFileAsStringContent(_fs.data[uri]!);
             _fs.data[uri] = utf8.encode(parsedString);
           }
         } catch (e) {
@@ -557,12 +556,11 @@ class TestMinimizer {
       if (!uri.toString().endsWith(".dart")) continue;
       if (inlinableUri == uri) continue;
       final Uint8List? originalBytes = _fs.data[uri];
-      if (originalBytes == null || originalBytes.isEmpty) continue;
-      CompilationUnitEnd ast = getAST(originalBytes,
-          includeBody: false,
-          includeComments: false,
-          enableExtensionMethods: true,
-          enableNonNullable: _isUriNnbd(uri!));
+      if (uri == null || originalBytes == null || originalBytes.isEmpty) {
+        continue;
+      }
+      CompilationUnitEnd ast =
+          getAST(originalBytes, includeBody: false, includeComments: false);
       // Find all imports/exports of this file (if any).
       // If finding any:
       // * remove all of them, then
@@ -599,11 +597,8 @@ class TestMinimizer {
       //   have a `library` declaration.
       // * The file we're inlining has a library declaration.
       int offsetOfLast = 0;
-      ast = getAST(withoutInlineable,
-          includeBody: false,
-          includeComments: false,
-          enableExtensionMethods: true,
-          enableNonNullable: _isUriNnbd(uri));
+      ast =
+          getAST(withoutInlineable, includeBody: false, includeComments: false);
       for (ImportEnd import in ast.getImports()) {
         offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
       }
@@ -620,15 +615,15 @@ class TestMinimizer {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
       builder.write("\n");
-      builder.write(utf8.decode(_rewriteImportsExportsToUri(
-          inlineData, uri, inlinableUri, _isUriNnbd(inlinableUri))));
+      builder.write(utf8
+          .decode(_rewriteImportsExportsToUri(inlineData, uri, inlinableUri)));
       builder.write("\n");
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
       final Uint8List inlinedWithoutChange = utf8.encode(builder.toString());
 
-      if (!_parsesWithoutError(inlinedWithoutChange, _isUriNnbd(uri))) {
+      if (!_parsesWithoutError(inlinedWithoutChange)) {
         print("WARNING: Parser error after stuff at ${StackTrace.current}");
       }
 
@@ -660,7 +655,7 @@ class TestMinimizer {
         }
         builder.write("\n");
         builder.write(utf8.decode(_rewriteImportsExportsToUri(
-            inlineData, uri, inlinableUri, _isUriNnbd(inlinableUri),
+            inlineData, uri, inlinableUri,
             convertExportToImport: true)));
         builder.write("\n");
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
@@ -668,7 +663,7 @@ class TestMinimizer {
         }
         Uint8List inlinedWithChange = utf8.encode(builder.toString());
 
-        if (!_parsesWithoutError(inlinedWithChange, _isUriNnbd(uri))) {
+        if (!_parsesWithoutError(inlinedWithChange)) {
           print("WARNING: Parser error after stuff at ${StackTrace.current}");
         }
 
@@ -701,13 +696,10 @@ class TestMinimizer {
   }
 
   Uint8List _rewriteImportsExportsToUri(
-      Uint8List oldData, Uri newUri, Uri oldUri, bool nnbd,
+      Uint8List oldData, Uri newUri, Uri oldUri,
       {bool convertExportToImport = false}) {
-    CompilationUnitEnd ast = getAST(oldData,
-        includeBody: false,
-        includeComments: false,
-        enableExtensionMethods: true,
-        enableNonNullable: nnbd);
+    CompilationUnitEnd ast =
+        getAST(oldData, includeBody: false, includeComments: false);
     List<_Replacement> replacements = [];
     for (ImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
@@ -1045,10 +1037,7 @@ worlds:
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
           if (candidate.length != _fs.data[uri]!.length &&
-              _parsesWithoutError(
-                  candidate,
-                  languageVersion >=
-                      ExperimentalFlag.nonNullable.enabledVersion)) {
+              _parsesWithoutError(candidate)) {
             if (await _shouldQuit()) return;
             _fs.data[uri] = candidate;
             if (!await _crashesOnCompile(initialComponent)) {
@@ -1129,10 +1118,8 @@ worlds:
 
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
-        data,
-        _isUriNnbd(uri) ? _scannerConfiguration : _scannerConfigurationNonNNBD,
-        lineStarts);
+    Token firstToken =
+        parser_suite.scanRawBytes(data, _scannerConfiguration, lineStarts);
 
     int compileTry = 0;
     Token? token = firstToken;
@@ -1297,11 +1284,8 @@ worlds:
     if (!uri.toString().endsWith(".dart")) return;
 
     Uint8List data = _fs.data[uri]!;
-    CompilationUnitEnd ast = getAST(data,
-        includeBody: true,
-        includeComments: false,
-        enableExtensionMethods: true,
-        enableNonNullable: _isUriNnbd(uri));
+    CompilationUnitEnd ast =
+        getAST(data, includeBody: true, includeComments: false);
 
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
 
@@ -1700,11 +1684,11 @@ worlds:
     }
     Uint8List candidate = _replaceRange(data.replacements, data.originalData);
 
-    if (!_parsesWithoutError(candidate, _isUriNnbd(uri)) &&
-        _parsesWithoutError(data.originalData, _isUriNnbd(uri))) {
+    if (!_parsesWithoutError(candidate) &&
+        _parsesWithoutError(data.originalData)) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
-      _parsesWithoutError(candidate, _isUriNnbd(uri));
-      _parsesWithoutError(data.originalData, _isUriNnbd(uri));
+      _parsesWithoutError(candidate);
+      _parsesWithoutError(data.originalData);
     }
 
     _fs.data[uri] = candidate;
@@ -1749,8 +1733,7 @@ worlds:
     Uint8List candidate = builder.takeBytes();
     if (candidate.length == data.length) return;
 
-    if (uri.path.endsWith(".dart") &&
-        !_parsesWithoutError(candidate, _isUriNnbd(uri))) {
+    if (uri.path.endsWith(".dart") && !_parsesWithoutError(candidate)) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
     }
 
@@ -1867,10 +1850,6 @@ worlds:
 
   ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableExtensionMethods:
-            languageVersion >= ExperimentalFlag.extensionMethods.enabledVersion,
-        enableNonNullable:
-            languageVersion >= ExperimentalFlag.nonNullable.enabledVersion,
         enableTripleShift:
             languageVersion >= ExperimentalFlag.tripleShift.enabledVersion);
   }
@@ -1921,11 +1900,6 @@ worlds:
     } else {
       return defaultLanguageVersion;
     }
-  }
-
-  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
-    return _getLanguageVersion(uri, crashOnFail: crashOnFail) >=
-        ExperimentalFlag.nonNullable.enabledVersion;
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
@@ -2142,13 +2116,11 @@ worlds:
     return compilerContext;
   }
 
-  String _getFileAsStringContent(Uint8List rawBytes, bool nnbd) {
+  String _getFileAsStringContent(Uint8List rawBytes) {
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
-        rawBytes,
-        nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD,
-        lineStarts);
+    Token firstToken =
+        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, lineStarts);
 
     ParserTestListener parserTestListener = new ParserTestListener(false);
     Parser parser = new Parser(parserTestListener,
@@ -2159,9 +2131,9 @@ worlds:
     return parsedString;
   }
 
-  bool _parsesWithoutError(Uint8List rawBytes, bool nnbd) {
-    Token firstToken = parser_suite.scanRawBytes(rawBytes,
-        nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD, null);
+  bool _parsesWithoutError(Uint8List rawBytes) {
+    Token firstToken =
+        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, null);
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
     Parser parser = new Parser(parserErrorListener,
@@ -2170,15 +2142,8 @@ worlds:
     return !parserErrorListener.gotError;
   }
 
-  ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: true);
-
-  ScannerConfiguration _scannerConfigurationNonNNBD = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: false);
+  ScannerConfiguration _scannerConfiguration =
+      new ScannerConfiguration(enableTripleShift: true);
 
   List<int>? _dataCache;
   String? _dataCacheString;
