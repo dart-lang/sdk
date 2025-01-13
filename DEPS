@@ -131,7 +131,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
   "core_rev": "7a71ad6b9170e09d5cbe39f3fccdee648659f1e7",
-  "dartdoc_rev": "c7f11603effa88ddacabfd555993f322fca8b3fe",
+  "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be",
   "ecosystem_rev": "efe4ee4af6ac2e4c90aa525fae213b65c97295a9",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "eee18d1a577d5f965f6afbbd251798e065dced43",
