@@ -186,7 +186,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     required bool ignoreAs,
   }) {
     var search = expression;
-    // ignore: literal_only_boolean_expressions
     while (true) {
       if (ignoreParens && search is ParenthesizedExpression) {
         search = search.expression;

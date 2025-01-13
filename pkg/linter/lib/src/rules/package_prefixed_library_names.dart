@@ -38,7 +38,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  // ignore: prefer_expression_function_bodies
   void visitLibraryDirective(LibraryDirective node) {
     // Project info is not being set.
     //See: https://github.com/dart-lang/linter/issues/3395

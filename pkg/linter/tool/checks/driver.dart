@@ -9,9 +9,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
@@ -96,9 +96,10 @@ class Driver {
             try {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
-                var filtered = result.errors
-                    .where((e) => e.errorCode.name != 'TODO')
-                    .toList();
+                var filtered =
+                    result.errors
+                        .where((e) => e.errorCode.name != 'TODO')
+                        .toList();
                 if (filtered.isNotEmpty) {
                   errors.add(AnalysisErrorInfo(filtered, result.lineInfo));
                 }

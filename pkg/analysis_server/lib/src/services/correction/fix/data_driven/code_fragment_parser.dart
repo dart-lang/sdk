@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 // Several "report" functions intentionally return a `Null`-typed value.
-// ignore_for_file: prefer_void_to_null
 
 /// A parser for the textual representation of a code fragment.
 class CodeFragmentParser {

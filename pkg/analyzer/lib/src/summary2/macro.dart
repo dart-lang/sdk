@@ -133,7 +133,6 @@ class KernelBundleMacroExecutor extends BundleMacroExecutor {
 
   Uri get _kernelUri {
     return _kernelUriCached ??=
-        // ignore: avoid_dynamic_calls
         (Isolate.current as dynamic).createUriForKernelBlob(kernelBytes) as Uri;
   }
 
@@ -142,7 +141,6 @@ class KernelBundleMacroExecutor extends BundleMacroExecutor {
     support.executor.unregisterExecutorFactory(_executorFactoryToken);
     var kernelUriCached = _kernelUriCached;
     if (kernelUriCached != null) {
-      // ignore: avoid_dynamic_calls
       (Isolate.current as dynamic).unregisterKernelBlobUri(kernelUriCached);
       _kernelUriCached = null;
     }
