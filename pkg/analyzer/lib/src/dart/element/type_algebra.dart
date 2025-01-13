@@ -61,6 +61,55 @@ FreshTypeParameters getFreshTypeParameters(
   return FreshTypeParameters(freshParameters, substitution);
 }
 
+/// Generates a fresh copy of the given type parameters, with their bounds
+/// substituted to reference the new parameters.
+///
+/// The returned object contains the fresh type parameter list as well as a
+/// mapping to be used for replacing other types to use the new type parameters.
+FreshTypeParameters getFreshTypeParameters2(
+    List<TypeParameterElement2> typeParameters) {
+  var freshParameters = List<TypeParameterElementImpl2>.generate(
+    typeParameters.length,
+    (i) {
+      var name = typeParameters[i].name3;
+      var fragment = TypeParameterElementImpl(name ?? '', -1);
+      return TypeParameterElementImpl2(
+        firstFragment: fragment,
+        name3: name,
+        bound: null,
+      );
+    },
+    growable: false,
+  );
+
+  var map = <TypeParameterElement2, DartType>{};
+  for (int i = 0; i < typeParameters.length; ++i) {
+    map[typeParameters[i]] = TypeParameterTypeImpl.v2(
+      element: freshParameters[i],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  var substitution = Substitution.fromMap2(map);
+
+  for (int i = 0; i < typeParameters.length; ++i) {
+    // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
+    // variance is added to the interface.
+    var typeParameter = typeParameters[i] as TypeParameterElementImpl2;
+    if (!typeParameter.isLegacyCovariant) {
+      freshParameters[i].firstFragment.variance = typeParameter.variance;
+    }
+
+    var bound = typeParameter.bound;
+    if (bound != null) {
+      var newBound = substitution.substituteType(bound);
+      freshParameters[i].firstFragment.bound = newBound;
+    }
+  }
+
+  return FreshTypeParameters(freshParameters, substitution);
+}
+
 /// Given a generic function [type] of a class member (so that it does not
 /// carry its element and type arguments), substitute its type parameters with
 /// the [newTypeParameters] in the formal parameters and return type.
@@ -198,6 +247,16 @@ abstract class Substitution {
       return _NullSubstitution.instance;
     }
     return _MapSubstitution(map);
+  }
+
+  /// Substitutes each parameter to the type it maps to in [map].
+  static MapSubstitution fromMap2(Map<TypeParameterElement2, DartType> map) {
+    if (map.isEmpty) {
+      return _NullSubstitution.instance;
+    }
+    return _MapSubstitution(
+      map.map((key, value) => MapEntry(key.asElement, value)),
+    );
   }
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in

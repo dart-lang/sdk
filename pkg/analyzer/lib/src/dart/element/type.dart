@@ -1707,6 +1707,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     super.alias,
   });
 
+  /// Initialize a newly created type parameter type to be declared by the given
+  /// [element] and to have the given name.
+  factory TypeParameterTypeImpl.v2({
+    required TypeParameterElement2 element,
+    required NullabilitySuffix nullabilitySuffix,
+    DartType? promotedBound,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    return TypeParameterTypeImpl(
+      element: element.asElement,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+      alias: alias,
+    );
+  }
+
   @override
   DartType get bound =>
       promotedBound ?? element.bound ?? DynamicTypeImpl.instance;

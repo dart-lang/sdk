@@ -187,6 +187,25 @@ extension ExecutableElementExtensionQuestion on ExecutableElement? {
   }
 }
 
+extension FormalParameterElementExtension on FormalParameterElement {
+  /// Returns [FormalParameterElementImpl] with the specified properties
+  /// replaced.
+  FormalParameterElementImpl copyWith({
+    DartType? type,
+    ParameterKind? kind,
+    bool? isCovariant,
+  }) {
+    var firstFragment = this.firstFragment as ParameterElement;
+    return FormalParameterElementImpl(
+      firstFragment.copyWith(
+        type: type,
+        kind: kind,
+        isCovariant: isCovariant,
+      ),
+    );
+  }
+}
+
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
