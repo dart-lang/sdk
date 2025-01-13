@@ -29,7 +29,7 @@ DTD uses JSON-RPC for communication. Methods can be registered by calling the `r
     "service": "Editor",
     "method": "navigateToCode",
     "capabilities": {
-      "supportedSchemes": ["file", "dart-macro+file"],
+      "supportedSchemes": ["file", "dart-macro+file"]
     }
   },
   "id": "0"
@@ -50,7 +50,7 @@ combines the service and method name, for example `"Editor.navigateToCode"`.
   "params": {
     "file": "file:///path/to/file.dart",
     "line": 1,
-    "column": 2,
+    "column": 2
   },
   "id": "0"
 }
@@ -96,11 +96,11 @@ If an error occurs, there will be no `result` but instead an `error`.
         "params": {
           "file": "malformed-file:///file.dart",
           "line": 1,
-          "column": 2,
+          "column": 2
         }
       }
     }
-  }
+  },
   "id": "0"
 }
 ```

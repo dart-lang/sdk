@@ -127,8 +127,8 @@ named values in the arguments).
     "service": "Foo",
     "method": "bar",
     "capabilities": {
-      "supportsAdditionalFoo": true,
-    },
+      "supportsAdditionalFoo": true
+    }
   },
   "id": "2"
 }
@@ -149,8 +149,8 @@ registered and unregistered.
           "method": "bar",
           // Capabilities are included only if the client provided them
           "capabilities": {
-            "supportsAdditionalFoo": true,
-          },
+            "supportsAdditionalFoo": true
+          }
         }
     },
     "id": "2"
@@ -355,7 +355,7 @@ If the _method_ has already been registered on the _service_, the _132_
   "method": "registerService",
   "params": {
     "service": "Foo",
-    "method": "bar",
+    "method": "bar"
   },
   "id": "2"
 }
@@ -543,7 +543,7 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
     "jsonrpc": "2.0",
     "method": "FileSystem.readFileAsString",
     "params": {
-        "uri": "file:///path/to/file.txt",
+        "uri": "file:///path/to/file.txt"
     },
     "id": "2"
 }
@@ -556,7 +556,7 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
   "jsonrpc": "2.0",
   "result": {
     "type": "FileContent",
-    "content": "The contents\nof the file",
+    "content": "The contents\nof the file"
   },
   "id": "2"
 }
@@ -593,7 +593,7 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
     "method": "FileSystem.writeFileAsString",
     "params": {
         "uri": "file:///path/to/file.txt",
-        "contents": "Some contents to write",
+        "contents": "Some contents to write"
     },
     "id": "2"
 }
@@ -637,7 +637,7 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
     "jsonrpc": "2.0",
     "method": "FileSystem.listDirectoryContents",
     "params": {
-        "uri": "file:///path/to/dir/",
+        "uri": "file:///path/to/dir/"
     },
     "id": "2"
 }
@@ -652,8 +652,8 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
     "type": "UriList",
     "uris": [
       "file:///path/to/dir/a.txt",
-      "file:///path/to/dir/b/",
-    ],
+      "file:///path/to/dir/b/"
+    ]
   },
   "id": "2"
 }
@@ -706,8 +706,8 @@ If one of the _roots_ is missing a 'file' scheme, the 143 (File scheme expected 
         "secret": "aBVsK8nRfdJsDEnS",
         "roots": [
           "file:///path/to/dir/a/",
-          "file:///path/to/dir/b/",
-        ],
+          "file:///path/to/dir/b/"
+        ]
     },
     "id": "2"
 }
@@ -754,10 +754,10 @@ If successful, responds with [_IDEWorkspaceRoots_](#ideworkspaceroots).
   "jsonrpc": "2.0",
   "result": {
     "type": "IDEWorkspaceRoots",
-    "ideWorkspaceRoots":: [
+    "ideWorkspaceRoots": [
       "file:///path/to/dir/a/",
-      "file:///path/to/dir/b/",
-    ],
+      "file:///path/to/dir/b/"
+    ]
   },
   "id": "2"
 }
@@ -799,8 +799,8 @@ If successful, responds with [_UriList_](#urilist).
     "type": "UriList",
     "uris": [
       "file:///path/to/dir/a/",
-      "file:///path/to/dir/b/",
-    ],
+      "file:///path/to/dir/b/"
+    ]
   },
   "id": "2"
 }
@@ -826,8 +826,8 @@ Used by `FileSystem.listDirectoryContents`, and `FileSystem.getProjectRoots`.
   "type": "UriList",
   "uris": [
     "file:///path/to/file.txt",
-    "file:///path/to/dir/",
-  ],
+    "file:///path/to/dir/"
+  ]
 }
 ```
 
@@ -840,7 +840,7 @@ Used by `FileSystem.readFileAsString`
 ```json
 {
   "type": "FileContent",
-  "content": "The contents of a file.",
+  "content": "The contents of a file."
 }
 ```
 
@@ -857,8 +857,8 @@ Used by `FileSystem.getIDEWorkspaceRoots`
   "type": "IDEWorkspaceRoots",
   "ideWorkSpaceRoots": [
     "file:///path/to/root/A/",
-    "file:///path/to/root/B/",
-  ],
+    "file:///path/to/root/B/"
+  ]
 }
 ```
 
