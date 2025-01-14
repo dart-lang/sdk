@@ -4631,7 +4631,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   List<TypeParameterElement2> get typeParameters2 => const [];
 
   @override
-  DartType get typeShared => type;
+  TypeImpl get typeShared => type;
 
   @override
   Element? get _enclosingFunction => wrappedElement._enclosingElement3;
@@ -4676,7 +4676,7 @@ mixin FormalParameterElementMixin implements FormalParameterElement {
 abstract class FormalParameterElementOrMember
     implements
         FormalParameterElement,
-        SharedNamedFunctionParameterStructure<DartType> {}
+        SharedNamedFunctionParameterStructure<TypeImpl> {}
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
@@ -11317,7 +11317,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements TypeParameterElement2, SharedTypeParameterStructure<DartType> {
+    implements TypeParameterElement2, SharedTypeParameterStructure<TypeImpl> {
   @override
   final TypeParameterElementImpl firstFragment;
 
@@ -11343,7 +11343,9 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterElement2 get baseElement => this;
 
   @override
-  DartType? get boundShared => bound;
+  TypeImpl? get boundShared =>
+      // TODO(paulberry): get rid of this cast by changing the type of `bound`.
+      bound as TypeImpl?;
 
   @override
   List<TypeParameterElementImpl> get fragments {

@@ -35,7 +35,7 @@ List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
 
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl
-    implements DynamicType, SharedDynamicTypeStructure<DartType> {
+    implements DynamicType, SharedDynamicTypeStructure<TypeImpl> {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -90,7 +90,7 @@ class DynamicTypeImpl extends TypeImpl
 class FunctionTypeImpl extends TypeImpl
     implements
         FunctionType,
-        SharedFunctionTypeStructure<DartType, TypeParameterElementImpl2,
+        SharedFunctionTypeStructure<TypeImpl, TypeParameterElementImpl2,
             FormalParameterElementOrMember> {
   @override
   late int hashCode = _computeHashCode();
@@ -108,7 +108,7 @@ class FunctionTypeImpl extends TypeImpl
   final NullabilitySuffix nullabilitySuffix;
 
   @override
-  final List<DartType> positionalParameterTypes;
+  final List<TypeImpl> positionalParameterTypes;
 
   @override
   final int requiredPositionalParameterCount;
@@ -125,7 +125,7 @@ class FunctionTypeImpl extends TypeImpl
   }) {
     int? firstNamedParameterIndex;
     var requiredPositionalParameterCount = 0;
-    var positionalParameterTypes = <DartType>[];
+    var positionalParameterTypes = <TypeImpl>[];
     List<ParameterElement> sortedNamedParameters;
 
     // Check if already sorted.
@@ -142,7 +142,9 @@ class FunctionTypeImpl extends TypeImpl
         }
         lastNamedParameterName = name;
       } else {
-        positionalParameterTypes.add(parameter.type);
+        // TODO(paulberry): get rid of this cast by changing the type of
+        // `parameters` to `List<ParameterElementMixin>`.
+        positionalParameterTypes.add(parameter.type as TypeImpl);
         if (parameter.isRequiredPositional) {
           requiredPositionalParameterCount++;
         }
@@ -232,10 +234,10 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
-  List<DartType> get positionalParameterTypesShared => positionalParameterTypes;
+  List<TypeImpl> get positionalParameterTypesShared => positionalParameterTypes;
 
   @override
-  DartType get returnTypeShared => returnType;
+  TypeImpl get returnTypeShared => returnType;
 
   @override
   // TODO(paulberry): see if this type can be changed to
@@ -1207,7 +1209,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 class InvalidTypeImpl extends TypeImpl
-    implements InvalidType, SharedInvalidTypeStructure<DartType> {
+    implements InvalidType, SharedInvalidTypeStructure<TypeImpl> {
   /// The unique instance of this class.
   static final InvalidTypeImpl instance = InvalidTypeImpl._();
 
@@ -1332,7 +1334,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// A concrete implementation of [DartType] representing the type `Null`, with
 /// no type parameters and no nullability suffix.
 class NullTypeImpl extends InterfaceTypeImpl
-    implements SharedNullTypeStructure<DartType> {
+    implements SharedNullTypeStructure<TypeImpl> {
   NullTypeImpl({
     required super.element3,
     super.alias,
@@ -1358,7 +1360,7 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
 }
 
 class RecordTypeImpl extends TypeImpl
-    implements RecordType, SharedRecordTypeStructure<DartType> {
+    implements RecordType, SharedRecordTypeStructure<TypeImpl> {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1369,7 +1371,7 @@ class RecordTypeImpl extends TypeImpl
   final NullabilitySuffix nullabilitySuffix;
 
   @override
-  late final List<DartType> positionalTypes = [
+  late final List<TypeImpl> positionalTypes = [
     for (var field in positionalFields) field.type
   ];
 
@@ -1418,13 +1420,13 @@ class RecordTypeImpl extends TypeImpl
   List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<DartType> get positionalTypesShared => positionalTypes;
+  List<TypeImpl> get positionalTypesShared => positionalTypes;
 
   @override
   List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypesShared =>
+  List<SharedNamedTypeStructure<TypeImpl>> get sortedNamedTypesShared =>
       sortedNamedTypes;
 
   @override
@@ -1525,7 +1527,7 @@ class RecordTypeImpl extends TypeImpl
 }
 
 class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
-    implements RecordTypeNamedField, SharedNamedTypeStructure<DartType> {
+    implements RecordTypeNamedField, SharedNamedTypeStructure<TypeImpl> {
   @override
   final String name;
 
@@ -1538,7 +1540,7 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
   String get nameShared => name;
 
   @override
-  DartType get typeShared => type;
+  TypeImpl get typeShared => type;
 }
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
@@ -1846,7 +1848,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
 /// A concrete implementation of a [VoidType].
 class VoidTypeImpl extends TypeImpl
-    implements VoidType, SharedVoidTypeStructure<DartType> {
+    implements VoidType, SharedVoidTypeStructure<TypeImpl> {
   /// The unique instance of this class, with indeterminate nullability.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 
