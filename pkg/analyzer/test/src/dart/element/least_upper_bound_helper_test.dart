@@ -4,7 +4,6 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
@@ -157,13 +156,10 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    ClassElement classA = class_(name: "A");
-    ClassElement classB =
-        class_(name: "B", superType: interfaceTypeNone(classA));
-    ClassElement classC =
-        class_(name: "C", superType: interfaceTypeNone(classA));
-    ClassElement classD =
-        class_(name: "D", superType: interfaceTypeNone(classC));
+    var classA = class_(name: "A");
+    var classB = class_(name: "B", superType: interfaceTypeNone(classA));
+    var classC = class_(name: "C", superType: interfaceTypeNone(classA));
+    var classD = class_(name: "D", superType: interfaceTypeNone(classC));
     ClassElementImpl classE =
         class_(name: "E", superType: interfaceTypeNone(classB));
     classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
@@ -225,11 +221,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    ClassElement classA = class_(name: "A");
-    ClassElement classB =
-        class_(name: "B", superType: interfaceTypeNone(classA));
-    ClassElement classC =
-        class_(name: "C", superType: interfaceTypeNone(classB));
+    var classA = class_(name: "A");
+    var classB = class_(name: "B", superType: interfaceTypeNone(classA));
+    var classC = class_(name: "C", superType: interfaceTypeNone(classB));
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -355,7 +349,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     expect(_toElement(M), 4);
   }
 
-  int _toElement(InterfaceElement element) {
+  int _toElement(InterfaceElementImpl element) {
     var type = interfaceTypeNone(element);
     return _toType(type);
   }

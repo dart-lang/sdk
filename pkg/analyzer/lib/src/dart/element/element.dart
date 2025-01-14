@@ -10959,7 +10959,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType instantiate({
+  TypeImpl instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
