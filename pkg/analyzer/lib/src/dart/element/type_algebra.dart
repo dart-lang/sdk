@@ -70,15 +70,7 @@ FreshTypeParameters getFreshTypeParameters2(
     List<TypeParameterElement2> typeParameters) {
   var freshParameters = List<TypeParameterElementImpl2>.generate(
     typeParameters.length,
-    (i) {
-      var name = typeParameters[i].name3;
-      var fragment = TypeParameterElementImpl(name ?? '', -1);
-      return TypeParameterElementImpl2(
-        firstFragment: fragment,
-        name3: name,
-        bound: null,
-      );
-    },
+    (i) => typeParameters[i].freshCopy(),
     growable: false,
   );
 

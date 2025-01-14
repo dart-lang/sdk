@@ -570,11 +570,13 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
   }
 
   TypeParameterElementImpl2 freshCopy() {
+    var fragment = TypeParameterElementImpl(
+      name3 ?? '',
+      -1,
+    );
+    fragment.bound = bound;
     return TypeParameterElementImpl2(
-      firstFragment: TypeParameterElementImpl(
-        name3 ?? '',
-        -1,
-      ),
+      firstFragment: fragment,
       name3: name3,
       bound: bound,
     );

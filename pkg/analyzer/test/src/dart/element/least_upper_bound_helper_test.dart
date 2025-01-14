@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/type_system_base.dart';
 
 main() {
@@ -135,6 +136,10 @@ class PathToObjectTest extends AbstractTypeSystemTest {
       interfaceTypeNone(classB),
       interfaceTypeNone(classD)
     ];
+    classB.updateElement();
+    classC.updateElement();
+    classD.updateElement();
+    classE.updateElement();
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -163,6 +168,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     ClassElementImpl classE =
         class_(name: "E", superType: interfaceTypeNone(classB));
     classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
+    classE.updateElement();
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -202,8 +208,10 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     ClassElementImpl classA = class_(name: "A");
     ClassElementImpl classB = class_(name: "B");
     ClassElementImpl classC = class_(name: "C");
-    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
-    classC.interfaces = <InterfaceType>[interfaceTypeNone(classB)];
+    classB.interfaces = [interfaceTypeNone(classA)];
+    classC.interfaces = [interfaceTypeNone(classB)];
+    classB.updateElement();
+    classC.updateElement();
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);

@@ -676,6 +676,11 @@ extension ClassElementImplExtension on ClassElementImpl {
       ];
     }
   }
+
+  void updateElement() {
+    element.interfaces = interfaces;
+    element.mixins = mixins;
+  }
 }
 
 extension MixinElementImplExtension on MixinElementImpl {
