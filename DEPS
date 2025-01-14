@@ -152,7 +152,7 @@ vars = {
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "52677db71a2c6b6d0018ebbe5ed7552dbae1248f",
   "test_rev": "f364fc8291d668d85c702a5b9f9a4f2e5c1ade0e",
-  "tools_rev": "b412ba4550bb634caf3c1064b7ebb671cd5e9247",
+  "tools_rev": "3bdef2043af9244b804adc08896bf96d51bb49ba",
   "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
   "watcher_rev": "7f3b3a3ea49ba7e21fff240ce8ee616d62d32956",
   "web_rev": "af5de5e8548060c0795713ee7129ba6d5ff9f1b2",
