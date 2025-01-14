@@ -9813,7 +9813,6 @@ class BodyBuilder extends StackListenerImpl
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, question.charOffset, question.charCount);
-    // ignore: unused_local_variable
     Pattern operand = toPattern(pop());
     push(forest.createNullCheckPattern(question.charOffset, operand));
   }

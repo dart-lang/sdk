@@ -9959,7 +9959,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     List<DartType> positionalTypes;
-    // ignore: UNUSED_LOCAL_VARIABLE
     List<NamedType> namedTypes;
 
     if (namedElements == null) {

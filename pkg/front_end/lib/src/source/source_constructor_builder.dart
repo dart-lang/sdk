@@ -509,7 +509,6 @@ class DeclaredSourceConstructorBuilder
       _constructorTearOff ??
       // The case is need to ensure that the upper bound is [Member] and not
       // [GenericFunction].
-      // ignore: unnecessary_cast
       _constructor as Member;
 
   @override
