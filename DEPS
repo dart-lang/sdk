@@ -142,15 +142,9 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "native_rev": "14368a80bae9e3f381a2e59c91405338d82451ee", # disable tools/rev_sdk_deps.dart
-  "package_config_rev": "07097d7ae60d40b34ce8daabdce318ecc168b7d1",
-  "pool_rev": "bf27900420ba382b6e5c0484ab3c79daad703dcd",
   "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
   "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
-  "pub_semver_rev": "960f91309e325ae037e5f1434acb77b83a12d91e",
   "shelf_rev": "bf799519cda2898a7c5af06dcfdd5fe6443afd79",
-  "source_maps_rev": "e5e9d343302acf7df2145316ae4e56026c550989",
-  "source_span_rev": "e6a34591b7f7880c7ca0fcb95b858ccf7f8be304",
-  "sse_rev": "b573a1e9a61f5f3e2198becfa3f4f2e8decd1e90",
   "stack_trace_rev": "5fe4cfea7f0d8e67b7d5738d2e1c64a18b5ba450",
   "stream_channel_rev": "31a3aba8a78a78b266fbf7474f19cd4ba9ca562e",
   "string_scanner_rev": "69212690d491603a511904a7a84cd502f34bf7a9",
@@ -158,8 +152,6 @@ vars = {
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "52677db71a2c6b6d0018ebbe5ed7552dbae1248f",
   "test_rev": "f364fc8291d668d85c702a5b9f9a4f2e5c1ade0e",
-  "test_descriptor_rev": "92fa0c551267b38e4b27c9f74976ae4cd96d8b1e",
-  "test_reflective_loader_rev": "9e35c9e00b8b6299e9295c0f29617af39276717d",
   "tools_rev": "b412ba4550bb634caf3c1064b7ebb671cd5e9247",
   "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
   "watcher_rev": "7f3b3a3ea49ba7e21fff240ce8ee616d62d32956",
@@ -382,25 +374,12 @@ deps = {
   },
   Var("dart_root") + "/third_party/pkg/native":
       Var("dart_git") + "native.git" + "@" + Var("native_rev"),
-  Var("dart_root") + "/third_party/pkg/package_config":
-      Var("dart_git") + "package_config.git" +
-      "@" + Var("package_config_rev"),
-  Var("dart_root") + "/third_party/pkg/pool":
-      Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
-  Var("dart_root") + "/third_party/pkg/pub_semver":
-      Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
-  Var("dart_root") + "/third_party/pkg/source_maps":
-      Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_rev"),
-  Var("dart_root") + "/third_party/pkg/source_span":
-      Var("dart_git") + "source_span.git" + "@" + Var("source_span_rev"),
-  Var("dart_root") + "/third_party/pkg/sse":
-      Var("dart_git") + "sse.git" + "@" + Var("sse_rev"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_rev"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
@@ -418,11 +397,6 @@ deps = {
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_rev"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_rev"),
-  Var("dart_root") + "/third_party/pkg/test_descriptor":
-      Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_rev"),
-  Var("dart_root") + "/third_party/pkg/test_reflective_loader":
-      Var("dart_git") + "test_reflective_loader.git" +
-      "@" + Var("test_reflective_loader_rev"),
   Var("dart_root") + "/third_party/pkg/tools":
       Var("dart_git") + "tools.git" + "@" + Var("tools_rev"),
   Var("dart_root") + "/third_party/pkg/vector_math":
