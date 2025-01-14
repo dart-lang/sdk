@@ -52,6 +52,19 @@ ClassElement f() {
 ''', []);
   }
 
+  test_interfaceTypeImpl_element() async {
+    await assertDiagnostics(
+      r'''
+import 'package:analyzer/src/dart/element/type.dart';
+
+void f(InterfaceTypeImpl type) {
+  type.element;
+}
+''',
+      [lint(95, 7)],
+    );
+  }
+
   test_methodInvocation_hasFormalParameter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:analyzer/dart/element/element.dart';

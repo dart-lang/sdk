@@ -207,14 +207,9 @@ class FunctionTypeImpl extends TypeImpl
   Null get element3 => null;
 
   @override
-  List<FormalParameterElement> get formalParameters => parameters
-      .map((parameter) => switch (parameter) {
-            FormalParameterFragment(:var element) => element,
-            ParameterMember(:var element) => element,
-            _ => throw UnsupportedError(
-                'Unsupported type ${parameter.runtimeType}'),
-          })
-      .toList();
+  List<FormalParameterElement> get formalParameters {
+    return parameters.map((p) => p.asElement2).toList(growable: false);
+  }
 
   @Deprecated('Check element, or use getDisplayString()')
   @override

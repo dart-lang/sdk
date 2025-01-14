@@ -26,34 +26,41 @@ bool _isOldModelElement(Element2? element) {
 
   var uriStr = libraryFragment.source.uri.toString();
 
-  if (element is InstanceElement2) {
-    if (uriStr == 'package:analyzer/dart/element/element.dart') {
-      // Skip classes that don't required migration.
-      if (const {
-        'DirectiveUri',
-        'DirectiveUriWithLibrary',
-        'DirectiveUriWithRelativeUri',
-        'DirectiveUriWithRelativeUriString',
-        'DirectiveUriWithSource',
-        'DirectiveUriWithUnit',
-        'ElementAnnotation',
-        'ElementKind',
-        'ElementLocation',
-        'HideElementCombinator',
-        'LibraryLanguageVersion',
-        'NamespaceCombinator',
-        'ShowElementCombinator',
-      }.contains(firstFragment.name2)) {
-        return false;
+  switch (element) {
+    case InstanceElement2():
+      if (uriStr == 'package:analyzer/dart/element/element.dart') {
+        // Skip classes that don't required migration.
+        if (const {
+          'DirectiveUri',
+          'DirectiveUriWithLibrary',
+          'DirectiveUriWithRelativeUri',
+          'DirectiveUriWithRelativeUriString',
+          'DirectiveUriWithSource',
+          'DirectiveUriWithUnit',
+          'ElementAnnotation',
+          'ElementKind',
+          'ElementLocation',
+          'HideElementCombinator',
+          'LibraryLanguageVersion',
+          'NamespaceCombinator',
+          'ShowElementCombinator',
+        }.contains(firstFragment.name2)) {
+          return false;
+        }
+        return true;
       }
-      return true;
-    }
-  }
-
-  if (element is GetterElement) {
-    if (uriStr == 'package:analyzer/src/dart/ast/ast.dart') {
-      return element.name3 == 'declaredElement';
-    }
+    case GetterElement():
+      switch (uriStr) {
+        case 'package:analyzer/src/dart/ast/ast.dart':
+          return element.name3 == 'declaredElement';
+        case 'package:analyzer/src/dart/element/type.dart':
+          var enclosingElement = element.enclosingElement2;
+          if (enclosingElement is InterfaceElement2) {
+            if (enclosingElement.thisType.implementsDartType) {
+              return element.name3 == 'element';
+            }
+          }
+      }
   }
   return false;
 }
@@ -148,4 +155,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
     }
   }
+}
+
+extension on InterfaceType {
+  bool get implementsDartType => allSupertypes.any((t) => t.isDartType);
+
+  bool get isDartType =>
+      element3.library2.uri.toString() ==
+          'package:analyzer/dart/element/type.dart' &&
+      element3.name3 == 'DartType';
 }

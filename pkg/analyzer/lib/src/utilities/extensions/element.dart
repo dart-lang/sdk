@@ -550,6 +550,17 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;
   }
+
+  TypeParameterElementImpl2 freshCopy() {
+    return TypeParameterElementImpl2(
+      firstFragment: TypeParameterElementImpl(
+        name3 ?? '',
+        -1,
+      ),
+      name3: name3,
+      bound: bound,
+    );
+  }
 }
 
 extension TypeParameterElementExtension on TypeParameterElement {

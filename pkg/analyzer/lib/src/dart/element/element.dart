@@ -11367,7 +11367,8 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return firstFragment.instantiate(
+    return TypeParameterTypeImpl.v2(
+      element: this,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

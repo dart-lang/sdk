@@ -39,6 +39,7 @@ import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 class ExtensionTypeErasure extends ReplacementVisitor {
@@ -73,6 +74,19 @@ class RelatedTypeParameters {
   final List<TypeParameterType> typeParameterTypes;
 
   RelatedTypeParameters._(
+    this.typeParameters,
+    this.typeParameterTypes,
+  );
+}
+
+/// Fresh type parameters created to unify two lists of type parameters.
+class RelatedTypeParameters2 {
+  static final _empty = RelatedTypeParameters2._(const [], const []);
+
+  final List<TypeParameterElement2> typeParameters;
+  final List<TypeParameterType> typeParameterTypes;
+
+  RelatedTypeParameters2._(
     this.typeParameters,
     this.typeParameterTypes,
   );
@@ -1617,6 +1631,67 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return RelatedTypeParameters._(
+      freshTypeParameters,
+      freshTypeParameterTypes,
+    );
+  }
+
+  /// Given two lists of type parameters, check that they have the same
+  /// number of elements, and their bounds are equal.
+  ///
+  /// The return value will be a new list of fresh type parameters, that can
+  /// be used to instantiate both function types, allowing further comparison.
+  RelatedTypeParameters2? relateTypeParameters2(
+    List<TypeParameterElement2> typeParameters1,
+    List<TypeParameterElement2> typeParameters2,
+  ) {
+    if (typeParameters1.length != typeParameters2.length) {
+      return null;
+    }
+    if (typeParameters1.isEmpty) {
+      return RelatedTypeParameters2._empty;
+    }
+
+    var length = typeParameters1.length;
+    var freshTypeParameters = List.generate(length, (index) {
+      return typeParameters1[index].freshCopy();
+    }, growable: false);
+
+    var freshTypeParameterTypes = List.generate(length, (index) {
+      return freshTypeParameters[index].instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }, growable: false);
+
+    var substitution1 = Substitution.fromPairs2(
+      typeParameters1,
+      freshTypeParameterTypes,
+    );
+    var substitution2 = Substitution.fromPairs2(
+      typeParameters2,
+      freshTypeParameterTypes,
+    );
+
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var bound1 = typeParameters1[i].bound;
+      var bound2 = typeParameters2[i].bound;
+      if (bound1 == null && bound2 == null) {
+        continue;
+      }
+      bound1 ??= DynamicTypeImpl.instance;
+      bound2 ??= DynamicTypeImpl.instance;
+      bound1 = substitution1.substituteType(bound1);
+      bound2 = substitution2.substituteType(bound2);
+      if (!isEqualTo(bound1, bound2)) {
+        return null;
+      }
+
+      if (bound1 is! DynamicType) {
+        freshTypeParameters[i].bound = bound1;
+      }
+    }
+
+    return RelatedTypeParameters2._(
       freshTypeParameters,
       freshTypeParameterTypes,
     );
