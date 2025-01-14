@@ -6091,14 +6091,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// of this class have been inferred.
   bool hasBeenInferred = false;
 
-  /// The non-nullable instance of this element, without alias.
-  /// Should be used only when the element has no type parameters.
-  InterfaceTypeImpl? _nonNullableInstance;
-
-  /// The nullable instance of this element, without alias.
-  /// Should be used only when the element has no type parameters.
-  InterfaceTypeImpl? _nullableInstance;
-
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -6275,43 +6267,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    assert(typeArguments.length == typeParameters.length);
-
-    if (typeArguments.isEmpty) {
-      switch (nullabilitySuffix) {
-        case NullabilitySuffix.none:
-          if (_nonNullableInstance case var instance?) {
-            return instance;
-          }
-        case NullabilitySuffix.question:
-          if (_nullableInstance case var instance?) {
-            return instance;
-          }
-        case NullabilitySuffix.star:
-          // TODO(scheglov): remove together with `star`
-          break;
-      }
-    }
-
-    var result = InterfaceTypeImpl(
-      element: this,
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-
-    if (typeArguments.isEmpty) {
-      switch (nullabilitySuffix) {
-        case NullabilitySuffix.none:
-          _nonNullableInstance = result;
-        case NullabilitySuffix.question:
-          _nullableInstance = result;
-        case NullabilitySuffix.star:
-          // TODO(scheglov): remove together with `star`
-          break;
-      }
-    }
-
-    return result;
   }
 
   @override
@@ -6535,6 +6494,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 abstract class InterfaceElementImpl2 extends InstanceElementImpl2
     with _HasSinceSdkVersionMixin
     implements AugmentedInterfaceElement, InterfaceElement2 {
+  /// The non-nullable instance of this element, without alias.
+  /// Should be used only when the element has no type parameters.
+  InterfaceTypeImpl? _nonNullableInstance;
+
+  /// The nullable instance of this element, without alias.
+  /// Should be used only when the element has no type parameters.
+  InterfaceTypeImpl? _nullableInstance;
+
   @override
   List<InterfaceType> interfaces = [];
 
@@ -6633,12 +6600,48 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
-  InterfaceType instantiate({
+  InterfaceTypeImpl instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
-  }) =>
-      firstFragment.instantiate(
-          typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+  }) {
+    assert(typeArguments.length == typeParameters2.length);
+
+    if (typeArguments.isEmpty) {
+      switch (nullabilitySuffix) {
+        case NullabilitySuffix.none:
+          if (_nonNullableInstance case var instance?) {
+            return instance;
+          }
+        case NullabilitySuffix.question:
+          if (_nullableInstance case var instance?) {
+            return instance;
+          }
+        case NullabilitySuffix.star:
+          // TODO(scheglov): remove together with `star`
+          break;
+      }
+    }
+
+    var result = InterfaceTypeImpl.v2(
+      element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+
+    if (typeArguments.isEmpty) {
+      switch (nullabilitySuffix) {
+        case NullabilitySuffix.none:
+          _nonNullableInstance = result;
+        case NullabilitySuffix.question:
+          _nullableInstance = result;
+        case NullabilitySuffix.star:
+          // TODO(scheglov): remove together with `star`
+          break;
+      }
+    }
+
+    return result;
+  }
 
   @override
   MethodElement2? lookUpConcreteMethod(

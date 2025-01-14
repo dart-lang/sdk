@@ -526,12 +526,12 @@ class FunctionTypeImpl extends TypeImpl
 /// A concrete implementation of [DartType] representing types of the form
 /// `FutureOr<...>`.
 class FutureOrTypeImpl extends InterfaceTypeImpl {
-  FutureOrTypeImpl(
-      {required super.element,
-      required super.typeArgument,
-      required super.nullabilitySuffix,
-      super.alias})
-      : super._futureOr();
+  FutureOrTypeImpl({
+    required super.element3,
+    required super.typeArgument,
+    required super.nullabilitySuffix,
+    super.alias,
+  }) : super._futureOr();
 
   @override
   bool get isDartAsyncFutureOr => true;
@@ -543,7 +543,7 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
     return FutureOrTypeImpl(
-      element: element,
+      element3: element3,
       typeArgument: typeArgument,
       nullabilitySuffix: nullabilitySuffix,
       alias: alias,
@@ -570,7 +570,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
 /// A concrete implementation of an [InterfaceType].
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
-  final InterfaceElementImpl element;
+  final InterfaceElementImpl2 element3;
 
   @override
   final List<DartType> typeArguments;
@@ -587,30 +587,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// Cached [MethodElement]s - members or raw elements.
   List<MethodElement>? _methods;
 
-  factory InterfaceTypeImpl(
-      {required InterfaceElement element,
-      required List<DartType> typeArguments,
-      required NullabilitySuffix nullabilitySuffix,
-      InstantiatedTypeAliasElement? alias}) {
+  factory InterfaceTypeImpl({
+    required InterfaceElement element,
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
     // TODO(paulberry): avoid this cast by changing the type of `element`
     element as InterfaceElementImpl;
-    if (element.name == 'FutureOr' && element.library.isDartAsync) {
-      return FutureOrTypeImpl(
-          element: element,
-          typeArgument: typeArguments.isNotEmpty
-              ? typeArguments[0]
-              : InvalidTypeImpl.instance,
-          nullabilitySuffix: nullabilitySuffix,
-          alias: alias);
-    } else if (element.name == 'Null' && element.library.isDartCore) {
-      return NullTypeImpl(element: element, alias: alias);
-    } else {
-      return InterfaceTypeImpl._(
-          element: element,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-          alias: alias);
-    }
+    return InterfaceTypeImpl.v2(
+      element: element.asElement2,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   factory InterfaceTypeImpl.v2({
@@ -619,51 +609,53 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
   }) {
-    return InterfaceTypeImpl(
-      element: element.asElement,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-      alias: alias,
-    );
+    if (element.name3 == 'FutureOr' && element.library2.isDartAsync) {
+      return FutureOrTypeImpl(
+        element3: element,
+        typeArgument: typeArguments.isNotEmpty
+            ? typeArguments[0]
+            : InvalidTypeImpl.instance,
+        nullabilitySuffix: nullabilitySuffix,
+        alias: alias,
+      );
+    } else if (element.name3 == 'Null' && element.library2.isDartCore) {
+      return NullTypeImpl(
+        element3: element,
+        alias: alias,
+      );
+    } else {
+      return InterfaceTypeImpl._(
+        element3: element,
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+        alias: alias,
+      );
+    }
   }
 
   InterfaceTypeImpl._({
-    required this.element,
+    required this.element3,
     required this.typeArguments,
     required this.nullabilitySuffix,
     required super.alias,
-  }) {
-    if (element.augmentationTarget != null) {
-      throw ArgumentError(
-        'InterfaceType(s) can only be created for declarations',
-      );
-    }
-    var typeParameters = element.typeParameters;
-    if (typeArguments.length != typeParameters.length) {
-      throw ArgumentError(
-        '[typeParameters.length: ${typeParameters.length}]'
-        '[typeArguments.length: ${typeArguments.length}]'
-        '[element: $element]'
-        '[typeParameters: $typeParameters]'
-        '[typeArguments: $typeArguments]',
-      );
-    }
-  }
+  });
 
-  InterfaceTypeImpl._futureOr(
-      {required this.element,
-      required DartType typeArgument,
-      required this.nullabilitySuffix,
-      super.alias})
-      : typeArguments = [typeArgument] {
-    assert(element.name == 'FutureOr' && element.library.isDartAsync);
+  InterfaceTypeImpl._futureOr({
+    required this.element3,
+    required DartType typeArgument,
+    required this.nullabilitySuffix,
+    super.alias,
+  }) : typeArguments = [typeArgument] {
+    assert(element3.name3 == 'FutureOr' && element3.library2.isDartAsync);
     assert(this is FutureOrTypeImpl);
   }
 
-  InterfaceTypeImpl._null({required this.element, super.alias})
-      : typeArguments = const [],
+  InterfaceTypeImpl._null({
+    required this.element3,
+    super.alias,
+  })  : typeArguments = const [],
         nullabilitySuffix = NullabilitySuffix.none {
-    assert(element.name == 'Null' && element.library.isDartCore);
+    assert(element3.name3 == 'Null' && element3.library2.isDartCore);
     assert(this is NullTypeImpl);
   }
 
@@ -708,7 +700,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceElementImpl2 get element3 => element.element;
+  InterfaceElementImpl get element => element3.asElement;
 
   @override
   List<GetterElement> get getters => accessors
@@ -1341,7 +1333,10 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// no type parameters and no nullability suffix.
 class NullTypeImpl extends InterfaceTypeImpl
     implements SharedNullTypeStructure<DartType> {
-  NullTypeImpl({required super.element, super.alias}) : super._null();
+  NullTypeImpl({
+    required super.element3,
+    super.alias,
+  }) : super._null();
 
   @override
   bool get isDartCoreNull => true;

@@ -272,6 +272,12 @@ extension EnumElementExtension on EnumElement {
   }
 }
 
+extension EnumElementImplExtension on EnumElementImpl {
+  EnumElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ExecutableElement2Extension on ExecutableElement2 {
   ExecutableElement get asElement {
     if (this case ExecutableMember member) {
@@ -377,6 +383,18 @@ extension InterfaceElement2Extension on InterfaceElement2 {
 extension InterfaceElementExtension on InterfaceElement {
   InterfaceElement2 get asElement2 {
     return (this as InterfaceElementImpl).element;
+  }
+}
+
+extension InterfaceElementImpl2Extension on InterfaceElementImpl2 {
+  InterfaceElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension InterfaceElementImplExtension on InterfaceElementImpl {
+  InterfaceElementImpl2 get asElement2 {
+    return element;
   }
 }
 
