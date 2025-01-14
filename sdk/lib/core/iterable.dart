@@ -127,6 +127,23 @@ abstract mixin class Iterable<E> {
     return _GeneratorIterable<E>(count, generator);
   }
 
+  /// Creates an [Iterable] from an [Iterator] factory function.
+  ///
+  /// The returned iterable creates a new iterator each time [iterator] is accessed,
+  /// by calling the provided [iteratorFactory] function. The [iteratorFactory]
+  /// function must return a new instance of [Iterator<E>] on each call.
+  ///
+  /// Example:
+  /// ```dart
+  /// final numbers = Iterable.fromIteratorFactory(() => [1, 2, 3].iterator);
+  /// print(numbers.toList()); // [1, 2, 3]
+  /// ```
+  ///
+  /// This is useful when you need to create an iterable from a custom iterator,
+  /// or when you want to ensure a fresh iteration state on each use.
+  factory Iterable.fromIteratorFactory(Iterator<E> Function() iteratorFactory) =
+      _FromIteratorIterable<E>;
+
   /// Creates an empty iterable.
   ///
   /// The empty iterable has no elements, and iterating it always stops
@@ -913,6 +930,21 @@ class _GeneratorIterable<E> extends ListIterable<E> {
 
   /// Helper function used as default _generator function.
   static int _id(int n) => n;
+}
+
+class _FromIteratorIterable<E> extends Iterable<E> {
+  final Iterator<E> Function() _iteratorFactory;
+
+  /// Creates an iterable that gets its elements from iterators created by
+  /// the provided factory function.
+  _FromIteratorIterable(Iterator<E> Function() iteratorFactory)
+      : _iteratorFactory = iteratorFactory;
+
+  @override
+  Iterator<E> get iterator => _iteratorFactory();
+
+  @override
+  String toString() => Iterable.iterableToShortString(this, '(', ')');
 }
 
 /// Convert elements of [iterable] to strings and store them in [parts].
