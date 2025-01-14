@@ -119,9 +119,6 @@ group("runtime_precompiled") {
 
 group("create_sdk") {
   public_deps = [ "sdk:create_sdk" ]
-  if (is_linux) {
-    public_deps += [ "tools/debian_package" ]
-  }
 }
 
 group("create_platform_sdk") {
