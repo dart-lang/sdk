@@ -139,7 +139,7 @@ def generate_dart(dartfuzz_cmd, dart_test, smask, mask, do_expr):
         p = subprocess.Popen(cmds, stdout=subprocess.PIPE)
     p_stdout, p_stderr = p.communicate()
     if p.returncode != 0:
-        raise 'Invalid return code on generate %d' % p.returncode
+        raise RuntimeError('Invalid return code on generate %d' % p.returncode)
     mask_new = 0
     if do_expr:
         mask_new = int(p_stdout.decode().splitlines()[EXPRESSION_MASK_LINE])
