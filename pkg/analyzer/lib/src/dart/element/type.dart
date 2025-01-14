@@ -611,6 +611,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  factory InterfaceTypeImpl.v2({
+    required InterfaceElementImpl2 element,
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    return InterfaceTypeImpl(
+      element: element.asElement,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
+  }
+
   InterfaceTypeImpl._({
     required this.element,
     required this.typeArguments,

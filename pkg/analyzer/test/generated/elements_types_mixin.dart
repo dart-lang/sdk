@@ -580,11 +580,14 @@ mixin ElementsTypesMixin {
     required List<TypeParameterElementImpl> typeParameters,
     required DartType aliasedType,
   }) {
-    var element = TypeAliasElementImpl(name, 0);
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.aliasedType = aliasedType;
-    return element;
+    var fragment = TypeAliasElementImpl(name, 0);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.aliasedType = aliasedType;
+
+    TypeAliasElementImpl2(Reference.root(), fragment);
+
+    return fragment;
   }
 
   DartType typeAliasTypeNone(

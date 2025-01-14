@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -42,7 +40,7 @@ class ReplaceTopBottomVisitor {
     var alias = type.alias;
     if (alias != null) {
       return _instantiatedTypeAlias(type, alias, variance);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       return _interfaceType(type, variance);
     } else if (type is FunctionType) {
       return _functionType(type, variance);
@@ -53,7 +51,7 @@ class ReplaceTopBottomVisitor {
   DartType _functionType(FunctionType type, Variance variance) {
     var newReturnType = process(type.returnType, variance);
 
-    var newParameters = type.parameters.map((parameter) {
+    var newParameters = type.formalParameters.map((parameter) {
       return parameter.copyWith(
         type: process(
           parameter.type,
@@ -62,9 +60,9 @@ class ReplaceTopBottomVisitor {
       );
     }).toList();
 
-    return FunctionTypeImpl(
-      typeFormals: type.typeFormals,
-      parameters: newParameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: type.typeParameters,
+      formalParameters: newParameters,
       returnType: newReturnType,
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -75,15 +73,15 @@ class ReplaceTopBottomVisitor {
     InstantiatedTypeAliasElement alias,
     Variance variance,
   ) {
-    var aliasElement = alias.element;
+    var aliasElement = alias.element2;
     var aliasArguments = alias.typeArguments;
 
-    var typeParameters = aliasElement.typeParameters;
+    var typeParameters = aliasElement.typeParameters2;
     assert(typeParameters.length == aliasArguments.length);
 
     var newTypeArguments = <DartType>[];
     for (var i = 0; i < typeParameters.length; i++) {
-      var typeParameter = typeParameters[i] as TypeParameterElementImpl;
+      var typeParameter = typeParameters[i] as TypeParameterElementImpl2;
       newTypeArguments.add(
         process(
           aliasArguments[i],
@@ -98,8 +96,8 @@ class ReplaceTopBottomVisitor {
     );
   }
 
-  DartType _interfaceType(InterfaceType type, Variance variance) {
-    var typeParameters = type.element.typeParameters;
+  InterfaceTypeImpl _interfaceType(InterfaceTypeImpl type, Variance variance) {
+    var typeParameters = type.element3.typeParameters2;
     if (typeParameters.isEmpty) {
       return type;
     }
@@ -113,8 +111,8 @@ class ReplaceTopBottomVisitor {
       newTypeArguments.add(newTypeArgument);
     }
 
-    return InterfaceTypeImpl(
-      element: type.element,
+    return InterfaceTypeImpl.v2(
+      element: type.element3,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
     );
