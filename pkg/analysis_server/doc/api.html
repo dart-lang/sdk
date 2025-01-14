@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.38.0
+  1.39.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -245,6 +245,10 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.39.0</h4>
+<ul>
+  <li>Added a new <tt>lspCapabilities</tt> field to the <tt>setClientCapabilities</tt> parameters to allow clients to provide their LSP capabilities. These capabilities can indicate that a client can support <tt>lsp.handle</tt> requests in the server-to-client direction.</li>
+</ul>
 <h4>1.38.0</h4>
 <ul>
   <li>Deprecated the <tt>analytics.enable</tt> request.</li>
@@ -581,6 +585,7 @@ a:focus, a:hover {
   "params": {
     "<b>requests</b>": List&lt;String&gt;
     "<b>supportsUris</b>": <span style="color:#999999">optional</span> bool
+    "<b>lspCapabilities</b>": <span style="color:#999999">optional</span> object
   }
 }</pre><br><pre>response: {
   "id": String
@@ -626,6 +631,17 @@ a:focus, a:hover {
         </p>
         <p>
           LSP notifications are automatically enabled when the client sets this capability.
+        </p>
+      </dd><dt class="field"><b>lspCapabilities: object<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          LSP capabilities of the client as defined by the Language Server Protocol specification.
+        </p>
+        <p>
+          If custom LSP capabilities are to be used, the setClientCapabilities request should be called before any LSP requests are made to the server.
+        </p>
+        <p>
+          If LSP capabilities are not provided or no setClientCapabilities request is made, a very basic set of capabilities will be assumed.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_server.openUrlRequest">server.openUrlRequest</a></dt><dd><div class="box"><pre>request: {
   "id": String

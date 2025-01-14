@@ -3487,12 +3487,13 @@ final Matcher isServerOpenUrlRequestResult = isNull;
 /// {
 ///   "requests": List<String>
 ///   "supportsUris": optional bool
+///   "lspCapabilities": optional object
 /// }
 final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(
   () => MatchesJsonObject(
     'server.setClientCapabilities params',
     {'requests': isListOf(isString)},
-    optionalFields: {'supportsUris': isBool},
+    optionalFields: {'supportsUris': isBool, 'lspCapabilities': isObject},
   ),
 );
 

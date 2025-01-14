@@ -111,6 +111,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:language_server_protocol/json_parsing.dart' as lsp;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:watcher/watcher.dart';
@@ -292,8 +293,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   ServerSetClientCapabilitiesParams _clientCapabilities =
       ServerSetClientCapabilitiesParams([]);
 
-  @override
-  final editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
+  /// See [editorClientCapabilities].
+  var _editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
 
   @override
   final lsp.LspClientConfiguration lspClientConfiguration;
@@ -441,7 +442,27 @@ class LegacyAnalysisServer extends AnalysisServer {
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
     }
+
+    if (capabilities.lspCapabilities
+        case Map<Object?, Object?> lspCapabilities) {
+      // First validate the capabilities so we can get a better message if it's
+      // invalid.
+      var reporter = lsp.LspJsonReporter();
+      if (!lsp.ClientCapabilities.canParse(lspCapabilities, reporter)) {
+        throw RequestError(
+          RequestErrorCode.INVALID_PARAMETER,
+          "The 'lspCapabilities' parameter was invalid: ${reporter.errors.join(', ')}",
+        );
+      }
+
+      _editorClientCapabilities = lsp.LspClientCapabilities(
+        lsp.ClientCapabilities.fromJson(lspCapabilities.cast<String, Object>()),
+      );
+    }
   }
+
+  @override
+  get editorClientCapabilities => _editorClientCapabilities;
 
   /// The [Future] that completes when analysis is complete.
   Future<void> get onAnalysisComplete {
