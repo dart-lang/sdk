@@ -147,7 +147,7 @@ vars = {
   "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
   "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "960f91309e325ae037e5f1434acb77b83a12d91e",
-  "shelf_rev": "2b5b683e78f5cc84e479a43297fd7b5489d7db02",
+  "shelf_rev": "bf799519cda2898a7c5af06dcfdd5fe6443afd79",
   "source_maps_rev": "e5e9d343302acf7df2145316ae4e56026c550989",
   "source_span_rev": "e6a34591b7f7880c7ca0fcb95b858ccf7f8be304",
   "sse_rev": "b573a1e9a61f5f3e2198becfa3f4f2e8decd1e90",
