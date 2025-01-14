@@ -3288,7 +3288,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     EnumElementImpl element,
   ) {
     var valuesFieldType = element.valuesField?.type;
-    if (valuesFieldType is InterfaceType) {
+    if (valuesFieldType is InterfaceTypeImpl) {
       var isWellBounded = typeSystem.isWellBounded(
         valuesFieldType.typeArguments.single,
         allowSuperBounded: true,

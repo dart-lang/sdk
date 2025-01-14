@@ -96,7 +96,7 @@ class FunctionTypeImpl extends TypeImpl
   late int hashCode = _computeHashCode();
 
   @override
-  final DartType returnType;
+  final TypeImpl returnType;
 
   @override
   final List<TypeParameterElement> typeFormals;
@@ -163,7 +163,9 @@ class FunctionTypeImpl extends TypeImpl
     return FunctionTypeImpl._(
         typeFormals: typeFormals,
         parameters: parameters,
-        returnType: returnType,
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `returnType`.
+        returnType: returnType as TypeImpl,
         nullabilitySuffix: nullabilitySuffix,
         positionalParameterTypes: positionalParameterTypes,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
@@ -348,7 +350,7 @@ class FunctionTypeImpl extends TypeImpl
       return true;
     }
 
-    return (returnType as TypeImpl).referencesAny(parameters);
+    return returnType.referencesAny(parameters);
   }
 
   @override
@@ -375,7 +377,7 @@ class FunctionTypeImpl extends TypeImpl
       return true;
     }
 
-    return (returnType as TypeImpl).referencesAny2(parameters);
+    return returnType.referencesAny2(parameters);
   }
 
   @override
@@ -881,7 +883,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InterfaceType> get superclassConstraints {
     var element = this.element;
     var augmented = element.augmented;
-    if (augmented is AugmentedMixinElement) {
+    if (augmented is MixinElementImpl2) {
       var constraints = augmented.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
@@ -1350,11 +1352,14 @@ class NullTypeImpl extends InterfaceTypeImpl
 
 abstract class RecordTypeFieldImpl implements RecordTypeField {
   @override
-  final DartType type;
+  final TypeImpl type;
 
   RecordTypeFieldImpl({
-    required this.type,
-  });
+    required DartType type,
+  }) :
+        // TODO(paulberry): eliminate this cast by changing the type of the
+        // constructor parameter to `TypeImpl`.
+        type = type as TypeImpl;
 }
 
 class RecordTypeImpl extends TypeImpl

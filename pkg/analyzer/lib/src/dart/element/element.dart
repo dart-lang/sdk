@@ -1561,15 +1561,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InterfaceType get returnType {
+  InterfaceTypeImpl get returnType {
     var result = _returnType;
     if (result != null) {
-      return result as InterfaceType;
+      return result as InterfaceTypeImpl;
     }
 
     var augmentedDeclaration = enclosingElement3.augmented.firstFragment;
     result = augmentedDeclaration.thisType;
-    return _returnType = result as InterfaceType;
+    return _returnType = result as InterfaceTypeImpl;
   }
 
   @override
@@ -1763,6 +1763,9 @@ mixin ConstructorElementMixin implements ConstructorElement {
   bool get isGenerative {
     return !isFactory;
   }
+
+  @override
+  InterfaceTypeImpl get returnType;
 }
 
 /// A [TopLevelVariableElement] for a top-level 'const' variable that has an
@@ -3722,7 +3725,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   List<ParameterElementImpl> _parameters = const [];
 
   /// The inferred return type of this executable element.
-  DartType? _returnType;
+  TypeImpl? _returnType;
 
   /// The type of function defined by this executable element.
   FunctionType? _type;
@@ -3860,13 +3863,15 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType get returnType {
+  TypeImpl get returnType {
     linkedData?.read(this);
     return _returnType!;
   }
 
   set returnType(DartType returnType) {
-    _returnType = returnType;
+    // TODO(paulberry): eliminate this cast by changing the setter parameter
+    // type to `TypeImpl`.
+    _returnType = returnType as TypeImpl;
     // We do this because of return type inference. At the moment when we
     // create a local function element we don't know yet its return type,
     // because we have not done static type analysis yet.
@@ -4619,7 +4624,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  DartType get type => wrappedElement.type;
+  TypeImpl get type => wrappedElement.type;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -5264,7 +5269,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
         FunctionTypedElementImpl,
         GenericFunctionTypeFragment {
   /// The declared return type of the function.
-  DartType? _returnType;
+  TypeImpl? _returnType;
 
   /// The elements representing the parameters of the function.
   List<ParameterElement> _parameters = const [];
@@ -5343,7 +5348,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElementImpl? get previousFragment => null;
 
   @override
-  DartType get returnType {
+  TypeImpl get returnType {
     return _returnType!;
   }
 
@@ -5351,7 +5356,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// [returnType].
   @override
   set returnType(DartType returnType) {
-    _returnType = returnType;
+    // TODO(paulberry): eliminate this cast by changing the setter parameter
+    // type to `TypeImpl`.
+    _returnType = returnType as TypeImpl;
   }
 
   @override
@@ -6111,7 +6118,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceElementImpl? get augmentationTarget;
 
   @override
-  AugmentedInterfaceElement get augmented;
+  InterfaceElementImpl2 get augmented;
 
   @override
   List<Element> get children => [
@@ -6215,7 +6222,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  InterfaceType get thisType {
+  InterfaceTypeImpl get thisType {
     return augmented.thisType;
   }
 
@@ -6536,7 +6543,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   List<ConstructorElement> constructors = [];
 
-  InterfaceType? _thisType;
+  InterfaceTypeImpl? _thisType;
 
   @override
   List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
@@ -6586,7 +6593,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   InterfaceType? get supertype => firstFragment.supertype;
 
   @override
-  InterfaceType get thisType {
+  InterfaceTypeImpl get thisType {
     if (_thisType == null) {
       List<DartType> typeArguments;
       var typeParameters = firstFragment.typeParameters;
@@ -9441,7 +9448,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
-  DartType get type => setter.variable2.type;
+  TypeImpl get type => setter.variable2.type;
 
   @override
   set type(DartType type) {
@@ -10075,7 +10082,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnType => variable2.type;
+  TypeImpl get returnType => variable2.type;
 
   @override
   set returnType(DartType returnType) {
@@ -10141,7 +10148,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  DartType get returnType => VoidTypeImpl.instance;
+  TypeImpl get returnType => VoidTypeImpl.instance;
 
   @override
   set returnType(DartType returnType) {
@@ -10280,7 +10287,7 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  DartType get type {
+  TypeImpl get type {
     linkedData?.read(this);
     if (_type != null) return _type!;
 
@@ -10288,7 +10295,7 @@ abstract class PropertyInducingElementImpl
       if (getter != null) {
         return _type = getter!.returnType;
       } else if (setter != null) {
-        List<ParameterElement> parameters = setter!.parameters;
+        var parameters = setter!.parameters;
         return _type = parameters.isNotEmpty
             ? parameters[0].type
             : DynamicTypeImpl.instance;
@@ -10378,7 +10385,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
-  DartType perform();
+  TypeImpl perform();
 }
 
 class SetterElementImpl extends PropertyAccessorElementImpl2
@@ -11477,7 +11484,7 @@ abstract class UriReferencedElementImpl extends _ExistingElementImpl
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElement {
   /// The type of this variable.
-  DartType? _type;
+  TypeImpl? _type;
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
@@ -11569,10 +11576,12 @@ abstract class VariableElementImpl extends ElementImpl
   String get name => super.name!;
 
   @override
-  DartType get type => _type!;
+  TypeImpl get type => _type!;
 
   set type(DartType type) {
-    _type = type;
+    // TODO(paulberry): eliminate this cast by changing the setter parameter
+    // type to `TypeImpl`.
+    _type = type as TypeImpl;
   }
 
   @override

@@ -76,7 +76,7 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (augmented is AugmentedMixinElement) {
+    if (augmented is MixinElementImpl2) {
       for (var type in augmented.superclassConstraints) {
         append(type);
       }
