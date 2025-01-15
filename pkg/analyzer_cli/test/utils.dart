@@ -10,16 +10,18 @@ import 'package:path/path.dart' as pathos;
 /// Gets the test directory in a way that works with package:test
 /// See <https://github.com/dart-lang/test/issues/110> for more info.
 final String testDirectory = pathos.dirname(
-    pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri));
+  pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri),
+);
 
 /// Returns a path to the directory containing source code for packages such as
 /// kernel, front_end, and analyzer.
 String get packageRoot {
   // If the package root directory is specified on the command line using
   // -DpkgRoot=..., use it.
-  var pkgRootVar = const bool.hasEnvironment('pkgRoot')
-      ? const String.fromEnvironment('pkgRoot')
-      : null;
+  var pkgRootVar =
+      const bool.hasEnvironment('pkgRoot')
+          ? const String.fromEnvironment('pkgRoot')
+          : null;
   if (pkgRootVar != null) {
     var path = pathos.join(Directory.current.path, pkgRootVar);
     if (!path.endsWith(pathos.separator)) path += pathos.separator;
@@ -42,7 +44,9 @@ Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
     await Directory(dstPath).create(recursive: true);
     for (var entity in src.listSync()) {
       await recursiveCopy(
-          entity, pathos.join(dstPath, pathos.basename(entity.path)));
+        entity,
+        pathos.join(dstPath, pathos.basename(entity.path)),
+      );
     }
   } else if (src is File) {
     await src.copy(dstPath);
@@ -54,7 +58,8 @@ Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
 ///
 /// Returns the return value of [fn].
 Future<dynamic> withTempDirAsync(
-    Future<dynamic> Function(String path) fn) async {
+  Future<dynamic> Function(String path) fn,
+) async {
   var tempDir = (await Directory.systemTemp.createTemp('analyzer_')).path;
   try {
     return await fn(tempDir);

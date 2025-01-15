@@ -27,11 +27,16 @@ void main() {
       late int savedExitCode;
       late ExitHandler savedExitHandler;
 
-      CommandLineOptions? parse(List<String> args,
-          {void Function(String msg) printAndFail = printAndFail}) {
+      CommandLineOptions? parse(
+        List<String> args, {
+        void Function(String msg) printAndFail = printAndFail,
+      }) {
         var resourceProvider = PhysicalResourceProvider.INSTANCE;
-        return CommandLineOptions.parse(resourceProvider, args,
-            printAndFail: printAndFail);
+        return CommandLineOptions.parse(
+          resourceProvider,
+          args,
+          printAndFail: printAndFail,
+        );
       }
 
       setUp(() {
@@ -116,47 +121,57 @@ void main() {
         };
 
         test('no values', () {
-          var options =
-              overrideKnownFeatures(knownFeatures, () => parse(['foo.dart'])!);
+          var options = overrideKnownFeatures(
+            knownFeatures,
+            () => parse(['foo.dart'])!,
+          );
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
-          var options = overrideKnownFeatures(knownFeatures,
-              () => parse(['--enable-experiment', 'a', 'foo.dart'])!);
+          var options = overrideKnownFeatures(
+            knownFeatures,
+            () => parse(['--enable-experiment', 'a', 'foo.dart'])!,
+          );
           expect(options.enabledExperiments, ['a']);
         });
 
         group('multiple values', () {
           test('single flag', () {
-            var options = overrideKnownFeatures(knownFeatures,
-                () => parse(['--enable-experiment', 'a,b', 'foo.dart'])!);
+            var options = overrideKnownFeatures(
+              knownFeatures,
+              () => parse(['--enable-experiment', 'a,b', 'foo.dart'])!,
+            );
             expect(options.enabledExperiments, ['a', 'b']);
           });
 
           test('mixed single and multiple flags', () {
             var options = overrideKnownFeatures(
-                knownFeatures,
-                () => parse([
-                      '--enable-experiment',
-                      'a,b',
-                      '--enable-experiment',
-                      'c',
-                      'foo.dart'
-                    ])!);
+              knownFeatures,
+              () =>
+                  parse([
+                    '--enable-experiment',
+                    'a,b',
+                    '--enable-experiment',
+                    'c',
+                    'foo.dart',
+                  ])!,
+            );
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
 
           test('multiple flags', () {
             var options = overrideKnownFeatures(
-                knownFeatures,
-                () => parse([
-                      '--enable-experiment',
-                      'a',
-                      '--enable-experiment',
-                      'b',
-                      'foo.dart'
-                    ])!);
+              knownFeatures,
+              () =>
+                  parse([
+                    '--enable-experiment',
+                    'a',
+                    '--enable-experiment',
+                    'b',
+                    'foo.dart',
+                  ])!,
+            );
             expect(options.enabledExperiments, ['a', 'b']);
           });
         });
@@ -184,41 +199,54 @@ void main() {
       });
 
       test('options', () {
-        var options = parse(
-            ['--dart-sdk', '.', '--options', 'options.yaml', 'foo.dart'])!;
+        var options =
+            parse([
+              '--dart-sdk',
+              '.',
+              '--options',
+              'options.yaml',
+              'foo.dart',
+            ])!;
         expect(options.defaultAnalysisOptionsPath, endsWith('options.yaml'));
       });
 
       test('sourceFiles', () {
-        var options = parse([
-          '--dart-sdk',
-          '.',
-          '--log',
-          'foo.dart',
-          'foo2.dart',
-          'foo3.dart'
-        ])!;
-        expect(options.sourceFiles,
-            equals(['foo.dart', 'foo2.dart', 'foo3.dart']));
+        var options =
+            parse([
+              '--dart-sdk',
+              '.',
+              '--log',
+              'foo.dart',
+              'foo2.dart',
+              'foo3.dart',
+            ])!;
+        expect(
+          options.sourceFiles,
+          equals(['foo.dart', 'foo2.dart', 'foo3.dart']),
+        );
       });
 
       test('ignore unrecognized flags', () {
-        var options = parse([
-          '--ignore-unrecognized-flags',
-          '--bar',
-          '--baz',
-          '--dart-sdk',
-          '.',
-          'foo.dart'
-        ])!;
+        var options =
+            parse([
+              '--ignore-unrecognized-flags',
+              '--bar',
+              '--baz',
+              '--dart-sdk',
+              '.',
+              'foo.dart',
+            ])!;
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
       });
 
       test('bad SDK dir', () {
         String? failureMessage;
-        parse(['--dart-sdk', '&&&&&', 'foo.dart'],
-            printAndFail: (msg) => failureMessage = msg);
+        parse([
+          '--dart-sdk',
+          '&&&&&',
+          'foo.dart',
+        ], printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
       });
 
@@ -250,20 +278,14 @@ class ArgumentsTest with ResourceProviderMixin {
     var expected = 'my_options.yaml';
     _parse(['--options=$expected', 'a.dart']);
 
-    expect(
-      commandLineOptions!.defaultAnalysisOptionsPath,
-      endsWith(expected),
-    );
+    expect(commandLineOptions!.defaultAnalysisOptionsPath, endsWith(expected));
   }
 
   void test_defaultPackageFilePath() {
     var expected = 'my_package_config.json';
     _parse(['--packages=$expected', 'a.dart']);
 
-    expect(
-      commandLineOptions!.defaultPackagesPath,
-      endsWith(expected),
-    );
+    expect(commandLineOptions!.defaultPackagesPath, endsWith(expected));
   }
 
   void test_defaults() {
@@ -310,9 +332,10 @@ class ArgumentsTest with ResourceProviderMixin {
 
     ExperimentStatus featuresWithExperiments(List<String> experiments) {
       return FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: experiments,
-      ) as ExperimentStatus;
+            sdkLanguageVersion: ExperimentStatus.currentVersion,
+            flags: experiments,
+          )
+          as ExperimentStatus;
     }
 
     overrideKnownFeatures({'a': feature_a, 'b': feature_b}, () {
@@ -363,10 +386,7 @@ class ArgumentsTest with ResourceProviderMixin {
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
     commandLineOptions = CommandLineOptions.parse(
       resourceProvider,
-      [
-        if (ignoreUnrecognized) '--ignore-unrecognized-flags',
-        ...args,
-      ],
+      [if (ignoreUnrecognized) '--ignore-unrecognized-flags', ...args],
       printAndFail: (msg) {
         failureMessage = msg;
       },

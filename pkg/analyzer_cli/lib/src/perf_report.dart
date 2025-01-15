@@ -24,8 +24,13 @@ final String _osType = () {
   }
 }();
 
-String makePerfReport(int startTime, int endTime, CommandLineOptions options,
-    int analyzedFileCount, AnalysisStats stats) {
+String makePerfReport(
+  int startTime,
+  int endTime,
+  CommandLineOptions options,
+  int analyzedFileCount,
+  AnalysisStats stats,
+) {
   var totalTime = endTime - startTime;
 
   var platformJson = <String, dynamic>{

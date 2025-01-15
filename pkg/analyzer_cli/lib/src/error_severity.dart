@@ -27,8 +27,11 @@ ErrorSeverity? computeSeverity(
 
 /// Check various configuration options to get a desired severity for this
 /// [error] (or `null` if it's to be suppressed).
-ErrorSeverity? determineProcessedSeverity(AnalysisError error,
-    CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
+ErrorSeverity? determineProcessedSeverity(
+  AnalysisError error,
+  CommandLineOptions commandLineOptions,
+  AnalysisOptions analysisOptions,
+) {
   var severity = computeSeverity(error, commandLineOptions, analysisOptions);
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
   if (error.errorCode.type == ErrorType.TODO &&
