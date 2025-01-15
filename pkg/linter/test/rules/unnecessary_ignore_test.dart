@@ -10,6 +10,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryIgnoreTest);
     defineReflectiveTests(UnnecessaryIgnoreDisabledTest);
+    defineReflectiveTests(UnnecessaryIgnoreGeneratedFileTest);
   });
 }
 
@@ -19,6 +20,29 @@ class UnnecessaryIgnoreDisabledTest extends LintRuleTest {
   /// not enabled in the test.
   @override
   String get lintRule => 'camel_case_types';
+
+  test_file() async {
+    await assertNoDiagnostics(r'''
+// ignore_for_file: unused_local_variable
+void f() {}
+''');
+  }
+
+  test_line() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_local_variable
+void f() {}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryIgnoreGeneratedFileTest extends LintRuleTest {
+  @override
+  String get lintRule => 'unnecessary_ignore';
+
+  @override
+  String get testFileName => 'test.g.dart';
 
   test_file() async {
     await assertNoDiagnostics(r'''
