@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 
 void main() {
-  group('Iterable.fromIteratorFactory tests', () {
+  group('Iterable.withIterator tests', () {
     testEmptyIterator();
     testSingleElementIterator();
     testMultipleElementIterator();
@@ -24,7 +24,7 @@ void group(String description, void Function() body) {
 
 void testEmptyIterator() {
   test('empty iterator behaves correctly', () {
-    var emptyIterable = Iterable.fromIteratorFactory(() => [].iterator);
+    var emptyIterable = Iterable.withIterator(() => [].iterator);
     Expect.isTrue(emptyIterable.isEmpty);
     Expect.equals(0, emptyIterable.length);
     Expect.isTrue(emptyIterable.every((element) => false));
@@ -35,7 +35,7 @@ void testEmptyIterator() {
 
 void testSingleElementIterator() {
   test('single element iterator behaves correctly', () {
-    var singleIterable = Iterable.fromIteratorFactory(() => [1].iterator);
+    var singleIterable = Iterable.withIterator(() => [1].iterator);
     Expect.equals(1, singleIterable.length);
     Expect.equals(1, singleIterable.first);
     Expect.equals(1, singleIterable.last);
@@ -48,7 +48,7 @@ void testSingleElementIterator() {
 
 void testMultipleElementIterator() {
   test('multiple element iterator behaves correctly', () {
-    var multiIterable = Iterable.fromIteratorFactory(() => [1, 2, 3].iterator);
+    var multiIterable = Iterable.withIterator(() => [1, 2, 3].iterator);
     Expect.equals(3, multiIterable.length);
     Expect.equals(1, multiIterable.first);
     Expect.equals(3, multiIterable.last);
@@ -68,7 +68,7 @@ void testMultipleElementIterator() {
 void testMultipleIterations() {
   test('multiple iterations create fresh iterators', () {
     var count = 0;
-    var countingIterable = Iterable.fromIteratorFactory(() {
+    var countingIterable = Iterable.withIterator(() {
       count++;
       return [1, 2].iterator;
     });
@@ -88,7 +88,7 @@ void testMultipleIterations() {
 void testLazyInitialization() {
   test('iterator factory is called lazily', () {
     var factoryCalled = false;
-    var lazyIterable = Iterable.fromIteratorFactory(() {
+    var lazyIterable = Iterable.withIterator(() {
       factoryCalled = true;
       return [1].iterator;
     });
@@ -109,7 +109,7 @@ void testAfterMoveNext() {
     var items = [1, 2, 3];
     var iterator = items.iterator;
     iterator.moveNext();
-    var lazyIterable = Iterable.fromIteratorFactory(() => iterator);
+    var lazyIterable = Iterable.withIterator(() => iterator);
 
     // Test that the first element is already consumed
     var elements = lazyIterable.toList();
@@ -121,13 +121,13 @@ void testAfterMoveNext() {
 void testErrorHandling() {
   test('handles null and error cases', () {
     // Test with null value
-    var nullIterable = Iterable.fromIteratorFactory(() => [null].iterator);
+    var nullIterable = Iterable.withIterator(() => [null].iterator);
     Expect.equals(1, nullIterable.length);
     Expect.isNull(nullIterable.first);
 
     // Test with throwing iterator
     bool throwingCalled = false;
-    var throwingIterable = Iterable.fromIteratorFactory(() {
+    var throwingIterable = Iterable.withIterator(() {
       throwingCalled = true;
       throw StateError('Test error');
     });

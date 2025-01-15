@@ -135,13 +135,13 @@ abstract mixin class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final numbers = Iterable.fromIteratorFactory(() => [1, 2, 3].iterator);
+  /// final numbers = Iterable.withIterator(() => [1, 2, 3].iterator);
   /// print(numbers.toList()); // [1, 2, 3]
   /// ```
   ///
   /// This is useful when you need to create an iterable from a custom iterator,
   /// or when you want to ensure a fresh iteration state on each use.
-  factory Iterable.fromIteratorFactory(Iterator<E> Function() iteratorFactory) =
+  factory Iterable.withIterator(Iterator<E> Function() iteratorFactory) =
       _FromIteratorIterable<E>;
 
   /// Creates an empty iterable.
