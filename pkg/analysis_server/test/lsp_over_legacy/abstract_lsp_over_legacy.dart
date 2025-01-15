@@ -24,6 +24,7 @@ import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
 import '../services/completion/dart/text_expectations.dart';
+import '../shared/shared_test_interface.dart';
 
 class EventsCollector {
   final ContextResolutionTest test;
@@ -258,12 +259,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     var error = lspResponse.error;
     if (error != null) {
       throw error;
-    } else if (T == Null) {
+    } else {
       return lspResponse.result == null
           ? null as T
-          : throw 'Expected Null response but got ${lspResponse.result}';
-    } else {
-      return fromJson(lspResponse.result as R);
+          : fromJson(lspResponse.result as R);
     }
   }
 
@@ -309,6 +308,17 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       );
       _notificationsFromServer.add(lspNotificationMessage);
     }
+  }
+
+  Future<void> removeOverlay(String filePath) {
+    return handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        convertPath(filePath): RemoveContentOverlay(),
+      }).toRequest(
+        '${_nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
+    );
   }
 
   /// Send the configured LSP client capabilities to the server in a
@@ -369,15 +379,42 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   }
 }
 
-/// A mixin that provides a common interface for [LspOverLegacyTest] classes
-/// to work with shared tests.
-mixin SharedLspOverLegacyMixin on LspOverLegacyTest {
+/// A [LspOverLegacyTest] that provides an implementation of
+/// [SharedTestInterface] to allow tests to be shared between server/test kinds.
+abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
+    implements SharedTestInterface {
+  // TODO(dantup): Support this for LSP-over-Legacy shared tests.
+  var failTestOnErrorDiagnostic = false;
+
+  @override
+  Future<void> get currentAnalysis => waitForTasksFinished();
+
+  @override
+  Future<void> closeFile(Uri uri) async {
+    await removeOverlay(fromUri(uri));
+  }
+
+  @override
   void createFile(String path, String content) {
     newFile(path, content);
   }
 
+  @override
+  Future<void> openFile(Uri uri, String content, {int version = 1}) async {
+    await addOverlay(fromUri(uri), content);
+  }
+
+  @override
+  Future<void> replaceFile(int newVersion, Uri uri, String content) async {
+    // For legacy, we can use addOverlay to replace the whole file.
+    await addOverlay(fromUri(uri), content);
+  }
+
   /// Wraps an LSP request up and sends it from the server to the client.
-  Future<ResponseMessage> sendLspRequest(Method method, Object params) async {
+  Future<ResponseMessage> sendLspRequestToClient(
+    Method method,
+    Object params,
+  ) async {
     var id = server.nextServerRequestId++;
     // Round-trip through JSON to ensure everything becomes basic types and we
     // don't have instances of classes like `Either2<>` in the JSON.

@@ -14,11 +14,10 @@ void main() {
 }
 
 @reflectiveTest
-class WorkspaceApplyEditTest extends LspOverLegacyTest
+class WorkspaceApplyEditTest extends SharedLspOverLegacyTest
     with
-        // Tests are defined in SharedLspAnalysisServerTestMixin because they
+        // Tests are defined in SharedWorkspaceApplyEditTests because they
         // are shared and run for both LSP and Legacy servers.
-        SharedLspOverLegacyMixin,
         SharedWorkspaceApplyEditTests {
   @override
   Future<void> initializeServer() async {

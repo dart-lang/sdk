@@ -33,6 +33,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
 import '../test_macros.dart';
 import 'change_verifier.dart';
@@ -246,6 +247,10 @@ abstract class AbstractLspAnalysisServerTest
 
   void resetContextBuildCounter() {
     _previousContextBuilds = server.contextBuilds;
+  }
+
+  Future<ResponseMessage> sendLspRequestToClient(Method method, Object params) {
+    return server.sendRequest(method, params);
   }
 
   @override
@@ -882,8 +887,18 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   /// server.
   bool failTestOnErrorDiagnostic = true;
 
+  /// A completer for [initialAnalysis].
+  final Completer<void> _initialAnalysisCompleter = Completer<void>();
+
+  /// A completer for [currentAnalysis].
+  Completer<void> _currentAnalysisCompleter = Completer<void>()..complete();
+
   /// [analysisOptionsPath] as a 'file:///' [Uri].
   Uri get analysisOptionsUri => pathContext.toUri(analysisOptionsPath);
+
+  /// A [Future] that completes when the current analysis completes (or is
+  /// already completed if no analysis is in progress).
+  Future<void> get currentAnalysis => _currentAnalysisCompleter.future;
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -895,8 +910,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
       serverCapabilities.experimental as Map<String, Object?>? ?? {};
 
   /// A [Future] that completes with the first analysis after initialization.
-  Future<void> get initialAnalysis =>
-      initialized ? Future.value() : waitForAnalysisComplete();
+  Future<void> get initialAnalysis => _initialAnalysisCompleter.future;
 
   bool get initialized => _clientCapabilities != null;
 
@@ -1152,6 +1166,16 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     notificationsFromServer.listen((notification) async {
       if (notification.method == Method.progress) {
         await _handleProgress(notification);
+      } else if (notification.method == CustomMethods.analyzerStatus) {
+        var params = AnalyzerStatusParams.fromJson(
+          notification.params as Map<String, Object?>,
+        );
+
+        if (params.isAnalyzing) {
+          _handleAnalysisBegin();
+        } else {
+          _handleAnalysisEnd();
+        }
       }
     });
 
@@ -1592,6 +1616,19 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return outlineParams.outline;
   }
 
+  void _handleAnalysisBegin() async {
+    assert(_currentAnalysisCompleter.isCompleted);
+    _currentAnalysisCompleter = Completer<void>();
+  }
+
+  void _handleAnalysisEnd() async {
+    if (!_initialAnalysisCompleter.isCompleted) {
+      _initialAnalysisCompleter.complete();
+    }
+    assert(!_currentAnalysisCompleter.isCompleted);
+    _currentAnalysisCompleter.complete();
+  }
+
   Future<void> _handleProgress(NotificationMessage request) async {
     var params = ProgressParams.fromJson(
       request.params as Map<String, Object?>,
@@ -1606,6 +1643,15 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
       validProgressTokens.remove(params.token);
+    }
+
+    if (params.token == analyzingProgressToken) {
+      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
+        _handleAnalysisBegin();
+      }
+      if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
+        _handleAnalysisEnd();
+      }
     }
   }
 
@@ -1642,16 +1688,24 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   }
 }
 
-/// A mixin that provides a common interface for [AbstractLspAnalysisServerTest] classes
-/// to work with shared tests.
-mixin SharedLspAnalysisServerTestMixin on AbstractLspAnalysisServerTest {
+/// An [AbstractLspAnalysisServerTest] that provides an implementation of
+/// [SharedTestInterface] to allow tests to be shared between server/test kinds.
+abstract class SharedAbstractLspAnalysisServerTest
+    extends AbstractLspAnalysisServerTest
+    implements SharedTestInterface {
+  @override
   String get testFilePath => join(projectFolderPath, 'lib', 'test.dart');
 
+  @override
+  Uri get testFileUri => toUri(testFilePath);
+
+  @override
   void createFile(String path, String content) {
     newFile(path, content);
   }
 
-  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
-    return server.sendRequest(method, params);
+  @override
+  Future<void> initializeServer() async {
+    await initialize();
   }
 }

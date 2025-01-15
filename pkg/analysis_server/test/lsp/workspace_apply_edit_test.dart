@@ -14,16 +14,15 @@ void main() {
 }
 
 @reflectiveTest
-class WorkspaceApplyEditTest extends AbstractLspAnalysisServerTest
+class WorkspaceApplyEditTest extends SharedAbstractLspAnalysisServerTest
     with
-        // Tests are defined in SharedLspAnalysisServerTestMixin because they
+        // Tests are defined in SharedWorkspaceApplyEditTests because they
         // are shared and run for both LSP and Legacy servers.
-        SharedLspAnalysisServerTestMixin,
         SharedWorkspaceApplyEditTests {
   @override
   Future<void> initializeServer() async {
     await initialize();
-    await initialAnalysis;
+    await currentAnalysis;
   }
 
   @override
