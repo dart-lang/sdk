@@ -141,19 +141,36 @@ class O extends self::N {
 }
 @#C11
 @#C5
-class P extends core::Object {
+class P1 extends core::Object implements self::P2 {
   @#C5
-  synthetic constructor •() → self::P
+  synthetic constructor •() → self::P1
     : super core::Object::•()
     ;
+  @#C13
+  @#C5
+  method foo() → void {}
+}
+@#C11
+@#C5
+abstract class P2 extends core::Object {
+  @#C5
+  synthetic constructor •() → self::P2
+    : super core::Object::•()
+    ;
+  @#C13
+  @#C5
+  abstract method foo() → void;
 }
 @#C3
 @#C5
-class Q extends core::Object implements self::P {
+class Q extends core::Object implements self::P1 {
   @#C5
   synthetic constructor •() → self::Q
     : super core::Object::•()
     ;
+  @#C7
+  @#C5
+  method foo() → void {}
 }
 @#C5
 final class R extends core::Object {
@@ -199,7 +216,7 @@ base class V extends core::Object {
 static field core::Object? sfield9;
 static field core::Object? _sfield10;
 @#C5
-static const field core::List<core::Object> const11 = #C16;
+static const field core::List<core::Object> const11 = #C18;
 @#C5
 static method smethod10() → void {}
 static method _smethod11() → void {}
@@ -215,9 +232,11 @@ constants  {
   #C9 = core::pragma {name:#C8, options:#C2}
   #C10 = "dyn-module:implicitly-extendable"
   #C11 = core::pragma {name:#C10, options:#C2}
-  #C12 = 2
-  #C13 = 1
-  #C14 = self::_E2 {_y:#C12, _x:#C13}
-  #C15 = redirecting-factory-tearoff self::_F::_foo
-  #C16 = <core::Object>[#C14, #C15]
+  #C12 = "dyn-module:can-be-overridden-implicitly"
+  #C13 = core::pragma {name:#C12, options:#C2}
+  #C14 = 2
+  #C15 = 1
+  #C16 = self::_E2 {_y:#C14, _x:#C15}
+  #C17 = redirecting-factory-tearoff self::_F::_foo
+  #C18 = <core::Object>[#C16, #C17]
 }

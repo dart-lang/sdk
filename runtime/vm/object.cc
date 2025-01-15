@@ -3263,11 +3263,6 @@ void Class::set_can_be_future(bool value) const {
   set_state_bits(CanBeFutureBit::update(value, state_bits()));
 }
 
-void Class::set_is_dynamically_extendable(bool value) const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(IsDynamicallyExtendableBit::update(value, state_bits()));
-}
-
 void Class::set_has_dynamically_extendable_subtypes(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(

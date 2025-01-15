@@ -589,10 +589,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (is_future_subtype && !cls.is_abstract()) {
     MarkClassCanBeFuture(zone, cls);
   }
-  if (cls.is_dynamically_extendable()) {
-    MarkClassHasDynamicallyExtendableSubtypes(zone, cls);
-  }
-
   ClassHiearchyUpdater(zone).Register(cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -687,25 +683,6 @@ void ClassFinalizer::MarkClassCanBeFuture(Zone* zone, const Class& cls) {
   }
 }
 
-void ClassFinalizer::MarkClassHasDynamicallyExtendableSubtypes(
-    Zone* zone,
-    const Class& cls) {
-  if (cls.has_dynamically_extendable_subtypes()) return;
-
-  cls.set_has_dynamically_extendable_subtypes(true);
-
-  Class& base = Class::Handle(zone, cls.SuperClass());
-  if (!base.IsNull()) {
-    MarkClassHasDynamicallyExtendableSubtypes(zone, base);
-  }
-  auto& interfaces = Array::Handle(zone, cls.interfaces());
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
-    type ^= interfaces.At(i);
-    base = type.type_class();
-    MarkClassHasDynamicallyExtendableSubtypes(zone, base);
-  }
-}
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
