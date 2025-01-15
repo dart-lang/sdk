@@ -4513,8 +4513,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
         FragmentedElementMixin<FormalParameterFragment>,
         FormalParameterElementMixin,
         _HasSinceSdkVersionMixin,
-        _NonTopLevelVariableOrParameter
-    implements FormalParameterElementOrMember {
+        _NonTopLevelVariableOrParameter {
   final ParameterElementImpl wrappedElement;
 
   FormalParameterElementImpl(this.wrappedElement) {
@@ -4658,7 +4657,10 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
 /// A mixin that provides a common implementation for methods defined in
 /// [FormalParameterElement].
-mixin FormalParameterElementMixin implements FormalParameterElement {
+mixin FormalParameterElementMixin
+    implements
+        FormalParameterElement,
+        SharedNamedFunctionParameterStructure<TypeImpl> {
   @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
     buffer.write(
@@ -4672,11 +4674,6 @@ mixin FormalParameterElementMixin implements FormalParameterElement {
     }
   }
 }
-
-abstract class FormalParameterElementOrMember
-    implements
-        FormalParameterElement,
-        SharedNamedFunctionParameterStructure<TypeImpl> {}
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
