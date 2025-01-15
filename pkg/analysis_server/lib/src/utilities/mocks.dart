@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -15,12 +16,21 @@ import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
 class MockServerChannel implements ServerCommunicationChannel {
+  /// A controller for the stream of requests and responses from the client to
+  /// the server.
   StreamController<RequestOrResponse> requestController =
       StreamController<RequestOrResponse>();
-  StreamController<Response> responseController =
-      StreamController<Response>.broadcast();
+
+  /// A controller for the stream of requests and responses from the server to
+  /// the client.
+  StreamController<RequestOrResponse> responseController =
+      StreamController<RequestOrResponse>.broadcast();
+
+  /// A controller for the stream of notifications from the server to the
+  /// client.
   StreamController<Notification> notificationController =
       StreamController<Notification>.broadcast(sync: true);
+
   Completer<Response>? errorCompleter;
 
   List<Response> responsesReceived = [];
@@ -40,6 +50,11 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   @override
   Stream<RequestOrResponse> get requests => requestController.stream;
+
+  /// Return the broadcast stream of server-to-client requests.
+  Stream<Request> get serverToClientRequests {
+    return responseController.stream.where((r) => r is Request).cast<Request>();
+  }
 
   @override
   void close() {
@@ -71,6 +86,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     serverRequestsSent.add(request);
+    responseController.add(request);
   }
 
   @override
@@ -89,13 +105,30 @@ class MockServerChannel implements ServerCommunicationChannel {
   /// with the [request] has been received.
   ///
   /// The value of the future will be the received response.
-  Future<Response> simulateRequestFromClient(Request request) {
+  Future<Response> simulateRequestFromClient(Request request) async {
     if (_closed) {
       throw Exception('simulateRequestFromClient after connection closed');
     }
+
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    request =
+        Request.fromJson(
+          jsonDecode(jsonEncode(request)) as Map<String, Object?>,
+        )!;
+
     // Wrap send request in future to simulate WebSocket.
-    Future(() => requestController.add(request));
-    return waitForResponse(request);
+    unawaited(Future(() => requestController.add(request)));
+    var response = await waitForResponse(request);
+
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    response =
+        Response.fromJson(
+          jsonDecode(jsonEncode(response)) as Map<String, Object?>,
+        )!;
+
+    return response;
   }
 
   /// Send the given [response] to the server as if it had been sent from the
@@ -117,9 +150,10 @@ class MockServerChannel implements ServerCommunicationChannel {
   /// has already been sent to the server.
   Future<Response> waitForResponse(Request request) {
     var id = request.id;
-    return responseController.stream.firstWhere(
-      (response) => response.id == id,
-    );
+    return responseController.stream
+        .where((r) => r is Response)
+        .cast<Response>()
+        .firstWhere((response) => response.id == id);
   }
 }
 

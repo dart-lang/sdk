@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -21,6 +22,7 @@ import 'package:test/test.dart';
 import '../analysis_server_base.dart';
 import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
+import '../lsp/server_abstract.dart';
 import '../services/completion/dart/text_expectations.dart';
 
 class EventsCollector {
@@ -145,10 +147,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
-        LspVerifyEditHelpersMixin {
-  /// The next ID to use for the LSP request that is wrapped inside
-  /// a legacy `lsp.handle` request.
-  var _nextLspRequestId = 0;
+        LspVerifyEditHelpersMixin,
+        ClientCapabilitiesHelperMixin {
+  /// The next ID to use a request to the server.
+  var _nextRequestId = 0;
 
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
@@ -156,6 +158,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// A controller for [notificationsFromServer].
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
+
+  @override
+  LspClientCapabilities get editorClientCapabilities =>
+      server.editorClientCapabilities;
 
   /// A stream of [NotificationMessage]s from the server.
   @override
@@ -167,6 +173,16 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
 
   @override
   String get projectFolderPath => convertPath(testPackageRootPath);
+
+  /// A stream of [RequestMessage]s from the server.
+  ///
+  /// Only LSP message requests (`lsp.handle`) from the server are included
+  /// here.
+  @override
+  Stream<RequestMessage> get requestsFromServer => serverChannel
+      .serverToClientRequests
+      .where((request) => request.method == LSP_REQUEST_HANDLE)
+      .map((request) => RequestMessage.fromJson(request.params));
 
   /// The URI for the macro-generated content for [testFileUri].
   Uri get testFileMacroUri =>
@@ -182,7 +198,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       AnalysisUpdateContentParams({
         convertPath(filePath): AddContentOverlay(content),
       }).toRequest(
-        '${_nextLspRequestId++}',
+        '${_nextRequestId++}',
         clientUriConverter: server.uriConverter,
       ),
     );
@@ -216,7 +232,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// Creates a legacy request with an auto-assigned ID.
   Request createLegacyRequest(RequestParams params) {
     return params.toRequest(
-      '${_nextLspRequestId++}',
+      '${_nextRequestId++}',
       clientUriConverter: server.uriConverter,
     );
   }
@@ -226,11 +242,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     RequestMessage message,
     T Function(R) fromJson,
   ) async {
-    // Round-trip request via JSON because this doesn't happen automatically
-    // when we're bypassing the streams (running in-process) and we want to
-    // validate everything.
-    var messageJson =
-        jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>;
+    var messageJson = message.toJson();
 
     var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
     var legacyResponse = await handleSuccessfulRequest(legacyRequest);
@@ -239,12 +251,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       clientUriConverter: server.uriConverter,
     );
 
-    // Round-trip response via JSON because this doesn't happen automatically
-    // when we're bypassing the streams (running in-process) and we want to
-    // validate everything.
-    var lspResponseJson =
-        jsonDecode(jsonEncode(legacyResult.lspResponse))
-            as Map<String, Object?>;
+    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
 
     // Unwrap the LSP response.
     var lspResponse = ResponseMessage.fromJson(lspResponseJson);
@@ -304,6 +311,37 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     }
   }
 
+  /// Send the configured LSP client capabilities to the server in a
+  /// `server.setClientCapabilities` request.
+  Future<void> sendClientCapabilities() async {
+    var clientCapabilities = ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+      experimental: experimentalCapabilities,
+    );
+    var request = ServerSetClientCapabilitiesParams(
+      [],
+      lspCapabilities: clientCapabilities,
+    ).toRequest('${_nextRequestId++}', clientUriConverter: server.uriConverter);
+
+    await handleSuccessfulRequest(request);
+  }
+
+  @override
+  void sendResponseToServer(ResponseMessage response) {
+    serverChannel.simulateResponseFromClient(
+      Response(
+        // Convert the LSP int-or-string ID to always a string for legacy.
+        response.id!.map((i) => i.toString(), (s) => s),
+        // A client-provided response to an LSP reverse-request is always
+        // a full LSP result payload as the "result". The legacy request should
+        // always succeed and any errors handled as LSP error responses within.
+        result: response.toJson(),
+      ),
+    );
+  }
+
   @override
   Future<void> setUp() async {
     super.setUp();
@@ -315,7 +353,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       AnalysisUpdateContentParams({
         convertPath(filePath): ChangeContentOverlay([edit]),
       }).toRequest(
-        '${_nextLspRequestId++}',
+        '${_nextRequestId++}',
         clientUriConverter: server.uriConverter,
       ),
     );
@@ -328,5 +366,41 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     expect(edit.documentChanges, isNotNull);
     expect(edit.changes, isNull);
     verifier.verifyFiles(expected);
+  }
+}
+
+/// A mixin that provides a common interface for [LspOverLegacyTest] classes
+/// to work with shared tests.
+mixin SharedLspOverLegacyMixin on LspOverLegacyTest {
+  void createFile(String path, String content) {
+    newFile(path, content);
+  }
+
+  /// Wraps an LSP request up and sends it from the server to the client.
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) async {
+    var id = server.nextServerRequestId++;
+    // Round-trip through JSON to ensure everything becomes basic types and we
+    // don't have instances of classes like `Either2<>` in the JSON.
+    var lspRequest =
+        jsonDecode(
+              jsonEncode(
+                RequestMessage(
+                  id: Either2<int, String>.t1(id),
+                  jsonrpc: jsonRpcVersion,
+                  method: method,
+                  params: params,
+                ),
+              ),
+            )
+            as Map<String, Object?>;
+    var legacyResponse = await server.sendRequest(
+      Request(id.toString(), LSP_REQUEST_HANDLE, lspRequest),
+    );
+
+    // Round-trip through JSON to ensure everything becomes basic types and we
+    // don't have instances of classes like `Either2<>` in the JSON.
+    var lspResponse =
+        jsonDecode(jsonEncode(legacyResponse.result)) as Map<String, Object?>;
+    return ResponseMessage.fromJson(lspResponse);
   }
 }

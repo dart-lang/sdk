@@ -224,7 +224,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 class PubPackageAnalysisServerTest extends ContextResolutionTest
     with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
   // TODO(scheglov): Consider turning it back into a getter.
-  late String testFilePath = '$testPackageLibPath/test.dart';
+  late String testFilePath = resourceProvider.convertPath(
+    '$testPackageLibPath/test.dart',
+  );
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.

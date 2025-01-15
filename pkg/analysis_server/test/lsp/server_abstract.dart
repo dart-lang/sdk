@@ -68,6 +68,10 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  @override
+  LspClientCapabilities get editorClientCapabilities =>
+      server.editorClientCapabilities!;
+
   String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
 
   /// The path that is not in [projectFolderPath], contains external packages.
@@ -141,45 +145,6 @@ abstract class AbstractLspAnalysisServerTest
     return executeForEdits(
       () => executeCommand(command, workDoneToken: workDoneToken),
     );
-  }
-
-  /// Executes a function which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Returns a [LspChangeVerifier] that can be used to verify changes.
-  Future<LspChangeVerifier> executeForEdits(
-    Future<Object?> Function() function,
-  ) async {
-    ApplyWorkspaceEditParams? editParams;
-
-    var commandResponse = await handleExpectedRequest<
-      Object?,
-      ApplyWorkspaceEditParams,
-      ApplyWorkspaceEditResult
-    >(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      function,
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified by the caller).
-        editParams = edit;
-        return ApplyWorkspaceEditResult(applied: true);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the expected change type.
-    expect(editParams, isNotNull);
-    var edit = editParams!.edit;
-
-    var expectDocumentChanges =
-        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
-    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
-    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
-
-    return LspChangeVerifier(this, edit);
   }
 
   void expectContextBuilds() => expect(
@@ -988,6 +953,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   Uri get pubspecFileUri => pathContext.toUri(pubspecFilePath);
 
   /// A stream of [RequestMessage]s from the server.
+  @override
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
         .where((m) => m is RequestMessage)
@@ -1125,100 +1091,12 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return notificationFromServer.params as T;
   }
 
-  /// Expects a [method] request from the server after executing [f].
-  Future<RequestMessage> expectRequest(
-    Method method,
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
-    await f();
-
-    var requestFromServer = await firstRequest.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Did not receive the expected $method request from the server in the timeout period',
-                timeout,
-              ),
-    );
-
-    expect(requestFromServer, isNotNull);
-    return requestFromServer;
-  }
-
   /// Gets the current contents of a file.
   ///
   /// This is used to apply edits when the server sends workspace/applyEdit. It
   /// should reflect the content that the client would have in this case, which
   /// would be an overlay (if the file is open) or the underlying file.
   String? getCurrentFileContent(Uri uri);
-
-  /// Executes [f] then waits for a request of type [method] from the server which
-  /// is passed to [handler] to process, then waits for (and returns) the
-  /// response to the original request.
-  ///
-  /// This is used for testing things like code actions, where the client initiates
-  /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it received a response.
-  ///
-  ///     Client                                 Server
-  ///     1. |- Req: textDocument/codeAction      ->
-  ///     1. <- Resp: textDocument/codeAction     -|
-  ///
-  ///     2. |- Req: workspace/executeCommand  ->
-  ///           3. <- Req: textDocument/applyEdits  -|
-  ///           3. |- Resp: textDocument/applyEdits ->
-  ///     2. <- Resp: workspace/executeCommand -|
-  ///
-  /// Request 2 from the client is not responded to until the server has its own
-  /// response to the request it sends (3).
-  Future<T> handleExpectedRequest<T, R, RR>(
-    Method method,
-    R Function(Map<String, dynamic>) fromJson,
-    Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    late Future<T> outboundRequest;
-    Object? outboundRequestError;
-
-    // Run [f] and wait for the incoming request from the server.
-    var incomingRequest = await expectRequest(method, () {
-      // Don't return/await the response yet, as this may not complete until
-      // after we have handled the request that comes from the server.
-      outboundRequest = f();
-
-      // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test even if expected.
-      // Instead, capture the error and suppress it. But if we time out (in
-      // which case we will never return outboundRequest), then we'll raise this
-      // error.
-      outboundRequest.then(
-        (_) {},
-        onError: (e) {
-          outboundRequestError = e;
-          return null;
-        },
-      );
-    }, timeout: timeout).catchError((Object timeoutException) {
-      // We timed out waiting for the request from the server. Probably this is
-      // because our outbound request for some reason, so if we have an error
-      // for that, then throw it. Otherwise, propogate the timeout.
-      throw outboundRequestError ?? timeoutException;
-    }, test: (e) => e is TimeoutException);
-
-    // Handle the request from the server and send the response back.
-    var clientsResponse = await handler(
-      fromJson(incomingRequest.params as Map<String, Object?>),
-    );
-    respondTo(incomingRequest, clientsResponse);
-
-    // Return a future that completes when the response to the original request
-    // (from [f]) returns.
-    return outboundRequest;
-  }
 
   /// A helper that initializes the server with common values, since the server
   /// will reject any other requests until it is initialized.
@@ -1541,18 +1419,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     ]);
   }
 
-  /// Sends [responseParams] to the server as a successful response to
-  /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(
-      ResponseMessage(
-        id: request.id,
-        result: responseParams,
-        jsonrpc: jsonRpcVersion,
-      ),
-    );
-  }
-
   Future<ResponseMessage> sendDidChangeConfiguration() {
     var request = makeRequest(
       Method.workspace_didChangeConfiguration,
@@ -1569,8 +1435,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   FutureOr<void> sendNotificationToServer(NotificationMessage notification);
 
   Future<ResponseMessage> sendRequestToServer(RequestMessage request);
-
-  void sendResponseToServer(ResponseMessage response);
 
   // This is the signature expected for LSP.
   // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
@@ -1775,5 +1639,19 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     } else {
       return false;
     }
+  }
+}
+
+/// A mixin that provides a common interface for [AbstractLspAnalysisServerTest] classes
+/// to work with shared tests.
+mixin SharedLspAnalysisServerTestMixin on AbstractLspAnalysisServerTest {
+  String get testFilePath => join(projectFolderPath, 'lib', 'test.dart');
+
+  void createFile(String path, String content) {
+    newFile(path, content);
+  }
+
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
+    return server.sendRequest(method, params);
   }
 }

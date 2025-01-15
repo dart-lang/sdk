@@ -124,7 +124,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     ).toRequest('1', clientUriConverter: server.uriConverter);
 
     await handleSuccessfulRequest(request);
-    var effectiveCapabilities = server.editorClientCapabilities!;
+    var effectiveCapabilities = server.editorClientCapabilities;
     expect(
       effectiveCapabilities.hoverContentFormats,
       equals([lsp.MarkupKind.PlainText]),

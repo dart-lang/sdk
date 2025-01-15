@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
@@ -14,7 +15,7 @@ import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' as test show expect;
-import 'package:test/test.dart' hide expect;
+import 'package:test/test.dart';
 
 import 'change_verifier.dart';
 
@@ -169,6 +170,8 @@ mixin LspRequestHelpersMixin {
 
   Stream<NotificationMessage> get notificationsFromServer;
 
+  Stream<RequestMessage> get requestsFromServer;
+
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
     CallHierarchyItem item,
   ) {
@@ -224,6 +227,29 @@ mixin LspRequestHelpersMixin {
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
+
+  /// Expects a [method] request from the server after executing [f].
+  Future<RequestMessage> expectRequest(
+    Method method,
+    FutureOr<void> Function() f, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
+    await f();
+
+    var requestFromServer = await firstRequest.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Did not receive the expected $method request from the server in the timeout period',
+                timeout,
+              ),
+    );
+
+    expect(requestFromServer, isNotNull);
+    return requestFromServer;
+  }
 
   Future<T> expectSuccessfulResponseTo<T, R>(
     RequestMessage request,
@@ -777,6 +803,71 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  /// Executes [f] then waits for a request of type [method] from the server which
+  /// is passed to [handler] to process, then waits for (and returns) the
+  /// response to the original request.
+  ///
+  /// This is used for testing things like code actions, where the client initiates
+  /// a request but the server does not respond to it until it's sent its own
+  /// request to the client and it received a response.
+  ///
+  ///     Client                                 Server
+  ///     1. |- Req: textDocument/codeAction      ->
+  ///     1. <- Resp: textDocument/codeAction     -|
+  ///
+  ///     2. |- Req: workspace/executeCommand  ->
+  ///           3. <- Req: textDocument/applyEdits  -|
+  ///           3. |- Resp: textDocument/applyEdits ->
+  ///     2. <- Resp: workspace/executeCommand -|
+  ///
+  /// Request 2 from the client is not responded to until the server has its own
+  /// response to the request it sends (3).
+  Future<T> handleExpectedRequest<T, R, RR>(
+    Method method,
+    R Function(Map<String, dynamic>) fromJson,
+    Future<T> Function() f, {
+    required FutureOr<RR> Function(R) handler,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    late Future<T> outboundRequest;
+    Object? outboundRequestError;
+
+    // Run [f] and wait for the incoming request from the server.
+    var incomingRequest = await expectRequest(method, () {
+      // Don't return/await the response yet, as this may not complete until
+      // after we have handled the request that comes from the server.
+      outboundRequest = f();
+
+      // Because we don't await this future until "later", if it throws the
+      // error is treated as unhandled and will fail the test even if expected.
+      // Instead, capture the error and suppress it. But if we time out (in
+      // which case we will never return outboundRequest), then we'll raise this
+      // error.
+      outboundRequest.then(
+        (_) {},
+        onError: (e) {
+          outboundRequestError = e;
+          return null;
+        },
+      );
+    }, timeout: timeout).catchError((Object timeoutException) {
+      // We timed out waiting for the request from the server. Probably this is
+      // because our outbound request for some reason, so if we have an error
+      // for that, then throw it. Otherwise, propogate the timeout.
+      throw outboundRequestError ?? timeoutException;
+    }, test: (e) => e is TimeoutException);
+
+    // Handle the request from the server and send the response back.
+    var clientsResponse = await handler(
+      fromJson(incomingRequest.params as Map<String, Object?>),
+    );
+    respondTo(incomingRequest, clientsResponse);
+
+    // Return a future that completes when the response to the original request
+    // (from [f]) returns.
+    return outboundRequest;
+  }
+
   RequestMessage makeRequest(Method method, ToJsonable? params) {
     var id = Either2<int, String>.t1(_id++);
     return RequestMessage(
@@ -850,6 +941,22 @@ mixin LspRequestHelpersMixin {
     var request = makeRequest(Method.completionItem_resolve, item);
     return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
   }
+
+  /// Sends [responseParams] to the server as a successful response to
+  /// a server-initiated [request].
+  void respondTo<T>(RequestMessage request, T responseParams) {
+    sendResponseToServer(
+      ResponseMessage(
+        id: request.id,
+        result: responseParams,
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
+  }
+
+  /// Sends a ResponseMessage to the server, completing a reverse
+  /// (server-to-client) request.
+  void sendResponseToServer(ResponseMessage response);
 
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
     TypeHierarchyItem item,
@@ -1079,14 +1186,63 @@ mixin LspRequestHelpersMixin {
 /// Extends [LspEditHelpersMixin] with methods for accessing file state and
 /// information about the project to build paths.
 mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
+  LspClientCapabilities get editorClientCapabilities;
+
   path.Context get pathContext;
 
   String get projectFolderPath;
 
   ClientUriConverter get uriConverter;
 
+  /// Executes a function which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeForEdits(
+    Future<Object?> Function() function, {
+    ApplyWorkspaceEditResult? applyEditResult,
+  }) async {
+    ApplyWorkspaceEditParams? editParams;
+
+    var commandResponse = await handleExpectedRequest<
+      Object?,
+      ApplyWorkspaceEditParams,
+      ApplyWorkspaceEditResult
+    >(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
+      function,
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (it'll be verified by the caller).
+        editParams = edit;
+        return applyEditResult ?? ApplyWorkspaceEditResult(applied: true);
+      },
+    );
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+
+    // Ensure the edit came back, and using the expected change type.
+    expect(editParams, isNotNull);
+    var edit = editParams!.edit;
+
+    var expectDocumentChanges = editorClientCapabilities.documentChanges;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    return LspChangeVerifier(this, edit);
+  }
+
   /// A function to get the current contents of a file to apply edits.
   String? getCurrentFileContent(Uri uri);
+
+  Future<T> handleExpectedRequest<T, R, RR>(
+    Method method,
+    R Function(Map<String, dynamic>) fromJson,
+    Future<T> Function() f, {
+    required FutureOr<RR> Function(R) handler,
+    Duration timeout = const Duration(seconds: 5),
+  });
 
   /// Formats a path relative to the project root always using forward slashes.
   ///
