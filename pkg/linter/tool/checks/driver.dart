@@ -86,8 +86,7 @@ class Driver {
             (context as DriverBasedAnalysisContext).allAnalysisOptions;
         for (var options in allOptions) {
           options as AnalysisOptionsImpl;
-          options.lintRules = options.lintRules.toList();
-          lints.forEach(options.lintRules.add);
+          options.lintRules = [...options.lintRules, ...lints];
           options.lint = true;
         }
 
