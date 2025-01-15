@@ -1235,9 +1235,6 @@ abstract class HInstruction implements SpannableWithEntity {
   /// Can this node throw an exception?
   bool canThrow(AbstractValueDomain domain) => false;
 
-  /// Does this node potentially affect control flow.
-  bool isControlFlow() => false;
-
   bool isValue(AbstractValueDomain domain) =>
       domain.isPrimitiveValue(instructionType);
 
@@ -1477,6 +1474,12 @@ abstract class HInstruction implements SpannableWithEntity {
 
   bool isCodeMotionInvariant() => false;
 
+  /// Returns `true` when this HInstruction might be compiled to a JavaScript
+  /// statement, `false` when always compiled to a JavaScript expression.
+  ///
+  /// Some checks are marked as statements even though the generated code is an
+  /// expression. This is done when the value of the generated expression does
+  /// not correspond to the value of the check (usually one of its inputs).
   bool isJsStatement() => false;
 
   bool dominates(HInstruction other) {
@@ -1782,8 +1785,6 @@ class HBoundsCheck extends HCheck {
   // There can be an additional fourth input which is the index to report to
   // [ioore]. This is used by the expansion of [JSArray.removeLast].
   HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
-  @override
-  bool isControlFlow() => true;
 
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitBoundsCheck(this);
@@ -1806,8 +1807,7 @@ abstract class HConditionalBranch extends HControlFlow {
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow() : super._noType();
-  @override
-  bool isControlFlow() => true;
+
   @override
   bool isJsStatement() => true;
 
@@ -2357,10 +2357,6 @@ class HFieldSet extends HFieldAccess {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitFieldSet(this);
 
-  // HFieldSet is an expression if it has a user.
-  @override
-  bool isJsStatement() => usedBy.isEmpty;
-
   @override
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
@@ -2490,8 +2486,6 @@ class HReadModifyWrite extends HInstruction implements HLateInstruction {
   R accept<R>(HVisitor<R> visitor) => visitor.visitReadModifyWrite(this);
 
   @override
-  bool isJsStatement() => isAssignOp;
-  @override
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
@@ -2538,8 +2532,6 @@ class HLocalSet extends HLocalAccess {
 
   HLocalValue get local => inputs[0] as HLocalValue;
   HInstruction get value => inputs[1];
-  @override
-  bool isJsStatement() => true;
 }
 
 /// Invocation of a native or JS-interop method.
@@ -2699,6 +2691,7 @@ class HForeignCode extends HForeign {
 
   @override
   bool isJsStatement() => isStatement;
+
   @override
   bool canThrow(AbstractValueDomain domain) {
     if (inputs.isNotEmpty) {
@@ -3648,8 +3641,6 @@ class HStaticStore extends HInstruction {
   bool typeEquals(other) => other is HStaticStore;
   @override
   bool dataEquals(HStaticStore other) => element == other.element;
-  @override
-  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
@@ -3833,8 +3824,6 @@ class HPrimitiveCheck extends HCheck {
 
   @override
   bool isJsStatement() => true;
-  @override
-  bool isControlFlow() => true;
 
   @override
   _GvnType get _gvnType => _GvnType.primitiveCheck;
@@ -3920,8 +3909,6 @@ class HNullCheck extends HCheck {
     : super._oneInput();
 
   @override
-  bool isControlFlow() => true;
-  @override
   bool isJsStatement() => true;
 
   @override
@@ -3972,9 +3959,6 @@ abstract class HLateCheck extends HCheck {
     if (hasName) return inputs[1];
     throw StateError('HLateCheck.name: no name');
   }
-
-  @override
-  bool isControlFlow() => true;
 
   @override
   bool isCodeMotionInvariant() => false;
@@ -4111,8 +4095,7 @@ class HTypeKnown extends HCheck {
 
   @override
   bool isJsStatement() => false;
-  @override
-  bool isControlFlow() => false;
+
   @override
   bool canThrow(AbstractValueDomain domain) => false;
 
@@ -5017,7 +5000,7 @@ class HArrayFlagsCheck extends HCheck {
     AbstractValue inputType,
     AbstractValueDomain domain,
   ) {
-    // TODO(sra): Depening on the checked flags, the output is fixed-length or
+    // TODO(sra): Depending on the checked flags, the output is fixed-length or
     // unmodifiable. Refine the type to the degree an AbstractValue can express
     // that.
     return inputType;
@@ -5036,8 +5019,6 @@ class HArrayFlagsCheck extends HCheck {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitArrayFlagsCheck(this);
 
-  @override
-  bool isControlFlow() => true;
   @override
   bool isJsStatement() => true;
 
