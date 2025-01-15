@@ -350,16 +350,20 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride();
 
+    var validateUnnecessaryIgnores =
+        _analysisOptions.isLintEnabled('unnecessary_ignore');
+
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var fileAnalysis in _libraryFiles.values) {
       IgnoreValidator(
-        fileAnalysis.errorReporter,
-        fileAnalysis.errorListener.errors,
-        fileAnalysis.ignoreInfo,
-        fileAnalysis.unit.lineInfo,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
+              fileAnalysis.errorReporter,
+              fileAnalysis.errorListener.errors,
+              fileAnalysis.ignoreInfo,
+              fileAnalysis.unit.lineInfo,
+              _analysisOptions.unignorableNames,
+              validateUnnecessaryIgnores)
+          .reportErrors();
     }
   }
 

@@ -12054,6 +12054,38 @@ LintCode:
         var contents;
       }
       ```
+  unnecessary_ignore:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: "Try removing the name from the list, or removing the whole comment if this is the only name in the list."
+    state:
+      experimental: "3.8"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.
+
+      #### Example
+
+      The following code produces this diagnostic because the `unused_local_variable`
+      diagnostic isn't reported at the ignored location:
+
+      ```dart
+      // ignore: [!unused_local_variable!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Remove the ignore comment:
+
+      ```dart
+      void f() {}
+      ```
+    deprecatedDetails: |-
+      **DON'T** specify an ignore for a diagnostic that is not produced.
   unnecessary_lambdas:
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."

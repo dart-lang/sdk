@@ -7,9 +7,21 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
+  /// A list of known error codes used to ensure we don't over-report
+  /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
+  static final Set<String> _validErrorCodeNames =
+      errorCodeValues.map((e) => e.name.toLowerCase()).toSet();
+
+  /// The error code used to report `unnecessary_ignore`s.
+  /// This code is set when the `UnnecessaryIgnore` lint rule is instantiated and
+  /// registered by the linter.
+  static late ErrorCode unnecessaryIgnoreLintCode;
+
   /// The error reporter to which errors are to be reported.
   final ErrorReporter _errorReporter;
 
@@ -28,11 +40,14 @@ class IgnoreValidator {
   /// use because we have no visibility of them here.
   final Set<String> _unignorableNames;
 
+  /// Whether to validate unnecessary ignores (enabled by the `unnecessary_ignore` lint).
+  final bool _validateUnnecessaryIgnores;
+
   /// Initialize a newly created validator to report any issues with ignore
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_errorReporter].
   IgnoreValidator(this._errorReporter, this._reportedErrors, this._ignoreInfo,
-      this._lineInfo, this._unignorableNames);
+      this._lineInfo, this._unignorableNames, this._validateUnnecessaryIgnores);
 
   /// Report any issues with ignore comments in the file being analyzed.
   void reportErrors() {
@@ -124,7 +139,7 @@ class IgnoreValidator {
     //         errorCode: WarningCode.UNIGNORABLE_IGNORE,
     //         offset: unignorableName.offset,
     //         length: name.length,
-    //         data: [name]);
+    //         arguments: [name]);
     //     list.remove(unignorableName);
     //   }
     // }
@@ -153,46 +168,49 @@ class IgnoreValidator {
   /// Report the [ignoredNames] as being unnecessary.
   void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
       List<IgnoredElement> ignoredNames) {
-    // TODO(pq): find the right way to roll-out enablement and uncomment
-    // https://github.com/dart-lang/sdk/issues/51214
-    // for (var ignoredName in ignoredNames) {
-    //   if (ignoredName is IgnoredDiagnosticName) {
-    //     var name = ignoredName.name;
-    //     var rule = Registry.ruleRegistry.getRule(name);
-    //     if (rule != null) {
-    //       var state = rule.state;
-    //       var since = state.since.toString();
-    //       if (state is DeprecatedState) {
-    //         // `todo`(pq): implement
-    //       } else if (state is RemovedState) {
-    //         var replacedBy = state.replacedBy;
-    //         if (replacedBy != null) {
-    //           _errorReporter.atOffset(
-    //               errorCode: WarningCode.REPLACED_LINT_USE,
-    //               offset: ignoredName.offset,
-    //               length: name.length,
-    //               data: [name, since, replacedBy]);
-    //           continue;
-    //         } else {
-    //           _errorReporter.atOffset(
-    //               errorCode: WarningCode.REMOVED_LINT_USE,
-    //               offset: ignoredName.offset,
-    //               length: name.length,
-    //               data: [name, since]);
-    //           continue;
-    //         }
-    //       }
-    //     }
+    if (!_validateUnnecessaryIgnores) return;
 
-    //     // TODO(brianwilkerson): Uncomment the code below after the unnecessary
-    //     // ignores in the Flutter code base have been cleaned up.
-    //     _errorReporter.atOffset(
-    //         errorCode: WarningCode.UNNECESSARY_IGNORE,
-    //         offset: ignoredName.offset,
-    //         length: name.length,
-    //         data: [name]);
-    //   }
-    // }
+    for (var ignoredName in ignoredNames) {
+      if (ignoredName is IgnoredDiagnosticName) {
+        var name = ignoredName.name;
+        var rule = Registry.ruleRegistry.getRule(name);
+        if (rule == null) {
+          // If a code is not a lint or a recognized error,
+          // don't report. (It could come from a plugin.)
+          // TODO(pq): consider another diagnostic that reports undefined codes
+          if (!_validErrorCodeNames.contains(name.toLowerCase())) continue;
+        } else {
+          var state = rule.state;
+          var since = state.since.toString();
+          if (state is DeprecatedState) {
+            // `todo`(pq): implement
+          } else if (state is RemovedState) {
+            var replacedBy = state.replacedBy;
+            if (replacedBy != null) {
+              _errorReporter.atOffset(
+                  errorCode: WarningCode.REPLACED_LINT_USE,
+                  offset: ignoredName.offset,
+                  length: name.length,
+                  arguments: [name, since, replacedBy]);
+              continue;
+            } else {
+              _errorReporter.atOffset(
+                  errorCode: WarningCode.REMOVED_LINT_USE,
+                  offset: ignoredName.offset,
+                  length: name.length,
+                  arguments: [name, since]);
+              continue;
+            }
+          }
+        }
+
+        _errorReporter.atOffset(
+            errorCode: unnecessaryIgnoreLintCode,
+            offset: ignoredName.offset,
+            length: name.length,
+            arguments: [name]);
+      }
+    }
   }
 }
 

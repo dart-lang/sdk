@@ -1636,6 +1636,16 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_ignore = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+    "to be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+    uniqueName: 'unnecessary_ignore',
+  );
+
   static const LintCode unnecessary_lambdas = LinterLintCode(
     LintNames.unnecessary_lambdas,
     "Closure should be a tearoff.",
