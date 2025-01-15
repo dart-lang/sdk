@@ -16,6 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsProviderTest);
   });
+
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
       var optionsProvider = AnalysisOptionsProvider();
@@ -212,65 +213,61 @@ analyzer:
   }
 
   void test_getOptions_include() {
-    newFile('/foo.include', r'''
+    newFile('/foo.yaml', r'''
 analyzer:
   ignore:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
     newFile('/$analysisOptionsYaml', r'''
-include: foo.include
+include: foo.yaml
 ''');
-    YamlMap options = _getOptions('/');
+    var options = _getOptions('/');
     expect(options, hasLength(2));
-    {
-      var analyzer = options.valueAt('analyzer') as YamlMap;
-      expect(analyzer, hasLength(1));
-      {
-        var ignore = analyzer.valueAt('ignore') as YamlList;
-        expect(ignore, hasLength(2));
-        expect(ignore[0], 'ignoreme.dart');
-        expect(ignore[1], 'sdk_ext/**');
-      }
-    }
+
+    var analyzer = options.valueAt('analyzer') as YamlMap;
+    expect(analyzer, hasLength(1));
+
+    var ignore = analyzer.valueAt('ignore') as YamlList;
+    expect(ignore, hasLength(2));
+    expect(ignore[0], 'ignoreme.dart');
+    expect(ignore[1], 'sdk_ext/**');
   }
 
   void test_getOptions_include_emptyLints() {
-    newFile('/foo.include', r'''
+    newFile('/foo.yaml', r'''
 linter:
   rules:
     - prefer_single_quotes
 ''');
     newFile('/$analysisOptionsYaml', r'''
-include: foo.include
+include: foo.yaml
 linter:
   rules:
     # avoid_print: false
 ''');
-    YamlMap options = _getOptions('/');
+    var options = _getOptions('/');
     expect(options, hasLength(2));
-    {
-      var linter = options.valueAt('linter') as YamlMap;
-      expect(linter, hasLength(1));
-      {
-        var rules = linter.valueAt('rules') as YamlList;
-        expect(rules, hasLength(1));
-        expect(rules[0], 'prefer_single_quotes');
-      }
-    }
+
+    var linter = options.valueAt('linter') as YamlMap;
+    expect(linter, hasLength(1));
+
+    var rules = linter.valueAt('rules') as YamlList;
+    expect(rules, hasLength(1));
+    expect(rules[0], 'prefer_single_quotes');
   }
 
   void test_getOptions_include_missing() {
     newFile('/$analysisOptionsYaml', r'''
-include: /foo.include
+include: /foo.yaml
 ''');
-    YamlMap options = _getOptions('/');
+    var options = _getOptions('/');
     expect(options, hasLength(1));
   }
 
   void test_getOptions_invalid() {
     newFile('/$analysisOptionsYaml', r''':''');
-    YamlMap options = _getOptions('/');
+    var options = _getOptions('/');
     expect(options, hasLength(1));
   }
 
@@ -281,25 +278,21 @@ analyzer:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    YamlMap options = _getOptions('/');
+    var options = _getOptions('/');
     expect(options, hasLength(1));
-    {
-      var analyzer = options.valueAt('analyzer') as YamlMap;
-      expect(analyzer, hasLength(1));
-      {
-        var ignore = analyzer.valueAt('ignore') as YamlList;
-        expect(ignore, hasLength(2));
-        expect(ignore[0], 'ignoreme.dart');
-        expect(ignore[1], 'sdk_ext/**');
-      }
-    }
+
+    var analyzer = options.valueAt('analyzer') as YamlMap;
+    expect(analyzer, hasLength(1));
+
+    var ignore = analyzer.valueAt('ignore') as YamlList;
+    expect(ignore, hasLength(2));
+    expect(ignore[0], 'ignoreme.dart');
+    expect(ignore[1], 'sdk_ext/**');
   }
 
   YamlMap _getOptions(String posixPath) {
     var folder = getFolder(posixPath);
-    var provider = AnalysisOptionsProvider(SourceFactory([
-      ResourceUriResolver(resourceProvider),
-    ]));
-    return provider.getOptions(folder);
+    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    return AnalysisOptionsProvider(sourceFactory).getOptions(folder);
   }
 }
