@@ -47,17 +47,23 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   }
 
   /// Returns a supertype of [type] for all values of [eliminationTargets].
-  DartType eliminateToGreatest(DartType type) {
+  TypeImpl eliminateToGreatest(DartType type) {
     _isCovariant = true;
     _isLeastClosure = false;
-    return type.accept(this) ?? type;
+    // TODO(paulberry): make this cast unnecessary by changing the type of
+    // `type` and by changing `ReplacementVisitor` to implement
+    // `TypeVisitor<TypeImpl?>`.
+    return (type.accept(this) ?? type) as TypeImpl;
   }
 
   /// Returns a subtype of [type] for all values of [eliminationTargets].
-  DartType eliminateToLeast(DartType type) {
+  TypeImpl eliminateToLeast(DartType type) {
     _isCovariant = true;
     _isLeastClosure = true;
-    return type.accept(this) ?? type;
+    // TODO(paulberry): make this cast unnecessary by changing the type of
+    // `type` and by changing `ReplacementVisitor` to implement
+    // `TypeVisitor<TypeImpl?>`.
+    return (type.accept(this) ?? type) as TypeImpl;
   }
 
   @override

@@ -538,7 +538,7 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
   @override
   bool get isDartAsyncFutureOr => true;
 
-  DartType get typeArgument => typeArguments[0];
+  TypeImpl get typeArgument => typeArguments[0];
 
   @override
   InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
@@ -575,7 +575,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   final InterfaceElementImpl2 element3;
 
   @override
-  final List<DartType> typeArguments;
+  final List<TypeImpl> typeArguments;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -614,8 +614,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element.name3 == 'FutureOr' && element.library2.isDartAsync) {
       return FutureOrTypeImpl(
         element3: element,
+        // TODO(paulberry): avoid this cast by changing the type of
+        // `typeArguments`.
         typeArgument: typeArguments.isNotEmpty
-            ? typeArguments[0]
+            ? typeArguments[0] as TypeImpl
             : InvalidTypeImpl.instance,
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
@@ -626,9 +628,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         alias: alias,
       );
     } else {
+      // TODO(paulberry): avoid this cast by changing the type of
+      // `typeArguments`.
       return InterfaceTypeImpl._(
         element3: element,
-        typeArguments: typeArguments,
+        typeArguments: typeArguments.cast(),
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
       );
@@ -644,7 +648,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   InterfaceTypeImpl._futureOr({
     required this.element3,
-    required DartType typeArgument,
+    required TypeImpl typeArgument,
     required this.nullabilitySuffix,
     super.alias,
   }) : typeArguments = [typeArgument] {
@@ -1161,18 +1165,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
-    return typeArguments.any((argument) {
-      var argumentImpl = argument as TypeImpl;
-      return argumentImpl.referencesAny(parameters);
-    });
+    return typeArguments.any((argument) => argument.referencesAny(parameters));
   }
 
   @override
   bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
-    return typeArguments.any((argument) {
-      var argumentImpl = argument as TypeImpl;
-      return argumentImpl.referencesAny2(parameters);
-    });
+    return typeArguments.any((argument) => argument.referencesAny2(parameters));
   }
 
   @override
