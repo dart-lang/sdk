@@ -5695,8 +5695,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<MethodElement> methods = [];
 
-  @override
-  List<MethodElementImpl2> methods2 = [];
+  final List<MethodElementImpl2> internal_methods2 = [];
 
   @override
   InstanceElement2 get baseElement => this;
@@ -5765,6 +5764,12 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
+
+  @override
+  List<MethodElementImpl2> get methods2 {
+    _readMembers();
+    return internal_methods2;
+  }
 
   @override
   String? get name3 => firstFragment.name;
@@ -6522,7 +6527,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<ConstructorElement2> get constructors2 {
-    firstFragment.constructors; // TODO(scheglov): remove eventually
+    _readMembers();
     return constructors
         .map((constructor) =>
             (constructor.declaration as ConstructorElementImpl).element)

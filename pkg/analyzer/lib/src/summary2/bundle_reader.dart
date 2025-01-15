@@ -1379,7 +1379,7 @@ class LibraryReader {
         fragment.element = element;
       } else {
         var element = MethodElementImpl2(reference2, fragment.name2, fragment);
-        _currentInstanceElement.methods2.add(element);
+        _currentInstanceElement.internal_methods2.add(element);
       }
 
       var linkedData = MethodElementLinkedData(
