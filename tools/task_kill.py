@@ -141,7 +141,7 @@ def GetPidsWindows(process_name):
 
     for line in lines:
         split = line.split()
-        if len(split) > 2 and split[0] == process_name:
+        if len(split) > 2:
             results.append(split[1])
     return results
 
