@@ -1640,10 +1640,32 @@ class LinterLintCode extends LintCode {
     LintNames.unnecessary_ignore,
     "The diagnostic '{0}' isn't produced at this location so it doesn't need "
     "to be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
+    correctionMessage: "Try removing the ignore comment.",
     uniqueName: 'unnecessary_ignore',
+  );
+
+  static const LintCode unnecessary_ignore_file = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
+    "ignored.",
+    correctionMessage: "Try removing the ignore comment.",
+    uniqueName: 'unnecessary_ignore_file',
+  );
+
+  static const LintCode unnecessary_ignore_name = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+    "to be ignored.",
+    correctionMessage: "Try removing the name from the list.",
+    uniqueName: 'unnecessary_ignore_name',
+  );
+
+  static const LintCode unnecessary_ignore_name_file = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
+    "ignored.",
+    correctionMessage: "Try removing the name from the list.",
+    uniqueName: 'unnecessary_ignore_name_file',
   );
 
   static const LintCode unnecessary_lambdas = LinterLintCode(

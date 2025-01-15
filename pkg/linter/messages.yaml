@@ -12057,7 +12057,7 @@ LintCode:
   unnecessary_ignore:
     sharedName: unnecessary_ignore
     problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
-    correctionMessage: "Try removing the name from the list, or removing the whole comment if this is the only name in the list."
+    correctionMessage: "Try removing the ignore comment."
     state:
       experimental: "3.8"
     categories: [style]
@@ -12086,6 +12086,21 @@ LintCode:
       ```
     deprecatedDetails: |-
       **DON'T** specify an ignore for a diagnostic that is not produced.
+  unnecessary_ignore_file:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced in this file so it doesn't need to be ignored."
+    correctionMessage: "Try removing the ignore comment."
+    hasPublishedDocs: false
+  unnecessary_ignore_name:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: "Try removing the name from the list."
+    hasPublishedDocs: false
+  unnecessary_ignore_name_file:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced in this file so it doesn't need to be ignored."
+    correctionMessage: "Try removing the name from the list."
+    hasPublishedDocs: false
   unnecessary_lambdas:
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."

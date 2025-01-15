@@ -11,14 +11,26 @@ const _desc = r"Don't ignore a diagnostic code that is not produced.";
 
 class UnnecessaryIgnore extends LintRule {
   UnnecessaryIgnore() : super(name: 'unnecessary_ignore', description: _desc) {
-    // Register the unnecessary_ignore lint code with the analyzer's validator.
+    // Register the unnecessary_ignore lint codes with the analyzer's validator.
     // We do this here to avoid having to introduce a dependency from the analyzer
     // on the linter.
-    IgnoreValidator.unnecessaryIgnoreLintCode = lintCode;
+    IgnoreValidator.unnecessaryIgnoreFileLintCode =
+        LinterLintCode.unnecessary_ignore_file;
+    IgnoreValidator.unnecessaryIgnoreLocationLintCode =
+        LinterLintCode.unnecessary_ignore;
+    IgnoreValidator.unnecessaryIgnoreNameFileLintCode =
+        LinterLintCode.unnecessary_ignore_name_file;
+    IgnoreValidator.unnecessaryIgnoreNameLocationLintCode =
+        LinterLintCode.unnecessary_ignore_name;
   }
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_ignore;
+  List<LintCode> get lintCodes => const [
+    LinterLintCode.unnecessary_ignore,
+    LinterLintCode.unnecessary_ignore_file,
+    LinterLintCode.unnecessary_ignore_name,
+    LinterLintCode.unnecessary_ignore_name_file,
+  ];
 
   /// Note that there is intentionally no registration logic as there is no visiting or
   /// analysis done in the lint implementation. Instead the heavy-lifting is done in an

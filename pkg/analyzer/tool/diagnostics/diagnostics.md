@@ -28694,6 +28694,9 @@ class C {
 _The diagnostic '{0}' isn't produced at this location so it doesn't need to be
 ignored._
 
+_The diagnostic '{0}' isn't produced in this file so it doesn't need to be
+ignored._
+
 #### Description
 
 The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.

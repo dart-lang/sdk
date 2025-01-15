@@ -17,10 +17,13 @@ class IgnoreValidator {
   static final Set<String> _validErrorCodeNames =
       errorCodeValues.map((e) => e.name.toLowerCase()).toSet();
 
-  /// The error code used to report `unnecessary_ignore`s.
-  /// This code is set when the `UnnecessaryIgnore` lint rule is instantiated and
+  /// Error codes used to report `unnecessary_ignore`s.
+  /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
-  static late ErrorCode unnecessaryIgnoreLintCode;
+  static late ErrorCode unnecessaryIgnoreLocationLintCode;
+  static late ErrorCode unnecessaryIgnoreFileLintCode;
+  static late ErrorCode unnecessaryIgnoreNameLocationLintCode;
+  static late ErrorCode unnecessaryIgnoreNameFileLintCode;
 
   /// The error reporter to which errors are to be reported.
   final ErrorReporter _errorReporter;
@@ -120,7 +123,8 @@ class IgnoreValidator {
     //
     // Report any remaining ignored names as being unnecessary.
     //
-    _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredForFile);
+    _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredForFile,
+        forFile: true);
     for (var ignoredOnLine in ignoredOnLineMap.values) {
       _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredOnLine);
     }
@@ -167,7 +171,8 @@ class IgnoreValidator {
 
   /// Report the [ignoredNames] as being unnecessary.
   void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
-      List<IgnoredElement> ignoredNames) {
+      List<IgnoredElement> ignoredNames,
+      {bool forFile = false}) {
     if (!_validateUnnecessaryIgnores) return;
 
     for (var ignoredName in ignoredNames) {
@@ -204,8 +209,19 @@ class IgnoreValidator {
           }
         }
 
+        late ErrorCode lintCode;
+        if (ignoredNames.length > 1) {
+          lintCode = forFile
+              ? unnecessaryIgnoreNameFileLintCode
+              : unnecessaryIgnoreNameLocationLintCode;
+        } else {
+          lintCode = forFile
+              ? unnecessaryIgnoreFileLintCode
+              : unnecessaryIgnoreLocationLintCode;
+        }
+
         _errorReporter.atOffset(
-            errorCode: unnecessaryIgnoreLintCode,
+            errorCode: lintCode,
             offset: ignoredName.offset,
             length: name.length,
             arguments: [name]);
