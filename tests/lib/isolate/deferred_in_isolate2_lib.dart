@@ -3,6 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Used by deferred_in_isolate2_test.
-library deferred_in_isolate2_lib;
-
 String f() => "hi";

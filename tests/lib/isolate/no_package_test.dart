@@ -3,27 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-import "package:expect/legacy/async_minitest.dart"; // ignore: deprecated_member_use
+
+import "package:expect/expect.dart";
 
 void testNoPackages(String filePath, Uri uri, String expected) {
   File mainIsolate = new File(filePath);
   mainIsolate.writeAsStringSync('''
     library spawn_tests;
 
-    import \'dart:isolate\';
+    import 'dart:isolate';
 
     void main() async {
-      const String debugName = \'spawnedIsolate\';
+      const String debugName = 'spawnedIsolate';
       final exitPort = ReceivePort();
-      final port = new ReceivePort();
+      final port = ReceivePort();
       port.listen((msg) {
           print(msg);
           port.close();
       });
 
       final isolate = await Isolate.spawnUri(
-        Uri.parse(\'$uri\'),
-          [\'$expected\'],
+        Uri.parse('$uri'),
+          ['$expected'],
           port.sendPort,
           paused: false,
           debugName: debugName,
@@ -41,7 +42,7 @@ void testNoPackages(String filePath, Uri uri, String expected) {
   var result = Process.runSync(exec, args);
   print('stdout: ${result.stdout}');
   print('stderr: ${result.stderr}');
-  expect(result.stdout.contains('$expected'), true);
+  Expect.isTrue(result.stdout.contains('$expected'));
 }
 
 void main() {
@@ -61,8 +62,11 @@ void main() {
 
   try {
     // Isolate Spawning another Isolate without any package specification.
-    testNoPackages("$tmpDirPath/no_package_isolate.dart",
-        Uri.file(noPackageIsolate.path), 're: no package');
+    testNoPackages(
+      "$tmpDirPath/no_package_isolate.dart",
+      Uri.file(noPackageIsolate.path),
+      're: no package',
+    );
   } finally {
     tmpDir.deleteSync(recursive: true);
   }

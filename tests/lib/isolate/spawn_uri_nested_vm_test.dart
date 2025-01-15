@@ -3,24 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Example of nested spawning of isolates from a URI
-library NestedSpawnUriLibrary;
 
 import 'dart:isolate';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
 main() {
-  test('isolate fromUri - nested send and reply', () async {
+  asyncTest(() async {
     final port = ReceivePort();
     final exitPort = ReceivePort();
     Isolate.spawnUri(
-        Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'),
-        [],
-        [
-          [1, 2],
-          port.sendPort
-        ],
-        onExit: exitPort.sendPort);
-    port.first.then(expectAsync((result) => print(result)));
+      Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'),
+      [],
+      [
+        [1, 2],
+        port.sendPort,
+      ],
+      onExit: exitPort.sendPort,
+    );
+    asyncStart();
+    port.first.then(asyncSuccess);
     // ensure main isolate doesn't exit before child isolate exits
     await exitPort.first;
   });

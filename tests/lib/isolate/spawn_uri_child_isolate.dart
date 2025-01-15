@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Child isolate code to be spawned from a URI to this file.
-library SpawnUriChildIsolate;
 
 void main(List<String> args, replyTo) {
   var data = args[0];
