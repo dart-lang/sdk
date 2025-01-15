@@ -334,7 +334,7 @@ class FunctionTypeImpl extends TypeImpl
       var elementImpl = element as TypeParameterElementImpl;
       assert(!parameters.contains(elementImpl));
 
-      var bound = elementImpl.bound as TypeImpl?;
+      var bound = elementImpl.bound;
       if (bound != null && bound.referencesAny(parameters)) {
         return true;
       }
@@ -361,7 +361,7 @@ class FunctionTypeImpl extends TypeImpl
       var elementImpl = element as TypeParameterElementImpl;
       assert(!parameters.contains(elementImpl.asElement2));
 
-      var bound = elementImpl.bound as TypeImpl?;
+      var bound = elementImpl.bound;
       if (bound != null && bound.referencesAny2(parameters)) {
         return true;
       }
@@ -928,7 +928,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  InterfaceType? asInstanceOf(InterfaceElement targetElement) {
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     if (element == targetElement) {
       return this;
     }
@@ -936,7 +936,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (var rawInterface in element.allSupertypes) {
       if (rawInterface.element == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
-        return substitution.substituteType(rawInterface) as InterfaceType;
+        return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
       }
     }
 
@@ -944,7 +944,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) {
     if ((element as InterfaceFragment).element == targetElement) {
       return this;
     }
@@ -953,7 +953,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       var realElement = (rawInterface.element as InterfaceFragment).element;
       if (realElement == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
-        return substitution.substituteType(rawInterface) as InterfaceType;
+        return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
       }
     }
 
@@ -1629,10 +1629,10 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  InterfaceType? asInstanceOf(InterfaceElement targetElement) => null;
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
 
   @override
-  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) => null;
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) => null;
 
   @override
   String getDisplayString({
@@ -1696,7 +1696,7 @@ abstract class TypeImpl implements DartType {
 /// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
-  final TypeParameterElement element;
+  final TypeParameterElementImpl element;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1705,16 +1705,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
   /// is therefore the same as the bound of [element].
-  final DartType? promotedBound;
+  final TypeImpl? promotedBound;
 
   /// Initialize a newly created type parameter type to be declared by the given
   /// [element] and to have the given name.
   TypeParameterTypeImpl({
-    required this.element,
+    required TypeParameterElement element,
     required this.nullabilitySuffix,
-    this.promotedBound,
+    DartType? promotedBound,
     super.alias,
-  });
+  })  :
+        // TODO(paulberry): change the type of the parameter `element` so
+        // that this cast isn't needed.
+        element = element as TypeParameterElementImpl,
+        // TODO(paulberry): change the type of the parameter `promotedBound` so
+        // that this cast isn't needed.
+        promotedBound = promotedBound as TypeImpl?;
 
   /// Initialize a newly created type parameter type to be declared by the given
   /// [element] and to have the given name.
@@ -1733,15 +1739,14 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  DartType get bound =>
+  TypeImpl get bound =>
       promotedBound ?? element.bound ?? DynamicTypeImpl.instance;
 
   @override
-  ElementLocation get definition => element.location!;
+  ElementLocation get definition => element.location;
 
   @override
-  TypeParameterElementImpl2 get element3 =>
-      (element as TypeParameterElementImpl).element;
+  TypeParameterElementImpl2 get element3 => element.element;
 
   @override
   int get hashCode => element.hashCode;
@@ -1814,12 +1819,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  InterfaceType? asInstanceOf(InterfaceElement targetElement) {
+  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     return bound.asInstanceOf(targetElement);
   }
 
   @override
-  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) {
     return bound.asInstanceOf2(targetElement);
   }
 

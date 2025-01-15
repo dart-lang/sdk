@@ -11142,7 +11142,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound.
-  DartType? _bound;
+  TypeImpl? _bound;
 
   /// The value representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -11162,12 +11162,14 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  DartType? get bound {
+  TypeImpl? get bound {
     return _bound;
   }
 
   set bound(DartType? bound) {
-    _bound = bound;
+    // TODO(paulberry): Change the type of the parameter `bound` so that this
+    // cast isn't needed.
+    _bound = bound as TypeImpl?;
     if (_element case var element?) {
       if (!identical(element.bound, bound)) {
         element.bound = bound;
