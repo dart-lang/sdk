@@ -119,6 +119,22 @@ abstract class IntegrationTestMixin {
   /// Stream controller for [onPluginError].
   late StreamController<PluginErrorParams> _onPluginError;
 
+  /// Reports the current status of the plugin. Parameters are omitted if there
+  /// has been no change in the status represented by that parameter.
+  ///
+  /// Only used for "new" analyzer plugins. Legacy plugins should not use this
+  /// type.
+  ///
+  /// Parameters
+  ///
+  /// analysis: AnalysisStatus (optional)
+  ///
+  ///   The current status of analysis (whether analysis is being performed).
+  late Stream<PluginStatusParams> onPluginStatus;
+
+  /// Stream controller for [onPluginStatus].
+  late StreamController<PluginStatusParams> _onPluginStatus;
+
   /// Return the navigation information associated with the given region of the
   /// given file. If the navigation information for the given file has not yet
   /// been computed, or the most recently computed navigation information for
@@ -661,6 +677,8 @@ abstract class IntegrationTestMixin {
   void initializeInttestMixin() {
     _onPluginError = StreamController<PluginErrorParams>(sync: true);
     onPluginError = _onPluginError.stream.asBroadcastStream();
+    _onPluginStatus = StreamController<PluginStatusParams>(sync: true);
+    onPluginStatus = _onPluginStatus.stream.asBroadcastStream();
     _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
     _onAnalysisFolding = StreamController<AnalysisFoldingParams>(sync: true);
@@ -687,6 +705,11 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isPluginErrorParams);
         _onPluginError
             .add(PluginErrorParams.fromJson(decoder, 'params', params));
+        break;
+      case 'plugin.status':
+        outOfTestExpect(params, isPluginStatusParams);
+        _onPluginStatus
+            .add(PluginStatusParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);

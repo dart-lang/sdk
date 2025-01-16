@@ -144,6 +144,24 @@
       </field>
     </params>
   </notification>
+  <notification event="status">
+    <p>
+      Reports the current status of the plugin. Parameters are omitted if there
+      has been no change in the status represented by that parameter.
+    </p>
+    <p>
+      Only used for "new" analyzer plugins. Legacy plugins should not use
+      this type.
+    </p>
+    <params>
+      <field name="analysis" optional="true">
+        <ref>AnalysisStatus</ref>
+        <p>
+          The current status of analysis (whether analysis is being performed).
+        </p>
+      </field>
+    </params>
+  </notification>
 </domain>
 <domain name="analysis">
   <p>
@@ -872,6 +890,28 @@
       <value><code>OCCURRENCES</code></value>
       <value><code>OUTLINE</code></value>
     </enum>
+  </type>
+  <type name="AnalysisStatus">
+    <p>
+      An indication of the current state of analysis.
+    </p>
+    <p>
+      Only used for "new" analyzer plugins. Legacy plugins should not use
+      this type.
+    </p>
+    <object>
+      <field name="isAnalyzing">
+        <ref>bool</ref>
+        <p>True if analysis is currently being performed.</p>
+      </field>
+      <!--<field name="analysisTarget" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the current target of analysis. This field is
+          omitted if analyzing is false.
+        </p>
+      </field>-->
+    </object>
   </type>
   <type name="ContextRoot">
     <p>

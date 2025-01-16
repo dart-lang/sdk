@@ -1337,6 +1337,59 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   int get hashCode => 218088493;
 }
 
+/// AnalysisStatus
+///
+/// {
+///   "isAnalyzing": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class AnalysisStatus implements HasToJson {
+  /// True if analysis is currently being performed.
+  bool isAnalyzing;
+
+  AnalysisStatus(this.isAnalyzing);
+
+  factory AnalysisStatus.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      bool isAnalyzing;
+      if (json.containsKey('isAnalyzing')) {
+        isAnalyzing = jsonDecoder.decodeBool(
+            '$jsonPath.isAnalyzing', json['isAnalyzing']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'isAnalyzing');
+      }
+      return AnalysisStatus(isAnalyzing);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'AnalysisStatus', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['isAnalyzing'] = isAnalyzing;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisStatus) {
+      return isAnalyzing == other.isAnalyzing;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => isAnalyzing.hashCode;
+}
+
 /// analysis.updateContent params
 ///
 /// {
@@ -3621,6 +3674,74 @@ class PluginShutdownResult implements ResponseResult {
 
   @override
   int get hashCode => 9389109;
+}
+
+/// plugin.status params
+///
+/// {
+///   "analysis": optional AnalysisStatus
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginStatusParams implements HasToJson {
+  /// The current status of analysis (whether analysis is being performed).
+  AnalysisStatus? analysis;
+
+  PluginStatusParams({this.analysis});
+
+  factory PluginStatusParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      AnalysisStatus? analysis;
+      if (json.containsKey('analysis')) {
+        analysis = AnalysisStatus.fromJson(
+            jsonDecoder, '$jsonPath.analysis', json['analysis'],
+            clientUriConverter: clientUriConverter);
+      }
+      return PluginStatusParams(analysis: analysis);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'plugin.status params', json);
+    }
+  }
+
+  factory PluginStatusParams.fromNotification(Notification notification,
+      {ClientUriConverter? clientUriConverter}) {
+    return PluginStatusParams.fromJson(
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    var analysis = this.analysis;
+    if (analysis != null) {
+      result['analysis'] =
+          analysis.toJson(clientUriConverter: clientUriConverter);
+    }
+    return result;
+  }
+
+  Notification toNotification({ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'plugin.status', toJson(clientUriConverter: clientUriConverter));
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginStatusParams) {
+      return analysis == other.analysis;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => analysis.hashCode;
 }
 
 /// plugin.versionCheck params
