@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,6 +36,12 @@ void f(N? n) {
 }
 ''');
     await assertHasFixesWithoutApplying(
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Hide others to use 'N' from 'lib1.dart'",
+        "Hide others to use 'N' from 'lib2.dart'",
+      ],
+    );
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
         "Hide others to use 'N' from 'lib1.dart'",
