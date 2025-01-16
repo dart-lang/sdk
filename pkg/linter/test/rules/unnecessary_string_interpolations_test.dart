@@ -55,38 +55,42 @@ var b = '''x$a''';
   }
 
   test_unnecessaryInterpolation_single() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = '';
 var b = '$a';
-''', [
-      lint(20, 4),
-    ]);
+''',
+      [lint(20, 4)],
+    );
   }
 
   test_unnecessaryInterpolation_substring() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = '';
 var b = '${a.substring(1)}';
-''', [
-      lint(20, 19),
-    ]);
+''',
+      [lint(20, 19)],
+    );
   }
 
   test_unnecessaryInterpolation_triple() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var a = '';
 var b = '''$a''';
-""", [
-      lint(20, 8),
-    ]);
+""",
+      [lint(20, 8)],
+    );
   }
 
   test_unnecessaryInterpolation_withBraces() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = '';
 var b = '${a}';
-''', [
-      lint(20, 6),
-    ]);
+''',
+      [lint(20, 6)],
+    );
   }
 }

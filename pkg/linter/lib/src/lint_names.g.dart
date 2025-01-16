@@ -500,6 +500,8 @@ abstract final class LintNames {
   static const String unnecessary_getters_setters =
       'unnecessary_getters_setters';
 
+  static const String unnecessary_ignore = 'unnecessary_ignore';
+
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
 
   static const String unnecessary_late = 'unnecessary_late';

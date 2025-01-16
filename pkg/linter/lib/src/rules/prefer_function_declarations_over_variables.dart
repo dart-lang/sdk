@@ -11,10 +11,10 @@ const _desc = r'Use a function declaration to bind a function to a name.';
 
 class PreferFunctionDeclarationsOverVariables extends LintRule {
   PreferFunctionDeclarationsOverVariables()
-      : super(
-          name: LintNames.prefer_function_declarations_over_variables,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_function_declarations_over_variables,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -22,7 +22,9 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
   }

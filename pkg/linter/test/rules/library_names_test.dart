@@ -35,18 +35,20 @@ library foo;
   }
 
   test_titlecase() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 library Foo;
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_uppercaseInDots() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 library one.Two.three;
-''', [
-      lint(8, 13),
-    ]);
+''',
+      [lint(8, 13)],
+    );
   }
 }

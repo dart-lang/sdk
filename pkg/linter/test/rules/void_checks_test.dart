@@ -28,7 +28,8 @@ void f() {
   }
 
   test_constructorArgument_genericParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {
   A<void>.c(p);
 }
@@ -36,9 +37,9 @@ class A<T> {
   T value;
   A.c(this.value);
 }
-''', [
-      lint(32, 1),
-    ]);
+''',
+      [lint(32, 1)],
+    );
   }
 
   test_emptyFunctionExpressionReturningFutureOrVoid() async {
@@ -52,15 +53,18 @@ void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {
   }
 
   test_extraPositionalArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 missing_parameter_for_argument() {
   void foo() {}
   foo(0);
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 57, 1),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 57, 1),
+      ],
+    );
   }
 
   test_functionArgument_FutureOrVoidParameter_dynamicArgument() async {
@@ -104,36 +108,39 @@ void m(FutureOr<void> arg) {}
   }
 
   test_functionArgument_voidParameter_dynamicArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {
   m(p);
 }
 void m(void arg) {}
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_functionArgument_voidParameter_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {
   m(p: p);
 }
 void m({required void p}) {}
-''', [
-      lint(27, 1),
-    ]);
+''',
+      [lint(27, 1)],
+    );
   }
 
   test_functionArgument_voidParameter_optional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {
   m(p);
 }
 void m([void v]) {}
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_functionExpression_blockBody_returnStatement_genericContext() async {
@@ -240,7 +247,8 @@ class A {
   }
 
   test_futureOrVoidField_assignInt() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 void f(A a) {
   a.x = 1;
@@ -249,9 +257,9 @@ class A {
   FutureOr<void> x;
   A(this.x);
 }
-''', [
-      lint(37, 7),
-    ]);
+''',
+      [lint(37, 7)],
+    );
   }
 
   test_futureOrVoidField_assignNull() async {
@@ -277,36 +285,39 @@ FutureOr<void> f() {
   }
 
   test_futureOrVoidFunction_blockBody_returnStatement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async';
 FutureOr<void> f() {
   return 1;
 }
-''', [
-      lint(44, 9),
-    ]);
+''',
+      [lint(44, 9)],
+    );
   }
 
   test_listPattern_local() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   void p;
   [p] = <int>[7];
   return p;
 }
-''', [
-      lint(24, 1),
-    ]);
+''',
+      [lint(24, 1)],
+    );
   }
 
   test_listPattern_param() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(void p) {
   [p] = <int>[7];
 }
-''', [
-      lint(20, 1),
-    ]);
+''',
+      [lint(20, 1)],
+    );
   }
 
   test_localFunction_emptyBlockBody_matchingFutureOrVoidSignature() async {
@@ -342,24 +353,28 @@ void f(void Function() p) {
   }
 
   test_recordPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(void p) {
   (p, ) = (7, );
 }
-''', [
-      lint(20, 1),
-    ]);
+''',
+      [lint(20, 1)],
+    );
   }
 
   test_returnOfInvalidType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void bug2813() {
   return 1;
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+      ],
+    );
   }
 
   // https://github.com/dart-lang/linter/issues/2685
@@ -386,26 +401,28 @@ void f(Future<int> p) {
   }
 
   test_setterArgument_genericParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(A<void> a, dynamic p) {
   a.f = p;
 }
 class A<T> {
   set f(T value) {}
 }
-''', [
-      lint(33, 7),
-    ]);
+''',
+      [lint(33, 7)],
+    );
   }
 
   test_voidFunction_blockBody_returnStatement() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(dynamic p) {
   return p;
 }
-''', [
-      lint(22, 9),
-    ]);
+''',
+      [lint(22, 9)],
+    );
   }
 
   test_voidFunction_blockBody_returnStatement_empty() async {

@@ -20,8 +20,9 @@ final _identifier = RegExp(r'^[_$a-z]+(\d[_a-z\d]*)?$', caseSensitive: false);
 //     * an upper case letter followed by a word tail, or
 //     * an underscore and then a digit followed by a word tail.
 // * and potentially ended by a single optional underscore.
-final _lowerCamelCase =
-    RegExp(r'^_*[?$a-z][a-z\d?$]*(?:(?:[A-Z]|_\d)[a-z\d?$]*)*_?$');
+final _lowerCamelCase = RegExp(
+  r'^_*[?$a-z][a-z\d?$]*(?:(?:[A-Z]|_\d)[a-z\d?$]*)*_?$',
+);
 
 // A lower-case underscore (snake-case) is here defined as:
 // * A sequence of lower-case letters, digits and underscores,
@@ -31,16 +32,18 @@ final _lowerCamelCase =
 final _lowerCaseUnderScore = RegExp(r'^[a-z](?:_?[a-z\d])*$');
 
 @Deprecated('Prefer: ascii_utils.isValidFileName')
-final _lowerCaseUnderScoreWithDots =
-    RegExp(r'^_?[_a-z\d]*(?:\.[a-z][_a-z\d]*)*$');
+final _lowerCaseUnderScoreWithDots = RegExp(
+  r'^_?[_a-z\d]*(?:\.[a-z][_a-z\d]*)*$',
+);
 
 // A lower-case underscored (snake-case) with leading underscores is defined as
 // * An optional leading sequence of any number of underscores,
 // * followed by a sequence of lower-case letters, digits and underscores,
 // * with no two adjacent underscores,
 // * and not ending in an underscore.
-final _lowerCaseUnderScoreWithLeadingUnderscores =
-    RegExp(r'^_*[a-z](?:_?[a-z\d])*$');
+final _lowerCaseUnderScoreWithLeadingUnderscores = RegExp(
+  r'^_*[a-z](?:_?[a-z\d])*$',
+);
 
 final _pubspec = RegExp(r'^_?pubspec\.yaml$');
 
@@ -75,8 +78,8 @@ bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
 
 /// Returns `true` if this [id] is `lower_camel_case_with_underscores_or.dots`.
 bool isLowerCaseUnderScoreWithDots(String id) =>
-    // ignore: deprecated_member_use_from_same_package
-    _lowerCaseUnderScoreWithDots.hasMatch(id);
+// ignore: deprecated_member_use_from_same_package
+_lowerCaseUnderScoreWithDots.hasMatch(id);
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);

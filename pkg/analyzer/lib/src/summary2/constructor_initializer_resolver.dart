@@ -30,8 +30,7 @@ class ConstructorInitializerResolver {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
             unitElement,
-            // TODO(scheglov): Avoid cast.
-            interfaceElement.augmented.firstFragment as InterfaceElementImpl,
+            interfaceElement.augmented.firstFragment,
             constructorElement,
           );
         }

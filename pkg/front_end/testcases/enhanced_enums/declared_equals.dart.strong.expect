@@ -10,8 +10,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = #C4;
   enum-element static const field self::E1 element = #C3;
+  static const field core::List<self::E1> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -21,8 +21,8 @@ class E1 extends core::_Enum /*isEnum*/  {
     return true;
 }
 class E2 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E2> values = #C6;
   enum-element static const field self::E2 element = #C5;
+  static const field core::List<self::E2> values = #C6;
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
@@ -37,8 +37,8 @@ abstract class I3 extends core::Object {
   abstract operator ==(core::Object other) → core::bool;
 }
 class E3 extends core::_Enum implements self::I3 /*isEnum*/  {
-  static const field core::List<self::E3> values = #C8;
   enum-element static const field self::E3 element = #C7;
+  static const field core::List<self::E3> values = #C8;
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;

@@ -5,13 +5,13 @@ import "dart:core" as core;
 import "dart:io";
 
 class TestPlatform extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::TestPlatform> values = #C19;
   enum-element static const field self::TestPlatform android = #C3;
   enum-element static const field self::TestPlatform fuchsia = #C6;
   enum-element static const field self::TestPlatform ios = #C9;
   enum-element static const field self::TestPlatform linux = #C12;
   enum-element static const field self::TestPlatform macos = #C15;
   enum-element static const field self::TestPlatform windows = #C18;
+  static const field core::List<self::TestPlatform> values = #C19;
   const synthetic constructor •(core::int #index, core::String #name) → self::TestPlatform
     : super core::_Enum::•(#index, #name)
     ;

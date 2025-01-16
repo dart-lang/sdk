@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:math' show max;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -61,10 +59,10 @@ class InterfaceLeastUpperBoundHelper {
       return type1.withNullability(nullability);
     }
 
-    if (type1.element == type2.element) {
+    if (type1.element3 == type2.element3) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-      var params = type1.element.typeParameters;
+      var params = type1.element3.typeParameters2;
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
@@ -93,8 +91,8 @@ class InterfaceLeastUpperBoundHelper {
         }
       }
 
-      return InterfaceTypeImpl(
-        element: type1.element,
+      return InterfaceTypeImpl.v2(
+        element: type1.element3,
         typeArguments: args,
         nullabilitySuffix: nullability,
       );
@@ -124,7 +122,7 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    if (type.element is ExtensionTypeElement) {
+    if (type.element3 is ExtensionTypeElement2) {
       set.add(typeSystem.objectQuestion);
     }
 
@@ -180,7 +178,7 @@ class InterfaceLeastUpperBoundHelper {
   /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(InterfaceType type) {
-    return _computeLongestInheritancePathToObject(type, <InterfaceElement>{});
+    return _computeLongestInheritancePathToObject(type, <InterfaceElement2>{});
   }
 
   static NullabilitySuffix _chooseNullability(
@@ -202,8 +200,8 @@ class InterfaceLeastUpperBoundHelper {
   /// The set of [visitedElements] is used to prevent infinite recursion in the
   /// case of a cyclic type structure.
   static int _computeLongestInheritancePathToObject(
-      InterfaceType type, Set<InterfaceElement> visitedElements) {
-    var element = type.element;
+      InterfaceType type, Set<InterfaceElement2> visitedElements) {
+    var element = type.element3;
     // recursion
     if (visitedElements.contains(element)) {
       return 0;
@@ -213,14 +211,14 @@ class InterfaceLeastUpperBoundHelper {
       return 1;
     }
     // Object case
-    if (element is ClassElement) {
+    if (element is ClassElement2) {
       if (element.isDartCoreObject) {
         return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
       }
     }
 
     // Extension type without interfaces, implicit `Object?`
-    if (element is ExtensionTypeElement) {
+    if (element is ExtensionTypeElement2) {
       if (element.interfaces.isEmpty) {
         return 1;
       }
@@ -232,7 +230,7 @@ class InterfaceLeastUpperBoundHelper {
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
-      if (element is MixinElement) {
+      if (element is MixinElement2) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
               interface, visitedElements);
@@ -248,7 +246,7 @@ class InterfaceLeastUpperBoundHelper {
         longestPath = max(longestPath, 1 + pathLength);
       }
 
-      if (element is! ClassElement) {
+      if (element is! ClassElement2) {
         return longestPath;
       }
 
@@ -320,8 +318,8 @@ class LeastUpperBoundHelper {
 
   LeastUpperBoundHelper(this._typeSystem);
 
-  InterfaceType get _interfaceTypeFunctionNone {
-    return _typeSystem.typeProvider.functionType.element.instantiate(
+  InterfaceTypeImpl get _interfaceTypeFunctionNone {
+    return _typeSystem.typeProvider.functionType.element3.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -331,7 +329,7 @@ class LeastUpperBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType getLeastUpperBound(DartType T1, DartType T2) {
+  TypeImpl getLeastUpperBound(TypeImpl T1, TypeImpl T2) {
     // UP(T, T) = T
     if (identical(T1, T2)) {
       return T1;
@@ -441,11 +439,8 @@ class LeastUpperBoundHelper {
       }
     }
 
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
+    var T1_nullability = T1.nullabilitySuffix;
+    var T2_nullability = T2.nullabilitySuffix;
 
     // UP(T1, T2) where NULL(T1)
     if (T1_isNull) {
@@ -510,10 +505,10 @@ class LeastUpperBoundHelper {
     // UP(T1, T2?) = S? where S is UP(T1, T2)
     if (T1_nullability != NullabilitySuffix.none ||
         T2_nullability != NullabilitySuffix.none) {
-      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
-      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var T1_none = T1.withNullability(NullabilitySuffix.none);
+      var T2_none = T2.withNullability(NullabilitySuffix.none);
       var S = getLeastUpperBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(NullabilitySuffix.question);
+      return S.withNullability(NullabilitySuffix.question);
     }
 
     assert(T1_nullability == NullabilitySuffix.none);
@@ -624,9 +619,9 @@ class LeastUpperBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType _functionType(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
+  TypeImpl _functionType(FunctionTypeImpl f, FunctionTypeImpl g) {
+    var fTypeFormals = f.typeParameters;
+    var gTypeFormals = g.typeParameters;
 
     // The number of type parameters must be the same.
     // Otherwise the result is `Function`.
@@ -636,7 +631,10 @@ class LeastUpperBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Function`.
-    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    var fresh = _typeSystem.relateTypeParameters2(
+      f.typeParameters,
+      g.typeParameters,
+    );
     if (fresh == null) {
       return _interfaceTypeFunctionNone;
     }
@@ -644,10 +642,10 @@ class LeastUpperBoundHelper {
     f = f.instantiate(fresh.typeParameterTypes);
     g = g.instantiate(fresh.typeParameterTypes);
 
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
+    var fParameters = f.formalParameters;
+    var gParameters = g.formalParameters;
 
-    var parameters = <ParameterElement>[];
+    var parameters = <FormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
@@ -679,7 +677,13 @@ class LeastUpperBoundHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
+          var fName = fParameter.name3;
+          var gName = gParameter.name3;
+          if (fName == null || gName == null) {
+            return _interfaceTypeFunctionNone;
+          }
+
+          var compareNames = fName.compareTo(gName);
           if (compareNames == 0) {
             fIndex++;
             gIndex++;
@@ -729,28 +733,28 @@ class LeastUpperBoundHelper {
 
     var returnType = getLeastUpperBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl(
-      typeFormals: fresh.typeParameters,
-      parameters: parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: fresh.typeParameters,
+      formalParameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  DartType? _futureOr(DartType T1, DartType T2) {
-    var T1_futureOr = T1 is InterfaceType && T1.isDartAsyncFutureOr
+  TypeImpl? _futureOr(TypeImpl T1, TypeImpl T2) {
+    var T1_futureOr = T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
         ? T1.typeArguments[0]
         : null;
 
-    var T1_future = T1 is InterfaceType && T1.isDartAsyncFuture
+    var T1_future = T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
         ? T1.typeArguments[0]
         : null;
 
-    var T2_futureOr = T2 is InterfaceType && T2.isDartAsyncFutureOr
+    var T2_futureOr = T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
         ? T2.typeArguments[0]
         : null;
 
-    var T2_future = T2 is InterfaceType && T2.isDartAsyncFuture
+    var T2_future = T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
         ? T2.typeArguments[0]
         : null;
 
@@ -787,11 +791,11 @@ class LeastUpperBoundHelper {
     return null;
   }
 
-  DartType _parameterType(ParameterElement a, ParameterElement b) {
+  DartType _parameterType(FormalParameterElement a, FormalParameterElement b) {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }
 
-  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+  TypeImpl _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {
@@ -841,7 +845,7 @@ class LeastUpperBoundHelper {
 
   /// Return the promoted or declared bound of the type parameter.
   DartType _typeParameterBound(TypeParameterTypeImpl type) {
-    var bound = type.promotedBound ?? type.element.bound;
+    var bound = type.promotedBound ?? type.element3.bound;
     if (bound != null) {
       return bound;
     }

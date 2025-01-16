@@ -81,7 +81,6 @@ library
             named @55
               reference: dart:foo::<fragment>::@class::A::@constructor::named
               element: dart:foo::<fragment>::@class::A::@constructor::named#element
-              sinceSdkVersion: 2.15.0
               typeName: A
               typeNameOffset: 53
               periodOffset: 54
@@ -176,12 +175,10 @@ library
             synthetic get foo
               reference: dart:foo::<fragment>::@class::A::@getter::foo
               element: dart:foo::<fragment>::@class::A::@getter::foo#element
-              sinceSdkVersion: 2.15.0
           setters
             synthetic set foo
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
-              sinceSdkVersion: 2.15.0
               formalParameters
                 <null-name>
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
@@ -193,6 +190,7 @@ library
       fields
         hasInitializer foo
           firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+          sinceSdkVersion: 2.15.0
           type: int
           getter: dart:foo::<fragment>::@class::A::@getter::foo#element
           setter: dart:foo::<fragment>::@class::A::@setter::foo#element
@@ -236,6 +234,7 @@ library
             synthetic foo @-1
               reference: dart:foo::<fragment>::@class::A::@field::foo
               enclosingElement3: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
               type: int
           accessors
             get foo @61
@@ -262,7 +261,6 @@ library
             get foo @61
               reference: dart:foo::<fragment>::@class::A::@getter::foo
               element: dart:foo::<fragment>::@class::A::@getter::foo#element
-              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::@class::A
@@ -271,6 +269,7 @@ library
       fields
         synthetic foo
           firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+          sinceSdkVersion: 2.15.0
           type: int
           getter: dart:foo::<fragment>::@class::A::@getter::foo#element
       getters
@@ -322,7 +321,6 @@ library
             foo @58
               reference: dart:foo::<fragment>::@class::A::@method::foo
               element: dart:foo::<fragment>::@class::A::@method::foo#element
-              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::@class::A
@@ -379,7 +377,6 @@ library
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
               element: dart:foo::<fragment>::@class::A::@method::foo#element
-              sinceSdkVersion: 2.16.0
   classes
     class A
       reference: dart:foo::@class::A
@@ -436,7 +433,6 @@ library
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
               element: dart:foo::<fragment>::@class::A::@method::foo#element
-              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::@class::A
@@ -476,6 +472,7 @@ library
             synthetic foo @-1
               reference: dart:foo::<fragment>::@class::A::@field::foo
               enclosingElement3: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
               type: int
           accessors
             set foo= @57
@@ -505,7 +502,6 @@ library
             set foo @57
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
-              sinceSdkVersion: 2.15.0
               formalParameters
                 _ @65
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_#element
@@ -517,6 +513,7 @@ library
       fields
         synthetic foo
           firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+          sinceSdkVersion: 2.15.0
           type: int
           setter: dart:foo::<fragment>::@class::A::@setter::foo#element
       setters
@@ -612,7 +609,6 @@ library
             synthetic get v2
               reference: dart:foo::<fragment>::@enum::E::@getter::v2
               element: dart:foo::<fragment>::@enum::E::@getter::v2#element
-              sinceSdkVersion: 2.15.0
             synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
@@ -628,6 +624,7 @@ library
           getter: dart:foo::<fragment>::@enum::E::@getter::v1#element
         static const enumConstant hasInitializer v2
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
+          sinceSdkVersion: 2.15.0
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v2#element
         synthetic static const values
@@ -639,6 +636,7 @@ library
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v1
         synthetic static get v2
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v2
+          sinceSdkVersion: 2.15.0
         synthetic static get values
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
 ''');
@@ -678,6 +676,7 @@ library
             synthetic static const values @-1
               reference: dart:foo::<fragment>::@enum::E::@field::values
               enclosingElement3: dart:foo::<fragment>::@enum::E
+              sinceSdkVersion: 2.15.0
               type: List<E>
           accessors
             synthetic static get v @-1
@@ -688,6 +687,7 @@ library
             synthetic static get values @-1
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               enclosingElement3: dart:foo::<fragment>::@enum::E
+              sinceSdkVersion: 2.15.0
               returnType: List<E>
           methods
             foo @62
@@ -718,7 +718,6 @@ library
             synthetic get v
               reference: dart:foo::<fragment>::@enum::E::@getter::v
               element: dart:foo::<fragment>::@enum::E::@getter::v#element
-              sinceSdkVersion: 2.15.0
             synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
@@ -726,7 +725,6 @@ library
             foo @62
               reference: dart:foo::<fragment>::@enum::E::@method::foo
               element: dart:foo::<fragment>::@enum::E::@method::foo#element
-              sinceSdkVersion: 2.15.0
   enums
     enum E
       reference: dart:foo::@enum::E
@@ -736,10 +734,12 @@ library
       fields
         static const enumConstant hasInitializer v
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v
+          sinceSdkVersion: 2.15.0
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: dart:foo::<fragment>::@enum::E::@field::values
+          sinceSdkVersion: 2.15.0
           type: List<E>
           getter: dart:foo::<fragment>::@enum::E::@getter::values#element
       getters
@@ -800,7 +800,6 @@ library
             foo @69
               reference: dart:foo::<fragment>::@extension::E::@method::foo
               element: dart:foo::<fragment>::@extension::E::@method::foo#element
-              sinceSdkVersion: 2.15.0
   extensions
     extension E
       reference: dart:foo::@extension::E
@@ -858,7 +857,6 @@ library
             foo @58
               reference: dart:foo::<fragment>::@mixin::M::@method::foo
               element: dart:foo::<fragment>::@mixin::M::@method::foo#element
-              sinceSdkVersion: 2.15.0
   mixins
     mixin M
       reference: dart:foo::@mixin::M
@@ -911,7 +909,6 @@ library
         foo @46
           reference: dart:foo::<fragment>::@function::foo
           element: dart:foo::@function::foo
-          sinceSdkVersion: 2.15.0
         bar @61
           reference: dart:foo::<fragment>::@function::bar
           element: dart:foo::@function::bar
@@ -959,7 +956,6 @@ library
         foo @54
           reference: dart:foo::<fragment>::@function::foo
           element: dart:foo::@function::foo
-          sinceSdkVersion: 2.15.3-dev.7
   functions
     foo
       reference: dart:foo::@function::foo
@@ -1000,7 +996,6 @@ library
         foo @48
           reference: dart:foo::<fragment>::@function::foo
           element: dart:foo::@function::foo
-          sinceSdkVersion: 2.15.3
   functions
     foo
       reference: dart:foo::@function::foo
@@ -1083,7 +1078,6 @@ library
         foo @56
           reference: dart:foo::<fragment>::@function::foo
           element: dart:foo::@function::foo
-          sinceSdkVersion: 2.15.0
   functions
     foo
       reference: dart:foo::@function::foo
@@ -1138,7 +1132,6 @@ library
             default p2 @67
               reference: dart:foo::<fragment>::@function::f::@parameter::p2
               element: dart:foo::<fragment>::@function::f::@parameter::p2#element
-              sinceSdkVersion: 2.15.0
   functions
     f
       reference: dart:foo::@function::f
@@ -1197,7 +1190,6 @@ library
               element: dart:foo::<fragment>::@function::f::@parameter::p1#element
             default p2 @67
               element: dart:foo::<fragment>::@function::f::@parameter::p2#element
-              sinceSdkVersion: 2.15.0
   functions
     f
       reference: dart:foo::@function::f
@@ -1242,7 +1234,6 @@ library
         A @49
           reference: dart:foo::<fragment>::@typeAlias::A
           element: dart:foo::@typeAlias::A
-          sinceSdkVersion: 2.15.0
   typeAliases
     A
       firstFragment: dart:foo::<fragment>::@typeAlias::A
@@ -1289,13 +1280,11 @@ library
         hasInitializer foo @47
           reference: dart:foo::<fragment>::@topLevelVariable::foo
           element: dart:foo::@topLevelVariable::foo
-          sinceSdkVersion: 2.15.0
           getter2: dart:foo::<fragment>::@getter::foo
       getters
         synthetic get foo
           reference: dart:foo::<fragment>::@getter::foo
           element: dart:foo::<fragment>::@getter::foo#element
-          sinceSdkVersion: 2.15.0
   topLevelVariables
     final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo
@@ -1306,6 +1295,7 @@ library
   getters
     synthetic static get foo
       firstFragment: dart:foo::<fragment>::@getter::foo
+      sinceSdkVersion: 2.15.0
 ''');
   }
 

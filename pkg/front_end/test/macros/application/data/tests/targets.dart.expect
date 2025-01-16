@@ -1859,7 +1859,6 @@ class Class extends core::Object {
 @#C39
 @#C40
 class Enum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum> values = #C44;
   @#C1
   @#C2
   @#C3
@@ -1899,6 +1898,7 @@ class Enum extends core::_Enum /*isEnum*/  {
   @#C37
   @#C38
   enum-element static const field self::Enum a = #C43;
+  static const field core::List<self::Enum> values = #C44;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;

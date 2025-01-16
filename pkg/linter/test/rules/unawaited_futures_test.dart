@@ -19,15 +19,16 @@ class UnawaitedFuturesTest extends LintRuleTest {
 
   test_classImplementsFuture() async {
     // https://github.com/dart-lang/linter/issues/2211
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Future2 p) async {
   g(p);
 }
 Future2 g(Future2 p) => p;
 abstract class Future2 implements Future {}
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_functionCall_assigned() async {
@@ -60,14 +61,15 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   '${g()}';
 }
 Future<int> g() => Future.value(0);
-''', [
-      lint(22, 3),
-    ]);
+''',
+      [lint(22, 3)],
+    );
   }
 
   test_functionCall_returnedWithFutureType() async {
@@ -80,14 +82,15 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_unawaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   g();
 }
 Future<int> g() => Future.value(0);
-''', [
-      lint(19, 4),
-    ]);
+''',
+      [lint(19, 4)],
+    );
   }
 
   test_functionCallInCascade_assignment() async {
@@ -103,16 +106,17 @@ class C {
   }
 
   test_functionCallInCascade_inAsync() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() async {
   C()..doAsync();
 }
 class C {
   Future<void> doAsync() async {}
 }
-''', [
-      lint(22, 11),
-    ]);
+''',
+      [lint(22, 11)],
+    );
   }
 
   test_functionCallInCascade_indexAssignment() async {
@@ -140,14 +144,17 @@ class C {
   }
 
   test_undefinedIdentifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() async {
   Duration d = Duration();
   Future.delayed(d, bar);
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 59, 3),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 59, 3),
+      ],
+    );
   }
 }

@@ -50,8 +50,8 @@ class C<as extends core::Object? = dynamic> extends core::Object {
 abstract class M<as extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 class E<as extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::e1];
   enum-element static const field self::E<dynamic> e1 = const self::E::•<dynamic>(0, "e1");
+  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::e1];
   const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::as%>
     : super core::_Enum::•(#index, #name)
     ;
@@ -66,6 +66,6 @@ static method foo<as extends core::Object? = dynamic>() → void
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///built_in_identifier_A02_t02.dart:14:6 -> ListConstant(const <E<dynamic>>[const E<dynamic>{_Enum.index: 0, _Enum._name: "e1"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///built_in_identifier_A02_t02.dart:16:3 -> InstanceConstant(const E<dynamic>{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///built_in_identifier_A02_t02.dart:14:6 -> ListConstant(const <E<dynamic>>[const E<dynamic>{_Enum.index: 0, _Enum._name: "e1"}])
 Extra constant evaluation: evaluated: 7, effectively constant: 2

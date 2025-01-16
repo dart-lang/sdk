@@ -11,11 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary new keyword.';
 
 class UnnecessaryNew extends LintRule {
-  UnnecessaryNew()
-      : super(
-          name: LintNames.unnecessary_new,
-          description: _desc,
-        );
+  UnnecessaryNew() : super(name: LintNames.unnecessary_new, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -25,7 +21,9 @@ class UnnecessaryNew extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

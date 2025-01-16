@@ -36,17 +36,16 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 
 class ImplementationImports extends LintRule {
   ImplementationImports()
-      : super(
-          name: LintNames.implementation_imports,
-          description: _desc,
-        );
+    : super(name: LintNames.implementation_imports, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.implementation_imports;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var libraryUri = context.libraryElement2?.uri;
     if (libraryUri == null) return;
 

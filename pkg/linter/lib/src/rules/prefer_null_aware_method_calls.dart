@@ -12,17 +12,16 @@ const _desc = r'Prefer `null`-aware method calls.';
 
 class PreferNullAwareMethodCalls extends LintRule {
   PreferNullAwareMethodCalls()
-      : super(
-          name: LintNames.prefer_null_aware_method_calls,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_null_aware_method_calls, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_null_aware_method_calls;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addIfStatement(this, visitor);
     registry.addConditionalExpression(this, visitor);

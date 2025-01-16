@@ -3203,14 +3203,29 @@
           ]
         },
         {
-          "name": "build dart - step 1 - divided to avoid timeout",
+          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime/bin:dart",
+            "runtime/bin:run_vm_tests"
+          ]
+        },
+        {
+          "name": "build dart - step 3 - runtime - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "runtime"
           ]
         },
         {
-          "name": "build dart - step 2 - divided to avoid timeout",
+          "name": "build dart - step 4 - sdk, ddc_stable_test - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",

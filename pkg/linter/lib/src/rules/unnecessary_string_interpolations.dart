@@ -12,17 +12,19 @@ const _desc = r'Unnecessary string interpolation.';
 
 class UnnecessaryStringInterpolations extends LintRule {
   UnnecessaryStringInterpolations()
-      : super(
-          name: LintNames.unnecessary_string_interpolations,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.unnecessary_string_interpolations,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_string_interpolations;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addStringInterpolation(this, visitor);
   }

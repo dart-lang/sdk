@@ -6,33 +6,29 @@ library multiple_timer_test;
 
 import 'dart:isolate';
 import 'dart:async';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
-const Duration TIMEOUT = const Duration(milliseconds: 100);
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
-// Some browsers (Firefox and IE so far) can trigger too early. Add a safety
-// margin. We use identical(1, 1.0) as an easy way to know if the test is
-// compiled by dart2js.
-int get safetyMargin => identical(1, 1.0) ? 100 : 0;
+const Duration timeout = const Duration(milliseconds: 100);
 
-createTimer(replyTo) {
-  new Timer(TIMEOUT, () {
+void createTimer(replyTo) {
+  Timer(timeout, () {
     replyTo.send("timer_fired");
   });
 }
 
-main() {
-  test("timer in isolate", () {
-    Stopwatch stopwatch = new Stopwatch();
-    ReceivePort port = new ReceivePort();
+void main() {
+  asyncStart();
+  Stopwatch stopwatch = new Stopwatch();
+  ReceivePort port = new ReceivePort();
 
-    port.first.then(expectAsync((msg) {
-      expect("timer_fired", msg);
-      expect(stopwatch.elapsedMilliseconds + safetyMargin,
-          greaterThanOrEqualTo(TIMEOUT.inMilliseconds));
-    }));
-
-    stopwatch.start();
-    var remote = Isolate.spawn(createTimer, port.sendPort);
+  port.first.then((msg) {
+    Expect.equals("timer_fired", msg);
+    Expect.isTrue(stopwatch.elapsedMilliseconds >= timeout.inMilliseconds);
+    asyncEnd();
   });
+
+  stopwatch.start();
+  var remote = Isolate.spawn(createTimer, port.sendPort);
 }

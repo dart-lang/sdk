@@ -18,25 +18,27 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_constClass_constructorInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final a;
   const C() : a = const [];
 }
-''', [
-      lint(35, 12),
-    ]);
+''',
+      [lint(35, 12)],
+    );
   }
 
   test_constClass_constructorInitializer_explicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final a;
   const C(int a) : this.a = 0;
 }
-''', [
-      lint(40, 10),
-    ]);
+''',
+      [lint(40, 10)],
+    );
   }
 
   test_constClass_constructorInitializer_usingParameter() async {
@@ -58,14 +60,15 @@ class C {
   }
 
   test_constClass_fieldInitiailizer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   final a = const [];
   const C();
 }
-''', [
-      lint(18, 12),
-    ]);
+''',
+      [lint(18, 12)],
+    );
   }
 
   test_constClass_multipleConstructors() async {

@@ -15,5 +15,5 @@ LibTest/io/*: SkipByDesign # dart:io is not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate is not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
 
-[ $compiler == dart2wasm && $runtime == chrome ]
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55025)
+[ $compiler == dart2wasm && $browser ]
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55182): Will timeout on browsers (due to no asyncEnd() firing) but eagerly fail on commandline JS engines.

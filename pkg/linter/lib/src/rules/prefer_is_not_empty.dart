@@ -14,17 +14,16 @@ const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
 class PreferIsNotEmpty extends LintRule {
   PreferIsNotEmpty()
-      : super(
-          name: LintNames.prefer_is_not_empty,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_is_not_empty;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addPrefixExpression(this, visitor);
   }

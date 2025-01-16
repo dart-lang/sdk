@@ -11,10 +11,10 @@ const _desc = r'Prefer generic function type aliases.';
 
 class PreferGenericFunctionTypeAliases extends LintRule {
   PreferGenericFunctionTypeAliases()
-      : super(
-          name: LintNames.prefer_generic_function_type_aliases,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_generic_function_type_aliases,
+        description: _desc,
+      );
 
   @override
   bool get canUseParsedResult => true;
@@ -24,7 +24,9 @@ class PreferGenericFunctionTypeAliases extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionTypeAlias(this, visitor);
   }

@@ -11,10 +11,10 @@ const _desc = r'Prefer if elements to conditional expressions where possible.';
 
 class PreferIfElementsToConditionalExpressions extends LintRule {
   PreferIfElementsToConditionalExpressions()
-      : super(
-          name: LintNames.prefer_if_elements_to_conditional_expressions,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_if_elements_to_conditional_expressions,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -22,7 +22,9 @@ class PreferIfElementsToConditionalExpressions extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }

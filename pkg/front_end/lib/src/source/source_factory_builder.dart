@@ -190,6 +190,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
+
   Procedure get _procedure =>
       isAugmenting ? origin._procedure : _procedureInternal;
 

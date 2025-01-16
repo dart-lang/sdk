@@ -28,17 +28,16 @@ bool _isThrowable(DartType? type) {
 
 class OnlyThrowErrors extends LintRule {
   OnlyThrowErrors()
-      : super(
-          name: LintNames.only_throw_errors,
-          description: _desc,
-        );
+    : super(name: LintNames.only_throw_errors, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.only_throw_errors;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }

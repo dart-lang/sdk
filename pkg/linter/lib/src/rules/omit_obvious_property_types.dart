@@ -13,11 +13,11 @@ const _desc =
 
 class OmitObviousPropertyTypes extends LintRule {
   OmitObviousPropertyTypes()
-      : super(
-          name: 'omit_obvious_property_types',
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: 'omit_obvious_property_types',
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
@@ -27,7 +27,9 @@ class OmitObviousPropertyTypes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);

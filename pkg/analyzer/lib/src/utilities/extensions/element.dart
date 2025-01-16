@@ -51,7 +51,7 @@ extension ConstructorElement2Extension on ConstructorElement2 {
     if (this case ConstructorMember member) {
       return member;
     }
-    return baseElement.firstFragment as ConstructorElement;
+    return (this as ConstructorElementImpl2).lastFragment;
   }
 }
 
@@ -66,15 +66,6 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension Element2Extension on Element2 {
-  List<Fragment> get fragments {
-    return [
-      for (Fragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
-        fragment,
-    ];
-  }
-
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
@@ -142,46 +133,46 @@ extension Element2OrNullExtension on Element2? {
     switch (self) {
       case null:
         return null;
-      case ConstructorElementImpl2():
-        return self.firstFragment as Element;
+      case ConstructorElementImpl2 element2:
+        return element2.asElement;
       case DynamicElementImpl2():
         return self.firstFragment;
-      case ExecutableMember():
-        return self.declaration as Element;
-      case ExtensionElementImpl2():
-        return self.firstFragment as Element;
-      case FieldElementImpl2():
-        return self.firstFragment as Element;
+      case ExecutableMember element2:
+        return element2.asElement;
+      case ExtensionElementImpl2 element2:
+        return element2.asElement;
+      case FieldElementImpl2 element2:
+        return element2.asElement;
       case FieldMember():
         return self.declaration as Element;
       case FormalParameterElement element2:
         return element2.asElement;
-      case GetterElementImpl():
-        return self.firstFragment as Element;
+      case GetterElementImpl element2:
+        return element2.asElement;
       case LabelElementImpl2 element2:
         return element2.asElement;
       case LibraryElementImpl():
         return self as Element;
       case LibraryImportElementImpl():
         return self as Element;
-      case LocalFunctionElementImpl():
-        return self.wrappedElement as Element;
+      case LocalFunctionElementImpl element2:
+        return element2.asElement;
       case LocalVariableElementImpl2():
         return self.wrappedElement as Element;
-      case MethodElementImpl2():
-        return self.firstFragment as Element;
+      case MethodElementImpl2 element2:
+        return element2.asElement;
       case MultiplyDefinedElementImpl2 element2:
         return element2.asElement;
       case NeverElementImpl2():
         return NeverElementImpl.instance;
       case PrefixElement2 element2:
         return element2.asElement;
-      case SetterElementImpl():
-        return self.firstFragment as Element;
-      case TopLevelFunctionElementImpl():
-        return self.firstFragment as Element;
-      case TopLevelVariableElementImpl2():
-        return self.firstFragment as Element;
+      case SetterElementImpl element2:
+        return element2.asElement;
+      case TopLevelFunctionElementImpl element2:
+        return element2.asElement;
+      case TopLevelVariableElementImpl2 element2:
+        return element2.asElement;
       case TypeDefiningElement2():
         return self.firstFragment as Element;
       default:
@@ -278,6 +269,12 @@ extension EnumElement2Extension on EnumElement2 {
 extension EnumElementExtension on EnumElement {
   EnumElement2 get asElement2 {
     return (this as EnumElementImpl).element;
+  }
+}
+
+extension EnumElementImplExtension on EnumElementImpl {
+  EnumElementImpl2 get asElement2 {
+    return element;
   }
 }
 
@@ -389,6 +386,18 @@ extension InterfaceElementExtension on InterfaceElement {
   }
 }
 
+extension InterfaceElementImpl2Extension on InterfaceElementImpl2 {
+  InterfaceElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension InterfaceElementImplExtension on InterfaceElementImpl {
+  InterfaceElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension LabelElement2Extension on LabelElement2 {
   LabelElement get asElement {
     return firstFragment as LabelElement;
@@ -454,7 +463,7 @@ extension MethodElement2Extension on MethodElement2 {
     if (this case MethodMember member) {
       return member;
     }
-    return baseElement.firstFragment as MethodElement;
+    return (this as MethodElementImpl2).lastFragment;
   }
 }
 
@@ -511,7 +520,7 @@ extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
     if (this case PropertyAccessorMember member) {
       return member;
     }
-    return firstFragment as PropertyAccessorElement;
+    return (this as PropertyAccessorElementImpl2).lastFragment;
   }
 }
 
@@ -527,7 +536,7 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
 
 extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
   FunctionElement get asElement {
-    return firstFragment as FunctionElement;
+    return (this as TopLevelFunctionElementImpl).lastFragment;
   }
 }
 
@@ -558,6 +567,19 @@ extension TypeAliasElementExtension on TypeAliasElement {
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;
+  }
+
+  TypeParameterElementImpl2 freshCopy() {
+    var fragment = TypeParameterElementImpl(
+      name3 ?? '',
+      -1,
+    );
+    fragment.bound = bound;
+    return TypeParameterElementImpl2(
+      firstFragment: fragment,
+      name3: name3,
+      bound: bound,
+    );
   }
 }
 

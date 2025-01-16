@@ -12,18 +12,16 @@ import '../extensions.dart';
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
 class PreferForeach extends LintRule {
-  PreferForeach()
-      : super(
-          name: LintNames.prefer_foreach,
-          description: _desc,
-        );
+  PreferForeach() : super(name: LintNames.prefer_foreach, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_foreach;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
   }

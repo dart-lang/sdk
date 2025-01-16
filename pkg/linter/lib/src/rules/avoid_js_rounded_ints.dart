@@ -11,17 +11,16 @@ const _desc = r'Avoid JavaScript rounded ints.';
 
 class AvoidJsRoundedInts extends LintRule {
   AvoidJsRoundedInts()
-      : super(
-          name: LintNames.avoid_js_rounded_ints,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_js_rounded_ints;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addIntegerLiteral(this, visitor);
   }

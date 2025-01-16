@@ -18,12 +18,13 @@ class UnnecessaryAwaitInReturnTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_await_in_return;
 
   test_asyncArrow_awaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int> f() async => await future;
 final future = Future.value(1);
-''', [
-      lint(25, 5),
-    ]);
+''',
+      [lint(25, 5)],
+    );
   }
 
   test_asyncArrow_awaited_futureOfFuture() async {
@@ -34,26 +35,28 @@ final future = Future<Future<int>>.value(Future<int>.value(1));
   }
 
   test_asyncArrow_awaited_instanceMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   Future<int> f() async => await future;
 }
 final future = Future.value(1);
-''', [
-      lint(37, 5),
-    ]);
+''',
+      [lint(37, 5)],
+    );
   }
 
   test_asyncArrow_awaited_subtype() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class B {
   Future<num> foo() async => 1;
   Future<int> bar() async => await foo() as int;
   Future<num> buzz() async => await bar();
 }
-''', [
-      lint(121, 5),
-    ]);
+''',
+      [lint(121, 5)],
+    );
   }
 
   test_asyncArrow_awaited_withAs() async {
@@ -82,14 +85,15 @@ final future = Future.value(1);
   }
 
   test_asyncBlock_awaited() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<int> f() async {
   return await future;
 }
 final future = Future.value(1);
-''', [
-      lint(33, 5),
-    ]);
+''',
+      [lint(33, 5)],
+    );
   }
 
   test_asyncBlock_awaited_futureOfFuture() async {
@@ -102,20 +106,22 @@ final future = Future<Future<int>>.value(Future<int>.value(1));
   }
 
   test_asyncBlock_awaited_instanceMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   Future<int> f() async {
     return await future;
   }
 }
 final future = Future.value(1);
-''', [
-      lint(47, 5),
-    ]);
+''',
+      [lint(47, 5)],
+    );
   }
 
   test_asyncBlock_awaited_inTry() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Future<dynamic> f() async {
   try {
     return await future;
@@ -124,13 +130,14 @@ Future<dynamic> f() async {
   }
 }
 final future = Future.value(1);
-''', [
-      lint(88, 5),
-    ]);
+''',
+      [lint(88, 5)],
+    );
   }
 
   test_asyncBlock_awaited_inTry_instanceMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   Future<dynamic> f() async {
     try {
@@ -141,9 +148,9 @@ class A {
   }
 }
 final future = Future.value(1);
-''', [
-      lint(108, 5),
-    ]);
+''',
+      [lint(108, 5)],
+    );
   }
 
   test_asyncBlock_notAwaited() async {

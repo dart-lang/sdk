@@ -12,17 +12,16 @@ const _desc = r'Property getter recursively returns itself.';
 
 class RecursiveGetters extends LintRule {
   RecursiveGetters()
-      : super(
-          name: LintNames.recursive_getters,
-          description: _desc,
-        );
+    : super(name: LintNames.recursive_getters, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.recursive_getters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

@@ -61,34 +61,39 @@ class DirectivesOrdering extends LintRule {
     LinterLintCode.directives_ordering_alphabetical,
     LinterLintCode.directives_ordering_dart,
     LinterLintCode.directives_ordering_exports,
-    LinterLintCode.directives_ordering_package_before_relative
+    LinterLintCode.directives_ordering_package_before_relative,
   ];
 
   DirectivesOrdering()
-      : super(
-          name: LintNames.directives_ordering,
-          description: _desc,
-        );
+    : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
   List<LintCode> get lintCodes => allCodes;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
-    reportLint(node,
-        errorCode: LinterLintCode.directives_ordering_dart, arguments: [type]);
+    reportLint(
+      node,
+      errorCode: LinterLintCode.directives_ordering_dart,
+      arguments: [type],
+    );
   }
 
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
-      AstNode node) {
-    reportLint(node,
-        errorCode: LinterLintCode.directives_ordering_alphabetical);
+    AstNode node,
+  ) {
+    reportLint(
+      node,
+      errorCode: LinterLintCode.directives_ordering_alphabetical,
+    );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
@@ -96,10 +101,14 @@ class DirectivesOrdering extends LintRule {
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
-      AstNode node, String type) {
-    reportLint(node,
-        errorCode: LinterLintCode.directives_ordering_package_before_relative,
-        arguments: [type]);
+    AstNode node,
+    String type,
+  ) {
+    reportLint(
+      node,
+      errorCode: LinterLintCode.directives_ordering_package_before_relative,
+      arguments: [type],
+    );
   }
 }
 
@@ -118,7 +127,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkDartDirectiveGoFirst(
-      Set<AstNode> lintedNodes, CompilationUnit node) {
+    Set<AstNode> lintedNodes,
+    CompilationUnit node,
+  ) {
     for (var import in node.importDirectives.withDartUrisSkippingTheFirstSet) {
       if (lintedNodes.add(import)) {
         rule._reportLintWithDartDirectiveGoFirstMessage(import, _importKeyword);
@@ -135,13 +146,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         in node.docImportDirectives.withDartUrisSkippingTheFirstSet) {
       if (lintedNodes.add(import)) {
         rule._reportLintWithDartDirectiveGoFirstMessage(
-            import, _docImportKeyword);
+          import,
+          _docImportKeyword,
+        );
       }
     }
   }
 
   void _checkDirectiveSectionOrderedAlphabetically(
-      Set<AstNode> lintedNodes, CompilationUnit node) {
+    Set<AstNode> lintedNodes,
+    CompilationUnit node,
+  ) {
     var dartImports = node.importDirectives.where(_isDartDirective);
     var dartExports = node.exportDirectives.where(_isDartDirective);
     var dartDocImports = node.docImportDirectives.where(_isDartDirective);
@@ -152,8 +167,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var relativeImports = node.importDirectives.where(_isRelativeDirective);
     var relativeExports = node.exportDirectives.where(_isRelativeDirective);
-    var relativeDocImports =
-        node.docImportDirectives.where(_isRelativeDirective);
+    var relativeDocImports = node.docImportDirectives.where(
+      _isRelativeDirective,
+    );
 
     _checkSectionInOrder(lintedNodes, relativeImports);
     _checkSectionInOrder(lintedNodes, relativeExports);
@@ -198,25 +214,32 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkExportDirectiveAfterImportDirective(
-      Set<AstNode> lintedNodes, CompilationUnit node) {
+    Set<AstNode> lintedNodes,
+    CompilationUnit node,
+  ) {
     for (var directive in node.directives.reversed
         .skipWhile(_isPartDirective)
         .skipWhile(_isExportDirective)
         .where(_isExportDirective)) {
       if (lintedNodes.add(directive)) {
         rule._reportLintWithExportDirectiveAfterImportDirectiveMessage(
-            directive);
+          directive,
+        );
       }
     }
   }
 
   void _checkPackageDirectiveBeforeRelative(
-      Set<AstNode> lintedNodes, CompilationUnit node) {
+    Set<AstNode> lintedNodes,
+    CompilationUnit node,
+  ) {
     for (var import
         in node.importDirectives.withPackageUrisSkippingAbsoluteUris) {
       if (lintedNodes.add(import)) {
         rule._reportLintWithPackageDirectiveBeforeRelativeMessage(
-            import, _importKeyword);
+          import,
+          _importKeyword,
+        );
       }
     }
 
@@ -224,7 +247,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         in node.exportDirectives.withPackageUrisSkippingAbsoluteUris) {
       if (lintedNodes.add(export)) {
         rule._reportLintWithPackageDirectiveBeforeRelativeMessage(
-            export, _exportKeyword);
+          export,
+          _exportKeyword,
+        );
       }
     }
 
@@ -232,13 +257,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         in node.docImportDirectives.withPackageUrisSkippingAbsoluteUris) {
       if (lintedNodes.add(import)) {
         rule._reportLintWithPackageDirectiveBeforeRelativeMessage(
-            import, _docImportKeyword);
+          import,
+          _docImportKeyword,
+        );
       }
     }
   }
 
   void _checkSectionInOrder(
-      Set<AstNode> lintedNodes, Iterable<UriBasedDirective> nodes) {
+    Set<AstNode> lintedNodes,
+    Iterable<UriBasedDirective> nodes,
+  ) {
     if (nodes.isEmpty) return;
 
     var previousUri = nodes.first.uri.stringValue;
@@ -249,7 +278,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           compareDirectives(previousUri, directiveUri) > 0) {
         if (lintedNodes.add(directive)) {
           rule._reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
-              directive);
+            directive,
+          );
         }
       }
       previousUri = directive.uri.stringValue;
@@ -281,8 +311,7 @@ extension on Iterable<NamespaceDirective> {
 
   /// The directives with 'package:' URIs, after the first set of directives
   /// with absolute URIs.
-  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris =>
-      where(_isNotDartDirective)
-          .skipWhile(_isAbsoluteDirective)
-          .where(_isPackageDirective);
+  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris => where(
+    _isNotDartDirective,
+  ).skipWhile(_isAbsoluteDirective).where(_isPackageDirective);
 }

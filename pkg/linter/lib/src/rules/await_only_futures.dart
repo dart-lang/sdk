@@ -14,17 +14,16 @@ const _desc = r'Await only futures.';
 
 class AwaitOnlyFutures extends LintRule {
   AwaitOnlyFutures()
-      : super(
-          name: LintNames.await_only_futures,
-          description: _desc,
-        );
+    : super(name: LintNames.await_only_futures, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.await_only_futures;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAwaitExpression(this, visitor);
   }

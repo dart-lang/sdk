@@ -13,15 +13,16 @@ const _desc = r'Specify non-obvious type annotations for local variables.';
 
 class SpecifyNonObviousLocalVariableTypes extends LintRule {
   SpecifyNonObviousLocalVariableTypes()
-      : super(
-          name: LintNames.specify_nonobvious_local_variable_types,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.specify_nonobvious_local_variable_types,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.omit_local_variable_types];
+  List<String> get incompatibleRules => const [
+    LintNames.omit_local_variable_types,
+  ];
 
   @override
   LintCode get lintCode =>
@@ -29,7 +30,9 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
     registry.addPatternVariableDeclarationStatement(this, visitor);
@@ -82,7 +85,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     if (node.declaration.expression.hasObviousType) return;
     _PatternVisitor(rule).visitDartPattern(node.declaration.pattern);
   }

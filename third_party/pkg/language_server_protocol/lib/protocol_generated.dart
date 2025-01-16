@@ -859,7 +859,6 @@ bool _canParseCallHierarchyClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !CallHierarchyClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type CallHierarchyClientCapabilities');
       return false;
     }
   } finally {
@@ -885,7 +884,6 @@ bool _canParseCallHierarchyItem(
     }
     if ((!nullCheck || value != null) &&
         !CallHierarchyItem.canParse(value, reporter)) {
-      reporter.reportError('must be of type CallHierarchyItem');
       return false;
     }
   } finally {
@@ -911,7 +909,6 @@ bool _canParseClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ClientCapabilities');
       return false;
     }
   } finally {
@@ -937,7 +934,6 @@ bool _canParseClientCodeActionKindOptions(
     }
     if ((!nullCheck || value != null) &&
         !ClientCodeActionKindOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type ClientCodeActionKindOptions');
       return false;
     }
   } finally {
@@ -963,7 +959,6 @@ bool _canParseClientCompletionItemOptionsKind(
     }
     if ((!nullCheck || value != null) &&
         !ClientCompletionItemOptionsKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type ClientCompletionItemOptionsKind');
       return false;
     }
   } finally {
@@ -989,7 +984,6 @@ bool _canParseClientInfo(
     }
     if ((!nullCheck || value != null) &&
         !ClientInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type ClientInfo');
       return false;
     }
   } finally {
@@ -1015,8 +1009,6 @@ bool _canParseClientSemanticTokensRequestOptions(
     }
     if ((!nullCheck || value != null) &&
         !ClientSemanticTokensRequestOptions.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type ClientSemanticTokensRequestOptions');
       return false;
     }
   } finally {
@@ -1042,7 +1034,6 @@ bool _canParseCodeActionClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeActionClientCapabilities');
       return false;
     }
   } finally {
@@ -1069,8 +1060,6 @@ bool _canParseCodeActionClientCapabilitiesCodeActionLiteralSupport(
     if ((!nullCheck || value != null) &&
         !CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type CodeActionClientCapabilitiesCodeActionLiteralSupport');
       return false;
     }
   } finally {
@@ -1096,8 +1085,6 @@ bool _canParseCodeActionClientCapabilitiesResolveSupport(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionClientCapabilitiesResolveSupport.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type CodeActionClientCapabilitiesResolveSupport');
       return false;
     }
   } finally {
@@ -1123,7 +1110,6 @@ bool _canParseCodeActionContext(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionContext.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeActionContext');
       return false;
     }
   } finally {
@@ -1149,7 +1135,6 @@ bool _canParseCodeActionDisabled(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionDisabled.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeActionDisabled');
       return false;
     }
   } finally {
@@ -1175,7 +1160,6 @@ bool _canParseCodeActionKind(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeActionKind');
       return false;
     }
   } finally {
@@ -1201,7 +1185,6 @@ bool _canParseCodeActionTriggerKind(
     }
     if ((!nullCheck || value != null) &&
         !CodeActionTriggerKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeActionTriggerKind');
       return false;
     }
   } finally {
@@ -1227,7 +1210,6 @@ bool _canParseCodeDescription(
     }
     if ((!nullCheck || value != null) &&
         !CodeDescription.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeDescription');
       return false;
     }
   } finally {
@@ -1253,7 +1235,6 @@ bool _canParseCodeLensClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !CodeLensClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeLensClientCapabilities');
       return false;
     }
   } finally {
@@ -1279,7 +1260,6 @@ bool _canParseCodeLensOptions(
     }
     if ((!nullCheck || value != null) &&
         !CodeLensOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type CodeLensOptions');
       return false;
     }
   } finally {
@@ -1305,8 +1285,6 @@ bool _canParseCodeLensWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !CodeLensWorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type CodeLensWorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -1331,7 +1309,6 @@ bool _canParseColor(
       return false;
     }
     if ((!nullCheck || value != null) && !Color.canParse(value, reporter)) {
-      reporter.reportError('must be of type Color');
       return false;
     }
   } finally {
@@ -1356,7 +1333,6 @@ bool _canParseCommand(
       return false;
     }
     if ((!nullCheck || value != null) && !Command.canParse(value, reporter)) {
-      reporter.reportError('must be of type Command');
       return false;
     }
   } finally {
@@ -1382,7 +1358,6 @@ bool _canParseCompletionClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !CompletionClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionClientCapabilities');
       return false;
     }
   } finally {
@@ -1408,8 +1383,6 @@ bool _canParseCompletionClientCapabilitiesCompletionItem(
     }
     if ((!nullCheck || value != null) &&
         !CompletionClientCapabilitiesCompletionItem.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesCompletionItem');
       return false;
     }
   } finally {
@@ -1435,8 +1408,6 @@ bool _canParseCompletionClientCapabilitiesCompletionList(
     }
     if ((!nullCheck || value != null) &&
         !CompletionClientCapabilitiesCompletionList.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesCompletionList');
       return false;
     }
   } finally {
@@ -1462,7 +1433,6 @@ bool _canParseCompletionContext(
     }
     if ((!nullCheck || value != null) &&
         !CompletionContext.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionContext');
       return false;
     }
   } finally {
@@ -1488,7 +1458,6 @@ bool _canParseCompletionItemDefaults(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemDefaults.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemDefaults');
       return false;
     }
   } finally {
@@ -1514,8 +1483,6 @@ bool _canParseCompletionItemInsertTextModeSupport(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemInsertTextModeSupport.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type CompletionItemInsertTextModeSupport');
       return false;
     }
   } finally {
@@ -1541,7 +1508,6 @@ bool _canParseCompletionItemKind(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemKind');
       return false;
     }
   } finally {
@@ -1567,7 +1533,6 @@ bool _canParseCompletionItemLabelDetails(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemLabelDetails.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemLabelDetails');
       return false;
     }
   } finally {
@@ -1593,7 +1558,6 @@ bool _canParseCompletionItemResolutionInfo(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemResolutionInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemResolutionInfo');
       return false;
     }
   } finally {
@@ -1619,7 +1583,6 @@ bool _canParseCompletionItemResolveSupport(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemResolveSupport.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemResolveSupport');
       return false;
     }
   } finally {
@@ -1645,7 +1608,6 @@ bool _canParseCompletionItemTagSupport(
     }
     if ((!nullCheck || value != null) &&
         !CompletionItemTagSupport.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionItemTagSupport');
       return false;
     }
   } finally {
@@ -1671,7 +1633,6 @@ bool _canParseCompletionOptions(
     }
     if ((!nullCheck || value != null) &&
         !CompletionOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionOptions');
       return false;
     }
   } finally {
@@ -1697,7 +1658,6 @@ bool _canParseCompletionTriggerKind(
     }
     if ((!nullCheck || value != null) &&
         !CompletionTriggerKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionTriggerKind');
       return false;
     }
   } finally {
@@ -1723,7 +1683,6 @@ bool _canParseCreateFileOptions(
     }
     if ((!nullCheck || value != null) &&
         !CreateFileOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type CreateFileOptions');
       return false;
     }
   } finally {
@@ -1749,7 +1708,6 @@ bool _canParseDeclarationClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DeclarationClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DeclarationClientCapabilities');
       return false;
     }
   } finally {
@@ -1775,7 +1733,6 @@ bool _canParseDefinitionClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DefinitionClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DefinitionClientCapabilities');
       return false;
     }
   } finally {
@@ -1801,7 +1758,6 @@ bool _canParseDeleteFileOptions(
     }
     if ((!nullCheck || value != null) &&
         !DeleteFileOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type DeleteFileOptions');
       return false;
     }
   } finally {
@@ -1827,7 +1783,6 @@ bool _canParseDiagnosticClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DiagnosticClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DiagnosticClientCapabilities');
       return false;
     }
   } finally {
@@ -1881,7 +1836,6 @@ bool _canParseDiagnosticSeverity(
     }
     if ((!nullCheck || value != null) &&
         !DiagnosticSeverity.canParse(value, reporter)) {
-      reporter.reportError('must be of type DiagnosticSeverity');
       return false;
     }
   } finally {
@@ -1907,8 +1861,6 @@ bool _canParseDiagnosticWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DiagnosticWorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type DiagnosticWorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -1934,8 +1886,6 @@ bool _canParseDidChangeConfigurationClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DidChangeConfigurationClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DidChangeConfigurationClientCapabilities');
       return false;
     }
   } finally {
@@ -1961,8 +1911,6 @@ bool _canParseDidChangeWatchedFilesClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DidChangeWatchedFilesClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DidChangeWatchedFilesClientCapabilities');
       return false;
     }
   } finally {
@@ -1988,7 +1936,6 @@ bool _canParseDocumentColorClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentColorClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentColorClientCapabilities');
       return false;
     }
   } finally {
@@ -2014,8 +1961,6 @@ bool _canParseDocumentFormattingClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentFormattingClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type DocumentFormattingClientCapabilities');
       return false;
     }
   } finally {
@@ -2041,8 +1986,6 @@ bool _canParseDocumentHighlightClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentHighlightClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type DocumentHighlightClientCapabilities');
       return false;
     }
   } finally {
@@ -2068,7 +2011,6 @@ bool _canParseDocumentHighlightKind(
     }
     if ((!nullCheck || value != null) &&
         !DocumentHighlightKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentHighlightKind');
       return false;
     }
   } finally {
@@ -2094,7 +2036,6 @@ bool _canParseDocumentLinkClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentLinkClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentLinkClientCapabilities');
       return false;
     }
   } finally {
@@ -2120,7 +2061,6 @@ bool _canParseDocumentLinkOptions(
     }
     if ((!nullCheck || value != null) &&
         !DocumentLinkOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentLinkOptions');
       return false;
     }
   } finally {
@@ -2146,8 +2086,6 @@ bool _canParseDocumentOnTypeFormattingClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentOnTypeFormattingClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DocumentOnTypeFormattingClientCapabilities');
       return false;
     }
   } finally {
@@ -2173,7 +2111,6 @@ bool _canParseDocumentOnTypeFormattingOptions(
     }
     if ((!nullCheck || value != null) &&
         !DocumentOnTypeFormattingOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentOnTypeFormattingOptions');
       return false;
     }
   } finally {
@@ -2199,8 +2136,6 @@ bool _canParseDocumentRangeFormattingClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentRangeFormattingClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DocumentRangeFormattingClientCapabilities');
       return false;
     }
   } finally {
@@ -2226,7 +2161,6 @@ bool _canParseDocumentSymbolClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !DocumentSymbolClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type DocumentSymbolClientCapabilities');
       return false;
     }
   } finally {
@@ -2252,8 +2186,6 @@ bool _canParseDocumentSymbolClientCapabilitiesSymbolKind(
     }
     if ((!nullCheck || value != null) &&
         !DocumentSymbolClientCapabilitiesSymbolKind.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DocumentSymbolClientCapabilitiesSymbolKind');
       return false;
     }
   } finally {
@@ -2279,8 +2211,6 @@ bool _canParseDocumentSymbolClientCapabilitiesTagSupport(
     }
     if ((!nullCheck || value != null) &&
         !DocumentSymbolClientCapabilitiesTagSupport.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type DocumentSymbolClientCapabilitiesTagSupport');
       return false;
     }
   } finally {
@@ -2334,7 +2264,6 @@ bool _canParseExecuteCommandClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ExecuteCommandClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ExecuteCommandClientCapabilities');
       return false;
     }
   } finally {
@@ -2360,7 +2289,6 @@ bool _canParseExecuteCommandOptions(
     }
     if ((!nullCheck || value != null) &&
         !ExecuteCommandOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type ExecuteCommandOptions');
       return false;
     }
   } finally {
@@ -2386,7 +2314,6 @@ bool _canParseExecutionSummary(
     }
     if ((!nullCheck || value != null) &&
         !ExecutionSummary.canParse(value, reporter)) {
-      reporter.reportError('must be of type ExecutionSummary');
       return false;
     }
   } finally {
@@ -2412,7 +2339,6 @@ bool _canParseFailureHandlingKind(
     }
     if ((!nullCheck || value != null) &&
         !FailureHandlingKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type FailureHandlingKind');
       return false;
     }
   } finally {
@@ -2438,7 +2364,6 @@ bool _canParseFileChangeType(
     }
     if ((!nullCheck || value != null) &&
         !FileChangeType.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileChangeType');
       return false;
     }
   } finally {
@@ -2464,7 +2389,6 @@ bool _canParseFileOperationClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationClientCapabilities');
       return false;
     }
   } finally {
@@ -2490,7 +2414,6 @@ bool _canParseFileOperationOptions(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationOptions');
       return false;
     }
   } finally {
@@ -2516,7 +2439,6 @@ bool _canParseFileOperationPattern(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationPattern.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationPattern');
       return false;
     }
   } finally {
@@ -2542,7 +2464,6 @@ bool _canParseFileOperationPatternKind(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationPatternKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationPatternKind');
       return false;
     }
   } finally {
@@ -2568,7 +2489,6 @@ bool _canParseFileOperationPatternOptions(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationPatternOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationPatternOptions');
       return false;
     }
   } finally {
@@ -2594,7 +2514,6 @@ bool _canParseFileOperationRegistrationOptions(
     }
     if ((!nullCheck || value != null) &&
         !FileOperationRegistrationOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type FileOperationRegistrationOptions');
       return false;
     }
   } finally {
@@ -2620,7 +2539,6 @@ bool _canParseFoldingRangeClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !FoldingRangeClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type FoldingRangeClientCapabilities');
       return false;
     }
   } finally {
@@ -2646,8 +2564,6 @@ bool _canParseFoldingRangeClientCapabilitiesFoldingRange(
     }
     if ((!nullCheck || value != null) &&
         !FoldingRangeClientCapabilitiesFoldingRange.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type FoldingRangeClientCapabilitiesFoldingRange');
       return false;
     }
   } finally {
@@ -2674,8 +2590,6 @@ bool _canParseFoldingRangeClientCapabilitiesFoldingRangeKind(
     if ((!nullCheck || value != null) &&
         !FoldingRangeClientCapabilitiesFoldingRangeKind.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type FoldingRangeClientCapabilitiesFoldingRangeKind');
       return false;
     }
   } finally {
@@ -2701,7 +2615,6 @@ bool _canParseFoldingRangeKind(
     }
     if ((!nullCheck || value != null) &&
         !FoldingRangeKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type FoldingRangeKind');
       return false;
     }
   } finally {
@@ -2727,7 +2640,6 @@ bool _canParseFormattingOptions(
     }
     if ((!nullCheck || value != null) &&
         !FormattingOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type FormattingOptions');
       return false;
     }
   } finally {
@@ -2753,7 +2665,6 @@ bool _canParseGeneralClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !GeneralClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type GeneralClientCapabilities');
       return false;
     }
   } finally {
@@ -2780,8 +2691,6 @@ bool _canParseGeneralClientCapabilitiesStaleRequestSupport(
     if ((!nullCheck || value != null) &&
         !GeneralClientCapabilitiesStaleRequestSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type GeneralClientCapabilitiesStaleRequestSupport');
       return false;
     }
   } finally {
@@ -2807,7 +2716,6 @@ bool _canParseHoverClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !HoverClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type HoverClientCapabilities');
       return false;
     }
   } finally {
@@ -2833,7 +2741,6 @@ bool _canParseImplementationClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ImplementationClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ImplementationClientCapabilities');
       return false;
     }
   } finally {
@@ -2859,7 +2766,6 @@ bool _canParseInlayHintClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !InlayHintClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type InlayHintClientCapabilities');
       return false;
     }
   } finally {
@@ -2885,8 +2791,6 @@ bool _canParseInlayHintClientCapabilitiesResolveSupport(
     }
     if ((!nullCheck || value != null) &&
         !InlayHintClientCapabilitiesResolveSupport.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type InlayHintClientCapabilitiesResolveSupport');
       return false;
     }
   } finally {
@@ -2912,7 +2816,6 @@ bool _canParseInlayHintKind(
     }
     if ((!nullCheck || value != null) &&
         !InlayHintKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type InlayHintKind');
       return false;
     }
   } finally {
@@ -2938,8 +2841,6 @@ bool _canParseInlayHintWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !InlayHintWorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type InlayHintWorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -2965,7 +2866,6 @@ bool _canParseInlineValueClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !InlineValueClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type InlineValueClientCapabilities');
       return false;
     }
   } finally {
@@ -2991,7 +2891,6 @@ bool _canParseInlineValueContext(
     }
     if ((!nullCheck || value != null) &&
         !InlineValueContext.canParse(value, reporter)) {
-      reporter.reportError('must be of type InlineValueContext');
       return false;
     }
   } finally {
@@ -3017,8 +2916,6 @@ bool _canParseInlineValueWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !InlineValueWorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type InlineValueWorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -3072,7 +2969,6 @@ bool _canParseInsertTextFormat(
     }
     if ((!nullCheck || value != null) &&
         !InsertTextFormat.canParse(value, reporter)) {
-      reporter.reportError('must be of type InsertTextFormat');
       return false;
     }
   } finally {
@@ -3098,7 +2994,6 @@ bool _canParseInsertTextMode(
     }
     if ((!nullCheck || value != null) &&
         !InsertTextMode.canParse(value, reporter)) {
-      reporter.reportError('must be of type InsertTextMode');
       return false;
     }
   } finally {
@@ -3174,8 +3069,6 @@ bool _canParseLinkedEditingRangeClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !LinkedEditingRangeClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type LinkedEditingRangeClientCapabilities');
       return false;
     }
   } finally {
@@ -4622,7 +4515,6 @@ bool _canParseLocation(
       return false;
     }
     if ((!nullCheck || value != null) && !Location.canParse(value, reporter)) {
-      reporter.reportError('must be of type Location');
       return false;
     }
   } finally {
@@ -4773,7 +4665,6 @@ bool _canParseMarkdownClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !MarkdownClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type MarkdownClientCapabilities');
       return false;
     }
   } finally {
@@ -4825,7 +4716,6 @@ bool _canParseMarkupKind(
     }
     if ((!nullCheck || value != null) &&
         !MarkupKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type MarkupKind');
       return false;
     }
   } finally {
@@ -4851,7 +4741,6 @@ bool _canParseMessageType(
     }
     if ((!nullCheck || value != null) &&
         !MessageType.canParse(value, reporter)) {
-      reporter.reportError('must be of type MessageType');
       return false;
     }
   } finally {
@@ -4877,7 +4766,6 @@ bool _canParseMonikerClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !MonikerClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type MonikerClientCapabilities');
       return false;
     }
   } finally {
@@ -4903,7 +4791,6 @@ bool _canParseMonikerKind(
     }
     if ((!nullCheck || value != null) &&
         !MonikerKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type MonikerKind');
       return false;
     }
   } finally {
@@ -4929,7 +4816,6 @@ bool _canParseNotebookCellArrayChange(
     }
     if ((!nullCheck || value != null) &&
         !NotebookCellArrayChange.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookCellArrayChange');
       return false;
     }
   } finally {
@@ -4955,7 +4841,6 @@ bool _canParseNotebookCellKind(
     }
     if ((!nullCheck || value != null) &&
         !NotebookCellKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookCellKind');
       return false;
     }
   } finally {
@@ -4981,7 +4866,6 @@ bool _canParseNotebookDocument(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocument.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookDocument');
       return false;
     }
   } finally {
@@ -5007,7 +4891,6 @@ bool _canParseNotebookDocumentChangeEvent(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentChangeEvent.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookDocumentChangeEvent');
       return false;
     }
   } finally {
@@ -5033,7 +4916,6 @@ bool _canParseNotebookDocumentChangeEventCells(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentChangeEventCells.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookDocumentChangeEventCells');
       return false;
     }
   } finally {
@@ -5059,8 +4941,6 @@ bool _canParseNotebookDocumentChangeEventCellsStructure(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentChangeEventCellsStructure.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type NotebookDocumentChangeEventCellsStructure');
       return false;
     }
   } finally {
@@ -5086,8 +4966,6 @@ bool _canParseNotebookDocumentClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type NotebookDocumentClientCapabilities');
       return false;
     }
   } finally {
@@ -5144,7 +5022,6 @@ bool _canParseNotebookDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type NotebookDocumentIdentifier');
       return false;
     }
   } finally {
@@ -5170,8 +5047,6 @@ bool _canParseNotebookDocumentSyncClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !NotebookDocumentSyncClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type NotebookDocumentSyncClientCapabilities');
       return false;
     }
   } finally {
@@ -5277,8 +5152,6 @@ bool _canParseOptionalVersionedTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !OptionalVersionedTextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type OptionalVersionedTextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -5303,7 +5176,6 @@ bool _canParsePosition(
       return false;
     }
     if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
-      reporter.reportError('must be of type Position');
       return false;
     }
   } finally {
@@ -5329,7 +5201,6 @@ bool _canParsePositionEncodingKind(
     }
     if ((!nullCheck || value != null) &&
         !PositionEncodingKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type PositionEncodingKind');
       return false;
     }
   } finally {
@@ -5355,7 +5226,6 @@ bool _canParsePrepareSupportDefaultBehavior(
     }
     if ((!nullCheck || value != null) &&
         !PrepareSupportDefaultBehavior.canParse(value, reporter)) {
-      reporter.reportError('must be of type PrepareSupportDefaultBehavior');
       return false;
     }
   } finally {
@@ -5381,8 +5251,6 @@ bool _canParsePublishDiagnosticsClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !PublishDiagnosticsClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type PublishDiagnosticsClientCapabilities');
       return false;
     }
   } finally {
@@ -5409,8 +5277,6 @@ bool _canParsePublishDiagnosticsClientCapabilitiesTagSupport(
     if ((!nullCheck || value != null) &&
         !PublishDiagnosticsClientCapabilitiesTagSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type PublishDiagnosticsClientCapabilitiesTagSupport');
       return false;
     }
   } finally {
@@ -5435,7 +5301,6 @@ bool _canParseRange(
       return false;
     }
     if ((!nullCheck || value != null) && !Range.canParse(value, reporter)) {
-      reporter.reportError('must be of type Range');
       return false;
     }
   } finally {
@@ -5461,7 +5326,6 @@ bool _canParseReferenceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ReferenceClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ReferenceClientCapabilities');
       return false;
     }
   } finally {
@@ -5487,7 +5351,6 @@ bool _canParseReferenceContext(
     }
     if ((!nullCheck || value != null) &&
         !ReferenceContext.canParse(value, reporter)) {
-      reporter.reportError('must be of type ReferenceContext');
       return false;
     }
   } finally {
@@ -5513,8 +5376,6 @@ bool _canParseRegularExpressionsClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !RegularExpressionsClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type RegularExpressionsClientCapabilities');
       return false;
     }
   } finally {
@@ -5540,7 +5401,6 @@ bool _canParseRenameClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !RenameClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type RenameClientCapabilities');
       return false;
     }
   } finally {
@@ -5566,7 +5426,6 @@ bool _canParseRenameFileOptions(
     }
     if ((!nullCheck || value != null) &&
         !RenameFileOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type RenameFileOptions');
       return false;
     }
   } finally {
@@ -5592,7 +5451,6 @@ bool _canParseSelectionRange(
     }
     if ((!nullCheck || value != null) &&
         !SelectionRange.canParse(value, reporter)) {
-      reporter.reportError('must be of type SelectionRange');
       return false;
     }
   } finally {
@@ -5618,7 +5476,6 @@ bool _canParseSelectionRangeClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !SelectionRangeClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type SelectionRangeClientCapabilities');
       return false;
     }
   } finally {
@@ -5644,7 +5501,6 @@ bool _canParseSemanticTokensClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !SemanticTokensClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type SemanticTokensClientCapabilities');
       return false;
     }
   } finally {
@@ -5670,7 +5526,6 @@ bool _canParseSemanticTokensLegend(
     }
     if ((!nullCheck || value != null) &&
         !SemanticTokensLegend.canParse(value, reporter)) {
-      reporter.reportError('must be of type SemanticTokensLegend');
       return false;
     }
   } finally {
@@ -5724,8 +5579,6 @@ bool _canParseSemanticTokensWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !SemanticTokensWorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type SemanticTokensWorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -5751,7 +5604,6 @@ bool _canParseServerCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ServerCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ServerCapabilities');
       return false;
     }
   } finally {
@@ -5777,7 +5629,6 @@ bool _canParseServerCompletionItemOptions(
     }
     if ((!nullCheck || value != null) &&
         !ServerCompletionItemOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type ServerCompletionItemOptions');
       return false;
     }
   } finally {
@@ -5803,7 +5654,6 @@ bool _canParseServerInfo(
     }
     if ((!nullCheck || value != null) &&
         !ServerInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type ServerInfo');
       return false;
     }
   } finally {
@@ -5829,7 +5679,6 @@ bool _canParseShowDocumentClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ShowDocumentClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type ShowDocumentClientCapabilities');
       return false;
     }
   } finally {
@@ -5855,8 +5704,6 @@ bool _canParseShowMessageRequestClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !ShowMessageRequestClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type ShowMessageRequestClientCapabilities');
       return false;
     }
   } finally {
@@ -5883,8 +5730,6 @@ bool _canParseShowMessageRequestClientCapabilitiesMessageActionItem(
     if ((!nullCheck || value != null) &&
         !ShowMessageRequestClientCapabilitiesMessageActionItem.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type ShowMessageRequestClientCapabilitiesMessageActionItem');
       return false;
     }
   } finally {
@@ -5910,7 +5755,6 @@ bool _canParseSignatureHelp(
     }
     if ((!nullCheck || value != null) &&
         !SignatureHelp.canParse(value, reporter)) {
-      reporter.reportError('must be of type SignatureHelp');
       return false;
     }
   } finally {
@@ -5936,7 +5780,6 @@ bool _canParseSignatureHelpClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !SignatureHelpClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type SignatureHelpClientCapabilities');
       return false;
     }
   } finally {
@@ -5963,8 +5806,6 @@ bool _canParseSignatureHelpClientCapabilitiesSignatureInformation(
     if ((!nullCheck || value != null) &&
         !SignatureHelpClientCapabilitiesSignatureInformation.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type SignatureHelpClientCapabilitiesSignatureInformation');
       return false;
     }
   } finally {
@@ -5990,7 +5831,6 @@ bool _canParseSignatureHelpContext(
     }
     if ((!nullCheck || value != null) &&
         !SignatureHelpContext.canParse(value, reporter)) {
-      reporter.reportError('must be of type SignatureHelpContext');
       return false;
     }
   } finally {
@@ -6016,7 +5856,6 @@ bool _canParseSignatureHelpOptions(
     }
     if ((!nullCheck || value != null) &&
         !SignatureHelpOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type SignatureHelpOptions');
       return false;
     }
   } finally {
@@ -6042,7 +5881,6 @@ bool _canParseSignatureHelpTriggerKind(
     }
     if ((!nullCheck || value != null) &&
         !SignatureHelpTriggerKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type SignatureHelpTriggerKind');
       return false;
     }
   } finally {
@@ -6068,8 +5906,6 @@ bool _canParseSignatureInformationParameterInformation(
     }
     if ((!nullCheck || value != null) &&
         !SignatureInformationParameterInformation.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type SignatureInformationParameterInformation');
       return false;
     }
   } finally {
@@ -6147,7 +5983,6 @@ bool _canParseSymbolKind(
     }
     if ((!nullCheck || value != null) &&
         !SymbolKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type SymbolKind');
       return false;
     }
   } finally {
@@ -6173,7 +6008,6 @@ bool _canParseTextDocumentClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentClientCapabilities');
       return false;
     }
   } finally {
@@ -6199,7 +6033,6 @@ bool _canParseTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -6225,7 +6058,6 @@ bool _canParseTextDocumentItem(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentItem.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentItem');
       return false;
     }
   } finally {
@@ -6251,7 +6083,6 @@ bool _canParseTextDocumentSaveReason(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentSaveReason.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentSaveReason');
       return false;
     }
   } finally {
@@ -6277,8 +6108,6 @@ bool _canParseTextDocumentSyncClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentSyncClientCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type TextDocumentSyncClientCapabilities');
       return false;
     }
   } finally {
@@ -6304,7 +6133,6 @@ bool _canParseTextDocumentSyncKind(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentSyncKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentSyncKind');
       return false;
     }
   } finally {
@@ -6357,7 +6185,6 @@ bool _canParseTextEdit(
       return false;
     }
     if ((!nullCheck || value != null) && !TextEdit.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextEdit');
       return false;
     }
   } finally {
@@ -6383,7 +6210,6 @@ bool _canParseTraceValue(
     }
     if ((!nullCheck || value != null) &&
         !TraceValue.canParse(value, reporter)) {
-      reporter.reportError('must be of type TraceValue');
       return false;
     }
   } finally {
@@ -6409,7 +6235,6 @@ bool _canParseTypeDefinitionClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !TypeDefinitionClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeDefinitionClientCapabilities');
       return false;
     }
   } finally {
@@ -6435,7 +6260,6 @@ bool _canParseTypeHierarchyClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyClientCapabilities');
       return false;
     }
   } finally {
@@ -6461,7 +6285,6 @@ bool _canParseTypeHierarchyItem(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyItem.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyItem');
       return false;
     }
   } finally {
@@ -6487,7 +6310,6 @@ bool _canParseTypeHierarchyItemInfo(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyItemInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyItemInfo');
       return false;
     }
   } finally {
@@ -6513,7 +6335,6 @@ bool _canParseUniquenessLevel(
     }
     if ((!nullCheck || value != null) &&
         !UniquenessLevel.canParse(value, reporter)) {
-      reporter.reportError('must be of type UniquenessLevel');
       return false;
     }
   } finally {
@@ -6592,8 +6413,6 @@ bool _canParseVersionedNotebookDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !VersionedNotebookDocumentIdentifier.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type VersionedNotebookDocumentIdentifier');
       return false;
     }
   } finally {
@@ -6619,7 +6438,6 @@ bool _canParseVersionedTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !VersionedTextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type VersionedTextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -6644,7 +6462,6 @@ bool _canParseWatchKind(
       return false;
     }
     if ((!nullCheck || value != null) && !WatchKind.canParse(value, reporter)) {
-      reporter.reportError('must be of type WatchKind');
       return false;
     }
   } finally {
@@ -6670,7 +6487,6 @@ bool _canParseWindowClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !WindowClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type WindowClientCapabilities');
       return false;
     }
   } finally {
@@ -6696,7 +6512,6 @@ bool _canParseWorkspaceClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceClientCapabilities');
       return false;
     }
   } finally {
@@ -6722,7 +6537,6 @@ bool _canParseWorkspaceEdit(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceEdit.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceEdit');
       return false;
     }
   } finally {
@@ -6748,7 +6562,6 @@ bool _canParseWorkspaceEditClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceEditClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceEditClientCapabilities');
       return false;
     }
   } finally {
@@ -6775,8 +6588,6 @@ bool _canParseWorkspaceEditClientCapabilitiesChangeAnnotationSupport(
     if ((!nullCheck || value != null) &&
         !WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type WorkspaceEditClientCapabilitiesChangeAnnotationSupport');
       return false;
     }
   } finally {
@@ -6802,7 +6613,6 @@ bool _canParseWorkspaceFoldersChangeEvent(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceFoldersChangeEvent.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
       return false;
     }
   } finally {
@@ -6828,8 +6638,6 @@ bool _canParseWorkspaceFoldersServerCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceFoldersServerCapabilities.canParse(value, reporter)) {
-      reporter
-          .reportError('must be of type WorkspaceFoldersServerCapabilities');
       return false;
     }
   } finally {
@@ -6855,7 +6663,6 @@ bool _canParseWorkspaceOptions(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceOptions.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceOptions');
       return false;
     }
   } finally {
@@ -6881,7 +6688,6 @@ bool _canParseWorkspaceSymbolClientCapabilities(
     }
     if ((!nullCheck || value != null) &&
         !WorkspaceSymbolClientCapabilities.canParse(value, reporter)) {
-      reporter.reportError('must be of type WorkspaceSymbolClientCapabilities');
       return false;
     }
   } finally {
@@ -6908,8 +6714,6 @@ bool _canParseWorkspaceSymbolClientCapabilitiesResolveSupport(
     if ((!nullCheck || value != null) &&
         !WorkspaceSymbolClientCapabilitiesResolveSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type WorkspaceSymbolClientCapabilitiesResolveSupport');
       return false;
     }
   } finally {
@@ -6936,8 +6740,6 @@ bool _canParseWorkspaceSymbolClientCapabilitiesSymbolKind(
     if ((!nullCheck || value != null) &&
         !WorkspaceSymbolClientCapabilitiesSymbolKind.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type WorkspaceSymbolClientCapabilitiesSymbolKind');
       return false;
     }
   } finally {
@@ -6964,8 +6766,6 @@ bool _canParseWorkspaceSymbolClientCapabilitiesTagSupport(
     if ((!nullCheck || value != null) &&
         !WorkspaceSymbolClientCapabilitiesTagSupport.canParse(
             value, reporter)) {
-      reporter.reportError(
-          'must be of type WorkspaceSymbolClientCapabilitiesTagSupport');
       return false;
     }
   } finally {

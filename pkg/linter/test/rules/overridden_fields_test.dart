@@ -37,9 +37,7 @@ augment class A {
 ''');
 
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [
-      lint(45, 1),
-    ]);
+    await assertDiagnosticsInFile(b.path, [lint(45, 1)]);
   }
 
   test_augmentedField() async {
@@ -64,14 +62,13 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(85, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(85, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_conflictingFieldAndMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x() => 0;
 }
@@ -79,9 +76,9 @@ class A {
 class B extends A {
   int x = 9;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 1)],
+    );
   }
 
   /// https://github.com/dart-lang/linter/issues/2874
@@ -98,16 +95,17 @@ class B extends A {
   }
 
   test_extendingClass_multipleDeclarations() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int y = 1;
 }
 class B extends A {
   final x = 1, y = 2;
 }
-''', [
-      lint(60, 1),
-    ]);
+''',
+      [lint(60, 1)],
+    );
   }
 
   test_extendingClass_overridingAbstract() async {
@@ -134,7 +132,8 @@ class B extends A {
   }
 
   test_extendsClass_indirectly() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 0;
 }
@@ -143,9 +142,9 @@ class C extends B {
   @override
   int x = 1;
 }
-''', [
-      lint(84, 1),
-    ]);
+''',
+      [lint(84, 1)],
+    );
   }
 
   test_externalLibrary() async {
@@ -154,14 +153,15 @@ class A {
   int? public;
 }
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 class B extends A {
   int? public;
 }
-''', [
-      lint(44, 6),
-    ]);
+''',
+      [lint(44, 6)],
+    );
   }
 
   test_externalLibraryWithPrivateField() async {
@@ -170,14 +170,15 @@ class A {
   int? _private;
 }
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'a.dart';
 class B extends A {
   int? _private;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 44, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 44, 8)],
+    );
   }
 
   test_fieldOverridesGetter() async {
@@ -205,7 +206,8 @@ class B implements A {
   }
 
   test_mixingInMixin() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 mixin M {
   int x = 1;
 }
@@ -213,9 +215,9 @@ class A with M {
   @override
   int x = 2;
 }
-''', [
-      lint(60, 1),
-    ]);
+''',
+      [lint(60, 1)],
+    );
   }
 
   test_mixingInMixin_overridingAbstract() async {
@@ -234,7 +236,8 @@ class A with M {
     // See: https://github.com/dart-lang/linter/issues/2969
     // Preserves existing testing logic but has so many misuses of mixins that
     // that it's hard to know how much tested logic is intentional.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Base {
   Object field = 'lorem';
 
@@ -299,28 +302,31 @@ class GC34 extends GC33 {
   @override
   Object gc33 = 'yada';
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
-      lint(127, 5),
-      lint(194, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 273, 4),
-      lint(301, 9),
-      lint(343, 5),
-      lint(418, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 472, 4),
-      lint(500, 9),
-      lint(542, 5),
-      lint(617, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 751, 4),
-      lint(779, 9),
-      lint(821, 4),
-      lint(883, 1),
-      lint(912, 4),
-    ]);
+''',
+      [
+        error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
+        lint(127, 5),
+        lint(194, 9),
+        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 273, 4),
+        lint(301, 9),
+        lint(343, 5),
+        lint(418, 9),
+        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 472, 4),
+        lint(500, 9),
+        lint(542, 5),
+        lint(617, 9),
+        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 751, 4),
+        lint(779, 9),
+        lint(821, 4),
+        lint(883, 1),
+        lint(912, 4),
+      ],
+    );
   }
 
   test_mixinSuperclassConstraint() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 1;
 }
@@ -328,9 +334,9 @@ mixin M on A {
   @override
   final x = 1;
 }
-''', [
-      lint(60, 1),
-    ]);
+''',
+      [lint(60, 1)],
+    );
   }
 
   test_overridingAbstractField() async {
@@ -347,7 +353,8 @@ class B extends A {
   }
 
   test_privateFieldInSameLibrary() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int _x = 0;
 }
@@ -355,15 +362,18 @@ class A {
 class B extends A {
   int _x = 9;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-      lint(53, 2),
-      error(WarningCode.UNUSED_FIELD, 53, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_FIELD, 16, 2),
+        lint(53, 2),
+        error(WarningCode.UNUSED_FIELD, 53, 2),
+      ],
+    );
   }
 
   test_publicFieldInSameLibrary() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int x = 0;
 }
@@ -371,22 +381,25 @@ class A {
 class B extends A {
   int x = 9;
 }
-''', [
-      lint(52, 1),
-    ]);
+''',
+      [lint(52, 1)],
+    );
   }
 
   test_recursiveInterfaceInheritance() async {
     // Produces a recursive_interface_inheritance diagnostic.
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A extends B {}
 class B extends A {
   int field = 0;
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
+    );
   }
 }

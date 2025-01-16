@@ -14,10 +14,10 @@ const _desc =
 
 class UseFullHexValuesForFlutterColors extends LintRule {
   UseFullHexValuesForFlutterColors()
-      : super(
-          name: LintNames.use_full_hex_values_for_flutter_colors,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.use_full_hex_values_for_flutter_colors,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +25,9 @@ class UseFullHexValuesForFlutterColors extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

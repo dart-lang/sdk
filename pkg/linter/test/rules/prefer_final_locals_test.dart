@@ -18,13 +18,14 @@ class PreferFinalLocalsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_locals;
 
   test_destructured_listPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var [a, b] = ['a', 'b'];
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_listPattern_final() async {
@@ -45,23 +46,25 @@ f() {
   }
 
   test_destructured_listPattern_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var [_, b] = ['a', 'b'];
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_listPattern_wildcard_parenthesized() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var [(_), b] = ['a', 'b'];
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_listPattern_wildcard_single() async {
@@ -81,13 +84,14 @@ f() {
   }
 
   test_destructured_listPatternWithRest() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var [a, b, ...rest] = [1, 2, 3, 4, 5, 6, 7];
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_listPatternWithRest_mutated() async {
@@ -100,13 +104,14 @@ f() {
   }
 
   test_destructured_mapPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var {'first': a, 'second': b} = {'first': 1, 'second': 2};
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_mapPattern_final() async {
@@ -127,13 +132,14 @@ f() {
   }
 
   test_destructured_mapPattern_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var {'first': a, 'second': _} = {'first': 1, 'second': 2};
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_mapPattern_wildcard_single() async {
@@ -145,7 +151,8 @@ f() {
   }
 
   test_destructured_objectPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a;
   A(this.a);
@@ -153,9 +160,9 @@ class A {
 f() {
   var A(a: b) = A(1);
 }
-''', [
-      lint(42, 3),
-    ]);
+''',
+      [lint(42, 3)],
+    );
   }
 
   test_destructured_objectPattern_final() async {
@@ -196,7 +203,8 @@ f() {
   }
 
   test_destructured_objectPattern_wildcard_multipleFields() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -204,9 +212,9 @@ class A {
 f() {
   var A(a: x, b: _) = A(1, 2);
 }
-''', [
-      lint(53, 3),
-    ]);
+''',
+      [lint(53, 3)],
+    );
   }
 
   test_destructured_parenthesizedPattern_wildcard() async {
@@ -218,13 +226,14 @@ f() {
   }
 
   test_destructured_recordPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var (a, b) = ('a', 'b');
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_recordPattern_final() async {
@@ -236,14 +245,14 @@ f() {
   }
 
   test_destructured_recordPattern_forLoop() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var (a, b) in [(1, 2)]) { }
 }
-''', [
-      lint(18, 1),
-      lint(21, 1),
-    ]);
+''',
+      [lint(18, 1), lint(21, 1)],
+    );
   }
 
   /// https://github.com/dart-lang/linter/issues/4286
@@ -267,13 +276,14 @@ f() {
   }
 
   test_destructured_recordPattern_forLoop_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var (_, b) in [(1, 2)]) { }
 }
-''', [
-      lint(21, 1),
-    ]);
+''',
+      [lint(21, 1)],
+    );
   }
 
   test_destructured_recordPattern_mutated() async {
@@ -286,13 +296,14 @@ f() {
   }
 
   test_destructured_recordPattern_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var (_, b) = ('a', 'b');
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_destructured_recordPattern_wildcard_multipleWildcards() async {
@@ -304,13 +315,14 @@ f() {
   }
 
   test_destructured_recordPattern_withParenthesizedPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   var ((a, b)) = ('a', 'b');
 }
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_field() async {
@@ -322,13 +334,14 @@ class C {
   }
 
   test_ifPatternList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case [int x, final int y]) x;
 }
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_ifPatternList_final() async {
@@ -340,23 +353,25 @@ f(Object o) {
   }
 
   test_ifPatternList_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case [int x, int _]) x;
 }
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_ifPatternMap() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case {'x': var x}) print('$x');
 }
-''', [
-      lint(33, 5),
-    ]);
+''',
+      [lint(33, 5)],
+    );
   }
 
   test_ifPatternMap_final() async {
@@ -376,7 +391,8 @@ f(Object o) {
   }
 
   test_ifPatternObject() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int c;
   C(this.c);
@@ -385,9 +401,9 @@ class C {
 f(Object o) {
   if (o case C(c: var x)) x;
 }
-''', [
-      lint(67, 5),
-    ]);
+''',
+      [lint(67, 5)],
+    );
   }
 
   test_ifPatternObject_final() async {
@@ -417,14 +433,14 @@ f(Object o) {
   }
 
   test_ifPatternRecord() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case (int x, int y)) x;
 }
-''', [
-      lint(28, 5),
-      lint(35, 5),
-    ]);
+''',
+      [lint(28, 5), lint(35, 5)],
+    );
   }
 
   test_ifPatternRecord_final() async {
@@ -436,13 +452,14 @@ f(Object o) {
   }
 
   test_ifPatternRecord_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case (int x, int _)) x;
 }
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_nonDeclaration_destructured_recordPattern() async {
@@ -463,38 +480,41 @@ void f() {
   }
 
   test_notReassigned_withType_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   String a = 'hello', b = 'world';
   print(a);
   print(b);
 }
-''', [
-      lint(13, 6),
-    ]);
+''',
+      [lint(13, 6)],
+    );
   }
 
   test_notReassigned_withVar() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var a = '';
   print(a);
 }
-''', [
-      lint(13, 3),
-    ]);
+''',
+      [lint(13, 3)],
+    );
   }
 
   test_notReassigned_withVar_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   var a = 'hello', b = 'world';
   print(a);
   print(b);
 }
-''', [
-      lint(13, 3),
-    ]);
+''',
+      [lint(13, 3)],
+    );
   }
 
   test_notReassigned_withVar_wildcard() async {
@@ -524,7 +544,8 @@ void f() {
   }
 
   test_switch_objectPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a;
   A(this.a);
@@ -535,9 +556,9 @@ f() {
     case A(a: >0 && var b): b;
   }
 }
-''', [
-      lint(79, 5),
-    ]);
+''',
+      [lint(79, 5)],
+    );
   }
 
   test_switch_objectPattern_final() async {
@@ -571,7 +592,8 @@ f() {
   }
 
   test_switch_objectPattern_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a;
   A(this.a);
@@ -582,23 +604,25 @@ f() {
     case A(a: >0 && var _): print('');
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 83, 1),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 83, 1),
+      ],
+    );
   }
 
   test_switch_recordPattern() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   switch ((1, 2)) {
     case (var a, int b): a;
   }
 }
-''', [
-      lint(36, 5),
-      lint(43, 5),
-    ]);
+''',
+      [lint(36, 5), lint(43, 5)],
+    );
   }
 
   test_switch_recordPattern_final() async {
@@ -622,15 +646,16 @@ f() {
   }
 
   test_switch_recordPattern_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   switch ((1, 2)) {
     case (var a, int _): a;
   }
 }
-''', [
-      lint(36, 5),
-    ]);
+''',
+      [lint(36, 5)],
+    );
   }
 
   test_wildcardLocal() async {

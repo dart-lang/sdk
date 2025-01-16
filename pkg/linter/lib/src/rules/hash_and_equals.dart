@@ -13,18 +13,16 @@ import '../ast.dart';
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
 class HashAndEquals extends LintRule {
-  HashAndEquals()
-      : super(
-          name: LintNames.hash_and_equals,
-          description: _desc,
-        );
+  HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.hash_and_equals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
@@ -53,8 +51,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (hash is MethodDeclaration) {
           rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
         } else if (hash is FieldDeclaration) {
-          rule.reportLintForToken(getFieldName(hash, 'hashCode'),
-              arguments: ['==', 'hashCode']);
+          rule.reportLintForToken(
+            getFieldName(hash, 'hashCode'),
+            arguments: ['==', 'hashCode'],
+          );
         }
       }
     }

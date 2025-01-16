@@ -13,7 +13,7 @@ void main() {
     group('isPackage', () {
       for (var uri in [
         Uri.parse('package:foo/src/bar.dart'),
-        Uri.parse('package:foo/src/baz/bar.dart')
+        Uri.parse('package:foo/src/baz/bar.dart'),
       ]) {
         test(uri.toString(), () {
           expect(isPackage(uri), isTrue);
@@ -22,7 +22,7 @@ void main() {
       for (var uri in [
         Uri.parse('foo/bar.dart'),
         Uri.parse('src/bar.dart'),
-        Uri.parse('dart:async')
+        Uri.parse('dart:async'),
       ]) {
         test(uri.toString(), () {
           expect(isPackage(uri), isFalse);
@@ -33,15 +33,21 @@ void main() {
     group('samePackage', () {
       test('identity', () {
         expect(
-            samePackage(Uri.parse('package:foo/src/bar.dart'),
-                Uri.parse('package:foo/src/bar.dart')),
-            isTrue);
+          samePackage(
+            Uri.parse('package:foo/src/bar.dart'),
+            Uri.parse('package:foo/src/bar.dart'),
+          ),
+          isTrue,
+        );
       });
       test('foo/bar.dart', () {
         expect(
-            samePackage(Uri.parse('package:foo/src/bar.dart'),
-                Uri.parse('package:foo/bar.dart')),
-            isTrue);
+          samePackage(
+            Uri.parse('package:foo/src/bar.dart'),
+            Uri.parse('package:foo/bar.dart'),
+          ),
+          isTrue,
+        );
       });
     });
   });
@@ -49,7 +55,7 @@ void main() {
   group('implementation', () {
     for (var uri in [
       Uri.parse('package:foo/src/bar.dart'),
-      Uri.parse('package:foo/src/baz/bar.dart')
+      Uri.parse('package:foo/src/baz/bar.dart'),
     ]) {
       test(uri.toString(), () {
         expect(isImplementation(uri), isTrue);
@@ -57,7 +63,7 @@ void main() {
     }
     for (var uri in [
       Uri.parse('package:foo/bar.dart'),
-      Uri.parse('src/bar.dart')
+      Uri.parse('src/bar.dart'),
     ]) {
       test(uri.toString(), () {
         expect(isImplementation(uri), isFalse);
@@ -82,13 +88,13 @@ class ImplementationImportsTest extends LintRuleTest {
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 import 'package:flutter/src/material/colors.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 26, 42),
-      lint(26, 42),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 26, 42), lint(26, 42)],
+    );
   }
 }

@@ -2,30 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-// Negative test to make sure that we are reaching all assertions.
-library spawn_tests;
-
 import 'dart:isolate';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
-/* Dummy import so multi-test copies the file.
-import 'spawn_uri_child_isolate.dart';
-*/
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
-main() {
-  test('isolate fromUri - negative test', () {
-    ReceivePort port = new ReceivePort();
-    port.first.then(expectAsync((msg) {
-      String expectedMessage = 're: hi';
-      // Should be hi, not hello.
-      expectedMessage = 're: hello'; //# 01: runtime error
-      expect(msg, equals(expectedMessage));
-    }));
-
-    Isolate.spawnUri(
-        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort);
+void main() {
+  asyncStart();
+  var message = 'hi';
+  ReceivePort port = new ReceivePort();
+  port.first.then((response) {
+    String expectedResponse = 're: $message';
+    Expect.equals(expectedResponse, response);
+    asyncEnd();
   });
+
+  Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'), [
+    message,
+  ], port.sendPort);
 }

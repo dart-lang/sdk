@@ -12,14 +12,20 @@ void main() {
     for (var rule in Registry.ruleRegistry) {
       for (var incompatibleRule in rule.incompatibleRules) {
         test(rule.name, () async {
-          var referencedRule = Registry.ruleRegistry
-              .firstWhere((r) => r.name == incompatibleRule);
-          expect(referencedRule, isNotNull,
-              reason:
-                  'No rule found for id: $incompatibleRule (check for typo?)');
-          expect(referencedRule.incompatibleRules, contains(rule.name),
-              reason:
-                  '$referencedRule should define ${rule.name} in `incompatibleRules` but does not.');
+          var referencedRule = Registry.ruleRegistry.firstWhere(
+            (r) => r.name == incompatibleRule,
+          );
+          expect(
+            referencedRule,
+            isNotNull,
+            reason: 'No rule found for id: $incompatibleRule (check for typo?)',
+          );
+          expect(
+            referencedRule.incompatibleRules,
+            contains(rule.name),
+            reason:
+                '$referencedRule should define ${rule.name} in `incompatibleRules` but does not.',
+          );
         });
       }
     }

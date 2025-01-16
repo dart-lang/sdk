@@ -12,21 +12,20 @@ const _desc = r'Missing deprecated annotation.';
 
 class DeprecatedConsistency extends LintRule {
   DeprecatedConsistency()
-      : super(
-          name: LintNames.deprecated_consistency,
-          description: _desc,
-        );
+    : super(name: LintNames.deprecated_consistency, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.deprecated_consistency_constructor,
-        LinterLintCode.deprecated_consistency_field,
-        LinterLintCode.deprecated_consistency_parameter
-      ];
+    LinterLintCode.deprecated_consistency_constructor,
+    LinterLintCode.deprecated_consistency_field,
+    LinterLintCode.deprecated_consistency_parameter,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldFormalParameter(this, visitor);
@@ -45,8 +44,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         constructorElement.enclosingElement2.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
-      rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,
-          errorCode: LinterLintCode.deprecated_consistency_constructor);
+      rule.reportLintForOffset(
+        nodeToAnnotate.offset,
+        nodeToAnnotate.length,
+        errorCode: LinterLintCode.deprecated_consistency_constructor,
+      );
     }
   }
 
@@ -59,8 +61,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(node,
-          errorCode: LinterLintCode.deprecated_consistency_field);
+      rule.reportLint(
+        node,
+        errorCode: LinterLintCode.deprecated_consistency_field,
+      );
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       var fieldFragment = field.firstFragment;
@@ -68,8 +72,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (nameOffset == null) return;
       var nameLength = fieldFragment.name2?.length;
       if (nameLength == null) return;
-      rule.reportLintForOffset(nameOffset, nameLength,
-          errorCode: LinterLintCode.deprecated_consistency_parameter);
+      rule.reportLintForOffset(
+        nameOffset,
+        nameLength,
+        errorCode: LinterLintCode.deprecated_consistency_parameter,
+      );
     }
   }
 }

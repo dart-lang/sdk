@@ -5,8 +5,8 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:test/test.dart';
@@ -23,8 +23,8 @@ main() {
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
-  late final TypeParameterType T_none;
-  late final TypeParameterType T_question;
+  late final TypeParameterTypeImpl T_none;
+  late final TypeParameterTypeImpl T_question;
 
   @override
   void setUp() {
@@ -440,7 +440,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   test_functionType_noTypeFormals_parameters_leftOptionalPositional() {
     void check({
-      required DartType left,
+      required TypeImpl left,
       required ParameterElement right,
       required bool leftSchema,
       required String? expected,
@@ -518,7 +518,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   test_functionType_noTypeFormals_parameters_leftRequiredPositional() {
     void check({
-      required DartType left,
+      required TypeImpl left,
       required ParameterElement right,
       required bool leftSchema,
       required String? expected,
@@ -666,8 +666,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var testClassIndex = 0;
 
     void check1(
-      DartType extendsTypeArgument,
-      DartType implementsTypeArgument,
+      TypeImpl extendsTypeArgument,
+      TypeImpl implementsTypeArgument,
       String expectedConstraint,
     ) {
       // class A<T> {}
@@ -709,8 +709,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     }
 
     void check(
-      DartType typeArgument1,
-      DartType typeArgument2,
+      TypeImpl typeArgument1,
+      TypeImpl typeArgument2,
       String expectedConstraint,
     ) {
       check1(typeArgument1, typeArgument2, expectedConstraint);
@@ -771,7 +771,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       ['Null <: T <: _'],
     );
 
-    void matchNoConstraints(DartType Q) {
+    void matchNoConstraints(TypeImpl Q) {
       _checkMatch(
         [T],
         nullNone,
@@ -822,7 +822,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   /// If `P` is a type variable `X` in `L`, then the match holds:
   ///   Under constraint `_ <: X <: Q`.
   test_left_typeParameter() {
-    void checkMatch(DartType right, String expected) {
+    void checkMatch(TypeImpl right, String expected) {
       _checkMatch([T], T_none, right, false, [expected]);
     }
 
@@ -1248,7 +1248,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   /// If `Q` is a type variable `X` in `L`, then the match holds:
   ///   Under constraint `P <: X <: _`.
   test_right_typeParameter() {
-    void checkMatch(DartType left, String expected) {
+    void checkMatch(TypeImpl left, String expected) {
       _checkMatch([T], left, T_none, true, [expected]);
     }
 
@@ -1264,8 +1264,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   void _checkMatch(
     List<TypeParameterElement> typeParameters,
-    DartType P,
-    DartType Q,
+    TypeImpl P,
+    TypeImpl Q,
     bool leftSchema,
     List<String> expected,
   ) {
@@ -1295,8 +1295,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
   void _checkNotMatch(
     List<TypeParameterElement> typeParameters,
-    DartType P,
-    DartType Q,
+    TypeImpl P,
+    TypeImpl Q,
     bool leftSchema,
   ) {
     var gatherer = TypeConstraintGatherer(

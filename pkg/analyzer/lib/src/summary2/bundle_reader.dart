@@ -76,6 +76,7 @@ class BundleReader {
       return _LibraryHeader(
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
+        classMembersLengths: _reader.readUInt30List(),
         macroGeneratedCode: _reader.readOptionalObject((reader) {
           return _reader.readStringUtf8();
         }),
@@ -94,6 +95,7 @@ class BundleReader {
         referenceReader: referenceReader,
         reference: reference,
         offset: libraryHeader.offset,
+        classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
         macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
@@ -103,6 +105,8 @@ class BundleReader {
 
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
+  void Function()? _readMembers;
+  void Function()? applyInformativeDataToMembers;
 
   ClassElementLinkedData({
     required Reference reference,
@@ -112,17 +116,14 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void readMembers(InstanceElementImpl element) {
-    if (element is! ClassElementImpl) {
-      return;
-    }
-
-    // We might read class members before other properties.
-    element.linkedData?.read(element);
-    element.linkedData = null;
-
-    if (element.isMixinApplication) {
-      element.constructors;
+  void readMembers(covariant ClassElementImpl fragment) {
+    // Read members of all fragments, in order.
+    // So we always read a method augmentation after its target.
+    for (var fragment in fragment.element.fragments) {
+      var linkedData = fragment.linkedData;
+      if (linkedData is ClassElementLinkedData) {
+        linkedData._readSingleFragmentMembers(fragment);
+      }
     }
   }
 
@@ -153,6 +154,22 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     }
 
     applyConstantOffsets?.perform();
+  }
+
+  void _readSingleFragmentMembers(ClassElementImpl element) {
+    // We might read class members before other properties.
+    element.linkedData?.read(element);
+    element.linkedData = null;
+
+    if (element.isMixinApplication) {
+      element.constructors;
+    } else {
+      _readMembers?.call();
+      _readMembers = null;
+
+      applyInformativeDataToMembers?.call();
+      applyInformativeDataToMembers = null;
+    }
   }
 }
 
@@ -615,6 +632,9 @@ class LibraryReader {
   final InfoDeclarationStore _deserializedDataStore;
   final String? macroGeneratedCode;
 
+  final Uint32List _classMembersLengths;
+  int _classMembersLengthsIndex = 0;
+
   late final LibraryElementImpl _libraryElement;
   late InstanceElementImpl2 _currentInstanceElement;
 
@@ -627,6 +647,7 @@ class LibraryReader {
     required _ReferenceReader referenceReader,
     required Reference reference,
     required int offset,
+    required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
     required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
@@ -636,6 +657,7 @@ class LibraryReader {
         _referenceReader = referenceReader,
         _reference = reference,
         _offset = offset,
+        _classMembersLengths = classMembersLengths,
         _deserializedDataStore = infoDeclarationStore;
 
   LibraryElementImpl readElement({required Source librarySource}) {
@@ -643,6 +665,11 @@ class LibraryReader {
     var analysisSession = _elementFactory.analysisSession;
 
     _reader.offset = _offset;
+
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
+    // This should not be needed.
+    // But I have a suspicion that we attempt to read the library twice.
+    _classMembersLengthsIndex = 0;
 
     // Read enough data to create the library.
     var name = _reader.readStringReference();
@@ -754,20 +781,35 @@ class LibraryReader {
     fragment.typeParameters = _readTypeParameters();
 
     if (!fragment.isMixinApplication) {
-      var accessors = <PropertyAccessorElementImpl>[];
-      var fields = <FieldElementImpl>[];
-      _readFields(unitElement, fragment, reference, accessors, fields);
-      _readPropertyAccessors(
-          unitElement, fragment, reference, accessors, fields, '@field');
-      fragment.fields = fields.toFixedList();
-      fragment.accessors = accessors.toFixedList();
-
-      fragment.constructors =
-          _readConstructors(unitElement, fragment, reference);
-      fragment.methods = _readMethods(unitElement, fragment, reference);
+      var membersOffset = _reader.offset;
+      linkedData._readMembers = () {
+        _reader.offset = membersOffset;
+        _readClassElementMembers(fragment, reference);
+      };
+      _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
     }
 
     return fragment;
+  }
+
+  void _readClassElementMembers(
+    ClassElementImpl fragment,
+    Reference reference,
+  ) {
+    // print('[_readClassElementMembers][reference: $reference]');
+    var unitElement = fragment.enclosingElement3;
+    _currentInstanceElement = fragment.element;
+
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
+    _readFields(unitElement, fragment, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, fragment, reference, accessors, fields, '@field');
+    fragment.fields = fields.toFixedList();
+    fragment.accessors = accessors.toFixedList();
+
+    fragment.constructors = _readConstructors(unitElement, fragment, reference);
+    fragment.methods = _readMethods(unitElement, fragment, reference);
   }
 
   void _readClasses(
@@ -1337,7 +1379,7 @@ class LibraryReader {
         fragment.element = element;
       } else {
         var element = MethodElementImpl2(reference2, fragment.name2, fragment);
-        _currentInstanceElement.methods2.add(element);
+        _currentInstanceElement.internal_methods2.add(element);
       }
 
       var linkedData = MethodElementLinkedData(
@@ -2665,12 +2707,18 @@ class _LibraryHeader {
   final Uri uri;
   final int offset;
 
+  /// We don't read class members when reading libraries, by performance
+  /// reasons - in many cases only some classes of a library are used. But
+  /// we need to know how much data to skip for each class.
+  final Uint32List classMembersLengths;
+
   /// The only (if any) macro generated augmentation code.
   final String? macroGeneratedCode;
 
   _LibraryHeader({
     required this.uri,
     required this.offset,
+    required this.classMembersLengths,
     required this.macroGeneratedCode,
   });
 }

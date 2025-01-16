@@ -943,7 +943,7 @@ class _MockSdkElementsBuilder {
   }
 
   void _buildClassElement(ClassElementImpl fragment) {
-    var element = ClassElementImpl2(Reference.root(), fragment);
+    var element = fragment.element;
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
     element.fields = fragment.fields;
@@ -979,13 +979,14 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeParameters = const [],
     required CompilationUnitElementImpl unit,
   }) {
-    var element = ClassElementImpl(name, 0);
-    element.typeParameters = typeParameters;
-    element.constructors = <ConstructorElementImpl>[
+    var fragment = ClassElementImpl(name, 0);
+    ClassElementImpl2(Reference.root(), fragment);
+    fragment.typeParameters = typeParameters;
+    fragment.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
-    unit.encloseElement(element);
-    return element;
+    unit.encloseElement(fragment);
+    return fragment;
   }
 
   ConstructorElementImpl _constructor({

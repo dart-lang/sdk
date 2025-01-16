@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -62,6 +63,16 @@ class ConstructorMember extends ExecutableMember
   ConstructorFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<ConstructorFragment> get fragments {
+    return [
+      for (ConstructorFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   bool get isConst => declaration.isConst;
 
   @override
@@ -101,7 +112,10 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
-  InterfaceType get returnType => type.returnType as InterfaceType;
+  InterfaceTypeImpl get returnType =>
+      // TODO(paulberry): eliminate this cast by changing the type of `type` to
+      // `FunctionTypeImpl`.
+      type.returnType as InterfaceTypeImpl;
 
   @override
   Source get source => _declaration.source!;
@@ -227,6 +241,16 @@ abstract class ExecutableMember extends Member
   @override
   List<FormalParameterElement> get formalParameters =>
       parameters.map((fragment) => fragment.asElement2).toList();
+
+  @override
+  List<ExecutableFragment> get fragments {
+    return [
+      for (ExecutableFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
 
   @override
   bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
@@ -520,6 +544,16 @@ class FieldMember extends VariableMember
   FieldFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<FieldFragment> get fragments {
+    return [
+      for (FieldFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   PropertyAccessorElement? get getter {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
@@ -706,6 +740,16 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
 
   @override
   GetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  List<GetterFragment> get fragments {
+    return [
+      for (GetterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment as GetterFragment?)
+        fragment,
+    ];
+  }
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -1015,6 +1059,16 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<MethodFragment> get fragments {
+    return [
+      for (MethodFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   LibraryElement2 get library2 => _element2.library2;
 
   @override
@@ -1081,7 +1135,7 @@ class MethodMember extends ExecutableMember
 /// type parameters are known.
 class ParameterMember extends VariableMember
     with ParameterElementMixin, FormalParameterElementMixin
-    implements ParameterElement, FormalParameterElementOrMember {
+    implements ParameterElement {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -1146,6 +1200,16 @@ class ParameterMember extends VariableMember
       _element2.formalParameters;
 
   @override
+  List<FormalParameterFragment> get fragments {
+    return [
+      for (FormalParameterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
 
   @override
@@ -1184,7 +1248,7 @@ class ParameterMember extends VariableMember
   @override
   List<ParameterElement> get parameters {
     var type = this.type;
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       return type.parameters;
     }
     return const <ParameterElement>[];
@@ -1197,7 +1261,7 @@ class ParameterMember extends VariableMember
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
   @override
-  DartType get typeShared => type;
+  TypeImpl get typeShared => type;
 
   @override
   FormalParameterElement get _element2 => declaration.asElement2;
@@ -1432,6 +1496,16 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
   SetterFragment get firstFragment => _element2.firstFragment;
 
   @override
+  List<SetterFragment> get fragments {
+    return [
+      for (SetterFragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment as SetterFragment?)
+        fragment,
+    ];
+  }
+
+  @override
   String? get lookupName => _element2.lookupName;
 
   @override
@@ -1573,7 +1647,7 @@ class TopLevelVariableMember extends VariableMember
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
 abstract class VariableMember extends Member implements VariableElement {
-  DartType? _type;
+  TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
@@ -1605,13 +1679,15 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isStatic => declaration.isStatic;
 
   @override
-  DartType get type {
+  TypeImpl get type {
     if (_type != null) return _type!;
 
     var result = declaration.type;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    return _type = result;
+    // TODO(paulberry): remove this cast by changing the type of `declaration`
+    // and the return type of `substituteType`
+    return _type = result as TypeImpl;
   }
 
   @override

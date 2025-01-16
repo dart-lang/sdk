@@ -13,17 +13,16 @@ const _desc =
 
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
-      : super(
-          name: LintNames.one_member_abstracts,
-          description: _desc,
-        );
+    : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.one_member_abstracts;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

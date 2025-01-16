@@ -12,10 +12,10 @@ const _desc = r'Prefer `for` elements when building maps from iterables.';
 
 class PreferForElementsToMapFromIterable extends LintRule {
   PreferForElementsToMapFromIterable()
-      : super(
-          name: LintNames.prefer_for_elements_to_map_fromIterable,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_for_elements_to_map_fromIterable,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -23,7 +23,9 @@ class PreferForElementsToMapFromIterable extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -58,7 +60,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var keyClosure =
         _extractClosure('key', secondArg) ?? _extractClosure('key', thirdArg);
-    var valueClosure = _extractClosure('value', thirdArg) ??
+    var valueClosure =
+        _extractClosure('value', thirdArg) ??
         _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;

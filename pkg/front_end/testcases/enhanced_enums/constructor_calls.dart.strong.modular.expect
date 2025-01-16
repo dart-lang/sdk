@@ -60,9 +60,6 @@ import self as self;
 import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
-  three.f(), // Error.
-        ^";
   enum-element static const field self::E one = #C3;
   enum-element static const field self::E two = #C6;
   enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
@@ -71,6 +68,9 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:8: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
        ^^";
+  static const field core::List<self::E> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
+  three.f(), // Error.
+        ^";
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;

@@ -18432,6 +18432,61 @@ library
 ''');
   }
 
+  test_class_lazy_constructors() async {
+    var library = await buildLibrary('''
+class A {
+  A.named();
+}
+''');
+
+    var constructors = library.getClass2('A')!.constructors2;
+    expect(constructors, hasLength(1));
+  }
+
+  test_class_lazy_fields() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var fields = library.getClass2('A')!.fields2;
+    expect(fields, hasLength(1));
+  }
+
+  test_class_lazy_getters() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var getters = library.getClass2('A')!.getters2;
+    expect(getters, hasLength(1));
+  }
+
+  test_class_lazy_methods() async {
+    var library = await buildLibrary('''
+class A {
+  void foo() {}
+}
+''');
+
+    var methods = library.getClass2('A')!.methods2;
+    expect(methods, hasLength(1));
+  }
+
+  test_class_lazy_setters() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var setters = library.getClass2('A')!.setters2;
+    expect(setters, hasLength(1));
+  }
+
   test_class_method_abstract() async {
     var library = await buildLibrary('abstract class C { f(); }');
     checkElementText(library, r'''

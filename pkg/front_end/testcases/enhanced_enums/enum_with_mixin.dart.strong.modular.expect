@@ -12,8 +12,8 @@ abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self::HasSomeFiel
   abstract mixin-stub get someField() → core::String; -> self::HasSomeField::someField
 }
 class SomeEnum extends self::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
-  static const field core::List<self::SomeEnum> values = #C4;
   enum-element static const field self::SomeEnum value = #C3;
+  static const field core::List<self::SomeEnum> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::SomeEnum
     : super self::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
     ;
@@ -24,8 +24,8 @@ class SomeEnum extends self::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
     return "field";
 }
 class NormalEnum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::NormalEnum> values = #C7;
   enum-element static const field self::NormalEnum value = #C6;
+  static const field core::List<self::NormalEnum> values = #C7;
   const synthetic constructor •(core::int #index, core::String #name) → self::NormalEnum
     : super core::_Enum::•(#index, #name)
     ;

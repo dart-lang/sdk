@@ -514,8 +514,15 @@ void _writeCanParseType(
 
   buffer
     ..write(') {')
-    ..indent()
-    ..writeIndentedln('reporter.reportError($quote$failureMessage$quote);')
+    ..indent();
+  if (!_isSpecType(type)) {
+    // Only report an error for non-spec types, as spec types will have reported
+    // their own error in the nested canParse() call.
+    buffer.writeIndentedln(
+      'reporter.reportError($quote$failureMessage$quote);',
+    );
+  }
+  buffer
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')

@@ -18,14 +18,15 @@ import 'messages_info.dart';
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main(List<String> args) {
-  var parser = ArgParser()
-    ..addOption('out', abbr: 'o', help: 'Specifies project root.')
-    ..addOption(
-      'name',
-      abbr: 'n',
-      help: 'Specifies lower_underscore rule name.',
-      mandatory: true,
-    );
+  var parser =
+      ArgParser()
+        ..addOption('out', abbr: 'o', help: 'Specifies project root.')
+        ..addOption(
+          'name',
+          abbr: 'n',
+          help: 'Specifies lower_underscore rule name.',
+          mandatory: true,
+        );
 
   ArgResults options;
   try {
@@ -57,8 +58,14 @@ String get _thisYear => DateTime.now().year.toString();
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
-void generateFile(String ruleName, String stubPath, Generator generator,
-    {String? outDir, bool overwrite = false, bool format = false}) {
+void generateFile(
+  String ruleName,
+  String stubPath,
+  Generator generator, {
+  String? outDir,
+  bool overwrite = false,
+  bool format = false,
+}) {
   var (:file, :contents) = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
     var outPath = path.join(outDir, stubPath, file);
@@ -79,26 +86,46 @@ void generateFile(String ruleName, String stubPath, Generator generator,
 
 void generateRule(String ruleName, {String? outDir}) {
   // Generate rule stub.
-  generateFile(ruleName, path.join('lib', 'src', 'rules'), _generateClass,
-      outDir: outDir);
+  generateFile(
+    ruleName,
+    path.join('lib', 'src', 'rules'),
+    _generateClass,
+    outDir: outDir,
+  );
 
   // Generate unit test stub.
   generateFile(ruleName, ruleTestDir, _generateTest, outDir: outDir);
 
   // Generate test `all.dart` helper.
-  generateFile(ruleName, ruleTestDir, _generateAllTestsFile,
-      outDir: outDir, overwrite: true, format: true);
+  generateFile(
+    ruleName,
+    ruleTestDir,
+    _generateAllTestsFile,
+    outDir: outDir,
+    overwrite: true,
+    format: true,
+  );
 
   // Generate an example `all.yaml`
-  generateFile(ruleName, 'example', _generateAllYaml,
-      outDir: outDir, overwrite: true);
+  generateFile(
+    ruleName,
+    'example',
+    _generateAllYaml,
+    outDir: outDir,
+    overwrite: true,
+  );
 
   printToConsole('Updating ${Changelog.fileName}');
   Changelog().addEntry(RuleStateChange.added, ruleName);
 
   // Update rule registry.
-  generateFile(ruleName, path.join('lib', 'src'), _generateRulesFile,
-      outDir: outDir, overwrite: true);
+  generateFile(
+    ruleName,
+    path.join('lib', 'src'),
+    _generateRulesFile,
+    outDir: outDir,
+    overwrite: true,
+  );
 
   printToConsole('A unit test has been stubbed out in:');
   printToConsole('  $ruleTestDir/${ruleName}_test.dart');
@@ -129,8 +156,8 @@ GeneratedFile _generateAllTestsFile(String libName, String className) {
   sb.writeln('// ignore_for_file: library_prefixes');
   sb.writeln();
 
-  var paths = Directory(ruleTestDir).listSync().map((f) => f.path).toList()
-    ..sort();
+  var paths =
+      Directory(ruleTestDir).listSync().map((f) => f.path).toList()..sort();
 
   var testNames = <String>[];
   for (var file in paths) {
@@ -162,11 +189,16 @@ linter:
   rules:
 ''');
 
-  var names = Registry.ruleRegistry.rules
-      .where((r) =>
-          !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved)
-      .map((r) => r.name)
-      .toList();
+  var names =
+      Registry.ruleRegistry.rules
+          .where(
+            (r) =>
+                !r.state.isDeprecated &&
+                !r.state.isInternal &&
+                !r.state.isRemoved,
+          )
+          .map((r) => r.name)
+          .toList();
   names.add(libName);
   names.sort();
 
@@ -177,8 +209,8 @@ linter:
 }
 
 GeneratedFile _generateClass(String ruleName, String className) => (
-      file: '$ruleName.dart',
-      contents: """
+  file: '$ruleName.dart',
+  contents: """
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -221,8 +253,8 @@ class _Visitor extends SimpleAstVisitor {
     // TODO: implement
   }
 }
-"""
-    );
+""",
+);
 
 GeneratedFile _generateRulesFile(String libName, String className) {
   registerLintRules();
@@ -268,8 +300,8 @@ void registerLintRules() {
 }
 
 GeneratedFile _generateTest(String libName, String className) => (
-      file: '${libName}_test.dart',
-      contents: '''
+  file: '${libName}_test.dart',
+  contents: '''
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -297,8 +329,8 @@ class ${className}Test extends LintRuleTest {
     ]);
   }
 }
-'''
-    );
+''',
+);
 
 typedef GeneratedFile = ({String file, String contents});
 

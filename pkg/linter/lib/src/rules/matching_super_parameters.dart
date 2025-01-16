@@ -12,17 +12,16 @@ const _desc = r'Use matching super parameter names.';
 
 class MatchingSuperParameters extends LintRule {
   MatchingSuperParameters()
-      : super(
-          name: LintNames.matching_super_parameters,
-          description: _desc,
-        );
+    : super(name: LintNames.matching_super_parameters, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.matching_super_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -51,8 +50,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (superConstructor == null) {
       var class_ = node.parent;
       if (class_ is ClassDeclaration) {
-        superConstructor = class_
-            .declaredFragment?.element.supertype?.element3.unnamedConstructor2;
+        superConstructor =
+            class_
+                .declaredFragment
+                ?.element
+                .supertype
+                ?.element3
+                .unnamedConstructor2;
       }
     }
     if (superConstructor is! ConstructorElement2) return;
@@ -70,8 +74,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterOfSuperName = positionalParametersOfSuper[i].name3;
       if (parameterOfSuperName != null &&
           superParameterName != parameterOfSuperName) {
-        rule.reportLint(superParameter,
-            arguments: [superParameterName, parameterOfSuperName]);
+        rule.reportLint(
+          superParameter,
+          arguments: [superParameterName, parameterOfSuperName],
+        );
       }
     }
   }

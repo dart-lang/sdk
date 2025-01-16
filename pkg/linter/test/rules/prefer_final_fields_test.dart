@@ -20,40 +20,50 @@ class PreferFinalFieldsExtensionTypesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_fields;
 
   test_field_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   int _i = 0;
 }
-''', [
-      // No Lint.
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 35, 2),
-      error(WarningCode.UNUSED_FIELD, 35, 2),
-    ]);
+''',
+      [
+        // No Lint.
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+          35,
+          2,
+        ),
+        error(WarningCode.UNUSED_FIELD, 35, 2),
+      ],
+    );
   }
 
   test_field_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   static int _i = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 42, 2),
-      lint(42, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 42, 2), lint(42, 6)],
+    );
   }
 
   test_field_static_writtenInConstructor() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(Object o) {
   static Object _o = 0;
   E.e(this.o) {
     _o = o;
   }
 }
-''', [
-      // No lint.
-      error(WarningCode.UNUSED_FIELD, 45, 2),
-    ]);
+''',
+      [
+        // No lint.
+        error(WarningCode.UNUSED_FIELD, 45, 2),
+      ],
+    );
   }
 }
 
@@ -61,22 +71,23 @@ extension type E(Object o) {
 class PreferFinalFieldsTest extends LintRuleTest {
   @override
   List<ErrorCode> get ignoredErrorCodes => [
-        WarningCode.UNUSED_FIELD,
-        WarningCode.UNUSED_LOCAL_VARIABLE,
-      ];
+    WarningCode.UNUSED_FIELD,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.prefer_final_fields;
 
   test_assignedInConstructorInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int _x;
   C() : _x = 7;
 }
-''', [
-      lint(16, 2),
-    ]);
+''',
+      [lint(16, 2)],
+    );
   }
 
   test_assignedInConstructorInitializer_butNotAll() async {
@@ -146,16 +157,19 @@ int f(C c) {
   }
 
   test_enum() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 enum A {
   a,b,c;
   int _x = 0;
   int get x => _x;
 }
-''', [
-      // No Lint.
-      error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 24, 2),
-    ]);
+''',
+      [
+        // No Lint.
+        error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 24, 2),
+      ],
+    );
   }
 
   test_final_multiple() async {
@@ -175,7 +189,8 @@ class C {
   }
 
   test_indexAssignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var _x = [];
 
@@ -183,9 +198,9 @@ class C {
     _x[0] = 3;
   }
 }
-''', [
-      lint(16, 7),
-    ]);
+''',
+      [lint(16, 7)],
+    );
   }
 
   test_overrideField_extends() async {
@@ -320,46 +335,50 @@ class C {
   }
 
   test_prefixExpression_not() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   bool _x = false;
   void f() {
     !_x;
   }
 }
-''', [
-      lint(17, 10),
-    ]);
+''',
+      [lint(17, 10)],
+    );
   }
 
   test_prefixExpression_tilde() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int _x = 0xffff;
   void f() {
     ~_x;
   }
 }
-''', [
-      lint(16, 11),
-    ]);
+''',
+      [lint(16, 11)],
+    );
   }
 
   test_propertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int _x = 1;
   void f() {
     _x.isEven;
   }
 }
-''', [
-      lint(16, 6),
-    ]);
+''',
+      [lint(16, 6)],
+    );
   }
 
   test_readInInstanceMethod() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int _x = 0;
 
@@ -367,9 +386,9 @@ class C {
     var a = _x;
   }
 }
-''', [
-      lint(16, 6),
-    ]);
+''',
+      [lint(16, 6)],
+    );
   }
 
   test_reassigned() async {
@@ -384,15 +403,16 @@ class C {
   }
 
   test_referencedInFieldFormalParameters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int _x;
   C(this._x);
   C.named(this._x);
 }
-''', [
-      lint(16, 2),
-    ]);
+''',
+      [lint(16, 2)],
+    );
   }
 
   test_subclassOnGenericClass() async {
@@ -410,26 +430,28 @@ class D extends C<int> {
   }
 
   test_unused() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var _x = 1;
 }
-''', [
-      lint(16, 6),
-    ]);
+''',
+      [lint(16, 6)],
+    );
   }
 
   test_unused_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   var _x = 1, _y = 2;
   void f() {
     _x = 2;
   }
 }
-''', [
-      lint(24, 6),
-    ]);
+''',
+      [lint(24, 6)],
+    );
   }
 
   test_unused_public() async {

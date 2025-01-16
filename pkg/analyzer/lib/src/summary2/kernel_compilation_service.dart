@@ -138,11 +138,9 @@ class KernelCompilationService {
       if (instance != null) {
         _currentInstance = null;
         // We don't expect any answer, the process will stop.
-        // ignore: unawaited_futures
         instance.requestChannel.sendRequest<void>('exit', {});
         instance.socket.destroy();
         // This socket is bound to a fresh port, we don't need it.
-        // ignore: unawaited_futures
         instance.serverSocket.close();
         instance.process.kill();
       }

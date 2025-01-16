@@ -13,10 +13,7 @@ const _desc =
 
 class RequireTrailingCommas extends LintRule {
   RequireTrailingCommas()
-      : super(
-          name: LintNames.require_trailing_commas,
-          description: _desc,
-        );
+    : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.require_trailing_commas;
@@ -163,8 +160,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     // This case arises a lot in asserts.
     if (lastNode is FunctionExpressionInvocation &&
         lastNode.function is FunctionExpression &&
-        _isSameLine(lastNode.argumentList.leftParenthesis,
-            lastNode.argumentList.rightParenthesis)) {
+        _isSameLine(
+          lastNode.argumentList.leftParenthesis,
+          lastNode.argumentList.rightParenthesis,
+        )) {
       return true;
     }
 

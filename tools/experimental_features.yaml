@@ -24,6 +24,7 @@
 #
 # kernel:
 #   dart pkg/front_end/tool/cfe.dart generate-experimental-flags
+#   dart pkg/front_end/tool/update_expectations.dart
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -109,7 +110,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.7.0'
+current-version: '3.8.0'
 
 features:
   variance:

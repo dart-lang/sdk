@@ -23,11 +23,11 @@ bool _isPrivateExtension(AstNode parent) {
 
 class UseLateForPrivateFieldsAndVariables extends LintRule {
   UseLateForPrivateFieldsAndVariables()
-      : super(
-          name: LintNames.use_late_for_private_fields_and_variables,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.use_late_for_private_fields_and_variables,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode =>
@@ -35,7 +35,9 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.afterLibrary(this, () => visitor.afterLibrary());
@@ -66,7 +68,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
         var variableElement = variable.declaredFragment?.element;
         if (!nullableAccess.contains(variableElement)) {
           var contextUnit = context.allUnits.firstWhereOrNull(
-              (u) => u.unit.declaredFragment == libraryFragment);
+            (u) => u.unit.declaredFragment == libraryFragment,
+          );
           if (contextUnit == null) continue;
           contextUnit.errorReporter.atNode(variable, rule.lintCode);
         }
@@ -186,7 +189,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// Checks whether [expression], which must be an [Identifier] or
   /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
   void _visitIdentifierOrPropertyAccess(
-      Expression expression, Element2? canonicalElement) {
+    Expression expression,
+    Element2? canonicalElement,
+  ) {
     assert(expression is Identifier || expression is PropertyAccess);
     if (canonicalElement == null) return;
 

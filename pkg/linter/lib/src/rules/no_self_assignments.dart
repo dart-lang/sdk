@@ -12,17 +12,16 @@ const _desc = r"Don't assign a variable to itself.";
 
 class NoSelfAssignments extends LintRule {
   NoSelfAssignments()
-      : super(
-          name: LintNames.no_self_assignments,
-          description: _desc,
-        );
+    : super(name: LintNames.no_self_assignments, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_self_assignments;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
   }

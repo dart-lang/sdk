@@ -18,46 +18,50 @@ class UseSuperParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_super_parameters;
 
   test_functionTypedFormalParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int f(int i));
 }
 class B extends A {
   B(int f(int i)) : super(f);
 }
-''', [
-      lint(53, 1),
-    ]);
+''',
+      [lint(53, 1)],
+    );
   }
 
   test_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A({int? x, int? y});
 }
 class B extends A {
   const B({int? x, int? y}) : super(x: x, y: y);
 }
-''', [
-      lint(69, 1),
-    ]);
+''',
+      [lint(69, 1)],
+    );
   }
 
   Future<void> test_named_oneWithNameChange() async {
-    await assertDiagnostics('''
+    await assertDiagnostics(
+      '''
 class A {
   A({int? x, int? y});
 }
 class B extends A {
   B({int? x, int? z}) : super(x: x, y: z);
 }
-''', [
-      lint(57, 1),
-    ]);
+''',
+      [lint(57, 1)],
+    );
   }
 
   test_named_someReferencedInBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A({int? x, int? y});
 }
@@ -66,13 +70,20 @@ class B extends A {
     print(x);
   }
 }
-''', [
-      lint(57, 1, messageContains: "Parameter 'y' could be a super parameter."),
-    ]);
+''',
+      [
+        lint(
+          57,
+          1,
+          messageContains: "Parameter 'y' could be a super parameter.",
+        ),
+      ],
+    );
   }
 
   test_named_thisParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A({int? x, int? y});
 }
@@ -80,9 +91,15 @@ class B extends A {
   int? x;
   B({this.x, int? y}) : super(x:x, y:y);
 }
-''', [
-      lint(67, 1, messageContains: "Parameter 'y' could be a super parameter."),
-    ]);
+''',
+      [
+        lint(
+          67,
+          1,
+          messageContains: "Parameter 'y' could be a super parameter.",
+        ),
+      ],
+    );
   }
 
   test_no_lint_forwardedOutOfOrder() async {
@@ -324,42 +341,45 @@ class B extends A {
   }
 
   test_nonForwardingNamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int x, {int? foo});
 }
 class B extends A {
   B(int x, {int? foo}) : super(x, foo: 0);
 }
-''', [
-      lint(58, 1),
-    ]);
+''',
+      [lint(58, 1)],
+    );
   }
 
   test_optionalPositional_inSuper() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int x, [int? y]);
 }
 class B extends A {
   B(int x) : super(x);
 }
-''', [
-      lint(56, 1),
-    ]);
+''',
+      [lint(56, 1)],
+    );
   }
 
   test_optionalPositional_singleSuperParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int x);
 }
 class B extends A {
   B([int x = 0]) : super(x);
 }
-''', [
-      lint(46, 1),
-    ]);
+''',
+      [lint(46, 1)],
+    );
   }
 
   /// https://github.com/dart-lang/linter/issues/3569
@@ -379,7 +399,8 @@ class Square extends Rect {
   }
 
   test_requiredPositional_allConvertible() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class B {
   final int foo;
   final int bar;
@@ -388,26 +409,28 @@ class B {
 class C extends B {
   C(int foo, int bar) : super(foo, bar);
 }
-''', [
-      lint(93, 1),
-    ]);
+''',
+      [lint(93, 1)],
+    );
   }
 
   test_requiredPositional_mixedSuperParameters() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int x, {int? y});
 }
 class B extends A {
   B(int x, int y) : super(x, y: y);
 }
-''', [
-      lint(56, 1),
-    ]);
+''',
+      [lint(56, 1)],
+    );
   }
 
   test_requiredPositional_someConvertible() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class B {
   final int foo;
   final int bar;
@@ -416,21 +439,22 @@ class B {
 class C extends B {
   C(int baz, int foo, int bar) : super(foo, bar);
 }
-''', [
-      lint(93, 1),
-    ]);
+''',
+      [lint(93, 1)],
+    );
   }
 
   test_requiredPositional_withNamed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(int x, {int? y});
 }
 class B extends A {
   B(int x, {int? y}) : super(x, y: y);
 }
-''', [
-      lint(56, 1),
-    ]);
+''',
+      [lint(56, 1)],
+    );
   }
 }

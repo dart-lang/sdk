@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ImplementedComputer {
   final SearchEngine searchEngine;

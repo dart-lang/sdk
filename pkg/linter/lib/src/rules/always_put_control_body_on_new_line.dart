@@ -11,17 +11,19 @@ const _desc = r'Separate the control structure expression from its statement.';
 
 class AlwaysPutControlBodyOnNewLine extends LintRule {
   AlwaysPutControlBodyOnNewLine()
-      : super(
-          name: LintNames.always_put_control_body_on_new_line,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.always_put_control_body_on_new_line,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.always_put_control_body_on_new_line;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);

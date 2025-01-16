@@ -211,10 +211,7 @@ Set<Source?> scanReachableFiles(Uri entryUri) {
 Future setup(String path) async {
   var provider = PhysicalResourceProvider.INSTANCE;
 
-  var packages = findPackagesFrom(
-    provider,
-    provider.getResource(path),
-  );
+  var packages = findPackagesFrom(provider, provider.getResource(path));
 
   var packageMap = <String, List<Folder>>{};
   for (var package in packages.packages) {
@@ -237,13 +234,17 @@ ScannerResult tokenize(Source source) {
   var featureSet = FeatureSet.latestLanguageVersion();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = Scanner(
-      source, CharSequenceReader(contents), AnalysisErrorListener.NULL_LISTENER)
-    ..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    )
-    ..preserveComments = false;
+  var scanner =
+      Scanner(
+          source,
+          CharSequenceReader(contents),
+          AnalysisErrorListener.NULL_LISTENER,
+        )
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        )
+        ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();
   return ScannerResult(token, scanner.lineStarts, scanner.overrideVersion);

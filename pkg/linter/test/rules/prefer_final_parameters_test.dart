@@ -27,13 +27,14 @@ void f(String p) {
   }
 
   test_closure() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var f = (Object p) {
   print(p);
 };
-''', [
-      lint(9, 8),
-    ]);
+''',
+      [lint(9, 8)],
+    );
   }
 
   test_closure_final() async {
@@ -53,13 +54,14 @@ void f(final List<int> x) {
   }
 
   test_closure_untyped() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(final List<int> x) {
   x.forEach((e) => print(e + 4));
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_closure_wildcard() async {
@@ -77,27 +79,29 @@ class C {
   }
 
   test_constructor_usedInBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int x = 0;
   C(String p) {
     x = p.length;
   }
 }
-''', [
-      lint(27, 8),
-    ]);
+''',
+      [lint(27, 8)],
+    );
   }
 
   test_constructor_usedInInitializer() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String x = '';
   C(String x): this.x = x;
 }
-''', [
-      lint(31, 8),
-    ]);
+''',
+      [lint(31, 8)],
+    );
   }
 
   test_constructor_usedInInitializer_final() async {
@@ -151,15 +155,16 @@ void f(int p) {
   }
 
   test_method() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   void m(String p) {
     print(p);
   }
 }
-''', [
-      lint(19, 8),
-    ]);
+''',
+      [lint(19, 8)],
+    );
   }
 
   test_method_final() async {
@@ -189,15 +194,16 @@ class C {
   }
 
   test_operator() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C operator +(C other) {
     return other;
   }
 }
-''', [
-      lint(25, 7),
-    ]);
+''',
+      [lint(25, 7)],
+    );
   }
 
   test_operator_final() async {
@@ -229,14 +235,15 @@ void f(int a, int b) {
   }
 
   test_setter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int x = 0;
   void set f(int y) => x = y;
 }
-''', [
-      lint(36, 5),
-    ]);
+''',
+      [lint(36, 5)],
+    );
   }
 
   test_setter_final() async {
@@ -282,11 +289,12 @@ class B extends A {
   }
 
   test_topLevelFunction() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(int p) => print(p);
-''', [
-      lint(7, 5),
-    ]);
+''',
+      [lint(7, 5)],
+    );
   }
 
   test_topLevelFunction_final() async {
@@ -305,13 +313,14 @@ void f(final String p, final String p2) {
   }
 
   test_topLevelFunction_named() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({String? p}) {
   print(p);
 }
-''', [
-      lint(8, 9),
-    ]);
+''',
+      [lint(8, 9)],
+    );
   }
 
   test_topLevelFunction_named_final() async {
@@ -323,23 +332,27 @@ void f({final String? p}) {
   }
 
   test_topLevelFunction_named_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({final String? _}) { }
-''', [
-      // No lint.
-      // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 22, 1),
-    ]);
+''',
+      [
+        // No lint.
+        // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
+        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 22, 1),
+      ],
+    );
   }
 
   test_topLevelFunction_namedRequired() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({required String p}) {
   print(p);
 }
-''', [
-      lint(8, 17),
-    ]);
+''',
+      [lint(8, 17)],
+    );
   }
 
   test_topLevelFunction_namedRequired_final() async {
@@ -351,23 +364,27 @@ void f({required final String p}) {
   }
 
   test_topLevelFunction_namedRequired_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({required String _}) { }
-''', [
-      // No lint.
-      // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 24, 1),
-    ]);
+''',
+      [
+        // No lint.
+        // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
+        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 24, 1),
+      ],
+    );
   }
 
   test_topLevelFunction_optional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f([String? p]) {
   print(p);
 }
-''', [
-      lint(8, 9),
-    ]);
+''',
+      [lint(8, 9)],
+    );
   }
 
   test_topLevelFunction_optional_final() async {

@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
+// Tests serialization of messages.
 // VMOptions=--no-enable-fast-object-copy
 // VMOptions=--enable-fast-object-copy
-
-// Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts
 
 library MessageTest;
@@ -57,7 +52,7 @@ class C extends B {
   get superField2 => super.field2;
 }
 
-class M {
+mixin M {
   get field2 => 11;
 }
 
@@ -168,10 +163,10 @@ void runTests(SendPort ping, Queue checks) {
     Expect.isTrue(x is List);
     Expect.listEquals([1, 2], x);
     // Make sure the list is immutable.
-    Expect.throws(() => x[0] = 0); // //# constList: ok
+    Expect.throws(() => x[0] = 0);
     // List must not be extendable.
     Expect.throws(() => x.add(3));
-    Expect.identical(x, constList); // //# constList_identical: ok
+    Expect.identical(x, constList);
   });
 
   Uint8List uint8 = new Uint8List(2);
@@ -189,24 +184,20 @@ void runTests(SendPort ping, Queue checks) {
   uint16[0] = 0;
   uint16[1] = 1;
   ByteBuffer byteBuffer = uint16.buffer;
-  ping.send(byteBuffer); // //# byteBuffer: ok
-  checks.add( //            //# byteBuffer: ok
-  (x) {
+  ping.send(byteBuffer);
+  checks.add((x) {
     Expect.isTrue(x is ByteBuffer);
     Uint16List uint16View = new Uint16List.view(x);
     Expect.equals(2, uint16View.length);
     Expect.equals(0, uint16View[0]);
     Expect.equals(1, uint16View[1]);
-  }
-  ) //                      //# byteBuffer: ok
-      ;
+  });
 
   Int32x4List list32x4 = new Int32x4List(2);
   list32x4[0] = new Int32x4(1, 2, 3, 4);
   list32x4[1] = new Int32x4(5, 6, 7, 8);
   ping.send(list32x4);
-  checks.add(
-  (x) {
+  checks.add((x) {
     Expect.isTrue(x is Int32x4List);
     Expect.equals(2, x.length);
     Int32x4 entry1 = x[0];
@@ -225,8 +216,7 @@ void runTests(SendPort ping, Queue checks) {
   flist32x4[0] = new Float32x4(1.5, 2.5, 3.5, 4.5);
   flist32x4[1] = new Float32x4(5.5, 6.5, 7.5, 8.5);
   ping.send(flist32x4);
-  checks.add(
-  (x) {
+  checks.add((x) {
     Expect.isTrue(x is Float32x4List);
     Expect.equals(2, x.length);
     Float32x4 entry1 = x[0];
@@ -245,8 +235,7 @@ void runTests(SendPort ping, Queue checks) {
   flist64x2[0] = new Float64x2(1.5, 2.5);
   flist64x2[1] = new Float64x2(5.5, 6.5);
   ping.send(flist64x2);
-  checks.add(
-  (x) {
+  checks.add((x) {
     Expect.isTrue(x is Float64x2List);
     Expect.equals(2, x.length);
     Float64x2 entry1 = x[0];
@@ -325,10 +314,9 @@ void runTests(SendPort ping, Queue checks) {
   ping.send(constMap);
   checks.add((x) {
     Expect.isTrue(x is Map);
-    print(x.length);
     Expect.equals(1, x.length);
     Expect.equals(499, x['foo']);
-    Expect.identical(constMap, x); // //# constMap: ok
+    Expect.identical(constMap, x);
     Expect.throws(() => constMap['bar'] = 42);
   });
 
@@ -401,17 +389,17 @@ void runTests(SendPort ping, Queue checks) {
     Expect.throws(() => x.field2 = 22);
   });
 
-  ping.send(new E(E.fooFun)); //       //# fun: ok
-  checks.add((x) { //                  //# fun: continued
-    Expect.equals(E.fooFun, x.fun); // //# fun: continued
-    Expect.equals(499, x.fun()); //    //# fun: continued
-  }); //                               //# fun: continued
+  ping.send(new E(E.fooFun));
+  checks.add((x) {
+    Expect.equals(E.fooFun, x.fun);
+    Expect.equals(499, x.fun());
+  });
 
-  ping.send(new E(barFun)); //         //# fun: continued
-  checks.add((x) { //                  //# fun: continued
-    Expect.equals(barFun, x.fun); //   //# fun: continued
-    Expect.equals(42, x.fun()); //     //# fun: continued
-  }); //                               //# fun: continued
+  ping.send(new E(barFun));
+  checks.add((x) {
+    Expect.equals(barFun, x.fun);
+    Expect.equals(42, x.fun());
+  });
 
   ping.send(new E(new E(E.fooFun).instanceFun));
   checks.add((x) {
@@ -429,7 +417,7 @@ void runTests(SendPort ping, Queue checks) {
   ping.send(constF);
   checks.add((x) {
     Expect.equals("field", x.field);
-    Expect.identical(constF, x); // //# constInstance: ok
+    Expect.identical(constF, x);
   });
 
   G g1 = new G(nonConstF);
@@ -453,15 +441,15 @@ void runTests(SendPort ping, Queue checks) {
     Expect.isFalse(identical(g1, x));
     F f = x.field;
     Expect.equals("field", f.field);
-    Expect.identical(constF, f); // //# constInstance: continued
+    Expect.identical(constF, f);
   });
   checks.add((x) {
     // g3.
     Expect.isTrue(x is G);
-    Expect.identical(g3, x); // //# constInstance: continued
+    Expect.identical(g3, x);
     F f = x.field;
     Expect.equals("field", f.field);
-    Expect.identical(constF, f); // //# constInstance: continued
+    Expect.identical(constF, f);
   });
 
   // Make sure objects in a map are serialized and deserialized in the correct
@@ -504,13 +492,13 @@ void main() {
   });
 
   ReceivePort initialReplyPort = new ReceivePort();
-  Isolate
-      .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
-      .then((_) => initialReplyPort.first)
-      .then((_ping) {
-        SendPort ping = _ping;
-        runTests(ping, checks);
-        Expect.isTrue(checks.length > 0);
-        completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());
-      });
+  Isolate.spawn(echoMain, [
+    initialReplyPort.sendPort,
+    testPort.sendPort,
+  ]).then((_) => initialReplyPort.first).then((_ping) {
+    SendPort ping = _ping;
+    runTests(ping, checks);
+    Expect.isTrue(checks.length > 0);
+    completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());
+  });
 }

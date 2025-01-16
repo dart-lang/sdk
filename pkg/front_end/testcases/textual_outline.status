@@ -9,6 +9,7 @@
 # formatter still sees as syntax errors and thus won't format.
 regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
 regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
+enhanced_enums/external_constructor: FormatterCrash
 extension_types/const_constructor_body: FormatterCrash
 extension_types/field_access: FormatterCrash
 extension_types/issue52119: FormatterCrash

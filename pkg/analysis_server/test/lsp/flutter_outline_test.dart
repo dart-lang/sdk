@@ -30,7 +30,6 @@ class FlutterOutlineNonFlutterProjectTest
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
     var outlineNotification = waitForFlutterOutline(mainFileUri)
-        // ignore: unnecessary_cast
         .then((outline) => outline as FlutterOutline?)
         .timeout(
           const Duration(seconds: 1),

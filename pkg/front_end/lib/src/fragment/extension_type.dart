@@ -17,6 +17,8 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
+  final List<FieldFragment> primaryConstructorFields = [];
+
   SourceExtensionTypeDeclarationBuilder? _builder;
 
   ExtensionTypeFragment(
@@ -39,6 +41,11 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
   void set builder(SourceExtensionTypeDeclarationBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  @override
+  void addPrimaryConstructorField(FieldFragment fragment) {
+    primaryConstructorFields.add(fragment);
   }
 
   @override

@@ -13,10 +13,7 @@ const _desc = r'Avoid method calls or property accesses on a `dynamic` target.';
 
 class AvoidDynamicCalls extends LintRule {
   AvoidDynamicCalls()
-      : super(
-          name: LintNames.avoid_dynamic_calls,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_dynamic_calls, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_dynamic_calls;

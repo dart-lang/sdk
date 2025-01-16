@@ -60,8 +60,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = #C4;
   enum-element static const field self::E1 element = #C3;
+  static const field core::List<self::E1> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -70,8 +70,8 @@ class E1 extends core::_Enum /*isEnum*/  {
   abstract method foo() → void;
 }
 class E2 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E2> values = #C6;
   enum-element static const field self::E2 element = #C5;
+  static const field core::List<self::E2> values = #C6;
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
@@ -80,8 +80,8 @@ class E2 extends core::_Enum /*isEnum*/  {
   abstract get foo() → core::int;
 }
 class E3 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E3> values = #C8;
   enum-element static const field self::E3 element = #C7;
+  static const field core::List<self::E3> values = #C8;
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
@@ -96,8 +96,8 @@ abstract class InterfaceMethod extends core::Object {
   abstract method foo() → void;
 }
 class E4 extends core::_Enum implements self::InterfaceMethod /*isEnum*/  {
-  static const field core::List<self::E4> values = #C10;
   enum-element static const field self::E4 element = #C9;
+  static const field core::List<self::E4> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
@@ -111,8 +111,8 @@ abstract class InterfaceGetter extends core::Object {
   abstract get foo() → core::int;
 }
 class E5 extends core::_Enum implements self::InterfaceGetter /*isEnum*/  {
-  static const field core::List<self::E5> values = #C12;
   enum-element static const field self::E5 element = #C11;
+  static const field core::List<self::E5> values = #C12;
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
@@ -126,8 +126,8 @@ abstract class InterfaceSetter extends core::Object {
   abstract set foo(core::int val) → void;
 }
 class E6 extends core::_Enum implements self::InterfaceSetter /*isEnum*/  {
-  static const field core::List<self::E6> values = #C14;
   enum-element static const field self::E6 element = #C13;
+  static const field core::List<self::E6> values = #C14;
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
@@ -145,8 +145,8 @@ abstract class _E7&_Enum&MethodImplementation = core::_Enum with self::MethodImp
     return super.{self::MethodImplementation::foo}();
 }
 class E7 extends self::_E7&_Enum&MethodImplementation /*isEnum*/  {
-  static const field core::List<self::E7> values = #C16;
   enum-element static const field self::E7 element = #C15;
+  static const field core::List<self::E7> values = #C16;
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super self::_E7&_Enum&MethodImplementation::•(#index, #name)
     ;

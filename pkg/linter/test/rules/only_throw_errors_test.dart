@@ -71,13 +71,14 @@ void f() {
   }
 
   test_int() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   throw 7;
 }
-''', [
-      lint(19, 1),
-    ]);
+''',
+      [lint(19, 1)],
+    );
   }
 
   test_never() async {
@@ -91,22 +92,24 @@ Never e() => throw Exception();
   }
 
   test_object() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   throw Object();
 }
-''', [
-      lint(19, 8),
-    ]);
+''',
+      [lint(19, 8)],
+    );
   }
 
   test_string() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   throw 'hello';
 }
-''', [
-      lint(19, 7),
-    ]);
+''',
+      [lint(19, 7)],
+    );
   }
 }

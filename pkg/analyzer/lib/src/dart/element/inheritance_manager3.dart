@@ -1071,6 +1071,11 @@ class InheritanceManager3 {
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
       result.typeParameters = executable.typeParameters.cast();
+      result.element = MethodElementImpl2(
+        Reference.root(), // TODO(scheglov): wrong
+        executable.name,
+        result,
+      );
       return result;
     }
 

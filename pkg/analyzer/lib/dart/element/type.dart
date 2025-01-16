@@ -28,13 +28,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
+import 'package:analyzer/src/dart/element/type.dart'
+    show RecordTypeImpl, TypeImpl;
 import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType implements SharedTypeStructure<DartType> {
+abstract class DartType implements SharedTypeStructure<TypeImpl> {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.
@@ -208,6 +209,15 @@ abstract class DartType implements SharedTypeStructure<DartType> {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
   });
+
+  /// Determines whether this type is the same as [other].
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use `==` instead.
+  @override
+  @Deprecated('Use `==` instead')
+  bool isStructurallyEqualTo(covariant DartType other);
 }
 
 /// The type `dynamic` is a type which is a supertype of all other types, just

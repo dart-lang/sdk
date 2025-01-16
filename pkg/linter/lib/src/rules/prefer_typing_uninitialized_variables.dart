@@ -12,20 +12,22 @@ const _desc = r'Prefer typing uninitialized variables and fields.';
 
 class PreferTypingUninitializedVariables extends LintRule {
   PreferTypingUninitializedVariables()
-      : super(
-          name: LintNames.prefer_typing_uninitialized_variables,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_typing_uninitialized_variables,
+        description: _desc,
+      );
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.prefer_typing_uninitialized_variables_for_field,
-        LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable
-      ];
+    LinterLintCode.prefer_typing_uninitialized_variables_for_field,
+    LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
@@ -42,10 +44,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var v in node.variables) {
       if (v.initializer == null && !v.isAugmentation) {
-        var code = node.parent is FieldDeclaration
-            ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
-            : LinterLintCode
-                .prefer_typing_uninitialized_variables_for_local_variable;
+        var code =
+            node.parent is FieldDeclaration
+                ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
+                : LinterLintCode
+                    .prefer_typing_uninitialized_variables_for_local_variable;
         rule.reportLint(v, errorCode: code);
       }
     }

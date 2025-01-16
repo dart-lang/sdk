@@ -404,6 +404,10 @@ abstract class AbstractSourceConstructorBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DeclaredSourceConstructorBuilder
@@ -509,7 +513,6 @@ class DeclaredSourceConstructorBuilder
       _constructorTearOff ??
       // The case is need to ensure that the upper bound is [Member] and not
       // [GenericFunction].
-      // ignore: unnecessary_cast
       _constructor as Member;
 
   @override
@@ -1180,6 +1183,10 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

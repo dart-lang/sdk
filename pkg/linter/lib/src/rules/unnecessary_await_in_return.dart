@@ -12,17 +12,16 @@ const _desc = r'Unnecessary `await` keyword in return.';
 
 class UnnecessaryAwaitInReturn extends LintRule {
   UnnecessaryAwaitInReturn()
-      : super(
-          name: LintNames.unnecessary_await_in_return,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_await_in_return, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_await_in_return;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
@@ -56,10 +55,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parent = node.thisOrAncestorMatching((e) =>
-        e is FunctionExpression ||
-        e is MethodDeclaration ||
-        e is Block && e.parent is TryStatement);
+    var parent = node.thisOrAncestorMatching(
+      (e) =>
+          e is FunctionExpression ||
+          e is MethodDeclaration ||
+          e is Block && e.parent is TryStatement,
+    );
     if (parent == null) return;
 
     DartType? returnType;

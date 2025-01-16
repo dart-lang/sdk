@@ -8,11 +8,11 @@ const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 class PreferEqualForDefaultValues extends LintRule {
   PreferEqualForDefaultValues()
-      : super(
-          name: LintNames.prefer_equal_for_default_values,
-          description: _desc,
-          state: State.removed(since: dart3),
-        );
+    : super(
+        name: LintNames.prefer_equal_for_default_values,
+        description: _desc,
+        state: State.removed(since: dart3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

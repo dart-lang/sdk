@@ -238,8 +238,12 @@ class KernelLoader : public ValueObject {
   using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
   using DynModuleExtendablePragma =
       BitField<uint32_t, bool, SharedPragma::kNextBit>;
-  using DynModuleCanBeOverriddenPragma =
+  using DynModuleImplicitlyExtendablePragma =
       BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
+  using DynModuleCanBeOverriddenPragma =
+      BitField<uint32_t, bool, DynModuleImplicitlyExtendablePragma::kNextBit>;
+  using DynModuleCanBeOverriddenImplicitlyPragma =
+      BitField<uint32_t, bool, DynModuleCanBeOverriddenPragma::kNextBit>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,

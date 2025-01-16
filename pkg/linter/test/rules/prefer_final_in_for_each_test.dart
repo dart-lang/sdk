@@ -18,13 +18,14 @@ class PreferFinalInForEachTestLanguage300 extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_in_for_each;
 
   test_int() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var i in [1, 2, 3]) { }
 }
-''', [
-      lint(17, 1),
-    ]);
+''',
+      [lint(17, 1)],
+    );
   }
 
   test_int_final_ok() async {
@@ -46,13 +47,14 @@ f() {
   }
 
   test_list() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var [i, j] in [[1, 2]]) { }
 }
-''', [
-      lint(17, 6),
-    ]);
+''',
+      [lint(17, 6)],
+    );
   }
 
   test_list_final() async {
@@ -75,13 +77,14 @@ f() {
 
   /// https://github.com/dart-lang/linter/issues/4353
   test_listLiteral_forEach() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 List<int> f() => [
       for (var i in [1, 2]) i + 3
     ];
-''', [
-      lint(34, 1),
-    ]);
+''',
+      [lint(34, 1)],
+    );
   }
 
   test_listLiteral_forEach_mutated() async {
@@ -93,13 +96,14 @@ List<int> f() => [
   }
 
   test_map() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var {'i' : j} in [{'i' : 1}]) { }
 }
-''', [
-      lint(17, 9),
-    ]);
+''',
+      [lint(17, 9)],
+    );
   }
 
   test_map_final() async {
@@ -121,7 +125,8 @@ f() {
   }
 
   test_object() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a;
   A(this.a);
@@ -130,9 +135,9 @@ class A {
 f() {
   for (var A(:a) in [A(1)]) { }
 }
-''', [
-      lint(52, 5),
-    ]);
+''',
+      [lint(52, 5)],
+    );
   }
 
   test_object_final() async {
@@ -173,13 +178,14 @@ f() {
   }
 
   test_record() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (var (i, j) in [(1, 2)]) { }
 }
-''', [
-      lint(17, 6),
-    ]);
+''',
+      [lint(17, 6)],
+    );
   }
 
   test_record_final() async {

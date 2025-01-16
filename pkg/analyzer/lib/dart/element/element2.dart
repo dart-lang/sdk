@@ -111,6 +111,9 @@ abstract class Annotatable {
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {
   @override
   BindPatternVariableFragment get firstFragment;
+
+  @override
+  List<BindPatternVariableFragment> get fragments;
 }
 
 /// The portion of a [BindPatternVariableElement2] contributed by a single
@@ -137,6 +140,9 @@ abstract class BindPatternVariableFragment implements PatternVariableFragment {
 abstract class ClassElement2 implements InterfaceElement2 {
   @override
   ClassFragment get firstFragment;
+
+  @override
+  List<ClassFragment> get fragments;
 
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
@@ -256,7 +262,8 @@ abstract class ClassFragment implements InterfaceFragment {
 /// type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorElement2 implements ExecutableElement2 {
+abstract class ConstructorElement2
+    implements ExecutableElement2, HasSinceSdkVersion {
   @override
   ConstructorElement2 get baseElement;
 
@@ -265,6 +272,9 @@ abstract class ConstructorElement2 implements ExecutableElement2 {
 
   @override
   ConstructorFragment get firstFragment;
+
+  @override
+  List<ConstructorFragment> get fragments;
 
   /// Whether the constructor is a const constructor.
   bool get isConst;
@@ -404,6 +414,9 @@ abstract class Element2 {
   /// The other fragments in the chain can be accessed using successive
   /// invocations of [Fragment.nextFragment].
   Fragment get firstFragment;
+
+  /// The fragments this element consists of.
+  List<Fragment> get fragments;
 
   /// The unique integer identifier of this element.
   int get id;
@@ -607,6 +620,9 @@ abstract class EnumElement2 implements InterfaceElement2 {
 
   @override
   EnumFragment get firstFragment;
+
+  @override
+  List<EnumFragment> get fragments;
 }
 
 /// The portion of an [EnumElement2] contributed by a single declaration.
@@ -636,6 +652,9 @@ abstract class ExecutableElement2 implements FunctionTypedElement2 {
 
   @override
   ExecutableFragment get firstFragment;
+
+  @override
+  List<ExecutableFragment> get fragments;
 
   /// Whether the executable element did not have an explicit return type
   /// specified for it in the original source.
@@ -711,6 +730,9 @@ abstract class ExtensionElement2 implements InstanceElement2 {
 
   @override
   ExtensionFragment get firstFragment;
+
+  @override
+  List<ExtensionFragment> get fragments;
 }
 
 /// The portion of an [ExtensionElement2] contributed by a single
@@ -734,6 +756,9 @@ abstract class ExtensionFragment implements InstanceFragment {
 abstract class ExtensionTypeElement2 implements InterfaceElement2 {
   @override
   ExtensionTypeFragment get firstFragment;
+
+  @override
+  List<ExtensionTypeFragment> get fragments;
 
   /// The primary constructor of this extension.
   ConstructorElement2 get primaryConstructor2;
@@ -780,6 +805,9 @@ abstract class FieldElement2 implements PropertyInducingElement2 {
   @override
   FieldFragment get firstFragment;
 
+  @override
+  List<FieldFragment> get fragments;
+
   /// Whether the field is abstract.
   ///
   /// Executable fields are abstract if they are declared with the `abstract`
@@ -810,6 +838,9 @@ abstract class FieldFormalParameterElement2 implements FormalParameterElement {
 
   @override
   FieldFormalParameterFragment get firstFragment;
+
+  @override
+  List<FieldFormalParameterFragment> get fragments;
 }
 
 /// The portion of a [FieldFormalParameterElement2] contributed by a single
@@ -845,7 +876,11 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, Annotatable, LocalElement2 {
+    implements
+        PromotableElement2,
+        Annotatable,
+        HasSinceSdkVersion,
+        LocalElement2 {
   @override
   FormalParameterElement get baseElement;
 
@@ -862,6 +897,9 @@ abstract class FormalParameterElement
   /// A parameter will only define other parameters if it is a function typed
   /// formal parameter.
   List<FormalParameterElement> get formalParameters;
+
+  @override
+  List<FormalParameterFragment> get fragments;
 
   /// Whether the parameter has a default value.
   bool get hasDefaultValue;
@@ -1046,6 +1084,9 @@ abstract class FunctionTypedElement2 implements TypeParameterizedElement2 {
   /// The formal parameters defined by this element.
   List<FormalParameterElement> get formalParameters;
 
+  @override
+  List<FunctionTypedFragment> get fragments;
+
   /// The return type defined by this element.
   DartType get returnType;
 
@@ -1076,6 +1117,9 @@ abstract class FunctionTypedFragment implements TypeParameterizedFragment {
 abstract class GenericFunctionTypeElement2 implements FunctionTypedElement2 {
   @override
   GenericFunctionTypeFragment get firstFragment;
+
+  @override
+  List<GenericFunctionTypeFragment> get fragments;
 }
 
 /// The portion of a [GenericFunctionTypeElement2] coming from a single
@@ -1112,6 +1156,9 @@ abstract class GetterElement implements PropertyAccessorElement2 {
 
   @override
   GetterFragment get firstFragment;
+
+  @override
+  List<GetterFragment> get fragments;
 }
 
 /// The portion of a [GetterElement] contributed by a single declaration.
@@ -1140,11 +1187,35 @@ abstract class GetterFragment implements PropertyAccessorFragment {
   // GetterElement get element;
 }
 
+/// The interface that is implemented by elements that can have `@Since()`
+/// annotation.
+abstract class HasSinceSdkVersion {
+  /// The version where the associated SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in the SDK, or doesn't have
+  /// a `@Since()` annotation applied to it.
+  Version? get sinceSdkVersion;
+}
+
 /// An element whose instance members can refer to `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement2
-    implements TypeDefiningElement2, TypeParameterizedElement2 {
+    implements
+        TypeDefiningElement2,
+        TypeParameterizedElement2,
+        HasSinceSdkVersion {
   @override
   LibraryElement2 get enclosingElement2;
 
@@ -1153,6 +1224,9 @@ abstract class InstanceElement2
 
   @override
   InstanceFragment get firstFragment;
+
+  @override
+  List<InstanceFragment> get fragments;
 
   /// The getters declared in this element.
   List<GetterElement> get getters2;
@@ -1267,6 +1341,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   @override
   InterfaceFragment get firstFragment;
+
+  @override
+  List<InterfaceFragment> get fragments;
 
   /// The interfaces that are implemented by this class.
   ///
@@ -1408,6 +1485,9 @@ abstract class JoinPatternVariableElement2 implements PatternVariableElement2 {
   @override
   JoinPatternVariableFragment get firstFragment;
 
+  @override
+  List<JoinPatternVariableFragment> get fragments;
+
   /// Whether the [variables2] are consistent.
   ///
   /// The variables are consistent if they are present in all branches, and have
@@ -1454,6 +1534,9 @@ abstract class LabelElement2 implements Element2 {
   LabelFragment get firstFragment;
 
   @override
+  List<LabelFragment> get fragments;
+
+  @override
   LibraryElement2 get library2;
 }
 
@@ -1474,7 +1557,8 @@ abstract class LabelFragment implements Fragment {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement2 implements Element2, Annotatable {
+abstract class LibraryElement2
+    implements Element2, Annotatable, HasSinceSdkVersion {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1532,6 +1616,7 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   ///
   /// This includes the defining fragment, and fragments included using the
   /// `part` directive.
+  @override
   List<LibraryFragment> get fragments;
 
   /// The getters defined in this library.
@@ -1796,6 +1881,9 @@ abstract class LocalFunctionElement
     implements ExecutableElement2, LocalElement2 {
   @override
   LocalFunctionFragment get firstFragment;
+
+  @override
+  List<LocalFunctionFragment> get fragments;
 }
 
 /// The portion of a [LocalFunctionElement] contributed by a single
@@ -1833,6 +1921,9 @@ abstract class LocalVariableElement2
 
   @override
   LocalVariableFragment get firstFragment;
+
+  @override
+  List<LocalVariableFragment> get fragments;
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
@@ -1958,23 +2049,6 @@ abstract class Metadata {
 
   /// Whether the receiver has an annotation of the form `@widgetFactory`.
   bool get hasWidgetFactory;
-
-  /// The version where the associated SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in the SDK, or doesn't have
-  /// a `@Since()` annotation applied to it.
-  Version? get sinceSdkVersion;
 }
 
 /// A method.
@@ -1983,7 +2057,8 @@ abstract class Metadata {
 /// method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement2 implements ExecutableElement2 {
+abstract class MethodElement2
+    implements ExecutableElement2, HasSinceSdkVersion {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
@@ -1997,6 +2072,9 @@ abstract class MethodElement2 implements ExecutableElement2 {
 
   @override
   MethodFragment get firstFragment;
+
+  @override
+  List<MethodFragment> get fragments;
 
   /// Whether the method defines an operator.
   ///
@@ -2028,6 +2106,9 @@ abstract class MethodFragment implements ExecutableFragment {
 abstract class MixinElement2 implements InterfaceElement2 {
   @override
   MixinFragment get firstFragment;
+
+  @override
+  List<MixinFragment> get fragments;
 
   /// Whether the mixin is a base mixin.
   ///
@@ -2091,6 +2172,9 @@ abstract class MultiplyDefinedElement2 implements Element2 {
 
   @override
   MultiplyDefinedFragment get firstFragment;
+
+  @override
+  List<MultiplyDefinedFragment> get fragments;
 }
 
 /// The fragment for a [MultiplyDefinedElement2].
@@ -2124,6 +2208,9 @@ abstract class PartInclude implements ElementDirective {
 abstract class PatternVariableElement2 implements LocalVariableElement2 {
   @override
   PatternVariableFragment get firstFragment;
+
+  @override
+  List<PatternVariableFragment> get fragments;
 
   /// The variable in which this variable joins with other pattern variables
   /// with the same name, in a logical-or pattern, or shared case scope.
@@ -2160,6 +2247,9 @@ abstract class PrefixElement2 implements Element2 {
 
   @override
   PrefixFragment get firstFragment;
+
+  @override
+  List<PrefixFragment> get fragments;
 
   /// The imports that share this prefix.
   List<LibraryImport> get imports;
@@ -2202,6 +2292,9 @@ abstract class PrefixFragment implements Fragment {
 abstract class PromotableElement2 implements VariableElement2 {
   @override
   PromotableFragment get firstFragment;
+
+  @override
+  List<PromotableFragment> get fragments;
 }
 
 /// The portion of a [PromotableElement2] contributed by a single declaration.
@@ -2231,6 +2324,9 @@ abstract class PropertyAccessorElement2 implements ExecutableElement2 {
 
   @override
   PropertyAccessorFragment get firstFragment;
+
+  @override
+  List<PropertyAccessorFragment> get fragments;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -2277,9 +2373,12 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, Annotatable {
+    implements VariableElement2, Annotatable, HasSinceSdkVersion {
   @override
   PropertyInducingFragment get firstFragment;
+
+  @override
+  List<PropertyInducingFragment> get fragments;
 
   /// The getter associated with this variable.
   ///
@@ -2375,6 +2474,9 @@ abstract class SetterElement implements PropertyAccessorElement2 {
 
   @override
   SetterFragment get firstFragment;
+
+  @override
+  List<SetterFragment> get fragments;
 }
 
 /// The portion of a [SetterElement] contributed by a single declaration.
@@ -2412,6 +2514,9 @@ abstract class SuperFormalParameterElement2 implements FormalParameterElement {
   @override
   SuperFormalParameterFragment get firstFragment;
 
+  @override
+  List<SuperFormalParameterFragment> get fragments;
+
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
   /// invocation.
@@ -2439,12 +2544,16 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 /// A top-level function.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelFunctionElement implements ExecutableElement2 {
+abstract class TopLevelFunctionElement
+    implements ExecutableElement2, HasSinceSdkVersion {
   @override
   TopLevelFunctionElement get baseElement;
 
   @override
   TopLevelFunctionFragment get firstFragment;
+
+  @override
+  List<TopLevelFunctionFragment> get fragments;
 
   /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
@@ -2489,6 +2598,9 @@ abstract class TopLevelVariableElement2 implements PropertyInducingElement2 {
   @override
   TopLevelVariableFragment get firstFragment;
 
+  @override
+  List<TopLevelVariableFragment> get fragments;
+
   /// Whether the field was explicitly marked as being external.
   bool get isExternal;
 }
@@ -2512,7 +2624,10 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement2
-    implements TypeParameterizedElement2, TypeDefiningElement2 {
+    implements
+        TypeParameterizedElement2,
+        TypeDefiningElement2,
+        HasSinceSdkVersion {
   /// If the aliased type has structure, return the corresponding element.
   /// For example, it could be [GenericFunctionTypeElement].
   ///
@@ -2531,6 +2646,9 @@ abstract class TypeAliasElement2
 
   @override
   TypeAliasFragment get firstFragment;
+
+  @override
+  List<TypeAliasFragment> get fragments;
 
   /// Returns the type resulting from instantiating this typedef with the given
   /// [typeArguments] and [nullabilitySuffix].
@@ -2575,6 +2693,9 @@ abstract class TypeDefiningElement2 implements Element2, Annotatable {
 
   @override
   TypeDefiningFragment get firstFragment;
+
+  @override
+  List<TypeDefiningFragment> get fragments;
 }
 
 /// The portion of a [TypeDefiningElement2] contributed by a single declaration.
@@ -2608,6 +2729,9 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   @override
   TypeParameterFragment get firstFragment;
 
+  @override
+  List<TypeParameterFragment> get fragments;
+
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
   TypeParameterType instantiate({
@@ -2636,6 +2760,9 @@ abstract class TypeParameterFragment implements TypeDefiningFragment {
 abstract class TypeParameterizedElement2 implements Element2, Annotatable {
   @override
   TypeParameterizedFragment get firstFragment;
+
+  @override
+  List<TypeParameterizedFragment> get fragments;
 
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type arguments as the bounds of a type parameter
@@ -2683,6 +2810,9 @@ abstract class TypeParameterizedFragment implements Fragment, Annotatable {
 abstract class VariableElement2 implements Element2 {
   @override
   VariableFragment get firstFragment;
+
+  @override
+  List<VariableFragment> get fragments;
 
   /// Whether the variable element did not have an explicit type specified
   /// for it.

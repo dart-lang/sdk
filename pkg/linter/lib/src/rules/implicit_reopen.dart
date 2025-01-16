@@ -12,18 +12,20 @@ const _desc = r"Don't implicitly reopen classes.";
 
 class ImplicitReopen extends LintRule {
   ImplicitReopen()
-      : super(
-          name: LintNames.implicit_reopen,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.implicit_reopen,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.implicit_reopen;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
@@ -35,8 +37,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void checkElement(InterfaceElement2? element, NamedCompilationUnitMember node,
-      {required String type}) {
+  void checkElement(
+    InterfaceElement2? element,
+    NamedCompilationUnitMember node, {
+    required String type,
+  }) {
     if (element is! ClassElement2) return;
     if (element.metadata2.hasReopen) return;
     if (element.isSealed) return;
@@ -49,18 +54,33 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (element.isBase) {
       if (supertype.isFinal) {
-        reportLint(node,
-            target: element, other: supertype, reason: 'final', type: type);
+        reportLint(
+          node,
+          target: element,
+          other: supertype,
+          reason: 'final',
+          type: type,
+        );
         return;
       } else if (supertype.isInterface) {
-        reportLint(node,
-            target: element, other: supertype, reason: 'interface', type: type);
+        reportLint(
+          node,
+          target: element,
+          other: supertype,
+          reason: 'interface',
+          type: type,
+        );
         return;
       }
     } else if (element.hasNoModifiers) {
       if (supertype.isInterface) {
-        reportLint(node,
-            target: element, other: supertype, reason: 'interface', type: type);
+        reportLint(
+          node,
+          target: element,
+          other: supertype,
+          reason: 'interface',
+          type: type,
+        );
         return;
       }
     }

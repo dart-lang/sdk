@@ -52,7 +52,6 @@ bool _canParseArgumentEdit(
     }
     if ((!nullCheck || value != null) &&
         !ArgumentEdit.canParse(value, reporter)) {
-      reporter.reportError('must be of type ArgumentEdit');
       return false;
     }
   } finally {
@@ -102,7 +101,6 @@ bool _canParseElement(
       return false;
     }
     if ((!nullCheck || value != null) && !Element.canParse(value, reporter)) {
-      reporter.reportError('must be of type Element');
       return false;
     }
   } finally {
@@ -128,7 +126,6 @@ bool _canParseErrorCodes(
     }
     if ((!nullCheck || value != null) &&
         !ErrorCodes.canParse(value, reporter)) {
-      reporter.reportError('must be of type ErrorCodes');
       return false;
     }
   } finally {
@@ -154,7 +151,6 @@ bool _canParseFlutterOutline(
     }
     if ((!nullCheck || value != null) &&
         !FlutterOutline.canParse(value, reporter)) {
-      reporter.reportError('must be of type FlutterOutline');
       return false;
     }
   } finally {
@@ -180,7 +176,6 @@ bool _canParseInsertTextFormat(
     }
     if ((!nullCheck || value != null) &&
         !InsertTextFormat.canParse(value, reporter)) {
-      reporter.reportError('must be of type InsertTextFormat');
       return false;
     }
   } finally {
@@ -501,7 +496,6 @@ bool _canParseMethod(
       return false;
     }
     if ((!nullCheck || value != null) && !Method.canParse(value, reporter)) {
-      reporter.reportError('must be of type Method');
       return false;
     }
   } finally {
@@ -526,7 +520,6 @@ bool _canParseOutline(
       return false;
     }
     if ((!nullCheck || value != null) && !Outline.canParse(value, reporter)) {
-      reporter.reportError('must be of type Outline');
       return false;
     }
   } finally {
@@ -551,7 +544,6 @@ bool _canParsePosition(
       return false;
     }
     if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
-      reporter.reportError('must be of type Position');
       return false;
     }
   } finally {
@@ -576,7 +568,6 @@ bool _canParseRange(
       return false;
     }
     if ((!nullCheck || value != null) && !Range.canParse(value, reporter)) {
-      reporter.reportError('must be of type Range');
       return false;
     }
   } finally {
@@ -602,7 +593,6 @@ bool _canParseResponseError(
     }
     if ((!nullCheck || value != null) &&
         !ResponseError.canParse(value, reporter)) {
-      reporter.reportError('must be of type ResponseError');
       return false;
     }
   } finally {
@@ -653,7 +643,6 @@ bool _canParseTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -679,7 +668,6 @@ bool _canParseTypeHierarchyAnchor(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyAnchor.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyAnchor');
       return false;
     }
   } finally {

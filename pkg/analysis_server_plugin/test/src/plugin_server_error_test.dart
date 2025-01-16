@@ -232,7 +232,6 @@ class _ThrowsAsyncErrorVisitor extends SimpleAstVisitor<void> {
   void visitBooleanLiteral(BooleanLiteral node) {
     // Raise an async error that can only be caught by an error zone's `onError`
     // handler.
-    // ignore: unawaited_futures
     Future<void>.error(StateError('A message.'));
   }
 }

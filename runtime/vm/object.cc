@@ -3126,6 +3126,7 @@ const char* Class::NameCString(NameVisibility name_visibility) const {
 ClassPtr Class::Mixin() const {
   if (is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(this->interfaces());
+    ASSERT(interfaces.Length() > 0);
     const Type& mixin_type =
         Type::Handle(Type::RawCast(interfaces.At(interfaces.Length() - 1)));
     return mixin_type.type_class();
@@ -3260,11 +3261,6 @@ void Class::set_is_future_subtype(bool value) const {
 void Class::set_can_be_future(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(CanBeFutureBit::update(value, state_bits()));
-}
-
-void Class::set_is_dynamically_extendable(bool value) const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_state_bits(IsDynamicallyExtendableBit::update(value, state_bits()));
 }
 
 void Class::set_has_dynamically_extendable_subtypes(bool value) const {

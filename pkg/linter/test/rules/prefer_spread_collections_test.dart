@@ -22,59 +22,70 @@ class PreferSpreadCollectionsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_spread_collections;
 
   test_constInitializedWithNonConstantValue() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 const thangs = [];
 const cc = []..addAll(thangs);
-''', [
-      // No lint
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
-          18),
-    ]);
+''',
+      [
+        // No lint
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          30,
+          18,
+        ),
+      ],
+    );
   }
 
   test_listLiteralTarget_conditional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic x;
 var y = ['a']..addAll(1 == 2 ? x : []);
-''', [
-      lint(26, 6),
-    ]);
+''',
+      [lint(26, 6)],
+    );
   }
 
   test_listLiteralTarget_conditional_constList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic x;
 var y = ['a']..addAll(1 == 2 ? x : const []);
-''', [
-      lint(26, 6),
-    ]);
+''',
+      [lint(26, 6)],
+    );
   }
 
   test_listLiteralTarget_identifier() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic x;
 var y = []..addAll(x);
-''', [
-      lint(23, 6),
-    ]);
+''',
+      [lint(23, 6)],
+    );
   }
 
   test_listLiteralTarget_ifNull() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic x;
 var y = ['a']..addAll(x ?? []);
-''', [
-      lint(26, 6),
-    ]);
+''',
+      [lint(26, 6)],
+    );
   }
 
   test_listLiteralTarget_ifNull_constList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic x;
 var y = ['a']..addAll(x ?? const []);
-''', [
-      lint(26, 6),
-    ]);
+''',
+      [lint(26, 6)],
+    );
   }
 
   test_listLiteralTarget_listLiteral() async {
@@ -85,13 +96,14 @@ var l = ['a']..addAll(['b']);
   }
 
   test_listLiteralTarget_multipleCascades() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int> p) {
   ['a']..addAll(p.map((i) => i.toString()))..addAll(['c']);
 }
-''', [
-      lint(31, 6),
-    ]);
+''',
+      [lint(31, 6)],
+    );
   }
 
   test_nonCollection() async {

@@ -6,28 +6,38 @@
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
 main() {
-  test('isolate fromUri - send and reply', () async {
+  asyncTest(() async {
     const String debugName = 'spawnedIsolate';
 
     final exitPort = ReceivePort();
 
     final port = new ReceivePort();
-    port.listen(expectAsync((msg) {
-      expect(msg, equals('re: hi'));
+
+    asyncStart();
+    port.listen((msg) {
+      Expect.equals('re: hi', msg);
       port.close();
-    }));
+      asyncEnd();
+    });
 
     // Start new isolate; paused so it's alive till we read the debugName.
     // If the isolate runs to completion, the isolate might get cleaned up
     // and debugName might be null.
     final isolate = await Isolate.spawnUri(
-        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort,
-        paused: true, debugName: debugName, onExit: exitPort.sendPort);
+      Uri.parse('spawn_uri_child_isolate.dart'),
+      ['hi'],
+      port.sendPort,
+      paused: true,
+      debugName: debugName,
+      onExit: exitPort.sendPort,
+    );
 
-    expect(isolate.debugName, debugName);
+    Expect.equals(debugName, isolate.debugName);
 
     isolate.resume(isolate.pauseCapability!);
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// @docImport 'package:analyzer/src/lint/linter.dart';
 /// @docImport 'package:analyzer/src/lint/linter_visitor.dart';
 library;
@@ -2349,7 +2347,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as ExpressionImpl;
-      var parameterElement = node.declaredElement;
+      var parameterElement = node.declaredFragment;
       if (parameterElement is DefaultParameterElementImpl) {
         parameterElement.constantInitializer = _newNode;
       } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {

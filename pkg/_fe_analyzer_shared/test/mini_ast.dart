@@ -34,9 +34,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
 
-import 'type_inference/type_constraint_gatherer_test.dart';
-
 import 'mini_ir.dart';
+import 'mini_type_constraint_gatherer.dart';
 import 'mini_types.dart';
 
 final RegExp _locationRegExp =

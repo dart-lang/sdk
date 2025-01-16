@@ -126,14 +126,13 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(52, 1),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(52, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_unnecessary_getterAndSetter_extensionType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension type E(int i) {
   static int? _x;
   static int? get x => _x;
@@ -141,13 +140,14 @@ extension type E(int i) {
     _x = value;
   }
 }
-''', [
-      lint(62, 1),
-    ]);
+''',
+      [lint(62, 1)],
+    );
   }
 
   test_unnecessary_getterAndSetterHaveBlockBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? _x;
 
@@ -158,13 +158,14 @@ class C {
     _x = value;
   }
 }
-''', [
-      lint(39, 1),
-    ]);
+''',
+      [lint(39, 1)],
+    );
   }
 
   test_unnecessary_getterHasExpressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? _x;
 
@@ -174,13 +175,14 @@ class C {
     _x = value;
   }
 }
-''', [
-      lint(39, 1),
-    ]);
+''',
+      [lint(39, 1)],
+    );
   }
 
   test_unnecessary_setterHasExpressionBody() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   String? _x;
 
@@ -189,8 +191,8 @@ class C {
   }
   set x(String? value) => _x = value;
 }
-''', [
-      lint(39, 1),
-    ]);
+''',
+      [lint(39, 1)],
+    );
   }
 }

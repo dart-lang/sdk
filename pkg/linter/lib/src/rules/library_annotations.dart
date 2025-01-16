@@ -15,17 +15,16 @@ const _desc = r'Attach library annotations to library directives.';
 
 class LibraryAnnotations extends LintRule {
   LibraryAnnotations()
-      : super(
-          name: LintNames.library_annotations,
-          description: _desc,
-        );
+    : super(name: LintNames.library_annotations, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.library_annotations;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

@@ -10,8 +10,8 @@ class A extends core::Object /*hasConstConstructor*/  {
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = const <self::E>[self::E::element];
   enum-element static const field self::E element = const self::E::•(0, "element", const self::A::•());
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
   const constructor •(core::int #index, core::String #name, self::A a) → self::E
     : super core::_Enum::•(#index, #name)
     ;
@@ -23,6 +23,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue49429.dart:6:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49429.dart:7:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue49429.dart:6:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 8, effectively constant: 2

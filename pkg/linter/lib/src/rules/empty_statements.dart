@@ -11,17 +11,16 @@ const _desc = r'Avoid empty statements.';
 
 class EmptyStatements extends LintRule {
   EmptyStatements()
-      : super(
-          name: LintNames.empty_statements,
-          description: _desc,
-        );
+    : super(name: LintNames.empty_statements, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.empty_statements;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addEmptyStatement(this, visitor);
   }

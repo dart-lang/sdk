@@ -11,18 +11,16 @@ import '../util/ascii_utils.dart';
 const _desc = r'Name source files using `lowercase_with_underscores`.';
 
 class FileNames extends LintRule {
-  FileNames()
-      : super(
-          name: LintNames.file_names,
-          description: _desc,
-        );
+  FileNames() : super(name: LintNames.file_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.file_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }

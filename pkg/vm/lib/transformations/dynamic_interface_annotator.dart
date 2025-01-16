@@ -5,6 +5,7 @@
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
     show DynamicInterfaceSpecification;
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'pragma.dart'
@@ -13,7 +14,8 @@ import 'pragma.dart'
         kDynModuleCallablePragmaName,
         kDynModuleExtendablePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
-        kDynModuleImplicitlyExtendablePragmaName;
+        kDynModuleImplicitlyExtendablePragmaName,
+        kDynModuleCanBeOverriddenImplicitlyPragmaName;
 
 const bool _debug = false;
 
@@ -33,13 +35,28 @@ void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
       annotateFinalClasses: false,
       annotateStaticMembers: false,
       annotateInstanceMembers: false);
-  annotateImplicitlyExtendable(coreTypes, extendableAnnotator.annotatedClasses);
-  annotateNodes(spec.canBeOverridden, kDynModuleCanBeOverriddenPragmaName,
-      baseUri, coreTypes,
+
+  _ImplicitExtendableAnnotator(
+          pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName),
+          extendableAnnotator.annotatedClasses)
+      .annotate();
+
+  final canBeOverriddenAnnotator = annotateNodes(spec.canBeOverridden,
+      kDynModuleCanBeOverriddenPragmaName, baseUri, coreTypes,
       annotateClasses: false,
       annotateFinalClasses: true,
       annotateStaticMembers: false,
       annotateInstanceMembers: true);
+
+  final hierarchy = ClassHierarchy(component, coreTypes);
+  pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName);
+  _ImplicitOverridesAnnotator(
+          pragmaConstant(
+              coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
+          hierarchy,
+          canBeOverriddenAnnotator.annotatedMembers)
+      .annotate();
+
   final callableAnnotator = annotateNodes(
       spec.callable, kDynModuleCallablePragmaName, baseUri, coreTypes,
       annotateClasses: true,
@@ -171,16 +188,73 @@ class _Annotator extends RecursiveVisitor {
   }
 }
 
-void annotateImplicitlyExtendable(
-    CoreTypes coreTypes, Set<Class> extendableClasses) {
-  final pragma =
-      pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName);
-  for (final cls in [...extendableClasses]) {
+class _ImplicitExtendableAnnotator {
+  final Constant pragma;
+  final Set<Class> extendableClasses;
+  final Set<Class> implicitlyExtendable = Set<Class>.identity();
+
+  _ImplicitExtendableAnnotator(this.pragma, this.extendableClasses);
+
+  void annotate() {
+    for (final cls in extendableClasses) {
+      annotateSupertypesOf(cls);
+    }
+  }
+
+  void annotateSupertypesOf(Class cls) {
     for (final supertype in cls.supers) {
       final supertypeClass = supertype.classNode;
-      if (extendableClasses.add(supertypeClass)) {
+      if (implicitlyExtendable.add(supertypeClass) &&
+          !extendableClasses.contains(supertypeClass)) {
         supertypeClass.addAnnotation(ConstantExpression(pragma));
+        annotateSupertypesOf(supertypeClass);
       }
+    }
+  }
+}
+
+class _ImplicitOverridesAnnotator {
+  final Constant pragma;
+  final ClassHierarchy hierarchy;
+  final Set<Member> overriddenMembers;
+  final Set<Member> implicitlyOverriddenSetters = Set<Member>.identity();
+  final Set<Member> implicitlyOverriddenNonSetters = Set<Member>.identity();
+
+  _ImplicitOverridesAnnotator(
+      this.pragma, this.hierarchy, this.overriddenMembers);
+
+  void annotate() {
+    for (final member in overriddenMembers) {
+      final cls = member.enclosingClass!;
+      if (member.hasGetter) {
+        annotateSupertypesOf(cls, member.name, setter: false);
+      }
+      if (member.hasSetter) {
+        annotateSupertypesOf(cls, member.name, setter: true);
+      }
+    }
+  }
+
+  void annotateSupertypesOf(Class cls, Name memberName,
+      {required bool setter}) {
+    for (final supertype in cls.supers) {
+      final supertypeClass = supertype.classNode;
+      final member = ClassHierarchy.findMemberByName(
+          hierarchy.getDeclaredMembers(supertypeClass, setters: setter),
+          memberName);
+      if (member != null) {
+        final implicitlyOverridden = setter
+            ? implicitlyOverriddenSetters
+            : implicitlyOverriddenNonSetters;
+        if (implicitlyOverridden.add(member) &&
+            !overriddenMembers.contains(member)) {
+          member.addAnnotation(ConstantExpression(pragma));
+        } else {
+          // The member is already annotated - do not go deeper.
+          continue;
+        }
+      }
+      annotateSupertypesOf(supertypeClass, memberName, setter: setter);
     }
   }
 }

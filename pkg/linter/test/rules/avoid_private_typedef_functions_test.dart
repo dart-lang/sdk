@@ -17,10 +17,10 @@ main() {
 class AvoidPrivateTypedefFunctionsTest extends LintRuleTest {
   @override
   List<ErrorCode> get ignoredErrorCodes => [
-        WarningCode.UNUSED_ELEMENT,
-        WarningCode.UNUSED_FIELD,
-        WarningCode.UNUSED_LOCAL_VARIABLE,
-      ];
+    WarningCode.UNUSED_ELEMENT,
+    WarningCode.UNUSED_FIELD,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.avoid_private_typedef_functions;
@@ -71,12 +71,13 @@ typedef _Td = void Function();
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef _Td = int Function();
 late _Td td;
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime_declaredInPart() async {
@@ -84,12 +85,13 @@ late _Td td;
 part 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'lib.dart';
 typedef _Td = void Function();
-''', [
-      lint(28, 3),
-    ]);
+''',
+      [lint(28, 3)],
+    );
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime_usedInPart() async {
@@ -97,28 +99,31 @@ typedef _Td = void Function();
 part of 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part 'part.dart';
 typedef _Td = void Function();
-''', [
-      lint(26, 3),
-    ]);
+''',
+      [lint(26, 3)],
+    );
   }
 
   test_private_genericFunctionTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef _Td = int Function();
-''', [
-      lint(8, 3),
-    ]);
+''',
+      [lint(8, 3)],
+    );
   }
 
   test_private_legacyTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 typedef int _Td();
-''', [
-      lint(12, 3),
-    ]);
+''',
+      [lint(12, 3)],
+    );
   }
 
   test_public_genericFunctionTypeAlias_usedZeroTimes() async {

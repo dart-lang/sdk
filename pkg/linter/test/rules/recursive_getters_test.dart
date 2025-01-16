@@ -61,26 +61,28 @@ class C {
   }
 
   test_instanceGetter_blockBody_recursiveWithImplicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f {
     return f;
   }
 }
-''', [
-      lint(35, 1),
-    ]);
+''',
+      [lint(35, 1)],
+    );
   }
 
   test_instanceGetter_expressionBody_innerRecursiveCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f => p(f);
 }
 int p(int arg) => 0;
-''', [
-      lint(27, 1),
-    ]);
+''',
+      [lint(27, 1)],
+    );
   }
 
   test_instanceGetter_expressionBody_nonRecursive() async {
@@ -93,23 +95,25 @@ class C {
   }
 
   test_instanceGetter_expressionBody_recursiveWithExplicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f => this.f;
 }
-''', [
-      lint(30, 1),
-    ]);
+''',
+      [lint(30, 1)],
+    );
   }
 
   test_instanceGetter_expressionBody_recursiveWithImplicitThis() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f => f;
 }
-''', [
-      lint(25, 1),
-    ]);
+''',
+      [lint(25, 1)],
+    );
   }
 
   test_instanceGetter_recursiveCallOnOtherInstance() async {
@@ -154,56 +158,61 @@ class Nested {
   }
 
   test_referenceInListLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   List<int> get f => [1, 2, ...f];
 }
-''', [
-      lint(41, 1),
-    ]);
+''',
+      [lint(41, 1)],
+    );
   }
 
   test_referenceInMapLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   Map<int, int> get f => {}..addAll(f);
 }
-''', [
-      lint(46, 1),
-    ]);
+''',
+      [lint(46, 1)],
+    );
   }
 
   test_referenceInMethodCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f {
     print(f);
     return 0;
   }
 }
-''', [
-      lint(34, 1),
-    ]);
+''',
+      [lint(34, 1)],
+    );
   }
 
   test_simpleGetter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f => f;
 }
-''', [
-      lint(25, 1),
-    ]);
+''',
+      [lint(25, 1)],
+    );
   }
 
   test_simpleGetter_thisPrefix() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int get f => this.f;
 }
-''', [
-      lint(30, 1),
-    ]);
+''',
+      [lint(30, 1)],
+    );
   }
 
   test_staticMemberReference() async {
@@ -225,13 +234,14 @@ int get f {
   }
 
   test_topLevelGetter_blockBody_recursiveCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int get f {
   return f;
 }
-''', [
-      lint(21, 1),
-    ]);
+''',
+      [lint(21, 1)],
+    );
   }
 
   test_topLevelGetter_expressionBody_nonRecursive() async {
@@ -242,19 +252,21 @@ int get f => _f;
   }
 
   test_topLevelGetter_expressionBody_recursiveCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int get f => f;
-''', [
-      lint(13, 1),
-    ]);
+''',
+      [lint(13, 1)],
+    );
   }
 
   test_topLevelGetter_innerRecursiveCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int? _f = 1;
 int get f => _f == null ? 0 : f;
-''', [
-      lint(43, 1),
-    ]);
+''',
+      [lint(43, 1)],
+    );
   }
 }

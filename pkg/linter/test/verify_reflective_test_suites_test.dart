@@ -16,8 +16,9 @@ import 'test_constants.dart';
 void main() {
   group('check reflective test suites', () {
     group('rules', () {
-      var testDirPath =
-          PhysicalResourceProvider.INSTANCE.pathContext.absolute(ruleTestDir);
+      var testDirPath = PhysicalResourceProvider.INSTANCE.pathContext.absolute(
+        ruleTestDir,
+      );
       _VerifyTests(testDirPath).build();
     });
   });
@@ -36,23 +37,32 @@ class _VerifyTests {
   void build() {
     var provider = PhysicalResourceProvider.INSTANCE;
     var collection = AnalysisContextCollection(
-        resourceProvider: provider, includedPaths: <String>[testDirPath]);
+      resourceProvider: provider,
+      includedPaths: <String>[testDirPath],
+    );
     var contexts = collection.contexts;
     if (contexts.length != 1) {
       fail('The test directory contains multiple analysis contexts.');
     }
 
-    _buildTestsIn(contexts.first.currentSession, testDirPath,
-        provider.getFolder(testDirPath));
+    _buildTestsIn(
+      contexts.first.currentSession,
+      testDirPath,
+      provider.getFolder(testDirPath),
+    );
   }
 
   void _buildTestsIn(
-      AnalysisSession session, String testDirPath, Folder directory) {
+    AnalysisSession session,
+    String testDirPath,
+    Folder directory,
+  ) {
     var testFileNames = <String>[];
     File? testAllFile;
     var children = directory.getChildren();
-    children
-        .sort((first, second) => first.shortName.compareTo(second.shortName));
+    children.sort(
+      (first, second) => first.shortName.compareTo(second.shortName),
+    );
     for (var child in children) {
       if (child is Folder) {
         if (child.getChildAssumingFile(testAllFileName).exists) {
@@ -95,7 +105,8 @@ class _VerifyTests {
       }
       if (missingFiles.isNotEmpty) {
         fail(
-            'Tests missing from "$testDirPath/$testAllFileName": ${missingFiles.join(', ')}');
+          'Tests missing from "$testDirPath/$testAllFileName": ${missingFiles.join(', ')}',
+        );
       }
       var extraImports = <String>[];
       for (var importedFile in importedFiles) {
@@ -105,7 +116,8 @@ class _VerifyTests {
       }
       if (extraImports.isNotEmpty) {
         fail(
-            'Extra tests in "$testDirPath/$testAllFileName": ${extraImports.join(', ')}');
+          'Extra tests in "$testDirPath/$testAllFileName": ${extraImports.join(', ')}',
+        );
       }
     });
   }

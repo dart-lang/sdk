@@ -11,17 +11,16 @@ const _desc = r'Avoid empty statements in else clauses.';
 
 class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
-      : super(
-          name: LintNames.avoid_empty_else,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_empty_else, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_empty_else;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addIfStatement(this, visitor);
   }

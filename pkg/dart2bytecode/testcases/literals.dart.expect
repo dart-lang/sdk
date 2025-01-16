@@ -465,19 +465,6 @@ ConstantPool {
 Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart', enum
     extends dart:core::_Enum
 
-Field 'values', type = dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A >, getter = 'get:values', reflectable, static, const, final, is-late, has-initializer
-    initializer
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef const List<DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A> [const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 0, dart:core::_Enum::_name (field): 'elem1'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}]
-}
-
-
 Field 'elem1', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:elem1', reflectable, static, const, final, is-late, has-initializer
     initializer
 Bytecode {
@@ -527,6 +514,19 @@ Bytecode {
 }
 ConstantPool {
   [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}
+}
+
+
+Field 'values', type = dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A >, getter = 'get:values', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const List<DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A> [const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 0, dart:core::_Enum::_name (field): 'elem1'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}]
 }
 
 

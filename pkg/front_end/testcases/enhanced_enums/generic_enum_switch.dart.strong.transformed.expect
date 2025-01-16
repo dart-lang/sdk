@@ -94,10 +94,10 @@ import self as self;
 import "dart:core" as core;
 
 class Enum<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum<dynamic>> values = #C10;
   enum-element static const field self::Enum<core::num> a = #C3;
   enum-element static const field self::Enum<core::String> b = #C6;
   enum-element static const field self::Enum<core::bool> c = #C9;
+  static const field core::List<self::Enum<dynamic>> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum<self::Enum::T%>
     : super core::_Enum::•(#index, #name)
     ;

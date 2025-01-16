@@ -8,11 +8,11 @@ const _desc = r'Invocation of `remove` with references of unrelated types.';
 
 class ListRemoveUnrelatedType extends LintRule {
   ListRemoveUnrelatedType()
-      : super(
-          name: LintNames.list_remove_unrelated_type,
-          description: _desc,
-          state: State.removed(since: dart3_3),
-        );
+    : super(
+        name: LintNames.list_remove_unrelated_type,
+        description: _desc,
+        state: State.removed(since: dart3_3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

@@ -39,6 +39,7 @@ import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 class ExtensionTypeErasure extends ReplacementVisitor {
@@ -73,6 +74,19 @@ class RelatedTypeParameters {
   final List<TypeParameterType> typeParameterTypes;
 
   RelatedTypeParameters._(
+    this.typeParameters,
+    this.typeParameterTypes,
+  );
+}
+
+/// Fresh type parameters created to unify two lists of type parameters.
+class RelatedTypeParameters2 {
+  static final _empty = RelatedTypeParameters2._(const [], const []);
+
+  final List<TypeParameterElement2> typeParameters;
+  final List<TypeParameterType> typeParameterTypes;
+
+  RelatedTypeParameters2._(
     this.typeParameters,
     this.typeParameterTypes,
   );
@@ -584,7 +598,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
-  DartType greatestClosure(
+  TypeImpl greatestClosure(
     DartType type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
@@ -624,8 +638,11 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType greatestLowerBound(DartType T1, DartType T2) {
-    return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
+  TypeImpl greatestLowerBound(DartType T1, DartType T2) {
+    // TODO(paulberry): make these casts unnecessary by changing the type of
+    // `T1` and `T2`.
+    return _greatestLowerBoundHelper.getGreatestLowerBound(
+        T1 as TypeImpl, T2 as TypeImpl);
   }
 
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
@@ -1366,7 +1383,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
-  DartType leastClosure(
+  TypeImpl leastClosure(
     DartType type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
@@ -1405,13 +1422,16 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType leastUpperBound(DartType T1, DartType T2) {
-    return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
+  TypeImpl leastUpperBound(DartType T1, DartType T2) {
+    // TODO(paulberry): make these casts unnecessary by changing the type of
+    // `T1` and `T2`.
+    return _leastUpperBoundHelper.getLeastUpperBound(
+        T1 as TypeImpl, T2 as TypeImpl);
   }
 
   /// Returns a nullable version of [type].  The result would be equivalent to
   /// the union `type | Null` (if we supported union types).
-  DartType makeNullable(DartType type) {
+  TypeImpl makeNullable(DartType type) {
     // TODO(paulberry): handle type parameter types
     return (type as TypeImpl).withNullability(NullabilitySuffix.question);
   }
@@ -1471,7 +1491,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override
-  DartType promoteToNonNull(DartType type) {
+  TypeImpl promoteToNonNull(DartType type) {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
@@ -1617,6 +1637,67 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return RelatedTypeParameters._(
+      freshTypeParameters,
+      freshTypeParameterTypes,
+    );
+  }
+
+  /// Given two lists of type parameters, check that they have the same
+  /// number of elements, and their bounds are equal.
+  ///
+  /// The return value will be a new list of fresh type parameters, that can
+  /// be used to instantiate both function types, allowing further comparison.
+  RelatedTypeParameters2? relateTypeParameters2(
+    List<TypeParameterElement2> typeParameters1,
+    List<TypeParameterElement2> typeParameters2,
+  ) {
+    if (typeParameters1.length != typeParameters2.length) {
+      return null;
+    }
+    if (typeParameters1.isEmpty) {
+      return RelatedTypeParameters2._empty;
+    }
+
+    var length = typeParameters1.length;
+    var freshTypeParameters = List.generate(length, (index) {
+      return typeParameters1[index].freshCopy();
+    }, growable: false);
+
+    var freshTypeParameterTypes = List.generate(length, (index) {
+      return freshTypeParameters[index].instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }, growable: false);
+
+    var substitution1 = Substitution.fromPairs2(
+      typeParameters1,
+      freshTypeParameterTypes,
+    );
+    var substitution2 = Substitution.fromPairs2(
+      typeParameters2,
+      freshTypeParameterTypes,
+    );
+
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var bound1 = typeParameters1[i].bound;
+      var bound2 = typeParameters2[i].bound;
+      if (bound1 == null && bound2 == null) {
+        continue;
+      }
+      bound1 ??= DynamicTypeImpl.instance;
+      bound2 ??= DynamicTypeImpl.instance;
+      bound1 = substitution1.substituteType(bound1);
+      bound2 = substitution2.substituteType(bound2);
+      if (!isEqualTo(bound1, bound2)) {
+        return null;
+      }
+
+      if (bound1 is! DynamicType) {
+        freshTypeParameters[i].bound = bound1;
+      }
+    }
+
+    return RelatedTypeParameters2._(
       freshTypeParameters,
       freshTypeParameterTypes,
     );

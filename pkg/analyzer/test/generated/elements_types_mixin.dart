@@ -9,12 +9,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,49 +23,49 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
-  InterfaceType get boolNone {
+  InterfaceTypeImpl get boolNone {
     var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get boolQuestion {
+  InterfaceTypeImpl get boolQuestion {
     var element = typeProvider.boolElement;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get doubleNone {
+  InterfaceTypeImpl get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get doubleQuestion {
+  InterfaceTypeImpl get doubleQuestion {
     var element = typeProvider.doubleType.element;
     return interfaceTypeQuestion(element);
   }
 
-  DartType get dynamicType => DynamicTypeImpl.instance;
+  TypeImpl get dynamicType => DynamicTypeImpl.instance;
 
-  InterfaceType get functionNone {
+  InterfaceTypeImpl get functionNone {
     var element = typeProvider.functionType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get functionQuestion {
+  InterfaceTypeImpl get functionQuestion {
     var element = typeProvider.functionType.element;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get intNone {
+  InterfaceTypeImpl get intNone {
     var element = typeProvider.intType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get intQuestion {
+  InterfaceTypeImpl get intQuestion {
     var element = typeProvider.intType.element;
     return interfaceTypeQuestion(element);
   }
 
-  DartType get invalidType => InvalidTypeImpl.instance;
+  TypeImpl get invalidType => InvalidTypeImpl.instance;
 
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;
 
@@ -73,49 +73,49 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
-    return interfaceTypeNone(element) as InterfaceTypeImpl;
+    return interfaceTypeNone(element);
   }
 
-  InterfaceType get numNone {
+  InterfaceTypeImpl get numNone {
     var element = typeProvider.numType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get numQuestion {
+  InterfaceTypeImpl get numQuestion {
     var element = typeProvider.numType.element;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get objectNone {
+  InterfaceTypeImpl get objectNone {
     var element = typeProvider.objectType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get objectQuestion {
+  InterfaceTypeImpl get objectQuestion {
     var element = typeProvider.objectType.element;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get recordNone {
+  InterfaceTypeImpl get recordNone {
     var element = typeProvider.recordElement;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get stringNone {
+  InterfaceTypeImpl get stringNone {
     var element = typeProvider.stringType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get stringQuestion {
+  InterfaceTypeImpl get stringQuestion {
     var element = typeProvider.stringType.element;
     return interfaceTypeQuestion(element);
   }
 
   LibraryElementImpl get testLibrary => throw UnimplementedError();
 
-  TypeProvider get typeProvider;
+  TypeProviderImpl get typeProvider;
 
-  DartType get unknownInferredType => UnknownInferredType.instance;
+  TypeImpl get unknownInferredType => UnknownInferredType.instance;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
@@ -149,7 +149,7 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
-  InterfaceType comparableNone(DartType type) {
+  InterfaceTypeImpl comparableNone(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
     var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
@@ -158,7 +158,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType comparableQuestion(DartType type) {
+  InterfaceTypeImpl comparableQuestion(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
     var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
@@ -271,32 +271,32 @@ mixin ElementsTypesMixin {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    ) as InterfaceTypeImpl;
+    );
   }
 
   InterfaceTypeImpl futureOrNone(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    ) as InterfaceTypeImpl;
+    );
   }
 
   InterfaceTypeImpl futureOrQuestion(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    ) as InterfaceTypeImpl;
+    );
   }
 
   InterfaceTypeImpl futureQuestion(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    ) as InterfaceTypeImpl;
+    );
   }
 
-  InterfaceType interfaceType(
-    InterfaceElement element, {
+  InterfaceTypeImpl interfaceType(
+    InterfaceElementImpl element, {
     List<DartType> typeArguments = const [],
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -306,8 +306,8 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType interfaceTypeNone(
-    InterfaceElement element, {
+  InterfaceTypeImpl interfaceTypeNone(
+    InterfaceElementImpl element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -316,8 +316,8 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType interfaceTypeQuestion(
-    InterfaceElement element, {
+  InterfaceTypeImpl interfaceTypeQuestion(
+    InterfaceElementImpl element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -326,14 +326,14 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType iterableNone(DartType type) {
+  InterfaceTypeImpl iterableNone(DartType type) {
     return typeProvider.iterableElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceType iterableQuestion(DartType type) {
+  InterfaceTypeImpl iterableQuestion(DartType type) {
     return typeProvider.iterableElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -371,28 +371,28 @@ mixin ElementsTypesMixin {
     return library;
   }
 
-  InterfaceType listNone(DartType type) {
+  InterfaceTypeImpl listNone(DartType type) {
     return typeProvider.listElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceType listQuestion(DartType type) {
+  InterfaceTypeImpl listQuestion(DartType type) {
     return typeProvider.listElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
-  InterfaceType mapNone(DartType key, DartType value) {
+  InterfaceTypeImpl mapNone(DartType key, DartType value) {
     return typeProvider.mapElement.instantiate(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceType mapQuestion(DartType key, DartType value) {
+  InterfaceTypeImpl mapQuestion(DartType key, DartType value) {
     return typeProvider.mapElement.instantiate(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -451,7 +451,7 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  ParameterElement namedRequiredParameter({
+  ParameterElementImpl namedRequiredParameter({
     required String name,
     required DartType type,
     bool isCovariant = false,
@@ -580,15 +580,18 @@ mixin ElementsTypesMixin {
     required List<TypeParameterElementImpl> typeParameters,
     required DartType aliasedType,
   }) {
-    var element = TypeAliasElementImpl(name, 0);
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.aliasedType = aliasedType;
-    return element;
+    var fragment = TypeAliasElementImpl(name, 0);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.aliasedType = aliasedType;
+
+    TypeAliasElementImpl2(Reference.root(), fragment);
+
+    return fragment;
   }
 
-  DartType typeAliasTypeNone(
-    TypeAliasElement element, {
+  TypeImpl typeAliasTypeNone(
+    TypeAliasElementImpl element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -672,6 +675,11 @@ extension ClassElementImplExtension on ClassElementImpl {
         ...augmentation.mixins,
       ];
     }
+  }
+
+  void updateElement() {
+    element.interfaces = interfaces;
+    element.mixins = mixins;
   }
 }
 

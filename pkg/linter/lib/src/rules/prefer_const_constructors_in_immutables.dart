@@ -15,10 +15,10 @@ const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
 class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
-      : super(
-          name: LintNames.prefer_const_constructors_in_immutables,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_const_constructors_in_immutables,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -26,7 +26,9 @@ class PreferConstConstructorsInImmutables extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -72,7 +74,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   static List<InterfaceElement2> _getSelfAndSuperClasses(
-      InterfaceElement2 self) {
+    InterfaceElement2 self,
+  ) {
     InterfaceElement2? current = self;
     var seenElements = <InterfaceElement2>{};
     while (current != null && seenElements.add(current)) {
@@ -94,9 +97,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return superInvocation.element?.isConst ?? false;
     }
     // Constructor with 'this' redirecting initializer.
-    var redirectInvocation = node.initializers
-        .whereType<RedirectingConstructorInvocation>()
-        .firstOrNull;
+    var redirectInvocation =
+        node.initializers
+            .whereType<RedirectingConstructorInvocation>()
+            .firstOrNull;
     if (redirectInvocation != null) {
       return redirectInvocation.element?.isConst ?? false;
     }

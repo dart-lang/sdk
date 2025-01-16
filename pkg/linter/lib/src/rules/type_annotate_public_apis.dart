@@ -14,17 +14,16 @@ const _desc = r'Type annotate public APIs.';
 
 class TypeAnnotatePublicApis extends LintRule {
   TypeAnnotatePublicApis()
-      : super(
-          name: LintNames.type_annotate_public_apis,
-          description: _desc,
-        );
+    : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.type_annotate_public_apis;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);

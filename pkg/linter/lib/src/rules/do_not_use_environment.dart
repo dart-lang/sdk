@@ -11,17 +11,16 @@ const _desc = r'Do not use environment declared variables.';
 
 class DoNotUseEnvironment extends LintRule {
   DoNotUseEnvironment()
-      : super(
-          name: LintNames.do_not_use_environment,
-          description: _desc,
-        );
+    : super(name: LintNames.do_not_use_environment, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.do_not_use_environment;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }

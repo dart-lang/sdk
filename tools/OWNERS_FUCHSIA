@@ -1,0 +1,9 @@
+# Update fuchsia components in DEPS only, no other changes should go here, nor
+# other permissions should be granted.
+
+# Aaron has no dart/sdk account yet.
+# aknobloch@google.com
+jonnywang@google.com
+
+# Always assign roller changes to zijiehe@google.com first.
+zijiehe@google.com

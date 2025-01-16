@@ -18,29 +18,41 @@ class TypeInitFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.type_init_formals;
 
   test_extraPositionalArgument() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? p1;
   String p2 = '';
   A.y({required String? this.p2});
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 49,
-          24),
-    ]);
+''',
+      [
+        // No lint
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          49,
+          24,
+        ),
+      ],
+    );
   }
 
   test_initializingFormalForNonExistentField() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class Invalid {
   Invalid(int this.x); // OK
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 26,
-          10),
-    ]);
+''',
+      [
+        // No lint
+        error(
+          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          26,
+          10,
+        ),
+      ],
+    );
   }
 
   test_requiredConstructorParam_tightening() async {
@@ -53,29 +65,32 @@ class A {
   }
 
   test_requiredConstructorParam_unnecessaryNullableType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? s;
   A({required String? this.s});
 }
-''', [
-      lint(37, 7),
-    ]);
+''',
+      [lint(37, 7)],
+    );
   }
 
   test_requiredConstructorParam_unnecessaryType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String s = '';
   A({required String this.s});
 }
-''', [
-      lint(41, 6),
-    ]);
+''',
+      [lint(41, 6)],
+    );
   }
 
   test_super() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? a;
   A({this.a});
@@ -84,9 +99,9 @@ class A {
 class B extends A {
   B({String? super.a});
 }
-''', [
-      lint(66, 7),
-    ]);
+''',
+      [lint(66, 7)],
+    );
   }
 
   test_typed_fieldIsDynamic() async {
@@ -99,14 +114,15 @@ class C {
   }
 
   test_typed_sameAsField() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int x;
   C(int this.x);
 }
-''', [
-      lint(23, 3),
-    ]);
+''',
+      [lint(23, 3)],
+    );
   }
 
   test_typed_subtypeOfField() async {

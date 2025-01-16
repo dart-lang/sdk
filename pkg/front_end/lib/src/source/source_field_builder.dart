@@ -87,6 +87,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   /// If `true`, this field builder is for the field corresponding to an enum
   /// element.
+  @override
   final bool isEnumElement;
 
   @override
@@ -334,10 +335,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     }
 
     if (type is InferableTypeBuilder) {
-      if (!hasInitializer &&
-          // Coverage-ignore(suite): Not run.
-          isStatic) {
-        // Coverage-ignore-block(suite): Not run.
+      // Coverage-ignore-block(suite): Not run.
+      if (!hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
         // to have type `dynamic`.
         type.registerInferredType(const DynamicType());
@@ -634,14 +633,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void inferTypes(ClassHierarchyBase hierarchy) {
     inferType(hierarchy);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType inferType(ClassHierarchyBase hierarchy) {
     if (fieldType is! InferredType) {
-      // Coverage-ignore-block(suite): Not run.
       // We have already inferred a type.
       return fieldType;
     }
@@ -669,7 +669,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         }
         if (needsCheckVisitor != null) {
           if (fieldType.accept(needsCheckVisitor)) {
-            // Coverage-ignore-block(suite): Not run.
             _fieldEncoding.setGenericCovariantImpl();
           }
         }
@@ -679,6 +678,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void onInferredType(DartType type) {
     fieldType = type;
   }

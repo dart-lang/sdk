@@ -12,17 +12,16 @@ const _desc = r'Avoid `double` and `int` checks.';
 
 class AvoidDoubleAndIntChecks extends LintRule {
   AvoidDoubleAndIntChecks()
-      : super(
-          name: LintNames.avoid_double_and_int_checks,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_double_and_int_checks, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_double_and_int_checks;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addIfStatement(this, visitor);
   }

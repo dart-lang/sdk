@@ -35,11 +35,11 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    var binFile =
-        newFile('$testPackageRootPath/bin/bin.dart', sourceReferencingMeta);
-    await assertDiagnosticsInFile(binFile.path, [
-      lint(7, 24),
-    ]);
+    var binFile = newFile(
+      '$testPackageRootPath/bin/bin.dart',
+      sourceReferencingMeta,
+    );
+    await assertDiagnosticsInFile(binFile.path, [lint(7, 24)]);
   }
 
   void test_referencedInBuildHook_listedInDeps() async {
@@ -50,8 +50,10 @@ version: 1.1.1
 dependencies:
   meta: any
 ''');
-    var hookFile =
-        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    var hookFile = newFile(
+      '$testPackageRootPath/hook/build.dart',
+      sourceReferencingMeta,
+    );
     await assertNoDiagnosticsInFile(hookFile.path);
   }
 
@@ -63,11 +65,11 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    var hookFile =
-        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
-    await assertDiagnosticsInFile(hookFile.path, [
-      lint(7, 24),
-    ]);
+    var hookFile = newFile(
+      '$testPackageRootPath/hook/build.dart',
+      sourceReferencingMeta,
+    );
+    await assertDiagnosticsInFile(hookFile.path, [lint(7, 24)]);
   }
 
   void test_referencedInBuildHook_missingFromPubspec() async {
@@ -75,11 +77,11 @@ dev_dependencies:
 name: fancy
 version: 1.1.1
 ''');
-    var hookFile =
-        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
-    await assertDiagnosticsInFile(hookFile.path, [
-      lint(7, 24),
-    ]);
+    var hookFile = newFile(
+      '$testPackageRootPath/hook/build.dart',
+      sourceReferencingMeta,
+    );
+    await assertDiagnosticsInFile(hookFile.path, [lint(7, 24)]);
   }
 
   test_referencedInLib_flutterGen() async {
@@ -120,9 +122,7 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    await assertDiagnostics(sourceReferencingMeta, [
-      lint(7, 24),
-    ]);
+    await assertDiagnostics(sourceReferencingMeta, [lint(7, 24)]);
   }
 
   test_referencedInLib_missingFromPubspec() async {
@@ -130,9 +130,7 @@ dev_dependencies:
 name: fancy
 version: 1.1.1
 ''');
-    await assertDiagnostics(sourceReferencingMeta, [
-      lint(7, 24),
-    ]);
+    await assertDiagnostics(sourceReferencingMeta, [lint(7, 24)]);
   }
 
   test_referencedInLib_selfPackage() async {
@@ -156,11 +154,11 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    var hookFile =
-        newFile('$testPackageRootPath/hook/link.dart', sourceReferencingMeta);
-    await assertDiagnosticsInFile(hookFile.path, [
-      lint(7, 24),
-    ]);
+    var hookFile = newFile(
+      '$testPackageRootPath/hook/link.dart',
+      sourceReferencingMeta,
+    );
+    await assertDiagnosticsInFile(hookFile.path, [lint(7, 24)]);
   }
 
   test_referencedInTest_listedInDevDeps() async {
@@ -171,8 +169,10 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    var testFile =
-        newFile('$testPackageRootPath/test/test.dart', sourceReferencingMeta);
+    var testFile = newFile(
+      '$testPackageRootPath/test/test.dart',
+      sourceReferencingMeta,
+    );
     await assertNoDiagnosticsInFile(testFile.path);
   }
 }

@@ -16,18 +16,21 @@ main() {
 @reflectiveTest
 class NoLeadingUnderscoresForLibraryPrefixesTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_IMPORT, WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_IMPORT,
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   @override
   String get lintRule => LintNames.no_leading_underscores_for_library_prefixes;
 
   test_leadingUnderscore() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async' as _async;
-''', [
-      lint(23, 6),
-    ]);
+''',
+      [lint(23, 6)],
+    );
   }
 
   test_snakeCase() async {
@@ -37,11 +40,12 @@ import 'dart:async' as dart_async;
   }
 
   test_underscores() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:async' as __;
-''', [
-      lint(23, 2),
-    ]);
+''',
+      [lint(23, 2)],
+    );
   }
 
   test_wildcard() async {

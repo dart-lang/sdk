@@ -15,17 +15,16 @@ const _desc =
 
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
-      : super(
-          name: LintNames.library_prefixes,
-          description: _desc,
-        );
+    : super(name: LintNames.library_prefixes, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.library_prefixes;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addImportDirective(this, visitor);
   }
@@ -38,8 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-      : _wildCardVariablesEnabled =
-            context.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
 
   @override
   void visitImportDirective(ImportDirective node) {

@@ -79,9 +79,17 @@ class N {}
 
 class O extends N {}
 
-class P {}
+class P1 implements P2 {
+  void foo() {}
+}
 
-class Q implements P {}
+abstract class P2 {
+  void foo();
+}
+
+class Q implements P1 {
+  void foo() {}
+}
 
 final class R {}
 

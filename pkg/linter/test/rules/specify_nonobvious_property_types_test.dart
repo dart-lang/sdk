@@ -96,15 +96,16 @@ class A {
   }
 
   test_genericInvocation_paramIsType_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   final h = bar('');
 }
 
 T bar<T>(T d) => d;
-''', [
-      lint(12, 17),
-    ]);
+''',
+      [lint(12, 17)],
+    );
   }
 
   test_genericInvocation_paramIsType_ok_instance() async {
@@ -135,37 +136,40 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_paramIsType_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static final h = bar('');
 }
 
 T bar<T>(T d) => d;
-''', [
-      lint(19, 17),
-    ]);
+''',
+      [lint(19, 17)],
+    );
   }
 
   test_genericInvocation_paramIsType_topLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final h = bar('');
 
 T bar<T>(T d) => d;
-''', [
-      lint(0, 17),
-    ]);
+''',
+      [lint(0, 17)],
+    );
   }
 
   test_genericInvocation_typeNeededForInference_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static var h = bar('');
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(19, 15),
-    ]);
+''',
+      [lint(19, 15)],
+    );
   }
 
   test_genericInvocation_typeNeededForInference_ok_instance() async {
@@ -196,36 +200,39 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeNeededForInference_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static var h = bar('');
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(19, 15),
-    ]);
+''',
+      [lint(19, 15)],
+    );
   }
 
   test_genericInvocation_typeNeededForInference_topLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var h = bar('');
 T bar<T>(dynamic d) => d;
-''', [
-      lint(0, 15),
-    ]);
+''',
+      [lint(0, 15)],
+    );
   }
 
   test_genericInvocation_typeParamProvided_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var h = bar<String>('');
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(12, 23),
-    ]);
+''',
+      [lint(12, 23)],
+    );
   }
 
   test_genericInvocation_typeParamProvided_ok_instance() async {
@@ -256,28 +263,31 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static var h = bar<String>('');
 }
 
 T bar<T>(dynamic d) => d;
-''', [
-      lint(19, 23),
-    ]);
+''',
+      [lint(19, 23)],
+    );
   }
 
   test_genericInvocation_typeParamProvided_topLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var h = bar<String>('');
 T bar<T>(dynamic d) => d;
-''', [
-      lint(0, 23),
-    ]);
+''',
+      [lint(0, 23)],
+    );
   }
 
   test_instanceCreation_generic_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var c = C(1);
 }
@@ -285,9 +295,9 @@ class A {
 class C<X> {
   C(X x);
 }
-''', [
-      lint(12, 12),
-    ]);
+''',
+      [lint(12, 12)],
+    );
   }
 
   test_instanceCreation_generic_ok1_instance() async {
@@ -347,7 +357,8 @@ class A<X> {}
   }
 
   test_instanceCreation_generic_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static var c = C(1);
 }
@@ -355,21 +366,22 @@ class A {
 class C<X> {
   C(X x);
 }
-''', [
-      lint(19, 12),
-    ]);
+''',
+      [lint(19, 12)],
+    );
   }
 
   test_instanceCreation_generic_topLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = A(1);
 
 class A<X> {
   A(X x);
 }
-''', [
-      lint(0, 12),
-    ]);
+''',
+      [lint(0, 12)],
+    );
   }
 
   test_instanceCreation_nonGeneric_instance() async {
@@ -561,14 +573,14 @@ Symbol s = #print;
   }
 
   test_multiple_instance() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   var a = 'a' + 'a', b = 'b' * 2;
 }
-''', [
-      lint(16, 13),
-      lint(31, 11),
-    ]);
+''',
+      [lint(16, 13), lint(31, 11)],
+    );
   }
 
   test_multiple_ok_instance() async {
@@ -594,23 +606,23 @@ String a = 'a' + 'a', b = 'b'.toString();
   }
 
   test_multiple_static() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   static var a = 'a' + 'a', b = 'b' * 2;
 }
-''', [
-      lint(23, 13),
-      lint(38, 11),
-    ]);
+''',
+      [lint(23, 13), lint(38, 11)],
+    );
   }
 
   test_multiple_topLevel() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var a = 'a' + 'a', b = 'b' * 2;
-''', [
-      lint(4, 13),
-      lint(19, 11),
-    ]);
+''',
+      [lint(4, 13), lint(19, 11)],
+    );
   }
 
   test_override_getter_initialized() async {

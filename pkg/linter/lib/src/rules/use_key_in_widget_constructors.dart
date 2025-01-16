@@ -15,17 +15,16 @@ const _desc = r'Use key in widget constructors.';
 
 class UseKeyInWidgetConstructors extends LintRule {
   UseKeyInWidgetConstructors()
-      : super(
-          name: LintNames.use_key_in_widget_constructors,
-          description: _desc,
-        );
+    : super(name: LintNames.use_key_in_widget_constructors, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_key_in_widget_constructors;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
@@ -88,9 +87,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
       .any((a) => a.correspondingParameter?.name3 == 'key');
 
-  bool _defineKeyParameter(ConstructorElement2 element) =>
-      element.formalParameters
-          .any((e) => e.name3 == 'key' && _isKeyType(e.type));
+  bool _defineKeyParameter(ConstructorElement2 element) => element
+      .formalParameters
+      .any((e) => e.name3 == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameterFragments) {

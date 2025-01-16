@@ -16,10 +16,11 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   late final List<MetadataBuilder>? metadata;
   late final MixinApplicationBuilder? supertypeBuilder;
   late final List<TypeBuilder>? interfaces;
-  late final List<EnumConstantInfo?>? enumConstantInfos;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
   late final int endOffset;
+
+  final List<EnumElementFragment> enumElements = [];
 
   EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
       super.typeParameterScope, super._nominalParameterNameSpace);
@@ -36,6 +37,11 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   void set builder(SourceEnumBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  @override
+  void addEnumElement(EnumElementFragment fragment) {
+    enumElements.add(fragment);
   }
 
   @override

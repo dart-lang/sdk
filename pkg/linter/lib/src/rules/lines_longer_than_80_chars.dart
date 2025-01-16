@@ -20,17 +20,16 @@ bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
 class LinesLongerThan80Chars extends LintRule {
   LinesLongerThan80Chars()
-      : super(
-          name: LintNames.lines_longer_than_80_chars,
-          description: _desc,
-        );
+    : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.lines_longer_than_80_chars;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -76,11 +75,13 @@ class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
       }
     } else if (content.startsWith('/*')) {
       // remove last slash before finding slash
-      lines.addAll(content
-          .substring(2, content.length - 2)
-          .split('$_cr$_lf')
-          .expand((e) => e.split(_cr))
-          .expand((e) => e.split(_lf)));
+      lines.addAll(
+        content
+            .substring(2, content.length - 2)
+            .split('$_cr$_lf')
+            .expand((e) => e.split(_cr))
+            .expand((e) => e.split(_lf)),
+      );
     }
     for (var i = 0; i < lines.length; i++) {
       var value = lines[i];
@@ -112,12 +113,14 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
-      var value = node.elements.map((e) {
-        if (e is InterpolationString) return e.value;
-        if (e is InterpolationExpression) return ' ' * e.length;
-        throw ArgumentError(
-            'Unhandled string interpolation element: ${node.runtimeType}');
-      }).join();
+      var value =
+          node.elements.map((e) {
+            if (e is InterpolationString) return e.value;
+            if (e is InterpolationExpression) return ' ' * e.length;
+            throw ArgumentError(
+              'Unhandled string interpolation element: ${node.runtimeType}',
+            );
+          }).join();
       _handleSingleLine(node, value);
     }
   }
@@ -194,7 +197,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var allowedLines = [
       ...allowedLineVisitor.allowedLines,
-      ...allowedCommentVisitor.allowedLines
+      ...allowedCommentVisitor.allowedLines,
     ];
 
     for (var line in longLines) {

@@ -17,10 +17,10 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
 
 class PreferConstructorsOverStaticMethods extends LintRule {
   PreferConstructorsOverStaticMethods()
-      : super(
-          name: LintNames.prefer_constructors_over_static_methods,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_constructors_over_static_methods,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -28,7 +28,9 @@ class PreferConstructorsOverStaticMethods extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -80,12 +82,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode? {
   InterfaceType? typeToCheckOrNull() => switch (this) {
-        ExtensionTypeDeclaration e => e.typeParameters == null
-            ? e.declaredFragment?.element.thisType
-            : null,
-        ClassDeclaration c => c.typeParameters == null
-            ? c.declaredFragment?.element.thisType
-            : null,
-        _ => null
-      };
+    ExtensionTypeDeclaration e =>
+      e.typeParameters == null ? e.declaredFragment?.element.thisType : null,
+    ClassDeclaration c =>
+      c.typeParameters == null ? c.declaredFragment?.element.thisType : null,
+    _ => null,
+  };
 }

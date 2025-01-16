@@ -507,11 +507,6 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     return new _in::ReversedListIterable::•<self::_MyList&Object&ListMixin::E%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
-  }
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
-    return core::Iterable::iterableToFullString(list, "[", "]");
 }
 class MyList<E extends core::Object? = dynamic> extends self::_MyList&Object&ListMixin<self::MyList::E%> {
   final field core::List<self::MyList::E%> list;
@@ -654,4 +649,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1239, effectively constant: 4
+Extra constant evaluation: evaluated: 1232, effectively constant: 4

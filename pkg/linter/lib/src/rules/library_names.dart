@@ -11,18 +11,16 @@ import '../utils.dart';
 const _desc = r'Name libraries using `lowercase_with_underscores`.';
 
 class LibraryNames extends LintRule {
-  LibraryNames()
-      : super(
-          name: LintNames.library_names,
-          description: _desc,
-        );
+  LibraryNames() : super(name: LintNames.library_names, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.library_names;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addLibraryDirective(this, visitor);
   }

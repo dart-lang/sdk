@@ -16,7 +16,8 @@ const _desc = r'Use super-initializer parameters where possible.';
 /// Return a set containing the elements of all of the parameters that are
 /// referenced in the body of the [constructor].
 Set<FormalParameterElement> _referencedParameters(
-    ConstructorDeclaration constructor) {
+  ConstructorDeclaration constructor,
+) {
   var collector = _ReferencedParameterCollector();
   constructor.body.accept(collector);
   return collector.foundParameters;
@@ -24,21 +25,23 @@ Set<FormalParameterElement> _referencedParameters(
 
 class UseSuperParameters extends LintRule {
   UseSuperParameters()
-      : super(
-          name: LintNames.use_super_parameters,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.use_super_parameters,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.use_super_parameters_multiple,
-        LinterLintCode.use_super_parameters_single
-      ];
+    LinterLintCode.use_super_parameters_multiple,
+    LinterLintCode.use_super_parameters_single,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     if (!context.isEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
@@ -65,9 +68,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   void check(
-      ConstructorDeclaration node,
-      SuperConstructorInvocation superInvocation,
-      FormalParameterList parameters) {
+    ConstructorDeclaration node,
+    SuperConstructorInvocation superInvocation,
+    FormalParameterList parameters,
+  ) {
     var constructorElement = superInvocation.element;
     if (constructorElement == null) return;
 
@@ -77,7 +81,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var referencedParameters = _referencedParameters(node);
 
     var identifiers = _checkForConvertiblePositionalParams(
-        constructorElement, superInvocation, parameters, referencedParameters);
+      constructorElement,
+      superInvocation,
+      parameters,
+      referencedParameters,
+    );
 
     // Bail if there are positional params that can't be converted.
     if (identifiers == null) return;
@@ -89,7 +97,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
-            parameter, parameterElement, constructorElement, superInvocation)) {
+          parameter,
+          parameterElement,
+          constructorElement,
+          superInvocation,
+        )) {
           var identifier = parameter.name?.lexeme;
           if (identifier != null) {
             identifiers.add(identifier);
@@ -116,10 +128,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// there are parameters that can't be converted since this will short-circuit
   /// the lint.
   List<String>? _checkForConvertiblePositionalParams(
-      ConstructorElement2 constructorElement,
-      SuperConstructorInvocation superInvocation,
-      FormalParameterList parameters,
-      Set<FormalParameterElement> referencedParameters) {
+    ConstructorElement2 constructorElement,
+    SuperConstructorInvocation superInvocation,
+    FormalParameterList parameters,
+    Set<FormalParameterElement> referencedParameters,
+  ) {
     var positionalSuperArgs = <SimpleIdentifier>[];
     for (var arg in superInvocation.argumentList.arguments) {
       if (arg is SimpleIdentifier) {
@@ -181,12 +194,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Return `true` if the named [parameter] can be converted into a super
   /// initializing formal parameter.
   bool _checkNamedParameter(
-      FormalParameter parameter,
-      FormalParameterElement parameterElement,
-      ConstructorElement2 superConstructor,
-      SuperConstructorInvocation superInvocation) {
-    var superParameter =
-        _correspondingNamedParameter(superConstructor, parameterElement);
+    FormalParameter parameter,
+    FormalParameterElement parameterElement,
+    ConstructorElement2 superConstructor,
+    SuperConstructorInvocation superInvocation,
+  ) {
+    var superParameter = _correspondingNamedParameter(
+      superConstructor,
+      parameterElement,
+    );
     if (superParameter == null) return false;
 
     bool matchingArgument = false;
@@ -221,8 +237,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   FormalParameterElement? _correspondingNamedParameter(
-      ConstructorElement2 superConstructor,
-      FormalParameterElement thisParameter) {
+    ConstructorElement2 superConstructor,
+    FormalParameterElement thisParameter,
+  ) {
     for (var superParameter in superConstructor.formalParameters) {
       if (superParameter.isNamed &&
           superParameter.name3 == thisParameter.name3) {
@@ -237,13 +254,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.name ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportLintForOffset(target.offset, target.length,
-          errorCode: LinterLintCode.use_super_parameters_multiple,
-          arguments: [msg]);
+      rule.reportLintForOffset(
+        target.offset,
+        target.length,
+        errorCode: LinterLintCode.use_super_parameters_multiple,
+        arguments: [msg],
+      );
     } else {
-      rule.reportLintForOffset(target.offset, target.length,
-          errorCode: LinterLintCode.use_super_parameters_single,
-          arguments: [identifiers.first]);
+      rule.reportLintForOffset(
+        target.offset,
+        target.length,
+        errorCode: LinterLintCode.use_super_parameters_single,
+        arguments: [identifiers.first],
+      );
     }
   }
 }

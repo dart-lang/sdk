@@ -49,15 +49,16 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment const A() : s = '';
 }
-''', [
-      lint(59, 6),
-    ]);
+''',
+      [lint(59, 6)],
+    );
   }
 
   test_augmentedClass_augmentedField() async {
@@ -86,16 +87,17 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   final a;
   const A() : a = '';
 }
-''', [
-      lint(62, 6),
-    ]);
+''',
+      [lint(62, 6)],
+    );
   }
 
   test_augmentedClass_constructorInitializer_multipleConstructors() async {
@@ -126,14 +128,15 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 augment class A {
   final s = '';
 }
-''', [
-      lint(45, 6),
-    ]);
+''',
+      [lint(45, 6)],
+    );
   }
 }

@@ -29,17 +29,16 @@ Expression? _getExpressionFromReturnStatement(Statement node) =>
 
 class JoinReturnWithAssignment extends LintRule {
   JoinReturnWithAssignment()
-      : super(
-          name: LintNames.join_return_with_assignment,
-          description: _desc,
-        );
+    : super(name: LintNames.join_return_with_assignment, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.join_return_with_assignment;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
   }
@@ -66,8 +65,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var secondLastStatement = statements[length - 2];
-    var secondLastExpression =
-        _getExpressionFromAssignmentStatement(secondLastStatement);
+    var secondLastExpression = _getExpressionFromAssignmentStatement(
+      secondLastStatement,
+    );
     // Return if the second-to-last statement was not an assignment.
     if (secondLastExpression == null) {
       return;
@@ -76,13 +76,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     Expression? thirdLastExpression;
     if (length >= 3) {
       var thirdLastStatement = statements[length - 3];
-      thirdLastExpression =
-          _getExpressionFromAssignmentStatement(thirdLastStatement);
+      thirdLastExpression = _getExpressionFromAssignmentStatement(
+        thirdLastStatement,
+      );
     }
     if (!type_utils.canonicalElementsFromIdentifiersAreEqual(
-            secondLastExpression, thirdLastExpression) &&
+          secondLastExpression,
+          thirdLastExpression,
+        ) &&
         type_utils.canonicalElementsFromIdentifiersAreEqual(
-            lastExpression, secondLastExpression)) {
+          lastExpression,
+          secondLastExpression,
+        )) {
       rule.reportLint(secondLastStatement);
     }
   }

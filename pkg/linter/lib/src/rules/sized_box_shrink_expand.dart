@@ -10,17 +10,19 @@ import '../util/flutter_utils.dart';
 
 class SizedBoxShrinkExpand extends LintRule {
   SizedBoxShrinkExpand()
-      : super(
-          name: LintNames.sized_box_shrink_expand,
-          description: 'Use SizedBox shrink and expand named constructors.',
-        );
+    : super(
+        name: LintNames.sized_box_shrink_expand,
+        description: 'Use SizedBox shrink and expand named constructors.',
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.sized_box_shrink_expand;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
@@ -56,7 +58,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Determine the value of the arguments specified in the [argumentList],
   /// and return `null` if there are unsupported arguments.
   static ({double? height, double? width})? _analyzeArguments(
-      ArgumentList argumentList) {
+    ArgumentList argumentList,
+  ) {
     double? height;
     double? width;
 

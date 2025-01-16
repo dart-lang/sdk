@@ -6,8 +6,6 @@ abstract class _A&B&M extends self::B implements self::M /*isAnonymousMixin,isEl
   synthetic constructor •() → self::_A&B&M
     : super self::B::•()
     ;
-  static method m() → core::Object
-    return new core::Object::•();
 }
 class A extends self::_A&B&M {
   synthetic constructor •() → self::A

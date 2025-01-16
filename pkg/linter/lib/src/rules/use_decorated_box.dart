@@ -12,17 +12,16 @@ const _desc = r'Use `DecoratedBox`.';
 
 class UseDecoratedBox extends LintRule {
   UseDecoratedBox()
-      : super(
-          name: LintNames.use_decorated_box,
-          description: _desc,
-        );
+    : super(name: LintNames.use_decorated_box, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_decorated_box;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);

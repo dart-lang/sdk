@@ -15,7 +15,9 @@ const _desc = r'Prefer using `??=` over testing for `null`.';
 bool _checkExpression(Expression expression, Expression condition) =>
     expression is AssignmentExpression &&
     type_utils.canonicalElementsFromIdentifiersAreEqual(
-        expression.leftHandSide, condition);
+      expression.leftHandSide,
+      condition,
+    );
 
 bool _checkStatement(Statement statement, Expression condition) {
   if (statement is ExpressionStatement) {
@@ -43,17 +45,16 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 
 class PreferConditionalAssignment extends LintRule {
   PreferConditionalAssignment()
-      : super(
-          name: LintNames.prefer_conditional_assignment,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_conditional_assignment, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_conditional_assignment;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addIfStatement(this, visitor);
   }

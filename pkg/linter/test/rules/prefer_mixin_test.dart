@@ -65,25 +65,27 @@ class Z with M { }
 class PreferMixinTestLanguage219 extends BasePreferMixinTest
     with LanguageVersion219Mixin {
   test_mixedInClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
 class B extends Object with A {}
-''', [
-      lint(40, 1),
-    ]);
+''',
+      [lint(40, 1)],
+    );
   }
 
   test_mixedInClass_typAlias() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {}
 
 typedef AA = A;
 
 abstract class CC with AA { }
-''', [
-      lint(52, 2),
-    ]);
+''',
+      [lint(52, 2)],
+    );
   }
 
   test_mixedInIterableMixin() async {

@@ -515,7 +515,7 @@ class TypeSystemOperations
   @override
   TypeConstraintGenerator<
           DartType,
-          FormalParameterElementOrMember,
+          FormalParameterElementMixin,
           PromotableElementImpl2,
           TypeParameterElementImpl2,
           InterfaceTypeImpl,

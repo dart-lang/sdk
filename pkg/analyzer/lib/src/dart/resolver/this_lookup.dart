@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -51,11 +49,11 @@ class ThisLookup {
       );
     }
 
-    var getterElement = propertyResult.getter;
+    var getterElement = propertyResult.getter2;
     if (getterElement != null) {
       return LexicalLookupResult(requested: getterElement);
     } else {
-      return LexicalLookupResult(recovery: propertyResult.setter);
+      return LexicalLookupResult(recovery: propertyResult.setter2);
     }
   }
 
@@ -80,11 +78,11 @@ class ThisLookup {
       nameErrorEntity: node,
     );
 
-    var setterElement = propertyResult.setter;
+    var setterElement = propertyResult.setter2;
     if (setterElement != null) {
       return LexicalLookupResult(requested: setterElement);
     } else {
-      return LexicalLookupResult(recovery: propertyResult.getter);
+      return LexicalLookupResult(recovery: propertyResult.getter2);
     }
   }
 }

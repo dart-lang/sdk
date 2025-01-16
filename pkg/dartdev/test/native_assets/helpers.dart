@@ -184,8 +184,10 @@ Future<void> nativeAssetsTest(
         'dart_app',
         'drop_dylib_link',
         'native_add_duplicate',
+        'native_add_version_skew',
         'native_add',
         'native_dynamic_linking',
+        'system_library',
         'treeshaking_native_libs',
       ],
       Platform.script.resolve(

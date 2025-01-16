@@ -18,35 +18,38 @@ class UnnecessaryToListInSpreadsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_to_list_in_spreads;
 
   test_iterableToList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = [
   ...[1, 2].whereType<int>().toList(),
 ];
-''', [
-      lint(39, 6),
-    ]);
+''',
+      [lint(39, 6)],
+    );
   }
 
   test_listToList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = [
   ...[1, 2].toList(),
 ];
-''', [
-      lint(22, 6),
-    ]);
+''',
+      [lint(22, 6)],
+    );
   }
 
   test_listToList_nullAwareSpread() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(List<int>? p) {
   var x = [
     ...?p?.toList(),
   ];
 }
-''', [
-      lint(46, 6),
-    ]);
+''',
+      [lint(46, 6)],
+    );
   }
 
   test_noToList() async {
@@ -58,24 +61,26 @@ var x = [
   }
 
   test_setToList() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = [
   ...{1, 2}.toList(),
 ];
-''', [
-      lint(22, 6),
-    ]);
+''',
+      [lint(22, 6)],
+    );
   }
 
   test_setToList_nullAwareSpread() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Set<int>? p) {
   var x = [
     ...?p?.toList(),
   ];
 }
-''', [
-      lint(45, 6),
-    ]);
+''',
+      [lint(45, 6)],
+    );
   }
 }

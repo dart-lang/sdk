@@ -27,7 +27,6 @@ import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
 // Several "report" functions intentionally return a `Null`-typed value.
-// ignore_for_file: prefer_void_to_null
 
 /// Information used to report errors when translating a node.
 class ErrorContext {

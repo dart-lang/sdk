@@ -1116,7 +1116,10 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var B = class_(name: 'B', interfaces: [AofC],);
+    var B = class_(
+      name: 'B',
+      interfaces: [AofC],
+    );
     var targetType = interfaceTypeNone(B);
     var result = targetType.asInstanceOf(A);
     expect(result, AofC);
@@ -1540,7 +1543,7 @@ A<int>?
   }
 
   void test_hashCode() {
-    ClassElement classA = class_(name: 'A');
+    var classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeNone(classA);
     expect(0 == typeA.hashCode, isFalse);
   }

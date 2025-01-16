@@ -9,9 +9,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
@@ -30,15 +30,12 @@ Future<void> main() async {
   }
 }
 
-var customChecks = [
-  VisitRegisteredNodes(),
-  NoSoloTests(),
-  NoTrailingSpaces(),
-];
+var customChecks = [VisitRegisteredNodes(), NoSoloTests(), NoTrailingSpaces()];
 
 Future<List<AnalysisError>> runChecks() async {
-  var rules =
-      path.normalize(io.File(path.join('lib', 'src', 'rules')).absolute.path);
+  var rules = path.normalize(
+    io.File(path.join('lib', 'src', 'rules')).absolute.path,
+  );
   var tests = path.normalize(io.File(path.join('test')).absolute.path);
   var results = await Driver(customChecks).analyze([rules, tests]);
   return results;
@@ -64,7 +61,9 @@ class Driver {
   }
 
   Future<List<AnalysisError>> _analyzeFiles(
-      ResourceProvider resourceProvider, List<String> analysisRoots) async {
+    ResourceProvider resourceProvider,
+    List<String> analysisRoots,
+  ) async {
     _print('Analyzing...');
 
     // Register our checks.
@@ -87,8 +86,7 @@ class Driver {
             (context as DriverBasedAnalysisContext).allAnalysisOptions;
         for (var options in allOptions) {
           options as AnalysisOptionsImpl;
-          options.lintRules = options.lintRules.toList();
-          lints.forEach(options.lintRules.add);
+          options.lintRules = [...options.lintRules, ...lints];
           options.lint = true;
         }
 
@@ -97,9 +95,10 @@ class Driver {
             try {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
-                var filtered = result.errors
-                    .where((e) => e.errorCode.name != 'TODO')
-                    .toList();
+                var filtered =
+                    result.errors
+                        .where((e) => e.errorCode.name != 'TODO')
+                        .toList();
                 if (filtered.isNotEmpty) {
                   errors.add(AnalysisErrorInfo(filtered, result.lineInfo));
                 }

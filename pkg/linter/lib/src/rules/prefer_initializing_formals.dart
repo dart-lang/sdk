@@ -12,7 +12,8 @@ import '../extensions.dart';
 const _desc = r'Use initializing formals when possible.';
 
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
-    ConstructorDeclaration node) {
+  ConstructorDeclaration node,
+) {
   var body = node.body;
   if (body is! BlockFunctionBody) return [];
   var assignments = <AssignmentExpression>[];
@@ -28,9 +29,8 @@ Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
 }
 
 Iterable<ConstructorFieldInitializer>
-    _getConstructorFieldInitializersInInitializers(
-            ConstructorDeclaration node) =>
-        node.initializers.whereType<ConstructorFieldInitializer>();
+_getConstructorFieldInitializersInInitializers(ConstructorDeclaration node) =>
+    node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element2? _getLeftElement(AssignmentExpression assignment) =>
     assignment.writeElement2?.canonicalElement2;
@@ -43,17 +43,16 @@ Element2? _getRightElement(AssignmentExpression assignment) =>
 
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()
-      : super(
-          name: LintNames.prefer_initializing_formals,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_initializing_formals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -94,7 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     bool isConstructorFieldInitializerToLint(
-        ConstructorFieldInitializer constructorFieldInitializer) {
+      ConstructorFieldInitializer constructorFieldInitializer,
+    ) {
       var expression = constructorFieldInitializer.expression;
       if (expression is SimpleIdentifier) {
         var fieldName = constructorFieldInitializer.fieldName;

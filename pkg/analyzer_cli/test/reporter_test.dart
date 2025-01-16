@@ -49,8 +49,10 @@ void main() {
         await reporter.formatErrors([error]);
         reporter.flush();
 
-        expect(out.toString().trim(),
-            'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
+        expect(
+          out.toString().trim(),
+          'error • MSG • /foo/bar/baz.dart:3:3 • mock_code',
+        );
       });
 
       test('hint', () async {
@@ -58,8 +60,10 @@ void main() {
         await reporter.formatErrors([error]);
         reporter.flush();
 
-        expect(out.toString().trim(),
-            'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
+        expect(
+          out.toString().trim(),
+          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code',
+        );
       });
 
       test('stats', () async {
@@ -68,9 +72,10 @@ void main() {
         reporter.flush();
         stats.print(out);
         expect(
-            out.toString().trim(),
-            'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
-            '1 hint found.');
+          out.toString().trim(),
+          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
+          '1 hint found.',
+        );
       });
     });
 
@@ -85,13 +90,14 @@ void main() {
         reporter.flush();
 
         expect(
-            out.toString().trim(),
-            '{"version":1,"diagnostics":[{'
-            '"code":"mock_code","severity":"ERROR","type":"SYNTACTIC_ERROR",'
-            '"location":{"file":"/foo/bar/baz.dart","range":{'
-            '"start":{"offset":20,"line":3,"column":3},'
-            '"end":{"offset":23,"line":3,"column":3}}},'
-            '"problemMessage":"MSG"}]}');
+          out.toString().trim(),
+          '{"version":1,"diagnostics":[{'
+          '"code":"mock_code","severity":"ERROR","type":"SYNTACTIC_ERROR",'
+          '"location":{"file":"/foo/bar/baz.dart","range":{'
+          '"start":{"offset":20,"line":3,"column":3},'
+          '"end":{"offset":23,"line":3,"column":3}}},'
+          '"problemMessage":"MSG"}]}',
+        );
       });
     });
   });

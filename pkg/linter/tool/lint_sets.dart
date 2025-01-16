@@ -19,7 +19,8 @@ Future<List<String>> get flutterRepoLints =>
     _fetchRulesFromGitHub('/flutter/flutter/main/analysis_options.yaml');
 
 Future<List<String>> get flutterUserLints => _fetchRulesFromGitHub(
-    '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
+  '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml',
+);
 
 Future<List<String>> _fetchRulesFromGitHub(String optionsPath) async {
   var optionsUrl = Uri.https('raw.githubusercontent.com', optionsPath);

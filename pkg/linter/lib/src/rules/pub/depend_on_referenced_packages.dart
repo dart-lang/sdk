@@ -12,17 +12,16 @@ const _desc = r'Depend on referenced packages.';
 
 class DependOnReferencedPackages extends LintRule {
   DependOnReferencedPackages()
-      : super(
-          name: LintNames.depend_on_referenced_packages,
-          description: _desc,
-        );
+    : super(name: LintNames.depend_on_referenced_packages, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.depend_on_referenced_packages;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     // Only lint if we have a pubspec.
     var package = context.package;
     if (package is! PubPackage) return;

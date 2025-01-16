@@ -19,7 +19,8 @@ class UseNamedConstantsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_ifCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(this.value);
   final int value;
@@ -30,14 +31,15 @@ class A {
 void f(A a) {
   if (a case const A(0)) {}
 }
-''', [
-      lint(117, 4),
-    ]);
+''',
+      [lint(117, 4)],
+    );
   }
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_switch() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   const A(this.value);
   final int value;
@@ -51,9 +53,9 @@ void f(A a) {
     case const A(1):
   }
 }
-''', [
-      lint(155, 4),
-    ]);
+''',
+      [lint(155, 4)],
+    );
   }
 
   test_duplicate_inDefinition() async {
@@ -67,7 +69,8 @@ class A {
   }
 
   test_reconstructed_sameAsPrivateName() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   const A(1);
 }
@@ -76,13 +79,14 @@ class A {
   // ignore: unused_field
   static const _zero = A(0);
 }
-''', [
-      lint(13, 10),
-    ]);
+''',
+      [lint(13, 10)],
+    );
   }
 
   test_reconstructed_sameAsPublicName_explicitConst() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   const A(0);
 }
@@ -90,13 +94,14 @@ class A {
   const A(int value);
   static const zero = A(0);
 }
-''', [
-      lint(13, 10),
-    ]);
+''',
+      [lint(13, 10)],
+    );
   }
 
   test_reconstructed_sameAsPublicName_implicitConst() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   const a = A(0);
 }
@@ -104,9 +109,9 @@ class A {
   const A(int value);
   static const zero = A(0);
 }
-''', [
-      lint(23, 4),
-    ]);
+''',
+      [lint(23, 4)],
+    );
   }
 
   test_usesNamed() async {

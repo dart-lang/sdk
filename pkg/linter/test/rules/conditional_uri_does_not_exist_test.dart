@@ -25,20 +25,23 @@ class ConditionalUriDoesNotExistTest extends LintRuleTest {
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
 import ''
     if (dart.library.io) 'dart:missing_1'
     if (dart.library.html) 'dart:async'
     if (dart.library.async) 'dart:missing_2';
-''', [
-      // The imported library '' can't have a part-of directive,
-      // but that's OK for the purposes of verifying the lint.
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 26, 2),
-      lint(54, 16),
-      lint(139, 16),
-    ]);
+''',
+      [
+        // The imported library '' can't have a part-of directive,
+        // but that's OK for the purposes of verifying the lint.
+        error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 26, 2),
+        lint(54, 16),
+        lint(139, 16),
+      ],
+    );
   }
 
   test_missingDartLibraries() async {
@@ -96,17 +99,16 @@ import ''
 part of 'test.dart';
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import ''
     if (dart.library.io) 'dart:missing_1'
     if (dart.library.html) 'dart:async'
     if (dart.library.async) 'dart:missing_2';
 
 part 'a.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 2),
-      lint(35, 16),
-      lint(120, 16),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 2), lint(35, 16), lint(120, 16)],
+    );
   }
 }

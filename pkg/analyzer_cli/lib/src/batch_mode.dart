@@ -34,7 +34,8 @@ class BatchRunner {
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
         outSink.writeln(
-            '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
+          '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms',
+        );
         exitCode = batchResult.ordinal;
       }
       // Prepare arguments.
@@ -57,7 +58,8 @@ class BatchRunner {
         errorSink.writeln('>>> EOF STDERR');
         var resultPassString = resultPass ? 'PASS' : 'FAIL';
         outSink.writeln(
-            '>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms');
+          '>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms',
+        );
       } catch (e, stackTrace) {
         errorSink.writeln(e);
         errorSink.writeln(stackTrace);

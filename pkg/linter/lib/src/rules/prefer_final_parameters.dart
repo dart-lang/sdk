@@ -13,21 +13,22 @@ const _desc =
 
 class PreferFinalParameters extends LintRule {
   PreferFinalParameters()
-      : super(
-          name: LintNames.prefer_final_parameters,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_final_parameters, description: _desc);
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.unnecessary_final, LintNames.avoid_final_parameters];
+  List<String> get incompatibleRules => const [
+    LintNames.unnecessary_final,
+    LintNames.avoid_final_parameters,
+  ];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_final_parameters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionExpression(this, visitor);
@@ -55,7 +56,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Report the lint for parameters in the [parameters] list that are not
   /// const or final already and not potentially mutated in the function [body].
   void _reportApplicableParameters(
-      FormalParameterList? parameters, FunctionBody body) {
+    FormalParameterList? parameters,
+    FunctionBody body,
+  ) {
     if (parameters != null) {
       for (var param in parameters.parameters) {
         if (param is DefaultFormalParameter) {

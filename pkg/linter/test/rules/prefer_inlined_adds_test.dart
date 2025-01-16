@@ -25,26 +25,29 @@ var y = ['a']..addAll(x ?? const []);
   }
 
   test_listLiteral_cascadeAdd() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = ['a']..add('b');
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_listLiteral_cascadeAdd_multiple() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = ['a']..add('b')..add('c');
-''', [
-      lint(15, 3),
-    ]);
+''',
+      [lint(15, 3)],
+    );
   }
 
   test_listLiteral_cascadeAddAll_listLiteral() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var x = ['a']..addAll(['b', 'c']);
-''', [
-      lint(15, 6),
-    ]);
+''',
+      [lint(15, 6)],
+    );
   }
 }

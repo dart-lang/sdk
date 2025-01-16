@@ -266,7 +266,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      readElementRequested = readLookup?.requested;
+      readElementRequested = readLookup?.requested.asElement;
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
@@ -285,8 +285,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       var writeLookup = LexicalLookup.resolveSetter(scopeLookupResult) ??
           _resolver.thisLookupSetter(node);
-      writeElementRequested = writeLookup?.requested;
-      writeElementRecovery = writeLookup?.recovery;
+      writeElementRequested = writeLookup?.requested.asElement;
+      writeElementRecovery = writeLookup?.recovery.asElement;
 
       AssignmentVerifier(errorReporter).verify(
         node: node,

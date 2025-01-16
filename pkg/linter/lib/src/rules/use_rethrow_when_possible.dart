@@ -12,17 +12,16 @@ const _desc = r'Use rethrow to rethrow a caught exception.';
 
 class UseRethrowWhenPossible extends LintRule {
   UseRethrowWhenPossible()
-      : super(
-          name: LintNames.use_rethrow_when_possible,
-          description: _desc,
-        );
+    : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_rethrow_when_possible;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }

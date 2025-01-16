@@ -302,6 +302,42 @@ class LabelContinueFinder extends RecursiveVisitor {
       found = true;
 }
 
+/// Returns true if a class contains any 'super' calls.
+bool hasSuper(Class node) {
+  var visitor = SuperFinder();
+  node.accept(visitor);
+  return visitor.found;
+}
+
+class SuperFinder extends RecursiveVisitor {
+  var found = false;
+
+  void visit(Statement? s) {
+    if (!found && s != null) s.accept(this);
+  }
+
+  @override
+  void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
+      found = true;
+
+  @override
+  void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
+      found = true;
+
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) => found = true;
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) => found = true;
+
+  @override
+  void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) =>
+      found = true;
+
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) => found = true;
+}
+
 /// Returns `true` if any of [n]s children are a [FunctionExpression] node.
 bool containsFunctionExpression(Node n) {
   var visitor = _FunctionExpressionFinder.instance;

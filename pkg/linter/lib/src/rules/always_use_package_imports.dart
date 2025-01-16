@@ -11,21 +11,21 @@ const _desc = r'Avoid relative imports for files in `lib/`.';
 
 class AlwaysUsePackageImports extends LintRule {
   AlwaysUsePackageImports()
-      : super(
-          name: LintNames.always_use_package_imports,
-          description: _desc,
-        );
+    : super(name: LintNames.always_use_package_imports, description: _desc);
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.prefer_relative_imports];
+  List<String> get incompatibleRules => const [
+    LintNames.prefer_relative_imports,
+  ];
 
   @override
   LintCode get lintCode => LinterLintCode.always_use_package_imports;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     // Relative paths from outside of the lib folder are handled by the
     // `avoid_relative_lib_imports` lint rule.
     if (!context.isInLibDir) return;

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -98,6 +99,59 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       ),
     );
     await responseFuture;
+  }
+
+  Future<void> test_setClientCapabilities_lspCapabilities() async {
+    // Test an arbitrary set of capabilities.
+    var capabilities = lsp.ClientCapabilities(
+      textDocument: lsp.TextDocumentClientCapabilities(
+        hover: lsp.HoverClientCapabilities(
+          contentFormat: [lsp.MarkupKind.PlainText],
+        ),
+      ),
+      workspace: lsp.WorkspaceClientCapabilities(
+        applyEdit: true,
+        workspaceEdit: lsp.WorkspaceEditClientCapabilities(
+          documentChanges: true,
+          resourceOperations: [lsp.ResourceOperationKind.Create],
+        ),
+      ),
+    );
+
+    var request = ServerSetClientCapabilitiesParams(
+      [],
+      lspCapabilities: capabilities.toJson(),
+    ).toRequest('1', clientUriConverter: server.uriConverter);
+
+    await handleSuccessfulRequest(request);
+    var effectiveCapabilities = server.editorClientCapabilities;
+    expect(
+      effectiveCapabilities.hoverContentFormats,
+      equals([lsp.MarkupKind.PlainText]),
+    );
+    expect(effectiveCapabilities.applyEdit, isTrue);
+    expect(effectiveCapabilities.documentChanges, isTrue);
+    expect(effectiveCapabilities.createResourceOperations, isTrue);
+  }
+
+  Future<void> test_setClientCapabilities_lspCapabilities_invalid() async {
+    var request = ServerSetClientCapabilitiesParams(
+      [],
+      lspCapabilities: {
+        'textDocument': 1, // Not valid
+      },
+    ).toRequest('1', clientUriConverter: server.uriConverter);
+
+    var response = await handleRequest(request);
+    expect(
+      response,
+      isResponseFailure('1', RequestErrorCode.INVALID_PARAMETER),
+    );
+    expect(
+      response.error!.message,
+      "The 'lspCapabilities' parameter was invalid:"
+      ' textDocument must be of type TextDocumentClientCapabilities',
+    );
   }
 
   Future<void> test_setClientCapabilities_requests() async {

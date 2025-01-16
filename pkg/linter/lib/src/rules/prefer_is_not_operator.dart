@@ -12,17 +12,16 @@ const _desc = r'Prefer is! operator.';
 
 class PreferIsNotOperator extends LintRule {
   PreferIsNotOperator()
-      : super(
-          name: LintNames.prefer_is_not_operator,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_is_not_operator;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addIsExpression(this, visitor);
   }
