@@ -108,7 +108,7 @@ class _FieldClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isGetter => false; //!forSetter;
+  bool get isGetter => false;
 
   @override
   bool get isInternalImplementation => false;
@@ -131,7 +131,7 @@ class _FieldClassMember implements ClassMember {
   }
 
   @override
-  bool get isSetter => false; //forSetter;
+  bool get isSetter => false;
 
   @override
   bool get isSourceDeclaration => true;

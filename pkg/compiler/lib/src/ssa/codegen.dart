@@ -774,7 +774,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
 
     if (needsAssignment &&
-        !instruction.isControlFlow() &&
+        !instruction.isJsStatement() &&
         variableNames.hasName(instruction)) {
       visitExpression(instruction);
       assignVariable(

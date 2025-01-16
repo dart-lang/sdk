@@ -2,29 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:io';
 
+import "package:expect/async_helper.dart";
+
 main() async {
+  asyncStart();
+  // May happen asynchronously, but won't take 10 ms.
   Isolate.current.setErrorsFatal(false);
 
-  new Timer(const Duration(milliseconds: 10), () {
-    print("Timer 1");
-
-    // This unhandled exception should not prevent the second timer from firing.
-    throw "Oh no!";
+  Timer(const Duration(milliseconds: 10), () {
+    // This unhandled exception should not prevent the last timer from firing.
+    throw "Error 1";
   });
 
-  new Timer.periodic(const Duration(milliseconds: 20), (_) {
-    print("Timer 2");
-    exit(0);
+  Timer(const Duration(milliseconds: 11), () {
+    sleep(const Duration(milliseconds: 30));
+    // This unhandled exception should not prevent the last timer from firing.
+    throw "Error 2"; // Throws after last timer is due.
   });
 
-  sleep(const Duration(milliseconds: 30)); //# sleep: ok
-  // With sleep: both timers are due at the same wakeup event.
-  // Without sleep: the timers get separate wakeup events.
+  Timer.periodic(const Duration(milliseconds: 30), (t) {
+    t.cancel();
+    asyncEnd();
+  });
 }

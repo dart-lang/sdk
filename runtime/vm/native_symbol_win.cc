@@ -63,7 +63,6 @@ const char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   const intptr_t kMaxNameLength = 2048;
   const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
-  static char name_buffer[kMaxNameLength];
   MutexLocker lock(lock_);
   if (!running_) {
     return nullptr;

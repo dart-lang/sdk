@@ -144,7 +144,12 @@ class Driver implements CommandLineStarter {
 
     if (options.perfReport != null) {
       var json = makePerfReport(
-          startTime, currentTimeMillis, options, _analyzedFileCount, stats);
+        startTime,
+        currentTimeMillis,
+        options,
+        _analyzedFileCount,
+        stats,
+      );
       io.File(options.perfReport!).writeAsStringSync(json);
     }
   }
@@ -152,15 +157,16 @@ class Driver implements CommandLineStarter {
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     if (!options.jsonFormat && !options.machineFormat) {
-      var fileNames = options.sourceFiles.map((String file) {
-        file = path.normalize(file);
-        if (file == '.') {
-          file = path.basename(path.current);
-        } else if (file == '..') {
-          file = path.basename(path.normalize(path.absolute(file)));
-        }
-        return file;
-      }).toList();
+      var fileNames =
+          options.sourceFiles.map((String file) {
+            file = path.normalize(file);
+            if (file == '.') {
+              file = path.basename(path.current);
+            } else if (file == '..') {
+              file = path.basename(path.normalize(path.absolute(file)));
+            }
+            return file;
+          }).toList();
 
       outSink.writeln("Analyzing ${fileNames.join(', ')}...");
     }
@@ -179,7 +185,10 @@ class Driver implements CommandLineStarter {
       var filePath = error.source.fullName;
       var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
-          error, options, analysisDriver!.getAnalysisOptionsForFile(file));
+        error,
+        options,
+        analysisDriver!.getAnalysisOptionsForFile(file),
+      );
     };
 
     // We currently print out to stderr to ensure that when in batch mode we
@@ -190,16 +199,28 @@ class Driver implements CommandLineStarter {
     // batch flag and source file" error message.
     ErrorFormatter formatter;
     if (options.jsonFormat) {
-      formatter = JsonErrorFormatter(outSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
+      formatter = JsonErrorFormatter(
+        outSink,
+        options,
+        stats,
+        severityProcessor: defaultSeverityProcessor,
+      );
     } else if (options.machineFormat) {
       // The older machine format emits to stderr (instead of stdout) for legacy
       // reasons.
-      formatter = MachineErrorFormatter(errorSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
+      formatter = MachineErrorFormatter(
+        errorSink,
+        options,
+        stats,
+        severityProcessor: defaultSeverityProcessor,
+      );
     } else {
-      formatter = HumanErrorFormatter(outSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
+      formatter = HumanErrorFormatter(
+        outSink,
+        options,
+        stats,
+        severityProcessor: defaultSeverityProcessor,
+      );
     }
 
     var allResult = ErrorSeverity.NONE;
@@ -275,11 +296,14 @@ class Driver implements CommandLineStarter {
               isPart: false,
               errors: errors,
               analysisOptions: analysisOptions,
-            )
+            ),
           ]);
           for (var error in errors) {
-            var severity =
-                determineProcessedSeverity(error, options, analysisOptions);
+            var severity = determineProcessedSeverity(
+              error,
+              options,
+              analysisOptions,
+            );
             if (severity != null) {
               allResult = allResult.max(severity);
             }
@@ -294,17 +318,23 @@ class Driver implements CommandLineStarter {
             var node = loadYamlNode(content, sourceUrl: file.toUri());
 
             if (node is YamlMap) {
-              errors.addAll(validatePubspec(
-                contents: node,
-                source: FileSource(file),
-                provider: resourceProvider,
-                analysisOptions: analysisOptions,
-              ));
+              errors.addAll(
+                validatePubspec(
+                  contents: node,
+                  source: FileSource(file),
+                  provider: resourceProvider,
+                  analysisOptions: analysisOptions,
+                ),
+              );
             }
             if (errors.isNotEmpty) {
               for (var error in errors) {
-                var severity = determineProcessedSeverity(
-                    error, options, analysisOptions)!;
+                var severity =
+                    determineProcessedSeverity(
+                      error,
+                      options,
+                      analysisOptions,
+                    )!;
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
@@ -329,14 +359,17 @@ class Driver implements CommandLineStarter {
         } else if (file_paths.isAndroidManifestXml(pathContext, path)) {
           try {
             var file = resourceProvider.getFile(path);
-            var analysisOptions =
-                analysisDriver.getAnalysisOptionsForFile(file);
+            var analysisOptions = analysisDriver.getAnalysisOptionsForFile(
+              file,
+            );
             var content = file.readAsStringSync();
             var source = FileSource(file);
             var validator = ManifestValidator(source);
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
-                content, analysisOptions.chromeOsManifestChecks);
+              content,
+              analysisOptions.chromeOsManifestChecks,
+            );
             await formatter.formatErrors([
               ErrorsResultImpl(
                 session: analysisDriver.currentSession,
@@ -409,8 +442,10 @@ class Driver implements CommandLineStarter {
       var directory = io.Directory(filePath);
       if (directory.existsSync()) {
         var pathContext = resourceProvider.pathContext;
-        for (var entry
-            in directory.listSync(recursive: true, followLinks: false)) {
+        for (var entry in directory.listSync(
+          recursive: true,
+          followLinks: false,
+        )) {
           var relative = path.relative(entry.path, from: directory.path);
           if ((file_paths.isDart(pathContext, entry.path) ||
                   file_paths.isAndroidManifestXml(pathContext, entry.path)) &&
@@ -431,13 +466,23 @@ class Driver implements CommandLineStarter {
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(
-      FileState file, CommandLineOptions options, ErrorFormatter formatter) {
+    FileState file,
+    CommandLineOptions options,
+    ErrorFormatter formatter,
+  ) {
     var startTime = currentTimeMillis;
     final analysisDriver = this.analysisDriver!;
-    var analysisOptions =
-        analysisDriver.getAnalysisOptionsForFile(file.resource);
+    var analysisOptions = analysisDriver.getAnalysisOptionsForFile(
+      file.resource,
+    );
     var analyzer = AnalyzerImpl(
-        analysisOptions, analysisDriver, file, options, stats, startTime);
+      analysisOptions,
+      analysisDriver,
+      file,
+      options,
+      stats,
+      startTime,
+    );
     return analyzer.analyze(formatter);
   }
 
@@ -448,8 +493,10 @@ class Driver implements CommandLineStarter {
     var path = options.defaultAnalysisOptionsPath;
     if (path != null) {
       if (!resourceProvider.getFile(path).exists) {
-        printAndFail('Options file not found: $path',
-            exitCode: ErrorSeverity.ERROR.ordinal);
+        printAndFail(
+          'Options file not found: $path',
+          exitCode: ErrorSeverity.ERROR.ordinal,
+        );
       }
     }
   }
@@ -460,7 +507,9 @@ class Driver implements CommandLineStarter {
 
   /// Return whether the [newOptions] are equal to the [previous].
   static bool _equalCommandLineOptions(
-      CommandLineOptions? previous, CommandLineOptions newOptions) {
+    CommandLineOptions? previous,
+    CommandLineOptions newOptions,
+  ) {
     return previous != null &&
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
@@ -509,7 +558,7 @@ class _AnalysisContextProvider {
   DriverBasedAnalysisContext? _analysisContext;
 
   _AnalysisContextProvider(this._resourceProvider)
-      : _fileContentCache = FileContentCache(_resourceProvider);
+    : _fileContentCache = FileContentCache(_resourceProvider);
 
   DriverBasedAnalysisContext? get analysisContext {
     return _analysisContext;
@@ -531,11 +580,10 @@ class _AnalysisContextProvider {
 
     // Exclude patterns are relative to the directory with the options file.
     return PathFilter(
-        contextRoot.root.path,
-        optionsFile.parent.path,
-        analysisContext!
-            .getAnalysisOptionsForFile(optionsFile)
-            .excludePatterns);
+      contextRoot.root.path,
+      optionsFile.parent.path,
+      analysisContext!.getAnalysisOptionsForFile(optionsFile).excludePatterns,
+    );
   }
 
   void configureForPath(String path) {

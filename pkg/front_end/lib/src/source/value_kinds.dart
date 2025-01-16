@@ -38,7 +38,6 @@ import '../kernel/body_builder.dart' as type
         Label;
 import '../kernel/expression_generator.dart' as type;
 import 'outline_builder.dart' as type;
-import 'source_enum_builder.dart' as type show EnumConstantInfo;
 
 class ValueKinds {
   static const ValueKind AnnotationList =

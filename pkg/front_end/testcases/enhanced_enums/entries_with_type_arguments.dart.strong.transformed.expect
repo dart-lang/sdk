@@ -10,11 +10,11 @@ import self as self;
 import "dart:core" as core;
 
 class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E<dynamic, dynamic>> values = #C13;
   enum-element static const field self::E<core::int, core::String> one = #C3;
   enum-element static const field self::E<core::double, core::num> two = #C6;
   enum-element static const field self::E<core::int, core::int> three = #C9;
   enum-element static const field self::E<core::num, core::bool> four = #C12;
+  static const field core::List<self::E<dynamic, dynamic>> values = #C13;
   const constructor •(core::int #index, core::String #name) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(#index, #name)
     ;

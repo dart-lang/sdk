@@ -85,8 +85,8 @@ class A extends core::Object {
 abstract class M extends self::A /*isMixinDeclaration*/  {
 }
 class En extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::En> values = #C4;
   enum-element static const field self::En element = #C3;
+  static const field core::List<self::En> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::En
     : super core::_Enum::•(#index, #name)
     ;

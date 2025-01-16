@@ -1135,7 +1135,7 @@ class MethodMember extends ExecutableMember
 /// type parameters are known.
 class ParameterMember extends VariableMember
     with ParameterElementMixin, FormalParameterElementMixin
-    implements ParameterElement, FormalParameterElementOrMember {
+    implements ParameterElement {
   @override
   final List<TypeParameterElement> typeParameters;
 

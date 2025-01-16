@@ -598,7 +598,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
-  DartType greatestClosure(
+  TypeImpl greatestClosure(
     DartType type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
@@ -638,8 +638,11 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType greatestLowerBound(DartType T1, DartType T2) {
-    return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
+  TypeImpl greatestLowerBound(DartType T1, DartType T2) {
+    // TODO(paulberry): make these casts unnecessary by changing the type of
+    // `T1` and `T2`.
+    return _greatestLowerBoundHelper.getGreatestLowerBound(
+        T1 as TypeImpl, T2 as TypeImpl);
   }
 
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
@@ -1380,7 +1383,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
-  DartType leastClosure(
+  TypeImpl leastClosure(
     DartType type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
@@ -1419,13 +1422,16 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType leastUpperBound(DartType T1, DartType T2) {
-    return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
+  TypeImpl leastUpperBound(DartType T1, DartType T2) {
+    // TODO(paulberry): make these casts unnecessary by changing the type of
+    // `T1` and `T2`.
+    return _leastUpperBoundHelper.getLeastUpperBound(
+        T1 as TypeImpl, T2 as TypeImpl);
   }
 
   /// Returns a nullable version of [type].  The result would be equivalent to
   /// the union `type | Null` (if we supported union types).
-  DartType makeNullable(DartType type) {
+  TypeImpl makeNullable(DartType type) {
     // TODO(paulberry): handle type parameter types
     return (type as TypeImpl).withNullability(NullabilitySuffix.question);
   }
@@ -1485,7 +1491,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override
-  DartType promoteToNonNull(DartType type) {
+  TypeImpl promoteToNonNull(DartType type) {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {

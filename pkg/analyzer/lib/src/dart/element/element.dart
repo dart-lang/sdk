@@ -4513,8 +4513,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
         FragmentedElementMixin<FormalParameterFragment>,
         FormalParameterElementMixin,
         _HasSinceSdkVersionMixin,
-        _NonTopLevelVariableOrParameter
-    implements FormalParameterElementOrMember {
+        _NonTopLevelVariableOrParameter {
   final ParameterElementImpl wrappedElement;
 
   FormalParameterElementImpl(this.wrappedElement) {
@@ -4658,7 +4657,10 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
 /// A mixin that provides a common implementation for methods defined in
 /// [FormalParameterElement].
-mixin FormalParameterElementMixin implements FormalParameterElement {
+mixin FormalParameterElementMixin
+    implements
+        FormalParameterElement,
+        SharedNamedFunctionParameterStructure<TypeImpl> {
   @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
     buffer.write(
@@ -4672,11 +4674,6 @@ mixin FormalParameterElementMixin implements FormalParameterElement {
     }
   }
 }
-
-abstract class FormalParameterElementOrMember
-    implements
-        FormalParameterElement,
-        SharedNamedFunctionParameterStructure<TypeImpl> {}
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
@@ -5698,8 +5695,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<MethodElement> methods = [];
 
-  @override
-  List<MethodElementImpl2> methods2 = [];
+  final List<MethodElementImpl2> internal_methods2 = [];
 
   @override
   InstanceElement2 get baseElement => this;
@@ -5768,6 +5764,12 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
+
+  @override
+  List<MethodElementImpl2> get methods2 {
+    _readMembers();
+    return internal_methods2;
+  }
 
   @override
   String? get name3 => firstFragment.name;
@@ -6525,7 +6527,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<ConstructorElement2> get constructors2 {
-    firstFragment.constructors; // TODO(scheglov): remove eventually
+    _readMembers();
     return constructors
         .map((constructor) =>
             (constructor.declaration as ConstructorElementImpl).element)
@@ -11140,7 +11142,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound.
-  DartType? _bound;
+  TypeImpl? _bound;
 
   /// The value representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -11160,12 +11162,14 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  DartType? get bound {
+  TypeImpl? get bound {
     return _bound;
   }
 
   set bound(DartType? bound) {
-    _bound = bound;
+    // TODO(paulberry): Change the type of the parameter `bound` so that this
+    // cast isn't needed.
+    _bound = bound as TypeImpl?;
     if (_element case var element?) {
       if (!identical(element.bound, bound)) {
         element.bound = bound;

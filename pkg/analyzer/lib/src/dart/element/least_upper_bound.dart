@@ -318,7 +318,7 @@ class LeastUpperBoundHelper {
 
   LeastUpperBoundHelper(this._typeSystem);
 
-  InterfaceType get _interfaceTypeFunctionNone {
+  InterfaceTypeImpl get _interfaceTypeFunctionNone {
     return _typeSystem.typeProvider.functionType.element3.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -329,7 +329,7 @@ class LeastUpperBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType getLeastUpperBound(DartType T1, DartType T2) {
+  TypeImpl getLeastUpperBound(TypeImpl T1, TypeImpl T2) {
     // UP(T, T) = T
     if (identical(T1, T2)) {
       return T1;
@@ -439,11 +439,8 @@ class LeastUpperBoundHelper {
       }
     }
 
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
+    var T1_nullability = T1.nullabilitySuffix;
+    var T2_nullability = T2.nullabilitySuffix;
 
     // UP(T1, T2) where NULL(T1)
     if (T1_isNull) {
@@ -508,10 +505,10 @@ class LeastUpperBoundHelper {
     // UP(T1, T2?) = S? where S is UP(T1, T2)
     if (T1_nullability != NullabilitySuffix.none ||
         T2_nullability != NullabilitySuffix.none) {
-      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
-      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var T1_none = T1.withNullability(NullabilitySuffix.none);
+      var T2_none = T2.withNullability(NullabilitySuffix.none);
       var S = getLeastUpperBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(NullabilitySuffix.question);
+      return S.withNullability(NullabilitySuffix.question);
     }
 
     assert(T1_nullability == NullabilitySuffix.none);
@@ -622,7 +619,7 @@ class LeastUpperBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType _functionType(FunctionType f, FunctionType g) {
+  TypeImpl _functionType(FunctionTypeImpl f, FunctionTypeImpl g) {
     var fTypeFormals = f.typeParameters;
     var gTypeFormals = g.typeParameters;
 
@@ -744,20 +741,20 @@ class LeastUpperBoundHelper {
     );
   }
 
-  DartType? _futureOr(DartType T1, DartType T2) {
-    var T1_futureOr = T1 is InterfaceType && T1.isDartAsyncFutureOr
+  TypeImpl? _futureOr(TypeImpl T1, TypeImpl T2) {
+    var T1_futureOr = T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
         ? T1.typeArguments[0]
         : null;
 
-    var T1_future = T1 is InterfaceType && T1.isDartAsyncFuture
+    var T1_future = T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
         ? T1.typeArguments[0]
         : null;
 
-    var T2_futureOr = T2 is InterfaceType && T2.isDartAsyncFutureOr
+    var T2_futureOr = T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
         ? T2.typeArguments[0]
         : null;
 
-    var T2_future = T2 is InterfaceType && T2.isDartAsyncFuture
+    var T2_future = T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
         ? T2.typeArguments[0]
         : null;
 
@@ -798,7 +795,7 @@ class LeastUpperBoundHelper {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }
 
-  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+  TypeImpl _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {

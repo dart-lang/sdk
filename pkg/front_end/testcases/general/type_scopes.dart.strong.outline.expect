@@ -74,9 +74,9 @@ abstract class _Enum&_Enum&M<T10 extends dynamic> = core::_Enum with self::M<sel
     ;
 }
 class Enum<T10 extends dynamic> extends self::_Enum&_Enum&M<self::Enum::T10%> implements self::I<self::Enum::T10%> /*isEnum*/  {
+  enum-element static const field self::Enum<core::int> a = const self::Enum::•<core::int>(0, "a", 0);
   static field dynamic staticField;
   static const field core::List<self::Enum<dynamic>> values = const <self::Enum<dynamic>>[self::Enum::a];
-  enum-element static const field self::Enum<core::int> a = const self::Enum::•<core::int>(0, "a", 0);
   const constructor •(core::int #index, core::String #name, self::Enum::T10% T10) → self::Enum<self::Enum::T10%>
     : super self::_Enum&_Enum&M::•(#index, #name)
     ;
@@ -159,6 +159,6 @@ static extension-type-member method ET|constructor#_#new#tearOff<X4 extends dyna
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///type_scopes.dart:27:6 -> ListConstant(const <Enum<dynamic>>[const Enum<int>{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///type_scopes.dart:28:3 -> InstanceConstant(const Enum<int>{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///type_scopes.dart:27:6 -> ListConstant(const <Enum<dynamic>>[const Enum<int>{_Enum.index: 0, _Enum._name: "a"}])
 Extra constant evaluation: evaluated: 38, effectively constant: 2

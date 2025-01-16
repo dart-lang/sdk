@@ -93,6 +93,9 @@ abstract class MemberBuilder implements Builder {
 
   bool get isAbstract;
 
+  /// Returns `true` if this member is declared by an enum element.
+  bool get isEnumElement;
+
   /// Returns `true` if this member is a setter that conflicts with the implicit
   /// setter of a field.
   bool get isConflictingSetter;

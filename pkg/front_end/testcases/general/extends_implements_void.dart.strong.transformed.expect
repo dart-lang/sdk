@@ -114,8 +114,8 @@ abstract class _G&_Enum&void extends core::_Enum /*isAnonymousMixin,hasConstCons
     ;
 }
 class G extends self::_G&_Enum&void /*isEnum*/  {
-  static const field core::List<self::G> values = #C4;
   enum-element static const field self::G g = #C3;
+  static const field core::List<self::G> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::G
     : super self::_G&_Enum&void::•(#index, #name)
     ;
@@ -123,8 +123,8 @@ class G extends self::_G&_Enum&void /*isEnum*/  {
     return "G.${this.{core::_Enum::_name}{core::String}}";
 }
 class H extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::H> values = #C7;
   enum-element static const field self::H h = #C6;
+  static const field core::List<self::H> values = #C7;
   const synthetic constructor •(core::int #index, core::String #name) → self::H
     : super core::_Enum::•(#index, #name)
     ;

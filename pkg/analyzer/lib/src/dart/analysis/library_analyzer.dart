@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
@@ -350,16 +351,22 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride();
 
+    var validateUnnecessaryIgnores =
+        _analysisOptions.isLintEnabled('unnecessary_ignore');
+
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var fileAnalysis in _libraryFiles.values) {
+    for (var fileAnalysis in _libraryFiles.values
+        // Only validate non-generated files.
+        .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
-        fileAnalysis.errorReporter,
-        fileAnalysis.errorListener.errors,
-        fileAnalysis.ignoreInfo,
-        fileAnalysis.unit.lineInfo,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
+              fileAnalysis.errorReporter,
+              fileAnalysis.errorListener.errors,
+              fileAnalysis.ignoreInfo,
+              fileAnalysis.unit.lineInfo,
+              _analysisOptions.unignorableNames,
+              validateUnnecessaryIgnores)
+          .reportErrors();
     }
   }
 
@@ -713,7 +720,7 @@ class LibraryAnalyzer {
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
         var errorCode = state.isDocImport
             ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-            : isGeneratedSource(state.importedSource)
+            : state.importedSource.isGenerated
                 ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
                 : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
@@ -1147,4 +1154,8 @@ extension on file_state.DirectiveUri {
     }
     return DirectiveUriImpl();
   }
+}
+
+extension on FileSource {
+  bool get isGenerated => isGeneratedSource(this);
 }

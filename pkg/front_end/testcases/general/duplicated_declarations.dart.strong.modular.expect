@@ -242,20 +242,22 @@ library;
 //   static s() {
 //          ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:4: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
-//   Sub() : super(null);
-//    ^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:17: Error: 'a' is already declared in this scope.
-//   Sub() : super(null);
-//                 ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:12: Context: Previous declaration of 'a'.
-//   Sub() : super(null);
-//            ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:79:3: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:76:3: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
 //   Enum,
-//   ^^^^
+//   ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:78:3: Error: 'a' is already declared in this scope.
+//   a,
+//   ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:77:3: Context: Previous declaration of 'a'.
+//   a,
+//   ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations.dart:79:3: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   Enum,
+//   ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:81:3: Error: 'a' is already declared in this scope.
 //   a,
@@ -264,12 +266,9 @@ library;
 //   a,
 //   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:98:3: Error: 'values' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:98:3: Error: An enum can't declare a member named 'values'.
 //   values,
 //   ^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:91:6: Context: Previous declaration of 'values' is implied by this definition.
-// enum AnotherEnum {
-//      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:9:46: Error: 'Typedef' is already declared in this scope.
 // import 'duplicated_declarations_lib.dart' as Typedef;
@@ -422,8 +421,8 @@ Try removing the extra positional arguments.
                ^";
 }
 class Enum#4#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#4#0> values = #C4;
   enum-element static const field self::Enum#4#0 a = #C3;
+  static const field core::List<self::Enum#4#0> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#4#0
     : super core::_Enum::•(#index, #name)
     ;
@@ -431,10 +430,10 @@ class Enum#4#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
     return "Enum#4#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#3#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#3#0> values = #C12;
   enum-element static const field self::Enum#3#0 a = #C5;
   enum-element static const field self::Enum#3#0 b = #C8;
   enum-element static const field self::Enum#3#0 c = #C11;
+  static const field core::List<self::Enum#3#0> values = #C12;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#3#0
     : super core::_Enum::•(#index, #name)
     ;
@@ -442,10 +441,10 @@ class Enum#3#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
     return "Enum#3#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#2#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  static const field core::List<self::Enum#2#0> values = #C17;
   enum-element static const field self::Enum#2#0 Enum = #C14;
   enum-element static const field self::Enum#2#0 a = #C15;
   enum-element static const field self::Enum#2#0 b = #C16;
+  static const field core::List<self::Enum#2#0> values = #C17;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#2#0
     : super core::_Enum::•(#index, #name)
     ;
@@ -453,10 +452,10 @@ class Enum#2#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
     return "Enum#2#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#1#0 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum#1#0> values = #C21;
   enum-element static const field self::Enum#1#0 a = #C18;
   enum-element static const field self::Enum#1#0 b = #C19;
   enum-element static const field self::Enum#1#0 c = #C20;
+  static const field core::List<self::Enum#1#0> values = #C21;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum#1#0
     : super core::_Enum::•(#index, #name)
     ;
@@ -464,10 +463,10 @@ class Enum#1#0 extends core::_Enum /*isEnum*/  {
     return "Enum#1#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Enum> values = #C25;
   enum-element static const field self::Enum Enum = #C22;
   enum-element static const field self::Enum a = #C23;
   enum-element static const field self::Enum b = #C24;
+  static const field core::List<self::Enum> values = #C25;
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
@@ -475,13 +474,13 @@ class Enum extends core::_Enum /*isEnum*/  {
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::AnotherEnum> values = #C38;
   enum-element static const field self::AnotherEnum a = #C26;
   enum-element static const field self::AnotherEnum b = #C27;
   enum-element static const field self::AnotherEnum c = #C28;
   enum-element static const field self::AnotherEnum _name = #C31;
   enum-element static const field self::AnotherEnum index = #C34;
   enum-element static const field self::AnotherEnum toString = #C37;
+  static const field core::List<self::AnotherEnum> values = #C38;
   const synthetic constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;

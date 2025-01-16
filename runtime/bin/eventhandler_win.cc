@@ -852,7 +852,7 @@ intptr_t ClientSocket::disconnecting_ = 0;
 #endif
 
 void ClientSocket::Shutdown(int how) {
-  int rc = shutdown(socket(), how);
+  shutdown(socket(), how);
   if (how == SD_RECEIVE) {
     MarkClosedRead();
   }

@@ -462,7 +462,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
-  get editorClientCapabilities => _editorClientCapabilities;
+  lsp.LspClientCapabilities get editorClientCapabilities =>
+      _editorClientCapabilities;
 
   /// The [Future] that completes when analysis is complete.
   Future<void> get onAnalysisComplete {

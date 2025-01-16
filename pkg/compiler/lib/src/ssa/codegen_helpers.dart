@@ -1085,7 +1085,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
   }
 
   void tryGenerateAtUseSite(HInstruction instruction) {
-    if (instruction.isControlFlow()) return;
+    if (instruction.isJsStatement()) return;
     markAsGenerateAtUseSite(instruction);
   }
 
@@ -1289,12 +1289,14 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
   bool isSafeToGenerateAtUseSite(HInstruction user, HInstruction input) {
     // HCreate evaluates arguments in order and passes them to a constructor.
     if (user is HCreate) return true;
+
     // A [HForeign] instruction uses operators and if we generate [input] at use
     // site, the precedence or evaluation order might be wrong.
     if (user is HForeign) return false;
-    // A [HCheck] instruction with control flow uses its input
+
+    // A [HCheck] instruction that is a statement sometimes uses its input
     // multiple times, so we avoid generating it at use site.
-    if (user is HCheck && user.isControlFlow()) return false;
+    if (user is HCheck && user.isJsStatement()) return false;
 
     // A read-modify-write like `o.field += value` reads the field before
     // evaluating the value, so if we generate [input] at the value, the order

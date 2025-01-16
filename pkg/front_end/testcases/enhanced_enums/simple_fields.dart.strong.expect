@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  final field core::int foo;
-  static const field core::List<self::E1> values = #C8;
   enum-element static const field self::E1 one = #C4;
   enum-element static const field self::E1 two = #C7;
+  final field core::int foo;
+  static const field core::List<self::E1> values = #C8;
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E1
     : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
@@ -17,12 +17,12 @@ class E1 extends core::_Enum /*isEnum*/  {
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  final field self::E2::X% foo;
-  final field self::E2::Y% bar;
-  static const field core::List<self::E2<dynamic, dynamic>> values = #C13;
   enum-element static const field self::E2<core::int, core::String> one = #C9;
   enum-element static const field self::E2<core::int, core::String> two = #C10;
   enum-element static const field self::E2<core::String, core::String> three = #C12;
+  final field self::E2::X% foo;
+  final field self::E2::Y% bar;
+  static const field core::List<self::E2<dynamic, dynamic>> values = #C13;
   const constructor •(core::int #index, core::String #name, self::E2::X% foo, self::E2::Y% bar) → self::E2<self::E2::X%, self::E2::Y%>
     : self::E2::foo = foo, self::E2::bar = bar, super core::_Enum::•(#index, #name)
     ;

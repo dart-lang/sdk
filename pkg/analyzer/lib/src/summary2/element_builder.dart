@@ -1255,7 +1255,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
             fragment.name2,
             fragment,
           );
-          enclosingBuilder.element.methods2.add(element);
+          enclosingBuilder.element.internal_methods2.add(element);
         }
       }
     }

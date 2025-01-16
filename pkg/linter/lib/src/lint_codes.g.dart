@@ -1636,6 +1636,38 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_ignore = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+    "to be ignored.",
+    correctionMessage: "Try removing the ignore comment.",
+    uniqueName: 'unnecessary_ignore',
+  );
+
+  static const LintCode unnecessary_ignore_file = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
+    "ignored.",
+    correctionMessage: "Try removing the ignore comment.",
+    uniqueName: 'unnecessary_ignore_file',
+  );
+
+  static const LintCode unnecessary_ignore_name = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+    "to be ignored.",
+    correctionMessage: "Try removing the name from the list.",
+    uniqueName: 'unnecessary_ignore_name',
+  );
+
+  static const LintCode unnecessary_ignore_name_file = LinterLintCode(
+    LintNames.unnecessary_ignore,
+    "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
+    "ignored.",
+    correctionMessage: "Try removing the name from the list.",
+    uniqueName: 'unnecessary_ignore_name_file',
+  );
+
   static const LintCode unnecessary_lambdas = LinterLintCode(
     LintNames.unnecessary_lambdas,
     "Closure should be a tearoff.",

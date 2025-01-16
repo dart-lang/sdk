@@ -24,7 +24,6 @@ import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
-import 'source_enum_builder.dart';
 import 'source_library_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
@@ -231,9 +230,15 @@ abstract class BuilderFactory {
       required List<NominalParameterBuilder>? typeParameters,
       required MixinApplicationBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
-      required List<EnumConstantInfo?>? enumConstantInfos,
       required int startOffset,
       required int endOffset});
+
+  void addEnumElement(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required ConstructorReferenceBuilder? constructorReferenceBuilder,
+      required Token? argumentsBeginToken});
 
   void addExtensionDeclaration(
       {required OffsetMap offsetMap,

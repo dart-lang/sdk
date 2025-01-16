@@ -296,10 +296,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }) {
     LintCode? lintCode;
     (DartType, DartType) eraseTypes(DartType left, DartType right) {
-      var erasedLeft = typeSystem.promoteToNonNull(
+      DartType erasedLeft = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(left),
       );
-      var erasedRight = typeSystem.promoteToNonNull(
+      DartType erasedRight = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(right),
       );
       var leftIsInteropType = _isJsInteropType(

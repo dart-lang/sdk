@@ -7467,17 +7467,6 @@ class WarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const WarningCode UNNECESSARY_IGNORE = WarningCode(
-    'UNNECESSARY_IGNORE',
-    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
-        "to be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-  );
-
   ///  No parameters.
   static const WarningCode UNNECESSARY_NAN_COMPARISON_FALSE = WarningCode(
     'UNNECESSARY_NAN_COMPARISON',

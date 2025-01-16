@@ -10,9 +10,9 @@ import 'package:kernel/src/printer.dart';
 
 import '../base/constant_context.dart';
 import '../base/problems.dart' show unsupported;
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/inferable_type_builder.dart';
+import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
 import '../source/source_class_builder.dart';
@@ -36,6 +36,10 @@ abstract class InferredType extends AuxiliaryType {
   factory InferredType.fromFieldFragmentInitializer(
           FieldFragment fieldFragment, Token? initializerToken) =
       _ImplicitFieldFragmentTypeRoot;
+
+  factory InferredType.fromEnumElementInitializer(
+          EnumElementFragment enumElementFragment) =
+      _ImplicitEnumElementFragmentType;
 
   factory InferredType.fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
       _InferredTypeUse;
@@ -98,6 +102,7 @@ abstract class InferredType extends AuxiliaryType {
   DartType computeType(ClassHierarchyBase hierarchy);
 }
 
+// Coverage-ignore(suite): Not run.
 class _ImplicitFieldTypeRoot extends InferredType {
   final SourceFieldBuilder fieldBuilder;
 
@@ -107,11 +112,9 @@ class _ImplicitFieldTypeRoot extends InferredType {
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
 
   @override
-  // Coverage-ignore(suite): Not run.
   Uri get fileUri => fieldBuilder.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get charOffset => fieldBuilder.fileOffset;
 
   @override
@@ -122,7 +125,6 @@ class _ImplicitFieldTypeRoot extends InferredType {
   @override
   DartType computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
-      // Coverage-ignore-block(suite): Not run.
       fieldBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity
               .withArguments(fieldBuilder.name),
@@ -135,14 +137,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
     }
     isStarted = true;
     DartType? inferredType;
-    Builder? parent = fieldBuilder.parent;
-    if (parent is SourceEnumBuilder &&
-        parent.elementBuilders.contains(fieldBuilder)) {
-      inferredType = parent.buildElement(
-          fieldBuilder, parent.libraryBuilder.loader.coreTypes);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (initializerToken != null) {
+    if (initializerToken != null) {
       InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
           ? null
           : fieldBuilder.libraryBuilder.loader.typeInferenceEngine.coreTypes
@@ -183,13 +178,11 @@ class _ImplicitFieldTypeRoot extends InferredType {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('<implicit-field-type:$fieldBuilder>');
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is _ImplicitFieldTypeRoot &&
@@ -243,14 +236,7 @@ class _ImplicitFieldFragmentTypeRoot extends InferredType {
     SourceLibraryBuilder libraryBuilder = _fieldFragment.builder.libraryBuilder;
     DeclarationBuilder? declarationBuilder =
         _fieldFragment.builder.declarationBuilder;
-    if (declarationBuilder is SourceEnumBuilder &&
-        declarationBuilder.elementBuilders.contains(_fieldFragment.builder)) {
-      // Coverage-ignore-block(suite): Not run.
-      inferredType = declarationBuilder.buildElement(
-          // TODO(johnniwinther): Create a EnumElementFragment to avoid this.
-          _fieldFragment.builder as SourceFieldBuilder,
-          libraryBuilder.loader.coreTypes);
-    } else if (initializerToken != null) {
+    if (initializerToken != null) {
       InterfaceType? enclosingClassThisType = declarationBuilder
               is SourceClassBuilder
           ? libraryBuilder.loader.typeInferenceEngine.coreTypes
@@ -308,6 +294,73 @@ class _ImplicitFieldFragmentTypeRoot extends InferredType {
 
   @override
   int get hashCode => _fieldFragment.hashCode;
+
+  @override
+  String toString() => 'ImplicitFieldType(${toStringInternal()})';
+}
+
+class _ImplicitEnumElementFragmentType extends InferredType {
+  final EnumElementFragment _enumElementFragment;
+
+  bool isStarted = false;
+
+  _ImplicitEnumElementFragmentType(this._enumElementFragment) : super._();
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _enumElementFragment.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => _enumElementFragment.nameOffset;
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return _enumElementFragment.inferType(hierarchy);
+  }
+
+  @override
+  DartType computeType(ClassHierarchyBase hierarchy) {
+    if (isStarted) {
+      // Coverage-ignore-block(suite): Not run.
+      _enumElementFragment.builder.libraryBuilder.addProblem(
+          templateCantInferTypeDueToCircularity
+              .withArguments(_enumElementFragment.name),
+          _enumElementFragment.nameOffset,
+          _enumElementFragment.name.length,
+          _enumElementFragment.fileUri);
+      DartType type = const InvalidType();
+      _enumElementFragment.type.registerInferredType(type);
+      return type;
+    }
+    isStarted = true;
+    SourceLibraryBuilder libraryBuilder =
+        _enumElementFragment.builder.libraryBuilder;
+    SourceEnumBuilder sourceEnumBuilder =
+        _enumElementFragment.builder.declarationBuilder as SourceEnumBuilder;
+    _enumElementFragment.buildElement(
+        sourceEnumBuilder,
+        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
+        libraryBuilder.loader.coreTypes);
+    return _enumElementFragment.fieldType;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<implicit-field-type:$_enumElementFragment>');
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    return other is _ImplicitEnumElementFragmentType &&
+        _enumElementFragment == other._enumElementFragment;
+  }
+
+  @override
+  int get hashCode => _enumElementFragment.hashCode;
 
   @override
   String toString() => 'ImplicitFieldType(${toStringInternal()})';

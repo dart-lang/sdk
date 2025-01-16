@@ -126,6 +126,9 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
+  @override
+  bool get isEnumElement => false;
+
   // TODO(johnniwinther): What is this supposed to return?
   @override
   // Coverage-ignore(suite): Not run.

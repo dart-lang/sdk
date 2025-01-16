@@ -1,4 +1,8 @@
-# 3.7.0-wip
+# 3.8.0-wip
+
+- new _(experimental)_ lint: `unnecessary_ignore`
+
+# 3.7.0
 
 - new lint: `unnecessary_underscores`
 - new lint: `strict_top_level_inference`

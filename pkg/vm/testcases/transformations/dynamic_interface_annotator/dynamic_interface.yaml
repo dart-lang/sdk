@@ -18,7 +18,7 @@ extendable:
 
 can-be-overridden:
   - library: 'lib1.dart'
-    class: ['A', 'U']
+    class: ['A', 'Q', 'U']
   - library: 'lib2.dart'
     class: 'D'
     member: 'build'

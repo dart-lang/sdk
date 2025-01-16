@@ -2116,13 +2116,9 @@ class Class : public Object {
   // It means that variable of static type based on this class may hold
   // a Future instance.
   using CanBeFutureBit = BitField<uint32_t, bool, IsFutureSubtypeBit::kNextBit>;
-  // This class can be extended, implemented or mixed-in by
-  // a dynamically loaded class.
-  using IsDynamicallyExtendableBit =
-      BitField<uint32_t, bool, CanBeFutureBit::kNextBit>;
   // This class has a dynamically extendable subtype.
   using HasDynamicallyExtendableSubtypesBit =
-      BitField<uint32_t, bool, IsDynamicallyExtendableBit::kNextBit>;
+      BitField<uint32_t, bool, CanBeFutureBit::kNextBit>;
   // This class was loaded from bytecode at runtime.
   using IsDeclaredInBytecodeBit =
       BitField<uint32_t, bool, HasDynamicallyExtendableSubtypesBit::kNextBit>;
@@ -2194,11 +2190,6 @@ class Class : public Object {
 
   void set_can_be_future(bool value) const;
   bool can_be_future() const { return CanBeFutureBit::decode(state_bits()); }
-
-  void set_is_dynamically_extendable(bool value) const;
-  bool is_dynamically_extendable() const {
-    return IsDynamicallyExtendableBit::decode(state_bits());
-  }
 
   void set_has_dynamically_extendable_subtypes(bool value) const;
   bool has_dynamically_extendable_subtypes() const {

@@ -56,9 +56,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   /// The declarations that introduces this property. Subsequent property of the
   /// same name must be augmentations.
-  // TODO(johnniwinther): Support setter and field declarations.
   // TODO(johnniwinther): Add [_augmentations] field.
-  FieldFragment? _introductoryField;
+  FieldDeclaration? _introductoryField;
   GetterFragment? _introductoryGetable;
   SetterFragment? _introductorySetable;
 
@@ -125,11 +124,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.declarationBuilder,
       required this.isStatic,
       required NameScheme nameScheme,
-      required FieldFragment fragment,
+      required FieldDeclaration fragment,
+      required Modifiers modifiers,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
         _introductoryField = fragment,
-        _modifiers = fragment.modifiers,
+        _modifiers = modifiers,
         _references = references,
         _memberName = nameScheme.getDeclaredName(name);
 
@@ -154,6 +154,9 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isSynthesized => false;
+
+  @override
+  bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
 
   // TODO(johnniwinther): What is this supposed to return?
   @override
