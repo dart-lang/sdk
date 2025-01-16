@@ -211,7 +211,6 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
           if (_sortCombinators) {
             allNames.sort();
           }
-          // TODO(FMorschel): Use the utility function instead of ', '.
           var combinator = 'hide ${allNames.join(', ')}';
           builder.addSimpleReplacement(range.node(hide), combinator);
         } else {
@@ -287,7 +286,6 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
           var hideCombinator = ' hide $_elementName';
           builder.addSimpleInsertion(directive.end - 1, hideCombinator);
         } else {
-          // TODO(FMorschel): Use the utility function instead of ', '.
           var combinator = 'show ${allNames.join(', ')}';
           var range = SourceRange(show.offset, show.length);
           builder.addSimpleReplacement(range, combinator);
