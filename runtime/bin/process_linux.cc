@@ -246,11 +246,47 @@ int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = nullptr;
 
+// Tries to find path relative to the current namespace unless it should be
+// searched in the PATH environment variable.
+// The path that should be passed to exec is returned in realpath.
+// Returns true on success, and false if there was an error that should
+// be reported to the parent.
+static bool PathInNamespace(char* realpath,
+                            intptr_t realpath_size,
+                            Namespace* namespc,
+                            const char* path) {
+  // Perform a PATH search if there's no slash in the path.
+  if (Namespace::IsDefault(namespc) || strchr(path, '/') == nullptr) {
+    // TODO(zra): If there is a non-default namespace, the entries in PATH
+    // should be treated as relative to the namespace.
+    strncpy(realpath, path, realpath_size);
+    realpath[realpath_size - 1] = '\0';
+    return true;
+  }
+  NamespaceScope ns(namespc, path);
+  const int fd =
+      TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY | O_CLOEXEC));
+  if (fd == -1) {
+    return false;
+  }
+  char procpath[PATH_MAX];
+  snprintf(procpath, PATH_MAX, "/proc/self/fd/%d", fd);
+  const intptr_t length =
+      TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size));
+  if (length < 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return false;
+  }
+  realpath[length] = '\0';
+  FDUtils::SaveErrorAndClose(fd);
+  return true;
+}
+
 class ProcessStarter {
  public:
   ProcessStarter(Namespace* namespc,
                  const char* path,
-                 char* arguments[],
+                 const char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
                  char* environment[],
@@ -281,7 +317,7 @@ class ProcessStarter {
     exec_control_[0] = -1;
     exec_control_[1] = -1;
 
-    program_arguments_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
+    program_arguments_ = reinterpret_cast<const char**>(Dart_ScopeAllocate(
         (arguments_length + 2) * sizeof(*program_arguments_)));
     program_arguments_[0] = const_cast<char*>(path_);
     for (int i = 0; i < arguments_length; i++) {
@@ -447,31 +483,7 @@ class ProcessStarter {
   // Returns true on success, and false if there was an error that should
   // be reported to the parent.
   bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
-    // Perform a PATH search if there's no slash in the path.
-    if (Namespace::IsDefault(namespc_) || strchr(path_, '/') == nullptr) {
-      // TODO(zra): If there is a non-default namespace, the entries in PATH
-      // should be treated as relative to the namespace.
-      strncpy(realpath, path_, realpath_size);
-      realpath[realpath_size - 1] = '\0';
-      return true;
-    }
-    NamespaceScope ns(namespc_, path_);
-    const int fd =
-        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY | O_CLOEXEC));
-    if (fd == -1) {
-      return false;
-    }
-    char procpath[PATH_MAX];
-    snprintf(procpath, PATH_MAX, "/proc/self/fd/%d", fd);
-    const intptr_t length =
-        TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size));
-    if (length < 0) {
-      FDUtils::SaveErrorAndClose(fd);
-      return false;
-    }
-    realpath[length] = '\0';
-    FDUtils::SaveErrorAndClose(fd);
-    return true;
+    return PathInNamespace(realpath, realpath_size, namespc_, path_);
   }
 
   void ExecProcess() {
@@ -772,7 +784,7 @@ class ProcessStarter {
   int write_out_[2];     // Pipe for stdin to child process.
   int exec_control_[2];  // Pipe to get the result from exec.
 
-  char** program_arguments_;
+  const char** program_arguments_;
   char** program_environment_;
 
   Namespace* namespc_;
@@ -792,7 +804,7 @@ class ProcessStarter {
 
 int Process::Start(Namespace* namespc,
                    const char* path,
-                   char* arguments[],
+                   const char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
@@ -912,6 +924,31 @@ bool Process::Wait(intptr_t pid,
   result->set_exit_code(exit_code);
 
   return true;
+}
+
+int Process::Exec(Namespace* namespc,
+                  const char* path,
+                  const char* arguments[],
+                  intptr_t arguments_length,
+                  const char* working_directory,
+                  char* errmsg,
+                  intptr_t errmsg_len) {
+  if (working_directory != nullptr &&
+      !Directory::SetCurrent(namespc, working_directory)) {
+    Utils::StrError(errno, errmsg, errmsg_len);
+    return -1;
+  }
+
+  char realpath[PATH_MAX];
+  if (!PathInNamespace(realpath, PATH_MAX, namespc, path)) {
+    Utils::StrError(errno, errmsg, errmsg_len);
+    return -1;
+  }
+  // TODO(dart:io) Test for the existence of execveat, and use it instead.
+  execvp(const_cast<const char*>(realpath),
+         const_cast<char* const*>(arguments));
+  Utils::StrError(errno, errmsg, errmsg_len);
+  return -1;
 }
 
 bool Process::Kill(intptr_t id, int signal) {
