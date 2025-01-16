@@ -12,6 +12,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode, SimpleErrorReporter;
 
+import '../target_arch.dart';
 import '../target_os.dart';
 import 'pragma.dart';
 
@@ -26,6 +27,7 @@ import 'pragma.dart';
 /// immediately-invoked closures wrapping complex initializing code in field
 /// initializers, we enable constant evaluation of functions.
 class VMConstantEvaluator extends ConstantEvaluator {
+  final TargetArch? _targetArch;
   final TargetOS? _targetOS;
   final Map<String, Constant> _constantFields = {};
 
@@ -39,6 +41,7 @@ class VMConstantEvaluator extends ConstantEvaluator {
       Map<String, String>? environmentDefines,
       TypeEnvironment typeEnvironment,
       ErrorReporter errorReporter,
+      this._targetArch,
       this._targetOS,
       this._pragmaParser,
       {bool enableTripleShift = false,
@@ -56,15 +59,22 @@ class VMConstantEvaluator extends ConstantEvaluator {
             evaluationMode: EvaluationMode.strong) {
     // Only add Platform fields if the Platform class is part of the component
     // being evaluated.
-    if (_targetOS != null && _platformClass != null) {
-      _constantFields['operatingSystem'] = StringConstant(_targetOS.name);
-      _constantFields['pathSeparator'] =
-          StringConstant(_targetOS.pathSeparator);
+    if (_platformClass != null) {
+      if (_targetArch != null) {
+        _constantFields['architecture'] = StringConstant(_targetArch.name);
+      }
+
+      if (_targetOS != null) {
+        _constantFields['operatingSystem'] = StringConstant(_targetOS.name);
+        _constantFields['pathSeparator'] =
+            StringConstant(_targetOS.pathSeparator);
+      }
     }
   }
 
   static VMConstantEvaluator create(
-      Target target, Component component, TargetOS? targetOS,
+      Target target, Component component,
+      TargetArch? targetArch, TargetOS? targetOS,
       {bool evaluateAnnotations = true,
       bool enableTripleShift = false,
       bool enableConstructorTearOff = false,
@@ -90,6 +100,7 @@ class VMConstantEvaluator extends ConstantEvaluator {
         environmentDefines,
         typeEnvironment,
         errorReporter ?? const SimpleErrorReporter(),
+        targetArch,
         targetOS,
         ConstantPragmaAnnotationParser(coreTypes, target),
         enableTripleShift: enableTripleShift,

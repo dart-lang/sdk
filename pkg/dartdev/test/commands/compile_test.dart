@@ -420,6 +420,7 @@ void defineCompileTests() {
         mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+    final targetArch = Platform.architecture;
     final targetOS = Platform.isLinux ? 'macos' : 'linux';
 
     final result = await p.run(
@@ -427,6 +428,8 @@ void defineCompileTests() {
         'compile',
         'exe',
         '-v',
+        '--target-arch',
+        targetArch,
         '--target-os',
         targetOS,
         '-o',
@@ -477,6 +480,7 @@ void defineCompileTests() {
   }, skip: isRunningOnIA32);
 
   test('Compile aot snapshot can compile to host platform', () async {
+    final targetArch = Platform.architecture;
     final targetOS = Platform.operatingSystem;
     final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -487,6 +491,8 @@ void defineCompileTests() {
         'compile',
         'aot-snapshot',
         '-v',
+        '--target-arch',
+        targetArch,
         '--target-os',
         targetOS,
         '-o',

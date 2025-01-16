@@ -18,6 +18,12 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
 }
 
+void FUNCTION_NAME(Platform_Architecture)(Dart_NativeArguments args) {
+  Dart_Handle str = DartUtils::NewString(Platform::HostArchitecture());
+  ThrowIfError(str);
+  Dart_SetReturnValue(args, str);
+}
+
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_Handle str = DartUtils::NewString(Platform::OperatingSystem());
   ThrowIfError(str);
