@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -41,7 +43,8 @@ class Module implements Serializable {
       Serializer.traceEnabled = true;
     }
     // Wasm module preamble: magic number, version 1.
-    s.writeBytes(const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]);
+    s.writeBytes(Uint8List.fromList(
+        const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]));
     TypeSection(types, watchPoints).serialize(s);
     ImportSection(imports, watchPoints).serialize(s);
     FunctionSection(functions.defined, watchPoints).serialize(s);

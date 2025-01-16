@@ -788,7 +788,7 @@ class SuggestionBuilder {
       builder,
     ) {
       builder.addReplacement(replacementRange, (builder) {
-        builder.writeOverride2(
+        builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,
           invokeSuper: invokeSuper,

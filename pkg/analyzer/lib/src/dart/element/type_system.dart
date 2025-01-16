@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
@@ -13,6 +15,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast.dart' show AstNodeImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
@@ -103,17 +106,14 @@ class TypeSystemImpl implements TypeSystem {
     _subtypeHelper = SubtypeHelper(this);
   }
 
-  InterfaceTypeImpl get nullNone =>
-      _nullNone ??= (typeProvider.nullType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.none);
+  InterfaceTypeImpl get nullNone => _nullNone ??=
+      typeProvider.nullType.withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectNone =>
-      _objectNone ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.none);
+  InterfaceTypeImpl get objectNone => _objectNone ??=
+      typeProvider.objectType.withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectQuestion =>
-      _objectQuestion ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get objectQuestion => _objectQuestion ??=
+      typeProvider.objectType.withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -644,7 +644,7 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -1687,7 +1687,7 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictCasts,
     required TypeSystemOperations typeSystemOperations,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be

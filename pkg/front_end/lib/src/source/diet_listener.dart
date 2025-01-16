@@ -45,7 +45,6 @@ import '../type_inference/type_inference_engine.dart'
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
 import 'offset_map.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
 
@@ -932,13 +931,14 @@ class DietListener extends StackListenerImpl {
     if (names == null || currentClassIsParserRecovery) return;
 
     Identifier first = names.first!;
-    SourceFieldBuilder declaration = _offsetMap.lookupField(first);
+    FieldFragment fragment = _offsetMap.lookupField(first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
         _offsetMap,
-        createListener(declaration.createBodyBuilderContext(), memberScope,
-            inferenceDataForTesting: declaration
+        createListener(fragment.createBodyBuilderContext(), memberScope,
+            inferenceDataForTesting: fragment
+                .builder
                 .dataForTesting
                 // Coverage-ignore(suite): Not run.
                 ?.inferenceData),

@@ -126,7 +126,7 @@ class PropertyDescription {
         if (expression != null) {
           builder.write(expression);
         } else if (enumElement != null && enumValue != null) {
-          builder.writeReference2(enumElement);
+          builder.writeReference(enumElement);
           builder.write('.');
           builder.write(enumValue.name);
         } else {
@@ -241,7 +241,7 @@ class PropertyDescription {
             return;
           }
           parent._changeCode(builder, (builder) {
-            builder.writeReference2(classDescription.element);
+            builder.writeReference(classDescription.element);
             // TODO(scheglov): constructor name
             builder.write('(');
             builder.write(parameterName);
@@ -270,7 +270,7 @@ class PropertyDescription {
       builder.addReplacement(
         range.startEnd(parentCreation, parentCreation.constructorName),
         (builder) {
-          builder.writeReference2(virtualContainer.containerElement);
+          builder.writeReference(virtualContainer.containerElement);
         },
       );
 
@@ -312,7 +312,7 @@ class PropertyDescription {
       });
     } else {
       builder.addInsertion(virtualContainer.widgetCreation.offset, (builder) {
-        builder.writeReference2(virtualContainer.containerElement);
+        builder.writeReference(virtualContainer.containerElement);
         builder.write('(');
 
         builder.write(parameterName);
@@ -548,7 +548,7 @@ class _EdgeInsetsProperty {
     await builder.addDartFileEdit(property.resolvedUnit.path, (builder) {
       property._changeCode(builder, (builder) {
         if (leftCode == rightCode && topCode == bottomCode) {
-          builder.writeReference2(classEdgeInsets);
+          builder.writeReference(classEdgeInsets);
           if (leftCode == topCode) {
             builder.write('.all(');
             builder.write(leftCode);
@@ -571,7 +571,7 @@ class _EdgeInsetsProperty {
             builder.write(')');
           }
         } else {
-          builder.writeReference2(classEdgeInsets);
+          builder.writeReference(classEdgeInsets);
           builder.write('.only(');
           var needsComma = false;
           if (leftCode != '0') {

@@ -118,8 +118,8 @@ class AnalyzerStatePrinter {
 
   void _writeDocImports(FileKind container) {
     _writeElements<LibraryImportState>(
-      'docImports',
-      container.docImports,
+      'docLibraryImports',
+      container.docLibraryImports,
       (import) {
         expect(import.isDocImport, isTrue);
         _writeLibraryImport(container, import);

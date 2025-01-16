@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 // TODO(johnniwinther): .
 // TODO(paulberry): Use the code for extraction of test data from
 // annotated code from CFE.

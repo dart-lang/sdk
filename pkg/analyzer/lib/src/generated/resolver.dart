@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
@@ -2763,7 +2765,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(covariant FormalParameterListImpl node) {
     // Formal parameter lists can contain default values, which in turn contain
     // expressions, so we need flow analysis to be available to process those
     // expressions.
@@ -4059,7 +4061,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AstNode errorNode,
     required DartType declaredType,
     required DartType contextType,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     inferenceLogWriter?.enterGenericInference(typeParameters, declaredType);
     var inferrer = GenericInferrer(
@@ -4524,7 +4526,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   Scope nameScope;
 
   /// The scope of libraries imported by `@docImport`s.
-  final DocImportScope _docImportScope;
+  final DocumentationCommentScope _docImportScope;
 
   /// The scope used to resolve unlabeled `break` and `continue` statements.
   ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
@@ -4551,7 +4553,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     this.errorReporter, {
     required this.nameScope,
     List<LibraryElement> docImportLibraries = const [],
-  }) : _docImportScope = DocImportScope(nameScope, docImportLibraries);
+  }) : _docImportScope =
+            DocumentationCommentScope(nameScope, docImportLibraries);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
@@ -5409,7 +5412,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  /// Visits a documentation comment with a [DocImportScope] that encloses the
+  /// Visits a documentation comment with a [DocumentationCommentScope] that encloses the
   /// current [nameScope].
   void _visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;

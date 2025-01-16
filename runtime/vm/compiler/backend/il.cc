@@ -5721,6 +5721,31 @@ static Definition* CanonicalizeStringInterpolateSingle(StaticCallInstr* call,
   return call;
 }
 
+static bool CanFlowIntoCatch(FlowGraph* flow_graph, Definition* defn) {
+  if (flow_graph->try_entries().is_empty()) {
+    // No try/catch blocks.
+    return false;
+  }
+
+  if (defn->env_use_list() == nullptr) {
+    // No uses in environments.
+    return false;
+  }
+
+  for (auto use : defn->environment_uses()) {
+    if (use->instruction()->MayThrow() &&
+        use->instruction()->GetBlock()->InsideTryBlock()) {
+      // Conservatively assume that this value might end up in the
+      // corresponding catch. Ideally we would like to check if
+      // there is a corresponding catch parameter, but there is no
+      // straightforward way to do that.
+      return true;
+    }
+  }
+
+  return false;
+}
+
 Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   auto& compiler_state = CompilerState::Current();
 
@@ -5760,9 +5785,9 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (kind == MethodRecognizer::kObjectRuntimeType) {
-    if (input_use_list() == nullptr) {
+    if (input_use_list() == nullptr && !CanFlowIntoCatch(flow_graph, this)) {
       // This function has only environment uses. In precompiled mode it is
-      // fine to remove it - because we will never deoptimize.
+      // fine to remove it if the value can't flow into the catch block entry.
       return flow_graph->constant_dead();
     }
   }

@@ -58,7 +58,7 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
         builder.write('class _');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
-        builder.writeReference2(classState);
+        builder.writeReference(classState);
         builder.write('<');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('> {');

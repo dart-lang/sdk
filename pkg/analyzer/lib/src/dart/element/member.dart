@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1078,7 +1080,7 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with ParameterElementMixin
+    with ParameterElementMixin, FormalParameterElementMixin
     implements ParameterElement, FormalParameterElementOrMember {
   @override
   final List<TypeParameterElement> typeParameters;
@@ -1195,6 +1197,9 @@ class ParameterMember extends VariableMember
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
   @override
+  DartType get typeShared => type;
+
+  @override
   FormalParameterElement get _element2 => declaration.asElement2;
 
   @override
@@ -1209,11 +1214,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    _element2.appendToWithoutDelimiters2(buffer);
   }
 
   @override

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 /// Defines the elements and fragments that are part of the element model.
 ///
 /// The element model describes the semantic (as opposed to syntactic) structure

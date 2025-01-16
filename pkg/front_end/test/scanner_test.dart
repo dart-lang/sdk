@@ -528,13 +528,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_extension() {
-    _assertKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: true));
-  }
-
-  void test_keyword_extension_old() {
-    _assertNotKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: false));
+    _assertKeywordToken("extension", configuration: ScannerConfiguration());
   }
 
   void test_keyword_factory() {
@@ -594,13 +588,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_late() {
-    _assertKeywordToken("late",
-        configuration: ScannerConfiguration(enableNonNullable: true));
-  }
-
-  void test_keyword_late_old() {
-    _assertNotKeywordToken("late",
-        configuration: ScannerConfiguration(enableNonNullable: false));
+    _assertKeywordToken("late", configuration: ScannerConfiguration());
   }
 
   void test_keyword_library() {
@@ -648,13 +636,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_required() {
-    _assertKeywordToken("required",
-        configuration: ScannerConfiguration(enableNonNullable: true));
-  }
-
-  void test_keyword_required_disabled() {
-    _assertNotKeywordToken("required",
-        configuration: ScannerConfiguration(enableNonNullable: false));
+    _assertKeywordToken("required", configuration: ScannerConfiguration());
   }
 
   void test_keyword_rethrow() {
@@ -1446,27 +1428,6 @@ abstract class ScannerTestBase {
     value = token.value();
     expect(value is Keyword, isTrue);
     expect((value as Keyword).lexeme, source);
-    expect(token.next!.type, TokenType.EOF);
-  }
-
-  /**
-   * Assert that when scanned the given [source] contains a single identifier
-   * token with the same lexeme as the original source.
-   */
-  void _assertNotKeywordToken(String source,
-      {ScannerConfiguration? configuration}) {
-    Token token = _scan(source, configuration: configuration);
-    expect(token, isNotNull);
-    expect(token.type.isKeyword, false);
-    expect(token.offset, 0);
-    expect(token.length, source.length);
-    expect(token.lexeme, source);
-    token = _scan(" $source ", configuration: configuration);
-    expect(token, isNotNull);
-    expect(token.type.isKeyword, false);
-    expect(token.offset, 1);
-    expect(token.length, source.length);
-    expect(token.lexeme, source);
     expect(token.next!.type, TokenType.EOF);
   }
 

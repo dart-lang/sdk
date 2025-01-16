@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -269,14 +271,15 @@ class ExtensionMemberResolver {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
         var argument = typeArgumentTypes[i];
         var parameter = typeParameters[i];
+        var name = parameter.name3;
         var parameterBound = parameter.bound;
-        if (parameterBound != null) {
+        if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.atNode(
               typeArgumentList.arguments[i],
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              arguments: [argument, parameter.name3, parameterBound],
+              arguments: [argument, name, parameterBound],
             );
           }
         }
@@ -337,7 +340,7 @@ class ExtensionMemberResolver {
   List<DartType>? _inferTypeArguments(
       ExtensionOverride node, DartType receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNode? nodeForTesting}) {
+      required AstNodeImpl? nodeForTesting}) {
     var element = node.element2;
     var typeParameters = element.typeParameters2;
     var typeArguments = node.typeArguments;

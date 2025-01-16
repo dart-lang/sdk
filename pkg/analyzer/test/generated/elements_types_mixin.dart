@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -123,7 +125,7 @@ mixin ElementsTypesMixin {
     bool isAugmentation = false,
     bool isSealed = false,
     InterfaceType? superType,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
     List<MethodElementImpl> methods = const [],
@@ -186,7 +188,7 @@ mixin ElementsTypesMixin {
     required DartType extendedType,
     String? name,
     bool isAugmentation = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
@@ -203,7 +205,7 @@ mixin ElementsTypesMixin {
     String name, {
     String representationName = 'it',
     required DartType representationType,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
     var fragment = ExtensionTypeElementImpl(name, -1);
@@ -401,8 +403,8 @@ mixin ElementsTypesMixin {
     String name,
     DartType returnType, {
     bool isStatic = false,
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic
@@ -414,7 +416,7 @@ mixin ElementsTypesMixin {
   MixinElementImpl mixin_({
     required String name,
     bool isAugmentation = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
@@ -575,7 +577,7 @@ mixin ElementsTypesMixin {
 
   TypeAliasElementImpl typeAlias({
     required String name,
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);

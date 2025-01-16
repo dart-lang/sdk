@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -74,19 +73,6 @@ bool _isOldModelType(DartType? type) {
   return visitor.result;
 }
 
-/// The lint must be enabled for a Pub package.
-///
-/// The lint rule reads once the file `analyzer_use_new_elements.txt`
-/// from the root of the package (next to `pubspec.yaml`). Then it uses
-/// the content of the file until DAS is restarted.
-///
-/// The file should have path prefixes from the root of the package.
-/// For example `lib/src/services/correction/dart/add_async.dart` as a line.
-/// It could be also the whole directory: `lib/src/services/correction/dart/`.
-/// These are just path prefixes, not regular expressions.
-///
-/// When you start migrating a Dart file, add it to the opt-in file, restart
-/// DAS, and open the file in your IDE.
 class AnalyzerUseNewElements extends LintRule {
   static const LintCode code = LintCode(
     'analyzer_use_new_elements',
@@ -111,87 +97,10 @@ class AnalyzerUseNewElements extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!_isEnabledForFile(context)) {
-      return;
-    }
-
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
     registry.addNamedType(this, visitor);
     registry.addSimpleIdentifier(this, visitor);
-  }
-
-  bool _isEnabledForFile(LinterContext context) {
-    if (!useOptInFile) {
-      return true;
-    }
-
-    if (context.package case PubPackage pubPackage) {
-      if (_FilesRegistry.get(pubPackage) case var filesRegistry?) {
-        var file = context.definingUnit.file;
-        return filesRegistry.isEnabled(file);
-      }
-    }
-    return false;
-  }
-
-  static void resetCaches() {
-    _FilesRegistry._registry.clear();
-  }
-}
-
-class _FilesRegistry {
-  static final Map<Folder, _FilesRegistry?> _registry = {};
-
-  final Folder rootFolder;
-  final List<String> relativePaths;
-
-  _FilesRegistry({
-    required this.rootFolder,
-    required this.relativePaths,
-  });
-
-  bool isEnabled(File file) {
-    if (!file.path.endsWith('.dart')) {
-      return false;
-    }
-
-    var rootPath = rootFolder.path;
-    if (!file.path.startsWith(rootPath)) {
-      return false;
-    }
-
-    var relativePath = file.path.substring(rootPath.length + 1);
-    return !relativePaths.contains(relativePath);
-  }
-
-  /// Note, we cache statically, to reload restart the server.
-  static _FilesRegistry? get(PubPackage pubPackage) {
-    var rootFolder = pubPackage.pubspecFile.parent;
-    var separator = rootFolder.provider.pathContext.separator;
-
-    if (_registry.containsKey(rootFolder)) {
-      return _registry[rootFolder];
-    }
-
-    try {
-      var lines = rootFolder
-          .getChildAssumingFile('analyzer_use_new_elements.txt')
-          .readAsStringSync()
-          .trim()
-          .split('\n')
-          // The file always uses forward slashes, so convert to the correct
-          // slash for this platform.
-          .map((line) => line.trim().replaceAll('/', separator))
-          .toList();
-      var result = _FilesRegistry(
-        rootFolder: rootFolder,
-        relativePaths: lines,
-      );
-      return _registry[rootFolder] = result;
-    } on FileSystemException {
-      return null;
-    }
   }
 }
 

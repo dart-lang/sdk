@@ -365,10 +365,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         const Location& src,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
-    // Skip dead locations.
-    if (src.constant().ptr() == Object::optimized_out().ptr()) {
-      return CatchEntryMove();
-    }
+    RELEASE_ASSERT(src.constant().ptr() != Object::optimized_out().ptr());
     const intptr_t pool_index =
         assembler->object_pool_builder().FindObject(src.constant());
     return CatchEntryMove::FromSlot(CatchEntryMove::SourceKind::kConstant,

@@ -1128,7 +1128,8 @@ class FuzzCompiles
           a.libraries[i], b.libraries[i],
           strategy: const Strategy());
       if (!result.isEquivalent) {
-        print(result.toString());
+        print('Original component and new component are not equivalent:\n'
+            '$result');
         return false;
       }
     }
@@ -1624,8 +1625,6 @@ class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
     CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
-        enableExtensionMethods: true,
-        enableNonNullable: true,
         allowPatterns: allowPatterns);
     ast.accept(this);
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -1068,7 +1070,7 @@ class InheritanceManager3 {
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
-      result.typeParameters = executable.typeParameters;
+      result.typeParameters = executable.typeParameters.cast();
       return result;
     }
 
@@ -1138,9 +1140,13 @@ class InheritanceManager3 {
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
-      result.typeParameters = resultType.typeFormals;
+      result.typeParameters = resultType.typeFormals.cast();
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      // `resultType` is guaranteed to have been produced by
+      // `TypeSystemImpl.topMerge`; when that function merges function types, it
+      // always produces a `FunctionType` whose parameter list is a
+      // `List<ParameterElementImpl>`.
+      result.parameters = resultType.parameters as List<ParameterElementImpl>;
       result.element = MethodElementImpl2(
         Reference.root(), // TODO(scheglov): wrong
         firstMethod.name,
@@ -1158,7 +1164,11 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters;
+      // `resultType` is guaranteed to have been produced by
+      // `TypeSystemImpl.topMerge`; when that function merges function types, it
+      // always produces a `FunctionType` whose parameter list is a
+      // `List<ParameterElementImpl>`.
+      result.parameters = resultType.parameters as List<ParameterElementImpl>;
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;

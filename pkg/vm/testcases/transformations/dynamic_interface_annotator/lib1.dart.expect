@@ -123,11 +123,83 @@ class _M extends self::_L implements self::K {
     : super self::_L::•()
     ;
 }
+@#C11
+@#C5
+class N extends core::Object {
+  @#C5
+  synthetic constructor •() → self::N
+    : super core::Object::•()
+    ;
+}
+@#C3
+@#C5
+class O extends self::N {
+  @#C5
+  synthetic constructor •() → self::O
+    : super self::N::•()
+    ;
+}
+@#C11
+@#C5
+class P extends core::Object {
+  @#C5
+  synthetic constructor •() → self::P
+    : super core::Object::•()
+    ;
+}
+@#C3
+@#C5
+class Q extends core::Object implements self::P {
+  @#C5
+  synthetic constructor •() → self::Q
+    : super core::Object::•()
+    ;
+}
+@#C5
+final class R extends core::Object {
+  @#C5
+  synthetic constructor •() → self::R
+    : super core::Object::•()
+    ;
+}
+@#C5
+final class S extends self::R {
+  @#C5
+  synthetic constructor •() → self::S
+    : super self::R::•()
+    ;
+}
+@#C5
+final class T extends core::Object {
+  @#C5
+  synthetic constructor •() → self::T
+    : super core::Object::•()
+    ;
+}
+@#C5
+final class U extends core::Object {
+  @#C5
+  synthetic constructor •() → self::U
+    : super core::Object::•()
+    ;
+  @#C7
+  @#C5
+  method foo() → void
+    return core::print(3);
+}
+@#C3
+@#C5
+base class V extends core::Object {
+  @#C5
+  synthetic constructor •() → self::V
+    : super core::Object::•()
+    ;
+}
 @#C5
 static field core::Object? sfield9;
 static field core::Object? _sfield10;
 @#C5
-static const field core::List<core::Object> const11 = #C14;
+static const field core::List<core::Object> const11 = #C16;
 @#C5
 static method smethod10() → void {}
 static method _smethod11() → void {}
@@ -141,9 +213,11 @@ constants  {
   #C7 = core::pragma {name:#C6, options:#C2}
   #C8 = "dyn-module:implicitly-callable"
   #C9 = core::pragma {name:#C8, options:#C2}
-  #C10 = 2
-  #C11 = 1
-  #C12 = self::_E2 {_y:#C10, _x:#C11}
-  #C13 = redirecting-factory-tearoff self::_F::_foo
-  #C14 = <core::Object>[#C12, #C13]
+  #C10 = "dyn-module:implicitly-extendable"
+  #C11 = core::pragma {name:#C10, options:#C2}
+  #C12 = 2
+  #C13 = 1
+  #C14 = self::_E2 {_y:#C12, _x:#C13}
+  #C15 = redirecting-factory-tearoff self::_F::_foo
+  #C16 = <core::Object>[#C14, #C15]
 }

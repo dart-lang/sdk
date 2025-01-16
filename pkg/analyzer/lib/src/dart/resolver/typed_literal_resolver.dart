@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -425,7 +427,7 @@ class TypedLiteralResolver {
     }
   }
 
-  GenericInferrer _inferListTypeDownwards(ListLiteral node,
+  GenericInferrer _inferListTypeDownwards(ListLiteralImpl node,
       {required DartType contextType}) {
     var element = _typeProvider.listElement2;
     var typeParameters = element.typeParameters2;
@@ -493,7 +495,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferMapTypeDownwards(
-      SetOrMapLiteral node, DartType contextType) {
+      SetOrMapLiteralImpl node, DartType contextType) {
     var element = _typeProvider.mapElement2;
     inferenceLogWriter?.enterGenericInference(
         // TODO(paulberry): make this cast unnecessary by changing
@@ -601,7 +603,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferSetTypeDownwards(
-      SetOrMapLiteral node, DartType contextType) {
+      SetOrMapLiteralImpl node, DartType contextType) {
     var element = _typeProvider.setElement2;
     inferenceLogWriter?.enterGenericInference(
         // TODO(paulberry): make this cast unnecessary by changing
@@ -737,7 +739,7 @@ class TypedLiteralResolver {
   DartType _toMapType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
-      SetOrMapLiteral node,
+      SetOrMapLiteralImpl node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     inferenceLogWriter?.assertGenericInferenceState(
         inProgress: inferrer != null);
@@ -787,7 +789,7 @@ class TypedLiteralResolver {
   DartType _toSetType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
-      SetOrMapLiteral node,
+      SetOrMapLiteralImpl node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     inferenceLogWriter?.assertGenericInferenceState(
         inProgress: inferrer != null);

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/command/command.dart';
+import 'package:dev_compiler/src/kernel/hot_reload_delta_inspector.dart';
 import 'package:dev_compiler/src/js_ast/nodes.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
@@ -55,6 +56,7 @@ class IncrementalJavaScriptBundler {
   final _summaryToLibraryBundleName = new Map<Component, String>.identity();
   final Map<Uri, String> _summaryToLibraryBundleJSPath = <Uri, String>{};
   final String _fileSystemScheme;
+  final HotReloadDeltaInspector _deltaInspector = new HotReloadDeltaInspector();
 
   late Component _lastFullComponent;
   late Component _currentComponent;
@@ -83,6 +85,13 @@ class IncrementalJavaScriptBundler {
       Component lastFullComponent,
       Uri mainUri,
       PackageConfig packageConfig) async {
+    if (canaryFeatures && _moduleFormat == ModuleFormat.ddc) {
+      // Find any potential hot reload rejections before updating the strongly
+      // connected component graph.
+      final List<String> errors = _deltaInspector.compareGenerations(
+          lastFullComponent, partialComponent);
+      if (errors.isNotEmpty) throw new Exception(errors.join('/n'));
+    }
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
     _strongComponents = new StrongComponents(

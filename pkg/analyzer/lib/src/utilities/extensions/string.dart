@@ -111,6 +111,10 @@ extension Pluralized on String {
 }
 
 extension StringExtension on String {
+  String? get nullIfEmpty {
+    return isNotEmpty ? this : null;
+  }
+
   /// If [length] is above the [limit], replace the middle with `...`.
   String elideTo(int limit) {
     if (length > limit) {

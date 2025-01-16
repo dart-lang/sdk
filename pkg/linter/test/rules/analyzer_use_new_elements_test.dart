@@ -42,19 +42,11 @@ class AnalyzerUseNewElementsTest extends LintRuleTest {
           rootPath: analyzerFolder.path,
         ),
     );
-
-    AnalyzerUseNewElements.resetCaches();
-
-    // No opt-outs in the most tests.
-    _writeOptOuts('');
   }
 
   test_enablement_optedOut() async {
-    _writeOptOuts(r'''
-lib/test.dart
-''');
-
     await assertDiagnostics(r'''
+// ignore_for_file: analyzer_use_new_elements
 import 'package:analyzer/dart/element/element.dart';
 
 ClassElement f() {
@@ -149,9 +141,5 @@ void f() {
 ''', [
       lint(31, 10),
     ]);
-  }
-
-  void _writeOptOuts(String lines) {
-    newFile('$testPackageRootPath/analyzer_use_new_elements.txt', lines);
   }
 }

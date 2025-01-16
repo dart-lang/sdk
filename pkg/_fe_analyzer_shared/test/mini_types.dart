@@ -62,7 +62,6 @@ class FunctionType extends Type
     implements
         SharedFunctionTypeStructure<Type, TypeParameter,
             NamedFunctionParameter> {
-  @override
   final Type returnType;
 
   @override
@@ -147,8 +146,13 @@ class FunctionType extends Type
     }
   }
 
-  @override
   List<Type> get positionalParameterTypes => positionalParameters;
+
+  @override
+  List<Type> get positionalParameterTypesShared => positionalParameterTypes;
+
+  @override
+  Type get returnTypeShared => returnType;
 
   @override
   List<NamedFunctionParameter> get sortedNamedParametersShared =>
@@ -412,7 +416,6 @@ class NamedFunctionParameter
         _Substitutable<NamedFunctionParameter> {
   final String name;
 
-  @override
   final Type type;
 
   @override
@@ -426,6 +429,9 @@ class NamedFunctionParameter
 
   @override
   String get nameShared => name;
+
+  @override
+  Type get typeShared => type;
 
   @override
   bool operator ==(Object other) =>
@@ -450,7 +456,6 @@ class NamedType
     implements SharedNamedTypeStructure<Type>, _Substitutable<NamedType> {
   final String name;
 
-  @override
   final Type type;
 
   NamedType({required this.name, required this.type});
@@ -460,6 +465,9 @@ class NamedType
 
   @override
   String get nameShared => name;
+
+  @override
+  Type get typeShared => type;
 
   @override
   bool operator ==(Object other) =>
@@ -600,7 +608,6 @@ class PrimaryType extends Type {
 }
 
 class RecordType extends Type implements SharedRecordTypeStructure<Type> {
-  @override
   final List<Type> positionalTypes;
 
   final List<NamedType> namedTypes;
@@ -624,7 +631,13 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
       nullabilitySuffix);
 
   @override
+  List<Type> get positionalTypesShared => positionalTypes;
+
   List<NamedType> get sortedNamedTypes => namedTypes;
+
+  @override
+  List<SharedNamedTypeStructure<Type>> get sortedNamedTypesShared =>
+      sortedNamedTypes;
 
   @override
   bool operator ==(Object other) =>
@@ -888,8 +901,10 @@ class TypeParameter extends TypeNameInfo
 
   TypeParameter._(super.name) : super(expectedRuntimeType: TypeParameterType);
 
-  @override
   Type get bound => explicitBound ?? Type('Object?');
+
+  @override
+  Type? get boundShared => bound;
 
   @override
   String get displayName => name;

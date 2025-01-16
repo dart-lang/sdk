@@ -251,7 +251,7 @@ class Utf8BytesScanner extends AbstractScanner {
       bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromUtf8Bytes(
         type, _bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
-        precedingComments: comments, allowLazyFoo: allowLazy);
+        precedingComments: comments, allowLazy: allowLazy);
   }
 
   @override

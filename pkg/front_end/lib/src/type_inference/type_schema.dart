@@ -57,7 +57,6 @@ class UnknownType extends AuxiliaryType
   Nullability get declaredNullability => Nullability.undetermined;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Nullability get nullability => Nullability.undetermined;
 
   @override

@@ -485,11 +485,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    // TODO(dantup): How to migrate this to new element model? How do we get
-    //  the target element/fragment for a 'part of'?
-    if (node.element case ElementImpl element) {
-      computer._addRegionForElement(node.libraryName ?? node.uri, element);
-    }
+    var parentUnit = node.parent as CompilationUnit;
+    var parentFragment = parentUnit.declaredFragment;
+    computer._addRegionForFragment(
+      node.libraryName ?? node.uri,
+      parentFragment?.enclosingFragment,
+    );
+
     super.visitPartOfDirective(node);
   }
 

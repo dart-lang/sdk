@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
@@ -134,7 +136,7 @@ abstract class AnalysisServer {
 
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
-  late ContextManager contextManager;
+  late final ContextManager contextManager;
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
@@ -154,7 +156,7 @@ abstract class AnalysisServer {
   final DartSdkManager sdkManager;
 
   /// The [SearchEngine] for this server.
-  late final SearchEngine searchEngine;
+  late final SearchEngine searchEngine = SearchEngineImpl(driverMap.values);
 
   /// The optional [ByteStore] to use as [byteStore].
   final ByteStore? providedByteStore;
@@ -167,7 +169,7 @@ abstract class AnalysisServer {
 
   final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
-  late analysis.AnalysisDriverScheduler analysisDriverScheduler;
+  late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
   late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
@@ -191,7 +193,7 @@ abstract class AnalysisServer {
   final PubApi pubApi;
 
   /// A service for fetching pub.dev package details.
-  late PubPackageService pubPackageService;
+  late final PubPackageService pubPackageService;
 
   /// The class into which performance information is currently being recorded.
   /// During startup, this will be the same as [performanceDuringStartup]
@@ -204,9 +206,7 @@ abstract class AnalysisServer {
   /// Performance about recent requests.
   final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
 
-  RequestStatisticsHelper? requestStatistics;
-
-  PerformanceLog? analysisPerformanceLogger;
+  final RequestStatisticsHelper? requestStatistics;
 
   /// Manages prompts telling the user about "dart fix".
   late final DartFixPromptManager _dartFixPrompt;
@@ -237,7 +237,7 @@ abstract class AnalysisServer {
   /// This is useful for triggering things like [_dartFixPrompt] only when
   /// it may be useful to do so (after initial analysis and
   /// "pub get"/"pub upgrades").
-  bool isFirstAnalysisSinceContextsBuilt = true;
+  bool _isFirstAnalysisSinceContextsBuilt = true;
 
   /// A completer that tracks in-progress analysis context rebuilds.
   ///
@@ -333,7 +333,7 @@ abstract class AnalysisServer {
       this.pluginManager =
           pluginManager ??= PluginManager(
             resourceProvider,
-            _getByteStorePath(),
+            resourceProvider.byteStorePath,
             sdkManager.defaultSdkDirectory,
             notificationManager,
             instrumentationService,
@@ -342,22 +342,22 @@ abstract class AnalysisServer {
       pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
     }
 
-    var name = options.newAnalysisDriverLog;
+    var logName = options.newAnalysisDriverLog;
     StringSink sink = NullStringSink();
-    if (name != null) {
-      if (name == 'stdout') {
+    if (logName != null) {
+      if (logName == 'stdout') {
         sink = io.stdout;
-      } else if (name.startsWith('file:')) {
-        var path = name.substring('file:'.length);
+      } else if (logName.startsWith('file:')) {
+        var path = logName.substring('file:'.length);
         sink = FileStringSink(path);
       }
     }
+
     var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
       sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
     }
-    var analysisPerformanceLogger =
-        this.analysisPerformanceLogger = PerformanceLog(sink);
+    var analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
     fileContentCache = FileContentCache(resourceProvider);
@@ -381,17 +381,13 @@ abstract class AnalysisServer {
       instrumentationService,
       enableBlazeWatcher: enableBlazeWatcher,
     );
-    searchEngine = SearchEngineImpl(driverMap.values);
 
-    if (dartFixPromptManager != null) {
-      _dartFixPrompt = dartFixPromptManager;
-    } else {
-      var promptPreferences = UserPromptPreferences(
-        resourceProvider,
-        instrumentationService,
-      );
-      _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
-    }
+    _dartFixPrompt =
+        dartFixPromptManager ??
+        DartFixPromptManager(
+          this,
+          UserPromptPreferences(resourceProvider, instrumentationService),
+        );
   }
 
   /// A [Future] that completes when any in-progress analysis context rebuild
@@ -494,7 +490,7 @@ abstract class AnalysisServer {
 
   void afterContextsCreated() {
     _timingByteStore?.newTimings('after contexts created');
-    isFirstAnalysisSinceContextsBuilt = true;
+    _isFirstAnalysisSinceContextsBuilt = true;
   }
 
   void afterContextsDestroyed() {}
@@ -863,9 +859,9 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
-    if (isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
+    if (_isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       _timingByteStore?.newTimings('initial analysis completed');
-      isFirstAnalysisSinceContextsBuilt = false;
+      _isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
   }
@@ -1080,22 +1076,6 @@ abstract class AnalysisServer {
     await contextManager.dispose();
     await analyticsManager.shutdown();
   }
-
-  /// Return the path to the location of the byte store on disk, or `null` if
-  /// there is no on-disk byte store.
-  String? _getByteStorePath() {
-    ResourceProvider provider = resourceProvider;
-    if (provider is OverlayResourceProvider) {
-      provider = provider.baseProvider;
-    }
-    if (provider is PhysicalResourceProvider) {
-      var stateLocation = provider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        return stateLocation.path;
-      }
-    }
-    return null;
-  }
 }
 
 /// ContextManager callbacks that operate on the base server regardless
@@ -1267,4 +1247,16 @@ class ServerRecentPerformance {
   final RecentBuffer<RequestPerformance> slowRequests = RecentBuffer(
     slowRequestsListMaxLength,
   );
+}
+
+extension on OverlayResourceProvider {
+  /// The path to the location of the byte store on disk, or `null` if there is
+  /// no on-disk byte store.
+  String? get byteStorePath {
+    if (baseProvider is PhysicalResourceProvider) {
+      var stateLocation = baseProvider.getStateLocation('.analysis-driver');
+      return stateLocation?.path;
+    }
+    return null;
+  }
 }

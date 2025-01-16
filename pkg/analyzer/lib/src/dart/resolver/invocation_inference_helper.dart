@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -120,8 +122,8 @@ class InvocationInferenceHelper {
   /// Given an uninstantiated generic function type, referenced by the
   /// [identifier] in the tear-off [expression], try to infer the instantiated
   /// generic function type from the surrounding context.
-  DartType inferTearOff(Expression expression, SimpleIdentifierImpl identifier,
-      DartType tearOffType,
+  DartType inferTearOff(ExpressionImpl expression,
+      SimpleIdentifierImpl identifier, DartType tearOffType,
       {required DartType contextType}) {
     if (contextType is FunctionType && tearOffType is FunctionType) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(

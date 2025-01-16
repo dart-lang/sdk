@@ -175,7 +175,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   ) {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart) {
-        builder.writeReference2(part.enumElement2);
+        builder.writeReference(part.enumElement2);
         builder.write('.');
         builder.write(part.value2.name3!);
       } else if (part is MissingPatternTextPart) {

@@ -321,8 +321,7 @@ class TestMinimizer {
       } else {
         try {
           if (_knownByCompiler(uri!)) {
-            String parsedString =
-                _getFileAsStringContent(_fs.data[uri]!, _isUriNnbd(uri));
+            String parsedString = _getFileAsStringContent(_fs.data[uri]!);
             _fs.data[uri] = utf8.encode(parsedString);
           }
         } catch (e) {
@@ -557,12 +556,11 @@ class TestMinimizer {
       if (!uri.toString().endsWith(".dart")) continue;
       if (inlinableUri == uri) continue;
       final Uint8List? originalBytes = _fs.data[uri];
-      if (originalBytes == null || originalBytes.isEmpty) continue;
-      CompilationUnitEnd ast = getAST(originalBytes,
-          includeBody: false,
-          includeComments: false,
-          enableExtensionMethods: true,
-          enableNonNullable: _isUriNnbd(uri!));
+      if (uri == null || originalBytes == null || originalBytes.isEmpty) {
+        continue;
+      }
+      CompilationUnitEnd ast =
+          getAST(originalBytes, includeBody: false, includeComments: false);
       // Find all imports/exports of this file (if any).
       // If finding any:
       // * remove all of them, then
@@ -599,11 +597,8 @@ class TestMinimizer {
       //   have a `library` declaration.
       // * The file we're inlining has a library declaration.
       int offsetOfLast = 0;
-      ast = getAST(withoutInlineable,
-          includeBody: false,
-          includeComments: false,
-          enableExtensionMethods: true,
-          enableNonNullable: _isUriNnbd(uri));
+      ast =
+          getAST(withoutInlineable, includeBody: false, includeComments: false);
       for (ImportEnd import in ast.getImports()) {
         offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
       }
@@ -620,15 +615,15 @@ class TestMinimizer {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
       builder.write("\n");
-      builder.write(utf8.decode(_rewriteImportsExportsToUri(
-          inlineData, uri, inlinableUri, _isUriNnbd(inlinableUri))));
+      builder.write(utf8
+          .decode(_rewriteImportsExportsToUri(inlineData, uri, inlinableUri)));
       builder.write("\n");
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
       final Uint8List inlinedWithoutChange = utf8.encode(builder.toString());
 
-      if (!_parsesWithoutError(inlinedWithoutChange, _isUriNnbd(uri))) {
+      if (!_parsesWithoutError(inlinedWithoutChange)) {
         print("WARNING: Parser error after stuff at ${StackTrace.current}");
       }
 
@@ -660,7 +655,7 @@ class TestMinimizer {
         }
         builder.write("\n");
         builder.write(utf8.decode(_rewriteImportsExportsToUri(
-            inlineData, uri, inlinableUri, _isUriNnbd(inlinableUri),
+            inlineData, uri, inlinableUri,
             convertExportToImport: true)));
         builder.write("\n");
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
@@ -668,7 +663,7 @@ class TestMinimizer {
         }
         Uint8List inlinedWithChange = utf8.encode(builder.toString());
 
-        if (!_parsesWithoutError(inlinedWithChange, _isUriNnbd(uri))) {
+        if (!_parsesWithoutError(inlinedWithChange)) {
           print("WARNING: Parser error after stuff at ${StackTrace.current}");
         }
 
@@ -701,13 +696,10 @@ class TestMinimizer {
   }
 
   Uint8List _rewriteImportsExportsToUri(
-      Uint8List oldData, Uri newUri, Uri oldUri, bool nnbd,
+      Uint8List oldData, Uri newUri, Uri oldUri,
       {bool convertExportToImport = false}) {
-    CompilationUnitEnd ast = getAST(oldData,
-        includeBody: false,
-        includeComments: false,
-        enableExtensionMethods: true,
-        enableNonNullable: nnbd);
+    CompilationUnitEnd ast =
+        getAST(oldData, includeBody: false, includeComments: false);
     List<_Replacement> replacements = [];
     for (ImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
@@ -1045,10 +1037,7 @@ worlds:
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
           if (candidate.length != _fs.data[uri]!.length &&
-              _parsesWithoutError(
-                  candidate,
-                  languageVersion >=
-                      ExperimentalFlag.nonNullable.enabledVersion)) {
+              _parsesWithoutError(candidate)) {
             if (await _shouldQuit()) return;
             _fs.data[uri] = candidate;
             if (!await _crashesOnCompile(initialComponent)) {
@@ -1129,10 +1118,8 @@ worlds:
 
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
-        data,
-        _isUriNnbd(uri) ? _scannerConfiguration : _scannerConfigurationNonNNBD,
-        lineStarts);
+    Token firstToken =
+        parser_suite.scanRawBytes(data, _scannerConfiguration, lineStarts);
 
     int compileTry = 0;
     Token? token = firstToken;
@@ -1297,11 +1284,8 @@ worlds:
     if (!uri.toString().endsWith(".dart")) return;
 
     Uint8List data = _fs.data[uri]!;
-    CompilationUnitEnd ast = getAST(data,
-        includeBody: true,
-        includeComments: false,
-        enableExtensionMethods: true,
-        enableNonNullable: _isUriNnbd(uri));
+    CompilationUnitEnd ast =
+        getAST(data, includeBody: true, includeComments: false);
 
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
 
@@ -1403,6 +1387,12 @@ worlds:
             decl.token.offset - 1, decl.token.offset + decl.token.length));
         shouldCompile = true;
         what = "script";
+      } else if (child.isExtensionType()) {
+        ExtensionTypeDeclarationEnd decl = child.asExtensionType();
+        helper.replacements.add(new _Replacement(
+            decl.extensionKeyword.offset - 1, decl.endToken.charEnd));
+        shouldCompile = true;
+        what = "extension type";
       }
 
       if (shouldCompile) {
@@ -1426,80 +1416,7 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (ParserAstNode child in body.children!) {
-                shouldCompile = false;
-                if (child is MemberEnd) {
-                  if (child.isClassConstructor()) {
-                    ClassConstructorEnd memberDecl =
-                        child.getClassConstructor();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class constructor";
-                    shouldCompile = true;
-                  } else if (child.isClassFields()) {
-                    ClassFieldsEnd memberDecl = child.getClassFields();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class fields";
-                    shouldCompile = true;
-                  } else if (child.isClassMethod()) {
-                    ClassMethodEnd memberDecl = child.getClassMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class method";
-                    shouldCompile = true;
-                  } else if (child.isClassFactoryMethod()) {
-                    ClassFactoryMethodEnd memberDecl =
-                        child.getClassFactoryMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "class factory method";
-                    shouldCompile = true;
-                  } else {
-                    // throw "$child --- ${child.children}";
-                    continue;
-                  }
-                } else if (child.isMetadata()) {
-                  MetadataStarEnd decl = child.asMetadata();
-                  List<MetadataEnd> metadata = decl.getMetadataEntries();
-                  if (metadata.isNotEmpty) {
-                    helper.replacements.add(new _Replacement(
-                        metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.charEnd));
-                    shouldCompile = true;
-                  }
-                  what = "metadata";
-                }
-                if (shouldCompile) {
-                  success = await _tryReplaceAndCompile(
-                      helper, uri, initialComponent, what);
-                  if (helper.shouldQuit) return;
-                  if (!success) {
-                    BlockFunctionBodyEnd? decl;
-                    if (child is MemberEnd) {
-                      if (child.isClassMethod()) {
-                        decl = child.getClassMethod().getBlockFunctionBody();
-                      } else if (child.isClassConstructor()) {
-                        decl =
-                            child.getClassConstructor().getBlockFunctionBody();
-                      }
-                    }
-                    if (decl != null &&
-                        decl.beginToken.offset + 2 < decl.endToken.offset) {
-                      helper.replacements.add(new _Replacement(
-                          decl.beginToken.offset, decl.endToken.offset));
-                      what = "class member content";
-                      await _tryReplaceAndCompile(
-                          helper, uri, initialComponent, what);
-                      if (helper.shouldQuit) return;
-                    }
-                  }
-                }
-              }
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
             }
 
             // Try to remove "extends", "implements" etc.
@@ -1549,82 +1466,205 @@ worlds:
             }
 
             if (!success) {
-              // Also try to remove members one at a time.
-              for (ParserAstNode child in body.children!) {
-                shouldCompile = false;
-                if (child is MemberEnd) {
-                  if (child.isMixinConstructor()) {
-                    MixinConstructorEnd memberDecl =
-                        child.getMixinConstructor();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin constructor";
-                    shouldCompile = true;
-                  } else if (child.isMixinFields()) {
-                    MixinFieldsEnd memberDecl = child.getMixinFields();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin fields";
-                    shouldCompile = true;
-                  } else if (child.isMixinMethod()) {
-                    MixinMethodEnd memberDecl = child.getMixinMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin method";
-                    shouldCompile = true;
-                  } else if (child.isMixinFactoryMethod()) {
-                    MixinFactoryMethodEnd memberDecl =
-                        child.getMixinFactoryMethod();
-                    helper.replacements.add(new _Replacement(
-                        memberDecl.beginToken.offset - 1,
-                        memberDecl.endToken.offset + 1));
-                    what = "mixin factory method";
-                    shouldCompile = true;
-                  } else {
-                    // throw "$child --- ${child.children}";
-                    continue;
-                  }
-                } else if (child.isMetadata()) {
-                  MetadataStarEnd decl = child.asMetadata();
-                  List<MetadataEnd> metadata = decl.getMetadataEntries();
-                  if (metadata.isNotEmpty) {
-                    helper.replacements.add(new _Replacement(
-                        metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.charEnd));
-                    shouldCompile = true;
-                  }
-                  what = "metadata";
-                }
-                if (shouldCompile) {
-                  success = await _tryReplaceAndCompile(
-                      helper, uri, initialComponent, what);
-                  if (helper.shouldQuit) return;
-                  if (!success) {
-                    BlockFunctionBodyEnd? decl;
-                    if (child is MemberEnd) {
-                      if (child.isClassMethod()) {
-                        decl = child.getClassMethod().getBlockFunctionBody();
-                      } else if (child.isClassConstructor()) {
-                        decl =
-                            child.getClassConstructor().getBlockFunctionBody();
-                      }
-                    }
-                    if (decl != null &&
-                        decl.beginToken.offset + 2 < decl.endToken.offset) {
-                      helper.replacements.add(new _Replacement(
-                          decl.beginToken.offset, decl.endToken.offset));
-                      what = "class member content";
-                      await _tryReplaceAndCompile(
-                          helper, uri, initialComponent, what);
-                      if (helper.shouldQuit) return;
-                    }
-                  }
-                }
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+            }
+          } else if (child.isExtensionType()) {
+            // Also try to remove all content of the extension type.
+            ExtensionTypeDeclarationEnd decl = child.asExtensionType();
+            ClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
+            if (body.beginToken.offset + 2 < body.endToken.offset) {
+              helper.replacements.add(new _Replacement(
+                  body.beginToken.offset, body.endToken.offset));
+              what = "extension type body";
+              success = await _tryReplaceAndCompile(
+                  helper, uri, initialComponent, what);
+              if (helper.shouldQuit) return;
+            }
+
+            if (!success) {
+              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+            }
+          } else if (child.isTopLevelMethod()) {
+            // Try to remove parameters.
+            TopLevelMethodEnd decl = child.asTopLevelMethod();
+            FormalParametersEnd? formal =
+                decl.children?.whereType<FormalParametersEnd>().firstOrNull;
+            if (formal != null) {
+              if (formal.beginToken.offset + 2 < formal.endToken.offset) {
+                helper.replacements.add(new _Replacement(
+                    formal.beginToken.offset, formal.endToken.offset));
+                what = "top level formals";
+                success = await _tryReplaceAndCompile(
+                    helper, uri, initialComponent, what);
+                if (helper.shouldQuit) return;
               }
             }
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteBlocksHelper(
+      ClassOrMixinOrExtensionBodyEnd body,
+      _CompilationHelperClass helper,
+      final Uri uri,
+      Component initialComponent) async {
+    for (ParserAstNode child in body.children!) {
+      bool shouldCompile = false;
+      String what = "";
+      if (child is MemberEnd) {
+        if (child.isClassConstructor()) {
+          ClassConstructorEnd memberDecl = child.getClassConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class constructor";
+          shouldCompile = true;
+        } else if (child.isClassFields()) {
+          ClassFieldsEnd memberDecl = child.getClassFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class fields";
+          shouldCompile = true;
+        } else if (child.isClassMethod()) {
+          ClassMethodEnd memberDecl = child.getClassMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class method";
+          shouldCompile = true;
+        } else if (child.isClassFactoryMethod()) {
+          ClassFactoryMethodEnd memberDecl = child.getClassFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "class factory method";
+          shouldCompile = true;
+        } else if (child.isMixinConstructor()) {
+          MixinConstructorEnd memberDecl = child.getMixinConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin constructor";
+          shouldCompile = true;
+        } else if (child.isMixinFields()) {
+          MixinFieldsEnd memberDecl = child.getMixinFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin fields";
+          shouldCompile = true;
+        } else if (child.isMixinMethod()) {
+          MixinMethodEnd memberDecl = child.getMixinMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin method";
+          shouldCompile = true;
+        } else if (child.isMixinFactoryMethod()) {
+          MixinFactoryMethodEnd memberDecl = child.getMixinFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "mixin factory method";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeConstructor()) {
+          var memberDecl = child.getExtensionTypeConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type constructor";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeFields()) {
+          ExtensionTypeFieldsEnd memberDecl = child.getExtensionTypeFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type fields";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeMethod()) {
+          ExtensionTypeMethodEnd memberDecl = child.getExtensionTypeMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type method";
+          shouldCompile = true;
+        } else if (child.isExtensionTypeFactoryMethod()) {
+          ExtensionTypeFactoryMethodEnd memberDecl =
+              child.getExtensionTypeFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension type factory method";
+          shouldCompile = true;
+        } else if (child.isExtensionConstructor()) {
+          var memberDecl = child.getExtensionConstructor();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension constructor";
+          shouldCompile = true;
+        } else if (child.isExtensionFields()) {
+          ExtensionFieldsEnd memberDecl = child.getExtensionFields();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension fields";
+          shouldCompile = true;
+        } else if (child.isExtensionMethod()) {
+          ExtensionMethodEnd memberDecl = child.getExtensionMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension method";
+          shouldCompile = true;
+        } else if (child.isExtensionFactoryMethod()) {
+          ExtensionFactoryMethodEnd memberDecl =
+              child.getExtensionFactoryMethod();
+          helper.replacements.add(new _Replacement(
+              memberDecl.beginToken.offset - 1,
+              memberDecl.endToken.offset + 1));
+          what = "extension factory method";
+          shouldCompile = true;
+        } else {
+          // throw "$child --- ${child.children}";
+          continue;
+        }
+      } else if (child.isMetadata()) {
+        MetadataStarEnd decl = child.asMetadata();
+        List<MetadataEnd> metadata = decl.getMetadataEntries();
+        if (metadata.isNotEmpty) {
+          helper.replacements.add(new _Replacement(
+              metadata.first.beginToken.offset - 1,
+              metadata.last.endToken.charEnd));
+          shouldCompile = true;
+        }
+        what = "metadata";
+      }
+      if (shouldCompile) {
+        bool success =
+            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+        if (helper.shouldQuit) return;
+        if (!success) {
+          BlockFunctionBodyEnd? decl;
+          if (child is MemberEnd) {
+            if (child.isClassMethod()) {
+              decl = child.getClassMethod().getBlockFunctionBody();
+            } else if (child.isClassConstructor()) {
+              decl = child.getClassConstructor().getBlockFunctionBody();
+            }
+            // TODO(jensj): The other ones too maybe?
+          }
+          if (decl != null &&
+              decl.beginToken.offset + 2 < decl.endToken.offset) {
+            helper.replacements.add(
+                new _Replacement(decl.beginToken.offset, decl.endToken.offset));
+            what = "class member content";
+            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+            if (helper.shouldQuit) return;
           }
         }
       }
@@ -1644,11 +1684,11 @@ worlds:
     }
     Uint8List candidate = _replaceRange(data.replacements, data.originalData);
 
-    if (!_parsesWithoutError(candidate, _isUriNnbd(uri)) &&
-        _parsesWithoutError(data.originalData, _isUriNnbd(uri))) {
+    if (!_parsesWithoutError(candidate) &&
+        _parsesWithoutError(data.originalData)) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
-      _parsesWithoutError(candidate, _isUriNnbd(uri));
-      _parsesWithoutError(data.originalData, _isUriNnbd(uri));
+      _parsesWithoutError(candidate);
+      _parsesWithoutError(data.originalData);
     }
 
     _fs.data[uri] = candidate;
@@ -1693,8 +1733,7 @@ worlds:
     Uint8List candidate = builder.takeBytes();
     if (candidate.length == data.length) return;
 
-    if (uri.path.endsWith(".dart") &&
-        !_parsesWithoutError(candidate, _isUriNnbd(uri))) {
+    if (uri.path.endsWith(".dart") && !_parsesWithoutError(candidate)) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
     }
 
@@ -1811,15 +1850,16 @@ worlds:
 
   ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableExtensionMethods:
-            languageVersion >= ExperimentalFlag.extensionMethods.enabledVersion,
-        enableNonNullable:
-            languageVersion >= ExperimentalFlag.nonNullable.enabledVersion,
         enableTripleShift:
             languageVersion >= ExperimentalFlag.tripleShift.enabledVersion);
   }
 
   Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
+    if (_latestCrashingKnownInitialBuilders == null) {
+      // It crashed on the first compile so we have no builders.
+      // We'll just return something.
+      return ExperimentalFlag.nonNullable.enabledVersion;
+    }
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
         _latestCrashingKnownInitialBuilders![asImportUri];
@@ -1860,11 +1900,6 @@ worlds:
     } else {
       return defaultLanguageVersion;
     }
-  }
-
-  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
-    return _getLanguageVersion(uri, crashOnFail: crashOnFail) >=
-        ExperimentalFlag.nonNullable.enabledVersion;
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
@@ -2081,13 +2116,11 @@ worlds:
     return compilerContext;
   }
 
-  String _getFileAsStringContent(Uint8List rawBytes, bool nnbd) {
+  String _getFileAsStringContent(Uint8List rawBytes) {
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
-        rawBytes,
-        nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD,
-        lineStarts);
+    Token firstToken =
+        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, lineStarts);
 
     ParserTestListener parserTestListener = new ParserTestListener(false);
     Parser parser = new Parser(parserTestListener,
@@ -2098,9 +2131,9 @@ worlds:
     return parsedString;
   }
 
-  bool _parsesWithoutError(Uint8List rawBytes, bool nnbd) {
-    Token firstToken = parser_suite.scanRawBytes(rawBytes,
-        nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD, null);
+  bool _parsesWithoutError(Uint8List rawBytes) {
+    Token firstToken =
+        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, null);
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
     Parser parser = new Parser(parserErrorListener,
@@ -2109,15 +2142,8 @@ worlds:
     return !parserErrorListener.gotError;
   }
 
-  ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: true);
-
-  ScannerConfiguration _scannerConfigurationNonNNBD = new ScannerConfiguration(
-      enableTripleShift: true,
-      enableExtensionMethods: true,
-      enableNonNullable: false);
+  ScannerConfiguration _scannerConfiguration =
+      new ScannerConfiguration(enableTripleShift: true);
 
   List<int>? _dataCache;
   String? _dataCacheString;

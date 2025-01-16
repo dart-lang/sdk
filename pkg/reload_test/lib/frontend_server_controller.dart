@@ -202,7 +202,8 @@ class HotReloadFrontendServerController {
 
   /// Clears the controller's state between commands.
   ///
-  /// Note: this does not reset the Frontend Server's state.
+  /// Note: this does not reset the Frontend Server's state and for that reason
+  /// the local [totalErrors] count is not reset here.
   void _clearState() {
     sources.clear();
     accumulatedOutput.clear();
@@ -227,6 +228,13 @@ class HotReloadFrontendServerController {
   Future<CompilerOutput> sendRecompile(String entrypointPath,
       {List<String> invalidatedFiles = const [],
       String boundaryKey = fakeBoundaryKey}) async {
+    // Currently the `FrontendCompiler` used in this test suite clears errors
+    // before performing a recompile but not an initial compile. Since we reuse
+    // the same instance and issue an initial compile request for each test we
+    // must track the number of errors on our side carefully so we can tell when
+    // a new error has appeared. Resetting the [totalErrors] count here should
+    // match the state on the FES side.
+    totalErrors = 0;
     if (!started) throw Exception('Frontend Server has not been started yet.');
     _state = FrontendServerState.awaitingResult;
     final command = 'recompile $entrypointPath $boundaryKey\n'

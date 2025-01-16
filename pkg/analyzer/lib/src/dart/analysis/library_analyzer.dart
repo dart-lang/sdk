@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -820,7 +822,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: fileKind.docImports[i],
+          state: fileKind.docLibraryImports[i],
           errorReporter: containerErrorReporter,
         );
       }
@@ -855,7 +857,7 @@ class LibraryAnalyzer {
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
     var docImportLibraries = [
-      for (var import in _library.docImports)
+      for (var import in _library.docLibraryImports)
         if (import is LibraryImportWithFile)
           _libraryElement.session.elementFactory
               .libraryOfUri2(import.importedFile.uri)

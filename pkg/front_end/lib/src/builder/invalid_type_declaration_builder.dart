@@ -28,7 +28,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri? get fileUri => message.uri;
+  Uri get fileUri => message.uri!;
 
   @override
   DartType buildAliasedType(

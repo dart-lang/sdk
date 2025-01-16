@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -15927,6 +15929,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   Token get beginToken => token;
+
+  set element(Element2? element) {
+    staticElement = element?.asElement;
+  }
 
   @override
   Token get endToken => token;

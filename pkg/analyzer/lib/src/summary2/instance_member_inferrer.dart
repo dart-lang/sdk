@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -189,7 +191,7 @@ class InstanceMemberInferrer {
       if (parameters.isEmpty) {
         return;
       }
-      var parameter = parameters[0] as ParameterElementImpl;
+      var parameter = parameters[0];
 
       if (overriddenSetters.any(_isCovariantSetter)) {
         parameter.inheritsCovariant = true;
@@ -227,7 +229,7 @@ class InstanceMemberInferrer {
     if (field != null) {
       if (field.setter != null) {
         if (overriddenSetters.any(_isCovariantSetter)) {
-          var parameter = field.setter!.parameters[0] as ParameterElementImpl;
+          var parameter = field.setter!.parameters[0];
           parameter.inheritsCovariant = true;
         }
       }
@@ -579,7 +581,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    var parameter = parameters[0] as ParameterElementImpl;
+    var parameter = parameters[0];
     if (!parameter.hasImplicitType) {
       element.isOperatorEqualWithParameterTypeFromObject = false;
       return;

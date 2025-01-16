@@ -134,10 +134,8 @@ class _Processor {
         await fileSystem.entityForUri(fileUri).readAsBytes();
     // TODO: Support updating the configuration; also default it to match
     // the package version.
-    final ScannerConfiguration configuration = new ScannerConfiguration(
-        enableExtensionMethods: true,
-        enableNonNullable: true,
-        enableTripleShift: true);
+    final ScannerConfiguration configuration =
+        new ScannerConfiguration(enableTripleShift: true);
     textualOutlineStopwatch.start();
     final String? outlined =
         textualOutline(bytes, configuration, enablePatterns: true);
@@ -147,8 +145,6 @@ class _Processor {
     getAstStopwatch.start();
     List<Token> languageVersionsSeen = [];
     final ParserAstNode ast = getAST(bytes2,
-        enableExtensionMethods: configuration.enableExtensionMethods,
-        enableNonNullable: configuration.enableNonNullable,
         enableTripleShift: configuration.enableTripleShift,
         languageVersionsSeen: languageVersionsSeen);
     getAstStopwatch.stop();

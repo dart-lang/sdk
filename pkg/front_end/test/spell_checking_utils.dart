@@ -82,27 +82,35 @@ List<String>? findAlternatives(String word, List<Set<String>> dictionaries) {
     (result ??= <String>[]).add(w);
   }
 
+  void checkInsert(String before, String afterIncluding) {
+    for (int j = 0; j < 25; j++) {
+      String c = new String.fromCharCode(97 + j);
+      String insertedLetter = "${before}${c}${afterIncluding}";
+      if (check(insertedLetter)) ok(insertedLetter);
+    }
+  }
+
   // Delete a letter, insert a letter or change a letter and lookup.
   for (int i = 0; i < word.length; i++) {
     String before = word.substring(0, i);
-    String after = word.substring(i + 1);
-    String afterIncluding = word.substring(i);
+    String afterExcluding = word.substring(i + 1);
 
     {
-      String deletedLetter = before + after;
+      String deletedLetter = "${before}${afterExcluding}";
       if (check(deletedLetter)) ok(deletedLetter);
     }
+
+    checkInsert(before, word.substring(i));
+
     for (int j = 0; j < 25; j++) {
       String c = new String.fromCharCode(97 + j);
-      String insertedLetter = before + c + afterIncluding;
-      if (check(insertedLetter)) ok(insertedLetter);
-    }
-    for (int j = 0; j < 25; j++) {
-      String c = new String.fromCharCode(97 + j);
-      String replacedLetter = before + c + after;
+      String replacedLetter = "${before}${c}${afterExcluding}";
       if (check(replacedLetter)) ok(replacedLetter);
     }
   }
+
+  // Check insert at end.
+  checkInsert(word, "");
 
   return result;
 }
@@ -347,7 +355,7 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
 }
 
 void spellSummarizeAndInteractiveMode(
-    Set<String> reportedWords,
+    Map<String, List<String>?> reportedWordsAndAlternatives,
     Set<String> reportedWordsDenylisted,
     List<Dictionaries> dictionaries,
     bool interactive,
@@ -365,8 +373,8 @@ void spellSummarizeAndInteractiveMode(
     }
     print("================");
   }
-  if (reportedWords.isNotEmpty) {
-    bool isSingular = reportedWords.length == 1;
+  if (reportedWordsAndAlternatives.isNotEmpty) {
+    bool isSingular = reportedWordsAndAlternatives.length == 1;
     String suffix = isSingular ? "" : "s";
     String were = isSingular ? "was" : "were";
     String are = isSingular ? "is" : "are";
@@ -394,8 +402,15 @@ void spellSummarizeAndInteractiveMode(
 
     if (interactive && dictionaryToUse != null) {
       List<String> addedWords = <String>[];
-      for (String s in reportedWords) {
-        print("- $s");
+      for (MapEntry<String, List<String>?> wordAndAlternative
+          in reportedWordsAndAlternatives.entries) {
+        String s = wordAndAlternative.key;
+        List<String>? alternative = wordAndAlternative.value;
+        if (alternative != null) {
+          print(" - $s (notice close word(s)): ${alternative.join(", ")})");
+        } else {
+          print(" - $s");
+        }
         String answer;
         bool? add;
         while (true) {
@@ -451,7 +466,7 @@ void spellSummarizeAndInteractiveMode(
         dictionaryFile.writeAsStringSync(lines.join("\n"));
       }
     } else {
-      for (String s in reportedWords) {
+      for (String s in reportedWordsAndAlternatives.keys) {
         print("$s");
       }
       if (dictionaries.isNotEmpty) {

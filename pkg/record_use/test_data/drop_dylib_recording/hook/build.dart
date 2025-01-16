@@ -7,13 +7,14 @@ import 'package:native_assets_cli/code_assets.dart';
 import 'package:native_toolchain_c/native_toolchain_c.dart';
 
 void main(List<String> arguments) async {
-  await build(arguments, (config, output) async {
+  await build(arguments, (input, output) async {
     final logger = Logger('')
       ..level = Level.ALL
       ..onRecord.listen((record) {
         print('${record.level.name}: ${record.time}: ${record.message}');
       });
-    final linkInPackage = config.linkingEnabled ? config.packageName : null;
+    final linkInPackage =
+        input.config.linkingEnabled ? input.packageName : null;
     await CBuilder.library(
       name: 'add',
       assetName: 'dylib_add',
@@ -22,7 +23,7 @@ void main(List<String> arguments) async {
       ],
       linkModePreference: LinkModePreference.dynamic,
     ).run(
-      config: config,
+      input: input,
       output: output,
       logger: logger,
       linkInPackage: linkInPackage,
@@ -36,7 +37,7 @@ void main(List<String> arguments) async {
       ],
       linkModePreference: LinkModePreference.dynamic,
     ).run(
-      config: config,
+      input: input,
       output: output,
       logger: logger,
       linkInPackage: linkInPackage,

@@ -129,8 +129,12 @@ class MacroIntrospection {
   macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
     if (memberBuilder is SourceMethodBuilder) {
       return _createMethodDeclaration(memberBuilder);
-    } else if (memberBuilder is SourcePropertyBuilder) {
+    } else if (memberBuilder is SourcePropertyBuilder &&
+        (memberBuilder.isGetter || memberBuilder.isSetter)) {
       return _createGetterDeclaration(memberBuilder);
+    } else if (memberBuilder is SourcePropertyBuilder &&
+        memberBuilder.isField) {
+      return _createFieldDeclaration(memberBuilder);
     } else if (memberBuilder is SourceFieldBuilder) {
       return _createVariableDeclaration(memberBuilder);
     } else if (memberBuilder is SourceConstructorBuilder) {
@@ -445,10 +449,8 @@ class MacroIntrospection {
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
-    if (builder.fileUri != null) {
-      _declarationOffsets[declaration] =
-          new UriOffset(builder.fileUri!, builder.fileOffset);
-    }
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -634,6 +636,64 @@ class MacroIntrospection {
               builder.libraryBuilder, builder.returnTypeForTesting),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
+    }
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.fileOffset);
+    return declaration;
+  }
+
+  /// Creates the [macro.VariableDeclaration] corresponding to [builder].
+  macro.VariableDeclaration _createFieldDeclaration(
+      SourcePropertyBuilder builder) {
+    macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
+    Builder? parent = builder.parent;
+    if (parent is ClassBuilder) {
+      definingTypeDeclaration = getClassDeclaration(parent);
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
+    }
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+    macro.VariableDeclaration declaration;
+    if (definingTypeDeclaration != null) {
+      // TODO(johnniwinther): Should static fields be field or variable
+      //  declarations?
+      declaration = new macro.FieldDeclarationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          identifier: new MemberBuilderIdentifier(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
+          library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
+          definingType:
+              definingTypeDeclaration.identifier as macro.IdentifierImpl,
+          hasAbstract: builder.isAbstract,
+          hasConst: builder.isConst,
+          hasExternal: builder.isExternal,
+          hasFinal: builder.isFinal,
+          hasInitializer: builder.hasInitializer,
+          hasLate: builder.isLate,
+          hasStatic: builder.isStatic,
+          type: types.getTypeAnnotation(
+              builder.libraryBuilder, builder.typeForTesting));
+    } else {
+      declaration = new macro.VariableDeclarationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          identifier: new MemberBuilderIdentifier(
+              memberBuilder: builder,
+              id: macro.RemoteInstance.uniqueId,
+              name: builder.name),
+          library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
+          hasConst: builder.isConst,
+          hasExternal: builder.isExternal,
+          hasFinal: builder.isFinal,
+          hasInitializer: builder.hasInitializer,
+          hasLate: builder.isLate,
+          type: types.getTypeAnnotation(
+              builder.libraryBuilder, builder.typeForTesting));
     }
     _declarationOffsets[declaration] =
         new UriOffset(builder.fileUri, builder.fileOffset);
@@ -867,20 +927,26 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     if (type is macro.ClassDeclaration || type is macro.MixinDeclaration) {
       ClassBuilder classBuilder = _introspection
           ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
-      Iterator<SourceFieldBuilder> iterator =
-          classBuilder.fullMemberIterator<SourceFieldBuilder>();
+      Iterator<SourceMemberBuilder> iterator =
+          classBuilder.fullMemberIterator<SourceMemberBuilder>();
       while (iterator.moveNext()) {
-        result.add(_introspection.getMemberDeclaration(iterator.current)
-            as macro.FieldDeclaration);
+        SourceMemberBuilder memberBuilder = iterator.current;
+        if (memberBuilder.isField) {
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.FieldDeclaration);
+        }
       }
     } else if (type is macro.ExtensionTypeDeclaration) {
       ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
           _introspection._getExtensionTypeDeclarationBuilder(type);
-      Iterator<SourceFieldBuilder> iterator = extensionTypeDeclarationBuilder
-          .fullMemberIterator<SourceFieldBuilder>();
+      Iterator<SourceMemberBuilder> iterator = extensionTypeDeclarationBuilder
+          .fullMemberIterator<SourceMemberBuilder>();
       while (iterator.moveNext()) {
-        result.add(_introspection.getMemberDeclaration(iterator.current)
-            as macro.FieldDeclaration);
+        SourceMemberBuilder memberBuilder = iterator.current;
+        if (memberBuilder.isField) {
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.FieldDeclaration);
+        }
       }
     } else {
       throw new UnsupportedError('Only introspection on classes is supported');
@@ -899,7 +965,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
         if (memberBuilder is SourceMethodBuilder ||
-            memberBuilder is SourcePropertyBuilder) {
+            (memberBuilder is SourcePropertyBuilder &&
+                (memberBuilder.isGetter || memberBuilder.isSetter))) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);
         }
@@ -912,7 +979,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
         if (memberBuilder is SourceMethodBuilder ||
-            memberBuilder is SourcePropertyBuilder) {
+            (memberBuilder is SourcePropertyBuilder &&
+                (memberBuilder.isGetter || memberBuilder.isSetter))) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);
         }

@@ -7,6 +7,7 @@ part of "core_patch.dart";
 @patch
 class Object {
   @patch
+  @pragma("wasm:intrinsic")
   external bool operator ==(Object other);
 
   // Random number generator used to generate identity hash codes.
@@ -41,6 +42,7 @@ class Object {
       object._typeArguments;
 
   @patch
+  @pragma("wasm:intrinsic")
   external Type get runtimeType;
 
   @patch

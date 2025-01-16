@@ -3476,7 +3476,8 @@
             "--mode=release",
             "--arch=x64",
             "create_sdk",
-            "ddc_stable_unsound_sdk"
+            "ddc_stable_unsound_sdk",
+            "dart2js_platform_unsound.dill"
           ]
         },
         {

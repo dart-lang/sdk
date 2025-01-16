@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 /// Defines the type model. The type model is part of the
 /// [element model](../dart_element_element/dart_element_element-library.html)
 /// in that most types are defined by Dart code (the types `dynamic` and `void`

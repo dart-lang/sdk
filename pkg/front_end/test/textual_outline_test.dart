@@ -9,8 +9,7 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import "package:front_end/src/util/textual_outline.dart"
     show TextualOutlineInfoForTesting, textualOutline;
 
-const ScannerConfiguration scannerConfiguration =
-    const ScannerConfiguration(enableExtensionMethods: true);
+const ScannerConfiguration scannerConfiguration = const ScannerConfiguration();
 
 void main() {
   TextualOutlineInfoForTesting infoForTesting;

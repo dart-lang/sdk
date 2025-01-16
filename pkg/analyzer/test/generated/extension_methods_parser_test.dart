@@ -7,7 +7,6 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 
 main() {
@@ -217,17 +216,6 @@ class C {}
     expect(namedType.name2.lexeme, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
-  }
-
-  void test_simple_not_enabled() {
-    parseCompilationUnit(
-      'extension E on C { }',
-      errors: [
-        expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
-      ],
-      featureSet: FeatureSets.language_2_3,
-    );
   }
 
   void test_simple_with() {

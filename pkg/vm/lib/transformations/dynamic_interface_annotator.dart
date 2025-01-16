@@ -9,10 +9,18 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'pragma.dart'
     show
-        kDynModuleExtendablePragmaName,
         kDynModuleCanBeOverriddenPragmaName,
         kDynModuleCallablePragmaName,
-        kDynModuleImplicitlyCallablePragmaName;
+        kDynModuleExtendablePragmaName,
+        kDynModuleImplicitlyCallablePragmaName,
+        kDynModuleImplicitlyExtendablePragmaName;
+
+const bool _debug = false;
+
+void debugPrint(Object? o) {
+  if (!_debug) return;
+  print(o);
+}
 
 void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
     Component component, CoreTypes coreTypes) {
@@ -22,16 +30,20 @@ void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
   final extendableAnnotator = annotateNodes(
       spec.extendable, kDynModuleExtendablePragmaName, baseUri, coreTypes,
       annotateClasses: true,
+      annotateFinalClasses: false,
       annotateStaticMembers: false,
       annotateInstanceMembers: false);
+  annotateImplicitlyExtendable(coreTypes, extendableAnnotator.annotatedClasses);
   annotateNodes(spec.canBeOverridden, kDynModuleCanBeOverriddenPragmaName,
       baseUri, coreTypes,
       annotateClasses: false,
+      annotateFinalClasses: true,
       annotateStaticMembers: false,
       annotateInstanceMembers: true);
   final callableAnnotator = annotateNodes(
       spec.callable, kDynModuleCallablePragmaName, baseUri, coreTypes,
       annotateClasses: true,
+      annotateFinalClasses: true,
       annotateStaticMembers: true,
       annotateInstanceMembers: true);
 
@@ -58,12 +70,14 @@ _Annotator annotateNodes(
   Uri baseUri,
   CoreTypes coreTypes, {
   required bool annotateClasses,
+  required bool annotateFinalClasses,
   required bool annotateStaticMembers,
   required bool annotateInstanceMembers,
 }) {
   final pragma = pragmaConstant(coreTypes, pragmaName);
   final annotator = _Annotator(pragma,
       annotateClasses: annotateClasses,
+      annotateFinalClasses: annotateFinalClasses,
       annotateStaticMembers: annotateStaticMembers,
       annotateInstanceMembers: annotateInstanceMembers);
   for (final node in nodes) {
@@ -76,6 +90,7 @@ class _Annotator extends RecursiveVisitor {
   final Constant pragma;
 
   final bool annotateClasses;
+  final bool annotateFinalClasses;
   final bool annotateStaticMembers;
   final bool annotateInstanceMembers;
 
@@ -85,6 +100,7 @@ class _Annotator extends RecursiveVisitor {
   _Annotator(
     this.pragma, {
     required this.annotateClasses,
+    required this.annotateFinalClasses,
     required this.annotateStaticMembers,
     required this.annotateInstanceMembers,
   });
@@ -136,8 +152,10 @@ class _Annotator extends RecursiveVisitor {
   }
 
   void annotateClass(Class node) {
-    if (annotateClasses && annotatedClasses.add(node)) {
-      print("Annotated $node with $pragma");
+    if (annotateClasses &&
+        (annotateFinalClasses || !node.isFinal) &&
+        annotatedClasses.add(node)) {
+      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
@@ -147,8 +165,22 @@ class _Annotator extends RecursiveVisitor {
             ? annotateInstanceMembers
             : annotateStaticMembers) &&
         annotatedMembers.add(node)) {
-      print("Annotated $node with $pragma");
+      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+}
+
+void annotateImplicitlyExtendable(
+    CoreTypes coreTypes, Set<Class> extendableClasses) {
+  final pragma =
+      pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName);
+  for (final cls in [...extendableClasses]) {
+    for (final supertype in cls.supers) {
+      final supertypeClass = supertype.classNode;
+      if (extendableClasses.add(supertypeClass)) {
+        supertypeClass.addAnnotation(ConstantExpression(pragma));
+      }
     }
   }
 }
@@ -227,14 +259,14 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
 
   void annotateClass(Class node) {
     if (annotatedClasses.add(node)) {
-      print("Annotated $node with $pragma");
+      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
 
   void annotateMember(Member node) {
     if (annotatedMembers.add(node)) {
-      print("Annotated $node with $pragma");
+      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
     }
   }

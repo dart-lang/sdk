@@ -144,14 +144,14 @@ class DictionaryTypeMask extends MapTypeMask {
     if (identical(this, other)) return true;
     if (other is! DictionaryTypeMask) return false;
     return super == other &&
-        _typeMap.keys.every((k) => other._typeMap.containsKey(k)) &&
-        other._typeMap.keys.every(
-          (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k],
-        );
+        const MapEquality<String, TypeMask>().equals(_typeMap, other._typeMap);
   }
 
   @override
-  int get hashCode => Hashing.objectHash(_typeMap, super.hashCode);
+  int get hashCode => Hashing.mixHashCodeBits(
+    super.hashCode,
+    const MapEquality<String, TypeMask>().hash(_typeMap),
+  );
 
   @override
   String toString() {

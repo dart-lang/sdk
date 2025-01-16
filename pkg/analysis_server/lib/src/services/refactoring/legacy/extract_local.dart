@@ -391,7 +391,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     );
   }
 
-  /// Return an unique identifier for the given [Element], or `null` if
+  /// Return an unique identifier for the given [Element2], or `null` if
   /// [element] is `null`.
   int? _encodeElement(Element2? element) {
     if (element == null) {
@@ -405,8 +405,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return id;
   }
 
-  /// Returns an [Element]-sensitive encoding of [tokens].
-  /// Each [Token] with a [LocalVariableElement] has a suffix of the element id.
+  /// Returns an [Element2]-sensitive encoding of [tokens].
+  /// Each [Token] with a [LocalVariableElement2] has a suffix of the element
+  /// ID.
   ///
   /// So, we can distinguish different local variables with the same name, if
   /// there are multiple variables with the same name are declared in the

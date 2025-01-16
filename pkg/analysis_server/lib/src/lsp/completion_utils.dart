@@ -38,7 +38,7 @@ Future<OverrideData?> createOverrideSuggestionData(
     builder,
   ) {
     builder.addReplacement(suggestion.replacementRange, (builder) {
-      builder.writeOverride2(
+      builder.writeOverride(
         suggestion.element,
         displayTextBuffer: displayTextBuffer,
         invokeSuper: suggestion.shouldInvokeSuper,

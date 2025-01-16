@@ -42,6 +42,37 @@ abstract class ParserAstNode {
     }
   }
 
+  void debugPrint() {
+    StringBuffer sb = new StringBuffer();
+    _debugPrintImpl(0, sb);
+    print(sb.toString());
+  }
+
+  void _debugPrintImpl(int indentation, StringBuffer sb) {
+    sb.write(" " * indentation);
+    sb.write(what);
+    sb.write(type.name);
+    Token? tokenWithSmallestOffset;
+    for (Object? value in deprecatedArguments.values) {
+      if (value is Token) {
+        if (tokenWithSmallestOffset == null ||
+            value.charOffset < tokenWithSmallestOffset.charOffset) {
+          tokenWithSmallestOffset = value;
+        }
+      }
+    }
+    if (tokenWithSmallestOffset != null) {
+      sb.write(" (${tokenWithSmallestOffset.lexeme} @ "
+          "${tokenWithSmallestOffset.charOffset})");
+    }
+    sb.writeln();
+    List<ParserAstNode>? children = this.children;
+    if (children == null) return;
+    for (ParserAstNode child in children) {
+      child._debugPrintImpl(indentation + 2, sb);
+    }
+  }
+
   // TODO(jensj): Compare two ASTs.
 }
 
@@ -11885,4 +11916,1492 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   @override
   void visitPatternAssignmentHandle(PatternAssignmentHandle node) =>
       node.visitChildren(this);
+}
+
+class RecursiveParserAstVisitorWithDefaultNodeAsync
+    implements ParserAstVisitor<Future<void>> {
+  Future<void> defaultNode(ParserAstNode node) async {
+    List<ParserAstNode>? children = node.children;
+    if (children == null) return;
+    for (ParserAstNode child in children) {
+      await child.accept(this);
+    }
+  }
+
+  @override
+  Future<void> visitArgumentsBegin(ArgumentsBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitArgumentsEnd(ArgumentsEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitObjectPatternFieldsHandle(ObjectPatternFieldsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAsyncModifierHandle(AsyncModifierHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAwaitExpressionBegin(AwaitExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAwaitExpressionEnd(AwaitExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidAwaitExpressionEnd(InvalidAwaitExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBlockBegin(BlockBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitBlockEnd(BlockEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitInvalidTopLevelBlockHandle(
+          InvalidTopLevelBlockHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCascadeBegin(CascadeBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitCascadeEnd(CascadeEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitCaseExpressionBegin(CaseExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCaseExpressionEnd(CaseExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassOrMixinOrExtensionBodyBegin(
+          ClassOrMixinOrExtensionBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassOrMixinOrExtensionBodyEnd(
+          ClassOrMixinOrExtensionBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassOrMixinOrNamedMixinApplicationPreludeBegin(
+          ClassOrMixinOrNamedMixinApplicationPreludeBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassDeclarationBegin(ClassDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassExtendsHandle(ClassExtendsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitImplementsHandle(ImplementsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassHeaderHandle(ClassHeaderHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecoverDeclarationHeaderHandle(
+          RecoverDeclarationHeaderHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassDeclarationEnd(ClassDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinDeclarationBegin(MixinDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinOnHandle(MixinOnHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitMixinHeaderHandle(MixinHeaderHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecoverMixinHeaderHandle(RecoverMixinHeaderHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinDeclarationEnd(MixinDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitUncategorizedTopLevelDeclarationBegin(
+          UncategorizedTopLevelDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionDeclarationPreludeBegin(
+          ExtensionDeclarationPreludeBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionDeclarationBegin(ExtensionDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeDeclarationBegin(
+          ExtensionTypeDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeDeclarationEnd(
+          ExtensionTypeDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPrimaryConstructorBegin(PrimaryConstructorBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPrimaryConstructorEnd(PrimaryConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoPrimaryConstructorHandle(
+          NoPrimaryConstructorHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCombinatorsBegin(CombinatorsBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCombinatorsEnd(CombinatorsEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitCompilationUnitBegin(CompilationUnitBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDirectivesOnlyHandle(DirectivesOnlyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCompilationUnitEnd(CompilationUnitEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstLiteralBegin(ConstLiteralBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstLiteralEnd(ConstLiteralEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitConstructorReferenceBegin(ConstructorReferenceBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstructorReferenceEnd(ConstructorReferenceEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDoWhileStatementBegin(DoWhileStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDoWhileStatementEnd(DoWhileStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDoWhileStatementBodyBegin(DoWhileStatementBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDoWhileStatementBodyEnd(DoWhileStatementBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitWhileStatementBodyBegin(WhileStatementBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitWhileStatementBodyEnd(WhileStatementBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumBegin(EnumBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitEnumEnd(EnumEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitEnumConstructorEnd(EnumConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumElementsHandle(EnumElementsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumHeaderHandle(EnumHeaderHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumElementHandle(EnumElementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExportBegin(ExportBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitExportEnd(ExportEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitExtraneousExpressionHandle(
+          ExtraneousExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExpressionStatementHandle(ExpressionStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFactoryMethodBegin(FactoryMethodBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeFactoryMethodEnd(
+          ExtensionTypeFactoryMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParameterBegin(FormalParameterBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParameterEnd(FormalParameterEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoFormalParametersHandle(NoFormalParametersHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParametersBegin(FormalParametersBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParametersEnd(FormalParametersEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassFieldsEnd(ClassFieldsEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitMixinFieldsEnd(MixinFieldsEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitExtensionFieldsEnd(ExtensionFieldsEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumFieldsEnd(EnumFieldsEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitEnumMethodEnd(EnumMethodEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitForInitializerEmptyStatementHandle(
+          ForInitializerEmptyStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInitializerExpressionStatementHandle(
+          ForInitializerExpressionStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInitializerLocalVariableDeclarationHandle(
+          ForInitializerLocalVariableDeclarationHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInitializerPatternVariableAssignmentHandle(
+          ForInitializerPatternVariableAssignmentHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForStatementBegin(ForStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForLoopPartsHandle(ForLoopPartsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForStatementEnd(ForStatementEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitForStatementBodyBegin(ForStatementBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForStatementBodyEnd(ForStatementBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInLoopPartsHandle(ForInLoopPartsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInEnd(ForInEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitForInExpressionBegin(ForInExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInExpressionEnd(ForInExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInBodyBegin(ForInBodyBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitForInBodyEnd(ForInBodyEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitNamedFunctionExpressionBegin(
+          NamedFunctionExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedFunctionExpressionEnd(
+          NamedFunctionExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLocalFunctionDeclarationBegin(
+          LocalFunctionDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLocalFunctionDeclarationEnd(
+          LocalFunctionDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBlockFunctionBodyBegin(BlockFunctionBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoFunctionBodyHandle(NoFunctionBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionBodySkippedHandle(FunctionBodySkippedHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionNameBegin(FunctionNameBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionNameEnd(FunctionNameEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypedefBegin(TypedefBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypedefEnd(TypedefEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitClassWithClauseHandle(ClassWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassNoWithClauseHandle(ClassNoWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumWithClauseHandle(EnumWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEnumNoWithClauseHandle(EnumNoWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinWithClauseHandle(MixinWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedMixinApplicationBegin(
+          NamedMixinApplicationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedMixinApplicationWithClauseHandle(
+          NamedMixinApplicationWithClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitHideBegin(HideBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitHideEnd(HideEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitIdentifierListHandle(IdentifierListHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeListBegin(TypeListBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypeListEnd(TypeListEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitIfStatementBegin(IfStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIfStatementEnd(IfStatementEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitThenStatementBegin(ThenStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitThenStatementEnd(ThenStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitElseStatementBegin(ElseStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitElseStatementEnd(ElseStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitImportBegin(ImportBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitImportPrefixHandle(ImportPrefixHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitImportEnd(ImportEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitRecoverImportHandle(RecoverImportHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalUrisBegin(ConditionalUrisBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalUrisEnd(ConditionalUrisEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalUriBegin(ConditionalUriBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalUriEnd(ConditionalUriEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDottedNameHandle(DottedNameHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitImplicitCreationExpressionBegin(
+          ImplicitCreationExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitImplicitCreationExpressionEnd(
+          ImplicitCreationExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInitializedIdentifierBegin(
+          InitializedIdentifierBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInitializedIdentifierEnd(InitializedIdentifierEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFieldInitializerBegin(FieldInitializerBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFieldInitializerEnd(FieldInitializerEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoFieldInitializerHandle(NoFieldInitializerHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVariableInitializerBegin(VariableInitializerBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVariableInitializerEnd(VariableInitializerEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoVariableInitializerHandle(
+          NoVariableInitializerHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInitializerBegin(InitializerBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInitializerEnd(InitializerEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitInitializersBegin(InitializersBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInitializersEnd(InitializersEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitNoInitializersHandle(NoInitializersHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidExpressionHandle(InvalidExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidFunctionBodyHandle(InvalidFunctionBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidTypeReferenceHandle(
+          InvalidTypeReferenceHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLabelHandle(LabelHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitLabeledStatementBegin(LabeledStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLabeledStatementEnd(LabeledStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLibraryAugmentationBegin(LibraryAugmentationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLibraryAugmentationEnd(LibraryAugmentationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLibraryNameBegin(LibraryNameBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLibraryNameEnd(LibraryNameEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitLiteralMapEntryHandle(LiteralMapEntryHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMapPatternEntryHandle(MapPatternEntryHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralStringBegin(LiteralStringBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInterpolationExpressionHandle(
+          InterpolationExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralStringEnd(LiteralStringEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAdjacentStringLiteralsHandle(
+          AdjacentStringLiteralsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMemberBegin(MemberBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitInvalidMemberHandle(InvalidMemberHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMemberEnd(MemberEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitMethodBegin(MethodBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitClassMethodEnd(ClassMethodEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitMixinMethodEnd(MixinMethodEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitExtensionMethodEnd(ExtensionMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitClassConstructorEnd(ClassConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMixinConstructorEnd(MixinConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionConstructorEnd(ExtensionConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExtensionTypeConstructorEnd(
+          ExtensionTypeConstructorEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMetadataStarBegin(MetadataStarBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMetadataStarEnd(MetadataStarEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitMetadataBegin(MetadataBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitMetadataEnd(MetadataEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitOptionalFormalParametersBegin(
+          OptionalFormalParametersBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitOptionalFormalParametersEnd(
+          OptionalFormalParametersEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPartBegin(PartBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitPartEnd(PartEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitPartOfBegin(PartOfBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitPartOfEnd(PartOfEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitRedirectingFactoryBodyBegin(
+          RedirectingFactoryBodyBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRedirectingFactoryBodyEnd(RedirectingFactoryBodyEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitReturnStatementBegin(ReturnStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNativeFunctionBodyHandle(NativeFunctionBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNativeFunctionBodyIgnoredHandle(
+          NativeFunctionBodyIgnoredHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNativeFunctionBodySkippedHandle(
+          NativeFunctionBodySkippedHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEmptyFunctionBodyHandle(EmptyFunctionBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExpressionFunctionBodyHandle(
+          ExpressionFunctionBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitReturnStatementEnd(ReturnStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSendHandle(SendHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitShowBegin(ShowBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitShowEnd(ShowEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitSwitchStatementBegin(SwitchStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchStatementEnd(SwitchStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionBegin(SwitchExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionEnd(SwitchExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchBlockBegin(SwitchBlockBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchBlockEnd(SwitchBlockEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionBlockBegin(
+          SwitchExpressionBlockBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionBlockEnd(SwitchExpressionBlockEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralSymbolBegin(LiteralSymbolBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralSymbolEnd(LiteralSymbolEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitThrowExpressionHandle(ThrowExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRethrowStatementBegin(RethrowStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRethrowStatementEnd(RethrowStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTopLevelDeclarationEnd(TopLevelDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidTopLevelDeclarationHandle(
+          InvalidTopLevelDeclarationHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTopLevelMemberBegin(TopLevelMemberBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFieldsBegin(FieldsBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitTopLevelFieldsEnd(TopLevelFieldsEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTopLevelMethodBegin(TopLevelMethodBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTopLevelMethodEnd(TopLevelMethodEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTryStatementBegin(TryStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCatchClauseBegin(CatchClauseBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCatchClauseEnd(CatchClauseEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitCatchBlockHandle(CatchBlockHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFinallyBlockHandle(FinallyBlockHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTryStatementEnd(TryStatementEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypeHandle(TypeHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitNonNullAssertExpressionHandle(
+          NonNullAssertExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNullAssertPatternHandle(NullAssertPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNullCheckPatternHandle(NullCheckPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAssignedVariablePatternHandle(
+          AssignedVariablePatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDeclaredVariablePatternHandle(
+          DeclaredVariablePatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitWildcardPatternHandle(WildcardPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoNameHandle(NoNameHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeBegin(RecordTypeBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeEnd(RecordTypeEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeEntryBegin(RecordTypeEntryBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeEntryEnd(RecordTypeEntryEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeNamedFieldsBegin(
+          RecordTypeNamedFieldsBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecordTypeNamedFieldsEnd(RecordTypeNamedFieldsEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionTypeBegin(FunctionTypeBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionTypeEnd(FunctionTypeEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypeArgumentsBegin(TypeArgumentsBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeArgumentsEnd(TypeArgumentsEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidTypeArgumentsHandle(
+          InvalidTypeArgumentsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoTypeArgumentsHandle(NoTypeArgumentsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeVariableBegin(TypeVariableBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeVariablesDefinedHandle(
+          TypeVariablesDefinedHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeVariableEnd(TypeVariableEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypeVariablesBegin(TypeVariablesBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitTypeVariablesEnd(TypeVariablesEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionExpressionBegin(FunctionExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionExpressionEnd(FunctionExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVariablesDeclarationBegin(VariablesDeclarationBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVariablesDeclarationEnd(VariablesDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitWhileStatementBegin(WhileStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitWhileStatementEnd(WhileStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAsOperatorTypeBegin(AsOperatorTypeBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAsOperatorTypeEnd(AsOperatorTypeEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAsOperatorHandle(AsOperatorHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitCastPatternHandle(CastPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAssignmentExpressionHandle(
+          AssignmentExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBinaryExpressionBegin(BinaryExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBinaryExpressionEnd(BinaryExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBinaryPatternBegin(BinaryPatternBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBinaryPatternEnd(BinaryPatternEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEndingBinaryExpressionHandle(
+          EndingBinaryExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalExpressionBegin(
+          ConditionalExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalExpressionColonHandle(
+          ConditionalExpressionColonHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConditionalExpressionEnd(ConditionalExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstExpressionBegin(ConstExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstExpressionEnd(ConstExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstFactoryHandle(ConstFactoryHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForControlFlowBegin(ForControlFlowBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForControlFlowEnd(ForControlFlowEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitForInControlFlowEnd(ForInControlFlowEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIfControlFlowBegin(IfControlFlowBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitThenControlFlowHandle(ThenControlFlowHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitElseControlFlowHandle(ElseControlFlowHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIfControlFlowEnd(IfControlFlowEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIfElseControlFlowEnd(IfElseControlFlowEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSpreadExpressionHandle(SpreadExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNullAwareElementHandle(NullAwareElementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRestPatternHandle(RestPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionTypedFormalParameterBegin(
+          FunctionTypedFormalParameterBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFunctionTypedFormalParameterEnd(
+          FunctionTypedFormalParameterEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIdentifierHandle(IdentifierHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIndexedExpressionHandle(IndexedExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIsOperatorTypeBegin(IsOperatorTypeBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIsOperatorTypeEnd(IsOperatorTypeEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitIsOperatorHandle(IsOperatorHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralBoolHandle(LiteralBoolHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitBreakStatementHandle(BreakStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitContinueStatementHandle(ContinueStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitEmptyStatementHandle(EmptyStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAssertBegin(AssertBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitAssertEnd(AssertEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitLiteralDoubleHandle(LiteralDoubleHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralDoubleWithSeparatorsHandle(
+          LiteralDoubleWithSeparatorsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralIntHandle(LiteralIntHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralIntWithSeparatorsHandle(
+          LiteralIntWithSeparatorsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralListHandle(LiteralListHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitListPatternHandle(ListPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralSetOrMapHandle(LiteralSetOrMapHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitMapPatternHandle(MapPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitLiteralNullHandle(LiteralNullHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNativeClauseHandle(NativeClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedArgumentHandle(NamedArgumentHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPatternFieldHandle(PatternFieldHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNamedRecordFieldHandle(NamedRecordFieldHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNewExpressionBegin(NewExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNewExpressionEnd(NewExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoArgumentsHandle(NoArgumentsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
+          NoConstructorReferenceContinuationAfterTypeArgumentsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoTypeNameInConstructorReferenceHandle(
+          NoTypeNameInConstructorReferenceHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoTypeHandle(NoTypeHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitNoTypeVariablesHandle(NoTypeVariablesHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitOperatorHandle(OperatorHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitSwitchCaseNoWhenClauseHandle(
+          SwitchCaseNoWhenClauseHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionCasePatternHandle(
+          SwitchExpressionCasePatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSymbolVoidHandle(SymbolVoidHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitOperatorNameHandle(OperatorNameHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidOperatorNameHandle(InvalidOperatorNameHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitParenthesizedConditionHandle(
+          ParenthesizedConditionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPatternBegin(PatternBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitPatternGuardBegin(PatternGuardBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitParenthesizedExpressionOrRecordLiteralBegin(
+          ParenthesizedExpressionOrRecordLiteralBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchCaseWhenClauseBegin(SwitchCaseWhenClauseBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecordLiteralEnd(RecordLiteralEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecordPatternHandle(RecordPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPatternEnd(PatternEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitPatternGuardEnd(PatternGuardEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitParenthesizedExpressionEnd(
+          ParenthesizedExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchCaseWhenClauseEnd(SwitchCaseWhenClauseEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitParenthesizedPatternHandle(
+          ParenthesizedPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstantPatternBegin(ConstantPatternBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitConstantPatternEnd(ConstantPatternEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitObjectPatternHandle(ObjectPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitQualifiedHandle(QualifiedHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitStringPartHandle(StringPartHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSuperExpressionHandle(SuperExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitAugmentSuperExpressionHandle(
+          AugmentSuperExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchCaseBegin(SwitchCaseBegin node) => defaultNode(node);
+
+  @override
+  Future<void> visitSwitchCaseEnd(SwitchCaseEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionCaseBegin(SwitchExpressionCaseBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitThisExpressionHandle(ThisExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitUnaryPostfixAssignmentExpressionHandle(
+          UnaryPostfixAssignmentExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitUnaryPrefixExpressionHandle(
+          UnaryPrefixExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRelationalPatternHandle(RelationalPatternHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitUnaryPrefixAssignmentExpressionHandle(
+          UnaryPrefixAssignmentExpressionHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParameterDefaultValueExpressionBegin(
+          FormalParameterDefaultValueExpressionBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParameterDefaultValueExpressionEnd(
+          FormalParameterDefaultValueExpressionEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitValuedFormalParameterHandle(
+          ValuedFormalParameterHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitFormalParameterWithoutValueHandle(
+          FormalParameterWithoutValueHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVoidKeywordHandle(VoidKeywordHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitVoidKeywordWithTypeArgumentsHandle(
+          VoidKeywordWithTypeArgumentsHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitYieldStatementBegin(YieldStatementBegin node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitYieldStatementEnd(YieldStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidYieldStatementEnd(InvalidYieldStatementEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitRecoverableErrorHandle(RecoverableErrorHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitExperimentNotEnabledHandle(
+          ExperimentNotEnabledHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitErrorTokenHandle(ErrorTokenHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitUnescapeErrorHandle(UnescapeErrorHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitInvalidStatementHandle(InvalidStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitScriptHandle(ScriptHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitTypeArgumentApplicationHandle(
+          TypeArgumentApplicationHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNewAsIdentifierHandle(NewAsIdentifierHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPatternVariableDeclarationStatementHandle(
+          PatternVariableDeclarationStatementHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitPatternAssignmentHandle(PatternAssignmentHandle node) =>
+      defaultNode(node);
 }

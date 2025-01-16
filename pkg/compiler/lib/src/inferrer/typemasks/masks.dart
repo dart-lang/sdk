@@ -4,6 +4,7 @@
 
 library;
 
+import 'package:collection/collection.dart';
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
@@ -141,7 +142,6 @@ class CommonMasks with AbstractValueDomain {
     _closedWorld,
   );
 
-  @override
   // TODO(50701): Use:
   //
   //     TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
@@ -150,8 +150,8 @@ class CommonMasks with AbstractValueDomain {
   // subtypes of Record or (2) several live subtypes of Record. Everything
   // 'works' for the similar interface `Function` because there are multiple
   // live subclasses of `Closure`.
-  late final TypeMask
-  recordType = nonNullType;
+  @override
+  late final TypeMask recordType = nonNullType;
 
   @override
   late final TypeMask listType = TypeMask.nonNullSubtype(

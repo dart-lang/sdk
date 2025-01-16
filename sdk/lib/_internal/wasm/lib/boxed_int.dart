@@ -15,8 +15,11 @@ final class BoxedInt implements int {
   @pragma("wasm:entry-point")
   BoxedInt._(this.value);
 
+  @pragma("wasm:intrinsic")
   external num operator +(num other);
+  @pragma("wasm:intrinsic")
   external num operator -(num other);
+  @pragma("wasm:intrinsic")
   external num operator *(num other);
 
   @pragma("wasm:prefer-inline")
@@ -70,10 +73,14 @@ final class BoxedInt implements int {
           ? this - (this ~/ other) * other
           : BoxedDouble.computeRemainder(toDouble(), unsafeCast<double>(other));
 
+  @pragma("wasm:intrinsic")
   external int operator -();
 
+  @pragma("wasm:intrinsic")
   external int operator &(int other);
+  @pragma("wasm:intrinsic")
   external int operator |(int other);
+  @pragma("wasm:intrinsic")
   external int operator ^(int other);
 
   @pragma("wasm:prefer-inline")
@@ -121,9 +128,13 @@ final class BoxedInt implements int {
     return 0;
   }
 
+  @pragma("wasm:intrinsic")
   external bool operator <(num other);
+  @pragma("wasm:intrinsic")
   external bool operator >(num other);
+  @pragma("wasm:intrinsic")
   external bool operator >=(num other);
+  @pragma("wasm:intrinsic")
   external bool operator <=(num other);
 
   @pragma("wasm:prefer-inline")
@@ -276,6 +287,7 @@ final class BoxedInt implements int {
     return this;
   }
 
+  @pragma("wasm:intrinsic")
   external double toDouble();
 
   String toStringAsFixed(int fractionDigits) {
@@ -419,6 +431,7 @@ final class BoxedInt implements int {
 
   int get hashCode => intHashCode(this);
 
+  @pragma("wasm:intrinsic")
   external int operator ~();
   external int get bitLength;
 

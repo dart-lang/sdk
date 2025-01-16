@@ -230,6 +230,7 @@ abstract class TypeSchemaEnvironmentTestBase {
           inferredTypeNodes,
           preliminary: downwardsInferPhase,
           inferenceUsingBoundsIsEnabled: true,
+          dataForTesting: null,
           operations: _operations);
 
       expect(inferredTypeNodes.single, expectedTypeNode);

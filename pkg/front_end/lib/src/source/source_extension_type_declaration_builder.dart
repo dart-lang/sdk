@@ -35,9 +35,9 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_property_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
@@ -89,8 +89,6 @@ class SourceExtensionTypeDeclarationBuilder
   final ExtensionTypeFragment _introductory;
 
   FieldFragment? _representationFieldFragment;
-
-  SourceFieldBuilder? _representationFieldBuilder;
 
   final IndexedContainer? indexedContainer;
 
@@ -155,13 +153,8 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   bool get isAugment => _modifiers.isAugment;
 
-  SourceFieldBuilder? get representationFieldBuilder {
-    if (_representationFieldBuilder == null) {
-      _representationFieldBuilder = _representationFieldFragment?.builder;
-      _representationFieldFragment = null;
-    }
-    return _representationFieldBuilder;
-  }
+  SourcePropertyBuilder? get representationFieldBuilder =>
+      _representationFieldFragment?.builder;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -187,7 +180,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   TypeBuilder? get declaredRepresentationTypeBuilder =>
-      representationFieldBuilder?.type;
+      _representationFieldFragment?.type;
 
   @override
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
@@ -347,8 +340,8 @@ class SourceExtensionTypeDeclarationBuilder
 
     DartType representationType;
     String representationName;
-    if (representationFieldBuilder != null) {
-      TypeBuilder typeBuilder = representationFieldBuilder!.type;
+    if (_representationFieldFragment != null) {
+      TypeBuilder typeBuilder = _representationFieldFragment!.type;
       if (typeBuilder.isExplicit) {
         if (_checkRepresentationDependency(typeBuilder, this, {this}, {})) {
           representationType = const InvalidType();
@@ -373,16 +366,16 @@ class SourceExtensionTypeDeclarationBuilder
           if (isBottom(representationType)) {
             libraryBuilder.addProblem(
                 messageExtensionTypeRepresentationTypeBottom,
-                representationFieldBuilder!.fileOffset,
-                representationFieldBuilder!.name.length,
-                representationFieldBuilder!.fileUri);
+                _representationFieldFragment!.nameOffset,
+                _representationFieldFragment!.name.length,
+                _representationFieldFragment!.fileUri);
             representationType = const InvalidType();
           }
         }
       } else {
         representationType = const DynamicType();
       }
-      representationName = representationFieldBuilder!.name;
+      representationName = _representationFieldFragment!.name;
     } else {
       representationType = const InvalidType();
       representationName = '#';
@@ -436,9 +429,9 @@ class SourceExtensionTypeDeclarationBuilder
             }
             libraryBuilder.addProblem(
                 messageCyclicRepresentationDependency,
-                representationFieldBuilder!.type.charOffset!,
+                _representationFieldFragment!.type.charOffset!,
                 noLength,
-                representationFieldBuilder!.type.fileUri,
+                _representationFieldFragment!.type.fileUri,
                 context: context);
             return true;
           } else {

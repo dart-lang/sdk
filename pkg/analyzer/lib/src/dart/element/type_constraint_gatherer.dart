@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared
     show
@@ -13,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     show
         GeneratedTypeConstraint,
         MergedTypeConstraint,
+        TypeConstraintGenerationDataForTesting,
         TypeConstraintFromArgument,
         TypeConstraintFromExtendsClause,
         TypeConstraintFromFunctionContext,
@@ -74,6 +77,10 @@ typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
     InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
+typedef TypeConstraintGenerationDataForTesting
+    = shared.TypeConstraintGenerationDataForTesting<DartType,
+        TypeParameterElementImpl2, PromotableElementImpl2, AstNodeImpl>;
+
 /// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
 typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
     DartType,
@@ -99,7 +106,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         TypeParameterElementImpl2,
         InterfaceTypeImpl,
         InterfaceElementImpl2,
-        AstNode>
+        AstNodeImpl>
     with
         shared.TypeConstraintGeneratorMixin<
             DartType,
@@ -108,7 +115,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             TypeParameterElementImpl2,
             InterfaceTypeImpl,
             InterfaceElementImpl2,
-            AstNode> {
+            AstNodeImpl> {
   @override
   final Set<TypeParameterElementImpl2> typeParametersToConstrain =
       Set.identity();
@@ -142,7 +149,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   void addLowerConstraintForParameter(
       TypeParameterElementImpl2 element, DartType lower,
-      {required AstNode? astNodeForTesting}) {
+      {required AstNodeImpl? astNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.lower(element, SharedTypeSchemaView(lower));
     _constraints.add(generatedTypeConstraint);
@@ -155,7 +162,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   void addUpperConstraintForParameter(
       TypeParameterElementImpl2 element, DartType upper,
-      {required AstNode? astNodeForTesting}) {
+      {required AstNodeImpl? astNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.upper(element, SharedTypeSchemaView(upper));
     _constraints.add(generatedTypeConstraint);
@@ -165,7 +172,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
   }
 
-  /// Returns the set of type constraints that was gathered.
+  @override
   Map<TypeParameterElementImpl2, MergedTypeConstraint> computeConstraints() {
     var result = <TypeParameterElementImpl2, MergedTypeConstraint>{};
     for (var parameter in typeParametersToConstrain) {
@@ -190,7 +197,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   void eliminateTypeParametersInGeneratedConstraints(
       covariant List<TypeParameterElementImpl2> eliminator,
       shared.TypeConstraintGeneratorState eliminationStartState,
-      {required AstNode? astNodeForTesting}) {
+      {required AstNodeImpl? astNodeForTesting}) {
     var constraints = _constraints.sublist(eliminationStartState.count);
     _constraints.length = eliminationStartState.count;
     for (var constraint in constraints) {
@@ -267,33 +274,5 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   void restoreState(shared.TypeConstraintGeneratorState state) {
     _constraints.length = state.count;
-  }
-}
-
-/// Data structure maintaining intermediate type inference results, such as
-/// type constraints, for testing purposes.  Under normal execution, no
-/// instance of this class should be created.
-class TypeConstraintGenerationDataForTesting {
-  /// Map from nodes requiring type inference to the generated type constraints
-  /// for the node.
-  final Map<AstNode, List<GeneratedTypeConstraint>> generatedTypeConstraints =
-      {};
-
-  /// Merges [other] into the receiver, combining the constraints.
-  ///
-  /// The method reuses data structures from [other] whenever possible, to
-  /// avoid extra memory allocations. This process is destructive to [other]
-  /// because the changes made to the reused structures will be visible to
-  /// [other].
-  void mergeIn(TypeConstraintGenerationDataForTesting other) {
-    for (AstNode node in other.generatedTypeConstraints.keys) {
-      List<GeneratedTypeConstraint>? constraints =
-          generatedTypeConstraints[node];
-      if (constraints != null) {
-        constraints.addAll(other.generatedTypeConstraints[node]!);
-      } else {
-        generatedTypeConstraints[node] = other.generatedTypeConstraints[node]!;
-      }
-    }
   }
 }
