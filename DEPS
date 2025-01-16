@@ -145,23 +145,16 @@ vars = {
   "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
   "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
   "shelf_rev": "bf799519cda2898a7c5af06dcfdd5fe6443afd79",
-  "stack_trace_rev": "5fe4cfea7f0d8e67b7d5738d2e1c64a18b5ba450",
-  "stream_channel_rev": "31a3aba8a78a78b266fbf7474f19cd4ba9ca562e",
-  "string_scanner_rev": "69212690d491603a511904a7a84cd502f34bf7a9",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "term_glyph_rev": "52677db71a2c6b6d0018ebbe5ed7552dbae1248f",
   "test_rev": "f364fc8291d668d85c702a5b9f9a4f2e5c1ade0e",
   "tools_rev": "3bdef2043af9244b804adc08896bf96d51bb49ba",
   "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
-  "watcher_rev": "7f3b3a3ea49ba7e21fff240ce8ee616d62d32956",
   "web_rev": "af5de5e8548060c0795713ee7129ba6d5ff9f1b2",
   "web_socket_channel_rev": "a937243563e8ee75d11fb23610297d4f6e5cb2b9",
   "webdev_rev": "e72f365a4408dce73bc023e624adc6a9a72dd7a2",
   "webdriver_rev": "d83d6a3cbaab152ff9b99b29382d1f48b5d5ba23",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
-  "yaml_rev": "0406507fb719b0c8787896475734747fa35f2b78",
-  "yaml_edit_rev": "fbdc70acc164af187772e013a2e1364cd05b88dc",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
@@ -380,21 +373,11 @@ deps = {
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
-  Var("dart_root") + "/third_party/pkg/stack_trace":
-      Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_rev"),
-  Var("dart_root") + "/third_party/pkg/stream_channel":
-      Var("dart_git") + "stream_channel.git" +
-      "@" + Var("stream_channel_rev"),
-  Var("dart_root") + "/third_party/pkg/string_scanner":
-      Var("dart_git") + "string_scanner.git" +
-      "@" + Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/pkg/sync_http":
       Var("dart_git") + "sync_http.git" + "@" + Var("sync_http_rev"),
   Var("dart_root") + "/third_party/pkg/tar":
       Var("dart_git") + "external/github.com/simolus3/tar.git" +
       "@" + Var("tar_rev"),
-  Var("dart_root") + "/third_party/pkg/term_glyph":
-      Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_rev"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_rev"),
   Var("dart_root") + "/third_party/pkg/tools":
@@ -402,8 +385,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/vector_math":
       Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
       "@" + Var("vector_math_rev"),
-  Var("dart_root") + "/third_party/pkg/watcher":
-      Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
   Var("dart_root") + "/third_party/pkg/webdev":
       Var("dart_git") + "webdev.git" + "@" + Var("webdev_rev"),
   Var("dart_root") + "/third_party/pkg/webdriver":
@@ -417,10 +398,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       "@" + Var("web_socket_channel_rev"),
-  Var("dart_root") + "/third_party/pkg/yaml_edit":
-      Var("dart_git") + "yaml_edit.git" + "@" + Var("yaml_edit_rev"),
-  Var("dart_root") + "/third_party/pkg/yaml":
-      Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
   Var("dart_root") + "/buildtools/sysroot/linux": {
       "packages": [
