@@ -1,3 +1,11 @@
+## 3.8.0
+
+### Libraries
+
+#### `dart:core`
+
+- Added `Iterable.withIterator` constructor.
+
 ## 3.7.0
 
 ### Language
