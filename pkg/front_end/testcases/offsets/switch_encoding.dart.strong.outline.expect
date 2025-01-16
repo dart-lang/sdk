@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 [222]class E extends core::_Enum /*isEnum*/  {
-[222]  static const field core::List<self::E> values = [-1] [-1] const <self::E>[[-1] self::E::a, [-1] self::E::b, [-1] self::E::c];
 [226]  enum-element static const field self::E a = [226] [226] const self::E::• [-1]([-1] 0, [-1] "a");
 [229]  enum-element static const field self::E b = [229] [229] const self::E::• [-1]([-1] 1, [-1] "b");
 [232]  enum-element static const field self::E c = [232] [232] const self::E::• [-1]([-1] 2, [-1] "c");
+[222]  static const field core::List<self::E> values = [-1] [-1] const <self::E>[[-1] self::E::a, [-1] self::E::b, [-1] self::E::c];
 [222]  const synthetic constructor •([222] core::int #index, [222] core::String #name) → self::E
     : [222] super core::_Enum::• [222]([-1] #index, [-1] #name)
 [-1]    ;
@@ -66,8 +66,8 @@ import "dart:core" as core;
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///switch_encoding.dart:5:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "a"}, const E{_Enum.index: 1, _Enum._name: "b"}, const E{_Enum.index: 2, _Enum._name: "c"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:10 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:13 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_encoding.dart:5:16 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///switch_encoding.dart:5:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "a"}, const E{_Enum.index: 1, _Enum._name: "b"}, const E{_Enum.index: 2, _Enum._name: "c"}])
 Extra constant evaluation: evaluated: 11, effectively constant: 4

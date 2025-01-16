@@ -32,6 +32,9 @@ import '../base/identifiers.dart'
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
+import '../base/operator.dart' show Operator;
+import '../base/problems.dart' show unhandled;
+import '../base/uris.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
@@ -45,13 +48,9 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../base/operator.dart' show Operator;
-import '../base/problems.dart' show unhandled;
-import '../base/uris.dart';
 import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
-import 'source_enum_builder.dart';
 import 'stack_listener_impl.dart';
 import 'value_kinds.dart';
 
@@ -2763,9 +2762,13 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as ConstructorReferenceBuilder?;
     Object? enumConstantInfo = pop();
     if (enumConstantInfo is EnumConstantInfo) {
-      push(enumConstantInfo
-        ..constructorReferenceBuilder = constructorReferenceBuilder
-        ..argumentsBeginToken = argumentsBeginToken);
+      push(enumConstantInfo);
+      _builderFactory.addEnumElement(
+          metadata: enumConstantInfo.metadata,
+          name: enumConstantInfo.name,
+          nameOffset: enumConstantInfo.nameOffset,
+          constructorReferenceBuilder: constructorReferenceBuilder,
+          argumentsBeginToken: argumentsBeginToken);
     } else {
       assert(enumConstantInfo is ParserRecovery);
       push(NullValues.EnumConstantInfo);
@@ -2905,7 +2908,6 @@ class OutlineBuilder extends StackListenerImpl {
           typeParameters: typeParameters,
           supertypeBuilder: mixinBuilder,
           interfaceBuilders: interfaces,
-          enumConstantInfos: enumConstantInfos,
           startOffset: startOffset,
           endOffset: endOffset);
     } else {
@@ -3982,4 +3984,12 @@ extension on MemberKind {
         return true;
     }
   }
+}
+
+class EnumConstantInfo {
+  final List<MetadataBuilder>? metadata;
+  final String name;
+  final int nameOffset;
+
+  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
 }

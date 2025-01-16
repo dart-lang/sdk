@@ -43,7 +43,6 @@ import '../util/local_stack.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_enum_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'type_parameter_scope_builder.dart';
@@ -840,7 +839,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<NominalParameterBuilder>? typeParameters,
       required MixinApplicationBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
-      required List<EnumConstantInfo?>? enumConstantInfos,
       required int startOffset,
       required int endOffset}) {
     String name = identifier.name;
@@ -861,7 +859,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.metadata = metadata;
     declarationFragment.supertypeBuilder = supertypeBuilder;
     declarationFragment.interfaces = interfaceBuilders;
-    declarationFragment.enumConstantInfos = enumConstantInfos;
     declarationFragment.constructorReferences =
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
@@ -872,6 +869,25 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _addFragment(declarationFragment);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
+  }
+
+  @override
+  void addEnumElement(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required ConstructorReferenceBuilder? constructorReferenceBuilder,
+      required Token? argumentsBeginToken}) {
+    EnumElementFragment fragment = new EnumElementFragment(
+        metadata: metadata,
+        name: name,
+        nameOffset: nameOffset,
+        fileUri: _compilationUnit.fileUri,
+        constructorReferenceBuilder: constructorReferenceBuilder,
+        argumentsBeginToken: argumentsBeginToken);
+    _declarationFragments.current.addEnumElement(fragment);
+
+    _addFragment(fragment);
   }
 
   @override

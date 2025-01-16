@@ -111,8 +111,8 @@ abstract class _G&_Enum&void extends core::_Enum /*isAnonymousMixin,hasConstCons
     ;
 }
 class G extends self::_G&_Enum&void /*isEnum*/  {
-  static const field core::List<self::G> values = const <self::G>[self::G::g];
   enum-element static const field self::G g = const self::G::•(0, "g");
+  static const field core::List<self::G> values = const <self::G>[self::G::g];
   const synthetic constructor •(core::int #index, core::String #name) → self::G
     : super self::_G&_Enum&void::•(#index, #name)
     ;
@@ -120,8 +120,8 @@ class G extends self::_G&_Enum&void /*isEnum*/  {
     return "G.${this.{core::_Enum::_name}{core::String}}";
 }
 class H extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::H> values = const <self::H>[self::H::h];
   enum-element static const field self::H h = const self::H::•(0, "h");
+  static const field core::List<self::H> values = const <self::H>[self::H::h];
   const synthetic constructor •(core::int #index, core::String #name) → self::H
     : super core::_Enum::•(#index, #name)
     ;
@@ -140,8 +140,8 @@ static extension-type-member method D|constructor#_#new#tearOff(core::Object o) 
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///extends_implements_void.dart:17:6 -> ListConstant(const <G>[const G{_Enum.index: 0, _Enum._name: "g"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///extends_implements_void.dart:17:20 -> InstanceConstant(const G{_Enum.index: 0, _Enum._name: "g"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///extends_implements_void.dart:19:6 -> ListConstant(const <H>[const H{_Enum.index: 0, _Enum._name: "h"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///extends_implements_void.dart:17:6 -> ListConstant(const <G>[const G{_Enum.index: 0, _Enum._name: "g"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///extends_implements_void.dart:19:26 -> InstanceConstant(const H{_Enum.index: 0, _Enum._name: "h"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///extends_implements_void.dart:19:6 -> ListConstant(const <H>[const H{_Enum.index: 0, _Enum._name: "h"}])
 Extra constant evaluation: evaluated: 18, effectively constant: 4

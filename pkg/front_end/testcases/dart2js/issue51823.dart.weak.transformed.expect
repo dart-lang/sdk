@@ -12,9 +12,9 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<iss::E> values = #C12;
   enum-element static const field iss::E a = #C10;
   enum-element static const field iss::E b = #C11;
+  static const field core::List<iss::E> values = #C12;
   const synthetic constructor •(core::int #index, core::String #name) → iss::E
     : super core::_Enum::•(#index, #name)
     ;

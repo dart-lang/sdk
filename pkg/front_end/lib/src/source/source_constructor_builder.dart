@@ -404,6 +404,10 @@ abstract class AbstractSourceConstructorBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DeclaredSourceConstructorBuilder
@@ -1179,6 +1183,10 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

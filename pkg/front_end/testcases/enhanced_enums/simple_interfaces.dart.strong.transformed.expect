@@ -37,9 +37,9 @@ abstract class I extends core::Object {
   abstract method foo() → void;
 }
 class E1 extends core::_Enum implements self::I /*isEnum*/  {
-  static const field core::List<self::E1> values = #C7;
   enum-element static const field self::E1 one = #C3;
   enum-element static const field self::E1 two = #C6;
+  static const field core::List<self::E1> values = #C7;
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -48,9 +48,9 @@ class E1 extends core::_Enum implements self::I /*isEnum*/  {
   method foo() → void {}
 }
 class E2 extends core::_Enum implements self::I /*isEnum*/  {
-  static const field core::List<self::E2> values = #C10;
   enum-element static const field self::E2 one = #C8;
   enum-element static const field self::E2 two = #C9;
+  static const field core::List<self::E2> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
@@ -58,9 +58,9 @@ class E2 extends core::_Enum implements self::I /*isEnum*/  {
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum implements self::I /*isEnum*/  {
-  static const field core::List<self::E3> values = #C13;
   enum-element static const field self::E3 one = #C11;
   enum-element static const field self::E3 two = #C12;
+  static const field core::List<self::E3> values = #C13;
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
@@ -69,9 +69,9 @@ class E3 extends core::_Enum implements self::I /*isEnum*/  {
   method foo() → void {}
 }
 class E4 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E4> values = #C16;
   enum-element static const field self::E4 one = #C14;
   enum-element static const field self::E4 two = #C15;
+  static const field core::List<self::E4> values = #C16;
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;

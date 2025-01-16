@@ -26,8 +26,8 @@ class A1 extends core::Object /*hasConstConstructor*/  {
                                   ^";
 }
 class A2 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::A2> values = #C4;
   enum-element static const field self::A2 element = #C3;
+  static const field core::List<self::A2> values = #C4;
   const constructor •(core::int #index, core::String #name) → self::A2
     : super core::_Enum::•(#index, #name)
     ;

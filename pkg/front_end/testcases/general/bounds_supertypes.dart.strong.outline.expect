@@ -989,8 +989,8 @@ class WithS8 extends self::_WithS8&Object&G {
     ;
 }
 class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT1> values = const <self::EnumImplementsT1>[self::EnumImplementsT1::a];
   enum-element static const field self::EnumImplementsT1 a = const self::EnumImplementsT1::•(0, "a");
+  static const field core::List<self::EnumImplementsT1> values = const <self::EnumImplementsT1>[self::EnumImplementsT1::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT1
     : super core::_Enum::•(#index, #name)
     ;
@@ -998,8 +998,8 @@ class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dy
     return "EnumImplementsT1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT2> values = const <self::EnumImplementsT2>[self::EnumImplementsT2::a];
   enum-element static const field self::EnumImplementsT2 a = const self::EnumImplementsT2::•(0, "a");
+  static const field core::List<self::EnumImplementsT2> values = const <self::EnumImplementsT2>[self::EnumImplementsT2::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT2
     : super core::_Enum::•(#index, #name)
     ;
@@ -1007,8 +1007,8 @@ class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isE
     return "EnumImplementsT2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT3> values = const <self::EnumImplementsT3>[self::EnumImplementsT3::a];
   enum-element static const field self::EnumImplementsT3 a = const self::EnumImplementsT3::•(0, "a");
+  static const field core::List<self::EnumImplementsT3> values = const <self::EnumImplementsT3>[self::EnumImplementsT3::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT3
     : super core::_Enum::•(#index, #name)
     ;
@@ -1016,8 +1016,8 @@ class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dy
     return "EnumImplementsT3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT4> values = const <self::EnumImplementsT4>[self::EnumImplementsT4::a];
   enum-element static const field self::EnumImplementsT4 a = const self::EnumImplementsT4::•(0, "a");
+  static const field core::List<self::EnumImplementsT4> values = const <self::EnumImplementsT4>[self::EnumImplementsT4::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT4
     : super core::_Enum::•(#index, #name)
     ;
@@ -1025,8 +1025,8 @@ class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dy
     return "EnumImplementsT4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT5 extends core::_Enum implements self::Class<self::ConcreteClass> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT5> values = const <self::EnumImplementsT5>[self::EnumImplementsT5::a];
   enum-element static const field self::EnumImplementsT5 a = const self::EnumImplementsT5::•(0, "a");
+  static const field core::List<self::EnumImplementsT5> values = const <self::EnumImplementsT5>[self::EnumImplementsT5::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT5
     : super core::_Enum::•(#index, #name)
     ;
@@ -1034,8 +1034,8 @@ class EnumImplementsT5 extends core::_Enum implements self::Class<self::Concrete
     return "EnumImplementsT5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<self::ConcreteClass>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT6> values = const <self::EnumImplementsT6>[self::EnumImplementsT6::a];
   enum-element static const field self::EnumImplementsT6 a = const self::EnumImplementsT6::•(0, "a");
+  static const field core::List<self::EnumImplementsT6> values = const <self::EnumImplementsT6>[self::EnumImplementsT6::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT6
     : super core::_Enum::•(#index, #name)
     ;
@@ -1043,8 +1043,8 @@ class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<se
     return "EnumImplementsT6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT7> values = const <self::EnumImplementsT7>[self::EnumImplementsT7::a];
   enum-element static const field self::EnumImplementsT7 a = const self::EnumImplementsT7::•(0, "a");
+  static const field core::List<self::EnumImplementsT7> values = const <self::EnumImplementsT7>[self::EnumImplementsT7::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT7
     : super core::_Enum::•(#index, #name)
     ;
@@ -1052,8 +1052,8 @@ class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> 
     return "EnumImplementsT7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsT8> values = const <self::EnumImplementsT8>[self::EnumImplementsT8::a];
   enum-element static const field self::EnumImplementsT8 a = const self::EnumImplementsT8::•(0, "a");
+  static const field core::List<self::EnumImplementsT8> values = const <self::EnumImplementsT8>[self::EnumImplementsT8::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT8
     : super core::_Enum::•(#index, #name)
     ;
@@ -1061,8 +1061,8 @@ class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*i
     return "EnumImplementsT8.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS1> values = const <self::EnumImplementsS1>[self::EnumImplementsS1::a];
   enum-element static const field self::EnumImplementsS1 a = const self::EnumImplementsS1::•(0, "a");
+  static const field core::List<self::EnumImplementsS1> values = const <self::EnumImplementsS1>[self::EnumImplementsS1::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS1
     : super core::_Enum::•(#index, #name)
     ;
@@ -1070,8 +1070,8 @@ class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynami
     return "EnumImplementsS1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS2> values = const <self::EnumImplementsS2>[self::EnumImplementsS2::a];
   enum-element static const field self::EnumImplementsS2 a = const self::EnumImplementsS2::•(0, "a");
+  static const field core::List<self::EnumImplementsS2> values = const <self::EnumImplementsS2>[self::EnumImplementsS2::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS2
     : super core::_Enum::•(#index, #name)
     ;
@@ -1079,8 +1079,8 @@ class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*
     return "EnumImplementsS2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS3> values = const <self::EnumImplementsS3>[self::EnumImplementsS3::a];
   enum-element static const field self::EnumImplementsS3 a = const self::EnumImplementsS3::•(0, "a");
+  static const field core::List<self::EnumImplementsS3> values = const <self::EnumImplementsS3>[self::EnumImplementsS3::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS3
     : super core::_Enum::•(#index, #name)
     ;
@@ -1088,8 +1088,8 @@ class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynami
     return "EnumImplementsS3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS4> values = const <self::EnumImplementsS4>[self::EnumImplementsS4::a];
   enum-element static const field self::EnumImplementsS4 a = const self::EnumImplementsS4::•(0, "a");
+  static const field core::List<self::EnumImplementsS4> values = const <self::EnumImplementsS4>[self::EnumImplementsS4::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS4
     : super core::_Enum::•(#index, #name)
     ;
@@ -1097,8 +1097,8 @@ class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynami
     return "EnumImplementsS4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClass> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS5> values = const <self::EnumImplementsS5>[self::EnumImplementsS5::a];
   enum-element static const field self::EnumImplementsS5 a = const self::EnumImplementsS5::•(0, "a");
+  static const field core::List<self::EnumImplementsS5> values = const <self::EnumImplementsS5>[self::EnumImplementsS5::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS5
     : super core::_Enum::•(#index, #name)
     ;
@@ -1106,8 +1106,8 @@ class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClas
     return "EnumImplementsS5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::ConcreteClass>> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS6> values = const <self::EnumImplementsS6>[self::EnumImplementsS6::a];
   enum-element static const field self::EnumImplementsS6 a = const self::EnumImplementsS6::•(0, "a");
+  static const field core::List<self::EnumImplementsS6> values = const <self::EnumImplementsS6>[self::EnumImplementsS6::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS6
     : super core::_Enum::•(#index, #name)
     ;
@@ -1115,8 +1115,8 @@ class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::
     return "EnumImplementsS6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS7> values = const <self::EnumImplementsS7>[self::EnumImplementsS7::a];
   enum-element static const field self::EnumImplementsS7 a = const self::EnumImplementsS7::•(0, "a");
+  static const field core::List<self::EnumImplementsS7> values = const <self::EnumImplementsS7>[self::EnumImplementsS7::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS7
     : super core::_Enum::•(#index, #name)
     ;
@@ -1124,8 +1124,8 @@ class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*is
     return "EnumImplementsS7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS8 extends core::_Enum implements self::G<core::int> /*isEnum*/  {
-  static const field core::List<self::EnumImplementsS8> values = const <self::EnumImplementsS8>[self::EnumImplementsS8::a];
   enum-element static const field self::EnumImplementsS8 a = const self::EnumImplementsS8::•(0, "a");
+  static const field core::List<self::EnumImplementsS8> values = const <self::EnumImplementsS8>[self::EnumImplementsS8::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS8
     : super core::_Enum::•(#index, #name)
     ;
@@ -1138,8 +1138,8 @@ abstract class _EnumWithT1&_Enum&F = core::_Enum with self::Class<self::Class<dy
     ;
 }
 class EnumWithT1 extends self::_EnumWithT1&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT1> values = const <self::EnumWithT1>[self::EnumWithT1::a];
   enum-element static const field self::EnumWithT1 a = const self::EnumWithT1::•(0, "a");
+  static const field core::List<self::EnumWithT1> values = const <self::EnumWithT1>[self::EnumWithT1::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT1
     : super self::_EnumWithT1&_Enum&F::•(#index, #name)
     ;
@@ -1152,8 +1152,8 @@ abstract class _EnumWithT2&_Enum&F = core::_Enum with self::Class<dynamic> /*isA
     ;
 }
 class EnumWithT2 extends self::_EnumWithT2&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT2> values = const <self::EnumWithT2>[self::EnumWithT2::a];
   enum-element static const field self::EnumWithT2 a = const self::EnumWithT2::•(0, "a");
+  static const field core::List<self::EnumWithT2> values = const <self::EnumWithT2>[self::EnumWithT2::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT2
     : super self::_EnumWithT2&_Enum&F::•(#index, #name)
     ;
@@ -1166,8 +1166,8 @@ abstract class _EnumWithT3&_Enum&F = core::_Enum with self::Class<self::Class<dy
     ;
 }
 class EnumWithT3 extends self::_EnumWithT3&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT3> values = const <self::EnumWithT3>[self::EnumWithT3::a];
   enum-element static const field self::EnumWithT3 a = const self::EnumWithT3::•(0, "a");
+  static const field core::List<self::EnumWithT3> values = const <self::EnumWithT3>[self::EnumWithT3::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT3
     : super self::_EnumWithT3&_Enum&F::•(#index, #name)
     ;
@@ -1180,8 +1180,8 @@ abstract class _EnumWithT4&_Enum&F = core::_Enum with self::Class<self::Class<dy
     ;
 }
 class EnumWithT4 extends self::_EnumWithT4&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT4> values = const <self::EnumWithT4>[self::EnumWithT4::a];
   enum-element static const field self::EnumWithT4 a = const self::EnumWithT4::•(0, "a");
+  static const field core::List<self::EnumWithT4> values = const <self::EnumWithT4>[self::EnumWithT4::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT4
     : super self::_EnumWithT4&_Enum&F::•(#index, #name)
     ;
@@ -1194,8 +1194,8 @@ abstract class _EnumWithT5&_Enum&F = core::_Enum with self::Class<self::Concrete
     ;
 }
 class EnumWithT5 extends self::_EnumWithT5&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT5> values = const <self::EnumWithT5>[self::EnumWithT5::a];
   enum-element static const field self::EnumWithT5 a = const self::EnumWithT5::•(0, "a");
+  static const field core::List<self::EnumWithT5> values = const <self::EnumWithT5>[self::EnumWithT5::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT5
     : super self::_EnumWithT5&_Enum&F::•(#index, #name)
     ;
@@ -1208,8 +1208,8 @@ abstract class _EnumWithT6&_Enum&F = core::_Enum with self::Class<self::Class<se
     ;
 }
 class EnumWithT6 extends self::_EnumWithT6&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT6> values = const <self::EnumWithT6>[self::EnumWithT6::a];
   enum-element static const field self::EnumWithT6 a = const self::EnumWithT6::•(0, "a");
+  static const field core::List<self::EnumWithT6> values = const <self::EnumWithT6>[self::EnumWithT6::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT6
     : super self::_EnumWithT6&_Enum&F::•(#index, #name)
     ;
@@ -1222,8 +1222,8 @@ abstract class _EnumWithT7&_Enum&F = core::_Enum with self::Class<core::Object> 
     ;
 }
 class EnumWithT7 extends self::_EnumWithT7&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT7> values = const <self::EnumWithT7>[self::EnumWithT7::a];
   enum-element static const field self::EnumWithT7 a = const self::EnumWithT7::•(0, "a");
+  static const field core::List<self::EnumWithT7> values = const <self::EnumWithT7>[self::EnumWithT7::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT7
     : super self::_EnumWithT7&_Enum&F::•(#index, #name)
     ;
@@ -1236,8 +1236,8 @@ abstract class _EnumWithT8&_Enum&F = core::_Enum with self::Class<core::int> /*i
     ;
 }
 class EnumWithT8 extends self::_EnumWithT8&_Enum&F /*isEnum*/  {
-  static const field core::List<self::EnumWithT8> values = const <self::EnumWithT8>[self::EnumWithT8::a];
   enum-element static const field self::EnumWithT8 a = const self::EnumWithT8::•(0, "a");
+  static const field core::List<self::EnumWithT8> values = const <self::EnumWithT8>[self::EnumWithT8::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT8
     : super self::_EnumWithT8&_Enum&F::•(#index, #name)
     ;
@@ -1250,8 +1250,8 @@ abstract class _EnumWithS1&_Enum&G = core::_Enum with self::G<self::Class<dynami
     ;
 }
 class EnumWithS1 extends self::_EnumWithS1&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS1> values = const <self::EnumWithS1>[self::EnumWithS1::a];
   enum-element static const field self::EnumWithS1 a = const self::EnumWithS1::•(0, "a");
+  static const field core::List<self::EnumWithS1> values = const <self::EnumWithS1>[self::EnumWithS1::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS1
     : super self::_EnumWithS1&_Enum&G::•(#index, #name)
     ;
@@ -1264,8 +1264,8 @@ abstract class _EnumWithS2&_Enum&G = core::_Enum with self::G<dynamic> /*isAnony
     ;
 }
 class EnumWithS2 extends self::_EnumWithS2&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS2> values = const <self::EnumWithS2>[self::EnumWithS2::a];
   enum-element static const field self::EnumWithS2 a = const self::EnumWithS2::•(0, "a");
+  static const field core::List<self::EnumWithS2> values = const <self::EnumWithS2>[self::EnumWithS2::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS2
     : super self::_EnumWithS2&_Enum&G::•(#index, #name)
     ;
@@ -1278,8 +1278,8 @@ abstract class _EnumWithS3&_Enum&G = core::_Enum with self::G<self::Class<dynami
     ;
 }
 class EnumWithS3 extends self::_EnumWithS3&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS3> values = const <self::EnumWithS3>[self::EnumWithS3::a];
   enum-element static const field self::EnumWithS3 a = const self::EnumWithS3::•(0, "a");
+  static const field core::List<self::EnumWithS3> values = const <self::EnumWithS3>[self::EnumWithS3::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS3
     : super self::_EnumWithS3&_Enum&G::•(#index, #name)
     ;
@@ -1292,8 +1292,8 @@ abstract class _EnumWithS4&_Enum&G = core::_Enum with self::G<self::Class<dynami
     ;
 }
 class EnumWithS4 extends self::_EnumWithS4&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS4> values = const <self::EnumWithS4>[self::EnumWithS4::a];
   enum-element static const field self::EnumWithS4 a = const self::EnumWithS4::•(0, "a");
+  static const field core::List<self::EnumWithS4> values = const <self::EnumWithS4>[self::EnumWithS4::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS4
     : super self::_EnumWithS4&_Enum&G::•(#index, #name)
     ;
@@ -1306,8 +1306,8 @@ abstract class _EnumWithS5&_Enum&G = core::_Enum with self::G<self::ConcreteClas
     ;
 }
 class EnumWithS5 extends self::_EnumWithS5&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS5> values = const <self::EnumWithS5>[self::EnumWithS5::a];
   enum-element static const field self::EnumWithS5 a = const self::EnumWithS5::•(0, "a");
+  static const field core::List<self::EnumWithS5> values = const <self::EnumWithS5>[self::EnumWithS5::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS5
     : super self::_EnumWithS5&_Enum&G::•(#index, #name)
     ;
@@ -1320,8 +1320,8 @@ abstract class _EnumWithS6&_Enum&G = core::_Enum with self::G<self::Class<self::
     ;
 }
 class EnumWithS6 extends self::_EnumWithS6&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS6> values = const <self::EnumWithS6>[self::EnumWithS6::a];
   enum-element static const field self::EnumWithS6 a = const self::EnumWithS6::•(0, "a");
+  static const field core::List<self::EnumWithS6> values = const <self::EnumWithS6>[self::EnumWithS6::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS6
     : super self::_EnumWithS6&_Enum&G::•(#index, #name)
     ;
@@ -1334,8 +1334,8 @@ abstract class _EnumWithS7&_Enum&G = core::_Enum with self::G<core::Object> /*is
     ;
 }
 class EnumWithS7 extends self::_EnumWithS7&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS7> values = const <self::EnumWithS7>[self::EnumWithS7::a];
   enum-element static const field self::EnumWithS7 a = const self::EnumWithS7::•(0, "a");
+  static const field core::List<self::EnumWithS7> values = const <self::EnumWithS7>[self::EnumWithS7::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS7
     : super self::_EnumWithS7&_Enum&G::•(#index, #name)
     ;
@@ -1348,8 +1348,8 @@ abstract class _EnumWithS8&_Enum&G = core::_Enum with self::G<core::int> /*isAno
     ;
 }
 class EnumWithS8 extends self::_EnumWithS8&_Enum&G /*isEnum*/  {
-  static const field core::List<self::EnumWithS8> values = const <self::EnumWithS8>[self::EnumWithS8::a];
   enum-element static const field self::EnumWithS8 a = const self::EnumWithS8::•(0, "a");
+  static const field core::List<self::EnumWithS8> values = const <self::EnumWithS8>[self::EnumWithS8::a];
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS8
     : super self::_EnumWithS8&_Enum&G::•(#index, #name)
     ;
@@ -1427,68 +1427,68 @@ static method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = 
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:109:6 -> ListConstant(const <EnumImplementsT1>[const EnumImplementsT1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:109:50 -> InstanceConstant(const EnumImplementsT1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:111:6 -> ListConstant(const <EnumImplementsT2>[const EnumImplementsT2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:109:6 -> ListConstant(const <EnumImplementsT1>[const EnumImplementsT1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:111:59 -> InstanceConstant(const EnumImplementsT2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:113:6 -> ListConstant(const <EnumImplementsT3>[const EnumImplementsT3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:111:6 -> ListConstant(const <EnumImplementsT2>[const EnumImplementsT2{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:113:57 -> InstanceConstant(const EnumImplementsT3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:115:6 -> ListConstant(const <EnumImplementsT4>[const EnumImplementsT4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:113:6 -> ListConstant(const <EnumImplementsT3>[const EnumImplementsT3{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:115:66 -> InstanceConstant(const EnumImplementsT4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:117:6 -> ListConstant(const <EnumImplementsT5>[const EnumImplementsT5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:115:6 -> ListConstant(const <EnumImplementsT4>[const EnumImplementsT4{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:117:62 -> InstanceConstant(const EnumImplementsT5{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:119:6 -> ListConstant(const <EnumImplementsT6>[const EnumImplementsT6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:117:6 -> ListConstant(const <EnumImplementsT5>[const EnumImplementsT5{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:119:69 -> InstanceConstant(const EnumImplementsT6{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:121:6 -> ListConstant(const <EnumImplementsT7>[const EnumImplementsT7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:119:6 -> ListConstant(const <EnumImplementsT6>[const EnumImplementsT6{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:121:58 -> InstanceConstant(const EnumImplementsT7{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:123:6 -> ListConstant(const <EnumImplementsT8>[const EnumImplementsT8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:121:6 -> ListConstant(const <EnumImplementsT7>[const EnumImplementsT7{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:123:55 -> InstanceConstant(const EnumImplementsT8{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:125:6 -> ListConstant(const <EnumImplementsS1>[const EnumImplementsS1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:123:6 -> ListConstant(const <EnumImplementsT8>[const EnumImplementsT8{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:125:50 -> InstanceConstant(const EnumImplementsS1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:127:6 -> ListConstant(const <EnumImplementsS2>[const EnumImplementsS2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:125:6 -> ListConstant(const <EnumImplementsS1>[const EnumImplementsS1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:127:59 -> InstanceConstant(const EnumImplementsS2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:129:6 -> ListConstant(const <EnumImplementsS3>[const EnumImplementsS3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:127:6 -> ListConstant(const <EnumImplementsS2>[const EnumImplementsS2{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:129:57 -> InstanceConstant(const EnumImplementsS3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:131:6 -> ListConstant(const <EnumImplementsS4>[const EnumImplementsS4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:129:6 -> ListConstant(const <EnumImplementsS3>[const EnumImplementsS3{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:131:66 -> InstanceConstant(const EnumImplementsS4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:133:6 -> ListConstant(const <EnumImplementsS5>[const EnumImplementsS5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:131:6 -> ListConstant(const <EnumImplementsS4>[const EnumImplementsS4{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:133:62 -> InstanceConstant(const EnumImplementsS5{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:135:6 -> ListConstant(const <EnumImplementsS6>[const EnumImplementsS6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:133:6 -> ListConstant(const <EnumImplementsS5>[const EnumImplementsS5{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:135:69 -> InstanceConstant(const EnumImplementsS6{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:137:6 -> ListConstant(const <EnumImplementsS7>[const EnumImplementsS7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:135:6 -> ListConstant(const <EnumImplementsS6>[const EnumImplementsS6{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:137:58 -> InstanceConstant(const EnumImplementsS7{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:139:6 -> ListConstant(const <EnumImplementsS8>[const EnumImplementsS8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:137:6 -> ListConstant(const <EnumImplementsS7>[const EnumImplementsS7{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:139:55 -> InstanceConstant(const EnumImplementsS8{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:141:6 -> ListConstant(const <EnumWithT1>[const EnumWithT1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:139:6 -> ListConstant(const <EnumImplementsS8>[const EnumImplementsS8{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:141:38 -> InstanceConstant(const EnumWithT1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:143:6 -> ListConstant(const <EnumWithT2>[const EnumWithT2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:141:6 -> ListConstant(const <EnumWithT1>[const EnumWithT1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:143:47 -> InstanceConstant(const EnumWithT2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:145:6 -> ListConstant(const <EnumWithT3>[const EnumWithT3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:143:6 -> ListConstant(const <EnumWithT2>[const EnumWithT2{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:145:45 -> InstanceConstant(const EnumWithT3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:147:6 -> ListConstant(const <EnumWithT4>[const EnumWithT4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:145:6 -> ListConstant(const <EnumWithT3>[const EnumWithT3{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:147:54 -> InstanceConstant(const EnumWithT4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:149:6 -> ListConstant(const <EnumWithT5>[const EnumWithT5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:147:6 -> ListConstant(const <EnumWithT4>[const EnumWithT4{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:149:50 -> InstanceConstant(const EnumWithT5{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:151:6 -> ListConstant(const <EnumWithT6>[const EnumWithT6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:149:6 -> ListConstant(const <EnumWithT5>[const EnumWithT5{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:151:57 -> InstanceConstant(const EnumWithT6{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:153:6 -> ListConstant(const <EnumWithT7>[const EnumWithT7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:151:6 -> ListConstant(const <EnumWithT6>[const EnumWithT6{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:153:46 -> InstanceConstant(const EnumWithT7{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:155:6 -> ListConstant(const <EnumWithT8>[const EnumWithT8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:153:6 -> ListConstant(const <EnumWithT7>[const EnumWithT7{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:155:43 -> InstanceConstant(const EnumWithT8{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:157:6 -> ListConstant(const <EnumWithS1>[const EnumWithS1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:155:6 -> ListConstant(const <EnumWithT8>[const EnumWithT8{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:157:38 -> InstanceConstant(const EnumWithS1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:159:6 -> ListConstant(const <EnumWithS2>[const EnumWithS2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:157:6 -> ListConstant(const <EnumWithS1>[const EnumWithS1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:159:47 -> InstanceConstant(const EnumWithS2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:161:6 -> ListConstant(const <EnumWithS3>[const EnumWithS3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:159:6 -> ListConstant(const <EnumWithS2>[const EnumWithS2{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:161:45 -> InstanceConstant(const EnumWithS3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:163:6 -> ListConstant(const <EnumWithS4>[const EnumWithS4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:161:6 -> ListConstant(const <EnumWithS3>[const EnumWithS3{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:163:54 -> InstanceConstant(const EnumWithS4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:165:6 -> ListConstant(const <EnumWithS5>[const EnumWithS5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:163:6 -> ListConstant(const <EnumWithS4>[const EnumWithS4{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:165:50 -> InstanceConstant(const EnumWithS5{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:167:6 -> ListConstant(const <EnumWithS6>[const EnumWithS6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:165:6 -> ListConstant(const <EnumWithS5>[const EnumWithS5{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:167:57 -> InstanceConstant(const EnumWithS6{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:169:6 -> ListConstant(const <EnumWithS7>[const EnumWithS7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:167:6 -> ListConstant(const <EnumWithS6>[const EnumWithS6{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:169:46 -> InstanceConstant(const EnumWithS7{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:171:6 -> ListConstant(const <EnumWithS8>[const EnumWithS8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:169:6 -> ListConstant(const <EnumWithS7>[const EnumWithS7{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:171:43 -> InstanceConstant(const EnumWithS8{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:171:6 -> ListConstant(const <EnumWithS8>[const EnumWithS8{_Enum.index: 0, _Enum._name: "a"}])
 Extra constant evaluation: evaluated: 257, effectively constant: 64

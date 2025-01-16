@@ -84,6 +84,10 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => field.isEnumElement;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
@@ -123,6 +127,10 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference? get invokeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -167,6 +175,10 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
@@ -205,6 +217,10 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -251,6 +267,10 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
@@ -293,6 +313,10 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

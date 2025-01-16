@@ -1017,6 +1017,8 @@ _PreBuilder _createPreBuilder(_FragmentName fragmentName) {
       return new _PropertyPreBuilder.forGetter(fragmentName);
     case SetterFragment():
       return new _PropertyPreBuilder.forSetter(fragmentName);
+    case EnumElementFragment():
+      return new _PropertyPreBuilder.forField(fragmentName);
   }
 }
 
@@ -1202,6 +1204,17 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             propertyKind: _PropertyKind.Setter,
             isStatic:
                 declarationBuilder == null || fragment.modifiers.isStatic);
+        addFragment(fragmentName);
+      case EnumElementFragment():
+        _FragmentName fragmentName = new _FragmentName(
+            _FragmentKind.Property, fragment,
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: false,
+            propertyKind: _PropertyKind.FinalField,
+            isStatic: true);
         addFragment(fragmentName);
     }
   }
@@ -1402,7 +1415,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                       name, declaration, fragment.fileUri, charOffset));
                 }),
             interfaceBuilders: fragment.interfaces,
-            enumConstantInfos: fragment.enumConstantInfos,
+            enumElements: fragment.enumElements,
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
@@ -1441,11 +1454,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case ExtensionTypeFragment():
         IndexedContainer? indexedContainer = indexedLibrary
             ?.lookupIndexedExtensionTypeDeclaration(fragment.name);
-        List<FieldFragment>? primaryConstructorFields =
+        List<FieldFragment> primaryConstructorFields =
             fragment.primaryConstructorFields;
         FieldFragment? representationFieldFragment;
-        if (primaryConstructorFields != null &&
-            primaryConstructorFields.isNotEmpty) {
+        if (primaryConstructorFields.isNotEmpty) {
           representationFieldFragment = primaryConstructorFields.first;
         }
         SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
@@ -1505,6 +1517,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 isStatic: fragment.modifiers.isStatic,
                 nameScheme: nameScheme,
                 fragment: fragment,
+                modifiers: fragment.modifiers,
                 references: references);
         fragment.builder = propertyBuilder;
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
@@ -1987,6 +2000,34 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           loader.buildersCreatedWithReferences[procedureReference] =
               factoryBuilder;
         }
+      case EnumElementFragment():
+        NameScheme nameScheme = new NameScheme(
+            containerName: containerName,
+            containerType: containerType,
+            isInstanceMember: false,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+        FieldReference references = new FieldReference(
+            name, nameScheme, indexedContainer,
+            fieldIsLateWithLowering: false, isExternal: false);
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forField(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: true,
+                nameScheme: nameScheme,
+                fragment: fragment,
+                modifiers: Modifiers.Const |
+                    Modifiers.Static |
+                    Modifiers.HasInitializer,
+                references: references);
+        fragment.builder = propertyBuilder;
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
+            fragment.fileUri, fragment.nameOffset));
     }
   }
 
@@ -2189,8 +2230,6 @@ abstract class DeclarationFragment {
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
   final List<Fragment> _fragments = [];
 
-  List<FieldFragment>? primaryConstructorFields;
-
   final List<NominalParameterBuilder>? typeParameters;
 
   final NominalParameterNameSpace _nominalParameterNameSpace;
@@ -2208,8 +2247,13 @@ abstract class DeclarationFragment {
 
   DeclarationBuilder get builder;
 
-  void addPrimaryConstructorField(FieldFragment builder) {
-    (primaryConstructorFields ??= []).add(builder);
+  void addPrimaryConstructorField(FieldFragment fragment) {
+    throw new UnsupportedError(
+        "Unexpected primary constructor field in $this.");
+  }
+
+  void addEnumElement(EnumElementFragment fragment) {
+    throw new UnsupportedError("Unexpected enum element in $this.");
   }
 
   void addFragment(Fragment fragment) {

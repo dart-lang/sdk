@@ -696,6 +696,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isSynthesized => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
+
+  @override
   bool get isConflictingSetter => false;
 
   @override

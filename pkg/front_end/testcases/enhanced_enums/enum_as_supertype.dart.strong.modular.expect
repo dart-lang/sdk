@@ -32,8 +32,8 @@ abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
     return super.{self::A::foo};
 }
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
-  static const field core::List<self::EA> values = #C4;
   enum-element static const field self::EA element = #C3;
+  static const field core::List<self::EA> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::EA
     : super self::_EA&_Enum&A::•(#index, #name)
     ;
@@ -55,8 +55,8 @@ abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasCons
     return super.{self::B::foo};
 }
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
-  static const field core::List<self::EB> values = #C6;
   enum-element static const field self::EB element = #C5;
+  static const field core::List<self::EB> values = #C6;
   const synthetic constructor •(core::int #index, core::String #name) → self::EB
     : super self::_EB&_Enum&B::•(#index, #name)
     ;
@@ -75,8 +75,8 @@ abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
     return super.{self::M::foo};
 }
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
-  static const field core::List<self::EM> values = #C8;
   enum-element static const field self::EM element = #C7;
+  static const field core::List<self::EM> values = #C8;
   const synthetic constructor •(core::int #index, core::String #name) → self::EM
     : super self::_EM&_Enum&M::•(#index, #name)
     ;
@@ -95,8 +95,8 @@ abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasCons
     return super.{self::N::foo};
 }
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
-  static const field core::List<self::EN> values = #C10;
   enum-element static const field self::EN element = #C9;
+  static const field core::List<self::EN> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::EN
     : super self::_EN&_Enum&N::•(#index, #name)
     ;

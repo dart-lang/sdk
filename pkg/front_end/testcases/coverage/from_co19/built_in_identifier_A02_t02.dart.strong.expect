@@ -51,8 +51,8 @@ class C<as extends core::Object? = dynamic> extends core::Object {
 abstract class M<as extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 class E<as extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E<dynamic>> values = #C4;
   enum-element static const field self::E<dynamic> e1 = #C3;
+  static const field core::List<self::E<dynamic>> values = #C4;
   const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::as%>
     : super core::_Enum::•(#index, #name)
     ;

@@ -21,10 +21,10 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::Foo> values = #C10;
   enum-element static const field self::Foo a = #C3;
   enum-element static const field self::Foo e = #C6;
   enum-element static const field self::Foo f = #C9;
+  static const field core::List<self::Foo> values = #C10;
   const synthetic constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;

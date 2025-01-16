@@ -84,8 +84,8 @@ class A extends core::Object {
 abstract class M extends self::A /*isMixinDeclaration*/  {
 }
 class En extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::En> values = const <self::En>[self::En::element];
   enum-element static const field self::En element = const self::En::•(0, "element");
+  static const field core::List<self::En> values = const <self::En>[self::En::element];
   const synthetic constructor •(core::int #index, core::String #name) → self::En
     : super core::_Enum::•(#index, #name)
     ;
@@ -266,6 +266,6 @@ static extension-type-member method E19|constructor#_#new#tearOff(self::En en) �
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue53840.dart:11:6 -> ListConstant(const <En>[const En{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue53840.dart:12:3 -> InstanceConstant(const En{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue53840.dart:11:6 -> ListConstant(const <En>[const En{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 45, effectively constant: 2

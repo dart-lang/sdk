@@ -14,8 +14,8 @@ import self as self;
 import "dart:core" as core;
 
 class E<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::element2];
   enum-element static const field self::E<core::int> element2 = const self::E::•<core::int>(0, "element2");
+  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::element2];
   const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::T%>
     : super core::_Enum::•(#index, #name)
     ;
@@ -27,6 +27,6 @@ class E<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///setter_getter_type_check.dart:7:6 -> ListConstant(const <E<dynamic>>[const E<int>{_Enum.index: 0, _Enum._name: "element2"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///setter_getter_type_check.dart:8:3 -> InstanceConstant(const E<int>{_Enum.index: 0, _Enum._name: "element2"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///setter_getter_type_check.dart:7:6 -> ListConstant(const <E<dynamic>>[const E<int>{_Enum.index: 0, _Enum._name: "element2"}])
 Extra constant evaluation: evaluated: 7, effectively constant: 2
