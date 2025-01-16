@@ -2424,13 +2424,15 @@ LintCode.unnecessary_getters_setters:
 LintCode.unnecessary_ignore:
   status: needsFix
   notes: |-
-    Remove the ignore comment (or one code in the comment).
+    Remove the ignore comment.
 LintCode.unnecessary_ignore_file:
   status: needsFix
+  notes: |-
+    Remove the ignore comment.
 LintCode.unnecessary_ignore_name:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_ignore_name_file:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_lambdas:
   status: hasFix
 LintCode.unnecessary_late:

@@ -1266,6 +1266,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Remove unnecessary '??' operators everywhere in file",
   );
+  static const REMOVE_IGNORED_DIAGNOSTIC = FixKind(
+    'dart.fix.remove.ignored.diagnostic',
+    DartFixKindPriority.standard,
+    'Remove {0}',
+  );
   static const REMOVE_INVOCATION = FixKind(
     'dart.fix.remove.invocation',
     DartFixKindPriority.standard,

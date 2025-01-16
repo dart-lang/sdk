@@ -146,6 +146,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_else.d
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_ignore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
@@ -485,6 +486,11 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.unnecessary_final_with_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_final_without_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_getters_setters: [MakeFieldPublic.new],
+  LinterLintCode.unnecessary_ignore_name: [RemoveIgnore.new],
+  LinterLintCode.unnecessary_ignore_name_file: [RemoveIgnore.new],
+  // TODO(pq): add =>
+  // LinterLintCode.unnecessary_ignore: [RemoveComment.new],
+  // LinterLintCode.unnecessary_ignore_file: [RemoveComment.new],
   LinterLintCode.unnecessary_lambdas: [ReplaceWithTearOff.new],
   LinterLintCode.unnecessary_late: [RemoveUnnecessaryLate.new],
   LinterLintCode.unnecessary_library_directive: [
