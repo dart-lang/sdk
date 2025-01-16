@@ -153,8 +153,12 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
     ];
   }
 
-  /// This flag is set to `true` if this variable clashes with another
-  /// pattern variable with the same name within the same pattern.
+  /// Whether this variable clashes with another pattern variable with the same
+  /// name within the same pattern.
+  bool get isDuplicate => _wrappedElement.isDuplicate;
+
+  /// Set whether this variable clashes with another pattern variable with the
+  /// same name within the same pattern.
   set isDuplicate(bool value) => _wrappedElement.isDuplicate = value;
 
   DeclaredVariablePatternImpl get node => _wrappedElement.node;
@@ -6792,6 +6796,23 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
   /// The identifiers that reference this element.
   List<SimpleIdentifier> get references => _wrappedElement.references;
+
+  /// Returns this variable, and variables that join into it.
+  List<PatternVariableElementImpl2> get transitiveVariables {
+    var result = <PatternVariableElementImpl2>[];
+
+    void append(PatternVariableElementImpl2 variable) {
+      result.add(variable);
+      if (variable is JoinPatternVariableElementImpl2) {
+        for (var variable in variable.variables2) {
+          append(variable as PatternVariableElementImpl2);
+        }
+      }
+    }
+
+    append(this);
+    return result;
+  }
 
   /// The variables that join into this variable.
   List<PatternVariableElementImpl> get variables => _wrappedElement.variables;
