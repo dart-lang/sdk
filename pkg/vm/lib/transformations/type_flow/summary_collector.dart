@@ -1582,6 +1582,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.intNullableRawType)) ||
           (rhs is StringLiteral &&
+              target.canInferStringClassAfterEqualityComparison &&
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.stringNullableRawType)) ||
           (rhs is ConstantExpression &&

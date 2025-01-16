@@ -508,6 +508,10 @@ abstract class Target {
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
+  /// When a comparison `x == <literal>` is true, whether we can assume the
+  /// class of `x` to be `concreteStringLiteralClass(<literal>)`.
+  bool get canInferStringClassAfterEqualityComparison => true;
+
   Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
   Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
