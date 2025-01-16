@@ -1,143 +1,67 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 import "package:expect/expect.dart";
-import 'dart:collection';
 
 void main() {
-  group('Iterable.withIterator tests', () {
-    testEmptyIterator();
-    testSingleElementIterator();
-    testMultipleElementIterator();
-    testMultipleIterations();
-    testLazyInitialization();
-    testAfterMoveNext();
-    testErrorHandling();
-  });
+  testIteratorFactory();
+  testIteratorEquality();
 }
 
-void group(String description, void Function() body) {
-  print('Testing: $description');
-  body();
+void testIteratorFactory() {
+  Iterator<Object?>? returnedIterator;
+  Object? thrownError;
+  int calls = 0;
+  Iterator<T> f<T>() {
+    calls++;
+    if (thrownError case var error?) throw error;
+    return returnedIterator as Iterator<T>;
+  }
+
+  var ints = Iterable.withIterator(f<int>);
+  var intIterator = <int>[].iterator;
+  returnedIterator = intIterator;
+  Expect.identical(intIterator, ints.iterator, "First iterator should match");
+  Expect.equals(1, calls, "First call count");
+  Expect.identical(intIterator, ints.iterator, "Second iterator should match");
+  Expect.equals(2, calls, "Second call count");
+
+  var intIterator2 = <int>[].iterator;
+  Expect.notIdentical(intIterator, intIterator2, "Different iterators should not be identical");
+  returnedIterator = intIterator2;
+  Expect.identical(intIterator2, ints.iterator, "Third iterator should match");
+  Expect.equals(3, calls, "Third call count");
+  Expect.identical(intIterator2, ints.iterator, "Fourth iterator should match");
+  Expect.equals(4, calls, "Fourth call count");
+
+  var error = StateError("quo");
+  thrownError = error;
+  Expect.identical(error, Expect.throws(() => ints.iterator), "Should throw first error");
+  Expect.equals(5, calls, "Fifth call count");
+  Expect.identical(error, Expect.throws(() => ints.iterator), "Should throw second error");
+  Expect.equals(6, calls, "Sixth call count");
+
+  thrownError = null;
+  Expect.identical(intIterator2, ints.iterator, "Fifth iterator should match");
+  Expect.equals(7, calls, "Seventh call count");
+
+  var objectqs = Iterable.withIterator(f<Object?>);
+  Expect.identical(intIterator2, objectqs.iterator, "Object iterator should match");
+  Expect.equals(8, calls, "Eighth call count");
+
+  var nulls = Iterable.withIterator(f<Null>);
+  var nullIterator = <Null>[].iterator;
+  returnedIterator = nullIterator;
+  Expect.identical(nullIterator, nulls.iterator, "Null iterator should match");
+  Expect.equals(9, calls, "Ninth call count");
+
+  var nevers = Iterable.withIterator(f<Never>);
+  thrownError = error;
+  Expect.identical(error, Expect.throws(() => nevers.iterator), "Should throw third error");
+  Expect.equals(10, calls, "Tenth call count");
+  Expect.identical(error, Expect.throws(() => nevers.iterator), "Should throw fourth error");
+  Expect.equals(11, calls, "Eleventh call count");
 }
 
-void testEmptyIterator() {
-  test('empty iterator behaves correctly', () {
-    var emptyIterable = Iterable.withIterator(() => [].iterator);
-    Expect.isTrue(emptyIterable.isEmpty);
-    Expect.equals(0, emptyIterable.length);
-    Expect.isTrue(emptyIterable.every((element) => false));
-    Expect.isFalse(emptyIterable.any((element) => true));
-    Expect.equals('[]', emptyIterable.toList().toString());
-  });
-}
-
-void testSingleElementIterator() {
-  test('single element iterator behaves correctly', () {
-    var singleIterable = Iterable.withIterator(() => [1].iterator);
-    Expect.equals(1, singleIterable.length);
-    Expect.equals(1, singleIterable.first);
-    Expect.equals(1, singleIterable.last);
-    Expect.equals(1, singleIterable.single);
-    Expect.isFalse(singleIterable.isEmpty);
-    Expect.isTrue(singleIterable.contains(1));
-    Expect.isFalse(singleIterable.contains(2));
-  });
-}
-
-void testMultipleElementIterator() {
-  test('multiple element iterator behaves correctly', () {
-    var multiIterable = Iterable.withIterator(() => [1, 2, 3].iterator);
-    Expect.equals(3, multiIterable.length);
-    Expect.equals(1, multiIterable.first);
-    Expect.equals(3, multiIterable.last);
-    Expect.equals('[1, 2, 3]', multiIterable.toList().toString());
-    Expect.equals(6, multiIterable.reduce((a, b) => a + b));
-    Expect.isTrue(multiIterable.contains(2));
-    Expect.isFalse(multiIterable.contains(4));
-
-    // Test transformation methods
-    Expect.equals(
-        '[2, 4, 6]', multiIterable.map((e) => e * 2).toList().toString());
-    Expect.equals(
-        '[1, 2]', multiIterable.where((e) => e < 3).toList().toString());
-  });
-}
-
-void testMultipleIterations() {
-  test('multiple iterations create fresh iterators', () {
-    var count = 0;
-    var countingIterable = Iterable.withIterator(() {
-      count++;
-      return [1, 2].iterator;
-    });
-
-    // Test multiple iterations
-    for (var i = 1; i <= 3; i++) {
-      for (var x in countingIterable) {}
-      Expect.equals(i, count);
-    }
-
-    // Test concurrent iterations
-    var iterators = List.generate(2, (_) => countingIterable.iterator);
-    Expect.equals(5, count);
-  });
-}
-
-void testLazyInitialization() {
-  test('iterator factory is called lazily', () {
-    var factoryCalled = false;
-    var lazyIterable = Iterable.withIterator(() {
-      factoryCalled = true;
-      return [1].iterator;
-    });
-
-    Expect.isFalse(factoryCalled); // Not called until iteration
-    var iterator = lazyIterable.iterator;
-    Expect.isTrue(factoryCalled);
-
-    // Test that accessing length doesn't trigger another factory call
-    factoryCalled = false;
-    lazyIterable.length;
-    Expect.isTrue(factoryCalled);
-  });
-}
-
-void testAfterMoveNext() {
-  test('iterator factory is called after moveNext', () {
-    var items = [1, 2, 3];
-    var iterator = items.iterator;
-    iterator.moveNext();
-    var lazyIterable = Iterable.withIterator(() => iterator);
-
-    // Test that the first element is already consumed
-    var elements = lazyIterable.toList();
-    Expect.isNotEmpty(elements);
-    Expect.equals(2, elements.first);
-  });
-}
-
-void testErrorHandling() {
-  test('handles null and error cases', () {
-    // Test with null value
-    var nullIterable = Iterable.withIterator(() => [null].iterator);
-    Expect.equals(1, nullIterable.length);
-    Expect.isNull(nullIterable.first);
-
-    // Test with throwing iterator
-    bool throwingCalled = false;
-    var throwingIterable = Iterable.withIterator(() {
-      throwingCalled = true;
-      throw StateError('Test error');
-    });
-
-    Expect.throws(() => throwingIterable.iterator);
-    Expect.isTrue(throwingCalled);
-  });
-}
-
-void test(String description, void Function() body) {
-  print('  $description');
-  body();
+void testIteratorEquality() {
+  var iterable1 = Iterable.withIterator(() => [1, 2, 3].iterator);
+  var iterable2 = Iterable.withIterator(() => [1, 2, 3].iterator);
+  Expect.listEquals(iterable1.toList(), iterable2.toList(), "Iterator contents should be equal");
 }
