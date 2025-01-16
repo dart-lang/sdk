@@ -1433,7 +1433,7 @@ void main(int argc, char** argv) {
       Options::gen_snapshot_kind() == SnapshotKind::kNone) {
     DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
         CreateIsolateGroupAndSetup, &package_config_override, &script_name,
-        &dart_options);
+        &vm_options, &dart_options);
     ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
     ran_dart_dev = true;
     should_run_user_program =

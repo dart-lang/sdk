@@ -28,7 +28,8 @@ class DartDevIsolate {
   typedef enum {
     DartDev_Result_Unknown = -1,
     DartDev_Result_Run = 1,
-    DartDev_Result_Exit = 2,
+    DartDev_Result_RunExec = 2,
+    DartDev_Result_Exit = 3,
   } DartDev_Result;
 
   // Returns true if there does not exist a file at |script_uri| or the URI is
@@ -58,6 +59,7 @@ class DartDevIsolate {
       Dart_IsolateGroupCreateCallback create_isolate,
       char** packages_file,
       char** script,
+      CommandLineOptions* vm_options,
       CommandLineOptions* dart_options);
 
  protected:
@@ -83,11 +85,11 @@ class DartDevIsolate {
     static char** package_config_override_;
     static std::unique_ptr<char*[], void (*)(char**)> argv_;
     static intptr_t argc_;
+    static Monitor* monitor_;
 
     Dart_IsolateGroupCreateCallback create_isolate_;
     CommandLineOptions* dart_options_;
     const char* packages_file_;
-    static Monitor* monitor_;
 
     DISALLOW_ALLOCATION();
   };
@@ -98,6 +100,7 @@ class DartDevIsolate {
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;
   static bool print_usage_error_;
+  static CommandLineOptions* vm_options_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartDevIsolate);
