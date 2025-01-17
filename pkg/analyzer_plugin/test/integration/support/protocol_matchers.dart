@@ -106,6 +106,14 @@ final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
 final Matcher isAnalysisService = MatchesEnum('AnalysisService',
     ['FOLDING', 'HIGHLIGHTS', 'NAVIGATION', 'OCCURRENCES', 'OUTLINE']);
 
+/// AnalysisStatus
+///
+/// {
+///   "isAnalyzing": bool
+/// }
+final Matcher isAnalysisStatus = LazyMatcher(
+    () => MatchesJsonObject('AnalysisStatus', {'isAnalyzing': isBool}));
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -1323,6 +1331,15 @@ final Matcher isPluginShutdownParams = isNull;
 
 /// plugin.shutdown result
 final Matcher isPluginShutdownResult = isNull;
+
+/// plugin.status params
+///
+/// {
+///   "analysis": optional AnalysisStatus
+/// }
+final Matcher isPluginStatusParams = LazyMatcher(() => MatchesJsonObject(
+    'plugin.status params', null,
+    optionalFields: {'analysis': isAnalysisStatus}));
 
 /// plugin.versionCheck params
 ///

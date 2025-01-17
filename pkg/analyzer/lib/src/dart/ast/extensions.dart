@@ -220,6 +220,10 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  Element2? get readElement2 {
+    return _readElement(this).asElement2;
+  }
+
   SimpleIdentifier get simpleName {
     var self = this;
     if (self is SimpleIdentifier) {
@@ -231,6 +235,10 @@ extension IdentifierExtension on Identifier {
 
   Element? get writeElement {
     return _writeElement(this);
+  }
+
+  Element2? get writeElement2 {
+    return _writeElement(this).asElement2;
   }
 
   Element? get writeOrReadElement {

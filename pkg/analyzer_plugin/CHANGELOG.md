@@ -2,6 +2,8 @@
 - Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
 - Breaking changes to `DartFileEditBuilder` and `DartEditBuilder`.
 - Breaking changes to `AnalyzerConverter`.
+- Support for a plugin to send an `AnalysisStatus` notification, featuring an
+  `isAnalyzing` `bool` field.
 
 ## 0.12.0
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`

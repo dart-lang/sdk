@@ -107,12 +107,21 @@ class IgnoreValidator {
       _reportUnignorableAndDuplicateIgnores(
           unignorable, duplicated, ignoredOnLine);
     }
+
+    // If there's more than one ignore, the fix is to remove the name.
+    // Otherwise, the entire comment can be removed.
+    var ignoredForFileCount = ignoredForFile.length;
+    var ignoredOnLineCount = 0;
+
     //
     // Remove all of the errors that are actually being ignored.
     //
     for (var error in _reportedErrors) {
       var lineNumber = _lineInfo.getLocation(error.offset).lineNumber;
       var ignoredOnLine = ignoredOnLineMap[lineNumber];
+      if (ignoredOnLine != null) {
+        ignoredOnLineCount += ignoredOnLine.length;
+      }
 
       ignoredForFile.removeByName(error.ignoreName);
       ignoredForFile.removeByName(error.ignoreUniqueName);
@@ -123,10 +132,15 @@ class IgnoreValidator {
     //
     // Report any remaining ignored names as being unnecessary.
     //
-    _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredForFile,
-        forFile: true);
+    _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
+      ignoredForFile,
+      ignoredForFileCount: ignoredForFileCount,
+    );
     for (var ignoredOnLine in ignoredOnLineMap.values) {
-      _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredOnLine);
+      _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
+        ignoredOnLine,
+        ignoredOnLineCount: ignoredOnLineCount,
+      );
     }
   }
 
@@ -172,7 +186,8 @@ class IgnoreValidator {
   /// Report the [ignoredNames] as being unnecessary.
   void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
       List<IgnoredElement> ignoredNames,
-      {bool forFile = false}) {
+      {int? ignoredForFileCount,
+      int? ignoredOnLineCount}) {
     if (!_validateUnnecessaryIgnores) return;
 
     for (var ignoredName in ignoredNames) {
@@ -210,13 +225,14 @@ class IgnoreValidator {
         }
 
         late ErrorCode lintCode;
-        if (ignoredNames.length > 1) {
-          lintCode = forFile
+
+        if (ignoredForFileCount != null) {
+          lintCode = ignoredForFileCount > 1
               ? unnecessaryIgnoreNameFileLintCode
-              : unnecessaryIgnoreNameLocationLintCode;
+              : unnecessaryIgnoreFileLintCode;
         } else {
-          lintCode = forFile
-              ? unnecessaryIgnoreFileLintCode
+          lintCode = ignoredOnLineCount! > 1
+              ? unnecessaryIgnoreNameLocationLintCode
               : unnecessaryIgnoreLocationLintCode;
         }
 

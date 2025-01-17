@@ -103,8 +103,8 @@ class SsaOptimizerTask extends CompilerTask {
 
     measure(() {
       List<OptimizationPhase> phases = [
-        // Run trivial instruction simplification first to optimize
-        // some patterns useful for type conversion.
+        // Run trivial instruction simplification first to optimize some
+        // patterns useful for type conversion.
         SsaInstructionSimplifier(
           globalInferenceResults,
           _options,
@@ -113,6 +113,7 @@ class SsaOptimizerTask extends CompilerTask {
           registry,
           log,
           metrics,
+          beforeTypePropagation: true,
         ),
         SsaTypeConversionInserter(closedWorld),
         SsaRedundantPhiEliminator(),
@@ -123,8 +124,7 @@ class SsaOptimizerTask extends CompilerTask {
           closedWorld,
           log,
         ),
-        // After type propagation, more instructions can be
-        // simplified.
+        // After type propagation, more instructions can be simplified.
         SsaInstructionSimplifier(
           globalInferenceResults,
           _options,
@@ -309,6 +309,13 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   final CodegenRegistry _registry;
   final OptimizationTestLog? _log;
   final SsaMetrics _metrics;
+
+  /// Most simplifications become enabled when the types are refined by type
+  /// propagation. Some simplifications remove code that helps type progagation
+  /// produce a better result. These simplifications are inhibited when
+  /// [beforeTypePropagation] is `true` to ensure they are seeing the propagated
+  /// types.
+  final bool beforeTypePropagation;
   late final HGraph _graph;
 
   SsaInstructionSimplifier(
@@ -318,8 +325,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     this._typeRecipeDomain,
     this._registry,
     this._log,
-    this._metrics,
-  );
+    this._metrics, {
+    this.beforeTypePropagation = false,
+  });
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -418,8 +426,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   // Simplify some CFG diamonds to equivalent expressions.
   void simplifyPhis(HBasicBlock block) {
-    if (block.predecessors.length != 2) return;
-
     // Do 'statement' simplifications first, as they might reduce the number of
     // phis to one, enabling an 'expression' simplification.
     var phi = block.phis.firstPhi;
@@ -429,6 +435,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       phi = next;
     }
 
+    if (block.predecessors.length != 2) return;
     phi = block.phis.firstPhi;
     if (phi != null && phi.next == null) {
       simplifyExpressionPhi(block, phi);
@@ -438,6 +445,10 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   /// Simplify a single phi when there are possibly other phis (i.e. the result
   /// might not be an expression).
   void simplifyStatementPhi(HBasicBlock block, HPhi phi) {
+    if (simplifyStatementPhiToCommonInput(block, phi)) return;
+
+    if (block.predecessors.length != 2) return;
+
     HBasicBlock dominator = block.dominator!;
 
     // Extract the controlling condition.
@@ -476,6 +487,52 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       block.removePhi(phi);
       return;
     }
+  }
+
+  bool simplifyStatementPhiToCommonInput(HBasicBlock block, HPhi phi) {
+    // Replace phis that produce the same value on all arms.  The test(s) for
+    // control flow often results in a refinement instruction (HTypeKnown), so
+    // we recognize that, allowing, e.g.,
+    //
+    //     condition ? HTypeKnown(x) : x  -->  x
+    //     condition ? x : HTypeKnown(x)  -->  x
+    //
+    // We don't remove loop phis here. SsaRedundantPhiEliminator will eliminate
+    // redundant phis without HTypeKnown refinements, including loop phis.
+
+    // There may be control flow that exits early, leaving refinements that
+    // cause the type of the phi to be stronger than the source. Don't attempt
+    // this simplification until the type of the phi is calculated.
+    if (beforeTypePropagation) return false;
+
+    HBasicBlock dominator = block.dominator!;
+
+    /// Find the input, skipping refinements that do not dominate the condition,
+    /// e.g., skipping refinements in the arm of the if-then-else.
+    HInstruction? dominatingRefinementInput(HInstruction input) {
+      while (true) {
+        if (input.block!.dominates(dominator)) return input;
+        if (input is! HTypeKnown) return null;
+        input = input.checkedInput;
+      }
+    }
+
+    final commonInput = dominatingRefinementInput(phi.inputs.first);
+    if (commonInput == null) return false;
+
+    for (int i = 1; i < phi.inputs.length; i++) {
+      final next = dominatingRefinementInput(phi.inputs[i]);
+      if (!identical(next, commonInput)) return false;
+    }
+
+    HTypeKnown replacement = HTypeKnown.pinned(
+      phi.instructionType,
+      commonInput,
+    );
+    block.addBefore(block.first, replacement);
+    block.rewrite(phi, replacement);
+    block.removePhi(phi);
+    return true;
   }
 
   /// Simplify some CFG diamonds to equivalent expressions.
