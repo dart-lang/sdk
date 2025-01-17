@@ -510,6 +510,7 @@ coerced
 coerces
 coercing
 coercion
+coercions
 coincides
 coinductively
 collapses

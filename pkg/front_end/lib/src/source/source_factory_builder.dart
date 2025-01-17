@@ -582,6 +582,32 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           .createBodyBuilderForOutlineExpression(libraryBuilder,
               createBodyBuilderContext(), declarationBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
+
+      // Inference of target's formals should happen before building of the
+      // outline expressions in members and before inferring target's type
+      // arguments.
+      //
+      // (1) The outline expressions, such as formal parameter initializers,
+      // need properly inferred type contexts. Among other things, it ensures
+      // that the required coercions, such as int-to-double conversion, are
+      // run.
+      //
+      // (2) Type arguments for the targets of redirecting factories can only
+      // be inferred if the formal parameters of the targets are inferred too.
+      // That may not be the case when the target's parameters are initializing
+      // parameters referring to fields with types that are to be inferred.
+      if (targetBuilder is SourceFunctionBuilderImpl) {
+        List<FormalParameterBuilder>? formals = targetBuilder.formals;
+        if (formals != null) {
+          for (FormalParameterBuilder formal in formals) {
+            TypeBuilder formalType = formal.type;
+            if (formalType is InferableTypeBuilder) {
+              formalType.inferType(classHierarchy);
+            }
+          }
+        }
+      }
+
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
         targetBuilder.buildOutlineExpressions(
@@ -596,22 +622,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       } else {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             fileOffset, fileUri);
-      }
-
-      // Type arguments for the targets of redirecting factories can only be
-      // inferred if the formal parameters of the targets are inferred too.
-      // That may not be the case when the target's parameters are initializing
-      // parameters referring to fields with types that are to be inferred.
-      if (targetBuilder is SourceFunctionBuilderImpl) {
-        List<FormalParameterBuilder>? formals = targetBuilder.formals;
-        if (formals != null) {
-          for (FormalParameterBuilder formal in formals) {
-            TypeBuilder formalType = formal.type;
-            if (formalType is InferableTypeBuilder) {
-              formalType.inferType(classHierarchy);
-            }
-          }
-        }
       }
 
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
