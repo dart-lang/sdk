@@ -1,3 +1,10 @@
+## 3.6.2
+
+- Fixes a bug where `HttpServer` responses were not correctly encoded
+  if a "Content-Type" header was set (issue [#59719][]).
+
+[#59719]: https://github.com/dart-lang/sdk/issues/59719
+
 ## 3.6.1 - 2025-01-08
 
 - When inside a pub workspace, `pub get` will now delete stray

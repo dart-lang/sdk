@@ -1087,7 +1087,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   }
 
   void writeln([Object? object = ""]) {
-    _writeString('$object\n');
+    write('$object\n');
   }
 
   void writeCharCode(int charCode) {
