@@ -10,13 +10,9 @@ import 'package:kernel/src/printer.dart';
 
 import '../base/constant_context.dart';
 import '../base/problems.dart' show unsupported;
-import '../builder/declaration_builders.dart';
 import '../builder/inferable_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../fragment/fragment.dart';
-import '../source/source_class_builder.dart';
-import '../source/source_enum_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../type_inference/type_inferrer.dart';
@@ -33,13 +29,16 @@ abstract class InferredType extends AuxiliaryType {
           SourceFieldBuilder fieldBuilder, Token? initializerToken) =
       _ImplicitFieldTypeRoot;
 
-  factory InferredType.fromFieldFragmentInitializer(
-          FieldFragment fieldFragment, Token? initializerToken) =
-      _ImplicitFieldFragmentTypeRoot;
-
-  factory InferredType.fromEnumElementInitializer(
-          EnumElementFragment enumElementFragment) =
-      _ImplicitEnumElementFragmentType;
+  factory InferredType(
+      {required SourceLibraryBuilder libraryBuilder,
+      required TypeBuilder typeBuilder,
+      required InferTypeFunction inferType,
+      required ComputeTypeFunction computeType,
+      required Uri fileUri,
+      required String name,
+      required int nameOffset,
+      required int nameLength,
+      required Token? token}) = _ImplicitType;
 
   factory InferredType.fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
       _InferredTypeUse;
@@ -196,174 +195,99 @@ class _ImplicitFieldTypeRoot extends InferredType {
   String toString() => 'ImplicitFieldType(${toStringInternal()})';
 }
 
-class _ImplicitFieldFragmentTypeRoot extends InferredType {
-  final FieldFragment _fieldFragment;
+/// Signature for function called to trigger the inference of the type of
+/// [_ImplicitType], if it hasn't already been computed.
+typedef InferTypeFunction = DartType Function(ClassHierarchyBase hierarchy);
 
-  Token? initializerToken;
+/// Signature for function called to compute the type for [_ImplicitType]
+typedef ComputeTypeFunction = DartType Function(
+    ClassHierarchyBase hierarchy, Token? token);
+
+/// [InferredType] implementation that infers the type of [_typeBuilder] using
+/// [_computeType] and [_token].
+class _ImplicitType extends InferredType {
+  final SourceLibraryBuilder _libraryBuilder;
+  final TypeBuilder _typeBuilder;
+  final InferTypeFunction _inferType;
+  final ComputeTypeFunction _computeType;
+  final Uri _fileUri;
+  final String _name;
+  final int _nameOffset;
+  final int _nameLength;
+  Token? _token;
+
   bool isStarted = false;
 
-  _ImplicitFieldFragmentTypeRoot(this._fieldFragment, this.initializerToken)
-      : super._();
+  _ImplicitType(
+      {required SourceLibraryBuilder libraryBuilder,
+      required TypeBuilder typeBuilder,
+      required InferTypeFunction inferType,
+      required ComputeTypeFunction computeType,
+      required Uri fileUri,
+      required String name,
+      required int nameOffset,
+      required int nameLength,
+      required Token? token})
+      : _libraryBuilder = libraryBuilder,
+        _typeBuilder = typeBuilder,
+        _inferType = inferType,
+        _computeType = computeType,
+        _fileUri = fileUri,
+        _name = name,
+        _nameOffset = nameOffset,
+        _nameLength = nameLength,
+        _token = token,
+        super._();
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri get fileUri => _fieldFragment.fileUri;
+  Uri get fileUri => _fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => _fieldFragment.nameOffset;
+  int get charOffset => _nameOffset;
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
-    return _fieldFragment.inferType(hierarchy);
+    return _inferType(hierarchy);
   }
 
   @override
   DartType computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
-      _fieldFragment.builder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity
-              .withArguments(_fieldFragment.name),
-          _fieldFragment.nameOffset,
-          _fieldFragment.name.length,
-          _fieldFragment.fileUri);
+      _libraryBuilder.addProblem(
+          templateCantInferTypeDueToCircularity.withArguments(_name),
+          _nameOffset,
+          _nameLength,
+          _fileUri);
       DartType type = const InvalidType();
-      _fieldFragment.type.registerInferredType(type);
+      _typeBuilder.registerInferredType(type);
       return type;
     }
     isStarted = true;
-    DartType? inferredType;
-    SourceLibraryBuilder libraryBuilder = _fieldFragment.builder.libraryBuilder;
-    DeclarationBuilder? declarationBuilder =
-        _fieldFragment.builder.declarationBuilder;
-    if (initializerToken != null) {
-      InterfaceType? enclosingClassThisType = declarationBuilder
-              is SourceClassBuilder
-          ? libraryBuilder.loader.typeInferenceEngine.coreTypes
-              .thisInterfaceType(
-                  declarationBuilder.cls, libraryBuilder.library.nonNullable)
-          : null;
-      TypeInferrer typeInferrer =
-          libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
-              _fieldFragment.fileUri,
-              enclosingClassThisType,
-              libraryBuilder,
-              _fieldFragment
-                  .builder
-                  .dataForTesting
-                  // Coverage-ignore(suite): Not run.
-                  ?.inferenceData);
-      BodyBuilderContext bodyBuilderContext =
-          _fieldFragment.createBodyBuilderContext();
-      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-          libraryBuilder,
-          bodyBuilderContext,
-          declarationBuilder?.scope ?? libraryBuilder.scope,
-          typeInferrer,
-          _fieldFragment.fileUri);
-      bodyBuilder.constantContext = _fieldFragment.modifiers.isConst
-          ? ConstantContext.inferred
-          : ConstantContext.none;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = _fieldFragment.modifiers.isLate;
-      Expression initializer =
-          bodyBuilder.parseFieldInitializer(initializerToken!);
-      initializerToken = null;
-
-      inferredType =
-          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
-    } else {
-      inferredType = const DynamicType();
-    }
-    return inferredType;
+    Token? token = _token;
+    _token = null;
+    return _computeType(hierarchy, token);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.write('<implicit-field-type:$_fieldFragment>');
+    printer.write('<implicit-type:$_name>');
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
-    return other is _ImplicitFieldFragmentTypeRoot &&
-        _fieldFragment == other._fieldFragment;
+    return other is _ImplicitType && _typeBuilder == other._typeBuilder;
   }
 
   @override
-  int get hashCode => _fieldFragment.hashCode;
+  int get hashCode => _typeBuilder.hashCode;
 
   @override
-  String toString() => 'ImplicitFieldType(${toStringInternal()})';
-}
-
-class _ImplicitEnumElementFragmentType extends InferredType {
-  final EnumElementFragment _enumElementFragment;
-
-  bool isStarted = false;
-
-  _ImplicitEnumElementFragmentType(this._enumElementFragment) : super._();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get fileUri => _enumElementFragment.fileUri;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get charOffset => _enumElementFragment.nameOffset;
-
-  @override
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    return _enumElementFragment.inferType(hierarchy);
-  }
-
-  @override
-  DartType computeType(ClassHierarchyBase hierarchy) {
-    if (isStarted) {
-      // Coverage-ignore-block(suite): Not run.
-      _enumElementFragment.builder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity
-              .withArguments(_enumElementFragment.name),
-          _enumElementFragment.nameOffset,
-          _enumElementFragment.name.length,
-          _enumElementFragment.fileUri);
-      DartType type = const InvalidType();
-      _enumElementFragment.type.registerInferredType(type);
-      return type;
-    }
-    isStarted = true;
-    SourceLibraryBuilder libraryBuilder =
-        _enumElementFragment.builder.libraryBuilder;
-    SourceEnumBuilder sourceEnumBuilder =
-        _enumElementFragment.builder.declarationBuilder as SourceEnumBuilder;
-    _enumElementFragment.buildElement(
-        sourceEnumBuilder,
-        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
-        libraryBuilder.loader.coreTypes);
-    return _enumElementFragment.fieldType;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<implicit-field-type:$_enumElementFragment>');
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool equals(Object other, Assumptions? assumptions) {
-    if (identical(this, other)) return true;
-    return other is _ImplicitEnumElementFragmentType &&
-        _enumElementFragment == other._enumElementFragment;
-  }
-
-  @override
-  int get hashCode => _enumElementFragment.hashCode;
-
-  @override
-  String toString() => 'ImplicitFieldType(${toStringInternal()})';
+  String toString() => '_ImplicitType(${toStringInternal()})';
 }
 
 class _InferredTypeUse extends InferredType {

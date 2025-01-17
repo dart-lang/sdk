@@ -490,7 +490,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/enum_element.dart": (
-    hitCount: 224,
+    hitCount: 242,
     missCount: 0,
   ),
   // 100.0%.
@@ -510,7 +510,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/field.dart": (
-    hitCount: 259,
+    hitCount: 302,
     missCount: 0,
   ),
   // 100.0%.
@@ -700,7 +700,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/implicit_field_type.dart": (
-    hitCount: 93,
+    hitCount: 25,
     missCount: 0,
   ),
   // 100.0%.
@@ -925,7 +925,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 335,
+    hitCount: 331,
     missCount: 0,
   ),
   // 100.0%.
@@ -961,7 +961,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1868,
+    hitCount: 1855,
     missCount: 0,
   ),
   // 100.0%.

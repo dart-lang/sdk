@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory redir({core::double foo = #C1}) → self::A /* redirection-target: self::B::•<dynamic>*/
+    return new self::B::•<dynamic>(foo: foo);
+}
+class B<T extends core::Object? = dynamic> extends self::A {
+  final field core::double foo;
+  constructor •({core::double foo = #C1}) → self::B<self::B::T%>
+    : self::B::foo = foo, super self::A::•()
+    ;
+}
+static method main() → void {
+  core::print(new self::B::•<dynamic>().{self::B::foo}{core::double});
+}
+
+constants  {
+  #C1 = 10.0
+}

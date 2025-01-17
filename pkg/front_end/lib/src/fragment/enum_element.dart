@@ -20,12 +20,22 @@ class EnumElementFragment
   final Uri fileUri;
 
   final ConstructorReferenceBuilder? constructorReferenceBuilder;
-  Token? argumentsBeginToken;
+  Token? _argumentsBeginToken;
 
   SourcePropertyBuilder? _builder;
 
   Field? _field;
-  late DartType _type = new InferredType.fromEnumElementInitializer(this);
+
+  late DartType _type = new InferredType(
+      libraryBuilder: builder.libraryBuilder,
+      typeBuilder: type,
+      inferType: inferType,
+      computeType: _computeType,
+      fileUri: fileUri,
+      name: name,
+      nameOffset: nameOffset,
+      nameLength: name.length,
+      token: argumentsBeginToken);
 
   late final int elementIndex;
 
@@ -38,7 +48,8 @@ class EnumElementFragment
       required this.nameOffset,
       required this.fileUri,
       required this.constructorReferenceBuilder,
-      required this.argumentsBeginToken});
+      required Token? argumentsBeginToken})
+      : _argumentsBeginToken = argumentsBeginToken;
 
   @override
   SourcePropertyBuilder get builder {
@@ -51,6 +62,29 @@ class EnumElementFragment
     _builder = value;
     type.registerInferable(this);
     type.registerInferredTypeListener(this);
+  }
+
+  /// Returns the token for begin of the constructor arguments of this enum
+  /// element, if any.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
+  Token? get argumentsBeginToken {
+    Token? token = _argumentsBeginToken;
+    _argumentsBeginToken = null;
+    return token;
+  }
+
+  DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
+    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+    SourceEnumBuilder sourceEnumBuilder =
+        builder.declarationBuilder as SourceEnumBuilder;
+    _buildElement(
+        sourceEnumBuilder,
+        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
+        libraryBuilder.loader.coreTypes,
+        token);
+    return fieldType;
   }
 
   @override
@@ -125,8 +159,8 @@ class EnumElementFragment
     f(member: _field!, kind: BuiltMemberKind.Field);
   }
 
-  void buildElement(SourceEnumBuilder sourceEnumBuilder, DartType selfType,
-      CoreTypes coreTypes) {
+  void _buildElement(SourceEnumBuilder sourceEnumBuilder, DartType selfType,
+      CoreTypes coreTypes, Token? token) {
     SourceLibraryBuilder libraryBuilder = sourceEnumBuilder.libraryBuilder;
     DartType inferredFieldType = selfType;
 
@@ -174,8 +208,8 @@ class EnumElementFragment
               fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
-      if (argumentsBeginToken != null) {
-        arguments = bodyBuilder.parseArguments(argumentsBeginToken!);
+      if (token != null) {
+        arguments = bodyBuilder.parseArguments(token);
         // We pass `true` for [allowFurtherDelays] here because the members of
         // the enums are built before the inference, and the resolution of the
         // redirecting factories can't be completed at this moment and
@@ -185,7 +219,6 @@ class EnumElementFragment
 
         arguments.positional.insertAll(0, enumSyntheticArguments);
         arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
-        argumentsBeginToken = null;
       } else {
         arguments = new ArgumentsImpl(enumSyntheticArguments);
       }
