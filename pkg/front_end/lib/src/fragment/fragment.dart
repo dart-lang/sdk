@@ -58,6 +58,7 @@ import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 
 part 'class.dart';

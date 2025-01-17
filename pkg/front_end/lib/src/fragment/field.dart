@@ -66,6 +66,10 @@ class FieldFragment
     }
   }
 
+  /// Returns the token for the initializer of this field, if any.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
   Token? get initializerToken {
     Token? result = _initializerToken;
     // Ensure that we don't hold onto the token.
@@ -73,7 +77,12 @@ class FieldFragment
     return result;
   }
 
-  // Coverage-ignore(suite): Not run.
+  /// Returns the token for the initializer of this field, if any. This is the
+  /// same as [initializerToken] but is used to signal that the initializer
+  /// needs to be computed for outline expressions.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
   Token? get constInitializerToken {
     Token? result = _constInitializerToken;
     // Ensure that we don't hold onto the token.
@@ -173,11 +182,61 @@ class FieldFragment
       } else {
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
-        _encoding.type =
-            new InferredType.fromFieldFragmentInitializer(this, token);
+        _encoding.type = new InferredType(
+            libraryBuilder: libraryBuilder,
+            typeBuilder: type,
+            inferType: inferType,
+            computeType: _computeInferredType,
+            fileUri: fileUri,
+            name: name,
+            nameOffset: nameOffset,
+            nameLength: name.length,
+            token: token);
         type.registerInferable(this);
       }
     }
+  }
+
+  DartType _computeInferredType(
+      ClassHierarchyBase classHierarchy, Token? token) {
+    DartType? inferredType;
+    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
+    if (token != null) {
+      InterfaceType? enclosingClassThisType = declarationBuilder
+              is SourceClassBuilder
+          ? libraryBuilder.loader.typeInferenceEngine.coreTypes
+              .thisInterfaceType(
+                  declarationBuilder.cls, libraryBuilder.library.nonNullable)
+          : null;
+      TypeInferrer typeInferrer =
+          libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
+              fileUri,
+              enclosingClassThisType,
+              libraryBuilder,
+              builder
+                  .dataForTesting
+                  // Coverage-ignore(suite): Not run.
+                  ?.inferenceData);
+      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
+      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
+          libraryBuilder,
+          bodyBuilderContext,
+          declarationBuilder?.scope ?? libraryBuilder.scope,
+          typeInferrer,
+          fileUri);
+      bodyBuilder.constantContext =
+          modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
+      bodyBuilder.inFieldInitializer = true;
+      bodyBuilder.inLateFieldInitializer = modifiers.isLate;
+      Expression initializer = bodyBuilder.parseFieldInitializer(token);
+
+      inferredType =
+          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
+    } else {
+      inferredType = const DynamicType();
+    }
+    return inferredType;
   }
 
   @override
@@ -240,13 +299,13 @@ class FieldFragment
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
+    Token? token = constInitializerToken;
     if ((modifiers.isConst ||
             (isFinal &&
                 isClassInstanceMember &&
                 (declarationBuilder as SourceClassBuilder)
                     .declaresConstConstructor)) &&
-        _constInitializerToken != null) {
-      Token initializerToken = _constInitializerToken!;
+        token != null) {
       LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
@@ -255,18 +314,17 @@ class FieldFragment
           ? ConstantContext.inferred
           : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
-          .inferFieldInitializer(bodyBuilder, fieldType,
-              bodyBuilder.parseFieldInitializer(initializerToken))
+          .inferFieldInitializer(
+              bodyBuilder, fieldType, bodyBuilder.parseFieldInitializer(token))
           .expression;
       buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations();
       if (computeSharedExpressionForTesting) {
         // Coverage-ignore-block(suite): Not run.
         _initializerExpression = parseFieldInitializer(libraryBuilder.loader,
-            initializerToken, libraryBuilder.importUri, fileUri, scope);
+            token, libraryBuilder.importUri, fileUri, scope);
       }
     }
-    _constInitializerToken = null;
   }
 
   @override
