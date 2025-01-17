@@ -19,8 +19,11 @@ mixin SharedEditableArgumentsTests
   /// Initializes the server with [content] and fetches editable arguments.
   Future<EditableArguments?> getEditableArgumentsFor(
     String content, {
-    bool open = true,
+    Future<void> Function(Uri, String)? open,
   }) async {
+    // Default to the standart openFile function if we weren't overridden.
+    open ??= openFile;
+
     code = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
@@ -28,9 +31,7 @@ $content
 ''');
     createFile(testFilePath, code.code);
     await initializeServer();
-    if (open) {
-      await openFile(testFileUri, code.code);
-    }
+    await open(testFileUri, code.code);
     await currentAnalysis;
     return await getEditableArguments(testFileUri, code.position.position);
   }
@@ -755,37 +756,6 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_textDocument_closedFile() async {
-    var result = await getEditableArgumentsFor('''
-class MyWidget extends StatelessWidget {
-  const MyWidget(String a1);
-
-  @override
-  Widget build(BuildContext context) => MyW^idget('value1');
-}
-''');
-
-    // Verify initial content of 1.
-    expect(
-      result!.textDocument,
-      isA<VersionedTextDocumentIdentifier>()
-          .having((td) => td.uri, 'uri', testFileUri)
-          .having((td) => td.version, 'version', 1),
-    );
-
-    // Close the file.
-    await closeFile(testFileUri);
-
-    // Verify new results have null version.
-    result = await getEditableArguments(testFileUri, code.position.position);
-    expect(
-      result!.textDocument,
-      isA<OptionalVersionedTextDocumentIdentifier>()
-          .having((td) => td.uri, 'uri', testFileUri)
-          .having((td) => td.version, 'version', isNull),
-    );
-  }
-
   test_textDocument_unopenedFile() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -794,7 +764,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MyW^idget('value1');
 }
-''', open: false);
+''', open: (_, _) async {});
 
     // Verify null version for unopened file.
     expect(
@@ -805,7 +775,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_textDocument_versions() async {
+  test_textDocument_versioned() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(String a1);
@@ -833,6 +803,37 @@ class MyWidget extends StatelessWidget {
       isA<VersionedTextDocumentIdentifier>()
           .having((td) => td.uri, 'uri', testFileUri)
           .having((td) => td.version, 'version', 5),
+    );
+  }
+
+  test_textDocument_versioned_closedFile() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String a1);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget('value1');
+}
+''');
+
+    // Verify initial content of 1.
+    expect(
+      result!.textDocument,
+      isA<VersionedTextDocumentIdentifier>()
+          .having((td) => td.uri, 'uri', testFileUri)
+          .having((td) => td.version, 'version', 1),
+    );
+
+    // Close the file.
+    await closeFile(testFileUri);
+
+    // Verify new results have null version.
+    result = await getEditableArguments(testFileUri, code.position.position);
+    expect(
+      result!.textDocument,
+      isA<OptionalVersionedTextDocumentIdentifier>()
+          .having((td) => td.uri, 'uri', testFileUri)
+          .having((td) => td.version, 'version', isNull),
     );
   }
 

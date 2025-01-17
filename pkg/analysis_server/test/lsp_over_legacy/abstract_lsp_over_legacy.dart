@@ -401,11 +401,32 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
+    // TODO(dantup): Add version here when legacy protocol supports.
+    await addOverlay(fromUri(uri), content);
+  }
+
+  /// Opens a file content without providing a version number.
+  ///
+  /// This method should be used only for specifically testing unversioned
+  /// changes and [openFile] used by default since going forwards, we expect
+  /// all clients to start providing version numbers.
+  Future<void> openFileUnversioned(Uri uri, String content) async {
     await addOverlay(fromUri(uri), content);
   }
 
   @override
   Future<void> replaceFile(int newVersion, Uri uri, String content) async {
+    // TODO(dantup): Add version here when legacy protocol supports.
+    // For legacy, we can use addOverlay to replace the whole file.
+    await addOverlay(fromUri(uri), content);
+  }
+
+  /// Replaces a file content without providing a version number.
+  ///
+  /// This method should be used only for specifically testing unversioned
+  /// changes and [replaceFile] used by default since going forwards, we expect
+  /// all clients to start providing version numbers.
+  Future<void> replaceFileUnversioned(Uri uri, String content) async {
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
   }
