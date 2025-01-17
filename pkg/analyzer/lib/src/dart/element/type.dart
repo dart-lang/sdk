@@ -590,22 +590,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement>? _methods;
 
   factory InterfaceTypeImpl({
-    required InterfaceElement element,
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
-  }) {
-    // TODO(paulberry): avoid this cast by changing the type of `element`
-    element as InterfaceElementImpl;
-    return InterfaceTypeImpl.v2(
-      element: element.asElement2,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-      alias: alias,
-    );
-  }
-
-  factory InterfaceTypeImpl.v2({
     required InterfaceElementImpl2 element,
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -1178,7 +1162,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
     return InterfaceTypeImpl(
-      element: element,
+      element: element3,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
       alias: alias,

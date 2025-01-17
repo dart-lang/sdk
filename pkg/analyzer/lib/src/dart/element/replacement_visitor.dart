@@ -76,7 +76,7 @@ class ReplacementVisitor
   }
 
   DartType? createInterfaceType({
-    required InterfaceType type,
+    required InterfaceTypeImpl type,
     required InstantiatedTypeAliasElement? newAlias,
     required List<DartType>? newTypeArguments,
     required NullabilitySuffix? newNullability,
@@ -88,7 +88,7 @@ class ReplacementVisitor
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element: type.element3,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
@@ -356,7 +356,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitInterfaceType(InterfaceType type) {
+  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
     var newNullability = visitNullability(type);
 
     InstantiatedTypeAliasElement? newAlias;

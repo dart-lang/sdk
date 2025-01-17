@@ -2199,11 +2199,11 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
-        element: element,
+        element: element.asElement2,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
@@ -2313,9 +2313,9 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is InterfaceType) {
+      } else if (type is InterfaceTypeImpl) {
         return InterfaceTypeImpl(
-          element: type.element,
+          element: type.element3,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(

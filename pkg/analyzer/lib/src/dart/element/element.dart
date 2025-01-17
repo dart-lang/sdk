@@ -6628,7 +6628,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       }
     }
 
-    var result = InterfaceTypeImpl.v2(
+    var result = InterfaceTypeImpl(
       element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -7342,7 +7342,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  ClassElement2? getClass2(String name) {
+  ClassElementImpl2? getClass2(String name) {
     return _getElementByName(classes, name);
   }
 
@@ -11012,9 +11012,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           typeArguments: typeArguments,
         ),
       );
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       return InterfaceTypeImpl(
-        element: type.element,
+        element: type.element3,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(

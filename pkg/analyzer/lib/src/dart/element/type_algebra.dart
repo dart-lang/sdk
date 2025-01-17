@@ -566,7 +566,7 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType type) {
+  DartType visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (type.typeArguments.isEmpty && type.alias == null) {
       return type;
     }
@@ -579,7 +579,7 @@ abstract class _TypeSubstitutor
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element: type.element3,
       typeArguments: typeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,

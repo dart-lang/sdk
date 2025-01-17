@@ -91,7 +91,7 @@ class InterfaceLeastUpperBoundHelper {
         }
       }
 
-      return InterfaceTypeImpl.v2(
+      return InterfaceTypeImpl(
         element: type1.element3,
         typeArguments: args,
         nullabilitySuffix: nullability,
