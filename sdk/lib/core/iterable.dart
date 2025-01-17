@@ -143,7 +143,7 @@ abstract mixin class Iterable<E> {
   /// ```
   @Since("3.8")
   factory Iterable.withIterator(Iterator<E> Function() iteratorFactory) =
-      _FromIteratorIterable<E>;
+      _WithIteratorIterable<E>;
 
   /// Creates an empty iterable.
   ///
@@ -933,13 +933,16 @@ class _GeneratorIterable<E> extends ListIterable<E> {
   static int _id(int n) => n;
 }
 
-class _FromIteratorIterable<E> extends Iterable<E> {
+/// Used internally by [Iterable.withIterator] to provide abstraction.
+///
+/// This class implements [Iterable] by delegating the iterator creation
+/// to the provided function.
+class _WithIteratorIterable<E> extends Iterable<E> {
   final Iterator<E> Function() _iteratorFactory;
 
   /// Creates an iterable that gets its elements from iterators created by
   /// the provided factory function.
-  _FromIteratorIterable(Iterator<E> Function() iteratorFactory)
-      : _iteratorFactory = iteratorFactory;
+  _WithIteratorIterable(this._iteratorFactory);
 
   Iterator<E> get iterator => _iteratorFactory();
 }
