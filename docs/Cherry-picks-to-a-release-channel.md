@@ -108,26 +108,26 @@ Edit the changelist's commit message with a link to the cherry-pick request:
 Cherry-pick-request: https://github.com/dart/sdk/issues/56781234
 ```
 
-Send the changelist for review. Await the appropriate consensus and approval via the
-`cherry-pick-request` for them or any OWNER to review the changelist.
+Send the changelist for review. Await the appropriate consensus and approval
+via the `cherry-pick-request` for them or any OWNER to review the changelist.
 
 ## Submitting the cherry-pick
 
-Once the cherry-pick issue is approved and the changelist is reviewed, the 
-cherry-pick author will submit it to the commit queue. The tryjobs will compare 
-the test results with the previous commit on the beta/stable branch and fail if 
-any regressions are introduced. If any regressions must be introduced, or the 
-try builders don't work on the older beta/stable code, then bypass the commit queue 
-by force submitting.
+Once the cherry-pick issue is approved and the changelist is reviewed, the
+cherry-pick author will submit it to the commit queue. The tryjobs will compare
+the test results with the previous commit on the beta/stable branch and fail if
+any regressions are introduced. If any regressions must be introduced, or the
+try builders don't work on the older beta/stable code, then bypass the commit
+queue by force submitting.
 
-The release engineers will apply the `cherry-pick-merged` label and the cherry-pick 
-will be automatically bundled into the next hotfix release of beta/stable and no 
-further actions are required.
+The release engineers will apply the `cherry-pick-merged` label and the
+cherry-pick will be automatically bundled into the next hotfix release of
+beta/stable and no further actions are required.
 
-Once the cherry-pick has landed in a hotfix release, the release engineering team
-will close the cherry-pick issue.
+Once the cherry-pick has landed in a hotfix release, the release engineering
+team will close the cherry-pick issue.
 
-[cherry-pick-template]: https://github.com/dart-lang/sdk/issues/new?assignees=mit-mit%2Cwhesse%2Cathomas%2Cvsmenon%2Citsjustkevin&labels=cherry-pick-review&template=2_cherry_pick.yml&title=%5BCP%5D+%3Ctitle%3E
+[cherry-pick-template]: https://github.com/dart-lang/sdk/issues/new?template=5_cherry_pick.yml
 
 ## Cherry-picking a commit in a dependency
 
