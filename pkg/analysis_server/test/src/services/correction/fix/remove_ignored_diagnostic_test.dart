@@ -12,10 +12,69 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnnecessaryIgnoreTest);
+    defineReflectiveTests(RemoveUnnecessaryIgnoreBulkTest);
   });
 }
 
-// TODO(pq): add bulk fix tests
+@reflectiveTest
+class RemoveUnnecessaryIgnoreBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_ignore;
+
+  Future<void> test_file() async {
+    await resolveTestCode('''
+// ignore_for_file: non_bool_negation_expression, return_of_invalid_type
+// ignore_for_file: unused_local_variable, return_of_invalid_type
+
+int f() => null;
+''');
+    await assertHasFix('''
+// ignore_for_file: return_of_invalid_type
+// ignore_for_file: return_of_invalid_type
+
+int f() => null;
+''');
+  }
+
+  Future<void> test_line() async {
+    await resolveTestCode('''
+class C {
+  // ignore: non_bool_negation_expression, return_of_invalid_type
+  int f() => null;
+
+  // ignore: return_of_invalid_type, unused_local_variable
+  int g() => null;
+}
+''');
+    await assertHasFix('''
+class C {
+  // ignore: return_of_invalid_type
+  int f() => null;
+
+  // ignore: return_of_invalid_type
+  int g() => null;
+}
+''');
+  }
+
+  Future<void> test_line_multi() async {
+    await resolveTestCode('''
+class C {
+  // ignore: non_bool_negation_expression, return_of_invalid_type
+  // ignore: return_of_invalid_type, unused_local_variable
+  int g() => null;
+}
+''');
+    await assertHasFix('''
+class C {
+  // ignore: return_of_invalid_type
+  // ignore: return_of_invalid_type
+  int g() => null;
+}
+''');
+  }
+}
+
 @reflectiveTest
 class RemoveUnnecessaryIgnoreTest extends FixProcessorLintTest {
   @override

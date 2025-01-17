@@ -11,19 +11,22 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class RemoveIgnore extends ResolvedCorrectionProducer {
+class RemoveIgnoredDiagnostic extends ResolvedCorrectionProducer {
   String _diagnosticName = '';
-  RemoveIgnore({required super.context});
+  RemoveIgnoredDiagnostic({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.automatically;
 
   @override
   List<String> get fixArguments => [_diagnosticName];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_IGNORED_DIAGNOSTIC;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_IGNORED_DIAGNOSTIC_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -34,6 +37,8 @@ class RemoveIgnore extends ResolvedCorrectionProducer {
 
     var comment = node.commentTokenCovering(diagnosticOffset);
     if (comment is! CommentToken) return;
+
+    var inCommentOffset = diagnosticOffset - comment.offset;
 
     SourceRange? rangeToDelete;
 
@@ -49,9 +54,9 @@ class RemoveIgnore extends ResolvedCorrectionProducer {
         var commentText = comment.lexeme;
         if (scanBack) {
           // Scan back for a preceding comma:
-          for (var offset = ignoredElementOffset; offset > -1; --offset) {
+          for (var offset = inCommentOffset; offset > -1; --offset) {
             if (commentText[offset] == ',') {
-              var backSteps = ignoredElementOffset - offset;
+              var backSteps = inCommentOffset - offset;
               rangeToDelete = SourceRange(
                 diagnosticOffset - backSteps,
                 _diagnosticName.length + backSteps,
@@ -61,14 +66,14 @@ class RemoveIgnore extends ResolvedCorrectionProducer {
           }
         } else {
           // Scan forward for a trailing comma:
-          var chars = commentText.substring(ignoredElementOffset).indexOf(',');
+          var chars = commentText.substring(inCommentOffset).indexOf(',');
           if (chars == -1) return;
 
           // Eat the comma
           chars++;
 
           // Eat a trailing space if needed
-          if (commentText[ignoredElementOffset + chars] == ' ') chars++;
+          if (commentText[inCommentOffset + chars] == ' ') chars++;
 
           rangeToDelete = SourceRange(ignoredElementOffset, chars);
         }
