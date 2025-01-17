@@ -25,6 +25,18 @@ extension ClassElementExtension on ClassElement {
   }
 }
 
+extension ClassElementImpl2Extension on ClassElementImpl2 {
+  ClassElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension ClassElementImplExtension on ClassElementImpl {
+  ClassElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension CompilationUnitElementExtension on CompilationUnitElement {
   LibraryFragment get asElement2 {
     return this as LibraryFragment;

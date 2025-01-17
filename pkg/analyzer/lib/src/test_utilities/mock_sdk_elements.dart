@@ -75,8 +75,10 @@ class _MockSdkElementsBuilder {
   InterfaceType? _stringType;
   InterfaceType? _typeType;
 
+  late LibraryElementImpl _asyncLibrary;
   late CompilationUnitElementImpl _asyncUnit;
 
+  late LibraryElementImpl _coreLibrary;
   late CompilationUnitElementImpl _coreUnit;
 
   _MockSdkElementsBuilder(
@@ -923,7 +925,7 @@ class _MockSdkElementsBuilder {
 
   LibraryElementImpl _buildAsync() {
     var asyncSource = analysisContext.sourceFactory.forUri('dart:async')!;
-    var asyncLibrary = LibraryElementImpl(
+    _asyncLibrary = LibraryElementImpl(
       analysisContext,
       analysisSession,
       'dart.async',
@@ -933,13 +935,13 @@ class _MockSdkElementsBuilder {
     );
 
     _asyncUnit = CompilationUnitElementImpl(
-      library: asyncLibrary,
+      library: _asyncLibrary,
       source: asyncSource,
       lineInfo: LineInfo([0]),
     );
 
-    asyncLibrary.definingCompilationUnit = _asyncUnit;
-    return asyncLibrary;
+    _asyncLibrary.definingCompilationUnit = _asyncUnit;
+    return _asyncLibrary;
   }
 
   void _buildClassElement(ClassElementImpl fragment) {
@@ -954,7 +956,7 @@ class _MockSdkElementsBuilder {
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
-    var coreLibrary = LibraryElementImpl(
+    _coreLibrary = LibraryElementImpl(
       analysisContext,
       analysisSession,
       'dart.core',
@@ -964,13 +966,13 @@ class _MockSdkElementsBuilder {
     );
 
     _coreUnit = CompilationUnitElementImpl(
-      library: coreLibrary,
+      library: _coreLibrary,
       source: coreSource,
       lineInfo: LineInfo([0]),
     );
 
-    coreLibrary.definingCompilationUnit = _coreUnit;
-    return coreLibrary;
+    _coreLibrary.definingCompilationUnit = _coreUnit;
+    return _coreLibrary;
   }
 
   ClassElementImpl _class({
@@ -1019,10 +1021,12 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
-    return FunctionElementImpl(name, 0)
+    var fragment = FunctionElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
+    TopLevelFunctionElementImpl(Reference.root(), fragment);
+    return fragment;
   }
 
   FunctionType _functionType({
@@ -1060,11 +1064,11 @@ class _MockSdkElementsBuilder {
   }
 
   InterfaceType _interfaceType(
-    InterfaceElement element, {
+    InterfaceElementImpl element, {
     List<DartType> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
-      element: element,
+      element: element.element,
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -1102,6 +1106,8 @@ class _MockSdkElementsBuilder {
       streamElement,
       streamSubscriptionElement
     ];
+
+    _fillLibraryFromFragment(_asyncLibrary, _asyncUnit);
   }
 
   void _populateCore() {
@@ -1152,10 +1158,13 @@ class _MockSdkElementsBuilder {
       deprecatedVariable.getter!,
       overrideVariable.getter!,
     ];
+
     _coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
     ];
+
+    _fillLibraryFromFragment(_coreLibrary, _coreUnit);
   }
 
   ParameterElementImpl _positionalParameter(String name, DartType type) {
@@ -1194,11 +1203,12 @@ class _MockSdkElementsBuilder {
     String name,
     DartType type,
   ) {
-    var variable = ConstTopLevelVariableElementImpl(name, -1)
+    var fragment = ConstTopLevelVariableElementImpl(name, -1)
       ..isConst = true
       ..type = type;
-    PropertyAccessorElementImpl_ImplicitGetter(variable);
-    return variable;
+    TopLevelVariableElementImpl2(Reference.root(), fragment);
+    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    return fragment;
   }
 
   TypeParameterElementImpl _typeParameter(String name) {
@@ -1210,5 +1220,19 @@ class _MockSdkElementsBuilder {
       element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
+  }
+
+  static void _fillLibraryFromFragment(
+    LibraryElementImpl library,
+    CompilationUnitElementImpl fragment,
+  ) {
+    library.classes = fragment.classes.map((f) => f.element).toList();
+
+    library.topLevelFunctions = fragment.functions.map((f) {
+      return f.element as TopLevelFunctionElementImpl;
+    }).toList();
+
+    library.topLevelVariables =
+        fragment.topLevelVariables.map((f) => f.element).toList();
   }
 }

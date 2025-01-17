@@ -111,7 +111,7 @@ class ReplaceTopBottomVisitor {
       newTypeArguments.add(newTypeArgument);
     }
 
-    return InterfaceTypeImpl.v2(
+    return InterfaceTypeImpl(
       element: type.element3,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
