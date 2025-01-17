@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -165,7 +166,7 @@ class CommentReferenceResolver {
         var extendedType = _typeSystem.resolveToBound(
           enclosingExtension.extendedType,
         );
-        if (extendedType is InterfaceType) {
+        if (extendedType is InterfaceTypeImpl) {
           enclosingType = extendedType;
         } else if (extendedType is FunctionType) {
           enclosingType = _typeProvider.functionType;

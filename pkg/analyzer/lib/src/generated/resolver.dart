@@ -1213,7 +1213,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var context = typeSystem.flatten(contextType);
-    if (context is! FunctionType || context.typeFormals.isNotEmpty) {
+    if (context is! FunctionTypeImpl || context.typeFormals.isNotEmpty) {
       return expression;
     }
 

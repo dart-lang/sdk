@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -180,7 +181,7 @@ class TypePropertyResolver {
     } else {
       var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
 
-      if (receiverTypeResolved is InterfaceType) {
+      if (receiverTypeResolved is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverTypeResolved);
         if (_hasGetterOrSetter) {
           return _toResult();
@@ -193,7 +194,7 @@ class TypePropertyResolver {
         }
       }
 
-      if (receiverTypeResolved is FunctionType &&
+      if (receiverTypeResolved is FunctionTypeImpl &&
           _name == FunctionElement.CALL_METHOD_NAME) {
         return ResolutionResult(
           needsGetterError: false,
@@ -209,7 +210,7 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      if (receiverTypeResolved is RecordType) {
+      if (receiverTypeResolved is RecordTypeImpl) {
         var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
           return ResolutionResult(
