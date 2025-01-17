@@ -132,10 +132,10 @@ abstract mixin class Iterable<E> {
   /// The returned iterable creates a new iterator each time [iterator] is read,
   /// by calling the provided [iteratorFactory] function. The [iteratorFactory]
   /// function must return a new instance of `Iterator<E>` on each call.
-  /// 
+  ///
   /// This factory is useful when you need to create an iterable from a custom
   /// iterator, or when you want to ensure a fresh iteration state on each use.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final numbers = Iterable.withIterator(() => [1, 2, 3].iterator);
@@ -933,7 +933,7 @@ class _GeneratorIterable<E> extends ListIterable<E> {
   static int _id(int n) => n;
 }
 
-/// Used internally by [Iterable.withIterator] to provide abstraction.
+/// Used internally by [Iterable.withIterator].
 ///
 /// This class implements [Iterable] by delegating the iterator creation
 /// to the provided function.
