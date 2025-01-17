@@ -190,7 +190,7 @@ class GraphInfoCollector : public ValueObject {
           instruction_count_ += current->ArgumentCount();
         }
         if (current->IsInstanceCall() || current->IsStaticCall() ||
-            current->IsClosureCall()) {
+            current->IsClosureCall() || current->IsDispatchTableCall()) {
           ++call_site_count_;
           continue;
         }

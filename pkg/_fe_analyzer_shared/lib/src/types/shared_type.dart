@@ -193,8 +193,10 @@ extension type SharedRecordTypeView<
 }
 
 extension type SharedTypeSchemaView<
-        TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        TypeStructure extends SharedTypeStructure<TypeStructure>>._(
     SharedTypeStructure<TypeStructure> _typeStructure) implements Object {
+  SharedTypeSchemaView(TypeStructure typeStructure) : this._(typeStructure);
+
   NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
 
   String getDisplayString() => _typeStructure.getDisplayString();
@@ -203,8 +205,10 @@ extension type SharedTypeSchemaView<
 }
 
 extension type SharedTypeView<
-        TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        TypeStructure extends SharedTypeStructure<TypeStructure>>._(
     SharedTypeStructure<TypeStructure> _typeStructure) implements Object {
+  SharedTypeView(TypeStructure typeStructure) : this._(typeStructure);
+
   NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
 
   String getDisplayString() => _typeStructure.getDisplayString();
@@ -248,8 +252,7 @@ extension type SharedVoidTypeView<
 /// [SharedTypeStructureExtension] as follows:
 ///     return e.foo()?.wrapSharedTypeView();
 extension SharedTypeStructureExtension<
-        TypeStructure extends SharedTypeStructure<TypeStructure>>
-    on SharedTypeStructure<TypeStructure> {
+    TypeStructure extends SharedTypeStructure<TypeStructure>> on TypeStructure {
   SharedTypeSchemaView<TypeStructure> wrapSharedTypeSchemaView() {
     return new SharedTypeSchemaView(this);
   }
@@ -261,8 +264,8 @@ extension SharedTypeStructureExtension<
 
 extension SharedTypeStructureMapEntryExtension<
     TypeStructure extends SharedTypeStructure<TypeStructure>> on ({
-  SharedTypeStructure<TypeStructure> keyType,
-  SharedTypeStructure<TypeStructure> valueType
+  TypeStructure keyType,
+  TypeStructure valueType
 }) {
   ({
     SharedTypeView<TypeStructure> keyType,
