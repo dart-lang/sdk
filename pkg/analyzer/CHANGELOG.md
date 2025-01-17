@@ -1,4 +1,4 @@
-## 7.2.0-dev
+## 7.2.0
 * Add `ElementDirective` as superinterface for `LibraryExport`, `LibraryImport`,
   and `PartInclude`. It implements `Annotatable`.
 
