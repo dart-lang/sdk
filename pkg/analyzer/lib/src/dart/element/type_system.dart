@@ -575,18 +575,19 @@ class TypeSystemImpl implements TypeSystem {
           parameters ??= <TypeParameterElement>[];
           parameters!.add(element);
         }
-      } else {
-        if (type is FunctionType) {
-          assert(!type.typeFormals.any((t) => boundTypeParameters.contains(t)));
-          boundTypeParameters.addAll(type.typeFormals);
-          appendParameters(type.returnType);
-          type.parameters.map((p) => p.type).forEach(appendParameters);
-          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
-          type.alias?.typeArguments.forEach(appendParameters);
-          boundTypeParameters.removeAll(type.typeFormals);
-        } else if (type is InterfaceType) {
-          type.typeArguments.forEach(appendParameters);
-        }
+      } else if (type is FunctionType) {
+        assert(!type.typeFormals.any((t) => boundTypeParameters.contains(t)));
+        boundTypeParameters.addAll(type.typeFormals);
+        appendParameters(type.returnType);
+        type.parameters.map((p) => p.type).forEach(appendParameters);
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
+        type.alias?.typeArguments.forEach(appendParameters);
+        boundTypeParameters.removeAll(type.typeFormals);
+      } else if (type is InterfaceType) {
+        type.typeArguments.forEach(appendParameters);
+      } else if (type is RecordType) {
+        type.positionalFields.map((f) => f.type).forEach(appendParameters);
+        type.namedFields.map((f) => f.type).forEach(appendParameters);
       }
     }
 
