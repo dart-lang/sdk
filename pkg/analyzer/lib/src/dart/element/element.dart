@@ -11001,7 +11001,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         ? NullabilitySuffix.question
         : nullabilitySuffix;
 
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       return FunctionTypeImpl(
         typeFormals: type.typeFormals,
         parameters: type.parameters,
@@ -11032,7 +11032,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           typeArguments: typeArguments,
         ),
       );
-    } else if (type is TypeParameterType) {
+    } else if (type is TypeParameterTypeImpl) {
       return TypeParameterTypeImpl(
         element: type.element,
         nullabilitySuffix: resultNullability,
@@ -11042,7 +11042,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         ),
       );
     } else {
-      return (type as TypeImpl).withNullability(resultNullability);
+      return type.withNullability(resultNullability);
     }
   }
 

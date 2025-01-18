@@ -180,7 +180,7 @@ class FreshTypeParameters {
     );
   }
 
-  DartType substitute(DartType type) => substitution.substituteType(type);
+  TypeImpl substitute(DartType type) => substitution.substituteType(type);
 }
 
 /// Substitution that is based on the [map].
@@ -205,9 +205,9 @@ abstract class Substitution {
     return types.map(mapInterfaceType);
   }
 
-  DartType substituteType(DartType type, {bool contravariant = false}) {
+  TypeImpl substituteType(DartType type, {bool contravariant = false}) {
     var visitor = _TopSubstitutor(this, contravariant);
-    return type.accept(visitor);
+    return type.accept(visitor) as TypeImpl;
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from
@@ -390,7 +390,8 @@ class _NullSubstitution extends MapSubstitution {
   }
 
   @override
-  DartType substituteType(DartType type, {bool contravariant = false}) => type;
+  TypeImpl substituteType(DartType type, {bool contravariant = false}) =>
+      type as TypeImpl;
 
   @override
   String toString() => "Substitution.empty";
