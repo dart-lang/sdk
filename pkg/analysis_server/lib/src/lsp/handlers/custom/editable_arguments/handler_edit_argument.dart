@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/editable_arguments/editable_arguments_mixin.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -286,14 +285,6 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// Sends [workspaceEdit] to the client and returns `null` if applied
   /// successfully or an error otherwise.
   Future<ErrorOr<Null>> _sendEditToClient(WorkspaceEdit workspaceEdit) async {
-    var server = this.server;
-    if (server is! LspAnalysisServer) {
-      return error(
-        ErrorCodes.RequestFailed,
-        'Sending edits is currently only supported for clients using LSP directly',
-      );
-    }
-
     var editDescription = 'Edit argument';
     var editResponse = await server.sendLspRequest(
       Method.workspace_applyEdit,

@@ -719,6 +719,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Sends an LSP request to the server (wrapped in 'lsp.handle') and unwraps
   /// the LSP response from the result of the legacy response.
+  @override
   Future<lsp.ResponseMessage> sendLspRequest(
     lsp.Method method,
     Object params,

@@ -861,9 +861,7 @@ class LspAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
-  /// Sends a request with the given [params] to the client and wait for a
-  /// response. Completes with the raw [ResponseMessage] which could be an
-  /// error response.
+  @override
   Future<ResponseMessage> sendLspRequest(Method method, Object params) {
     var requestId = nextRequestId++;
     var completer = Completer<ResponseMessage>();
