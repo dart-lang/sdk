@@ -42,12 +42,6 @@ void f(N? n) {
         "Hide others to use 'N' from 'lib2.dart'",
       ],
     );
-      expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Hide others to use 'N' from 'lib1.dart'",
-        "Hide others to use 'N' from 'lib2.dart'",
-      ],
-    );
     await assertHasFix('''
 import 'lib1.dart' hide N;
 import 'lib2.dart';
@@ -451,6 +445,31 @@ part 'test.dart';
     );
   }
 
+  Future<void> test_multipleCombinators() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+void bar() {}
+void baz() {}
+void foo() {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+void bar() {}''');
+    await resolveTestCode('''
+import 'lib1.dart' hide baz hide foo;
+import 'lib2.dart';
+
+void foo() {
+  bar();
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' hide baz, bar hide foo, bar;
+import 'lib2.dart';
+
+void foo() {
+  bar();
+}
+''', matchFixMessage: "Hide others to use 'bar' from 'lib2.dart'");
+  }
+
   Future<void> test_part() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
 class N {}''');
@@ -788,6 +807,78 @@ void f(N? n, O? o) {
           (error) => error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
       matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
     );
+  }
+
+  Future<void> test_multipleCombinators1() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+class M {}
+class N {}
+class O {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' show N show N, O, M;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' show O, M;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+  }
+
+  Future<void> test_multipleCombinators2() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+class N {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' show N show N;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' hide N;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+  }
+
+  Future<void> test_multipleCombinators3() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+class M {}
+class N {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' show N hide M;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' hide M, N;
+import 'lib2.dart' show N;
+
+void f(N? n) {
+  print(n);
+}
+''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
   }
 
   Future<void> test_one_show() async {

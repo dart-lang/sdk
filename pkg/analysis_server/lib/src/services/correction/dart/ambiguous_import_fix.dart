@@ -188,7 +188,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
     }
 
     var hideCombinators =
-        <({ImportDirective directive, HideCombinator? hide})>[];
+        <({ImportDirective directive, List<HideCombinator> hideList})>[];
 
     for (var directive in importDirectives) {
       var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
@@ -197,13 +197,13 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
       if (show != null) {
         return;
       }
-      var hide = directive.combinators.whereType<HideCombinator>().firstOrNull;
-      hideCombinators.add((directive: directive, hide: hide));
+      var hide = directive.combinators.whereType<HideCombinator>().toList();
+      hideCombinators.add((directive: directive, hideList: hide));
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      for (var (:directive, :hide) in hideCombinators) {
-        if (hide != null) {
+      for (var (:directive, :hideList) in hideCombinators) {
+        for (var hide in hideList) {
           var allNames = [
             ...hide.hiddenNames.map((name) => name.name),
             _elementName,
@@ -213,7 +213,8 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
           }
           var combinator = 'hide ${allNames.join(', ')}';
           builder.addSimpleReplacement(range.node(hide), combinator);
-        } else {
+        }
+        if (hideList.isEmpty) {
           var hideCombinator = ' hide $_elementName';
           builder.addSimpleInsertion(directive.end - 1, hideCombinator);
         }
@@ -260,35 +261,61 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
     }
 
     var showCombinators =
-        <({ImportDirective directive, ShowCombinator show})>[];
+        <
+          ({
+            ImportDirective directive,
+            List<ShowCombinator> showList,
+            HideCombinator? hide,
+          })
+        >[];
+
     for (var directive in importDirectives) {
-      var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
+      var show = directive.combinators.whereType<ShowCombinator>().toList();
+      var hide = directive.combinators.whereType<HideCombinator>().firstOrNull;
       // If there is no show combinator, then we don't want to deal with this
       // case here.
-      if (show == null) {
+      if (show.isEmpty) {
         return;
       }
-      showCombinators.add((directive: directive, show: show));
+      showCombinators.add((directive: directive, showList: show, hide: hide));
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      for (var (:directive, :show) in showCombinators) {
-        var allNames = [
-          ...show.shownNames
-              .map((name) => name.name)
-              .where((name) => name != _elementName),
-        ];
-        if (_sortCombinators) {
-          allNames.sort();
+      for (var (:directive, :showList, :hide) in showCombinators) {
+        var noShow = true;
+        for (var show in showList) {
+          var allNames = [
+            ...show.shownNames
+                .map((name) => name.name)
+                .where((name) => name != _elementName),
+          ];
+          if (_sortCombinators) {
+            allNames.sort();
+          }
+          if (allNames.isEmpty) {
+            builder.addDeletion(SourceRange(show.offset - 1, show.length + 1));
+          } else {
+            noShow = false;
+            var combinator = 'show ${allNames.join(', ')}';
+            var range = SourceRange(show.offset, show.length);
+            builder.addSimpleReplacement(range, combinator);
+          }
         }
-        if (allNames.isEmpty) {
-          builder.addDeletion(SourceRange(show.offset - 1, show.length + 1));
-          var hideCombinator = ' hide $_elementName';
-          builder.addSimpleInsertion(directive.end - 1, hideCombinator);
-        } else {
-          var combinator = 'show ${allNames.join(', ')}';
-          var range = SourceRange(show.offset, show.length);
-          builder.addSimpleReplacement(range, combinator);
+        if (noShow) {
+          if (hide == null) {
+            var hideCombinator = ' hide $_elementName';
+            builder.addSimpleInsertion(directive.end - 1, hideCombinator);
+          } else {
+            var allNames = [
+              ...hide.hiddenNames.map((name) => name.name),
+              _elementName,
+            ];
+            if (_sortCombinators) {
+              allNames.sort();
+            }
+            var combinator = 'hide ${allNames.join(', ')}';
+            builder.addSimpleReplacement(range.node(hide), combinator);
+          }
         }
       }
     });
