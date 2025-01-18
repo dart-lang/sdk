@@ -63,7 +63,7 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
     // begin is sent (which could happen because create is async), end will
     // not be sent/return too early.
     _tokenBeginRequest = _server
-        .sendRequest(
+        .sendLspRequest(
           Method.window_workDoneProgress_create,
           WorkDoneProgressCreateParams(token: _token),
         )

@@ -329,7 +329,7 @@ class LspAnalysisServer extends AnalysisServer {
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
-      var response = await sendRequest(
+      var response = await sendLspRequest(
         Method.workspace_configuration,
         ConfigurationParams(
           items: [
@@ -864,7 +864,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Sends a request with the given [params] to the client and wait for a
   /// response. Completes with the raw [ResponseMessage] which could be an
   /// error response.
-  Future<ResponseMessage> sendRequest(Method method, Object params) {
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
     var requestId = nextRequestId++;
     var completer = Completer<ResponseMessage>();
     completers[requestId] = completer;
@@ -1020,7 +1020,7 @@ class LspAnalysisServer extends AnalysisServer {
     List<MessageActionItem> actions,
   ) async {
     assert(supportsShowMessageRequest);
-    var response = await sendRequest(
+    var response = await sendLspRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(
         type: type.forLsp,

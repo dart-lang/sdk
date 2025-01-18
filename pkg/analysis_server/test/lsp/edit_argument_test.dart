@@ -218,7 +218,7 @@ class ComputeStringValueTest {
 }
 
 @reflectiveTest
-class EditArgumentTest extends AbstractLspAnalysisServerTest {
+class EditArgumentTest extends SharedAbstractLspAnalysisServerTest {
   late TestCode code;
 
   @override
@@ -848,14 +848,14 @@ const myConst = E.one;
     bool open = true,
   }) async {
     code = TestCode.parse(content);
-    newFile(mainFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
     if (open) {
-      await openFile(mainFileUri, code.code);
+      await openFile(testFileUri, code.code);
     }
-    await initialAnalysis;
+    await currentAnalysis;
     var verifier = await executeForEdits(
-      () => editArgument(mainFileUri, code.position.position, edit),
+      () => editArgument(testFileUri, code.position.position, edit),
     );
 
     verifier.verifyFiles(expectedContent);
@@ -885,12 +885,12 @@ class MyWidget extends StatelessWidget {
 ''';
 
     code = TestCode.parse(content);
-    newFile(mainFilePath, code.code);
-    await initialize();
-    await initialAnalysis;
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    await currentAnalysis;
 
     await expectLater(
-      editArgument(mainFileUri, code.position.position, edit),
+      editArgument(testFileUri, code.position.position, edit),
       throwsA(isResponseError(ErrorCodes.RequestFailed, message: message)),
     );
   }
@@ -917,7 +917,7 @@ class MyWidget extends StatelessWidget {
 }
 ''';
     var expectedContent = '''
->>>>>>>>>> lib/main.dart
+>>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 
 $additionalCode

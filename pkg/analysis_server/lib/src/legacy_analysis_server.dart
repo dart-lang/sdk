@@ -76,6 +76,7 @@ import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
+import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -714,6 +715,51 @@ class LegacyAnalysisServer extends AnalysisServer {
         notification,
       ).toNotification(clientUriConverter: uriConverter),
     );
+  }
+
+  /// Sends an LSP request to the server (wrapped in 'lsp.handle') and unwraps
+  /// the LSP response from the result of the legacy response.
+  Future<lsp.ResponseMessage> sendLspRequest(
+    lsp.Method method,
+    Object params,
+  ) async {
+    var id = nextServerRequestId++;
+
+    // Build the complete LSP RequestMessage to send.
+    var lspMessage = lsp.RequestMessage(
+      id: lsp.Either2<int, String>.t1(id),
+      jsonrpc: lsp.jsonRpcVersion,
+      method: method,
+      params: params,
+    );
+
+    // Wrap the LSP message inside a call to lsp.handle.
+    var response = await sendRequest(
+      Request(
+        id.toString(),
+        LSP_REQUEST_HANDLE,
+        LspHandleParams(lspMessage).toJson(clientUriConverter: uriConverter),
+      ),
+    );
+
+    // Unwrap the LSP response from the legacy response.
+    var result = LspHandleResult.fromResponse(
+      response,
+      clientUriConverter: uriConverter,
+    );
+    var lspResponse = result.lspResponse;
+
+    return lspResponse is Map<String, Object?>
+        ? lsp.ResponseMessage.fromJson(lspResponse)
+        : lsp.ResponseMessage(
+          jsonrpc: lsp.jsonRpcVersion,
+          error: lsp.ResponseError(
+            code: lsp.ServerErrorCodes.UnhandledError,
+            message:
+                "The client responded to a '$method' LSP request but"
+                ' did not include a valid response in the lspResponse field',
+          ),
+        );
   }
 
   /// Send the given [notification] to the client.

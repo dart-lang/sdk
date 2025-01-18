@@ -183,7 +183,15 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   Stream<RequestMessage> get requestsFromServer => serverChannel
       .serverToClientRequests
       .where((request) => request.method == LSP_REQUEST_HANDLE)
-      .map((request) => RequestMessage.fromJson(request.params));
+      .map((request) {
+        var params = LspHandleParams.fromRequest(
+          request,
+          clientUriConverter: uriConverter,
+        );
+        return RequestMessage.fromJson(
+          params.lspMessage as Map<String, Object?>,
+        );
+      });
 
   /// The URI for the macro-generated content for [testFileUri].
   Uri get testFileMacroUri =>
@@ -338,6 +346,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     await handleSuccessfulRequest(request);
   }
 
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
+    return server.sendLspRequest(method, params);
+  }
+
   @override
   void sendResponseToServer(ResponseMessage response) {
     serverChannel.simulateResponseFromClient(
@@ -347,7 +359,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         // A client-provided response to an LSP reverse-request is always
         // a full LSP result payload as the "result". The legacy request should
         // always succeed and any errors handled as LSP error responses within.
-        result: response.toJson(),
+        result: LspHandleResult(
+          response,
+        ).toJson(clientUriConverter: uriConverter),
       ),
     );
   }
@@ -400,6 +414,11 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   }
 
   @override
+  Future<void> initializeServer() async {
+    await waitForTasksFinished();
+  }
+
+  @override
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     // TODO(dantup): Add version here when legacy protocol supports.
     await addOverlay(fromUri(uri), content);
@@ -429,36 +448,5 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   Future<void> replaceFileUnversioned(Uri uri, String content) async {
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
-  }
-
-  /// Wraps an LSP request up and sends it from the server to the client.
-  Future<ResponseMessage> sendLspRequestToClient(
-    Method method,
-    Object params,
-  ) async {
-    var id = server.nextServerRequestId++;
-    // Round-trip through JSON to ensure everything becomes basic types and we
-    // don't have instances of classes like `Either2<>` in the JSON.
-    var lspRequest =
-        jsonDecode(
-              jsonEncode(
-                RequestMessage(
-                  id: Either2<int, String>.t1(id),
-                  jsonrpc: jsonRpcVersion,
-                  method: method,
-                  params: params,
-                ),
-              ),
-            )
-            as Map<String, Object?>;
-    var legacyResponse = await server.sendRequest(
-      Request(id.toString(), LSP_REQUEST_HANDLE, lspRequest),
-    );
-
-    // Round-trip through JSON to ensure everything becomes basic types and we
-    // don't have instances of classes like `Either2<>` in the JSON.
-    var lspResponse =
-        jsonDecode(jsonEncode(legacyResponse.result)) as Map<String, Object?>;
-    return ResponseMessage.fromJson(lspResponse);
   }
 }

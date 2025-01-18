@@ -21,7 +21,7 @@ class WorkspaceApplyEditTest extends SharedLspOverLegacyTest
         SharedWorkspaceApplyEditTests {
   @override
   Future<void> initializeServer() async {
-    await waitForTasksFinished();
+    await super.initializeServer();
     await sendClientCapabilities();
   }
 

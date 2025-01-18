@@ -57,6 +57,7 @@ class LegacyServerMessageSchedulerTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_initialize() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
     _assertLogContents(messageScheduler, r'''
 Incoming LegacyMessage: analysis.setAnalysisRoots
 Entering process messages loop
@@ -74,6 +75,7 @@ Exit process messages loop
     ).toRequest('0', clientUriConverter: server.uriConverter);
     futures.add(handleSuccessfulRequest(request));
     await Future.wait(futures);
+    await waitForTasksFinished();
     _assertLogContents(messageScheduler, r'''
 Incoming LegacyMessage: analysis.setAnalysisRoots
 Entering process messages loop

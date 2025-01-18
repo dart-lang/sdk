@@ -67,7 +67,7 @@ abstract class SimpleEditCommandHandler
   ) async {
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
-    var editResponse = await server.sendRequest(
+    var editResponse = await server.sendLspRequest(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams(label: commandName, edit: workspaceEdit),
     );

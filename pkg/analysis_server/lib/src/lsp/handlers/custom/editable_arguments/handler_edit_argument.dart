@@ -295,7 +295,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     }
 
     var editDescription = 'Edit argument';
-    var editResponse = await server.sendRequest(
+    var editResponse = await server.sendLspRequest(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams(label: editDescription, edit: workspaceEdit),
     );

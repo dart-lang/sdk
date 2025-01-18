@@ -1787,6 +1787,7 @@ analyzer:
     newFile(path, '<manifest/>');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
 
     // No touch-screen.
     assertNotificationsText(r'''
