@@ -430,7 +430,7 @@ abstract interface class Process {
   ///
   /// Returns a `Future<ProcessResult>` that completes with the
   /// result of running the process, i.e., exit code, standard out and
-  /// standard in.
+  /// standard error.
   ///
   /// The following code uses `Process.run` to grep for `main` in the
   /// file `test.dart` on Linux.
@@ -456,7 +456,7 @@ abstract interface class Process {
   /// The arguments are the same as for [Process.run].
   ///
   /// Returns a [ProcessResult] with the result of running the process,
-  /// i.e., exit code, standard out and standard in.
+  /// i.e., exit code, standard out and standard error.
   external static ProcessResult runSync(
     String executable,
     List<String> arguments, {
