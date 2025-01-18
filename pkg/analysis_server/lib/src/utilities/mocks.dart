@@ -18,16 +18,31 @@ import 'package:watcher/watcher.dart';
 class MockServerChannel implements ServerCommunicationChannel {
   /// A controller for the stream of requests and responses from the client to
   /// the server.
+  ///
+  /// Messages added to this stream should be converted to/from JSON to ensure
+  /// they are fully serialized/deserialized as they would be in a real server
+  /// otherwise tests may receive real instances where in reality they would be
+  /// maps.
   StreamController<RequestOrResponse> requestController =
       StreamController<RequestOrResponse>();
 
   /// A controller for the stream of requests and responses from the server to
   /// the client.
+  ///
+  /// Messages added to this stream should be converted to/from JSON to ensure
+  /// they are fully serialized/deserialized as they would be in a real server
+  /// otherwise tests may receive real instances where in reality they would be
+  /// maps.
   StreamController<RequestOrResponse> responseController =
       StreamController<RequestOrResponse>.broadcast();
 
   /// A controller for the stream of notifications from the server to the
   /// client.
+  ///
+  /// Unlike [requestController] and [responseController], notifications added
+  /// here are not round-tripped through JSON but instead have real class
+  /// instances as their `params`. This is because they are only used by tests
+  /// which will cast and/or switch on the types for convenience.
   StreamController<Notification> notificationController =
       StreamController<Notification>.broadcast(sync: true);
 
@@ -67,7 +82,10 @@ class MockServerChannel implements ServerCommunicationChannel {
     if (_closed) {
       return;
     }
+
     notificationsReceived.add(notification);
+    notificationController.add(notification);
+
     var errorCompleter = this.errorCompleter;
     if (errorCompleter != null && notification.event == 'server.error') {
       var params = notification.params!;
@@ -77,14 +95,17 @@ class MockServerChannel implements ServerCommunicationChannel {
         StackTrace.fromString(params['stackTrace'] as String),
       );
     }
-    // Wrap send notification in future to simulate websocket
-    // TODO(scheglov): ask Dan why and decide what to do
-    //    new Future(() => notificationController.add(notification));
-    notificationController.add(notification);
   }
 
   @override
   void sendRequest(Request request) {
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    request =
+        Request.fromJson(
+          jsonDecode(jsonEncode(request.toJson())) as Map<String, Object?>,
+        )!;
+
     serverRequestsSent.add(request);
     responseController.add(request);
   }
@@ -95,9 +116,16 @@ class MockServerChannel implements ServerCommunicationChannel {
     if (_closed) {
       return;
     }
+
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    response =
+        Response.fromJson(
+          jsonDecode(jsonEncode(response.toJson())) as Map<String, Object?>,
+        )!;
+
     responsesReceived.add(response);
-    // Wrap send response in future to simulate WebSocket.
-    Future(() => responseController.add(response));
+    responseController.add(response);
   }
 
   /// Send the given [request] to the server as if it had been sent from the
@@ -117,8 +145,7 @@ class MockServerChannel implements ServerCommunicationChannel {
           jsonDecode(jsonEncode(request)) as Map<String, Object?>,
         )!;
 
-    // Wrap send request in future to simulate WebSocket.
-    unawaited(Future(() => requestController.add(request)));
+    requestController.add(request);
     var response = await waitForResponse(request);
 
     // Round-trip via JSON to ensure all types are fully serialized as they
@@ -133,13 +160,20 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   /// Send the given [response] to the server as if it had been sent from the
   /// client.
-  Future<void> simulateResponseFromClient(Response response) {
+  void simulateResponseFromClient(Response response) {
     // No further requests should be sent after the connection is closed.
     if (_closed) {
       throw Exception('simulateRequestFromClient after connection closed');
     }
-    // Wrap send request in future to simulate WebSocket.
-    return Future(() => requestController.add(response));
+
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    response =
+        Response.fromJson(
+          jsonDecode(jsonEncode(response)) as Map<String, Object?>,
+        )!;
+
+    requestController.add(response);
   }
 
   /// Return a future that will complete when a response associated with the

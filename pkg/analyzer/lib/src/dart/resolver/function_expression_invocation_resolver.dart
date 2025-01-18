@@ -56,7 +56,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     receiverType = _typeSystem.resolveToBound(receiverType);
-    if (receiverType is FunctionType) {
+    if (receiverType is FunctionTypeImpl) {
       _nullableDereferenceVerifier.expression(
         CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
         function,

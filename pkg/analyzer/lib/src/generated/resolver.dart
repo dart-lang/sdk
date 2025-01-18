@@ -810,7 +810,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           '(${replacementExpression.runtimeType}) $replacementExpression',
         );
       }
-      staticType = operations.unknownType.unwrapTypeSchemaView();
+      // TODO(paulberry): remove this cast by changing the type of
+      // `operations.unknownType` to `SharedTypeSchemaView<TypeImpl>`.
+      staticType = operations.unknownType.unwrapTypeSchemaView() as TypeImpl;
     }
     return ExpressionTypeAnalysisResult<DartType>(
         type: SharedTypeView(staticType));
@@ -1208,7 +1210,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var staticType = expression.staticType;
-    if (staticType is! FunctionType || staticType.typeFormals.isEmpty) {
+    if (staticType is! FunctionTypeImpl || staticType.typeFormals.isEmpty) {
       return expression;
     }
 

@@ -1033,6 +1033,11 @@ abstract class AnalysisServer {
   /// 'lsp.notification' notification.
   void sendLspNotification(lsp.NotificationMessage notification);
 
+  /// Sends an LSP request with the given [params] to the client and waits for a
+  /// response. Completes with the raw [lsp.ResponseMessage] which could be an
+  /// error response.
+  Future<lsp.ResponseMessage> sendLspRequest(lsp.Method method, Object params);
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,

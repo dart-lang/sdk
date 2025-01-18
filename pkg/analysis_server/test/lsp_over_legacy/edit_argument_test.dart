@@ -4,32 +4,25 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../shared/shared_workspace_apply_edit_tests.dart';
+import '../shared/shared_edit_argument_tests.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(WorkspaceApplyEditTest);
+    defineReflectiveTests(EditArgumentTest);
   });
 }
 
 @reflectiveTest
-class WorkspaceApplyEditTest extends SharedLspOverLegacyTest
+class EditArgumentTest extends SharedLspOverLegacyTest
     with
-        // Tests are defined in SharedWorkspaceApplyEditTests because they
+        // Tests are defined in SharedEditArgumentTests because they
         // are shared and run for both LSP and Legacy servers.
-        SharedWorkspaceApplyEditTests {
-  @override
-  Future<void> initializeServer() async {
-    await super.initializeServer();
-    await sendClientCapabilities();
-  }
-
+        SharedEditArgumentTests {
   @override
   Future<void> setUp() async {
     await super.setUp();
-    setApplyEditSupport();
-    setFileCreateSupport();
-    setDocumentChangesSupport();
+
+    writeTestPackageConfig(flutter: true);
   }
 }

@@ -896,9 +896,9 @@ class FunctionReferenceResolver {
     var receiverType = receiver.staticType;
     if (receiverType == null) {
       return null;
-    } else if (receiverType is TypeParameterType) {
+    } else if (receiverType is TypeParameterTypeImpl) {
       return null;
-    } else if (receiverType is FunctionType) {
+    } else if (receiverType is FunctionTypeImpl) {
       if (name.name == FunctionElement.CALL_METHOD_NAME) {
         return receiverType;
       }

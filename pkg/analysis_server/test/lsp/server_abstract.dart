@@ -249,8 +249,8 @@ abstract class AbstractLspAnalysisServerTest
     _previousContextBuilds = server.contextBuilds;
   }
 
-  Future<ResponseMessage> sendLspRequestToClient(Method method, Object params) {
-    return server.sendRequest(method, params);
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
+    return server.sendLspRequest(method, params);
   }
 
   @override
@@ -1707,5 +1707,6 @@ abstract class SharedAbstractLspAnalysisServerTest
   @override
   Future<void> initializeServer() async {
     await initialize();
+    await currentAnalysis;
   }
 }

@@ -276,9 +276,7 @@ class _PropertyInducingElementTypeInference
     }
 
     var initializerType = _node.initializer!.typeOrThrow;
-    // TODO(paulberry): eliminate this cast by changing the return type of
-    // `typeOrThrow` to `TypeImpl`.
-    return _refineType(initializerType as TypeImpl);
+    return _refineType(initializerType);
   }
 
   TypeImpl _refineType(TypeImpl type) {

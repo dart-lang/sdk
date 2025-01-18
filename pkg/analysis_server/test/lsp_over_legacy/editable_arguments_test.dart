@@ -23,11 +23,6 @@ class EditableArgumentsTest extends SharedLspOverLegacyTest
         // are shared and run for both LSP and Legacy servers.
         SharedEditableArgumentsTests {
   @override
-  Future<void> initializeServer() async {
-    await waitForTasksFinished();
-  }
-
-  @override
   Future<void> setUp() async {
     await super.setUp();
 

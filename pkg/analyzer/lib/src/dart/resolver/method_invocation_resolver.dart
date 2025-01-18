@@ -336,7 +336,8 @@ class MethodInvocationResolver with ScopeHelpers {
             argumentList: node.argumentList,
             contextType: contextType,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
+        .resolveInvocation(
+            rawType: rawType is FunctionTypeImpl ? rawType : null);
     node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 

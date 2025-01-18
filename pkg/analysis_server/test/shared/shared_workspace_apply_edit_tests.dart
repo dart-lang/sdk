@@ -31,7 +31,7 @@ mixin SharedWorkspaceApplyEditTests
 
   /// Overridden by test subclasses to send LSP requests from the server to
   /// the client.
-  Future<ResponseMessage> sendLspRequestToClient(Method method, Object params);
+  Future<ResponseMessage> sendLspRequest(Method method, Object params);
 
   test_applyEdit_existingFile() async {
     var code = TestCode.parse('''
@@ -147,7 +147,7 @@ inserted<<<<<<<<<<
     ApplyWorkspaceEditResult? receivedApplyEditResult;
 
     var verifier = await executeForEdits(() async {
-      var result = await sendLspRequestToClient(
+      var result = await sendLspRequest(
         Method.workspace_applyEdit,
         ApplyWorkspaceEditParams(edit: workspaceEdit),
       );

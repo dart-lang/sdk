@@ -92,7 +92,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
-    await serverChannel.simulateResponseFromClient(
+    serverChannel.simulateResponseFromClient(
       ServerOpenUrlRequestResult().toResponse(
         request.id,
         clientUriConverter: server.uriConverter,
@@ -383,7 +383,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
-    await serverChannel.simulateResponseFromClient(
+    serverChannel.simulateResponseFromClient(
       ServerShowMessageRequestResult(
         action: 'a',
       ).toResponse(request.id, clientUriConverter: server.uriConverter),
@@ -405,7 +405,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
-    await serverChannel.simulateResponseFromClient(
+    serverChannel.simulateResponseFromClient(
       ServerShowMessageRequestResult().toResponse(
         request.id,
         clientUriConverter: server.uriConverter,
