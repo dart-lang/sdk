@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -6093,7 +6094,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  DartType? _staticType;
+  TypeImpl? _staticType;
 
   @experimental
   @override
@@ -6148,7 +6149,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   }
 
   @override
-  DartType? get staticType => _staticType;
+  TypeImpl? get staticType => _staticType;
 
   @override
   ExpressionImpl get unParenthesized => this;
@@ -6221,7 +6222,9 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
-    _staticType = type;
+    // TODO(paulberry): remove this cast by changing the type of the parameter
+    // `type`.
+    _staticType = type as TypeImpl;
     if (type.isBottom) {
       resolver.flowAnalysis.flow?.handleExit();
     }
@@ -6253,7 +6256,9 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// static type anyway (e.g. the [SimpleIdentifier] representing the method
   /// name in a method invocation).
   void setPseudoExpressionStaticType(DartType? type) {
-    _staticType = type;
+    // TODO(paulberry): remove this cast by changing the type of the parameter
+    // `type`.
+    _staticType = type as TypeImpl?;
   }
 }
 

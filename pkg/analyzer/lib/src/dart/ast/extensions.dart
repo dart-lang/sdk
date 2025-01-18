@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
@@ -172,7 +173,16 @@ extension ExpressionExtension on Expression {
   /// This accessor should be used on expressions that are expected to
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
-  DartType get typeOrThrow {
+  TypeImpl get typeOrThrow => (this as ExpressionImpl).typeOrThrow;
+}
+
+extension ExpressionImplExtension on ExpressionImpl {
+  /// Return the static type of this expression.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  TypeImpl get typeOrThrow {
     var type = staticType;
     if (type == null) {
       throw StateError('No type: $this');

@@ -19,7 +19,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -189,7 +188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   final AnalysisOptions options;
 
   /// The object providing access to the types defined by the language.
-  final TypeProvider _typeProvider;
+  final TypeProviderImpl _typeProvider;
 
   /// The type system primitives
   @override
@@ -296,7 +295,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(options, _currentLibrary, errorReporter);
     _returnTypeVerifier = ReturnTypeVerifier(
-      typeProvider: _typeProvider as TypeProviderImpl,
+      typeProvider: _typeProvider,
       typeSystem: typeSystem,
       errorReporter: errorReporter,
       strictCasts: strictCasts,
