@@ -400,16 +400,18 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType flatten(DartType T) {
-    if (identical(T, UnknownInferredType.instance)) {
+  TypeImpl flatten(DartType T) {
+    // TODO(paulberry): remove this cast by making the parameter `T` covariant
+    // and changing its type to `TypeImpl`.
+    if (identical(T as TypeImpl, UnknownInferredType.instance)) {
       return T;
     }
 
     // if T is S? then flatten(T) = flatten(S)?
     var nullabilitySuffix = T.nullabilitySuffix;
     if (nullabilitySuffix != NullabilitySuffix.none) {
-      var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-      return (flatten(S) as TypeImpl).withNullability(nullabilitySuffix);
+      var S = T.withNullability(NullabilitySuffix.none);
+      return flatten(S).withNullability(nullabilitySuffix);
     }
 
     // If T is X & S for some type variable X and type S then:
@@ -629,13 +631,15 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the greatest closure of a type schema is always a supertype of
   /// any type which matches the schema.
-  DartType greatestClosureOfSchema(DartType schema) {
+  TypeImpl greatestClosureOfSchema(DartType schema) {
+    // TODO(paulberry): remove this cast by making `ReplacementVisitor`
+    // implement `TypeVisitor<TypeImpl?>`.
     return TypeSchemaEliminationVisitor.run(
       topType: objectQuestion,
       bottomType: NeverTypeImpl.instance,
       isLeastClosure: false,
       schema: schema,
-    );
+    ) as TypeImpl;
   }
 
   @override
@@ -1413,13 +1417,15 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the least closure of a type schema is always a subtype of any
   /// type which matches the schema.
-  DartType leastClosureOfSchema(DartType schema) {
+  TypeImpl leastClosureOfSchema(DartType schema) {
+    // TODO(paulberry): remove this cast by making `ReplacementVisitor`
+    // implement `TypeVisitor<TypeImpl?>`.
     return TypeSchemaEliminationVisitor.run(
       topType: objectQuestion,
       bottomType: NeverTypeImpl.instance,
       isLeastClosure: true,
       schema: schema,
-    );
+    ) as TypeImpl;
   }
 
   @override
@@ -1717,7 +1723,10 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType resolveToBound(DartType type) {
+  TypeImpl resolveToBound(DartType type) {
+    // TODO(paulberry): remove this cast by making the parameter `T` covariant
+    // and changing its type to `TypeImpl`.
+    type as TypeImpl;
     if (type is TypeParameterTypeImpl) {
       var promotedBound = type.promotedBound;
       if (promotedBound != null) {
@@ -1729,7 +1738,7 @@ class TypeSystemImpl implements TypeSystem {
         return objectQuestion;
       }
 
-      var resolved = resolveToBound(bound) as TypeImpl;
+      var resolved = resolveToBound(bound);
 
       var newNullabilitySuffix = uniteNullabilities(
         uniteNullabilities(
