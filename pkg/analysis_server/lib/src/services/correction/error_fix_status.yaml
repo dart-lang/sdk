@@ -2422,13 +2422,9 @@ LintCode.unnecessary_final_without_type:
 LintCode.unnecessary_getters_setters:
   status: hasFix
 LintCode.unnecessary_ignore:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment.
+  status: hasFix
 LintCode.unnecessary_ignore_file:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment.
+  status: hasFix
 LintCode.unnecessary_ignore_name:
   status: hasFix
 LintCode.unnecessary_ignore_name_file:

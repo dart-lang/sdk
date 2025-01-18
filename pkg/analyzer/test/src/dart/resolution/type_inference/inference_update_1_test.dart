@@ -33,6 +33,34 @@ class HorizontalInferenceEnabledTest extends PubPackageResolutionTest
       Feature.inference_update_1.enableString,
     ];
   }
+
+  test_record_field_named() async {
+    // A round of horizontal inference should occur between the first argument
+    // and the second, so that `s.length` is properly resolved.
+    await assertNoErrorsInCode(r'''
+void f<T>(({T x}) v, void Function(T) fn) {
+  fn(v.x);
+}
+test() {
+  f((x: ''), (s) { s.length; });
+}
+''');
+    assertType(findNode.simple('s.length'), 'String');
+  }
+
+  test_record_field_unnamed() async {
+    // A round of horizontal inference should occur between the first argument
+    // and the second, so that `s.length` is properly resolved.
+    await assertNoErrorsInCode(r'''
+void f<T>((T,) v, void Function(T) fn) {
+  fn(v.$1);
+}
+test() {
+  f(('',), (s) { s.length; });
+}
+''');
+    assertType(findNode.simple('s.length'), 'String');
+  }
 }
 
 mixin HorizontalInferenceTestCases on PubPackageResolutionTest {
