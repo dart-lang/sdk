@@ -6,7 +6,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -480,14 +479,14 @@ class _MixinInference {
     interfacesMerger.addWithSupertypes(element.supertype);
   }
 
-  void addTypes(Iterable<InterfaceType> types) {
+  void addTypes(Iterable<InterfaceTypeImpl> types) {
     for (var type in types) {
       interfacesMerger.addWithSupertypes(type);
     }
   }
 
-  List<InterfaceType> perform(WithClause withClause) {
-    var result = <InterfaceType>[];
+  List<InterfaceTypeImpl> perform(WithClause withClause) {
+    var result = <InterfaceTypeImpl>[];
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
       if (mixinType != null && _isInterfaceTypeInterface(mixinType)) {
@@ -498,9 +497,9 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType? _findInterfaceTypeForElement(
+  InterfaceTypeImpl? _findInterfaceTypeForElement(
     InterfaceElement element,
-    List<InterfaceType> interfaceTypes,
+    List<InterfaceTypeImpl> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
       if (interfaceType.element == element) return interfaceType;
@@ -508,11 +507,11 @@ class _MixinInference {
     return null;
   }
 
-  List<InterfaceType>? _findInterfaceTypesForConstraints(
+  List<InterfaceTypeImpl>? _findInterfaceTypesForConstraints(
     List<InterfaceType> constraints,
-    List<InterfaceType> interfaceTypes,
+    List<InterfaceTypeImpl> interfaceTypes,
   ) {
-    var result = <InterfaceType>[];
+    var result = <InterfaceTypeImpl>[];
     for (var constraint in constraints) {
       var interfaceType = _findInterfaceTypeForElement(
         constraint.element,
@@ -529,7 +528,7 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType? _inferSingle(NamedTypeImpl mixinNode) {
+  InterfaceTypeImpl? _inferSingle(NamedTypeImpl mixinNode) {
     var mixinType = _interfaceType(mixinNode.typeOrThrow);
     if (mixinType == null) {
       return null;
@@ -539,11 +538,11 @@ class _MixinInference {
       return mixinType;
     }
 
-    List<TypeParameterElement2>? typeParameters;
-    List<InterfaceType>? supertypeConstraints;
-    InterfaceType Function(List<DartType> typeArguments)? instantiate;
+    List<TypeParameterElementImpl2>? typeParameters;
+    List<InterfaceTypeImpl>? supertypeConstraints;
+    InterfaceTypeImpl Function(List<DartType> typeArguments)? instantiate;
     var mixinElement = mixinNode.element2;
-    if (mixinElement is InterfaceElement2) {
+    if (mixinElement is InterfaceElementImpl2) {
       typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
@@ -559,13 +558,13 @@ class _MixinInference {
       typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         var rawType = mixinElement.aliasedType;
-        if (rawType is InterfaceType) {
+        if (rawType is InterfaceTypeImpl) {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
             return mixinElement.instantiate(
               typeArguments: typeArguments,
               nullabilitySuffix: mixinType.nullabilitySuffix,
-            ) as InterfaceType;
+            ) as InterfaceTypeImpl;
           };
         }
       }
@@ -596,9 +595,7 @@ class _MixinInference {
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
     var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
-      // TODO(paulberry): make this cast unnecessary by changing the type of
-      // `typeParameters`.
-      typeParameters.cast(),
+      typeParameters,
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
@@ -615,8 +612,8 @@ class _MixinInference {
     return instantiate(inferredTypeArguments);
   }
 
-  InterfaceType? _interfaceType(DartType type) {
-    if (type is InterfaceType && _isInterfaceTypeInterface(type)) {
+  InterfaceTypeImpl? _interfaceType(DartType type) {
+    if (type is InterfaceTypeImpl && _isInterfaceTypeInterface(type)) {
       return type;
     }
     return null;
@@ -667,7 +664,7 @@ class _MixinsInference {
     element.mixinInferenceCallback = _callbackWhenLoop;
 
     var featureSet = element.library.featureSet;
-    var declarationMixins = <InterfaceType>[];
+    var declarationMixins = <InterfaceTypeImpl>[];
 
     try {
       // Casts aren't relevant for mixin inference.

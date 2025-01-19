@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -268,7 +269,7 @@ class ElementResolver {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-      required DartType contextType}) {
+      required TypeImpl contextType}) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedArguments,

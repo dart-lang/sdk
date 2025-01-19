@@ -2437,11 +2437,11 @@ class ResolutionReader {
     );
   }
 
-  InterfaceType _readInterfaceType() {
-    return readType() as InterfaceType;
+  InterfaceTypeImpl _readInterfaceType() {
+    return readType() as InterfaceTypeImpl;
   }
 
-  List<InterfaceType> _readInterfaceTypeList() {
+  List<InterfaceTypeImpl> _readInterfaceTypeList() {
     return readTypedList(_readInterfaceType);
   }
 

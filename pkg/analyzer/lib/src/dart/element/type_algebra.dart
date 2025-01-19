@@ -197,11 +197,11 @@ abstract class Substitution {
 
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound);
 
-  InterfaceType mapInterfaceType(InterfaceType type) {
-    return substituteType(type) as InterfaceType;
+  InterfaceTypeImpl mapInterfaceType(InterfaceType type) {
+    return substituteType(type) as InterfaceTypeImpl;
   }
 
-  Iterable<InterfaceType> mapInterfaceTypes(Iterable<InterfaceType> types) {
+  Iterable<InterfaceTypeImpl> mapInterfaceTypes(Iterable<InterfaceType> types) {
     return types.map(mapInterfaceType);
   }
 

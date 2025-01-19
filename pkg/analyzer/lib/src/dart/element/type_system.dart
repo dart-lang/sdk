@@ -353,7 +353,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// The equivalent CFE code can be found in the `TypeVariableEliminator`
   /// class.
-  DartType eliminateTypeVariables(DartType type) {
+  TypeImpl eliminateTypeVariables(DartType type) {
     return _TypeVariableEliminator(
       objectQuestion,
       NeverTypeImpl.instance,
@@ -450,7 +450,7 @@ class TypeSystemImpl implements TypeSystem {
     return T;
   }
 
-  DartType futureOrBase(DartType type) {
+  TypeImpl futureOrBase(DartType type) {
     // If `T` is `FutureOr<S>` for some `S`,
     // then `futureOrBase(T)` = `futureOrBase(S)`
     if (type is InterfaceType && type.isDartAsyncFutureOr) {
@@ -460,7 +460,9 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // Otherwise `futureOrBase(T)` = `T`.
-    return type;
+    // TODO(paulberrry): eliminate this cast by changing the type of the
+    // parameter `type`.
+    return type as TypeImpl;
   }
 
   /// We say that S is the future type of a type T in the following cases,
@@ -514,10 +516,10 @@ class TypeSystemImpl implements TypeSystem {
     return objectQuestion;
   }
 
-  List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
-      InterfaceElement2 mixinElement) {
-    List<InterfaceType> candidates;
-    if (mixinElement is MixinElement2) {
+  List<InterfaceTypeImpl> gatherMixinSupertypeConstraintsForInference(
+      InterfaceElementImpl2 mixinElement) {
+    List<InterfaceTypeImpl> candidates;
+    if (mixinElement is MixinElementImpl2) {
       candidates = mixinElement.superclassConstraints;
     } else {
       var supertype = mixinElement.supertype;
@@ -526,7 +528,8 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement is ClassElement2 && mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElementImpl2 &&
+          mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
@@ -656,7 +659,7 @@ class TypeSystemImpl implements TypeSystem {
   /// This is similar to [setupGenericTypeInference], but the return type is
   /// also considered as part of the solution.
   List<DartType> inferFunctionTypeInstantiation(
-    FunctionType contextType,
+    FunctionTypeImpl contextType,
     FunctionType fnType, {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
@@ -1448,8 +1451,8 @@ class TypeSystemImpl implements TypeSystem {
   /// If no such substitution can be found, `null` is returned.
   List<DartType>? matchSupertypeConstraints(
     List<TypeParameterElementImpl2> typeParameters,
-    List<DartType> srcTypes,
-    List<DartType> destTypes, {
+    List<TypeImpl> srcTypes,
+    List<TypeImpl> destTypes, {
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
@@ -1768,7 +1771,7 @@ class TypeSystemImpl implements TypeSystem {
     // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
     required List<TypeParameterElement2> typeParameters,
     required DartType declaredReturnType,
-    required DartType contextReturnType,
+    required TypeImpl contextReturnType,
     ErrorReporter? errorReporter,
     SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,

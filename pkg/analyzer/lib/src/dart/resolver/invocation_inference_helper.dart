@@ -125,7 +125,7 @@ class InvocationInferenceHelper {
   DartType inferTearOff(ExpressionImpl expression,
       SimpleIdentifierImpl identifier, DartType tearOffType,
       {required DartType contextType}) {
-    if (contextType is FunctionType && tearOffType is FunctionType) {
+    if (contextType is FunctionTypeImpl && tearOffType is FunctionType) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
         tearOffType,
@@ -156,7 +156,7 @@ class InvocationInferenceHelper {
     required MethodInvocationImpl node,
     required FunctionType rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required DartType contextType,
+    required TypeImpl contextType,
   }) {
     var returnType = MethodInvocationInferrer(
       resolver: _resolver,

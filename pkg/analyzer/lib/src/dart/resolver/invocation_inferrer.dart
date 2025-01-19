@@ -442,7 +442,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
   final Node node;
   final ArgumentListImpl argumentList;
-  final DartType contextType;
+  final TypeImpl contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedArguments;
 
   /// Prepares to perform type inference on an invocation expression of type
