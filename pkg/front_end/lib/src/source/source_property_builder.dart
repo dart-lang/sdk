@@ -668,55 +668,55 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     return setterType;
   }
 
-  @override
   DartType get fieldType {
     return _introductoryField!.fieldType;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set fieldType(DartType value) {
-    _introductoryField!.fieldType = value;
-  }
-
-  @override
+  /// Creates the [Initializer] for the invalid initialization of this field.
+  ///
+  /// This is only used for instance fields.
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     return _introductoryField!
         .buildErroneousInitializer(effect, value, fileOffset: fileOffset);
   }
 
-  @override
+  /// Creates the AST node for this field as the default initializer.
+  ///
+  /// This is only used for instance fields.
   void buildImplicitDefaultValue() {
     _introductoryField!.buildImplicitDefaultValue();
   }
 
-  @override
+  /// Create the [Initializer] for the implicit initialization of this field
+  /// in a constructor.
+  ///
+  /// This is only used for instance fields.
   Initializer buildImplicitInitializer() {
     return _introductoryField!.buildImplicitInitializer();
   }
 
-  @override
+  /// Builds the [Initializer]s for each field used to encode this field
+  /// using the [fileOffset] for the created nodes and [value] as the initial
+  /// field value.
+  ///
+  /// This is only used for instance fields.
   List<Initializer> buildInitializer(int fileOffset, Expression value,
       {required bool isSynthetic}) {
     return _introductoryField!
         .buildInitializer(fileOffset, value, isSynthetic: isSynthetic);
   }
 
-  @override
   bool get hasInitializer => _introductoryField!.hasInitializer;
 
-  @override
   bool get isExtensionTypeDeclaredInstanceField =>
       _introductoryField!.isExtensionTypeDeclaredInstanceField;
 
   @override
   bool get isFinal => _introductoryField!.isFinal;
 
-  @override
   bool get isLate => _introductoryField!.isLate;
 
-  @override
   DartType inferType(ClassHierarchyBase hierarchy) {
     return _introductoryField!.inferType(hierarchy);
   }

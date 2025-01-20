@@ -18,9 +18,9 @@ import 'package:kernel/canonical_name.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/property_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
@@ -122,8 +122,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   Iterable<Annotatable> get annotatables => [member];
 }
 
-class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
-  @override
+class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
   final Field field;
 
   DillFieldBuilder(this.field, super.libraryBuilder,

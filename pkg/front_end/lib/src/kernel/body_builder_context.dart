@@ -15,7 +15,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
 import '../source/constructor_declaration.dart';
@@ -29,6 +28,7 @@ import '../source/source_factory_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -286,7 +286,7 @@ abstract class BodyBuilderContext {
 
   /// Registers that the field [builder] has been initialized in generative
   /// constructor whose body is being built.
-  void registerInitializedField(PropertyBuilder builder) {
+  void registerInitializedField(SourcePropertyBuilder builder) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
@@ -816,7 +816,7 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
   }
 
   @override
-  void registerInitializedField(PropertyBuilder builder) {
+  void registerInitializedField(SourcePropertyBuilder builder) {
     _member.registerInitializedField(builder);
   }
 

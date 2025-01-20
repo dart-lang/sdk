@@ -171,19 +171,28 @@ abstract class FieldDeclaration {
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
 
+  /// Creates the [Initializer] for the invalid initialization of this field.
+  ///
+  /// This is only used for instance fields.
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset});
 
   /// Creates the AST node for this field as the default initializer.
+  ///
+  /// This is only used for instance fields.
   void buildImplicitDefaultValue();
 
-  /// Create the [Initializer] for the implicit initialization of this field
+  /// Creates the [Initializer] for the implicit initialization of this field
   /// in a constructor.
+  ///
+  /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
-  /// Builds the field initializers for each field used to encode this field
+  /// Builds the [Initializer]s for each field used to encode this field
   /// using the [fileOffset] for the created nodes and [value] as the initial
   /// field value.
+  ///
+  /// This is only used for instance fields.
   List<Initializer> buildInitializer(int fileOffset, Expression value,
       {required bool isSynthetic});
 

@@ -17,7 +17,6 @@ import '../../base/scope.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/dynamic_type_declaration_builder.dart';
-import '../../builder/field_builder.dart';
 import '../../builder/future_or_type_declaration_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/never_type_declaration_builder.dart';
@@ -89,9 +88,7 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
 
 // Coverage-ignore(suite): Not run.
 shared.Proto builderToProto(Builder builder, String name) {
-  if (builder is FieldBuilder) {
-    return new shared.FieldProto(new FieldReference(builder));
-  } else if (builder is PropertyBuilder) {
+  if (builder is PropertyBuilder) {
     return new shared.FieldProto(new PropertyReference(builder));
   } else if (builder is ProcedureBuilder) {
     return new shared.FunctionProto(new FunctionReference(builder));
@@ -343,16 +340,6 @@ class PrefixScope implements shared.Scope {
       return builderToProto(builder, name);
     }
   }
-}
-
-// Coverage-ignore(suite): Not run.
-class FieldReference extends shared.FieldReference {
-  final FieldBuilder builder;
-
-  FieldReference(this.builder);
-
-  @override
-  String get name => builder.name;
 }
 
 // Coverage-ignore(suite): Not run.

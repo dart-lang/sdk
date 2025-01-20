@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/builder/field_builder.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/builder/property_builder.dart';
 import 'package:front_end/src/kernel/macro/macro.dart';
@@ -123,10 +122,7 @@ class MacroTestConfig extends CfeTestConfig {
 }
 
 bool _isMember(MemberBuilder memberBuilder, Member member) {
-  if (memberBuilder is FieldBuilder) {
-    // Only show annotations for the field or getter.
-    return memberBuilder.readTarget == member;
-  } else if (memberBuilder is PropertyBuilder && memberBuilder.isField) {
+  if (memberBuilder is PropertyBuilder && memberBuilder.isField) {
     // Only show annotations for the field or getter.
     return memberBuilder.readTarget == member;
   } else if (member is Procedure && member.isSetter) {

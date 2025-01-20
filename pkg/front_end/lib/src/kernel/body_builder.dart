@@ -73,7 +73,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
@@ -97,6 +96,7 @@ import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/value_kinds.dart';
@@ -9071,7 +9071,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Initializer buildDuplicatedInitializer(
-      PropertyBuilder fieldBuilder,
+      SourcePropertyBuilder fieldBuilder,
       Expression value,
       String name,
       int offset,
@@ -9107,7 +9107,7 @@ class BodyBuilder extends StackListenerImpl
       // Duplicated name, already reported.
       while (builder != null) {
         if (builder.next == null &&
-            builder is PropertyBuilder &&
+            builder is SourcePropertyBuilder &&
             builder.isField) {
           // Assume the first field has been initialized.
           _context.registerInitializedField(builder);
@@ -9125,7 +9125,7 @@ class BodyBuilder extends StackListenerImpl
             ),
             fieldNameOffset)
       ];
-    } else if (builder is PropertyBuilder &&
+    } else if (builder is SourcePropertyBuilder &&
         builder.isField &&
         builder.isDeclarationInstanceMember) {
       if (builder.isExtensionTypeDeclaredInstanceField) {

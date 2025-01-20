@@ -53,7 +53,6 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../source/class_declaration.dart';
@@ -66,6 +65,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../source/source_method_builder.dart';
+import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
@@ -1532,14 +1532,14 @@ class KernelTarget {
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    List<PropertyBuilder> uninitializedFields = [];
-    List<PropertyBuilder> nonFinalFields = [];
-    List<PropertyBuilder> lateFinalFields = [];
+    List<SourcePropertyBuilder> uninitializedFields = [];
+    List<SourcePropertyBuilder> nonFinalFields = [];
+    List<SourcePropertyBuilder> lateFinalFields = [];
 
-    Iterator<PropertyBuilder> fieldIterator =
-        classDeclaration.fullMemberIterator<PropertyBuilder>();
+    Iterator<SourcePropertyBuilder> fieldIterator =
+        classDeclaration.fullMemberIterator<SourcePropertyBuilder>();
     while (fieldIterator.moveNext()) {
-      PropertyBuilder fieldBuilder = fieldIterator.current;
+      SourcePropertyBuilder fieldBuilder = fieldIterator.current;
       if (!fieldBuilder.isField) {
         continue;
       }
@@ -1561,10 +1561,10 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclaration, Set<PropertyBuilder>>
+    Map<ConstructorDeclaration, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
-    Set<PropertyBuilder>? initializedFieldBuilders = null;
-    Set<PropertyBuilder>? uninitializedInstanceFields;
+    Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
+    Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
     Iterator<ConstructorDeclaration> constructorIterator =
         classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
@@ -1581,7 +1581,7 @@ class KernelTarget {
         nonFinalFields.clear();
       }
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
-        for (PropertyBuilder field in lateFinalFields) {
+        for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.addProblem(
               messageConstConstructorLateFinalFieldError,
               field.fileOffset,
@@ -1597,23 +1597,24 @@ class KernelTarget {
         // Assume that an external constructor initializes all uninitialized
         // instance fields.
         uninitializedInstanceFields ??= uninitializedFields
-            .where((PropertyBuilder fieldBuilder) => !fieldBuilder.isStatic)
+            .where(
+                (SourcePropertyBuilder fieldBuilder) => !fieldBuilder.isStatic)
             .toSet();
         constructorInitializedFields[constructor] = uninitializedInstanceFields;
-        (initializedFieldBuilders ??= new Set<PropertyBuilder>.identity())
+        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(uninitializedInstanceFields);
       } else {
-        Set<PropertyBuilder> fields =
+        Set<SourcePropertyBuilder> fields =
             constructor.takeInitializedFields() ?? const {};
         constructorInitializedFields[constructor] = fields;
-        (initializedFieldBuilders ??= new Set<PropertyBuilder>.identity())
+        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(fields);
       }
     }
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
-    for (PropertyBuilder fieldBuilder in uninitializedFields) {
+    for (SourcePropertyBuilder fieldBuilder in uninitializedFields) {
       if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
@@ -1653,11 +1654,11 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclaration, Set<PropertyBuilder>> entry
+    for (MapEntry<ConstructorDeclaration, Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
       ConstructorDeclaration constructorBuilder = entry.key;
-      Set<PropertyBuilder> fieldBuilders = entry.value;
-      for (PropertyBuilder fieldBuilder
+      Set<SourcePropertyBuilder> fieldBuilders = entry.value;
+      for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
