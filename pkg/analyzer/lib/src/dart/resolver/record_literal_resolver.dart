@@ -135,7 +135,7 @@ class RecordLiteralResolver {
   DartType _resolveField(ExpressionImpl field, DartType contextType) {
     var staticType = _resolver
         .analyzeExpression(field, SharedTypeSchemaView(contextType))
-        .unwrapTypeView();
+        .unwrapTypeView<DartType>();
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.

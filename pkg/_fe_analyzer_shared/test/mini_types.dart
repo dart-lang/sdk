@@ -19,8 +19,7 @@ String _parenthesizeIf(bool condition, String s) => condition ? '($s)' : s;
 
 /// Representation of the type `dynamic` suitable for unit testing of code in
 /// the `_fe_analyzer_shared` package.
-class DynamicType extends _SpecialSimpleType
-    implements SharedDynamicTypeStructure<Type> {
+class DynamicType extends _SpecialSimpleType implements SharedDynamicType {
   static final instance = DynamicType._();
 
   DynamicType._()
@@ -58,10 +57,7 @@ class FreshTypeParameterGenerator {
 
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class FunctionType extends Type
-    implements
-        SharedFunctionTypeStructure<Type, TypeParameter,
-            NamedFunctionParameter> {
+class FunctionType extends Type implements SharedFunctionType {
   final Type returnType;
 
   @override
@@ -398,8 +394,7 @@ class InterfaceTypeName extends TypeNameInfo {
 
 /// Representation of an invalid type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class InvalidType extends _SpecialSimpleType
-    implements SharedInvalidTypeStructure<Type> {
+class InvalidType extends _SpecialSimpleType implements SharedInvalidType {
   static final instance = InvalidType._();
 
   InvalidType._()
@@ -412,7 +407,7 @@ class InvalidType extends _SpecialSimpleType
 /// A named parameter of a function type.
 class NamedFunctionParameter
     implements
-        SharedNamedFunctionParameterStructure<Type>,
+        SharedNamedFunctionParameter,
         _Substitutable<NamedFunctionParameter> {
   final String name;
 
@@ -452,8 +447,7 @@ class NamedFunctionParameter
   String toString() => [if (isRequired) 'required', type, name].join(' ');
 }
 
-class NamedType
-    implements SharedNamedTypeStructure<Type>, _Substitutable<NamedType> {
+class NamedType implements SharedNamedType, _Substitutable<NamedType> {
   final String name;
 
   final Type type;
@@ -496,8 +490,7 @@ class NeverType extends _SpecialSimpleType {
 
 /// Representation of the type `Null` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class NullType extends _SpecialSimpleType
-    implements SharedNullTypeStructure<Type> {
+class NullType extends _SpecialSimpleType implements SharedNullType {
   static final instance = NullType._();
 
   NullType._()
@@ -607,7 +600,7 @@ class PrimaryType extends Type {
       args.isEmpty ? name : '$name<${args.join(', ')}>';
 }
 
-class RecordType extends Type implements SharedRecordTypeStructure<Type> {
+class RecordType extends Type implements SharedRecordType {
   final List<Type> positionalTypes;
 
   final List<NamedType> namedTypes;
@@ -636,8 +629,7 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
   List<NamedType> get sortedNamedTypes => namedTypes;
 
   @override
-  List<SharedNamedTypeStructure<Type>> get sortedNamedTypesShared =>
-      sortedNamedTypes;
+  List<SharedNamedType> get sortedNamedTypesShared => sortedNamedTypes;
 
   @override
   bool operator ==(Object other) =>
@@ -783,7 +775,7 @@ class SpecialTypeName extends TypeNameInfo {
 
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-abstract class Type implements SharedTypeStructure<Type>, _Substitutable<Type> {
+abstract class Type implements SharedType, _Substitutable<Type> {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -819,7 +811,7 @@ abstract class Type implements SharedTypeStructure<Type>, _Substitutable<Type> {
   String getDisplayString() => type;
 
   @override
-  bool isStructurallyEqualTo(SharedTypeStructure other) => '$this' == '$other';
+  bool isStructurallyEqualTo(SharedType other) => '$this' == '$other';
 
   /// Finds the nearest type that doesn't involve any type parameter promotion.
   /// If `covariant` is `true`, a supertype will be returned (replacing promoted
@@ -890,8 +882,7 @@ sealed class TypeNameInfo {
 }
 
 /// A type name that represents a type variable.
-class TypeParameter extends TypeNameInfo
-    implements SharedTypeParameterStructure<Type> {
+class TypeParameter extends TypeNameInfo implements SharedTypeParameter {
   /// The type variable's bound. If `null`, the bound is `Object?`.
   ///
   /// This is non-final because it needs to be possible to set it after
@@ -1704,7 +1695,7 @@ class TypeSystem {
 
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
+class UnknownType extends Type implements SharedUnknownType {
   const UnknownType({super.nullabilitySuffix = NullabilitySuffix.none})
       : super._();
 
@@ -1739,8 +1730,7 @@ class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
 
 /// Representation of the type `void` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class VoidType extends _SpecialSimpleType
-    implements SharedVoidTypeStructure<Type> {
+class VoidType extends _SpecialSimpleType implements SharedVoidType {
   static final instance = VoidType._();
 
   VoidType._()

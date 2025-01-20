@@ -409,12 +409,16 @@ class TypeConstraintGathererTest {
           constraint.upper is! UnknownType) {
         var s = t.name;
         if (constraint.lower is! UnknownType) {
-          s = '${typeSchemaToString(constraint.lower.unwrapTypeSchemaView())}'
+          s = '${typeSchemaToString(
+            constraint.lower.unwrapTypeSchemaView(),
+          )}'
               ' <: $s';
         }
         if (constraint.upper is! UnknownType) {
           s = '$s <: '
-              '${typeSchemaToString(constraint.upper.unwrapTypeSchemaView())}';
+              '${typeSchemaToString(
+            constraint.upper.unwrapTypeSchemaView(),
+          )}';
         }
         constraintStrings.add(s as String);
       }

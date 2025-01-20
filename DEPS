@@ -143,7 +143,7 @@ vars = {
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "native_rev": "ba34674d97ffe612a3df782e1695dab4e5010e66", # disable tools/rev_sdk_deps.dart
   "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
-  "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
+  "pub_rev": "710265bae23ad5860f33287fba10b5c369f19a93", # disable tools/rev_sdk_deps.dart
   "shelf_rev": "bf799519cda2898a7c5af06dcfdd5fe6443afd79",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",

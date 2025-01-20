@@ -15,7 +15,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
 import '../source/constructor_declaration.dart';
@@ -26,10 +25,10 @@ import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_factory_builder.dart';
-import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -287,7 +286,7 @@ abstract class BodyBuilderContext {
 
   /// Registers that the field [builder] has been initialized in generative
   /// constructor whose body is being built.
-  void registerInitializedField(PropertyBuilder builder) {
+  void registerInitializedField(SourcePropertyBuilder builder) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
@@ -740,51 +739,6 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   }
 }
 
-class FieldBodyBuilderContext extends BodyBuilderContext
-    with _MemberBodyBuilderContext<SourceFieldBuilder> {
-  @override
-  SourceFieldBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  FieldBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isLateField => _member.isLate;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstractField => _member.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternalField => _member.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
-    if (_member.isExtensionMember && !_member.isExternal) {
-      return InstanceTypeParameterAccessState.Invalid;
-    } else {
-      return super.instanceTypeParameterAccessState;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstantContext get constantContext {
-    return _member.isConst
-        ? ConstantContext.inferred
-        : !_member.isStatic && _declarationContext.declaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
-  }
-}
-
 mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
     implements BodyBuilderContext {
   T get _member;
@@ -862,7 +816,7 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
   }
 
   @override
-  void registerInitializedField(PropertyBuilder builder) {
+  void registerInitializedField(SourcePropertyBuilder builder) {
     _member.registerInitializedField(builder);
   }
 

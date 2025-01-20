@@ -23,22 +23,14 @@ import 'type_inference_engine.dart';
 import 'type_schema.dart' show UnknownType, isKnown;
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
-typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
-    StructuralParameter, VariableDeclaration>;
+typedef GeneratedTypeConstraint
+    = shared.GeneratedTypeConstraint<VariableDeclaration>;
 
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<
-    DartType,
-    StructuralParameter,
-    VariableDeclaration,
-    TypeDeclarationType,
-    TypeDeclaration>;
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<VariableDeclaration,
+    TypeDeclarationType, TypeDeclaration>;
 
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    DartType,
-    VariableDeclaration,
-    StructuralParameter,
-    TypeDeclarationType,
-    TypeDeclaration>;
+    VariableDeclaration, TypeDeclarationType, TypeDeclaration>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -366,7 +358,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
       // Otherwise take whatever bound has partial information,
       // e.g. `Iterable<?>`
-      if (constraint.lower is! SharedUnknownTypeSchemaView<DartType>) {
+      if (constraint.lower is! SharedUnknownTypeSchemaView) {
         return grounded
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
                 coreTypes: coreTypes)
@@ -479,13 +471,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
 
     if (inferenceUsingBoundsIsEnabled &&
-        constraint.lower is! SharedUnknownTypeSchemaView<DartType> &&
+        constraint.lower is! SharedUnknownTypeSchemaView &&
         !hasOmittedBound(typeParameterToInfer)) {
       MergedTypeConstraint constraintFromBound =
           operations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer: typeParametersToInfer,
-              lower: constraint.lower.unwrapTypeSchemaView(),
+              typeParametersToInfer:
+                  typeParametersToInfer.cast<SharedTypeParameterView>(),
+              lower: constraint.lower.unwrapTypeSchemaView<DartType>(),
               inferencePhaseConstraints: constraints,
               dataForTesting: dataForTesting,
               inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
@@ -539,14 +532,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // If we consider the `T extends num` we conclude `<num>`, which works.
 
     if (inferenceUsingBoundsIsEnabled &&
-        constraint.lower is! SharedUnknownTypeSchemaView<DartType> &&
+        constraint.lower is! SharedUnknownTypeSchemaView &&
         !hasOmittedBound(typeParameterToInfer)) {
       // Coverage-ignore-block(suite): Not run.
       MergedTypeConstraint constraintFromBound =
           operations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer: typeParametersToInfer,
-              lower: constraint.lower.unwrapTypeSchemaView(),
+              typeParametersToInfer:
+                  typeParametersToInfer.cast<SharedTypeParameterView>(),
+              lower: constraint.lower.unwrapTypeSchemaView<DartType>(),
               inferencePhaseConstraints: constraints,
               dataForTesting: dataForTesting,
               inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);

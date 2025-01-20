@@ -100,7 +100,7 @@ class FlowAnalysisHelper {
 
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-      PromotableElementImpl2, SharedTypeView<DartType>>? flow;
+      PromotableElementImpl2, SharedTypeView>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
       {required TypeSystemOperations typeSystemOperations})
@@ -182,7 +182,7 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-            PromotableElementImpl2, SharedTypeView<DartType>>(
+            PromotableElementImpl2, SharedTypeView>(
             typeOperations,
             assignedVariables!,
             respectImplicitlyTypedVarInitializers:
@@ -190,9 +190,12 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-                PromotableElementImpl2, SharedTypeView<DartType>>.legacy(
-            typeOperations, assignedVariables!);
+        : FlowAnalysis<
+            AstNodeImpl,
+            StatementImpl,
+            ExpressionImpl,
+            PromotableElementImpl2,
+            SharedTypeView>.legacy(typeOperations, assignedVariables!);
   }
 
   /// This method is called whenever the [ResolverVisitor] leaves the body or
@@ -432,14 +435,10 @@ class FlowAnalysisHelper {
 
 class TypeSystemOperations
     with
-        TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
-            TypeParameterElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>
+        TypeAnalyzerOperationsMixin<PromotableElementImpl2, InterfaceTypeImpl,
+            InterfaceElementImpl2>
     implements
-        TypeAnalyzerOperations<
-            DartType,
-            PromotableElementImpl2,
-            TypeParameterElementImpl2,
-            InterfaceTypeImpl,
+        TypeAnalyzerOperations<PromotableElementImpl2, InterfaceTypeImpl,
             InterfaceElementImpl2> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -447,57 +446,57 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem, {required this.strictCasts});
 
   @override
-  SharedTypeView<DartType> get boolType {
+  SharedTypeView get boolType {
     return SharedTypeView(typeSystem.typeProvider.boolType);
   }
 
   @override
-  SharedTypeView<DartType> get doubleType {
+  SharedTypeView get doubleType {
     throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SharedTypeView<DartType> get dynamicType {
+  SharedTypeView get dynamicType {
     return SharedTypeView(typeSystem.typeProvider.dynamicType);
   }
 
   @override
-  SharedTypeView<DartType> get errorType {
+  SharedTypeView get errorType {
     return SharedTypeView(InvalidTypeImpl.instance);
   }
 
   @override
-  SharedTypeView<DartType> get intType {
+  SharedTypeView get intType {
     throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SharedTypeView<DartType> get neverType {
+  SharedTypeView get neverType {
     return SharedTypeView(typeSystem.typeProvider.neverType);
   }
 
   @override
-  SharedTypeView<DartType> get nullType {
+  SharedTypeView get nullType {
     return SharedTypeView(typeSystem.typeProvider.nullType);
   }
 
   @override
-  SharedTypeView<DartType> get objectQuestionType {
+  SharedTypeView get objectQuestionType {
     return SharedTypeView(typeSystem.objectQuestion);
   }
 
   @override
-  SharedTypeView<DartType> get objectType {
+  SharedTypeView get objectType {
     return SharedTypeView(typeSystem.objectNone);
   }
 
   @override
-  SharedTypeSchemaView<DartType> get unknownType {
+  SharedTypeSchemaView get unknownType {
     return SharedTypeSchemaView(UnknownInferredType.instance);
   }
 
   @override
-  TypeClassification classifyType(SharedTypeView<DartType> type) {
+  TypeClassification classifyType(SharedTypeView type) {
     DartType unwrapped = type.unwrapTypeView();
     if (type is InvalidType) {
       return TypeClassification.potentiallyNullable;
@@ -513,35 +512,28 @@ class TypeSystemOperations
   }
 
   @override
-  TypeConstraintGenerator<
-          DartType,
-          FormalParameterElementMixin,
-          PromotableElementImpl2,
-          TypeParameterElementImpl2,
-          InterfaceTypeImpl,
-          InterfaceElementImpl2,
-          AstNodeImpl>
+  TypeConstraintGenerator<PromotableElementImpl2, InterfaceTypeImpl,
+          InterfaceElementImpl2, AstNodeImpl>
       createTypeConstraintGenerator(
           {required covariant TypeConstraintGenerationDataForTesting?
               typeConstraintGenerationDataForTesting,
-          required List<TypeParameterElementImpl2> typeParametersToInfer,
+          required List<SharedTypeParameterView> typeParametersToInfer,
           required covariant TypeSystemOperations typeAnalyzerOperations,
           required bool inferenceUsingBoundsIsEnabled}) {
     return TypeConstraintGatherer(
-        typeParameters: typeParametersToInfer,
+        typeParameters: typeParametersToInfer.cast<TypeParameterElementImpl2>(),
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         typeSystemOperations: typeAnalyzerOperations,
         dataForTesting: typeConstraintGenerationDataForTesting);
   }
 
   @override
-  SharedTypeView<DartType> extensionTypeErasure(SharedTypeView<DartType> type) {
-    return SharedTypeView(type.unwrapTypeView().extensionTypeErasure);
+  SharedTypeView extensionTypeErasure(SharedTypeView type) {
+    return SharedTypeView(type.unwrapTypeView<DartType>().extensionTypeErasure);
   }
 
   @override
-  SharedTypeView<DartType> factor(
-      SharedTypeView<DartType> from, SharedTypeView<DartType> what) {
+  SharedTypeView factor(SharedTypeView from, SharedTypeView what) {
     return SharedTypeView(
         typeSystem.factor(from.unwrapTypeView(), what.unwrapTypeView()));
   }
@@ -574,27 +566,25 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView<DartType> greatestClosure(
-      SharedTypeSchemaView<DartType> schema) {
+  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
     return SharedTypeView(
         typeSystem.greatestClosureOfSchema(schema.unwrapTypeSchemaView()));
   }
 
   @override
-  DartType greatestClosureOfTypeInternal(DartType type,
-      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+  DartType greatestClosureOfTypeInternal(
+      DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
     return typeSystem.greatestClosure(
         type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
 
   @override
-  bool isAlwaysExhaustiveType(SharedTypeView<DartType> type) {
+  bool isAlwaysExhaustiveType(SharedTypeView type) {
     return typeSystem.isAlwaysExhaustive(type.unwrapTypeView());
   }
 
   @override
-  bool isAssignableTo(
-      SharedTypeView<DartType> fromType, SharedTypeView<DartType> toType) {
+  bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     return typeSystem.isAssignableTo(
         fromType.unwrapTypeView(), toType.unwrapTypeView(),
         strictCasts: strictCasts);
@@ -631,8 +621,8 @@ class TypeSystemOperations
   }
 
   @override
-  bool isNever(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView().isBottom;
+  bool isNever(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>().isBottom;
   }
 
   @override
@@ -646,8 +636,8 @@ class TypeSystemOperations
   }
 
   @override
-  bool isObject(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView().isDartCoreObject &&
+  bool isObject(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>().isDartCoreObject &&
         type.nullabilitySuffix == NullabilitySuffix.none;
   }
 
@@ -665,14 +655,14 @@ class TypeSystemOperations
   }
 
   @override
-  bool isTypeParameterType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is TypeParameterType;
+  bool isTypeParameterType(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>() is TypeParameterType;
   }
 
   @override
   bool isTypeSchemaSatisfied(
-      {required SharedTypeSchemaView<DartType> typeSchema,
-      required SharedTypeView<DartType> type}) {
+      {required SharedTypeSchemaView typeSchema,
+      required SharedTypeView type}) {
     return typeSystem.isSubtypeOf(
         type.unwrapTypeView(), typeSchema.unwrapTypeSchemaView());
   }
@@ -683,15 +673,15 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeSchemaView<DartType> iterableTypeSchema(
-      SharedTypeSchemaView<DartType> elementTypeSchema) {
+  SharedTypeSchemaView iterableTypeSchema(
+      SharedTypeSchemaView elementTypeSchema) {
     return SharedTypeSchemaView(typeSystem.typeProvider
         .iterableType(elementTypeSchema.unwrapTypeSchemaView()));
   }
 
   @override
-  DartType leastClosureOfTypeInternal(DartType type,
-      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+  DartType leastClosureOfTypeInternal(
+      DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
     return typeSystem.leastClosure(
         type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
@@ -745,17 +735,17 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView<DartType>? matchListType(SharedTypeView<DartType> type) {
+  SharedTypeView? matchListType(SharedTypeView type) {
     var listElement = typeSystem.typeProvider.listElement;
-    var listType = type.unwrapTypeView().asInstanceOf(listElement);
+    var listType = type.unwrapTypeView<DartType>().asInstanceOf(listElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
-  ({SharedTypeView<DartType> keyType, SharedTypeView<DartType> valueType})?
-      matchMapType(SharedTypeView<DartType> type) {
+  ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
+      SharedTypeView type) {
     var mapElement = typeSystem.typeProvider.mapElement;
-    var mapType = type.unwrapTypeView().asInstanceOf(mapElement);
+    var mapType = type.unwrapTypeView<DartType>().asInstanceOf(mapElement);
     if (mapType != null) {
       return (
         keyType: SharedTypeView(mapType.typeArguments[0]),
@@ -766,15 +756,15 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView<DartType>? matchStreamType(SharedTypeView<DartType> type) {
+  SharedTypeView? matchStreamType(SharedTypeView type) {
     var streamElement = typeSystem.typeProvider.streamElement;
-    var listType = type.unwrapTypeView().asInstanceOf(streamElement);
+    var listType = type.unwrapTypeView<DartType>().asInstanceOf(streamElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
-  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2,
-      DartType>? matchTypeDeclarationTypeInternal(DartType type) {
+  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2>?
+      matchTypeDeclarationTypeInternal(DartType type) {
     if (isInterfaceTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
@@ -805,53 +795,52 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView<DartType> normalize(SharedTypeView<DartType> type) {
+  SharedTypeView normalize(SharedTypeView type) {
     return SharedTypeView(typeSystem.normalize(type.unwrapTypeView()));
   }
 
   @override
-  SharedTypeView<DartType> promoteToNonNull(SharedTypeView<DartType> type) {
+  SharedTypeView promoteToNonNull(SharedTypeView type) {
     return SharedTypeView(typeSystem.promoteToNonNull(type.unwrapTypeView()));
   }
 
   @override
   DartType recordTypeInternal(
-      {required List<DartType> positional,
-      required List<(String, DartType)> named}) {
+      {required List<SharedType> positional,
+      required List<(String, SharedType)> named}) {
     return RecordTypeImpl(
       positionalFields: positional.map((type) {
-        return RecordTypePositionalFieldImpl(type: type);
+        return RecordTypePositionalFieldImpl(type: type as DartType);
       }).toList(),
       namedFields: named.map((namedType) {
         var (name, type) = namedType;
-        return RecordTypeNamedFieldImpl(name: name, type: type);
+        return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
       }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  SharedTypeSchemaView<DartType> streamTypeSchema(
-      SharedTypeSchemaView<DartType> elementTypeSchema) {
+  SharedTypeSchemaView streamTypeSchema(
+      SharedTypeSchemaView elementTypeSchema) {
     return SharedTypeSchemaView(typeSystem.typeProvider
         .streamType(elementTypeSchema.unwrapTypeSchemaView()));
   }
 
   @override
-  SharedTypeView<DartType>? tryPromoteToType(
-      SharedTypeView<DartType> to, SharedTypeView<DartType> from) {
+  SharedTypeView? tryPromoteToType(SharedTypeView to, SharedTypeView from) {
     DartType? result =
         typeSystem.tryPromoteToType(to.unwrapTypeView(), from.unwrapTypeView());
     return result == null ? null : SharedTypeView(result);
   }
 
   @override
-  SharedTypeSchemaView<DartType> typeToSchema(SharedTypeView<DartType> type) {
+  SharedTypeSchemaView typeToSchema(SharedTypeView type) {
     return SharedTypeSchemaView(type.unwrapTypeView());
   }
 
   @override
-  SharedTypeView<DartType> variableType(PromotableElement2 variable) {
+  SharedTypeView variableType(PromotableElement2 variable) {
     return SharedTypeView(variable.type);
   }
 
@@ -1231,7 +1220,9 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = isRead
           ? _manager.flow?.variableRead(node, variable)
           : _manager.flow?.promotedType(variable);
-      if (promotedType != null) return promotedType.unwrapTypeView();
+      if (promotedType != null) {
+        return promotedType.unwrapTypeView();
+      }
     }
     return variable.type;
   }

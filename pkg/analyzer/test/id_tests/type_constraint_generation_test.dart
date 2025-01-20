@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
@@ -74,7 +75,11 @@ class _TypeConstraintGenerationDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
-        var name = actualData[i].typeParameter.name3;
+        var name = actualData[i]
+            .typeParameter
+            .unwrapTypeParameterViewAsTypeParameterStructure<
+                TypeParameterElementImpl2>()
+            .name3;
         if (actualData[i].isUpper) {
           sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());

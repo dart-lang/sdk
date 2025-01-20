@@ -593,7 +593,8 @@ class GenericInferrer {
             UnknownInferredType.instance)) {
           boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer: _typeFormals,
+              typeParametersToInfer:
+                  _typeFormals.cast<SharedTypeParameterView>(),
               lower: constraint.lower.unwrapTypeSchemaView(),
               inferencePhaseConstraints: inferencePhaseConstraints,
               dataForTesting: dataForTesting,
@@ -644,7 +645,8 @@ class GenericInferrer {
             UnknownInferredType.instance)) {
           boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
               typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer: _typeFormals,
+              typeParametersToInfer:
+                  _typeFormals.cast<SharedTypeParameterView>(),
               lower: constraint.lower.unwrapTypeSchemaView(),
               inferencePhaseConstraints: inferencePhaseConstraints,
               dataForTesting: dataForTesting,

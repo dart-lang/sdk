@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/source/synthetic_method_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
@@ -35,12 +36,18 @@ import '../codes/cfe_codes.dart'
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_member_builder.dart';
+import 'source_property_builder.dart';
+import 'synthetic_method_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
@@ -62,6 +69,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
   late final NamedTypeBuilder selfType;
 
   DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
+
+  late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
   SourceEnumBuilder.internal(
       {required List<MetadataBuilder>? metadata,
@@ -239,9 +248,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Reference? constructorReference;
     Reference? tearOffReference;
     Reference? toStringReference;
-    Reference? valuesFieldReference;
-    Reference? valuesGetterReference;
-    Reference? valuesSetterReference;
     if (indexedClass != null) {
       constructorReference =
           indexedClass!.lookupConstructorReference(new Name(""));
@@ -249,11 +255,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new Name(constructorTearOffName(""), indexedClass!.library));
       toStringReference = indexedClass!.lookupGetterReference(
           new Name("_enumToString", coreLibrary.library));
-      Name valuesName = new Name("values");
-      valuesFieldReference = indexedClass!.lookupFieldReference(valuesName);
-      valuesGetterReference = indexedClass!.lookupGetterReference(valuesName);
-      valuesSetterReference = indexedClass!.lookupSetterReference(valuesName);
     }
+
+    FieldReference valuesReferences = new FieldReference(
+        "values", staticFieldNameScheme, indexedClass,
+        fieldIsLateWithLowering: false, isExternal: false);
 
     Builder? customValuesDeclaration =
         nameSpace.lookupLocalMember("values", setter: false);
@@ -293,24 +299,22 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(
-        metadata: null,
-        type: listType,
+    _enumValuesFieldDeclaration =
+        new _EnumValuesFieldDeclaration(this, valuesReferences, listType);
+
+    SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder.forField(
+        fileUri: fileUri,
+        fileOffset: fileOffset,
         name: "values",
-        modifiers:
-            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-        isTopLevel: false,
-        isPrimaryConstructorField: false,
         libraryBuilder: libraryBuilder,
         declarationBuilder: this,
-        fileUri: fileUri,
-        nameOffset: fileOffset,
-        endOffset: fileOffset,
         nameScheme: staticFieldNameScheme,
-        fieldReference: valuesFieldReference,
-        fieldGetterReference: valuesGetterReference,
-        fieldSetterReference: valuesSetterReference,
-        isSynthesized: true);
+        fieldDeclaration: _enumValuesFieldDeclaration,
+        modifiers:
+            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
+        references: valuesReferences);
+    _enumValuesFieldDeclaration.builder = valuesBuilder;
+
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
@@ -477,22 +481,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _enumElements) {
       enumElement.inferType(classHierarchy);
-      if (!enumElement.builder.isDuplicate) {
-        values.add(new StaticGet(enumElement.readTarget));
-      }
     }
-
-    SourceFieldBuilder valuesBuilder =
-        firstMemberNamed("values") as SourceFieldBuilder;
-    valuesBuilder.buildBody(
-        classHierarchy.coreTypes,
-        new ListLiteral(values,
-            typeArgument: instantiateToBounds(rawType(Nullability.nonNullable),
-                classHierarchy.coreTypes.objectClass),
-            isConst: true));
+    _enumValuesFieldDeclaration.inferType(classHierarchy);
 
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
   }
@@ -566,4 +558,341 @@ class _EnumToStringCreator implements SyntheticMethodCreator {
         ..parent = procedure.function;
     }
   }
+}
+
+class _EnumValuesFieldDeclaration implements FieldDeclaration {
+  static const String name = "values";
+
+  final SourceEnumBuilder _sourceEnumBuilder;
+  final FieldReference fieldReference;
+
+  SourcePropertyBuilder? _builder;
+
+  DartType _type = const DynamicType();
+
+  Field? _field;
+
+  @override
+  final TypeBuilder type;
+
+  _EnumValuesFieldDeclaration(
+      this._sourceEnumBuilder, this.fieldReference, this.type);
+
+  SourcePropertyBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourcePropertyBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  Initializer buildErroneousInitializer(Expression effect, Expression value,
+      {required int fileOffset}) {
+    throw new UnsupportedError('${runtimeType}.buildErroneousInitializer');
+  }
+
+  @override
+  void buildImplicitDefaultValue() {
+    throw new UnsupportedError('${runtimeType}.buildImplicitDefaultValue');
+  }
+
+  @override
+  Initializer buildImplicitInitializer() {
+    throw new UnsupportedError('${runtimeType}.buildImplicitInitializer');
+  }
+
+  @override
+  List<Initializer> buildInitializer(int fileOffset, Expression value,
+      {required bool isSynthetic}) {
+    throw new UnsupportedError('${runtimeType}.buildInitializer');
+  }
+
+  @override
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
+      LookupScope parentScope,
+      List<Annotatable> annotatables,
+      {required bool isClassInstanceMember,
+      required bool createFileUriExpression}) {
+    List<Expression> values = <Expression>[];
+    for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {
+      enumElement.inferType(classHierarchy);
+      if (!enumElement.builder.isDuplicate) {
+        values.add(new StaticGet(enumElement.readTarget));
+      }
+    }
+
+    _field!.initializer = new ListLiteral(values,
+        typeArgument: instantiateToBounds(
+            _sourceEnumBuilder.rawType(Nullability.nonNullable),
+            classHierarchy.coreTypes.objectClass),
+        isConst: true)
+      ..parent = _field;
+  }
+
+  @override
+  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+      {required List<TypeParameter>? classTypeParameters}) {
+    fieldType = type.build(libraryBuilder, TypeUse.fieldType);
+    _field = new Field.immutable(dummyName,
+        type: _type,
+        isFinal: false,
+        isConst: true,
+        isStatic: true,
+        fileUri: builder.fileUri,
+        fieldReference: references.fieldReference,
+        getterReference: references.fieldGetterReference,
+        isEnumElement: false)
+      ..fileOffset = builder.fileOffset
+      ..fileEndOffset = builder.fileOffset;
+    nameScheme
+        .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
+        .attachMember(_field!);
+    f(member: _field!, kind: BuiltMemberKind.Field);
+  }
+
+  @override
+  void checkTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
+      {required bool isAbstract, required bool isExternal}) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  void ensureTypes(
+      ClassMembersBuilder membersBuilder,
+      Set<ClassMember>? getterOverrideDependencies,
+      Set<ClassMember>? setterOverrideDependencies) {
+    inferType(membersBuilder.hierarchyBuilder);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedMemberReferences(FieldReference references) {
+    return [references.fieldGetterReference];
+  }
+
+  @override
+  bool get hasInitializer => true;
+
+  @override
+  bool get hasSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get initializerExpression => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionTypeDeclaredInstanceField => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => false;
+
+  @override
+  List<ClassMember> get localMembers => [new _EnumValuesClassMember(builder)];
+
+  @override
+  List<ClassMember> get localSetters => const [];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<MetadataBuilder>? get metadata => null;
+
+  @override
+  Member get readTarget => _field!;
+
+  @override
+  Member? get writeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType get fieldType => _type;
+
+  @override
+  void set fieldType(DartType value) {
+    _type = value;
+    _field
+        // Coverage-ignore(suite): Not run.
+        ?.type = value;
+  }
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return _type;
+  }
+}
+
+class _EnumValuesClassMember implements ClassMember {
+  final SourcePropertyBuilder _builder;
+
+  Covariance? _covariance;
+
+  _EnumValuesClassMember(this._builder);
+
+  @override
+  bool get forSetter => false;
+
+  @override
+  int get charOffset => _builder.fileOffset;
+
+  @override
+  DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError('$runtimeType.declarations');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _builder.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get fullName {
+    String className = declarationBuilder.fullNameForErrors;
+    return "${className}.${fullNameForErrors}";
+  }
+
+  @override
+  String get fullNameForErrors => _builder.fullNameForErrors;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
+    return _covariance ??= forSetter
+        ? new Covariance.fromMember(getMember(membersBuilder),
+            forSetter: forSetter)
+        : const Covariance.empty();
+  }
+
+  @override
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    _builder.ensureTypes(membersBuilder);
+    return forSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _builder.writeTarget!
+        : _builder.readTarget!;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    return new StaticMemberResult(getMember(membersBuilder), memberKind,
+        isDeclaredAsField: true,
+        fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Member? getTearOff(ClassMembersBuilder membersBuilder) => null;
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void inferType(ClassMembersBuilder membersBuilder) {
+    _builder.ensureTypes(membersBuilder);
+  }
+
+  @override
+  ClassMember get interfaceMember => this;
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isDuplicate => _builder.isDuplicate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isField => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isGetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isInternalImplementation => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNoSuchMethodForwarder => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool isObjectMember(ClassBuilder objectClass) {
+    return declarationBuilder == objectClass;
+  }
+
+  @override
+  bool get isProperty => true;
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is _EnumValuesClassMember &&
+        // Coverage-ignore(suite): Not run.
+        _builder == other._builder;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSourceDeclaration => true;
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ClassMemberKind get memberKind => ClassMemberKind.Getter;
+
+  @override
+  Name get name => _builder.memberName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    _builder.registerGetterOverrideDependency(overriddenMembers);
+  }
+
+  @override
+  String toString() => '$runtimeType($fullName)';
 }

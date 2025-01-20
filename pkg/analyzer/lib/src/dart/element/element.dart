@@ -4662,9 +4662,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 /// A mixin that provides a common implementation for methods defined in
 /// [FormalParameterElement].
 mixin FormalParameterElementMixin
-    implements
-        FormalParameterElement,
-        SharedNamedFunctionParameterStructure<TypeImpl> {
+    implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
     buffer.write(
@@ -11364,7 +11362,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements TypeParameterElement2, SharedTypeParameterStructure<TypeImpl> {
+    implements TypeParameterElement2, SharedTypeParameter {
   @override
   final TypeParameterElementImpl firstFragment;
 

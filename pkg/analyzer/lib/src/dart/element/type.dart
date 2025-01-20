@@ -35,7 +35,7 @@ List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
 
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl
-    implements DynamicType, SharedDynamicTypeStructure<TypeImpl> {
+    implements DynamicType, SharedDynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -88,10 +88,7 @@ class DynamicTypeImpl extends TypeImpl
 
 /// The type of a function, method, constructor, getter, or setter.
 class FunctionTypeImpl extends TypeImpl
-    implements
-        FunctionType,
-        SharedFunctionTypeStructure<TypeImpl, TypeParameterElementImpl2,
-            FormalParameterElementMixin> {
+    implements FunctionType, SharedFunctionType {
   @override
   late int hashCode = _computeHashCode();
 
@@ -1191,7 +1188,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 class InvalidTypeImpl extends TypeImpl
-    implements InvalidType, SharedInvalidTypeStructure<TypeImpl> {
+    implements InvalidType, SharedInvalidType {
   /// The unique instance of this class.
   static final InvalidTypeImpl instance = InvalidTypeImpl._();
 
@@ -1315,8 +1312,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
 /// A concrete implementation of [DartType] representing the type `Null`, with
 /// no type parameters and no nullability suffix.
-class NullTypeImpl extends InterfaceTypeImpl
-    implements SharedNullTypeStructure<TypeImpl> {
+class NullTypeImpl extends InterfaceTypeImpl implements SharedNullType {
   NullTypeImpl({
     required super.element3,
     super.alias,
@@ -1341,8 +1337,7 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
         type = type as TypeImpl;
 }
 
-class RecordTypeImpl extends TypeImpl
-    implements RecordType, SharedRecordTypeStructure<TypeImpl> {
+class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1408,8 +1403,7 @@ class RecordTypeImpl extends TypeImpl
   List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
-  List<SharedNamedTypeStructure<TypeImpl>> get sortedNamedTypesShared =>
-      sortedNamedTypes;
+  List<SharedNamedType> get sortedNamedTypesShared => sortedNamedTypes;
 
   @override
   bool operator ==(Object other) {
@@ -1509,7 +1503,7 @@ class RecordTypeImpl extends TypeImpl
 }
 
 class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
-    implements RecordTypeNamedField, SharedNamedTypeStructure<TypeImpl> {
+    implements RecordTypeNamedField, SharedNamedType {
   @override
   final String name;
 
@@ -1634,7 +1628,7 @@ abstract class TypeImpl implements DartType {
   }
 
   @override
-  bool isStructurallyEqualTo(SharedTypeStructure other) => this == other;
+  bool isStructurallyEqualTo(SharedType other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
   bool referencesAny(Set<TypeParameterElement> parameters) {
@@ -1834,8 +1828,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 }
 
 /// A concrete implementation of a [VoidType].
-class VoidTypeImpl extends TypeImpl
-    implements VoidType, SharedVoidTypeStructure<TypeImpl> {
+class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// The unique instance of this class, with indeterminate nullability.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 

@@ -15,7 +15,7 @@ class ListPatternResolver {
 
   ListPatternResolver(this.resolverVisitor);
 
-  PatternResult<DartType> resolve({
+  PatternResult resolve({
     required ListPatternImpl node,
     required SharedMatchContext context,
   }) {

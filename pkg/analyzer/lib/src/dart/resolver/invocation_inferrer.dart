@@ -487,9 +487,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       flow?.equalityOperation_end(
           argumentList.parent as ExpressionImpl,
           leftOperandInfo.expressionInfo,
-          SharedTypeView<DartType>(leftOperandInfo.staticType),
+          SharedTypeView(leftOperandInfo.staticType),
           rightOperandInfo.expressionInfo,
-          SharedTypeView<DartType>(rightOperandInfo.staticType));
+          SharedTypeView(rightOperandInfo.staticType));
     }
   }
 
@@ -731,7 +731,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
 class _IdenticalArgumentInfo {
   /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
   /// the argument.
-  final ExpressionInfo<SharedTypeView<DartType>>? expressionInfo;
+  final ExpressionInfo<SharedTypeView>? expressionInfo;
 
   /// The static type of the argument.
   final DartType staticType;

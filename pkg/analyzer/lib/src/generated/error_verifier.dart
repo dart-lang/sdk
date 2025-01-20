@@ -342,7 +342,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       SyntacticEntity errorEntity,
-      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted) {
+      Map<SharedTypeView, NonPromotionReason>? whyNotPromoted) {
     return [];
   }
 

@@ -121,8 +121,7 @@ class AssignmentExpressionResolver {
     DartType writeType,
     Expression right,
     DartType rightType, {
-    required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-        whyNotPromoted,
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
       return;
@@ -260,7 +259,7 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted,
       required DartType contextType}) {
     DartType assignedType;

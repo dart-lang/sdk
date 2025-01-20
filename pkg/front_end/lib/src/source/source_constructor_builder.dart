@@ -30,7 +30,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -57,6 +56,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
+import 'source_property_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
@@ -417,7 +417,7 @@ class DeclaredSourceConstructorBuilder
   @override
   late final Procedure? _constructorTearOff;
 
-  Set<PropertyBuilder>? _initializedFields;
+  Set<SourcePropertyBuilder>? _initializedFields;
 
   DeclaredSourceConstructorBuilder? actualOrigin;
 
@@ -879,6 +879,9 @@ class DeclaredSourceConstructorBuilder
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
+
+    inferFormals(formals, classHierarchy);
+
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
@@ -1011,7 +1014,7 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void registerInitializedField(PropertyBuilder fieldBuilder) {
+  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
     if (isAugmenting) {
       origin.registerInitializedField(fieldBuilder);
     } else {
@@ -1020,8 +1023,8 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  Set<PropertyBuilder>? takeInitializedFields() {
-    Set<PropertyBuilder>? result = _initializedFields;
+  Set<SourcePropertyBuilder>? takeInitializedFields() {
+    Set<SourcePropertyBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }
@@ -1325,7 +1328,7 @@ class SourceExtensionTypeConstructorBuilder
   @override
   late final Procedure? _constructorTearOff;
 
-  Set<PropertyBuilder>? _initializedFields;
+  Set<SourcePropertyBuilder>? _initializedFields;
 
   @override
   List<Initializer> initializers = [];
@@ -1565,13 +1568,13 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void registerInitializedField(PropertyBuilder fieldBuilder) {
+  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
     (_initializedFields ??= {}).add(fieldBuilder);
   }
 
   @override
-  Set<PropertyBuilder>? takeInitializedFields() {
-    Set<PropertyBuilder>? result = _initializedFields;
+  Set<SourcePropertyBuilder>? takeInitializedFields() {
+    Set<SourcePropertyBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }

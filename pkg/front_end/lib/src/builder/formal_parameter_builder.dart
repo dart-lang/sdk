@@ -20,12 +20,12 @@ import '../source/builder_factory.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_property_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'omitted_type_builder.dart';
-import 'property_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
@@ -229,7 +229,7 @@ class FormalParameterBuilder extends BuilderImpl
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
-    if (fieldBuilder is PropertyBuilder && fieldBuilder.isField) {
+    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.isField) {
       DartType fieldType = fieldBuilder.inferType(hierarchy);
       fieldType = constructorDeclaration.substituteFieldType(fieldType);
       type.registerInferredType(fieldType);
