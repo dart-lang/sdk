@@ -90,11 +90,21 @@ class _InferredTypeArgumentsDataInterpreter
           sb.write(',');
         }
         if (actualData[i].isUpper) {
-          sb.write("${actualData[i].typeParameter.name} <: ");
+          String? parameterName = actualData[i]
+              .typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                  StructuralParameter>()
+              .name;
+          sb.write("${parameterName} <: ");
           sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
               TypeRepresentation.analyzerNonNullableByDefault));
         } else {
-          sb.write("${actualData[i].typeParameter.name} :> ");
+          String? parameterName = actualData[i]
+              .typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                  StructuralParameter>()
+              .name;
+          sb.write("${parameterName} :> ");
           sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
               TypeRepresentation.analyzerNonNullableByDefault));
         }

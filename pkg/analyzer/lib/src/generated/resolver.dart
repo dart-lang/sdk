@@ -100,14 +100,14 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
 typedef SharedMatchContext = shared.MatchContext<AstNodeImpl, ExpressionImpl,
-    DartPatternImpl, SharedTypeView<DartType>, PromotableElementImpl2>;
+    DartPatternImpl, SharedTypeView, PromotableElementImpl2>;
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
-typedef WhyNotPromotedGetter = Map<SharedTypeView<DartType>, NonPromotionReason>
+typedef WhyNotPromotedGetter = Map<SharedTypeView, NonPromotionReason>
     Function();
 
 /// The context shared between different units of the same library.
@@ -123,18 +123,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
         TypeAnalyzer<
-            DartType,
             AstNodeImpl,
             StatementImpl,
             ExpressionImpl,
             PromotableElementImpl2,
             DartPatternImpl,
             void,
-            TypeParameterElementImpl2,
             InterfaceTypeImpl,
             InterfaceElementImpl2>,
         // TODO(paulberry): not yet used.
-        NullShortingMixin<Null, ExpressionImpl, SharedTypeView<DartType>> {
+        NullShortingMixin<Null, ExpressionImpl, SharedTypeView> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -439,12 +437,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<
-      AstNodeImpl,
-      StatementImpl,
-      ExpressionImpl,
-      PromotableElementImpl2,
-      SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
+  FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+      PromotableElementImpl2, SharedTypeView> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
       _featureSet.isEnabled(Feature.constructor_tearoffs);
@@ -458,11 +452,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.TypeAnalyzerOperations<
-      DartType,
-      PromotableElementImpl2,
-      TypeParameterElementImpl2,
-      InterfaceTypeImpl,
+  shared.TypeAnalyzerOperations<PromotableElementImpl2, InterfaceTypeImpl,
       InterfaceElementImpl2> get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
@@ -483,8 +473,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView<DartType> analyzeExpression(
-      ExpressionImpl node, SharedTypeSchemaView<DartType> schema,
+  SharedTypeView analyzeExpression(
+      ExpressionImpl node, SharedTypeSchemaView schema,
       {bool continueNullShorting = false}) {
     inferenceLogWriter?.setExpressionVisitCodePath(
         node, ExpressionVisitCodePath.analyzeExpression);
@@ -721,7 +711,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       SyntacticEntity errorEntity,
-      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted) {
+      Map<SharedTypeView, NonPromotionReason>? whyNotPromoted) {
     List<DiagnosticMessage> messages = [];
     if (whyNotPromoted != null) {
       for (var entry in whyNotPromoted.entries) {
@@ -771,9 +761,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  ExpressionTypeAnalysisResult<DartType> dispatchExpression(
-      covariant ExpressionImpl expression,
-      SharedTypeSchemaView<DartType> context) {
+  ExpressionTypeAnalysisResult dispatchExpression(
+      covariant ExpressionImpl expression, SharedTypeSchemaView context) {
     int? stackDepth;
     assert(() {
       stackDepth = rewriteStackDepth;
@@ -783,11 +772,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: ()
     pushRewrite(expression);
     // Stack: (Expression)
-    // TODO(paulberry): eliminate this cast by changing `ResolverVisitor` so
-    // that it supplies `TypeImpl` instead of `DartType` as a type parameter to
-    // `TypeAnalyzer`.
-    expression.resolveExpression(
-        this, context.unwrapTypeSchemaView() as TypeImpl);
+    expression.resolveExpression(this, context.unwrapTypeSchemaView());
     inferenceLogWriter?.assertExpressionWasRecorded(expression);
     assert(rewriteStackDepth == stackDepth! + 1);
     var replacementExpression = peekRewrite()!;
@@ -814,18 +799,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           '(${replacementExpression.runtimeType}) $replacementExpression',
         );
       }
-      // TODO(paulberry): remove this cast by changing the type of
-      // `operations.unknownType` to `SharedTypeSchemaView<TypeImpl>`.
-      staticType = operations.unknownType.unwrapTypeSchemaView() as TypeImpl;
+      staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    return ExpressionTypeAnalysisResult<DartType>(
-        type: SharedTypeView(staticType));
+    return ExpressionTypeAnalysisResult(type: SharedTypeView(staticType));
   }
 
   @override
-  PatternResult<DartType> dispatchPattern(
-      SharedMatchContext context, AstNodeImpl node) {
-    shared.PatternResult<DartType> analysisResult;
+  PatternResult dispatchPattern(SharedMatchContext context, AstNodeImpl node) {
+    shared.PatternResult analysisResult;
     if (node is DartPatternImpl) {
       analysisResult = node.resolvePattern(this, context);
       node.matchedValueType = analysisResult.matchedValueType.unwrapTypeView();
@@ -844,8 +825,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeSchemaView<DartType> dispatchPatternSchema(
-      covariant DartPatternImpl node) {
+  SharedTypeSchemaView dispatchPatternSchema(covariant DartPatternImpl node) {
     return SharedTypeSchemaView(node.computePatternSchema(this));
   }
 
@@ -855,8 +835,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView<DartType> downwardInferObjectPatternRequiredType({
-    required SharedTypeView<DartType> matchedType,
+  SharedTypeView downwardInferObjectPatternRequiredType({
+    required SharedTypeView matchedType,
     required covariant ObjectPatternImpl pattern,
   }) {
     var typeNode = pattern.type;
@@ -869,10 +849,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeParameters: typeParameters,
             errorNode: typeNode,
             declaredType: typeNameElement.thisType,
-            // TODO(paulberry): eliminate this cast by changing
-            // `ResolverVisitor` so that it supplies `TypeImpl` instead of
-            // `DartType` as a type parameter to `TypeAnalyzer`.
-            contextType: matchedType.unwrapTypeView() as TypeImpl,
+            contextType: matchedType.unwrapTypeView(),
             nodeForTesting: pattern,
           );
           return SharedTypeView(typeNode.type = typeNameElement.instantiate(
@@ -887,10 +864,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeParameters: typeParameters,
             errorNode: typeNode,
             declaredType: typeNameElement.aliasedType,
-            // TODO(paulberry): eliminate this cast by changing
-            // `ResolverVisitor` so that it supplies `TypeImpl` instead of
-            // `DartType` as a type parameter to `TypeAnalyzer`.
-            contextType: matchedType.unwrapTypeView() as TypeImpl,
+            contextType: matchedType.unwrapTypeView(),
             nodeForTesting: pattern,
           );
           return SharedTypeView(typeNode.type = typeNameElement.instantiate(
@@ -919,7 +893,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required JoinedPatternVariableLocation location,
     required shared.JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
-    required SharedTypeView<DartType> type,
+    required SharedTypeView type,
   }) {
     variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
     variable.isFinal = isFinal;
@@ -1148,7 +1122,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleMapPatternEntry(
     DartPattern container,
     covariant MapPatternEntryImpl entry,
-    SharedTypeView<DartType> keyType,
+    SharedTypeView keyType,
   ) {
     entry.key = popRewrite()!;
   }
@@ -1197,7 +1171,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleSwitchScrutinee(SharedTypeView<DartType> type) {
+  void handleSwitchScrutinee(SharedTypeView type) {
     if (!options.patternsEnabled) {
       legacySwitchExhaustiveness = SwitchExhaustiveness(type.unwrapTypeView());
     }
@@ -1263,8 +1237,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isLegacySwitchExhaustive(
-          AstNode node, SharedTypeView<DartType> expressionType) =>
+  bool isLegacySwitchExhaustive(AstNode node, SharedTypeView expressionType) =>
       legacySwitchExhaustiveness!.isExhaustive;
 
   @override
@@ -1412,7 +1385,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     nullSafetyDeadCodeVerifier.maybeRewriteFirstDeadNode(oldNode, newNode);
   }
 
-  PatternResult<DartType> resolveAssignedVariablePattern({
+  PatternResult resolveAssignedVariablePattern({
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
@@ -1568,15 +1541,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  PatternResult<DartType> resolveMapPattern({
+  PatternResult resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
     inferenceLogWriter?.enterPattern(node);
-    ({
-      SharedTypeView<DartType> keyType,
-      SharedTypeView<DartType> valueType
-    })? typeArguments;
+    ({SharedTypeView keyType, SharedTypeView valueType})? typeArguments;
     var typeArgumentsList = node.typeArguments;
     if (typeArgumentsList != null) {
       typeArgumentsList.accept(this);
@@ -1616,10 +1586,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  (ExecutableElement?, SharedTypeView<DartType>)
-      resolveObjectPatternPropertyGet({
+  (ExecutableElement?, SharedTypeView) resolveObjectPatternPropertyGet({
     required covariant ObjectPatternImpl objectPattern,
-    required SharedTypeView<DartType> receiverType,
+    required SharedTypeView receiverType,
     required covariant SharedPatternField field,
   }) {
     var fieldNode = field.node;
@@ -1664,9 +1633,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
+  RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
-    SharedTypeView<DartType> matchedType,
+    SharedTypeView matchedType,
   ) {
     var operatorLexeme = node.operator.lexeme;
     RelationalOperatorKind kind;
@@ -1755,8 +1724,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void setVariableType(
-      PromotableElement2 variable, SharedTypeView<DartType> type) {
+  void setVariableType(PromotableElement2 variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl2) {
       variable.type = type.unwrapTypeView();
     } else {
@@ -1832,8 +1800,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView<DartType> variableTypeFromInitializerType(
-      SharedTypeView<DartType> type) {
+  SharedTypeView variableTypeFromInitializerType(SharedTypeView type) {
     DartType unwrapped = type.unwrapTypeView();
     if (unwrapped.isDartCoreNull) {
       return SharedTypeView(DynamicTypeImpl.instance);
@@ -1865,7 +1832,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     assert(flowAnalysis.flow != null);
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     _annotationResolver.resolve(node, whyNotPromotedArguments);
     var arguments = node.arguments;
     if (arguments != null) {
@@ -2015,7 +1982,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
 
     var augmentation = enclosingAugmentation;
     var augmentationTarget = augmentation?.augmentationTarget;
@@ -2604,7 +2571,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       arguments.typeArguments?.accept(this);
 
       var whyNotPromotedArguments =
-          <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+          <Map<SharedTypeView, NonPromotionReason> Function()>[];
       checkForArgumentTypesNotAssignableInList(
           argumentList, whyNotPromotedArguments);
     }
@@ -2704,7 +2671,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExtensionOverride(node, contextType);
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     node.typeArguments?.accept(this);
 
     var receiverContextType =
@@ -2893,7 +2860,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.function = popRewrite()!;
 
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     _functionExpressionInvocationResolver.resolve(node, whyNotPromotedArguments,
         contextType: contextType);
     nullShortingTermination(node);
@@ -3257,7 +3224,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     var target = node.target;
     if (target != null) {
       analyzeExpression(target, operations.unknownType);
@@ -3570,7 +3537,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // invocation.
     //
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
     InvocationInferrer<RedirectingConstructorInvocationImpl>(
@@ -3707,7 +3674,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // invocation.
     //
     var whyNotPromotedArguments =
-        <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
     InvocationInferrer<SuperConstructorInvocationImpl>(
@@ -3748,7 +3715,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var staticType = analyzeSwitchExpression(node, node.expression,
             node.cases.length, SharedTypeSchemaView(contextType))
         .type
-        .unwrapTypeView();
+        .unwrapTypeView<DartType>();
     node.recordStaticType(staticType, resolver: this);
     popRewrite();
     legacySwitchExhaustiveness = previousExhaustiveness;
@@ -5620,7 +5587,7 @@ class SwitchExhaustiveness {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<DiagnosticMessage>, AstNode,
-            PromotableElement2, SharedTypeView<DartType>> {
+            PromotableElement2, SharedTypeView> {
   final Source source;
 
   final SyntacticEntity _errorEntity;
@@ -5649,7 +5616,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView<DartType>> reason) {
+      PropertyNotPromotedForInherentReason<SharedTypeView> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
@@ -5687,8 +5654,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView<DartType>>
-          reason) {
+      PropertyNotPromotedForNonInherentReason<SharedTypeView> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;

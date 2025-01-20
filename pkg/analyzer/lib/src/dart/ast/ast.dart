@@ -833,7 +833,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -2357,7 +2357,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -4031,7 +4031,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -4790,7 +4790,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.dispatchPattern], which has some special logic for
   /// handling dynamic contexts.
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   );
@@ -5024,7 +5024,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11301,7 +11301,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11405,7 +11405,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11484,7 +11484,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11740,10 +11740,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     var typeArgumentNodes = this.typeArguments?.arguments;
-    ({
-      SharedTypeView<DartType> keyType,
-      SharedTypeView<DartType> valueType
-    })? typeArguments;
+    ({SharedTypeView keyType, SharedTypeView valueType})? typeArguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
       typeArguments = (
         keyType: SharedTypeView(typeArgumentNodes[0].typeOrThrow),
@@ -11759,7 +11756,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13074,7 +13071,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13210,7 +13207,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13387,7 +13384,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13574,7 +13571,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -14734,7 +14731,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -15186,7 +15183,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -18866,7 +18863,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {

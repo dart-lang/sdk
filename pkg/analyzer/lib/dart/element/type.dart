@@ -28,14 +28,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart'
-    show RecordTypeImpl, TypeImpl;
+import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
 import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType implements SharedTypeStructure<TypeImpl> {
+abstract class DartType implements SharedType {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.

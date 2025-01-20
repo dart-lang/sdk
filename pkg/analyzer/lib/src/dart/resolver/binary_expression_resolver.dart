@@ -82,7 +82,7 @@ class BinaryExpressionResolver {
   }
 
   void _checkNonBoolOperand(Expression operand, String operator,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
@@ -99,7 +99,7 @@ class BinaryExpressionResolver {
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    ExpressionInfo<SharedTypeView<DartType>>? leftInfo;
+    ExpressionInfo<SharedTypeView>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left);

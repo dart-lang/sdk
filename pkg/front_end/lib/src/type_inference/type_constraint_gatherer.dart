@@ -19,22 +19,10 @@ import 'type_schema_environment.dart';
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
-        DartType,
-        NamedType,
-        VariableDeclaration,
-        StructuralParameter,
-        TypeDeclarationType,
-        TypeDeclaration,
-        TreeNode>
+        VariableDeclaration, TypeDeclarationType, TypeDeclaration, TreeNode>
     with
-        shared.TypeConstraintGeneratorMixin<
-            DartType,
-            NamedType,
-            VariableDeclaration,
-            StructuralParameter,
-            TypeDeclarationType,
-            TypeDeclaration,
-            TreeNode> {
+        shared.TypeConstraintGeneratorMixin<VariableDeclaration,
+            TypeDeclarationType, TypeDeclaration, TreeNode> {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   @override
@@ -130,7 +118,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     for (GeneratedTypeConstraint constraint in constraints) {
       if (constraint.isUpper) {
         addUpperConstraintForParameter(
-          constraint.typeParameter,
+          constraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                  StructuralParameter>(),
           typeOperations.leastClosureOfTypeInternal(
             constraint.constraint.unwrapTypeSchemaView(),
             typeParametersToEliminate,
@@ -139,7 +129,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         );
       } else {
         addLowerConstraintForParameter(
-          constraint.typeParameter,
+          constraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                  StructuralParameter>(),
           typeOperations.greatestClosureOfTypeInternal(
             constraint.constraint.unwrapTypeSchemaView(),
             typeParametersToEliminate,
@@ -197,7 +189,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       );
     }
     for (GeneratedTypeConstraint protoConstraint in _protoConstraints) {
-      result[protoConstraint.typeParameter]!.mergeIn(
+      result[protoConstraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                  StructuralParameter>()]!
+          .mergeIn(
         protoConstraint,
         typeOperations,
       );
@@ -247,7 +242,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.lower(
-      parameter,
+      new SharedTypeParameterView(parameter),
       new SharedTypeSchemaView(lower),
     );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
@@ -267,7 +262,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.upper(
-      parameter,
+      new SharedTypeParameterView(parameter),
       new SharedTypeSchemaView(upper),
     );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
@@ -286,8 +281,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     required bool leftSchema,
     required TreeNode? astNodeForTesting,
   }) {
-    if (p is SharedInvalidTypeStructure<DartType> ||
-        q is SharedInvalidTypeStructure<DartType>) {
+    if (p is SharedInvalidType || q is SharedInvalidType) {
       return false;
     }
 

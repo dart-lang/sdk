@@ -9,11 +9,9 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'mini_ast.dart';
 import 'mini_types.dart';
 
-class TypeConstraintGatherer extends TypeConstraintGenerator<Type,
-        NamedFunctionParameter, Var, TypeParameter, Type, String, Node>
-    with
-        TypeConstraintGeneratorMixin<Type, NamedFunctionParameter, Var,
-            TypeParameter, Type, String, Node> {
+class TypeConstraintGatherer
+    extends TypeConstraintGenerator<Var, Type, String, Node>
+    with TypeConstraintGeneratorMixin<Var, Type, String, Node> {
   @override
   final Set<TypeParameter> typeParametersToConstrain = <TypeParameter>{};
 
@@ -51,8 +49,7 @@ class TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   }
 
   @override
-  Map<TypeParameter,
-          MergedTypeConstraint<Type, TypeParameter, Var, Type, String>>
+  Map<TypeParameter, MergedTypeConstraint<Var, Type, String>>
       computeConstraints() {
     // TODO(cstefantsova): implement computeConstraints
     throw UnimplementedError();
@@ -91,16 +88,10 @@ class TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   }
 
   @override
-  (
-    Type,
-    Type, {
-    List<TypeParameter> typeParametersToEliminate
-  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
-      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
-          p,
-      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
-          q,
-      {required bool leftSchema}) {
+  (Type, Type, {List<TypeParameter> typeParametersToEliminate})
+      instantiateFunctionTypesAndProvideFreshTypeParameters(
+          SharedFunctionType p, SharedFunctionType q,
+          {required bool leftSchema}) {
     // TODO(paulberry): implement instantiateFunctionTypesAndProvideEliminator
     throw UnimplementedError();
   }

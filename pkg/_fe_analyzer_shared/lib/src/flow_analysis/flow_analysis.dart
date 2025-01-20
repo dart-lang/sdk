@@ -5336,7 +5336,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required Type knownType,
       bool matchFailsIfWrongType = true,
       bool matchMayFailEvenIfCorrectType = false}) {
-    if (knownType is SharedInvalidTypeStructure) {
+    if (knownType is SharedInvalidType) {
       _unmatched = _join(_unmatched!, _current);
       return false;
     }
