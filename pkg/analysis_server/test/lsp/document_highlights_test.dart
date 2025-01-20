@@ -191,6 +191,21 @@ void f() {
 }
 ''');
 
+  Future<void> test_prefix() => _testMarkedContent('''
+import '' as /*[0*/p/*0]*/;
+
+class A {
+  void m() {
+    /*[1*/p/*1]*/.foo();
+    print(/*[2*/p/*2]*/.a);
+  }
+}
+
+void foo() {}
+
+/*[3*/p^/*3]*/.A? a;
+''');
+
   Future<void> test_prefixed() => _testMarkedContent('''
 import '' as p;
 

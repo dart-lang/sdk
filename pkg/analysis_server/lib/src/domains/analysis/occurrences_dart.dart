@@ -126,6 +126,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _addOccurrence(node.element2!, node.offset);
+
+    super.visitImportPrefixReference(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name.offset);
     super.visitMethodDeclaration(node);
