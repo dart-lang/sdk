@@ -1,0 +1,134 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class DefaultEq extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_Smi]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int i;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int i) → self::DefaultEq
+    : self::DefaultEq::i = i, super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=!]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  method toString() → core::String
+    return "DefaultEq(i=${[@vm.direct-call.metadata=#lib::DefaultEq.i] this.{self::DefaultEq::i}{core::int}})";
+}
+class OverriddenEq extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_Smi]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int i;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int i) → self::OverriddenEq
+    : self::OverriddenEq::i = i, super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::bool]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  operator ==(core::Object other) → core::bool {
+    return true;
+  }
+
+  [@vm.inferred-return-type.metadata=!]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  method toString() → core::String
+    return "OverriddenEq(i=${[@vm.direct-call.metadata=#lib::OverriddenEq.i] this.{self::OverriddenEq::i}{core::int}})";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testStringLiteral() → void {
+  core::print(#C1);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testStringConstant() → void {
+  core::print(#C2);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testIntLiteral() → void {
+  core::print(#C3);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testIntConstant() → void {
+  core::print(#C4);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDefaultEq1() → void {
+  core::print(#C6);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDefaultEq2() → void {
+  throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testOverriddenEq1([@vm.inferred-arg-type.metadata=#lib::OverriddenEq] self::OverriddenEq c) → void {
+  core::print(c);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testOverriddenEq2([@vm.inferred-arg-type.metadata=#lib::OverriddenEq] self::OverriddenEq c) → void {
+  core::print(c);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::bool]
+static get runtimeTrue() → core::bool
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final core::String s1 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::String} "foo" : "bar";
+  if([@vm.inferred-type.metadata=dart.core::bool (receiver not int)] s1 =={core::String::==}{(core::Object) → core::bool} "foo") {
+    self::testStringLiteral();
+  }
+  final core::String s2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::String} "1234" : "asdf";
+  if([@vm.inferred-type.metadata=dart.core::bool (receiver not int)] s2 =={core::String::==}{(core::Object) → core::bool} #C2) {
+    self::testStringConstant();
+  }
+  final core::int i1 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::int} 123 : 456;
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i1 =={core::num::==}{(core::Object) → core::bool} 123) {
+    self::testIntLiteral();
+  }
+  final core::int i2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::int} 456 : 789;
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i2 =={core::num::==}{(core::Object) → core::bool} #C4) {
+    self::testIntConstant();
+  }
+  final self::DefaultEq c1 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{self::DefaultEq} new self::DefaultEq::•(1) : new self::DefaultEq::•(2);
+  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c1 =={core::Object::==}{(core::Object) → core::bool} #C6) {
+    self::testDefaultEq1();
+  }
+  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c1 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+    self::testDefaultEq2();
+  }
+  final self::OverriddenEq c2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{self::OverriddenEq} new self::OverriddenEq::•(1) : new self::OverriddenEq::•(2);
+  if([@vm.direct-call.metadata=#lib::OverriddenEq.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c2 =={self::OverriddenEq::==}{(core::Object) → core::bool} #C7) {
+    self::testOverriddenEq1(c2);
+  }
+  if([@vm.direct-call.metadata=#lib::OverriddenEq.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c2 =={self::OverriddenEq::==}{(core::Object) → core::bool} #C2) {
+    self::testOverriddenEq2(c2);
+  }
+}
+constants  {
+  #C1 = "foo"
+  #C2 = "1234"
+  #C3 = 123
+  #C4 = 456
+  #C5 = 1
+  #C6 = self::DefaultEq {i:#C5}
+  #C7 = self::OverriddenEq {i:#C5}
+}

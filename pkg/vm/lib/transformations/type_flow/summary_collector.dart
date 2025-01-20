@@ -1578,10 +1578,20 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     } else if (node is EqualsCall && node.left is VariableGet) {
       final lhs = node.left as VariableGet;
       final rhs = node.right;
-      if ((rhs is IntLiteral &&
+      bool isIntConstant(Expression expr) => switch (expr) {
+            IntLiteral() => true,
+            ConstantExpression(constant: IntConstant()) => true,
+            _ => false
+          };
+      bool isStringConstant(Expression expr) => switch (expr) {
+            StringLiteral() => true,
+            ConstantExpression(constant: StringConstant()) => true,
+            _ => false
+          };
+      if ((isIntConstant(rhs) &&
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.intNullableRawType)) ||
-          (rhs is StringLiteral &&
+          (isStringConstant(rhs) &&
               target.canInferStringClassAfterEqualityComparison &&
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.stringNullableRawType)) ||
