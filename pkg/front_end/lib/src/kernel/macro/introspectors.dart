@@ -18,7 +18,6 @@ import '../../builder/member_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_factory_builder.dart';
-import '../../source/source_field_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
@@ -135,8 +134,6 @@ class MacroIntrospection {
     } else if (memberBuilder is SourcePropertyBuilder &&
         memberBuilder.isField) {
       return _createFieldDeclaration(memberBuilder);
-    } else if (memberBuilder is SourceFieldBuilder) {
-      return _createVariableDeclaration(memberBuilder);
     } else if (memberBuilder is SourceConstructorBuilder) {
       return _createConstructorDeclaration(memberBuilder);
     } else if (memberBuilder is SourceFactoryBuilder) {
@@ -694,62 +691,6 @@ class MacroIntrospection {
           hasLate: builder.isLate,
           type: types.getTypeAnnotation(
               builder.libraryBuilder, builder.typeForTesting));
-    }
-    _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.fileOffset);
-    return declaration;
-  }
-
-  /// Creates the [macro.VariableDeclaration] corresponding to [builder].
-  macro.VariableDeclaration _createVariableDeclaration(
-      SourceFieldBuilder builder) {
-    macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
-    Builder? parent = builder.parent;
-    if (parent is ClassBuilder) {
-      definingTypeDeclaration = getClassDeclaration(parent);
-    } else if (parent is ExtensionTypeDeclarationBuilder) {
-      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
-    }
-    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
-    macro.VariableDeclaration declaration;
-    if (definingTypeDeclaration != null) {
-      // TODO(johnniwinther): Should static fields be field or variable
-      //  declarations?
-      declaration = new macro.FieldDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          definingType:
-              definingTypeDeclaration.identifier as macro.IdentifierImpl,
-          hasAbstract: builder.isAbstract,
-          hasConst: builder.isConst,
-          hasExternal: builder.isExternal,
-          hasFinal: builder.isFinal,
-          hasInitializer: builder.hasInitializer,
-          hasLate: builder.isLate,
-          hasStatic: builder.isStatic,
-          type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
-    } else {
-      declaration = new macro.VariableDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          hasConst: builder.isConst,
-          hasExternal: builder.isExternal,
-          hasFinal: builder.isFinal,
-          hasInitializer: builder.hasInitializer,
-          hasLate: builder.isLate,
-          type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     }
     _declarationOffsets[declaration] =
         new UriOffset(builder.fileUri, builder.fileOffset);

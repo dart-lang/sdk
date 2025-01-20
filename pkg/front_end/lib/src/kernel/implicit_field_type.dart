@@ -8,26 +8,17 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../base/constant_context.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/inferable_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
-import '../type_inference/type_inferrer.dart';
-import 'body_builder.dart';
-import 'body_builder_context.dart';
 
 abstract class InferredType extends AuxiliaryType {
   Uri? get fileUri;
   int? get charOffset;
 
   InferredType._();
-
-  factory InferredType.fromFieldInitializer(
-          SourceFieldBuilder fieldBuilder, Token? initializerToken) =
-      _ImplicitFieldTypeRoot;
 
   factory InferredType(
       {required SourceLibraryBuilder libraryBuilder,
@@ -99,100 +90,6 @@ abstract class InferredType extends AuxiliaryType {
   DartType inferType(ClassHierarchyBase hierarchy);
 
   DartType computeType(ClassHierarchyBase hierarchy);
-}
-
-// Coverage-ignore(suite): Not run.
-class _ImplicitFieldTypeRoot extends InferredType {
-  final SourceFieldBuilder fieldBuilder;
-
-  Token? initializerToken;
-  bool isStarted = false;
-
-  _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
-
-  @override
-  Uri get fileUri => fieldBuilder.fileUri;
-
-  @override
-  int get charOffset => fieldBuilder.fileOffset;
-
-  @override
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    return fieldBuilder.inferType(hierarchy);
-  }
-
-  @override
-  DartType computeType(ClassHierarchyBase hierarchy) {
-    if (isStarted) {
-      fieldBuilder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity
-              .withArguments(fieldBuilder.name),
-          fieldBuilder.fileOffset,
-          fieldBuilder.name.length,
-          fieldBuilder.fileUri);
-      DartType type = const InvalidType();
-      fieldBuilder.type.registerInferredType(type);
-      return type;
-    }
-    isStarted = true;
-    DartType? inferredType;
-    if (initializerToken != null) {
-      InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
-          ? null
-          : fieldBuilder.libraryBuilder.loader.typeInferenceEngine.coreTypes
-              .thisInterfaceType(fieldBuilder.classBuilder!.cls,
-                  fieldBuilder.libraryBuilder.library.nonNullable);
-      TypeInferrer typeInferrer = fieldBuilder
-          .libraryBuilder.loader.typeInferenceEngine
-          .createTopLevelTypeInferrer(
-              fieldBuilder.fileUri,
-              enclosingClassThisType,
-              fieldBuilder.libraryBuilder,
-              fieldBuilder.dataForTesting?.inferenceData);
-      BodyBuilderContext bodyBuilderContext =
-          fieldBuilder.createBodyBuilderContext();
-      BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
-          .createBodyBuilderForField(
-              fieldBuilder.libraryBuilder,
-              bodyBuilderContext,
-              fieldBuilder.declarationBuilder?.scope ??
-                  fieldBuilder.libraryBuilder.scope,
-              typeInferrer,
-              fieldBuilder.fileUri);
-      bodyBuilder.constantContext = fieldBuilder.isConst
-          ? ConstantContext.inferred
-          : ConstantContext.none;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = fieldBuilder.isLate;
-      Expression initializer =
-          bodyBuilder.parseFieldInitializer(initializerToken!);
-      initializerToken = null;
-
-      inferredType =
-          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
-    } else {
-      inferredType = const DynamicType();
-    }
-    return inferredType;
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<implicit-field-type:$fieldBuilder>');
-  }
-
-  @override
-  bool equals(Object other, Assumptions? assumptions) {
-    if (identical(this, other)) return true;
-    return other is _ImplicitFieldTypeRoot &&
-        fieldBuilder == other.fieldBuilder;
-  }
-
-  @override
-  int get hashCode => fieldBuilder.hashCode;
-
-  @override
-  String toString() => 'ImplicitFieldType(${toStringInternal()})';
 }
 
 /// Signature for function called to trigger the inference of the type of

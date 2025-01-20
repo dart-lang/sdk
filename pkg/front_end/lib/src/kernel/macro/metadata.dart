@@ -25,7 +25,6 @@ import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/procedure_builder.dart';
 import '../../builder/property_builder.dart';
-import '../../source/source_field_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_property_builder.dart';
 
@@ -76,12 +75,7 @@ shared.Expression parseFieldInitializer(Loader loader, Token initializerToken,
 // Coverage-ignore(suite): Not run.
 /// Returns the [shared.Expression] for the constant initializer of [reference].
 shared.Expression? getFieldInitializer(shared.FieldReference reference) {
-  if (reference is FieldReference) {
-    FieldBuilder element = reference.builder;
-    if (element is SourceFieldBuilder) {
-      return element.initializerExpression;
-    }
-  } else if (reference is PropertyReference) {
+  if (reference is PropertyReference) {
     PropertyBuilder element = reference.builder;
     if (element is SourcePropertyBuilder) {
       return element.initializerExpression;

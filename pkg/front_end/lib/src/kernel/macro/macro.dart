@@ -28,7 +28,6 @@ import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_factory_builder.dart';
-import '../../source/source_field_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_method_builder.dart';
@@ -504,18 +503,6 @@ class MacroApplications {
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
                       memberBuilder, macroApplications);
             }
-          } else if (memberBuilder is SourceFieldBuilder) {
-            List<MacroApplication>? macroApplications = prebuildAnnotations(
-                enclosingLibrary: libraryBuilder,
-                scope: builder.scope,
-                fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata,
-                currentMacroDeclarations: currentMacroDeclarations);
-            if (macroApplications != null) {
-              classMacroApplicationData.memberApplications[memberBuilder] =
-                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
-                      memberBuilder, macroApplications);
-            }
           } else {
             throw new UnsupportedError("Unexpected class member "
                 "$memberBuilder (${memberBuilder.runtimeType})");
@@ -584,18 +571,6 @@ class MacroApplications {
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
                   builder, macroApplications);
         }
-      } else if (builder is SourceFieldBuilder) {
-        List<MacroApplication>? macroApplications = prebuildAnnotations(
-            enclosingLibrary: libraryBuilder,
-            scope: libraryBuilder.scope,
-            fileUri: builder.fileUri,
-            metadataBuilders: builder.metadata,
-            currentMacroDeclarations: currentMacroDeclarations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.memberApplications[builder] =
-              new MemberApplicationData(_macroIntrospection, libraryBuilder,
-                  builder, macroApplications);
-        }
       } else if (builder is SourceExtensionTypeDeclarationBuilder) {
         ExtensionTypeMacroApplicationData extensionTypeMacroApplicationData =
             new ExtensionTypeMacroApplicationData();
@@ -627,19 +602,6 @@ class MacroApplications {
                       memberBuilder, macroApplications);
             }
           } else if (memberBuilder is SourcePropertyBuilder) {
-            List<MacroApplication>? macroApplications = prebuildAnnotations(
-                enclosingLibrary: libraryBuilder,
-                scope: builder.scope,
-                fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata,
-                currentMacroDeclarations: currentMacroDeclarations);
-            if (macroApplications != null) {
-              extensionTypeMacroApplicationData
-                      .memberApplications[memberBuilder] =
-                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
-                      memberBuilder, macroApplications);
-            }
-          } else if (memberBuilder is SourceFieldBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
                 scope: builder.scope,

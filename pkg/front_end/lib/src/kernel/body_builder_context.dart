@@ -26,7 +26,6 @@ import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_factory_builder.dart';
-import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
@@ -737,51 +736,6 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   @override
   void registerSuperCall() {
     _builtMember.transformerFlags |= TransformerFlag.superCalls;
-  }
-}
-
-class FieldBodyBuilderContext extends BodyBuilderContext
-    with _MemberBodyBuilderContext<SourceFieldBuilder> {
-  @override
-  SourceFieldBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  FieldBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isLateField => _member.isLate;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstractField => _member.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternalField => _member.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
-    if (_member.isExtensionMember && !_member.isExternal) {
-      return InstanceTypeParameterAccessState.Invalid;
-    } else {
-      return super.instanceTypeParameterAccessState;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstantContext get constantContext {
-    return _member.isConst
-        ? ConstantContext.inferred
-        : !_member.isStatic && _declarationContext.declaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
   }
 }
 

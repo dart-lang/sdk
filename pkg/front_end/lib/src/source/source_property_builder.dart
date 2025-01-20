@@ -49,9 +49,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   final DeclarationBuilder? declarationBuilder;
 
-  @override
-  final bool isStatic;
-
   final NameScheme _nameScheme;
 
   /// The declarations that introduces this property. Subsequent property of the
@@ -90,7 +87,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
-      required this.isStatic,
       required NameScheme nameScheme,
       required GetterFragment fragment,
       required PropertyReferences references})
@@ -106,7 +102,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
-      required this.isStatic,
       required NameScheme nameScheme,
       required SetterFragment fragment,
       required PropertyReferences references})
@@ -122,13 +117,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
-      required this.isStatic,
       required NameScheme nameScheme,
-      required FieldDeclaration fragment,
+      required FieldDeclaration fieldDeclaration,
       required Modifiers modifiers,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
-        _introductoryField = fragment,
+        _introductoryField = fieldDeclaration,
         _modifiers = modifiers,
         _references = references,
         _memberName = nameScheme.getDeclaredName(name);
@@ -138,6 +132,9 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isAugmentation => _modifiers.isAugment;
+
+  @override
+  bool get isStatic => _modifiers.isStatic;
 
   @override
   bool get isExternal => _modifiers.isExternal;
