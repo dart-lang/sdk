@@ -879,6 +879,9 @@ class DeclaredSourceConstructorBuilder
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
+
+    inferFormals(formals, classHierarchy);
+
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);

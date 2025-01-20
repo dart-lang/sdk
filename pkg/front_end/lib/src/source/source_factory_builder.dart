@@ -25,7 +25,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
@@ -263,6 +262,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
+
+    inferFormals(formals, classHierarchy);
+
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
@@ -560,6 +562,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
+
+    inferFormals(formals, classHierarchy);
+
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
@@ -582,31 +587,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           .createBodyBuilderForOutlineExpression(libraryBuilder,
               createBodyBuilderContext(), declarationBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
-
-      // Inference of target's formals should happen before building of the
-      // outline expressions in members and before inferring target's type
-      // arguments.
-      //
-      // (1) The outline expressions, such as formal parameter initializers,
-      // need properly inferred type contexts. Among other things, it ensures
-      // that the required coercions, such as int-to-double conversion, are
-      // run.
-      //
-      // (2) Type arguments for the targets of redirecting factories can only
-      // be inferred if the formal parameters of the targets are inferred too.
-      // That may not be the case when the target's parameters are initializing
-      // parameters referring to fields with types that are to be inferred.
-      if (targetBuilder is SourceFunctionBuilderImpl) {
-        List<FormalParameterBuilder>? formals = targetBuilder.formals;
-        if (formals != null) {
-          for (FormalParameterBuilder formal in formals) {
-            TypeBuilder formalType = formal.type;
-            if (formalType is InferableTypeBuilder) {
-              formalType.inferType(classHierarchy);
-            }
-          }
-        }
-      }
 
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
