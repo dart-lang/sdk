@@ -783,7 +783,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: ()
     pushRewrite(expression);
     // Stack: (Expression)
-    expression.resolveExpression(this, context.unwrapTypeSchemaView());
+    // TODO(paulberry): eliminate this cast by changing `ResolverVisitor` so
+    // that it supplies `TypeImpl` instead of `DartType` as a type parameter to
+    // `TypeAnalyzer`.
+    expression.resolveExpression(
+        this, context.unwrapTypeSchemaView() as TypeImpl);
     inferenceLogWriter?.assertExpressionWasRecorded(expression);
     assert(rewriteStackDepth == stackDepth! + 1);
     var replacementExpression = peekRewrite()!;
@@ -865,7 +869,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeParameters: typeParameters,
             errorNode: typeNode,
             declaredType: typeNameElement.thisType,
-            contextType: matchedType.unwrapTypeView(),
+            // TODO(paulberry): eliminate this cast by changing
+            // `ResolverVisitor` so that it supplies `TypeImpl` instead of
+            // `DartType` as a type parameter to `TypeAnalyzer`.
+            contextType: matchedType.unwrapTypeView() as TypeImpl,
             nodeForTesting: pattern,
           );
           return SharedTypeView(typeNode.type = typeNameElement.instantiate(
@@ -880,7 +887,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeParameters: typeParameters,
             errorNode: typeNode,
             declaredType: typeNameElement.aliasedType,
-            contextType: matchedType.unwrapTypeView(),
+            // TODO(paulberry): eliminate this cast by changing
+            // `ResolverVisitor` so that it supplies `TypeImpl` instead of
+            // `DartType` as a type parameter to `TypeAnalyzer`.
+            contextType: matchedType.unwrapTypeView() as TypeImpl,
             nodeForTesting: pattern,
           );
           return SharedTypeView(typeNode.type = typeNameElement.instantiate(
@@ -1199,7 +1209,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// If an [FunctionReference] is inserted, returns it; otherwise, returns
   /// [expression].
   ExpressionImpl insertGenericFunctionInstantiation(Expression expression,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     expression as ExpressionImpl;
     if (!isConstructorTearoffsEnabled) {
       // Temporarily, only create [ImplicitCallReference] nodes under the
@@ -1833,7 +1843,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAdjacentStrings(covariant AdjacentStringsImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     for (var string in node.strings) {
@@ -1871,7 +1881,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAsExpression(
     covariant AsExpressionImpl node, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
@@ -1951,7 +1961,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssignmentExpression(AssignmentExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl,
@@ -1964,7 +1974,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     if (enclosingAugmentation case var augmentation?) {
       var augmentedElement = augmentation.augmentationTarget;
@@ -2000,7 +2010,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAugmentedInvocation(
     covariant AugmentedInvocationImpl node, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
@@ -2098,7 +2108,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAwaitExpression(covariant AwaitExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(
@@ -2113,7 +2123,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitBinaryExpression(BinaryExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl,
@@ -2149,7 +2159,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitBooleanLiteral(covariant BooleanLiteralImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     flowAnalysis.flow?.booleanLiteral(node, node.value);
     checkUnreachableNode(node);
@@ -2170,7 +2180,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitCascadeExpression(covariant CascadeExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(node.target, SharedTypeSchemaView(contextType));
@@ -2283,7 +2293,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     ExpressionImpl condition = node.condition;
@@ -2410,7 +2420,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     _constructorReferenceResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(node, contextType: contextType);
@@ -2484,7 +2494,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitDoubleLiteral(DoubleLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -2691,7 +2701,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitExtensionOverride(covariant ExtensionOverrideImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExtensionOverride(node, contextType);
     var whyNotPromotedArguments =
         <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
@@ -2860,7 +2870,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
@@ -2875,7 +2885,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitFunctionExpressionInvocation(
     covariant FunctionExpressionInvocationImpl node, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     analyzeExpression(
@@ -2897,7 +2907,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFunctionReference(FunctionReference node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
     inferenceLogWriter?.exitExpression(node);
@@ -3022,7 +3032,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitIndexExpression(covariant IndexExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
@@ -3081,7 +3091,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _instanceCreationExpressionResolver.resolve(node, contextType: contextType);
@@ -3091,7 +3101,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitIntegerLiteral(IntegerLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3116,7 +3126,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitIsExpression(covariant IsExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
@@ -3156,7 +3166,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitListLiteral(covariant ListLiteralImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node, contextType: contextType);
@@ -3243,7 +3253,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
@@ -3308,7 +3318,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitNamedExpression(covariant NamedExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.name.accept(this);
@@ -3367,7 +3377,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitNullLiteral(NullLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
@@ -3378,7 +3388,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitParenthesizedExpression(covariant ParenthesizedExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
@@ -3404,7 +3414,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPatternAssignment(covariant PatternAssignmentImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var analysisResult =
@@ -3439,7 +3449,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPostfixExpression(PostfixExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _postfixExpressionResolver.resolve(node as PostfixExpressionImpl,
@@ -3452,7 +3462,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var rewrittenPropertyAccess =
@@ -3480,7 +3490,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPrefixExpression(PrefixExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _prefixExpressionResolver.resolve(node as PrefixExpressionImpl,
@@ -3493,7 +3503,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPropertyAccess(covariant PropertyAccessImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
@@ -3511,7 +3521,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitRecordLiteral(
     covariant RecordLiteralImpl node, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
@@ -3586,7 +3596,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitRethrowExpression(RethrowExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3617,7 +3627,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveSetOrMapLiteral(node,
@@ -3637,7 +3647,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     _simpleIdentifierResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(
@@ -3648,7 +3658,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3681,7 +3691,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitStringInterpolation(StringInterpolation node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3713,7 +3723,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSuperExpression(SuperExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3731,7 +3741,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitSwitchExpression(
     covariant SwitchExpressionImpl node, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     var previousExhaustiveness = legacySwitchExhaustiveness;
@@ -3762,7 +3772,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSymbolLiteral(SymbolLiteral node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3772,7 +3782,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitThisExpression(ThisExpression node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3783,7 +3793,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitThrowExpression(covariant ThrowExpressionImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(
@@ -3862,7 +3872,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitTypeLiteral(covariant TypeLiteralImpl node,
-      {DartType contextType = UnknownInferredType.instance}) {
+      {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -4062,7 +4072,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required List<TypeParameterElementImpl2> typeParameters,
     required AstNode errorNode,
     required DartType declaredType,
-    required DartType contextType,
+    required TypeImpl contextType,
     required AstNodeImpl? nodeForTesting,
   }) {
     inferenceLogWriter?.enterGenericInference(typeParameters, declaredType);
@@ -4084,7 +4094,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// If `expression` should be treated as `expression.call`, inserts an
   /// [ImplicitCallReference] node which wraps [expression].
   void _insertImplicitCallReference(ExpressionImpl expression,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var parent = expression.parent;
     if (_shouldSkipImplicitCallReferenceDueToForm(expression, parent)) {
       return;
@@ -4111,7 +4121,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     List<DartType> typeArgumentTypes;
     if (isConstructorTearoffsEnabled &&
         callMethodType.typeFormals.isNotEmpty &&
-        context is FunctionType) {
+        context is FunctionTypeImpl) {
       typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
         context,
         callMethodType,
@@ -4146,7 +4156,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void _resolvePropertyAccessRhs(
-      PropertyAccessImpl node, DartType contextType) {
+      PropertyAccessImpl node, TypeImpl contextType) {
     if (node.isNullAware) {
       _startNullAwareAccess(node, node.target);
     }
@@ -4208,7 +4218,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _resolveRewrittenFunctionExpressionInvocation(
       FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var function = node.function;
 
     if (function is PropertyAccessImpl && function.isNullAware) {

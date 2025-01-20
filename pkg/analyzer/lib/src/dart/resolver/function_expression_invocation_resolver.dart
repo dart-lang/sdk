@@ -39,7 +39,7 @@ class FunctionExpressionInvocationResolver {
 
   void resolve(FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
@@ -145,7 +145,7 @@ class FunctionExpressionInvocationResolver {
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var returnType = FunctionExpressionInvocationInferrer(
       resolver: _resolver,
       node: node,
@@ -161,7 +161,7 @@ class FunctionExpressionInvocationResolver {
       FunctionExpressionInvocationImpl node,
       ExtensionOverride function,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(
       function,
       FunctionElement.CALL_METHOD_NAME,
@@ -193,7 +193,7 @@ class FunctionExpressionInvocationResolver {
 
   void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     _setExplicitTypeArgumentTypes(node);
     FunctionExpressionInvocationInferrer(
             resolver: _resolver,

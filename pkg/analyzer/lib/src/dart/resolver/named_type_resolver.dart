@@ -41,7 +41,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  InterfaceElement? enclosingClass;
+  InterfaceElementImpl? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].

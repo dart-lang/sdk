@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -58,7 +59,7 @@ class ClassHierarchy {
     var typeSystem = library.typeSystem;
     var interfacesMerger = InterfacesMerger(typeSystem);
 
-    void append(InterfaceType? type) {
+    void append(InterfaceTypeImpl? type) {
       if (type == null) {
         return;
       }
@@ -66,11 +67,11 @@ class ClassHierarchy {
       interfacesMerger.add(type);
 
       var substitution = Substitution.fromInterfaceType(type);
-      var element = type.element as InterfaceElementImpl;
+      var element = type.element;
       var rawInterfaces = implementedInterfaces(element);
       for (var rawInterface in rawInterfaces) {
         var newInterface =
-            substitution.substituteType(rawInterface) as InterfaceType;
+            substitution.substituteType(rawInterface) as InterfaceTypeImpl;
         interfacesMerger.add(newInterface);
       }
     }
@@ -130,24 +131,24 @@ class InterfacesMerger {
 
   InterfacesMerger(this._typeSystem);
 
-  List<InterfaceType> get typeList {
+  List<InterfaceTypeImpl> get typeList {
     return _map.values.map((e) => e.type).toList();
   }
 
-  void add(InterfaceType type) {
+  void add(InterfaceTypeImpl type) {
     var element = type.element;
     var classResult = _map[element];
     if (classResult == null) {
       classResult = _ClassInterfaceType(
         _typeSystem,
-        element is ClassElement && element.isDartCoreObject,
+        element is ClassElementImpl && element.isDartCoreObject,
       );
       _map[element] = classResult;
     }
     classResult.update(type);
   }
 
-  void addWithSupertypes(InterfaceType? type) {
+  void addWithSupertypes(InterfaceTypeImpl? type) {
     if (type != null) {
       for (var superType in type.allSupertypes) {
         add(superType);
@@ -163,14 +164,14 @@ class _ClassInterfaceType {
 
   ClassHierarchyError? _error;
 
-  InterfaceType? _singleType;
-  InterfaceType? _currentResult;
+  InterfaceTypeImpl? _singleType;
+  InterfaceTypeImpl? _currentResult;
 
   _ClassInterfaceType(this._typeSystem, this._isDartCoreObject);
 
-  InterfaceType get type => (_currentResult ?? _singleType)!;
+  InterfaceTypeImpl get type => (_currentResult ?? _singleType)!;
 
-  void update(InterfaceType type) {
+  void update(InterfaceTypeImpl type) {
     if (_error != null) {
       return;
     }
@@ -182,11 +183,12 @@ class _ClassInterfaceType {
       } else if (type == _singleType) {
         return;
       } else {
-        _currentResult = _typeSystem.normalize(_singleType!) as InterfaceType;
+        _currentResult =
+            _typeSystem.normalize(_singleType!) as InterfaceTypeImpl;
       }
     }
 
-    var normType = _typeSystem.normalize(type) as InterfaceType;
+    var normType = _typeSystem.normalize(type) as InterfaceTypeImpl;
     try {
       _currentResult = _merge(_currentResult!, normType);
     } catch (e) {
@@ -197,7 +199,7 @@ class _ClassInterfaceType {
     }
   }
 
-  InterfaceType _merge(InterfaceType T1, InterfaceType T2) {
+  InterfaceTypeImpl _merge(InterfaceTypeImpl T1, InterfaceTypeImpl T2) {
     // Normally `Object?` cannot be a superinterface.
     // However, it can happen for extension types.
     if (_isDartCoreObject) {
@@ -211,7 +213,7 @@ class _ClassInterfaceType {
       }
     }
 
-    return _typeSystem.topMerge(T1, T2) as InterfaceType;
+    return _typeSystem.topMerge(T1, T2) as InterfaceTypeImpl;
   }
 }
 

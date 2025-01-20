@@ -663,7 +663,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<InterfaceType> get allSupertypes {
+  List<InterfaceTypeImpl> get allSupertypes {
     var substitution = Substitution.fromInterfaceType(this);
     return element.allSupertypes
         .map((t) => (substitution.substituteType(t) as InterfaceTypeImpl)
@@ -819,8 +819,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get mixins {
-    List<InterfaceType> mixins = element.mixins;
-    return _instantiateSuperTypes(mixins);
+    return _instantiateSuperTypes(element.mixins);
   }
 
   @Deprecated('Check element, or use getDisplayString()')
@@ -862,7 +861,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<InterfaceType> get superclassConstraints {
+  List<InterfaceTypeImpl> get superclassConstraints {
     var element = this.element;
     var augmented = element.augmented;
     if (augmented is MixinElementImpl2) {
@@ -1169,7 +1168,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     );
   }
 
-  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> definedTypes) {
+  List<InterfaceTypeImpl> _instantiateSuperTypes(
+      List<InterfaceTypeImpl> definedTypes) {
     if (definedTypes.isEmpty) return definedTypes;
 
     MapSubstitution? substitution;

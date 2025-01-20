@@ -232,7 +232,7 @@ class LiteralElementVerifier {
         var tearoffType = implicitCallMethod.type;
         if (featureSet.isEnabled(Feature.constructor_tearoffs)) {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
-            elementType as FunctionType,
+            elementType as FunctionTypeImpl,
             tearoffType,
             errorReporter: errorReporter,
             errorNode: expression,

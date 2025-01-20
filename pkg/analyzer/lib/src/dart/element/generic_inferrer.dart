@@ -186,7 +186,7 @@ class GenericInferrer {
   /// Constrain a universal function type [fnType] used in a context
   /// [contextType].
   void constrainGenericFunctionInContext(
-      FunctionType fnType, DartType contextType,
+      FunctionType fnType, TypeImpl contextType,
       {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromFunctionContext(
         functionType: fnType, contextType: contextType);
@@ -210,7 +210,7 @@ class GenericInferrer {
 
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
-  void constrainReturnType(DartType declaredType, DartType contextType,
+  void constrainReturnType(DartType declaredType, TypeImpl contextType,
       {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromReturnType(
         declaredType: declaredType, contextType: contextType);

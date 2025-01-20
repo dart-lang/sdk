@@ -78,7 +78,7 @@ class TypedLiteralResolver {
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
   void resolveListLiteral(ListLiteralImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     DartType? elementType;
     GenericInferrer? inferrer;
 
@@ -428,7 +428,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferListTypeDownwards(ListLiteralImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var element = _typeProvider.listElement2;
     var typeParameters = element.typeParameters2;
     inferenceLogWriter?.enterGenericInference(
@@ -495,7 +495,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferMapTypeDownwards(
-      SetOrMapLiteralImpl node, DartType contextType) {
+      SetOrMapLiteralImpl node, TypeImpl contextType) {
     var element = _typeProvider.mapElement2;
     inferenceLogWriter?.enterGenericInference(
         // TODO(paulberry): make this cast unnecessary by changing
@@ -603,7 +603,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferSetTypeDownwards(
-      SetOrMapLiteralImpl node, DartType contextType) {
+      SetOrMapLiteralImpl node, TypeImpl contextType) {
     var element = _typeProvider.setElement2;
     inferenceLogWriter?.enterGenericInference(
         // TODO(paulberry): make this cast unnecessary by changing
@@ -973,7 +973,7 @@ class _LiteralResolution {
 
   /// The type that should be used as the inference context when performing type
   /// inference for the literal.
-  DartType? contextType;
+  TypeImpl? contextType;
 
   /// Initialize a newly created resolution.
   _LiteralResolution(this.kind, this.contextType);

@@ -3250,7 +3250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
         if (_featureSet?.isEnabled(Feature.constructor_tearoffs) ?? true) {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
-            variableType as FunctionType,
+            variableType as FunctionTypeImpl,
             tearoffType,
             errorReporter: errorReporter,
             errorNode: node.iterable,
