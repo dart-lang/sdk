@@ -4,6 +4,7 @@
 
 library dart._string_match;
 
+import "dart:_error_utils";
 import "dart:_internal" show IterableElementError;
 
 class StringMatch implements Match {
@@ -14,9 +15,7 @@ class StringMatch implements Match {
   int get groupCount => 0;
 
   String group(int group) {
-    if (group != 0) {
-      throw RangeError.value(group);
-    }
+    IndexErrorUtils.checkIndex(group, 1);
     return pattern;
   }
 

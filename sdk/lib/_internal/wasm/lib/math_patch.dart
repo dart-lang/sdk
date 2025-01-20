@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_error_utils";
 import "dart:_internal" show mix64, patch;
 import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:js_interop";
@@ -187,15 +188,13 @@ class _Random implements Random {
   }
 
   int nextInt(int max) {
-    if (max <= 0 || max > _POW2_32) {
-      throw new RangeError.range(
-        max,
-        1,
-        _POW2_32,
-        "max",
-        "Must be positive and <= 2^32",
-      );
-    }
+    RangeErrorUtils.checkValueInInterval(
+      max,
+      1,
+      _POW2_32,
+      "max",
+      "Must be positive and <= 2^32",
+    );
     if ((max & -max) == max) {
       // Fast case for powers of two.
       _nextState();
@@ -295,7 +294,7 @@ class _SecureRandom implements Random {
   }
 
   int nextInt(int max) {
-    RangeError.checkValueInInterval(
+    RangeErrorUtils.checkValueInInterval(
       max,
       1,
       _POW2_32,

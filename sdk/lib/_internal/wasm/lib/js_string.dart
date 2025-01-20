@@ -71,7 +71,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @pragma("wasm:prefer-inline")
   int codeUnitAt(int index) {
     final length = this.length;
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    IndexErrorUtils.checkIndex(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
@@ -355,7 +355,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String replaceRange(int start, int? end, String replacement) {
     end ??= length;
-    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     return _replaceRange(start, end, replacement);
   }
 
@@ -374,7 +374,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   String substring(int start, [int? end]) {
     end ??= length;
-    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     if (start == end) return "";
     return _substringUnchecked(start, end);
   }
@@ -722,7 +722,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   @pragma("wasm:prefer-inline")
   String operator [](int index) {
-    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    IndexErrorUtils.checkIndex(index, length);
     return JSStringImpl(_jsFromCharCode(_codeUnitAtUnchecked(index)));
   }
 

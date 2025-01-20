@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_error_utils";
 import 'dart:_boxed_double';
 import 'dart:_internal';
 import 'dart:_wasm';
@@ -306,8 +307,8 @@ final class BoxedInt implements int {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    RangeErrorUtils.checkNotNegative(e, "exponent");
+    RangeErrorUtils.checkPositive(m, "modulus");
     if (e == 0) return 1;
 
     // This is floor(sqrt(2^63)).
@@ -407,7 +408,7 @@ final class BoxedInt implements int {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    RangeErrorUtils.checkPositive(m, "modulus");
     if (m == 1) return 0;
     int t = this;
     // t < 0 || t >= m, m is positive (checked above)
