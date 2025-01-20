@@ -91,6 +91,40 @@ static get runtimeTrue() → core::bool
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1;
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDoubleLiteral1() → void {
+  core::print(#C7);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(d)->b]
+static method testDoubleLiteral2([@vm.inferred-arg-type.metadata=dart.core::_Double] core::double i) → void {
+  core::print(i);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(d)->b]
+static method testDoubleLiteral3([@vm.inferred-arg-type.metadata=dart.core::_Double] core::double i) → void {
+  core::print(i);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDoubleConstant1() → void {
+  core::print(#C8);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(d)->b]
+static method testDoubleConstant2([@vm.inferred-arg-type.metadata=dart.core::_Double] core::double i) → void {
+  core::print(i);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(d)->b]
+static method testDoubleConstant3([@vm.inferred-arg-type.metadata=dart.core::_Double] core::double i) → void {
+  core::print(i);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final core::String s1 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::String} "foo" : "bar";
   if([@vm.inferred-type.metadata=dart.core::bool (receiver not int)] s1 =={core::String::==}{(core::Object) → core::bool} "foo") {
@@ -116,11 +150,32 @@ static method main() → void {
     self::testDefaultEq2();
   }
   final self::OverriddenEq c2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{self::OverriddenEq} new self::OverriddenEq::•(1) : new self::OverriddenEq::•(2);
-  if([@vm.direct-call.metadata=#lib::OverriddenEq.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c2 =={self::OverriddenEq::==}{(core::Object) → core::bool} #C7) {
+  if([@vm.direct-call.metadata=#lib::OverriddenEq.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c2 =={self::OverriddenEq::==}{(core::Object) → core::bool} #C9) {
     self::testOverriddenEq1(c2);
   }
   if([@vm.direct-call.metadata=#lib::OverriddenEq.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] c2 =={self::OverriddenEq::==}{(core::Object) → core::bool} #C2) {
     self::testOverriddenEq2(c2);
+  }
+  final core::double d1 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::double} 1.21 : 3.41;
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d1 =={core::num::==}{(core::Object) → core::bool} 1.2) {
+    self::testDoubleLiteral1();
+  }
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d1 =={core::num::==}{(core::Object) → core::bool} #C8) {
+    self::testDoubleConstant1();
+  }
+  final core::double d2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::double} 1.34 : 5.67;
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d2 =={core::num::==}{(core::Object) → core::bool} #C10) {
+    self::testDoubleLiteral2(d2);
+  }
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d2 =={core::num::==}{(core::Object) → core::bool} #C10) {
+    self::testDoubleConstant2(d2);
+  }
+  final core::double d3 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::double} 8.7 : 9.6;
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d3 =={core::num::==}{(core::Object) → core::bool} [@vm.direct-call.metadata=dart.core::_Double.unary-] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] 0.0.{core::double::unary-}(){() → core::double}) {
+    self::testDoubleLiteral3(d3);
+  }
+  if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d3 =={core::num::==}{(core::Object) → core::bool} #C11) {
+    self::testDoubleConstant3(d3);
   }
 }
 constants  {
@@ -130,5 +185,9 @@ constants  {
   #C4 = 456
   #C5 = 1
   #C6 = self::DefaultEq {i:#C5}
-  #C7 = self::OverriddenEq {i:#C5}
+  #C7 = 1.2
+  #C8 = 12.34
+  #C9 = self::OverriddenEq {i:#C5}
+  #C10 = NaN
+  #C11 = -0.0
 }
