@@ -263,7 +263,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
 
-    inferFormals(formals, classHierarchy);
+    formals?.infer(classHierarchy);
 
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
@@ -563,7 +563,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
 
-    inferFormals(formals, classHierarchy);
+    formals?.infer(classHierarchy);
 
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_error_utils";
 import 'dart:_boxed_int' show intHashCode;
 import 'dart:_internal' show doubleToIntBits, intBitsToDouble;
 import 'dart:_js_helper' show JS, jsStringToDartString;
@@ -362,10 +363,12 @@ final class BoxedDouble implements double {
     // See ECMAScript-262, 15.7.4.5 for details.
 
     // Step 2.
-    // fractionDigits < 0 || fractionDigits > 20
-    if (fractionDigits.gtU(20)) {
-      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
-    }
+    // 0 <= fractionDigits <= 20
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      fractionDigits,
+      20,
+      "fractionDigits",
+    );
 
     // Step 3.
     double x = this;
@@ -406,10 +409,12 @@ final class BoxedDouble implements double {
 
     // Step 7.
     if (fractionDigits != null) {
-      // fractionDigits < 0 || fractionDigits > 20
-      if (fractionDigits.gtU(20)) {
-        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
-      }
+      // 0 <= fractionDigits <= 20
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+        fractionDigits,
+        20,
+        "fractionDigits",
+      );
     }
 
     if (isNaN) return "NaN";
@@ -442,9 +447,7 @@ final class BoxedDouble implements double {
     // look at the fractionDigits first.
 
     // Step 8.
-    if (precision < 1 || precision > 21) {
-      throw new RangeError.range(precision, 1, 21, "precision");
-    }
+    RangeErrorUtils.checkValueInInterval(precision, 1, 21, "precision");
 
     if (isNaN) return "NaN";
     if (this == double.infinity) return "Infinity";

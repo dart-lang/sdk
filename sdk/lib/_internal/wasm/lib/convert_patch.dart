@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
+import "dart:_error_utils";
 import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
@@ -2006,7 +2007,11 @@ class _Utf8Decoder {
 
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
-    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+    int end = RangeErrorUtils.checkValidRange(
+      start,
+      maybeEnd,
+      codeUnits.length,
+    );
     if (start == end) return "";
 
     if (codeUnits is JSUint8ArrayImpl) {
@@ -2103,7 +2108,12 @@ class _Utf8Decoder {
 
   @patch
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
-    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+    int end = RangeErrorUtils.checkValidRange(
+      start,
+      maybeEnd,
+      codeUnits.length,
+    );
+    if (start == end) return "";
 
     final U8List bytes;
     int errorOffset;

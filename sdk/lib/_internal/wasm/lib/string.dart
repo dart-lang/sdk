@@ -7,10 +7,10 @@ import "dart:_internal"
         CodeUnits,
         ClassID,
         EfficientLengthIterable,
-        indexCheck,
         unsafeCast,
         WasmStringBase;
 
+import 'dart:_error_utils';
 import 'dart:_js_helper' show JS, jsStringFromDartString, jsStringToDartString;
 import 'dart:_string';
 import 'dart:_list';
@@ -454,9 +454,7 @@ abstract final class StringBase extends WasmStringBase
 
   bool startsWith(Pattern pattern, [int index = 0]) {
     // index < 0 || index > length
-    if (index.gtU(length)) {
-      throw RangeError.range(index, 0, this.length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, this.length);
     if (pattern is String) {
       return _substringMatches(index, pattern);
     }
@@ -465,9 +463,11 @@ abstract final class StringBase extends WasmStringBase
 
   int indexOf(Pattern pattern, [int start = 0]) {
     // start < 0 || start > length
-    if (start.gtU(length)) {
-      throw RangeError.range(start, 0, this.length, "start");
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      start,
+      this.length,
+      "start",
+    );
     if (pattern is String) {
       String other = pattern;
       int maxIndex = this.length - other.length;
@@ -490,9 +490,9 @@ abstract final class StringBase extends WasmStringBase
   int lastIndexOf(Pattern pattern, [int? start]) {
     if (start == null) {
       start = this.length;
-    } else if (start.gtU(length)) {
+    } else {
       // start < 0 || start > length
-      throw RangeError.range(start, 0, this.length);
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, this.length);
     }
     if (pattern is String) {
       String other = pattern;
@@ -514,7 +514,7 @@ abstract final class StringBase extends WasmStringBase
   }
 
   String substring(int startIndex, [int? endIndex]) {
-    endIndex = RangeError.checkValidRange(startIndex, endIndex, this.length);
+    endIndex = RangeErrorUtils.checkValidRange(startIndex, endIndex, length);
     return _substringUnchecked(startIndex, endIndex);
   }
 
@@ -686,9 +686,7 @@ abstract final class StringBase extends WasmStringBase
   bool contains(Pattern pattern, [int startIndex = 0]) {
     if (pattern is String) {
       // startIndex < 0 || startIndex > length
-      if (startIndex.gtU(length)) {
-        throw RangeError.range(startIndex, 0, length);
-      }
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);
       return indexOf(pattern, startIndex) >= 0;
     }
     return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
@@ -699,7 +697,11 @@ abstract final class StringBase extends WasmStringBase
     String replacement, [
     int startIndex = 0,
   ]) {
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      startIndex,
+      length,
+      "startIndex",
+    );
     Iterator iterator =
         startIndex == 0
             ? pattern.allMatches(this).iterator
@@ -711,11 +713,11 @@ abstract final class StringBase extends WasmStringBase
 
   String replaceRange(int start, int? end, String replacement) {
     final length = this.length;
-    final localEnd = RangeError.checkValidRange(start, end, length);
+    end = RangeErrorUtils.checkValidRange(start, end, length);
     bool replacementIsOneByte = replacement is OneByteString;
-    if (start == 0 && localEnd == length) return replacement;
+    if (start == 0 && end == length) return replacement;
     int replacementLength = replacement.length;
-    int totalLength = start + (length - localEnd) + replacementLength;
+    int totalLength = start + (length - end) + replacementLength;
     if (replacementIsOneByte && this is OneByteString) {
       final this_ = unsafeCast<OneByteString>(this);
       final result = OneByteString.withLength(totalLength);
@@ -727,13 +729,13 @@ abstract final class StringBase extends WasmStringBase
         0,
         replacementLength,
       );
-      result._setRange(index, this_, localEnd, length);
+      result._setRange(index, this_, end, length);
       return result;
     }
     List slices = [];
     _addReplaceSlice(slices, 0, start);
     if (replacement.length > 0) slices.add(replacement);
-    _addReplaceSlice(slices, localEnd, length);
+    _addReplaceSlice(slices, end, length);
     return _joinReplaceAllResult(
       this,
       slices,
@@ -954,7 +956,11 @@ abstract final class StringBase extends WasmStringBase
     String replace(Match match), [
     int startIndex = 0,
   ]) {
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      startIndex,
+      length,
+      "startIndex",
+    );
 
     var matches = pattern.allMatches(this, startIndex).iterator;
     if (!matches.moveNext()) return this;
@@ -1113,17 +1119,21 @@ abstract final class StringBase extends WasmStringBase
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
     // start < 0 || start > string.length
-    if (start.gtU(string.length)) {
-      throw RangeError.range(start, 0, string.length, "start");
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      start,
+      string.length,
+      "start",
+    );
     return StringAllMatchesIterable(string, this, start);
   }
 
   Match? matchAsPrefix(String string, [int start = 0]) {
     // start < 0 || start > string.length
-    if (start.gtU(string.length)) {
-      throw RangeError.range(start, 0, string.length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      start,
+      string.length,
+      "start",
+    );
     if (start + this.length > string.length) return null;
     for (int i = 0; i < this.length; i++) {
       if (string.codeUnitAt(start + i) != this.codeUnitAt(i)) {
@@ -1299,7 +1309,7 @@ final class OneByteString extends StringBase {
   @pragma('wasm:prefer-inline')
   @pragma('wasm:static-dispatch')
   int codeUnitAt(int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
@@ -1752,7 +1762,7 @@ final class TwoByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _codeUnitAtUnchecked(index);
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_error_utils";
 import "dart:_internal" show patch;
 import "dart:_string";
 import "dart:_typed_data";
@@ -77,18 +78,13 @@ class StringBuffer {
 
   @patch
   void writeCharCode(int charCode) {
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(charCode, 0x10FFFF);
     if (charCode <= 0xFFFF) {
-      if (charCode < 0) {
-        throw RangeError.range(charCode, 0, 0x10FFFF);
-      }
       _ensureCapacity(1);
       final localBuffer = _buffer!;
       localBuffer.write(_bufferPosition++, charCode);
       _bufferCodeUnitMagnitude |= charCode;
     } else {
-      if (charCode > 0x10FFFF) {
-        throw RangeError.range(charCode, 0, 0x10FFFF);
-      }
       _ensureCapacity(2);
       int bits = charCode - 0x10000;
       final localBuffer = _buffer!;

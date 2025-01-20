@@ -4,13 +4,13 @@
 
 library dart._typed_data;
 
+import 'dart:_error_utils';
 import 'dart:_internal'
     show
         doubleToIntBits,
         ExpandIterable,
         floatToIntBits,
         FollowedByIterable,
-        indexCheck,
         intBitsToDouble,
         intBitsToFloat,
         IterableElementError,
@@ -39,28 +39,21 @@ const int _maxWasmArrayLength = 2147483647; // max i32
 
 int _newArrayLengthCheck(int length) {
   // length < 0 || length > _maxWasmArrayLength
-  if (length.gtU(_maxWasmArrayLength)) {
-    throw RangeError.value(length);
-  }
+  RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+    length,
+    _maxWasmArrayLength,
+  );
   return length;
 }
 
+@pragma("wasm:prefer-inline")
 void _rangeCheck(int listLength, int start, int length) {
-  if (length < 0) {
-    throw RangeError.value(length);
-  }
-  if (start < 0) {
-    throw RangeError.value(start);
-  }
-  if (start + length > listLength) {
-    throw RangeError.value(start + length);
-  }
+  RangeErrorUtils.checkValidRange(start, start + length, listLength);
 }
 
+@pragma("wasm:prefer-inline")
 void _offsetAlignmentCheck(int offset, int alignment) {
-  if ((offset % alignment) != 0) {
-    throw RangeError('Offset ($offset) must be a multiple of $alignment');
-  }
+  RangeErrorUtils.checkAlignment(offset, alignment);
 }
 
 final class _TypedListIterator<E> implements Iterator<E> {
@@ -107,15 +100,14 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   @override
   ByteData asUnmodifiableView();
 
+  @pragma("wasm:prefer-inline")
   void _offsetRangeCheck(int byteOffset, int size) {
-    if (byteOffset < 0 || byteOffset + size > lengthInBytes) {
-      throw IndexError.withLength(
-        byteOffset,
-        lengthInBytes - offsetInBytes,
-        indexable: this,
-        name: "index",
-      );
-    }
+    RangeErrorUtils.checkValidRange(
+      byteOffset,
+      byteOffset + size,
+      lengthInBytes,
+      "byteOffset",
+    );
   }
 
   @override
@@ -1682,16 +1674,10 @@ mixin _IntListMixin implements TypedDataList<int> {
 
   List<R> cast<R>() => List.castFrom<int, R>(this);
   void set first(int value) {
-    if (this.length == 0) {
-      throw IndexError.withLength(0, length, indexable: this);
-    }
     this[0] = value;
   }
 
   void set last(int value) {
-    if (this.length == 0) {
-      throw IndexError.withLength(0, length, indexable: this);
-    }
     this[this.length - 1] = value;
   }
 
@@ -1751,8 +1737,8 @@ mixin _IntListMixin implements TypedDataList<int> {
   Map<int, int> asMap() => ListMapView<int>(this);
 
   Iterable<int> getRange(int start, [int? end]) {
-    int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return SubListIterable<int>(this, start, endIndex);
+    end = RangeErrorUtils.checkValidRange(start, end, length);
+    return SubListIterable<int>(this, start, end);
   }
 
   Iterator<int> get iterator => _TypedListIterator<int>(this);
@@ -1935,7 +1921,7 @@ mixin _IntListMixin implements TypedDataList<int> {
   }
 
   void fillRange(int start, int end, [int? fillValue]) {
-    RangeError.checkValidRange(start, end, this.length);
+    RangeErrorUtils.checkValidRange(start, end, this.length);
     if (start == end) return;
     if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
@@ -1952,12 +1938,8 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
 
   void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
     // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
 
     final count = end - start;
     if ((from.length - skipCount) < count) {
@@ -2124,8 +2106,8 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
   }
 
   SpawnedType sublist(int start, [int? end]) {
-    int endIndex = RangeError.checkValidRange(start, end, this.length);
-    var length = endIndex - start;
+    end = RangeErrorUtils.checkValidRange(start, end, this.length);
+    var length = end - start;
     SpawnedType result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2140,16 +2122,10 @@ mixin _DoubleListMixin implements TypedDataList<double> {
 
   List<R> cast<R>() => List.castFrom<double, R>(this);
   void set first(double value) {
-    if (this.length == 0) {
-      throw IndexError.withLength(0, length, indexable: this);
-    }
     this[0] = value;
   }
 
   void set last(double value) {
-    if (this.length == 0) {
-      throw IndexError.withLength(0, length, indexable: this);
-    }
     this[this.length - 1] = value;
   }
 
@@ -2210,8 +2186,8 @@ mixin _DoubleListMixin implements TypedDataList<double> {
   Map<int, double> asMap() => ListMapView<double>(this);
 
   Iterable<double> getRange(int start, [int? end]) {
-    int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return SubListIterable<double>(this, start, endIndex);
+    end = RangeErrorUtils.checkValidRange(start, end, length);
+    return SubListIterable<double>(this, start, end);
   }
 
   Iterator<double> get iterator => _TypedListIterator<double>(this);
@@ -2395,7 +2371,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
 
   void fillRange(int start, int end, [double? fillValue]) {
     // TODO(eernst): Could use zero as default and not throw; issue .
-    RangeError.checkValidRange(start, end, this.length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     if (start == end) return;
     if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
@@ -2416,14 +2392,8 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
     Iterable<double> from, [
     int skipCount = 0,
   ]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount);
 
     final count = end - start;
     if ((from.length - skipCount) < count) {
@@ -2538,8 +2508,8 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
   }
 
   SpawnedType sublist(int start, [int? end]) {
-    int endIndex = RangeError.checkValidRange(start, end, this.length);
-    var length = endIndex - start;
+    end = RangeErrorUtils.checkValidRange(start, end, this.length);
+    var length = end - start;
     SpawnedType result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2749,14 +2719,14 @@ class I8List extends WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2791,14 +2761,14 @@ class U8List extends WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return getUnchecked(index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     setUnchecked(index, value);
   }
 }
@@ -2844,14 +2814,14 @@ class U8ClampedList extends WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value.clamp(0, 255));
   }
 }
@@ -2886,14 +2856,14 @@ class I16List extends _WasmI16ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2928,14 +2898,14 @@ class U16List extends _WasmI16ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2970,14 +2940,14 @@ class I32List extends _WasmI32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3012,14 +2982,14 @@ class U32List extends _WasmI32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3054,14 +3024,14 @@ class I64List extends _WasmI64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3096,14 +3066,14 @@ class U64List extends _WasmI64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3138,14 +3108,14 @@ class F32List extends _WasmF32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, double value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3180,14 +3150,14 @@ class F64List extends _WasmF64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, double value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3401,13 +3371,13 @@ class _SlowI8List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getInt8(offsetInBytes + index);
   }
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setInt8(offsetInBytes + index, value);
   }
 }
@@ -3442,13 +3412,13 @@ class _SlowU8List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getUint8(offsetInBytes + (index * elementSizeInBytes));
   }
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setUint8(offsetInBytes + (index * elementSizeInBytes), value);
   }
 }
@@ -3484,13 +3454,13 @@ class _SlowU8ClampedList extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getUint8(offsetInBytes + (index * elementSizeInBytes));
   }
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setUint8(
       offsetInBytes + (index * elementSizeInBytes),
       value.clamp(0, 255),
@@ -3528,7 +3498,7 @@ class _SlowI16List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getInt16(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3537,7 +3507,7 @@ class _SlowI16List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setInt16(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3576,7 +3546,7 @@ class _SlowU16List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getUint16(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3585,7 +3555,7 @@ class _SlowU16List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setUint16(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3624,7 +3594,7 @@ class _SlowI32List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getInt32(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3633,7 +3603,7 @@ class _SlowI32List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setInt32(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3672,7 +3642,7 @@ class _SlowU32List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getUint32(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3681,7 +3651,7 @@ class _SlowU32List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setUint32(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3720,7 +3690,7 @@ class _SlowI64List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getInt64(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3729,7 +3699,7 @@ class _SlowI64List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setInt64(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3768,7 +3738,7 @@ class _SlowU64List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getUint64(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3777,7 +3747,7 @@ class _SlowU64List extends _SlowListBase
 
   @override
   void operator []=(int index, int value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setUint64(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3816,7 +3786,7 @@ class _SlowF32List extends _SlowListBase
 
   @override
   double operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getFloat32(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3825,7 +3795,7 @@ class _SlowF32List extends _SlowListBase
 
   @override
   void operator []=(int index, double value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setFloat32(
       offsetInBytes + (index * elementSizeInBytes),
       value,
@@ -3864,7 +3834,7 @@ class SlowF64List extends _SlowListBase
 
   @override
   double operator [](int index) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     return _data.getFloat64(
       offsetInBytes + (index * elementSizeInBytes),
       Endian.little,
@@ -3873,7 +3843,7 @@ class SlowF64List extends _SlowListBase
 
   @override
   void operator []=(int index, double value) {
-    indexCheck(index, length);
+    IndexErrorUtils.checkIndexBCE(index, length);
     _data.setFloat64(
       offsetInBytes + (index * elementSizeInBytes),
       value,
