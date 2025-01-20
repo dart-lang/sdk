@@ -423,7 +423,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      inferFormals(formals, classHierarchy);
+      formals?.infer(classHierarchy);
 
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember || isExtensionTypeMember
@@ -575,11 +575,10 @@ void reportAugmentationMismatch(
       ]);
 }
 
-/// Ensures the type of each of the [formals] is inferred.
-void inferFormals(
-    List<FormalParameterBuilder>? formals, ClassHierarchy classHierarchy) {
-  if (formals != null) {
-    for (FormalParameterBuilder formal in formals) {
+extension FormalsMethods on List<FormalParameterBuilder> {
+  /// Ensures the type of each of the formals is inferred.
+  void infer(ClassHierarchy classHierarchy) {
+    for (FormalParameterBuilder formal in this) {
       TypeBuilder formalType = formal.type;
       if (formalType is InferableTypeBuilder) {
         formalType.inferType(classHierarchy);

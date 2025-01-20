@@ -880,7 +880,7 @@ class DeclaredSourceConstructorBuilder
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
 
-    inferFormals(formals, classHierarchy);
+    formals?.infer(classHierarchy);
 
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
