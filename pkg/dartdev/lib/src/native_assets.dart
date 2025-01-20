@@ -14,6 +14,7 @@ import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:native_assets_cli/data_assets_builder.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
+import 'package:package_config/package_config.dart' as package_config;
 
 import 'core.dart';
 
@@ -23,25 +24,31 @@ import 'core.dart';
 /// [runPackageName] are built.
 Future<List<EncodedAsset>?> compileNativeAssetsJit({
   required bool verbose,
-  String? runPackageName,
+  required String runPackageName,
 }) async {
   final workingDirectory = Directory.current.uri;
+  var packageConfig = await findPackageConfigUri(workingDirectory);
   // TODO(https://github.com/dart-lang/package_config/issues/126): Use
   // package config resolution from package:package_config.
-  if (!await File.fromUri(
-          workingDirectory.resolve('.dart_tool/package_config.json'))
-      .exists()) {
-    if (await File.fromUri(workingDirectory.resolve('pubspec.yaml')).exists()) {
+  if (packageConfig == null) {
+    final pubspecMaybe = await _findPubspec(workingDirectory);
+    if (pubspecMaybe != null) {
       // Silently run `pub get`, this is what would happen in
       // `getExecutableForCommand` later.
       final result = await Process.run(sdk.dart, ['pub', 'get']);
       if (result.exitCode != 0) {
         return null;
       }
+      packageConfig = await findPackageConfigUri(workingDirectory);
     } else {
       return null;
     }
   }
+  final packageLayout = PackageLayout.fromPackageConfig(
+    LocalFileSystem(),
+    await package_config.loadPackageConfigUri(packageConfig!),
+    packageConfig,
+  );
   final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
     // This always runs in JIT mode.
     dartExecutable: Uri.file(sdk.dart),
@@ -69,6 +76,7 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
     ],
     workingDirectory: workingDirectory,
     runPackageName: runPackageName,
+    packageLayout: packageLayout,
     linkingEnabled: false,
     buildAssetTypes: [
       CodeAsset.type,
@@ -94,7 +102,7 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
 /// Used in `dart run` and `dart test`.
 Future<Uri?> compileNativeAssetsJitYamlFile({
   required bool verbose,
-  String? runPackageName,
+  required String runPackageName,
 }) async {
   final assets = await compileNativeAssetsJit(
     verbose: verbose,
@@ -132,7 +140,7 @@ Future<bool> warnOnNativeAssets() async {
   }
   try {
     final packageLayout =
-        await PackageLayout.fromRootPackageRoot(
+        await PackageLayout.fromWorkingDirectory(
       const LocalFileSystem(),
       workingDirectory,
     );
@@ -198,4 +206,40 @@ CCompilerConfig? getCCompilerConfig() {
     );
   }
   return null;
+}
+
+// TODO(https://github.com/dart-lang/package_config/issues/126): Expose this
+// logic in package:package_config.
+Future<Uri?> findPackageConfigUri(Uri uri) async {
+  while (true) {
+    final candidate = uri.resolve('.dart_tool/package_config.json');
+    final file = File.fromUri(candidate);
+    if (await file.exists()) {
+      return file.uri;
+    }
+    final parent = uri.resolve('..');
+    if (parent == uri) {
+      return null;
+    }
+    uri = parent;
+  }
+}
+
+Future<Uri?> _findPubspec(Uri uri) async {
+  while (true) {
+    final candidate = uri.resolve('pubspec.yaml');
+    if (await File.fromUri(candidate).exists()) {
+      return candidate;
+    }
+    final parent = uri.resolve('..');
+    if (parent == uri) {
+      return null;
+    }
+    uri = parent;
+  }
+}
+
+Future<String> findRootPackageName(Uri uri) async {
+  final pubspec = await _findPubspec(uri);
+  return pubspec!.resolve('./').pathSegments.lastWhere((e) => e.isNotEmpty);
 }

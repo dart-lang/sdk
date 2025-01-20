@@ -563,7 +563,10 @@ Remove debugging information from the output and save it separately to the speci
         return 255;
       }
     } else {
-      final assets = await compileNativeAssetsJit(verbose: verbose);
+      final assets = await compileNativeAssetsJit(
+        verbose: verbose,
+        runPackageName: await findRootPackageName(Directory.current.uri),
+      );
       if (assets == null) {
         stderr.writeln('Native assets build failed.');
         return 255;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
@@ -52,7 +53,10 @@ Run "${runner!.executableName} help" to see global options.''');
       }
     } else {
       final assetsYamlFileUri =
-          await compileNativeAssetsJitYamlFile(verbose: verbose);
+          await compileNativeAssetsJitYamlFile(
+        verbose: verbose,
+        runPackageName: await findRootPackageName(Directory.current.uri),
+      );
       if (assetsYamlFileUri == null) {
         log.stderr('Error: Compiling native assets failed.');
         return DartdevCommand.errorExitCode;

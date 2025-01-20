@@ -17,6 +17,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:native_assets_cli/data_assets_builder.dart';
+import 'package:package_config/package_config.dart' as package_config;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -133,7 +134,14 @@ class BuildCommand extends DartdevCommand {
 
     // Start native asset generation here.
     stdout.writeln('Building native assets.');
+    final packageConfig = await findPackageConfigUri(sourceUri);
+    final runPackageName = await findRootPackageName(sourceUri);
     final workingDirectory = Directory.current.uri;
+    final packageLayout = PackageLayout.fromPackageConfig(
+      LocalFileSystem(),
+      await package_config.loadPackageConfigUri(packageConfig!),
+      packageConfig,
+    );
     final target = Target.current;
     final macOSConfig = target.os == OS.macOS
         ? MacOSConfig(targetVersion: minimumSupportedMacOSVersion)
@@ -160,7 +168,8 @@ class BuildCommand extends DartdevCommand {
         ...await validateCodeAssetBuildInput(config),
       ],
       workingDirectory: workingDirectory,
-
+      packageLayout: packageLayout,
+      runPackageName: runPackageName,
       linkingEnabled: true,
       buildAssetTypes: [
         CodeAsset.type,
@@ -181,7 +190,6 @@ class BuildCommand extends DartdevCommand {
 
     final tempDir = Directory.systemTemp.createTempSync();
     try {
-      final packageConfig = await packageConfigUri(sourceUri);
       String? recordedUsagesPath;
       if (recordUseEnabled) {
         recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
@@ -193,7 +201,7 @@ class BuildCommand extends DartdevCommand {
         verbose: verbose,
         verbosity: args.option('verbosity')!,
         defines: [],
-        packages: packageConfig?.toFilePath(),
+        packages: packageConfig.toFilePath(),
         targetOS: targetOS,
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,
@@ -220,6 +228,8 @@ class BuildCommand extends DartdevCommand {
         resourceIdentifiers:
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
+        runPackageName: runPackageName,
+        packageLayout: packageLayout,
         buildResult: buildResult,
         buildAssetTypes: [
           CodeAsset.type,
@@ -280,20 +290,4 @@ extension on String {
   String normalizeCanonicalizePath() => path.canonicalize(path.normalize(this));
   String makeFolder() => endsWith('\\') || endsWith('/') ? this : '$this/';
   String removeDotDart() => replaceFirst(RegExp(r'\.dart$'), '');
-}
-
-// TODO(https://github.com/dart-lang/package_config/issues/126): Expose this
-// logic in package:package_config.
-Future<Uri?> packageConfigUri(Uri uri) async {
-  while (true) {
-    final candidate = uri.resolve('.dart_tool/package_config.json');
-    if (await File.fromUri(candidate).exists()) {
-      return candidate;
-    }
-    final parent = uri.resolve('..');
-    if (parent == uri) {
-      return null;
-    }
-    uri = parent;
-  }
 }
