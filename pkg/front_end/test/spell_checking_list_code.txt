@@ -1640,6 +1640,7 @@ shifts
 ship
 shl
 shortening
+shortest
 showing
 shr
 shrinking

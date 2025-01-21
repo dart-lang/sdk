@@ -79,8 +79,8 @@ List<Witness>? checkExhaustiveness(
   // TODO(johnniwinther): Perform reachability checking.
   List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  List<Witness>? witnesses =
-      checker._unmatched(caseRows, [valueSpace], returnMultipleWitnesses: true);
+  List<Witness>? witnesses = checker._unmatched(caseRows, [valueSpace],
+      returnMultipleWitnesses: true);
 
   // Uncomment this to have it print out the witness for non-exhaustive matches.
   // if (witnesses != null) witnesses.forEach(print);
@@ -116,6 +116,54 @@ class _Checker {
       // If we ran out of rows too, then it means [witnessPredicates] is now a
       // complete description of at least one value that slipped past all the
       // rows.
+      return [new Witness(witnessPredicates)];
+    } else if (caseRows.isEmpty && !returnMultipleWitnesses) {
+      // We have no more cases that can match the witness, so unless we want
+      // to multiple witnesses, we return directly.
+      //
+      // This will return the shortest possible witness and will for instance
+      // return `(E.b, _)` instead of `(E.b, E.a)` for
+      //
+      //     enum E { a, b }
+      //     m(E e) => switch (e) { (E.a, _) => 0, };
+      //
+      // and `C(f1: int())` instead of `C(f1: int(), f2: int())` for
+      //
+      //     abstract class C { num f1, f2; }
+      //     m(C c) => switch (e) { C(f1: double(), f2: double()) => 0, };
+      //
+      // Additionally, it avoids a degenerate case occurring only when checking
+      // for unreachable cases. In this mode, the value space is created from
+      // cases that are not included in the case rows. This means that the
+      // value space visited with an empty set of case rows left, can be
+      // exponential in the size of the case. For instance if we have
+      //
+      //     sealed class S {}
+      //     class S1 extends S {}
+      //     class S2 extends S {
+      //       String? f1, f2, f3, f4, f5, f6, f7, f8;
+      //     }
+      //     m(S s) => {
+      //         S1() => 0,
+      //         S2(:var f1, :var f2, :var f3, :var f4,
+      //            :var f5, :var f6, :var f7, :var f8) => 1,
+      //       };
+      //
+      // then in order to check that the second case is not unreachable after
+      // the first case, we would otherwise check all combinations of `S2` with
+      // fields values `String` or `null` for fields `f1` to `f8`, instead of
+      // just stopping with the shortest witness `S2()`.
+      //
+      // If we want to compute multiple witness, which we only do for the
+      // top-most value space, we continue the search for longer witnesses. This
+      // means that if we have
+      //
+      //     enum E { a, b }
+      //     m(E e) => switch (e) {};
+      //
+      // we do not simply return `_` as the witness, but instead the witnesses
+      // `E.a` and `E.b`. We want this for the quick-fix that adds all enum
+      // values or sealed class subclasses in case of an empty switch.
       return [new Witness(witnessPredicates)];
     }
 

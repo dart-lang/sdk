@@ -953,7 +953,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   DartType getExpressionType(Expression node) {
     if (_cache != null) {
-      return _cache!.getExpressionType(node, this);
+      return _cache.getExpressionType(node, this);
     } else {
       return node.getStaticTypeInternal(this);
     }
@@ -962,7 +962,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   DartType getForInIteratorType(ForInStatement node) {
     if (_cache != null) {
-      return _cache!.getForInIteratorType(node, this);
+      return _cache.getForInIteratorType(node, this);
     } else {
       return node.getIteratorTypeInternal(this);
     }
@@ -971,7 +971,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   @override
   DartType getForInElementType(ForInStatement node) {
     if (_cache != null) {
-      return _cache!.getForInElementType(node, this);
+      return _cache.getForInElementType(node, this);
     } else {
       return node.getElementTypeInternal(this);
     }
