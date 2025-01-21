@@ -2063,7 +2063,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       argumentList: node.arguments,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation(
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `rawType`.
+        rawType: rawType as FunctionTypeImpl?);
 
     node.recordStaticType(
         augmentationTarget is ExecutableElementImpl
@@ -3546,7 +3549,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             argumentList: node.argumentList,
             contextType: UnknownInferredType.instance,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(rawType: node.staticElement?.type);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `RedirectingConstructorInvocationImpl.staticElement`.
+            rawType: node.staticElement?.type as FunctionTypeImpl?);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);
   }
@@ -3683,7 +3689,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             argumentList: node.argumentList,
             contextType: UnknownInferredType.instance,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(rawType: node.staticElement?.type);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `SuperConstructorInvocationImpl.staticElement`.
+            rawType: node.staticElement?.type as FunctionTypeImpl?);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);
   }

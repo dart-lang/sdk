@@ -152,7 +152,10 @@ class FunctionExpressionInvocationResolver {
       argumentList: node.argumentList,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation(
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `rawType`.
+        rawType: rawType as FunctionTypeImpl);
 
     node.recordStaticType(returnType, resolver: _resolver);
   }

@@ -10859,7 +10859,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   ElementLinkedData? linkedData;
 
   ElementImpl? _aliasedElement;
-  DartType? _aliasedType;
+  TypeImpl? _aliasedType;
 
   @override
   late TypeAliasElementImpl2 element;
@@ -10878,13 +10878,15 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType get aliasedType {
+  TypeImpl get aliasedType {
     linkedData?.read(this);
     return _aliasedType!;
   }
 
   set aliasedType(DartType rawType) {
-    _aliasedType = rawType;
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // `rawType` parameter.
+    _aliasedType = rawType as TypeImpl;
   }
 
   /// The aliased type, might be `null` if not yet linked.
@@ -10910,7 +10912,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   /// the constructor-tearoffs specification.
   bool get isProperRename {
     var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceType) {
+    if (aliasedType_ is! InterfaceTypeImpl) {
       return false;
     }
     var aliasedClass = aliasedType_.element;
@@ -11157,7 +11159,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  DartType instantiate(
+  TypeImpl instantiate(
           {required List<DartType> typeArguments,
           required NullabilitySuffix nullabilitySuffix}) =>
       firstFragment.instantiate(
@@ -11347,7 +11349,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  TypeParameterType instantiate({
+  TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl(

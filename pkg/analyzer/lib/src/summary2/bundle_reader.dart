@@ -2155,7 +2155,7 @@ class ResolutionReader {
 
   FunctionType? readOptionalFunctionType() {
     var type = readType();
-    return type is FunctionType ? type : null;
+    return type is FunctionTypeImpl ? type : null;
   }
 
   T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
@@ -2188,7 +2188,7 @@ class ResolutionReader {
     return _reader.readStringReferenceList();
   }
 
-  DartType? readType() {
+  TypeImpl? readType() {
     var tag = _reader.readByte();
     if (tag == Tag.NullType) {
       return null;
@@ -2209,13 +2209,13 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiate(
           typeArguments: const <DartType>[],
           nullabilitySuffix: NullabilitySuffix.none);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiate(
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2295,14 +2295,14 @@ class ResolutionReader {
     }
   }
 
-  DartType _readAliasElementArguments(DartType type) {
+  TypeImpl _readAliasElementArguments(TypeImpl type) {
     var aliasElement = _readRawElement();
     if (aliasElement is TypeAliasElement) {
       var aliasArguments = _readTypeList();
-      if (type is DynamicType) {
+      if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
         return type;
-      } else if (type is FunctionType) {
+      } else if (type is FunctionTypeImpl) {
         return FunctionTypeImpl(
           typeFormals: type.typeFormals,
           parameters: type.parameters,
@@ -2333,7 +2333,7 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is TypeParameterType) {
+      } else if (type is TypeParameterTypeImpl) {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
@@ -2342,7 +2342,7 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is VoidType) {
+      } else if (type is VoidTypeImpl) {
         // TODO(scheglov): add support for `void` aliasing
         return type;
       } else {
@@ -2419,7 +2419,7 @@ class ResolutionReader {
   }
 
   // TODO(scheglov): Optimize for write/read of types without type parameters.
-  FunctionType _readFunctionType() {
+  FunctionTypeImpl _readFunctionType() {
     // TODO(scheglov): reuse for formal parameters
     var typeParameters = _readTypeParameters(null);
     var returnType = readRequiredType();

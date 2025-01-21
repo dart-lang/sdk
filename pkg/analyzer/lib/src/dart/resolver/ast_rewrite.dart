@@ -11,6 +11,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// Handles possible rewrites of AST.
@@ -54,7 +55,7 @@ class AstRewriter {
           node: node,
           function: SimpleIdentifierImpl(typeNode.name2),
         );
-      } else if (element is TypeAliasElement &&
+      } else if (element is TypeAliasElementImpl &&
           element.aliasedElement is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
@@ -77,7 +78,7 @@ class AstRewriter {
               identifier: SimpleIdentifierImpl(typeNode.name2),
             ),
           );
-        } else if (element is TypeAliasElement &&
+        } else if (element is TypeAliasElementImpl &&
             element.aliasedElement is GenericFunctionTypeElement) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
@@ -635,7 +636,7 @@ class AstRewriter {
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
     required InstanceCreationExpressionImpl node,
     required Identifier function,
-    required TypeAliasElement element,
+    required TypeAliasElementImpl element,
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: node.constructorName.type.importPrefix,

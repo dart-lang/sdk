@@ -85,9 +85,10 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
   // what we want here.
   if (element.metadata2.hasJS) return true;
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
-      // While a type test with types from this library is very rare, we should
-      // still ignore it for consistency.
-      element.isFromLibrary(_dartJsUri);
+          // While a type test with types from this library is very rare, we should
+          // still ignore it for consistency.
+          element
+          .isFromLibrary(_dartJsUri);
 }
 
 /// If [type] is a type declared using `@staticInterop` through
@@ -137,7 +138,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   final _visitedTypes = <DartType>{};
 
   @override
-  DartType perform(DartType type, {bool keepUserInteropTypes = false}) {
+  TypeImpl perform(TypeImpl type, {bool keepUserInteropTypes = false}) {
     _keepUserInteropTypes = keepUserInteropTypes;
     _visitedTypes.clear();
     return super.perform(type);
@@ -296,11 +297,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   }) {
     LintCode? lintCode;
     (DartType, DartType) eraseTypes(DartType left, DartType right) {
+      // Note: type casts are needed here because `EraseNonJSInteropTypes`
+      // extends the analyzer's private class `ExtensionTypeErasure`, which uses
+      // `TypeImpl` rather than `DartType`.
       DartType erasedLeft = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(left),
+        eraseNonJsInteropTypes.perform(left as TypeImpl),
       );
       DartType erasedRight = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(right),
+        eraseNonJsInteropTypes.perform(right as TypeImpl),
       );
       var leftIsInteropType = _isJsInteropType(
         erasedLeft,

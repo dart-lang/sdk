@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -318,7 +319,7 @@ class FunctionReferenceResolver {
   /// Resolves [node] as a [TypeLiteral] referencing an interface type directly
   /// (not through a type alias).
   void _resolveDirectTypeLiteral(FunctionReferenceImpl node,
-      IdentifierImpl name, InterfaceElement element) {
+      IdentifierImpl name, InterfaceElementImpl element) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!, name.name, element.typeParameters,
@@ -622,13 +623,13 @@ class FunctionReferenceResolver {
       if (node.parent is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
-      } else if (element is InterfaceElement) {
+      } else if (element is InterfaceElementImpl) {
         _resolver.analyzeExpression(
             node.function, _resolver.operations.unknownType);
         _resolver.popRewrite();
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
-      } else if (element is TypeAliasElement) {
+      } else if (element is TypeAliasElementImpl) {
         _resolver.analyzeExpression(prefix, _resolver.operations.unknownType);
         _resolver.popRewrite();
         _resolveTypeAlias(node: node, element: element, typeAlias: prefix);
@@ -743,7 +744,7 @@ class FunctionReferenceResolver {
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
       if (node.parent is PropertyAccess) {
-        if (element is TypeAliasElement &&
+        if (element is TypeAliasElementImpl &&
             element.aliasedType is FunctionType) {
           function.staticElement = element;
           _resolveTypeAlias(node: node, element: element, typeAlias: function);
@@ -751,11 +752,11 @@ class FunctionReferenceResolver {
           _resolveConstructorReference(node);
         }
         return;
-      } else if (element is InterfaceElement) {
+      } else if (element is InterfaceElementImpl) {
         function.staticElement = element;
         _resolveDirectTypeLiteral(node, function, element);
         return;
-      } else if (element is TypeAliasElement) {
+      } else if (element is TypeAliasElementImpl) {
         function.staticElement = element;
         _resolveTypeAlias(node: node, element: element, typeAlias: function);
         return;
@@ -830,7 +831,7 @@ class FunctionReferenceResolver {
 
   void _resolveTypeAlias({
     required FunctionReferenceImpl node,
-    required TypeAliasElement element,
+    required TypeAliasElementImpl element,
     required IdentifierImpl typeAlias,
   }) {
     var typeArguments = _checkTypeArguments(
@@ -847,7 +848,7 @@ class FunctionReferenceResolver {
 
   void _resolveTypeLiteral({
     required FunctionReferenceImpl node,
-    required DartType instantiatedType,
+    required TypeImpl instantiatedType,
     required IdentifierImpl name,
   }) {
     // TODO(srawlins): set the static element of [typeName].

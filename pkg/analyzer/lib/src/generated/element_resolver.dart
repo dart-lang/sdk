@@ -150,7 +150,7 @@ class ElementResolver {
     }
     if (type is DynamicType) {
       // Nothing to do.
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       // look up ConstructorElement
       ConstructorElement? constructor;
       var name = node.name;

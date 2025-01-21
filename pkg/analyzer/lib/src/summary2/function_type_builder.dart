@@ -37,7 +37,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   FunctionTypeBuilder(
     this.typeFormals,
@@ -98,7 +98,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
 
     var fresh = getFreshTypeParameters(typeFormals);
-    type = fresh.applyToFunctionType(type) as FunctionTypeImpl;
+    type = fresh.applyToFunctionType(type);
 
     _type = type;
     node?.type = type;

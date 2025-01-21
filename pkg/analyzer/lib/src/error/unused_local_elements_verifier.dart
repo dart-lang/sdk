@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart'
     show JoinPatternVariableElementImpl2, MetadataImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
@@ -162,7 +162,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (!Identifier.isPrivateName(node.name.lexeme)) {
       var type = node.type.type;
-      if (type is InterfaceType) {
+      if (type is InterfaceTypeImpl) {
         for (var constructor in type.constructors2) {
           if (!Identifier.isPrivateName(constructor.name3!)) {
             usedElements.addElement(constructor);

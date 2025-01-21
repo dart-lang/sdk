@@ -46,7 +46,7 @@ class NamedTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  DartType? _type;
+  TypeImpl? _type;
 
   NamedTypeBuilder(this.linker, this.typeSystem, this.element, this.arguments,
       this.nullabilitySuffix,
@@ -96,7 +96,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     var element = this.element;
-    if (element is InterfaceElement) {
+    if (element is InterfaceElementImpl) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
       _type = element.instantiate(

@@ -1536,7 +1536,7 @@ abstract class TypeImpl implements DartType {
   const TypeImpl({this.alias});
 
   @override
-  DartType get extensionTypeErasure {
+  TypeImpl get extensionTypeErasure {
     return const ExtensionTypeErasure().perform(this);
   }
 
