@@ -14,6 +14,7 @@ import "dart:_internal"
         jsonEncode,
         ListIterator,
         Lists,
+        minify,
         mix64,
         patch,
         POWERS_OF_TEN,
