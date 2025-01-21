@@ -490,6 +490,9 @@ w.FunctionType _makeFunctionType(
   w.ValueType translateType(DartType type) => isImportOrExport
       ? translator.translateExternalType(type)
       : translator.translateType(type);
+  w.ValueType translateReturnType(DartType type) => isImportOrExport
+      ? translator.translateExternalType(type)
+      : translator.translateReturnType(type);
 
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
@@ -508,7 +511,8 @@ w.FunctionType _makeFunctionType(
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
-    outputs = !isVoidType(returnType) ? [translateType(returnType)] : const [];
+    outputs =
+        !isVoidType(returnType) ? [translateReturnType(returnType)] : const [];
   }
 
   return translator.typesBuilder.defineFunction(inputs, outputs);

@@ -152,7 +152,7 @@ class SelectorInfo {
       for (int i = 0; i < returnCount; i++) {
         if (i < returns.length) {
           DartType type = returns[i];
-          outputSets[i].add(translator.translateType(type));
+          outputSets[i].add(translator.translateReturnType(type));
         } else {
           outputSets[i].add(translator.topInfo.nullableType);
         }

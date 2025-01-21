@@ -3941,7 +3941,6 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     } else {
       if (flag != null) {
         // Explicit initialization flag
-        assert(global.type.type == initFunction.type.outputs.single);
         b.global_get(flag);
         b.if_(const [], [global.type.type]);
         b.global_get(global);
@@ -4291,6 +4290,24 @@ enum _VirtualCallKind {
 }
 
 extension MacroAssembler on w.InstructionsBuilder {
+  /// If the given [outputs] of a call contain bottom types then we will emit an
+  /// `unreachable` instruction.
+  ///
+  /// This can help wasm compilers / wasm runtimes to optimize things more as
+  /// they know control flow has ended here.
+  List<w.ValueType> emitUnreachableIfNoResult(List<w.ValueType> outputs) {
+    for (int i = 0; i < outputs.length; ++i) {
+      final output = outputs[i];
+      if (output is w.RefType &&
+          output.heapType == w.HeapType.none &&
+          !output.nullable) {
+        unreachable();
+        break;
+      }
+    }
+    return outputs;
+  }
+
   /// `[i32] -> [i32]`
   ///
   /// Consumes a `i32` class ID, leaves an `i32` as `bool` for whether
@@ -4620,8 +4637,7 @@ extension MacroAssembler on w.InstructionsBuilder {
       comment('Direct call to ${target.name}');
       call(target.function);
     }
-
-    return target.signature.outputs;
+    return emitUnreachableIfNoResult(target.signature.outputs);
   }
 
   /// Pushes fields common to all Dart objects (class id, id hash).

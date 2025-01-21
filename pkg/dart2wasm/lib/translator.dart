@@ -482,7 +482,7 @@ class Translator with KernelNodes {
       b.ref_as_non_null();
       b.call_ref(function.type);
     }
-    return function.type.outputs;
+    return b.emitUnreachableIfNoResult(function.type.outputs);
   }
 
   void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector) {
@@ -493,6 +493,7 @@ class Translator with KernelNodes {
       b.i32_add();
     }
     b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
+    b.emitUnreachableIfNoResult(selector.signature.outputs);
     functions.recordSelectorUse(selector);
   }
 
@@ -543,6 +544,13 @@ class Translator with KernelNodes {
   /// Get the exception tag reference for [module].
   w.Tag getExceptionTag(w.ModuleBuilder module) =>
       exceptionTag.getExceptionTag(module);
+
+  w.ValueType translateReturnType(DartType type) {
+    if (type is NeverType && !type.isPotentiallyNullable) {
+      return const w.RefType.none(nullable: false);
+    }
+    return translateType(type);
+  }
 
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
@@ -640,7 +648,22 @@ class Translator with KernelNodes {
     if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    if (type is NullType || type is NeverType) {
+    if (type is NullType) {
+      return const w.RefType.none(nullable: true);
+    }
+    if (type is NeverType) {
+      // We should translate `Never` to a bottom type in wasm. Though right now
+      // for examples like this
+      //    ```
+      //    Never a;
+      //    try {
+      //      a = throw 'a;
+      //    } catch (e, s) {}
+      //    ```
+      // our code generator makes a local for `a` and tries to initialize it
+      // with a default value (of which there are none if we make it real
+      // bottom).
+      // => We make it nullable here.
       return const w.RefType.none(nullable: true);
     }
     if (type is TypeParameterType) {
@@ -1192,10 +1215,6 @@ class Translator with KernelNodes {
   w.ValueType translateTypeOfParameter(
       VariableDeclaration node, bool isRequired) {
     return translateType(typeOfParameterVariable(node, isRequired));
-  }
-
-  w.ValueType translateTypeOfReturnValue(Member node) {
-    return translateType(typeOfReturnValue(node));
   }
 
   w.ValueType translateTypeOfField(Field node) {
