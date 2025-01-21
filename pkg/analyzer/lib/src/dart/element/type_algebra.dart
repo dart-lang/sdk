@@ -554,7 +554,9 @@ abstract class _TypeSubstitutor
 
     inner.invertVariance();
 
-    var returnType = type.returnType.accept(inner);
+    // TODO(paulberry): eliminate this cast by changing `_TypeSubstitutor` to
+    // implement `TypeVisitor<TypeImpl>`.
+    var returnType = type.returnType.accept(inner) as TypeImpl;
 
     if (useCounter == before) return type;
 

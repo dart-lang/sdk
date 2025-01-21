@@ -90,7 +90,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build() {
+  TypeImpl build() {
     if (_type != null) {
       return _type!;
     }

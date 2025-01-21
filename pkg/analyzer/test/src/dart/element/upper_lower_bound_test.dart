@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
@@ -505,9 +506,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_functionType2_parameters_named() {
     FunctionType build(
-      List<DartType> requiredTypes,
-      Map<String, DartType> namedMap,
-      Map<String, DartType> namedRequiredMap,
+      List<TypeImpl> requiredTypes,
+      Map<String, TypeImpl> namedMap,
+      Map<String, TypeImpl> namedRequiredMap,
     ) {
       var parameters = <ParameterElement>[];
 
@@ -608,8 +609,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_functionType2_parameters_positional() {
     FunctionType build(
-      List<DartType> requiredTypes,
-      List<DartType> positionalTypes,
+      List<TypeImpl> requiredTypes,
+      List<TypeImpl> positionalTypes,
     ) {
       var parameters = <ParameterElement>[];
 
@@ -801,7 +802,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_futureOr() {
-    InterfaceType futureOrFunction(DartType T, String str) {
+    InterfaceType futureOrFunction(TypeImpl T, String str) {
       var result = futureOrNone(
         functionTypeNone(returnType: voidNone, parameters: [
           requiredParameter(type: T),
@@ -1488,7 +1489,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_optionalNamed() {
-    FunctionType build(Map<String, DartType> namedTypes) {
+    FunctionType build(Map<String, TypeImpl> namedTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: namedTypes.entries.map((entry) {
@@ -1497,8 +1498,8 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
 
-    void check(Map<String, DartType> T1_named, Map<String, DartType> T2_named,
-        Map<String, DartType> expected_named) {
+    void check(Map<String, TypeImpl> T1_named, Map<String, TypeImpl> T2_named,
+        Map<String, TypeImpl> expected_named) {
       var T1 = build(T1_named);
       var T2 = build(T2_named);
       var expected = build(expected_named);
@@ -1515,7 +1516,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_optionalPositional() {
-    FunctionType build(List<DartType> positionalTypes) {
+    FunctionType build(List<TypeImpl> positionalTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: positionalTypes.map((type) {
@@ -1524,7 +1525,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
 
-    void check(List<DartType> T1_positional, List<DartType> T2_positional,
+    void check(List<TypeImpl> T1_positional, List<TypeImpl> T2_positional,
         DartType expected) {
       var T1 = build(T1_positional);
       var T2 = build(T2_positional);
@@ -1663,7 +1664,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_requiredPositional() {
-    FunctionType build(List<DartType> requiredTypes) {
+    FunctionType build(List<TypeImpl> requiredTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: requiredTypes.map((type) {
@@ -1672,7 +1673,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
 
-    void check(List<DartType> T1_required, List<DartType> T2_required,
+    void check(List<TypeImpl> T1_required, List<TypeImpl> T2_required,
         DartType expected) {
       var T1 = build(T1_required);
       var T2 = build(T2_required);

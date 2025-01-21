@@ -80,7 +80,7 @@ class FunctionExpressionResolver {
       return;
     }
 
-    void inferType(ParameterElementImpl p, DartType inferredType) {
+    void inferType(ParameterElementImpl p, TypeImpl inferredType) {
       // Check that there is no declared type, and that we have not already
       // inferred a type in some fashion.
       if (p.hasImplicitType && p.type is DynamicType) {
@@ -108,8 +108,11 @@ class FunctionExpressionResolver {
       Iterator<ParameterElement> fnPositional =
           contextType.parameters.where((p) => p.isPositional).iterator;
       while (positional.moveNext() && fnPositional.moveNext()) {
-        inferType(positional.current as ParameterElementImpl,
-            fnPositional.current.type);
+        inferType(
+            positional.current as ParameterElementImpl,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `contextType` to `FunctionTypeImpl`.
+            fnPositional.current.type as TypeImpl);
       }
     }
 
@@ -121,7 +124,11 @@ class FunctionExpressionResolver {
         if (!namedParameterTypes.containsKey(p.name)) {
           continue;
         }
-        inferType(p as ParameterElementImpl, namedParameterTypes[p.name]!);
+        inferType(
+            p as ParameterElementImpl,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `contextType` to `FunctionTypeImpl`.
+            namedParameterTypes[p.name]! as TypeImpl);
       }
     }
   }

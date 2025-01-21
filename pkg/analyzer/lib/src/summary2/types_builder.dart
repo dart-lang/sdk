@@ -97,7 +97,7 @@ class TypesBuilder {
     _MixinsInference(_toInferMixins).perform();
   }
 
-  FunctionType _buildFunctionType(
+  FunctionTypeImpl _buildFunctionType(
     TypeParameterList? typeParameterList,
     TypeAnnotation? returnTypeNode,
     FormalParameterList parameterList,
@@ -167,7 +167,7 @@ class TypesBuilder {
       _extensionDeclaration(node);
     } else if (node is ExtensionTypeDeclarationImpl) {
       _extensionTypeDeclaration(node);
-    } else if (node is FieldFormalParameter) {
+    } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
       var returnType = node.returnType?.type;
@@ -203,14 +203,14 @@ class TypesBuilder {
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       _mixinDeclaration(node);
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is SimpleFormalParameterImpl) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
-    } else if (node is SuperFormalParameter) {
+    } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
       _typeParameter(node);
-    } else if (node is VariableDeclarationList) {
+    } else if (node is VariableDeclarationListImpl) {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
@@ -260,7 +260,7 @@ class TypesBuilder {
     _updatedAugmented(element);
   }
 
-  void _fieldFormalParameter(FieldFormalParameter node) {
+  void _fieldFormalParameter(FieldFormalParameterImpl node) {
     var element = node.declaredElement as FieldFormalParameterElementImpl;
     var parameterList = node.parameters;
     if (parameterList != null) {
@@ -342,7 +342,7 @@ class TypesBuilder {
     }
   }
 
-  void _superFormalParameter(SuperFormalParameter node) {
+  void _superFormalParameter(SuperFormalParameterImpl node) {
     var element = node.declaredElement as SuperFormalParameterElementImpl;
     var parameterList = node.parameters;
     if (parameterList != null) {

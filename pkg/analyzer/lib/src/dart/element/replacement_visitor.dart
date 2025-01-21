@@ -58,7 +58,7 @@ class ReplacementVisitor
     required FunctionTypeBuilder type,
     required List<TypeParameterElement>? newTypeParameters,
     required List<ParameterElement>? newParameters,
-    required DartType? newReturnType,
+    required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null &&
@@ -311,13 +311,15 @@ class ReplacementVisitor
       }
     }
 
-    DartType? visitType(DartType? type) {
+    TypeImpl? visitType(DartType? type) {
       if (type == null) return null;
       var result = type.accept(this);
       if (substitution != null) {
         result = substitution.substituteType(result ?? type);
       }
-      return result;
+      // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor`
+      // to implement `TypeVisitor<TypeImpl?>`.
+      return result as TypeImpl?;
     }
 
     var newReturnType = visitType(node.returnType);

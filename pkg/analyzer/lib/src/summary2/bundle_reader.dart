@@ -2170,7 +2170,7 @@ class ResolutionReader {
     }
   }
 
-  DartType readRequiredType() {
+  TypeImpl readRequiredType() {
     return readType()!;
   }
 

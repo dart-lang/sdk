@@ -99,7 +99,7 @@ class ForResolver {
   /// a type for the elements being iterated over.  Inference is based
   /// on the type of the iterator or stream over which the foreach loop
   /// is defined.
-  DartType _computeForEachElementType(Expression iterable, bool isAsync) {
+  TypeImpl _computeForEachElementType(ExpressionImpl iterable, bool isAsync) {
     var iterableType = iterable.staticType;
     if (iterableType == null) {
       return InvalidTypeImpl.instance;

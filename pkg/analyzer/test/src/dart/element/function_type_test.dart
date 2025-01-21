@@ -30,7 +30,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   ClassElement get mapElement => typeProvider.mapElement;
 
-  InterfaceType get objectType => typeProvider.objectType;
+  InterfaceTypeImpl get objectType => typeProvider.objectType;
 
   void basicChecks(FunctionType f,
       {displayName = 'dynamic Function()',

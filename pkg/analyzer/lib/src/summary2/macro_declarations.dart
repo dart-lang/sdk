@@ -349,11 +349,10 @@ class DeclarationBuilder {
     }
   }
 
-  DartType resolveType(macro.TypeAnnotationCode typeCode) {
+  TypeImpl resolveType(macro.TypeAnnotationCode typeCode) {
     switch (typeCode) {
       case macro.NullableTypeAnnotationCode():
         var type = resolveType(typeCode.underlyingType);
-        type as TypeImpl;
         return type.withNullability(NullabilitySuffix.question);
       case macro.FunctionTypeAnnotationCode():
         return _resolveTypeCodeFunction(typeCode);
@@ -546,7 +545,7 @@ class DeclarationBuilder {
     );
   }
 
-  DartType _resolveTypeCodeNamed(macro.NamedTypeAnnotationCode typeCode) {
+  TypeImpl _resolveTypeCodeNamed(macro.NamedTypeAnnotationCode typeCode) {
     var identifier = typeCode.name as IdentifierImpl;
     if (identifier is IdentifierImplVoid) {
       return VoidTypeImpl.instance;
@@ -576,15 +575,19 @@ class DeclarationBuilder {
     }
   }
 
-  DartType _resolveTypeCodeOmitted(macro.OmittedTypeAnnotationCode typeCode) {
+  TypeImpl _resolveTypeCodeOmitted(macro.OmittedTypeAnnotationCode typeCode) {
     var omittedType = typeCode.typeAnnotation;
     switch (omittedType) {
       case OmittedTypeAnnotationDynamic():
         return DynamicTypeImpl.instance;
       case OmittedTypeAnnotationFunctionReturnType():
-        return omittedType.element.returnType;
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `macro.OmittedTypeAnnotationCode.typeAnnotation`.
+        return omittedType.element.returnType as TypeImpl;
       case OmittedTypeAnnotationVariable():
-        return omittedType.element.type;
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `macro.OmittedTypeAnnotationCode.typeAnnotation`.
+        return omittedType.element.type as TypeImpl;
       default:
         throw UnimplementedError('${omittedType.runtimeType}');
     }
