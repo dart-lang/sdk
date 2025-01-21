@@ -185,3 +185,15 @@ class _ErrorWithoutDetails implements Error {
 
   String toString() => _message;
 }
+
+const _TypeErrorWithoutDetails typeErrorWithoutDetails =
+    _TypeErrorWithoutDetails();
+
+class _TypeErrorWithoutDetails implements TypeError {
+  const _TypeErrorWithoutDetails();
+
+  StackTrace? get stackTrace => null;
+
+  String toString() =>
+      'Runtime type check failed (details omitted due to --minify)';
+}

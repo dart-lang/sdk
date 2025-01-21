@@ -1508,7 +1508,7 @@ void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
           ? _isNullabilityCheck(o, t.isDeclaredNullable)
           : _isSubtype(o, t);
   if (success) return;
-  _TypeError._throwAsCheckError(o, t);
+  _throwAsCheckError(o, t);
 }
 
 @pragma("wasm:entry-point")
@@ -1592,11 +1592,12 @@ void _asInterfaceSubtype2(
 }
 
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError0(
+Never _throwInterfaceTypeAsCheckError0(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = const WasmArray<_Type>.literal([]);
   _TypeError._throwAsCheckError(
     o,
@@ -1606,12 +1607,13 @@ void _throwInterfaceTypeAsCheckError0(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError1(
+Never _throwInterfaceTypeAsCheckError1(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   _Type typeArgument0,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = WasmArray<_Type>.literal([typeArgument0]);
   _TypeError._throwAsCheckError(
     o,
@@ -1621,13 +1623,14 @@ void _throwInterfaceTypeAsCheckError1(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError2(
+Never _throwInterfaceTypeAsCheckError2(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   _Type typeArgument0,
   _Type typeArgument1,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   final typeArguments = WasmArray<_Type>.literal([
     typeArgument0,
     typeArgument1,
@@ -1640,16 +1643,24 @@ void _throwInterfaceTypeAsCheckError2(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
-void _throwInterfaceTypeAsCheckError(
+Never _throwInterfaceTypeAsCheckError(
   Object? o,
   bool isDeclaredNullable,
   WasmI32 tId,
   WasmArray<_Type> typeArguments,
 ) {
+  if (minify) throw typeErrorWithoutDetails;
   _TypeError._throwAsCheckError(
     o,
     _InterfaceType(tId, isDeclaredNullable, typeArguments),
   );
+}
+
+@pragma("wasm:entry-point")
+@pragma('wasm:never-inline')
+Never _throwAsCheckError(Object? o, _Type type) {
+  if (minify) throw typeErrorWithoutDetails;
+  _TypeError._throwAsCheckError(o, type);
 }
 
 @pragma("wasm:entry-point")
