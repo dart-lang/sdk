@@ -96,7 +96,7 @@ exhaustiveSealedListAsList(
         SealedList<int>
             sl) => /*
              checkingOrder={SealedList<int>,ListA<int>,ListB<int>,<int>[],<int>[()],<int>[(), (), ...],<int>[],<int>[()],<int>[(), (), ...]},
-             error=non-exhaustive:[Object()];[Object(), Object(), ...Object()];[Object()];[Object(), Object(), ...Object()],
+             error=non-exhaustive:[Object()];[Object(), _, ...];[Object()];[Object(), _, ...],
              expandedSubtypes={<int>[],<int>[()],<int>[(), (), ...],<int>[],<int>[()],<int>[(), (), ...]},
              subtypes={ListA<int>,ListB<int>},
              type=SealedList<int>
@@ -112,7 +112,7 @@ nonExhaustiveSealedListAsList(
         SealedList<int>
             sl) => /*
              checkingOrder={SealedList<int>,ListA<int>,ListB<int>,<int>[],<int>[()],<int>[(), (), ...],<int>[],<int>[()],<int>[(), (), ...]},
-             error=non-exhaustive:[_];[Object(), Object(), ...Object()];[_];[Object(), Object(), ...Object()],
+             error=non-exhaustive:[_];[Object(), _, ...];[_];[Object(), _, ...],
              expandedSubtypes={<int>[],<int>[()],<int>[(), (), ...],<int>[],<int>[()],<int>[(), (), ...]},
              subtypes={ListA<int>,ListB<int>},
              type=SealedList<int>
