@@ -61,6 +61,8 @@ Future<void> main(List<String> args, SendPort sendPort) async {
     buffer.write('''
 name: plugin_entrypoint
 version: 0.0.1
+environment:
+  sdk: ^3.6.0
 dependencies:
   analyzer: '$analyzerVersion'
   analyzer_plugin: '$analyzerPluginVersion'
