@@ -864,7 +864,7 @@ class N {}''');
     newFile(join(testPackageLibPath, 'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
-import 'lib1.dart' show N hide M;
+import 'lib1.dart' show N hide M hide M;
 import 'lib2.dart' show N;
 
 void f(N? n) {
@@ -872,7 +872,7 @@ void f(N? n) {
 }
 ''');
     await assertHasFix('''
-import 'lib1.dart' hide M, N;
+import 'lib1.dart' hide M, N hide M, N;
 import 'lib2.dart' show N;
 
 void f(N? n) {
