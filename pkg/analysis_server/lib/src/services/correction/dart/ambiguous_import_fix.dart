@@ -265,23 +265,27 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
           ({
             ImportDirective directive,
             List<ShowCombinator> showList,
-            HideCombinator? hide,
+            List<HideCombinator> hideList,
           })
         >[];
 
     for (var directive in importDirectives) {
       var show = directive.combinators.whereType<ShowCombinator>().toList();
-      var hide = directive.combinators.whereType<HideCombinator>().firstOrNull;
+      var hide = directive.combinators.whereType<HideCombinator>().toList();
       // If there is no show combinator, then we don't want to deal with this
       // case here.
       if (show.isEmpty) {
         return;
       }
-      showCombinators.add((directive: directive, showList: show, hide: hide));
+      showCombinators.add((
+        directive: directive,
+        showList: show,
+        hideList: hide,
+      ));
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      for (var (:directive, :showList, :hide) in showCombinators) {
+      for (var (:directive, :showList, :hideList) in showCombinators) {
         var noShow = true;
         for (var show in showList) {
           var allNames = [
@@ -302,10 +306,11 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
           }
         }
         if (noShow) {
-          if (hide == null) {
+          if (hideList.isEmpty) {
             var hideCombinator = ' hide $_elementName';
             builder.addSimpleInsertion(directive.end - 1, hideCombinator);
-          } else {
+          }
+          for (var hide in hideList) {
             var allNames = [
               ...hide.hiddenNames.map((name) => name.name),
               _elementName,
