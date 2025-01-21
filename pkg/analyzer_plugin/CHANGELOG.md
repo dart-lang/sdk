@@ -1,4 +1,4 @@
-## 0.13.0-dev
+## 0.13.0
 - Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
 - Breaking changes to `DartFileEditBuilder` and `DartEditBuilder`.
 - Breaking changes to `AnalyzerConverter`.
