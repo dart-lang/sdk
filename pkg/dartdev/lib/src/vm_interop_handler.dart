@@ -54,7 +54,7 @@ abstract class VmInteropHandler {
     final port = _port;
     if (port == null) return;
     final message = <dynamic>[
-      useExecProcess? _kResultRunExec : _kResultRun,
+      useExecProcess ? _kResultRunExec : _kResultRun,
       script,
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,

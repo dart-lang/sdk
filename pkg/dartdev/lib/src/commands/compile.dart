@@ -558,23 +558,35 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return 255;
-      }
-    } else {
-      final assets = await compileNativeAssetsJit(
-        verbose: verbose,
-        runPackageName: await findRootPackageName(Directory.current.uri),
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
+        Directory.current.uri,
       );
-      if (assets == null) {
-        stderr.writeln('Native assets build failed.');
-        return 255;
-      }
-      if (assets.isNotEmpty) {
-        stderr.writeln(
-            "'dart compile' does currently not support native assets.");
-        return 255;
+      if (runPackageName != null) {
+        final builder = DartNativeAssetsBuilder(
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return 255;
+          }
+        } else {
+          final assets = await builder.compileNativeAssetsJit();
+          if (assets == null) {
+            stderr.writeln('Native assets build failed.');
+            return 255;
+          }
+          if (assets.isNotEmpty) {
+            stderr.writeln(
+                "'dart compile' does currently not support native assets.");
+            return 255;
+          }
+        }
       }
     }
 

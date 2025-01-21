@@ -10,14 +10,9 @@ import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
-import 'package:dartdev/src/utils.dart';
-import 'package:file/local.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
-import 'package:native_assets_cli/data_assets_builder.dart';
-import 'package:package_config/package_config.dart' as package_config;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -132,61 +127,23 @@ class BuildCommand extends DartdevCommand {
     }
     await outputDir.create(recursive: true);
 
-    // Start native asset generation here.
     stdout.writeln('Building native assets.');
-    final packageConfig = await findPackageConfigUri(sourceUri);
-    final runPackageName = await findRootPackageName(sourceUri);
-    final workingDirectory = Directory.current.uri;
-    final packageLayout = PackageLayout.fromPackageConfig(
-      LocalFileSystem(),
-      await package_config.loadPackageConfigUri(packageConfig!),
-      packageConfig,
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      sourceUri,
     );
-    final target = Target.current;
-    final macOSConfig = target.os == OS.macOS
-        ? MacOSConfig(targetVersion: minimumSupportedMacOSVersion)
-        : null;
-    final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
-      fileSystem: const LocalFileSystem(),
-      dartExecutable: Uri.file(sdk.dart),
-      logger: logger(verbose),
+    final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
+      sourceUri,
     );
-
-    final cCompilerConfig = getCCompilerConfig();
-
-    final buildResult = await nativeAssetsBuildRunner.build(
-      inputCreator: () => BuildInputBuilder()
-        ..config.setupCode(
-          targetOS: target.os,
-          linkModePreference: LinkModePreference.dynamic,
-          targetArchitecture: target.architecture,
-          macOS: macOSConfig,
-          cCompiler: cCompilerConfig,
-        ),
-      inputValidator: (config) async => [
-        ...await validateDataAssetBuildInput(config),
-        ...await validateCodeAssetBuildInput(config),
-      ],
-      workingDirectory: workingDirectory,
-      packageLayout: packageLayout,
-      runPackageName: runPackageName,
-      linkingEnabled: true,
-      buildAssetTypes: [
-        CodeAsset.type,
-      ],
-      buildValidator: (config, output) async => [
-        ...await validateDataAssetBuildOutput(config, output),
-        ...await validateCodeAssetBuildOutput(config, output),
-      ],
-      applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetInApplication(assets),
-      ],
+    final builder = DartNativeAssetsBuilder(
+      packageConfigUri: packageConfig!,
+      runPackageName: runPackageName!,
+      verbose: verbose,
     );
+    final buildResult = await builder.buildNativeAssetsAOT();
     if (buildResult == null) {
       stderr.writeln('Native assets build failed.');
       return 255;
     }
-    // End native asset generation here.
 
     final tempDir = Directory.systemTemp.createTempSync();
     try {
@@ -211,38 +168,10 @@ class BuildCommand extends DartdevCommand {
         recordedUsagesFile: recordedUsagesPath,
       );
 
-      // Start linking here.
-      final linkResult = await nativeAssetsBuildRunner.link(
-        inputCreator: () => LinkInputBuilder()
-          ..config.setupCode(
-            targetOS: target.os,
-            targetArchitecture: target.architecture,
-            linkModePreference: LinkModePreference.dynamic,
-            macOS: macOSConfig,
-            cCompiler: cCompilerConfig,
-          ),
-        inputValidator: (config) async => [
-          ...await validateDataAssetLinkInput(config),
-          ...await validateCodeAssetLinkInput(config),
-        ],
-        resourceIdentifiers:
-            recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
-        workingDirectory: workingDirectory,
-        runPackageName: runPackageName,
-        packageLayout: packageLayout,
+      final linkResult = await builder.linkNativeAssetsAOT(
+        recordedUsagesPath: recordedUsagesPath,
         buildResult: buildResult,
-        buildAssetTypes: [
-          CodeAsset.type,
-        ],
-        linkValidator: (config, output) async => [
-          ...await validateDataAssetLinkOutput(config, output),
-          ...await validateCodeAssetLinkOutput(config, output),
-        ],
-        applicationAssetValidator: (assets) async => [
-          ...await validateCodeAssetInApplication(assets),
-        ],
       );
-
       if (linkResult == null) {
         stderr.writeln('Native assets link failed.');
         return 255;
@@ -265,7 +194,7 @@ Use linkMode as dynamic library instead.""");
       if (allAssets.isNotEmpty) {
         final kernelAssets = await bundleNativeAssets(
           allAssets,
-          target,
+          builder.target,
           outputUri,
           relocatable: true,
           verbose: true,
