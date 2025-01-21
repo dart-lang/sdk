@@ -472,7 +472,7 @@ void main() {
   runAllTests();
 }
 
-// Will swap the first and last items in a list, while leaving the the middle
+// Will swap the first and last items in a list, while leaving the middle
 // elements in place because they will be swapped and then swapped back as
 // shuffle iterates through the list.
 class MockRandom implements Random {

@@ -16,7 +16,7 @@ class ParameterInfo {
   final List<Constant?> positional;
 
   /// Default values of named parameters. Similar to [positional], `null` means
-  /// the the parameter is not optional.
+  /// the parameter is not optional.
   final Map<String, Constant?> named;
 
   final bool takesContextOrReceiver;

@@ -28,7 +28,7 @@
 /// final someInterestingValue = 1000;
 /// while (true) {
 ///   if (counter == someInterestingValue) {
-///     // Trigger a breakpoint in the the debugger.
+///     // Trigger a breakpoint in the debugger.
 ///     debugger();
 ///   }
 ///   counter++;

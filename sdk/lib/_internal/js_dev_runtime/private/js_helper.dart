@@ -973,7 +973,7 @@ rti.Rti getRtiForRecord(Object? record) {
 ///
 /// Care needs to taken to ensure that the runtime does not get caught telling
 /// lies. Generally, a class's `runtimeType` lies by returning an abstract
-/// supertype of the class.  Since both the the marker interface and `get
+/// supertype of the class.  Since both the marker interface and `get
 /// runtimeType` are inherited, there should be no way in which a user can
 /// extend the class or implement interface of the class.
 // TODO(48585): Move this class back to the dart:_rti library when old DDC
