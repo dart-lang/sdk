@@ -376,7 +376,8 @@ class RunCommand extends DartdevCommand {
         return errorExitCode;
       }
     } else {
-      final runPackageName = getPackageForCommand(mainCommand);
+      final runPackageName = getPackageForCommand(mainCommand) ??
+          await findRootPackageName(Directory.current.uri);
       final assetsYamlFileUri = await compileNativeAssetsJitYamlFile(
         verbose: verbose,
         runPackageName: runPackageName,
