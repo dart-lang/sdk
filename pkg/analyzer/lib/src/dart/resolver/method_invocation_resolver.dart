@@ -492,7 +492,10 @@ class MethodInvocationResolver with ScopeHelpers {
             argumentList: node.argumentList,
             whyNotPromotedArguments: whyNotPromotedArguments,
             contextType: contextType)
-        .resolveInvocation(rawType: rawType);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `rawType`.
+            rawType: rawType as FunctionTypeImpl?);
   }
 
   /// Resolves the method invocation, [node], as an instance invocation on an

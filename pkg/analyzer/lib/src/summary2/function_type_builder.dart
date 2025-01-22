@@ -23,7 +23,7 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   final List<TypeParameterElement> typeFormals;
   final List<ParameterElement> parameters;
-  final DartType returnType;
+  final TypeImpl returnType;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -37,7 +37,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   FunctionTypeBuilder(
     this.typeFormals,
@@ -71,7 +71,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build() {
+  TypeImpl build() {
     var type = _type;
     if (type != null) {
       return type;
@@ -98,7 +98,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
 
     var fresh = getFreshTypeParameters(typeFormals);
-    type = fresh.applyToFunctionType(type) as FunctionTypeImpl;
+    type = fresh.applyToFunctionType(type);
 
     _type = type;
     node?.type = type;
@@ -153,7 +153,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
-  static DartType _buildType(DartType type) {
+  static TypeImpl _buildType(TypeImpl type) {
     if (type is TypeBuilder) {
       return type.build();
     } else {
@@ -162,7 +162,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getNodeType(TypeAnnotation? node) {
+  static TypeImpl _getNodeType(TypeAnnotation? node) {
     if (node == null) {
       return _dynamicType;
     } else {

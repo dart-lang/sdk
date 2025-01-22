@@ -67,7 +67,10 @@ class InstanceCreationExpressionResolver {
             argumentList: node.argumentList,
             contextType: contextType,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(rawType: elementToInfer?.asType);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            rawType: elementToInfer?.asType as FunctionTypeImpl?);
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);

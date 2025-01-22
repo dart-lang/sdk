@@ -47,21 +47,33 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return DartdevCommand.errorExitCode;
-      }
-    } else {
-      final assetsYamlFileUri =
-          await compileNativeAssetsJitYamlFile(
-        verbose: verbose,
-        runPackageName: await findRootPackageName(Directory.current.uri),
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
+        Directory.current.uri,
       );
-      if (assetsYamlFileUri == null) {
-        log.stderr('Error: Compiling native assets failed.');
-        return DartdevCommand.errorExitCode;
+      if (runPackageName != null) {
+        final builder = DartNativeAssetsBuilder(
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return DartdevCommand.errorExitCode;
+          }
+        } else {
+          final assetsYamlFileUri =
+              await builder.compileNativeAssetsJitYamlFile();
+          if (assetsYamlFileUri == null) {
+            log.stderr('Error: Compiling native assets failed.');
+            return DartdevCommand.errorExitCode;
+          }
+          nativeAssets = assetsYamlFileUri.toFilePath();
+        }
       }
-      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     try {

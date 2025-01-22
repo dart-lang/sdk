@@ -151,7 +151,7 @@ class _Node extends graph.Node<_Node> {
     _evaluateWithType(type);
   }
 
-  void _evaluateWithType(DartType type) {
+  void _evaluateWithType(TypeImpl type) {
     var typeSystem = element.library.typeSystem;
 
     element.representation.type = type;

@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +22,7 @@ main() {
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElementImpl2 T;
-  late final TypeParameterType T_none;
+  late final TypeParameterTypeImpl T_none;
   late final TypeParameterType T_question;
 
   @override

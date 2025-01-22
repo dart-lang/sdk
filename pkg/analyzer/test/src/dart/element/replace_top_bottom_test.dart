@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +23,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     // Not contravariant.
     _check(neverNone, 'Never');
 
-    void checkContravariant(DartType type, String expectedStr) {
+    void checkContravariant(TypeImpl type, String expectedStr) {
       _check(
         functionTypeNone(returnType: intNone, parameters: [
           requiredParameter(type: type),

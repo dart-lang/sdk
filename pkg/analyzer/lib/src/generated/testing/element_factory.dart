@@ -120,7 +120,7 @@ class ElementFactory {
 
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String? name, bool isConst,
-      [List<DartType> argumentTypes = const []]) {
+      [List<TypeImpl> argumentTypes = const []]) {
     var offset = name == null ? -1 : 0;
     // A constructor declared as `C.new` is unnamed, and is modeled as such.
     var constructor = name == null || name == 'new'
@@ -146,11 +146,11 @@ class ElementFactory {
 
   static ConstructorElementImpl constructorElement2(
           ClassElement definingClass, String? name,
-          [List<DartType> argumentTypes = const []]) =>
+          [List<TypeImpl> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
   static FieldElementImpl fieldElement(
-      String name, bool isStatic, bool isFinal, bool isConst, DartType type,
+      String name, bool isStatic, bool isFinal, bool isConst, TypeImpl type,
       {ExpressionImpl? initializer}) {
     FieldElementImpl field =
         isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
@@ -184,7 +184,7 @@ class ElementFactory {
   }
 
   static PropertyAccessorElementImpl getterElement(
-      String name, bool isStatic, DartType type) {
+      String name, bool isStatic, TypeImpl type) {
     FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
@@ -227,7 +227,7 @@ class ElementFactory {
       LocalVariableElementImpl(name, 0);
 
   static MethodElementImpl methodElement(String methodName, DartType returnType,
-      [List<DartType> argumentTypes = const []]) {
+      [List<TypeImpl> argumentTypes = const []]) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.parameters = _requiredParameters(argumentTypes);
     method.returnType = returnType;
@@ -276,7 +276,7 @@ class ElementFactory {
     );
   }
 
-  static ParameterElementImpl namedParameter2(String name, DartType type) {
+  static ParameterElementImpl namedParameter2(String name, TypeImpl type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -294,7 +294,7 @@ class ElementFactory {
     );
   }
 
-  static ParameterElementImpl positionalParameter2(String name, DartType type) {
+  static ParameterElementImpl positionalParameter2(String name, TypeImpl type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -314,7 +314,7 @@ class ElementFactory {
     );
   }
 
-  static ParameterElementImpl requiredParameter2(String name, DartType type) {
+  static ParameterElementImpl requiredParameter2(String name, TypeImpl type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -325,7 +325,7 @@ class ElementFactory {
   }
 
   static PropertyAccessorElementImpl setterElement(
-      String name, bool isStatic, DartType type) {
+      String name, bool isStatic, TypeImpl type) {
     FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
@@ -367,7 +367,7 @@ class ElementFactory {
   }
 
   static List<ParameterElementImpl> _requiredParameters(
-      List<DartType> argumentTypes) {
+      List<TypeImpl> argumentTypes) {
     var parameters = argumentTypes.mapIndexed((index, type) {
       var parameter = ParameterElementImpl(
         name: 'a$index',

@@ -52,7 +52,7 @@ For more information about the server's capabilities and configuration, see:
         sdk.analysisServerSnapshot,
         args,
         packageConfigOverride: null,
-        useExecProcess : false,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {

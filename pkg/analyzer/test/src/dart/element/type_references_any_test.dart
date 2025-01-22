@@ -21,7 +21,7 @@ main() {
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   late TypeParameterElement T;
-  late TypeParameterType T_none;
+  late TypeParameterTypeImpl T_none;
 
   @override
   void setUp() {

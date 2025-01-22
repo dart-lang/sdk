@@ -9022,7 +9022,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   /// The element associated with the function type, or `null` if the AST
   /// structure hasn't been resolved.
@@ -12546,7 +12546,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   /// Initializes a newly created type name.
   ///
@@ -14860,7 +14860,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   RecordTypeAnnotationImpl({
     required this.leftParenthesis,
@@ -17834,7 +17834,10 @@ sealed class TypeAnnotation implements AstNode {
   DartType? get type;
 }
 
-sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {}
+sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {
+  @override
+  TypeImpl? get type;
+}
 
 /// A list of type arguments.
 ///

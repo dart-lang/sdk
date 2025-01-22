@@ -847,7 +847,7 @@ CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
   status: noFix
   notes: |-
-    We cannot figure out the the user's intent here, and so cannot generate a
+    We cannot figure out the user's intent here, and so cannot generate a
     fix that would be right.
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsFix

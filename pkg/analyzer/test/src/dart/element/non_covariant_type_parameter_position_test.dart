@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +23,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   late final T_element = typeParameter('T');
   late final T = typeParameterTypeNone(T_element);
 
-  FunctionType get _contravariantT {
+  FunctionTypeImpl get _contravariantT {
     return functionTypeNone(
       returnType: voidNone,
       parameters: [

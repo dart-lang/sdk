@@ -376,7 +376,16 @@ extension TypeAnnotationExtension on TypeAnnotation {
   /// This accessor should be used on expressions that are expected to
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
-  DartType get typeOrThrow {
+  TypeImpl get typeOrThrow => (this as TypeAnnotationImpl).typeOrThrow;
+}
+
+extension TypeAnnotationImplExtension on TypeAnnotationImpl {
+  /// Return the static type of this type annotation.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  TypeImpl get typeOrThrow {
     var type = this.type;
     if (type == null) {
       throw StateError('No type: $this');

@@ -204,7 +204,7 @@ mixin ElementsTypesMixin {
   ExtensionTypeElementImpl extensionType(
     String name, {
     String representationName = 'it',
-    required DartType representationType,
+    required TypeImpl representationType,
     List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
@@ -438,7 +438,7 @@ mixin ElementsTypesMixin {
 
   ParameterElementImpl namedParameter({
     required String name,
-    required DartType type,
+    required TypeImpl type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(
@@ -453,7 +453,7 @@ mixin ElementsTypesMixin {
 
   ParameterElementImpl namedRequiredParameter({
     required String name,
-    required DartType type,
+    required TypeImpl type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(
@@ -468,7 +468,7 @@ mixin ElementsTypesMixin {
 
   ParameterElementImpl positionalParameter({
     String? name,
-    required DartType type,
+    required TypeImpl type,
     bool isCovariant = false,
     String? defaultValueCode,
   }) {
@@ -562,7 +562,7 @@ mixin ElementsTypesMixin {
 
   ParameterElementImpl requiredParameter({
     String? name,
-    required DartType type,
+    required TypeImpl type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(

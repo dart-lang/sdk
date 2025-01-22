@@ -246,8 +246,8 @@ class PubspecFixGenerator {
                     ? prevEntry.value.span.end.offset
                     : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
-            // dev_dependencies section, and also dev_dependencies is the the
-            // last section in the pubspec file. So delete till the end of the
+            // dev_dependencies section, and also dev_dependencies is the last
+            // section in the pubspec file. So delete till the end of the
             // section.
             var endOffset =
                 nextEntry == null

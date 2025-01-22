@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,8 +56,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     {
       void checkRequiredParameter(
-        DartType T1_type,
-        DartType T2_type,
+        TypeImpl T1_type,
+        TypeImpl T2_type,
         bool expected,
       ) {
         check(

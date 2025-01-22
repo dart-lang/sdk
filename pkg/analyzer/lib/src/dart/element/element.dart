@@ -7844,9 +7844,9 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   Metadata get metadata2 => wrappedElement.metadata2;
 
   @override
-  DartType get type => _wrappedElement.type;
+  TypeImpl get type => _wrappedElement.type;
 
-  set type(DartType type) => _wrappedElement.type = type;
+  set type(TypeImpl type) => _wrappedElement.type = type;
 
   LocalVariableElementImpl get wrappedElement {
     return _wrappedElement;
@@ -9310,7 +9310,9 @@ class ParameterElementImpl extends VariableElementImpl
       nameOffset: -1,
       parameterKind: parameterKind,
     );
-    element.type = type;
+    // TODO(paulberry): remove this cast by changing the type of the `type`
+    // parameter.
+    element.type = type as TypeImpl;
     element.isSynthetic = true;
     return element;
   }
@@ -10357,7 +10359,7 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  set type(DartType type) {
+  set type(TypeImpl type) {
     super.type = type;
     // Reset cached types of synthetic getters and setters.
     // TODO(scheglov): Consider not caching these types.
@@ -10859,7 +10861,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   ElementLinkedData? linkedData;
 
   ElementImpl? _aliasedElement;
-  DartType? _aliasedType;
+  TypeImpl? _aliasedType;
 
   @override
   late TypeAliasElementImpl2 element;
@@ -10878,13 +10880,15 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  DartType get aliasedType {
+  TypeImpl get aliasedType {
     linkedData?.read(this);
     return _aliasedType!;
   }
 
   set aliasedType(DartType rawType) {
-    _aliasedType = rawType;
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // `rawType` parameter.
+    _aliasedType = rawType as TypeImpl;
   }
 
   /// The aliased type, might be `null` if not yet linked.
@@ -10910,7 +10914,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   /// the constructor-tearoffs specification.
   bool get isProperRename {
     var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceType) {
+    if (aliasedType_ is! InterfaceTypeImpl) {
       return false;
     }
     var aliasedClass = aliasedType_.element;
@@ -11157,7 +11161,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  DartType instantiate(
+  TypeImpl instantiate(
           {required List<DartType> typeArguments,
           required NullabilitySuffix nullabilitySuffix}) =>
       firstFragment.instantiate(
@@ -11347,7 +11351,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  TypeParameterType instantiate({
+  TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl(
@@ -11628,10 +11632,8 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   TypeImpl get type => _type!;
 
-  set type(DartType type) {
-    // TODO(paulberry): eliminate this cast by changing the setter parameter
-    // type to `TypeImpl`.
-    _type = type as TypeImpl;
+  set type(TypeImpl type) {
+    _type = type;
   }
 
   @override

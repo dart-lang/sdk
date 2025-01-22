@@ -156,7 +156,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
 
   @override
-  DartType resolveInvocation({required FunctionType? rawType}) {
+  DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
     var typeArgumentList = _typeArguments;
     var originalType = rawType;
 
@@ -280,7 +280,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     if (inferrer != null) {
       typeArgumentTypes = inferrer.chooseFinalTypes();
     }
-    FunctionType? invokeType = typeArgumentTypes != null
+    FunctionTypeImpl? invokeType = typeArgumentTypes != null
         ? originalType?.instantiate(typeArgumentTypes)
         : originalType;
 
@@ -333,7 +333,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   }
 
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     return invokeType?.parameters;
   }
 }
@@ -390,7 +390,7 @@ class InstanceCreationInferrer
 
   @override
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
@@ -426,7 +426,7 @@ abstract class InvocationExpressionInferrer<
 
   @override
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     node.typeArgumentTypes = typeArgumentTypes;
     node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
     return super._storeResult(typeArgumentTypes, invokeType);
@@ -461,7 +461,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Performs type inference on the invocation expression.  [rawType] should be
   /// the type of the function the invocation is resolved to (with type
   /// arguments not applied yet).
-  void resolveInvocation({required FunctionType? rawType}) {
+  void resolveInvocation({required FunctionTypeImpl? rawType}) {
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: _computeParameterMap(rawType?.parameters ?? const []));
     if (deferredFunctionLiterals != null) {

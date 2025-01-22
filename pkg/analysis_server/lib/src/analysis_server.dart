@@ -1120,7 +1120,7 @@ abstract class CommonServerContextManagerCallbacks
     // If the removed file doesn't have an overlay, we need to clear any
     // previous results.
     if (!resourceProvider.hasOverlay(file)) {
-      // Clear the cached errors in the the notification manager so we don't
+      // Clear the cached errors in the notification manager so we don't
       // re-send stale results if a plugin sends an update and we merge it with
       // previous results.
       analysisServer.notificationManager.errors.clearResultsForFile(file);

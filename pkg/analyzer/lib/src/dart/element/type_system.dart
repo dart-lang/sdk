@@ -45,8 +45,10 @@ import 'package:meta/meta.dart';
 class ExtensionTypeErasure extends ReplacementVisitor {
   const ExtensionTypeErasure();
 
-  DartType perform(DartType type) {
-    return type.accept(this) ?? type;
+  TypeImpl perform(TypeImpl type) {
+    // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor` so
+    // that it implements `TypeVisitor<TypeImpl?>`.
+    return (type.accept(this) ?? type) as TypeImpl;
   }
 
   @override
@@ -700,8 +702,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  InterfaceType instantiateInterfaceToBounds({
-    required InterfaceElement element,
+  InterfaceTypeImpl instantiateInterfaceToBounds({
+    required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     var typeParameters = element.typeParameters;
@@ -746,8 +748,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType instantiateTypeAliasToBounds({
-    required TypeAliasElement element,
+  TypeImpl instantiateTypeAliasToBounds({
+    required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     var typeParameters = element.typeParameters;
