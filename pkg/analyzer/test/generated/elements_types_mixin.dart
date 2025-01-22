@@ -572,6 +572,13 @@ mixin ElementsTypesMixin {
     );
   }
 
+  TypeParameterTypeImpl promotedTypeParameterTypeQuestion2(
+    TypeParameterElement2 element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterTypeQuestion(element.asElement, promotedBound);
+  }
+
   RecordTypeImpl recordType({
     List<DartType> positionalTypes = const [],
     Map<String, DartType> namedTypes = const {},
