@@ -7,6 +7,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
@@ -506,6 +508,16 @@ mixin ElementsTypesMixin {
     );
   }
 
+  TypeParameterTypeImpl promotedTypeParameterTypeNone2(
+    TypeParameterElement2 element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterTypeNone(
+      element.asElement,
+      promotedBound,
+    );
+  }
+
   TypeParameterTypeImpl promotedTypeParameterTypeQuestion(
     TypeParameterElement element,
     DartType promotedBound,
@@ -608,6 +620,11 @@ mixin ElementsTypesMixin {
     return element;
   }
 
+  TypeParameterElement2 typeParameter2(String name,
+      {DartType? bound, Variance? variance}) {
+    return typeParameter(name, bound: bound, variance: variance).asElement2;
+  }
+
   TypeParameterTypeImpl typeParameterType(
     TypeParameterElement element, {
     required NullabilitySuffix nullabilitySuffix,
@@ -631,6 +648,16 @@ mixin ElementsTypesMixin {
     );
   }
 
+  TypeParameterTypeImpl typeParameterTypeNone2(
+    TypeParameterElement2 element, {
+    DartType? promotedBound,
+  }) {
+    return typeParameterTypeNone(
+      element.asElement,
+      promotedBound: promotedBound,
+    );
+  }
+
   TypeParameterTypeImpl typeParameterTypeQuestion(
     TypeParameterElement element, {
     DartType? promotedBound,
@@ -638,6 +665,16 @@ mixin ElementsTypesMixin {
     return typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.question,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl typeParameterTypeQuestion2(
+    TypeParameterElement2 element, {
+    DartType? promotedBound,
+  }) {
+    return typeParameterTypeQuestion(
+      element.asElement,
       promotedBound: promotedBound,
     );
   }
