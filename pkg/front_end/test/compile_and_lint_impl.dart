@@ -82,6 +82,14 @@ Future<int> runCompileAndLintTest(
     }
   }
 
+  // If we filtered everything away (e.g. only changed files in an ignored
+  // directory) we shouldn't try to run.
+  // It will fail and also doesn't make sense.
+  if (includedFilesFiltered.isEmpty) {
+    // 0 = no errors found.
+    return 0;
+  }
+
   Stopwatch stopwatch = new Stopwatch()..start();
 
   // TODO(jensj): The target has to be VM or we can't compile the sdk,
