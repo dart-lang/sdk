@@ -24,12 +24,4 @@ class WorkspaceApplyEditTest extends SharedLspOverLegacyTest
     await super.initializeServer();
     await sendClientCapabilities();
   }
-
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-    setApplyEditSupport();
-    setFileCreateSupport();
-    setDocumentChangesSupport();
-  }
 }

@@ -47,6 +47,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       return serverNotInitializedError;
     }
 
+    if (!editorClientCapabilities.applyEdit) {
+      return error(
+        ErrorCodes.RequestFailed,
+        'The connected editor does not support applying edits',
+      );
+    }
+
     var textDocument = params.textDocument;
     var position = params.position;
 

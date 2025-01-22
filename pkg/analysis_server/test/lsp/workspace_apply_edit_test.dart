@@ -18,12 +18,4 @@ class WorkspaceApplyEditTest extends SharedAbstractLspAnalysisServerTest
     with
         // Tests are defined in SharedWorkspaceApplyEditTests because they
         // are shared and run for both LSP and Legacy servers.
-        SharedWorkspaceApplyEditTests {
-  @override
-  Future<void> setUp() async {
-    super.setUp();
-    setApplyEditSupport();
-    setFileCreateSupport();
-    setDocumentChangesSupport();
-  }
-}
+        SharedWorkspaceApplyEditTests {}
