@@ -56,7 +56,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   /// The declarations that introduces this method. Subsequent methods of the
   /// same name must be augmentations.
   // TODO(johnniwinther): Add [_augmentations] field.
-  MethodFragment _introductory;
+  final MethodFragment _introductory;
 
   Modifiers _modifiers;
 

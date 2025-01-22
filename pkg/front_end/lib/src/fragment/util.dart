@@ -298,3 +298,166 @@ mixin FieldDeclarationMixin
     }
   }
 }
+
+sealed class PropertyEncodingStrategy {
+  factory PropertyEncodingStrategy(DeclarationBuilder? declarationBuilder,
+      {required bool isInstanceMember}) {
+    switch (declarationBuilder) {
+      case null:
+      case ClassBuilder():
+        return const RegularPropertyEncodingStrategy();
+      case ExtensionBuilder():
+        if (isInstanceMember) {
+          return const ExtensionInstancePropertyEncodingStrategy();
+        } else {
+          return const ExtensionStaticPropertyEncodingStrategy();
+        }
+      case ExtensionTypeDeclarationBuilder():
+        if (isInstanceMember) {
+          return const ExtensionTypeInstancePropertyEncodingStrategy();
+        } else {
+          return const ExtensionTypeStaticPropertyEncodingStrategy();
+        }
+    }
+  }
+
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters);
+
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters);
+}
+
+class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
+  const RegularPropertyEncodingStrategy();
+
+  @override
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _RegularGetterEncoding(fragment);
+  }
+
+  @override
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _RegularSetterEncoding(fragment);
+  }
+}
+
+class ExtensionInstancePropertyEncodingStrategy
+    implements PropertyEncodingStrategy {
+  const ExtensionInstancePropertyEncodingStrategy();
+
+  @override
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionBuilder;
+    SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
+        declarationBuilder, unboundNominalParameters,
+        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return new _ExtensionInstanceGetterEncoding(fragment,
+        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+
+  @override
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionBuilder;
+    SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
+        declarationBuilder, unboundNominalParameters,
+        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return new _ExtensionInstanceSetterEncoding(fragment,
+        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+}
+
+class ExtensionStaticPropertyEncodingStrategy
+    implements PropertyEncodingStrategy {
+  const ExtensionStaticPropertyEncodingStrategy();
+
+  @override
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionStaticGetterEncoding(fragment);
+  }
+
+  @override
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionStaticSetterEncoding(fragment);
+  }
+}
+
+class ExtensionTypeInstancePropertyEncodingStrategy
+    implements PropertyEncodingStrategy {
+  const ExtensionTypeInstancePropertyEncodingStrategy();
+
+  @override
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionTypeDeclarationBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
+    SynthesizedExtensionTypeSignature signature =
+        new SynthesizedExtensionTypeSignature(
+            declarationBuilder, unboundNominalParameters,
+            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return new _ExtensionTypeInstanceGetterEncoding(fragment,
+        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+
+  @override
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionTypeDeclarationBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
+    SynthesizedExtensionTypeSignature signature =
+        new SynthesizedExtensionTypeSignature(
+            declarationBuilder, unboundNominalParameters,
+            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return new _ExtensionTypeInstanceSetterEncoding(fragment,
+        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+}
+
+class ExtensionTypeStaticPropertyEncodingStrategy
+    implements PropertyEncodingStrategy {
+  const ExtensionTypeStaticPropertyEncodingStrategy();
+
+  @override
+  _GetterEncoding createGetterEncoding(
+      SourcePropertyBuilder builder,
+      GetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionTypeStaticGetterEncoding(fragment);
+  }
+
+  @override
+  _SetterEncoding createSetterEncoding(
+      SourcePropertyBuilder builder,
+      SetterFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionTypeStaticSetterEncoding(fragment);
+  }
+}

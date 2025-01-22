@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
-import '../api_prototype/lowering_predicates.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
@@ -14,13 +12,11 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'builder_factory.dart';
@@ -1527,18 +1523,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
 
-        var (
-          List<NominalParameterBuilder>? typeParameters,
-          List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(
-            declarationBuilder, unboundNominalParameters,
-            isInstanceMember: isInstanceMember,
-            fileUri: fragment.fileUri,
-            nameOffset: fragment.nameOffset);
-
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: name, allowNameConflict: true);
+        PropertyEncodingStrategy propertyEncodingStrategy =
+            new PropertyEncodingStrategy(declarationBuilder,
+                isInstanceMember: isInstanceMember);
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -1567,7 +1554,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 fragment: fragment,
                 nameScheme: nameScheme,
                 references: references);
-        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        fragment.setBuilder(problemReporting, propertyBuilder,
+            propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         references.registerReference(loader, propertyBuilder);
@@ -1576,18 +1564,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
 
-        var (
-          List<NominalParameterBuilder>? typeParameters,
-          List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(
-            declarationBuilder, unboundNominalParameters,
-            isInstanceMember: isInstanceMember,
-            fileUri: fragment.fileUri,
-            nameOffset: fragment.nameOffset);
-
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: name, allowNameConflict: true);
+        PropertyEncodingStrategy propertyEncodingStrategy =
+            new PropertyEncodingStrategy(declarationBuilder,
+                isInstanceMember: isInstanceMember);
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -1616,7 +1595,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 fragment: fragment,
                 nameScheme: nameScheme,
                 references: references);
-        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        fragment.setBuilder(problemReporting, propertyBuilder,
+            propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         references.registerReference(loader, propertyBuilder);
@@ -1628,21 +1608,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
 
-        var (
-          List<NominalParameterBuilder>? typeParameters,
-          List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(
-            declarationBuilder, unboundNominalParameters,
-            isInstanceMember: isInstanceMember,
-            fileUri: fragment.fileUri,
-            nameOffset: fragment.nameOffset);
-
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: name, allowNameConflict: true);
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, fragment.declaredTypeParameters,
-            ownerName: name, allowNameConflict: true);
+        MethodEncodingStrategy encodingStrategy = new MethodEncodingStrategy(
+            declarationBuilder,
+            isInstanceMember: isInstanceMember);
 
         ProcedureKind kind =
             fragment.isOperator ? ProcedureKind.Operator : ProcedureKind.Method;
@@ -1689,7 +1657,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             nameScheme: nameScheme,
             reference: procedureReference,
             tearOffReference: tearOffReference);
-        fragment.setBuilder(methodBuilder, typeParameters, formals);
+        fragment.setBuilder(problemReporting, methodBuilder, encodingStrategy,
+            unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, methodBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
@@ -1702,7 +1671,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           case ExtensionBuilder():
           case ExtensionTypeDeclarationBuilder():
             NominalParameterCopy? nominalVariableCopy =
-                BuilderFactoryImpl.copyTypeParameters(
+                NominalParameterCopy.copyTypeParameters(
                     unboundNominalParameters, declarationBuilder.typeParameters,
                     kind: TypeParameterKind.extensionSynthesized,
                     instanceTypeParameterAccess:
@@ -1799,7 +1768,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         String name = fragment.name;
 
         NominalParameterCopy? nominalVariableCopy =
-            BuilderFactoryImpl.copyTypeParameters(
+            NominalParameterCopy.copyTypeParameters(
                 unboundNominalParameters, declarationBuilder!.typeParameters,
                 kind: TypeParameterKind.extensionSynthesized,
                 instanceTypeParameterAccess:
@@ -1887,7 +1856,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case FactoryFragment():
         String name = fragment.name;
         NominalParameterCopy? nominalParameterCopy =
-            BuilderFactoryImpl.copyTypeParameters(
+            NominalParameterCopy.copyTypeParameters(
                 unboundNominalParameters, declarationBuilder!.typeParameters,
                 kind: TypeParameterKind.function,
                 instanceTypeParameterAccess:
@@ -2528,97 +2497,4 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
         !other.isMixinApplication;
   }
   return true;
-}
-
-/// Creates synthesized type parameters and formals for extension and extension
-/// type instance members.
-(
-  List<NominalParameterBuilder>? typeParameters,
-  List<FormalParameterBuilder>? formals
-) _createTypeParametersAndFormals(DeclarationBuilder? declarationBuilder,
-    List<NominalParameterBuilder> _unboundNominalVariables,
-    {required bool isInstanceMember,
-    required Uri fileUri,
-    required int nameOffset}) {
-  List<NominalParameterBuilder>? typeParameters;
-  List<FormalParameterBuilder>? formals;
-  if (isInstanceMember) {
-    switch (declarationBuilder) {
-      case ExtensionBuilder():
-        NominalParameterCopy? nominalVariableCopy =
-            BuilderFactoryImpl.copyTypeParameters(
-                _unboundNominalVariables, declarationBuilder.typeParameters,
-                kind: TypeParameterKind.extensionSynthesized,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
-
-        if (nominalVariableCopy != null) {
-          typeParameters = nominalVariableCopy.newParameterBuilders;
-        }
-
-        TypeBuilder thisType = declarationBuilder.onType;
-        if (nominalVariableCopy != null) {
-          thisType = new SynthesizedTypeBuilder(
-              thisType,
-              nominalVariableCopy.newToOldParameterMap,
-              nominalVariableCopy.substitutionMap);
-        }
-        List<FormalParameterBuilder> synthesizedFormals = [
-          new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-              Modifiers.Final, thisType, syntheticThisName, nameOffset,
-              fileUri: fileUri,
-              isExtensionThis: true,
-              hasImmediatelyDeclaredInitializer: false)
-        ];
-        formals = synthesizedFormals;
-      case ExtensionTypeDeclarationBuilder():
-        NominalParameterCopy? nominalVariableCopy =
-            BuilderFactoryImpl.copyTypeParameters(
-                _unboundNominalVariables, declarationBuilder.typeParameters,
-                kind: TypeParameterKind.extensionSynthesized,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
-
-        if (nominalVariableCopy != null) {
-          typeParameters = nominalVariableCopy.newParameterBuilders;
-        }
-
-        TypeBuilder thisType =
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                declarationBuilder, const NullabilityBuilder.omitted(),
-                arguments: declarationBuilder.typeParameters != null
-                    ? new List<TypeBuilder>.generate(
-                        declarationBuilder.typeParameters!.length,
-                        (int index) =>
-                            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                                typeParameters![index],
-                                const NullabilityBuilder.omitted(),
-                                instanceTypeParameterAccess:
-                                    InstanceTypeParameterAccessState.Allowed))
-                    : null,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
-
-        if (nominalVariableCopy != null) {
-          thisType = new SynthesizedTypeBuilder(
-              thisType,
-              nominalVariableCopy.newToOldParameterMap,
-              nominalVariableCopy.substitutionMap);
-        }
-        List<FormalParameterBuilder> synthesizedFormals = [
-          new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-              Modifiers.Final, thisType, syntheticThisName, nameOffset,
-              fileUri: fileUri,
-              isExtensionThis: true,
-              hasImmediatelyDeclaredInitializer: false)
-        ];
-        formals = synthesizedFormals;
-      case ClassFragment():
-      case MixinFragment():
-      case EnumFragment():
-      case ClassBuilder():
-      case null:
-    }
-  }
-  return (typeParameters, formals);
 }

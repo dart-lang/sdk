@@ -1132,11 +1132,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             NominalParameterNameSpace nominalParameterNameSpace =
                 new NominalParameterNameSpace();
 
-            NominalParameterCopy nominalVariableCopy = copyTypeParameters(
-                unboundNominalParameters, typeParameters,
-                kind: TypeParameterKind.extensionSynthesized,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed)!;
+            NominalParameterCopy nominalVariableCopy =
+                NominalParameterCopy.copyTypeParameters(
+                    unboundNominalParameters, typeParameters,
+                    kind: TypeParameterKind.extensionSynthesized,
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Allowed)!;
 
             applicationTypeParameters =
                 nominalVariableCopy.newParameterBuilders;
@@ -2250,61 +2251,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _unboundStructuralVariables.add(builder);
     return builder;
-  }
-
-  /// Creates a [NominalParameterCopy] object containing a copy of
-  /// [oldVariableBuilders] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  static NominalParameterCopy? copyTypeParameters(
-      List<NominalParameterBuilder> _unboundNominalVariables,
-      List<NominalParameterBuilder>? oldVariableBuilders,
-      {required TypeParameterKind kind,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
-    if (oldVariableBuilders == null || oldVariableBuilders.isEmpty) {
-      return null;
-    }
-
-    List<TypeBuilder> newTypeArguments = [];
-    Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
-        new Map.identity();
-    Map<NominalParameterBuilder, NominalParameterBuilder> newToOldVariableMap =
-        new Map.identity();
-
-    List<NominalParameterBuilder> newVariableBuilders =
-        <NominalParameterBuilder>[];
-    for (NominalParameterBuilder oldVariable in oldVariableBuilders) {
-      NominalParameterBuilder newVariable = new NominalParameterBuilder(
-          oldVariable.name, oldVariable.fileOffset, oldVariable.fileUri,
-          kind: kind,
-          variableVariance: oldVariable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              oldVariable.variance,
-          isWildcard: oldVariable.isWildcard);
-      newVariableBuilders.add(newVariable);
-      newToOldVariableMap[newVariable] = oldVariable;
-      _unboundNominalVariables.add(newVariable);
-    }
-    for (int i = 0; i < newVariableBuilders.length; i++) {
-      NominalParameterBuilder oldVariableBuilder = oldVariableBuilders[i];
-      TypeBuilder newTypeArgument =
-          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              newVariableBuilders[i], const NullabilityBuilder.omitted(),
-              instanceTypeParameterAccess: instanceTypeParameterAccess);
-      substitutionMap[oldVariableBuilder] = newTypeArgument;
-      newTypeArguments.add(newTypeArgument);
-
-      if (oldVariableBuilder.bound != null) {
-        newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
-            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
-      }
-    }
-    return new NominalParameterCopy(newVariableBuilders, newTypeArguments,
-        substitutionMap, newToOldVariableMap);
   }
 
   @override
