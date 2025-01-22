@@ -52,6 +52,22 @@ $content
     );
   }
 
+  Matcher hasDocumentation(Matcher matcher) {
+    return isA<EditableArguments>().having(
+      (arguments) => arguments.documentation,
+      'documentation',
+      matcher,
+    );
+  }
+
+  Matcher hasName(Matcher matcher) {
+    return isA<EditableArguments>().having(
+      (arguments) => arguments.name,
+      'name',
+      matcher,
+    );
+  }
+
   Matcher isArg(
     String name, {
     Object? type = anything,
@@ -107,6 +123,67 @@ $content
           'enum types must have options / non-enums must not have options',
           isTrue,
         );
+  }
+
+  test_documentation_literal() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  /// Creates a MyWidget.
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasDocumentation(equals('Creates a MyWidget.')));
+  }
+
+  test_documentation_macro() async {
+    var result = await getEditableArgumentsFor('''
+/// {@template my_widget_docs}
+/// MyWidget shared docs.
+/// {@endtemplate}
+class MyWidget extends StatelessWidget {
+  /// {@macro my_widget_docs}
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasDocumentation(equals('MyWidget shared docs.')));
+  }
+
+  test_documentation_missing() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasDocumentation(isNull));
+  }
+
+  test_documentation_widgetFactory() async {
+    var result = await getEditableArgumentsFor('''
+extension on MyWidget {
+  /// Creates a Padded.
+  @widgetFactory
+  Widget padded(int x) => this;
+}
+
+class MyWidget extends StatelessWidget {
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) {
+    return padd^ed(1);
+  }
+}
+''');
+    expect(result, hasDocumentation(equals('Creates a Padded.')));
   }
 
   test_hasArgument() async {
@@ -715,6 +792,49 @@ class MyWidget extends StatelessWidget {
 }
 ''');
     expect(result, hasArgNamed('a1'));
+  }
+
+  test_name_widgetConstructor() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasName(equals('MyWidget')));
+  }
+
+  test_name_widgetConstructor_named() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  const MyWidget.named(int x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget.named(1);
+}
+''');
+    expect(result, hasName(equals('MyWidget')));
+  }
+
+  test_name_widgetFactory() async {
+    var result = await getEditableArgumentsFor('''
+extension on MyWidget {
+  @widgetFactory
+  Widget padded(int x) => this;
+}
+
+class MyWidget extends StatelessWidget {
+  const MyWidget(int x);
+
+  @override
+  Widget build(BuildContext context) {
+    return padd^ed(1);
+  }
+}
+''');
+    expect(result, hasName(isNull));
   }
 
   /// Arguments should be returned in the order of the parameters in the source

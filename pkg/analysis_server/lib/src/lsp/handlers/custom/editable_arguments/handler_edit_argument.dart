@@ -92,6 +92,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var (
+        :widgetName,
+        :widgetDocumentation,
         :parameters,
         :positionalParameterIndexes,
         :parameterArguments,
@@ -101,12 +103,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       ) = invocation;
 
       // Find the parameter we're editing the argument for.
-      var name = params.edit.name;
-      var parameter = parameters.firstWhereOrNull((p) => p.name3 == name);
+      var parameterName = params.edit.name;
+      var parameter = parameters.firstWhereOrNull(
+        (p) => p.name3 == parameterName,
+      );
       if (parameter == null) {
         return error(
           ErrorCodes.RequestFailed,
-          'Parameter "$name" was not found in ${parameters.map((p) => p.name3).join(', ')}',
+          'Parameter "$parameterName" was not found in ${parameters.map((p) => p.name3).join(', ')}',
         );
       }
 
@@ -127,7 +131,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         // known this argument was not editable.
         return error(
           ErrorCodes.RequestFailed,
-          "Parameter '$name' is not editable: $notEditableReason",
+          "Parameter '$parameterName' is not editable: $notEditableReason",
         );
       }
 

@@ -421,6 +421,8 @@ List<LspEntity> getCustomClasses() {
     ]),
     interface('EditableArguments', [
       field('textDocument', type: 'TextDocumentIdentifier'),
+      field('name', type: 'string', canBeUndefined: true),
+      field('documentation', type: 'string', canBeUndefined: true),
       // TODO(dantup): field('refactors', ...),
       field('arguments', type: 'EditableArgument', array: true),
     ]),

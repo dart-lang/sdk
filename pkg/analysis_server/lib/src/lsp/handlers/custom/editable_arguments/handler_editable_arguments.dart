@@ -95,6 +95,8 @@ class EditableArgumentsHandler
     var textDocument = server.getVersionedDocumentIdentifier(result.path);
 
     var (
+      :widgetName,
+      :widgetDocumentation,
       :parameters,
       :positionalParameterIndexes,
       :parameterArguments,
@@ -126,6 +128,8 @@ class EditableArgumentsHandler
 
     return EditableArguments(
       textDocument: textDocument,
+      name: widgetName,
+      documentation: widgetDocumentation,
       arguments: editableArguments.nonNulls.toList(),
     );
   }

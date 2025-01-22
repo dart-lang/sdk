@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Information about the arguments and parameters for an invocation.
 typedef EditableInvocationInfo =
     ({
+      String? widgetName,
+      String? widgetDocumentation,
       List<FormalParameterElement> parameters,
       Map<FormalParameterElement, Expression> parameterArguments,
       Map<FormalParameterElement, int> positionalParameterIndexes,
@@ -22,6 +26,8 @@ typedef EditableInvocationInfo =
     });
 
 mixin EditableArgumentsMixin {
+  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
+
   /// Gets the argument list at [offset] that can be edited.
   EditableInvocationInfo? getInvocationInfo(
     ResolvedUnitResult result,
@@ -36,6 +42,27 @@ mixin EditableArgumentsMixin {
         _ => false,
       };
     });
+
+    String? widgetName, widgetDocumentation;
+    if (invocation is InstanceCreationExpression) {
+      widgetName = invocation.constructorName.type.name2.lexeme;
+
+      if (invocation.constructorName.element case var element?) {
+        var dartDocInfo = getDartdocDirectiveInfoFor(result);
+        var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+        var dartDoc = dartDocComputer.compute(element);
+
+        widgetDocumentation = dartDoc?.full;
+      }
+    } else if (invocation is InvocationExpression) {
+      if (invocation.function case Identifier(:var element?)) {
+        var dartDocInfo = getDartdocDirectiveInfoFor(result);
+        var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+        var dartDoc = dartDocComputer.compute(element);
+
+        widgetDocumentation = dartDoc?.full;
+      }
+    }
 
     // Return the related argument list.
     var (parameters, argumentList) = switch (invocation) {
@@ -79,6 +106,8 @@ mixin EditableArgumentsMixin {
     };
 
     return (
+      widgetName: widgetName,
+      widgetDocumentation: widgetDocumentation,
       parameters: parameters,
       positionalParameterIndexes: positionalParameterIndexes,
       parameterArguments: parameterArguments,
