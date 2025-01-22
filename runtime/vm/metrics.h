@@ -60,10 +60,8 @@ class Metric {
 
   Metric();
 
-#if !defined(PRODUCT)
   static void Init();
   static void Cleanup();
-#endif  // !defined(PRODUCT)
 
   // Initialize a metric for an isolate.
   void InitInstance(Isolate* isolate,
@@ -82,9 +80,9 @@ class Metric {
 
   virtual ~Metric();
 
-#ifndef PRODUCT
+#if !defined(PRODUCT)
   void PrintJSON(JSONStream* stream);
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
   // Returns a zone allocated string.
   static char* ValueToString(int64_t value, Unit unit);
@@ -173,7 +171,6 @@ class MetricHeapNewExternal : public Metric {
   virtual int64_t Value() const;
 };
 
-#if !defined(PRODUCT)
 class MetricIsolateCount : public Metric {
  public:
   virtual int64_t Value() const;
@@ -188,7 +185,6 @@ class MetricPeakRSS : public Metric {
  public:
   virtual int64_t Value() const;
 };
-#endif  // !defined(PRODUCT)
 
 class MetricHeapUsed : public Metric {
  public:
