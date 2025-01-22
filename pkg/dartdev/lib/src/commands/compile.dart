@@ -93,20 +93,19 @@ class CompileJSCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    var runtime = sdk.dartAotRuntime;
+    var script = sdk.dartAotRuntime;
     var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      snapshot = sdk.dart2jsSnapshot;
-      if (!Sdk.checkArtifactExists(snapshot)) {
+      script = sdk.dart2jsSnapshot;
+      if (!Sdk.checkArtifactExists(script)) {
         return genericErrorExitCode;
       }
-      runtime = sdk.dart;
       useExecProcess = false;
     }
     final dart2jsCommand = [
-      snapshot,
+      if (useExecProcess) snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
@@ -115,7 +114,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
     ];
     try {
       VmInteropHandler.run(
-        runtime,
+        script,
         dart2jsCommand,
         packageConfigOverride: null,
         useExecProcess: useExecProcess,
