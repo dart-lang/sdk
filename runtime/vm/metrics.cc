@@ -35,7 +35,6 @@ void Metric::InitInstance(IsolateGroup* isolate_group,
   unit_ = unit;
 }
 
-#if !defined(PRODUCT)
 void Metric::InitInstance(Isolate* isolate,
                           const char* name,
                           const char* description,
@@ -58,6 +57,7 @@ void Metric::InitInstance(const char* name,
   unit_ = unit;
 }
 
+#if !defined(PRODUCT)
 static const char* UnitString(intptr_t unit) {
   switch (unit) {
     case Metric::kCounter:
@@ -79,11 +79,13 @@ void Metric::PrintJSON(JSONStream* stream) {
   obj.AddProperty("name", name_);
   obj.AddProperty("description", description_);
   obj.AddProperty("unit", UnitString(unit()));
+
   if (isolate_ == nullptr && isolate_group_ == nullptr) {
     obj.AddFixedServiceId("vm/metrics/%s", name_);
   } else {
     obj.AddFixedServiceId("metrics/native/%s", name_);
   }
+
   // TODO(johnmccutchan): Overflow?
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);
@@ -180,11 +182,11 @@ int64_t MetricHeapUsed::Value() const {
          isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize;
 }
 
-#if !defined(PRODUCT)
 int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
 
+#if !defined(PRODUCT)
 int64_t MetricCurrentRSS::Value() const {
   return Service::CurrentRSS();
 }

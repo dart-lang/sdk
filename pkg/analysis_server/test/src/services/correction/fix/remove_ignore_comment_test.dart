@@ -76,4 +76,17 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_line_eol() async {
+    await resolveTestCode('''
+class C {
+  void f(){} // ignore: unused_local_variable
+}
+''');
+    await assertHasFix('''
+class C {
+  void f(){}
+}
+''');
+  }
 }

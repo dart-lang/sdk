@@ -2504,6 +2504,7 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
+#endif  // !defined(PRODUCT)
   if (FLAG_print_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
@@ -2511,13 +2512,14 @@ void Isolate::LowLevelShutdown() {
   OS::PrintErr("%s\n", isolate_group_->Get##variable##Metric()->ToString());
     ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_PRINT)
 #undef ISOLATE_GROUP_METRIC_PRINT
+#if !defined(PRODUCT)
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
   OS::PrintErr("%s\n", metric_##variable##_.ToString());
     ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT)
 #undef ISOLATE_METRIC_PRINT
+#endif  // !defined(PRODUCT)
     OS::PrintErr("\n");
   }
-#endif  // !defined(PRODUCT)
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

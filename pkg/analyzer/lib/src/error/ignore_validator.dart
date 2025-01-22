@@ -215,21 +215,34 @@ class IgnoreValidator {
           }
         }
 
-        var diagnosticsOnLine = 0;
+        // We need to calculate if there are multiple diagnostic names in this
+        // ignore comment.
+        //
+        // (This will determine what kind of fix to propose.)
+
         var currentLine = _lineInfo.getLocation(ignoredName.offset).lineNumber;
 
-        // Calculate if there are multiple diagnostic names in this ignore comment.
-        // (This will determine what kind of fix to propose.)
+        // First we need to collect the (possibly) relevant ignores.
+        late Iterable<IgnoredElement> ignoredElements;
         if (forFile) {
-          for (var ignore in _ignoreInfo.ignoredForFile) {
-            if (ignore is IgnoredDiagnosticName) {
-              var ignoreLine = _lineInfo.getLocation(ignore.offset).lineNumber;
-              if (ignoreLine == currentLine) diagnosticsOnLine++;
-            }
-          }
+          ignoredElements = _ignoreInfo.ignoredForFile;
         } else {
-          diagnosticsOnLine =
-              _ignoreInfo.ignoredOnLine[currentLine + 1]?.length ?? 0;
+          // To account for preceding and same-line ignore comments, we look at
+          // the current line and its next.
+          ignoredElements = {
+            ...?_ignoreInfo.ignoredOnLine[currentLine],
+            ...?_ignoreInfo.ignoredOnLine[currentLine + 1],
+          };
+        }
+
+        // Then we further narrow them down to ignored diagnostics that correspond
+        // to the [currentLine].
+        var diagnosticsOnLine = 0;
+        for (var ignore in ignoredElements) {
+          if (ignore is IgnoredDiagnosticName) {
+            var ignoreLine = _lineInfo.getLocation(ignore.offset).lineNumber;
+            if (ignoreLine == currentLine) diagnosticsOnLine++;
+          }
         }
 
         late ErrorCode lintCode;

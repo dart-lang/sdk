@@ -94,6 +94,30 @@ int f() => null;
 ''');
   }
 
+  Future<void> test_file_first_eol() async {
+    await resolveTestCode('''
+import 'dart:io'; // ignore_for_file: unused_local_variable, unused_import
+void f() {}
+''');
+    await assertHasFix('''
+import 'dart:io'; // ignore_for_file: unused_import
+void f() {}
+''');
+  }
+
+  Future<void> test_file_first_leading_and_eol() async {
+    await resolveTestCode('''
+// ignore_for_file: return_of_invalid_type
+import 'dart:io'; // ignore_for_file: unused_local_variable, unused_import
+int f() => null;
+''');
+    await assertHasFix('''
+// ignore_for_file: return_of_invalid_type
+import 'dart:io'; // ignore_for_file: unused_import
+int f() => null;
+''');
+  }
+
   Future<void> test_file_last() async {
     await resolveTestCode('''
 // ignore_for_file: return_of_invalid_type, unused_local_variable
@@ -125,6 +149,30 @@ int f() => null;
 // ignore: return_of_invalid_type
 int f() => null;
 ''');
+  }
+
+  Future<void> test_line_first_eol() async {
+    await resolveTestCode('''
+class C {
+  int f() => null; // ignore: unused_local_variable, return_of_invalid_type
+}''');
+    await assertHasFix('''
+class C {
+  int f() => null; // ignore: return_of_invalid_type
+}''');
+  }
+
+  Future<void> test_line_first_leading_and_eol() async {
+    await resolveTestCode('''
+class C {
+  // ignore: private_optional_parameter
+  int f({required _a}) => null; // ignore: unused_local_variable, return_of_invalid_type
+}''');
+    await assertHasFix('''
+class C {
+  // ignore: private_optional_parameter
+  int f({required _a}) => null; // ignore: return_of_invalid_type
+}''');
   }
 
   Future<void> test_line_last() async {
