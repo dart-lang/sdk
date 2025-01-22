@@ -78,50 +78,17 @@ class SetterFragment implements Fragment, FunctionFragment {
   }
 
   void setBuilder(
+      ProblemReporting problemReporting,
       SourcePropertyBuilder value,
-      List<NominalParameterBuilder>? typeParameters,
-      List<FormalParameterBuilder>? formals) {
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
-    switch (value.declarationBuilder) {
-      case null:
-      case ClassBuilder():
-        _encoding = new _RegularSetterEncoding(this);
-      case ExtensionTypeDeclarationBuilder():
-        if (modifiers.isStatic) {
-          assert(typeParameters == null,
-              "Unexpected type parameters on setter: $typeParameters");
-          assert(formals == null,
-              "Unexpected formal parameters on setter: $formals");
-          _encoding = new _ExtensionTypeStaticSetterEncoding(this);
-        } else {
-          assert(
-              formals != null,
-              "Unexpected formal parameters on extension type instance getter: "
-              "$formals");
-          assert(formals!.length == 1,
-              "Unexpected formals on extension type instance getter: $formals");
-          _encoding = new _ExtensionTypeInstanceSetterEncoding(
-              this, typeParameters, formals!.single);
-        }
-      case ExtensionBuilder():
-        if (modifiers.isStatic) {
-          assert(typeParameters == null,
-              "Unexpected type parameters on setter: $typeParameters");
-          assert(formals == null,
-              "Unexpected formal parameters on setter: $formals");
-          _encoding = new _ExtensionStaticSetterEncoding(this);
-        } else {
-          assert(
-              formals != null,
-              "Unexpected formal parameters on extension instance getter: "
-              "$formals");
-          assert(formals!.length == 1,
-              "Unexpected formals on extension instance getter: $formals");
-          _encoding = new _ExtensionInstanceSetterEncoding(
-              this, typeParameters, formals!.single);
-        }
-    }
+    _encoding = encodingStrategy.createSetterEncoding(
+        value, this, unboundNominalParameters);
+    typeParameterNameSpace.addTypeParameters(
+        problemReporting, _encoding.clonedAndDeclaredTypeParameters,
+        ownerName: name, allowNameConflict: true);
   }
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
@@ -190,7 +157,7 @@ class SetterFragment implements Fragment, FunctionFragment {
 
   // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _encoding.typeParametersForTesting;
+      _encoding.clonedAndDeclaredTypeParameters;
 
   // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formalsForTesting =>
@@ -301,7 +268,7 @@ sealed class _SetterEncoding {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
-  List<NominalParameterBuilder>? get typeParametersForTesting;
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
 
   List<FormalParameterBuilder>? get formalsForTesting;
 }
@@ -489,7 +456,7 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
   @override
@@ -793,7 +760,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null
           ? [
