@@ -1214,8 +1214,8 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   _LocalVariableTypeProvider(this._manager);
 
   @override
-  DartType getType(SimpleIdentifierImpl node, {required bool isRead}) {
-    var variable = node.element as VariableElement2;
+  TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
+    var variable = node.element as VariableElement2OrMember;
     if (variable is PromotableElementImpl2) {
       var promotedType = isRead
           ? _manager.flow?.variableRead(node, variable)

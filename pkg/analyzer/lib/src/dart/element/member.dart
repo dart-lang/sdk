@@ -202,7 +202,7 @@ class ConstructorMember extends ExecutableMember
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
 abstract class ExecutableMember extends Member
-    implements ExecutableElement, ExecutableElement2 {
+    implements ExecutableElementOrMember, ExecutableElement2 {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -316,11 +316,13 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  DartType get returnType {
+  TypeImpl get returnType {
     var result = declaration.returnType;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    return result;
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `declaration`.
+    return result as TypeImpl;
   }
 
   @override
@@ -384,7 +386,7 @@ abstract class ExecutableMember extends Member
     return from2(element.asElement, substitution).asElement2;
   }
 
-  static ExecutableElement from2(
+  static ExecutableElementOrMember from2(
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
@@ -405,7 +407,9 @@ abstract class ExecutableMember extends Member
     }
 
     if (augmentationSubstitution.map.isEmpty && combined.map.isEmpty) {
-      return element;
+      // TODO(paulberry): eliminate this cast by changing the type of the
+      // parameter `element`.
+      return element as ExecutableElementOrMember;
     }
 
     if (element is ConstructorElement) {
@@ -502,7 +506,11 @@ class FieldFormalParameterMember extends ParameterMember
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
 class FieldMember extends VariableMember
-    implements FieldElement, FieldElement2 {
+    implements
+        FieldElement,
+        FieldElement2,
+        VariableElement2OrMember,
+        PropertyInducingElementOrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
@@ -1340,7 +1348,7 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElement, PropertyAccessorElement2 {
+    implements PropertyAccessorElementOrMember, PropertyAccessorElement2 {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
     MapSubstitution augmentationSubstitution,
@@ -1405,8 +1413,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }
 
   @override
-  PropertyAccessorElement get declaration =>
-      super.declaration as PropertyAccessorElement;
+  PropertyAccessorElementImpl get declaration =>
+      super.declaration as PropertyAccessorElementImpl;
 
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
@@ -1427,12 +1435,12 @@ abstract class PropertyAccessorMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  PropertyInducingElement? get variable2 {
+  PropertyInducingElementOrMember? get variable2 {
     // TODO(scheglov): revisit
     var variable = declaration.variable2;
-    if (variable is FieldElement) {
+    if (variable is FieldElementImpl) {
       return FieldMember(variable, augmentationSubstitution, _substitution);
-    } else if (variable is TopLevelVariableElement) {
+    } else if (variable is TopLevelVariableElementImpl) {
       return TopLevelVariableMember(
           variable, augmentationSubstitution, _substitution);
     }
@@ -1572,7 +1580,7 @@ class SuperFormalParameterMember extends ParameterMember
 }
 
 class TopLevelVariableMember extends VariableMember
-    implements TopLevelVariableElement {
+    implements TopLevelVariableElement, PropertyInducingElementOrMember {
   TopLevelVariableMember(
     super.declaration,
     super.augmentationSubstitution,
@@ -1648,7 +1656,8 @@ class TopLevelVariableMember extends VariableMember
 
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
-abstract class VariableMember extends Member implements VariableElement {
+abstract class VariableMember extends Member
+    implements VariableElementOrMember {
   TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the

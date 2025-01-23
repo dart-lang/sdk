@@ -135,9 +135,7 @@ class InstanceMemberInferrer {
         name: getterName,
       );
       if (combinedGetter != null) {
-        // TODO(paulberry): eliminate this cast by changing the return type of
-        // `InheritanceManager3.combineSignatures`.
-        return combinedGetter.returnType as TypeImpl;
+        return combinedGetter.returnType;
       }
       return DynamicTypeImpl.instance;
     }
