@@ -1648,15 +1648,21 @@ class EditableArguments implements ToJsonable {
 
   final List<EditableArgument> arguments;
 
-  final TextDocumentIdentifier textDocument;
+  final String? documentation;
 
+  final String? name;
+  final TextDocumentIdentifier textDocument;
   EditableArguments({
     required this.arguments,
+    this.documentation,
+    this.name,
     required this.textDocument,
   });
   @override
   int get hashCode => Object.hash(
         lspHashCode(arguments),
+        documentation,
+        name,
         textDocument,
       );
 
@@ -1665,6 +1671,8 @@ class EditableArguments implements ToJsonable {
     return other is EditableArguments &&
         other.runtimeType == EditableArguments &&
         const DeepCollectionEquality().equals(arguments, other.arguments) &&
+        documentation == other.documentation &&
+        name == other.name &&
         textDocument == other.textDocument;
   }
 
@@ -1672,6 +1680,12 @@ class EditableArguments implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['arguments'] = arguments.map((item) => item.toJson()).toList();
+    if (documentation != null) {
+      result['documentation'] = documentation;
+    }
+    if (name != null) {
+      result['name'] = name;
+    }
     result['textDocument'] = textDocument.toJson();
     return result;
   }
@@ -1683,6 +1697,14 @@ class EditableArguments implements ToJsonable {
     if (obj is Map<String, Object?>) {
       if (!_canParseListEditableArgument(obj, reporter, 'arguments',
           allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'documentation',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
@@ -1698,11 +1720,17 @@ class EditableArguments implements ToJsonable {
     final arguments = (argumentsJson as List<Object?>)
         .map((item) => EditableArgument.fromJson(item as Map<String, Object?>))
         .toList();
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson as String?;
+    final nameJson = json['name'];
+    final name = nameJson as String?;
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     return EditableArguments(
       arguments: arguments,
+      documentation: documentation,
+      name: name,
       textDocument: textDocument,
     );
   }

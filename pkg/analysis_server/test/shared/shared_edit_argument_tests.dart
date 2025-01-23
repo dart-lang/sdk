@@ -66,6 +66,54 @@ mixin SharedEditArgumentTests
     );
   }
 
+  test_format_multiline_insert_between() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y, int? children })',
+      originalArgs: '''\n
+      (
+        x: 1,
+        children: 3,
+      )''',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '''\n
+      (
+        x: 1,
+        y: 2,
+        children: 3,
+      )''',
+    );
+  }
+
+  test_format_multiline_insert_last() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x, int? y })',
+      originalArgs: '''\n
+      (
+        x: 1,
+      )''',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '''\n
+      (
+        x: 1,
+        y: 2,
+      )''',
+    );
+  }
+
+  test_format_multiline_insert_solo() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x })',
+      originalArgs: '''\n
+      (
+      )''',
+      edit: ArgumentEdit(name: 'x', newValue: 1),
+      expectedArgs: '''\n
+      (
+        x: 1,
+      )''',
+    );
+  }
+
   test_named_addAfterNamed() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',

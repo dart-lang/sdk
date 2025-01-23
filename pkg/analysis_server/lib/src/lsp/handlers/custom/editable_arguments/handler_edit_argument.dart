@@ -12,11 +12,14 @@ import 'package:analysis_server/src/lsp/handlers/custom/editable_arguments/edita
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -89,6 +92,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var (
+        :widgetName,
+        :widgetDocumentation,
         :parameters,
         :positionalParameterIndexes,
         :parameterArguments,
@@ -98,12 +103,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       ) = invocation;
 
       // Find the parameter we're editing the argument for.
-      var name = params.edit.name;
-      var parameter = parameters.firstWhereOrNull((p) => p.name3 == name);
+      var parameterName = params.edit.name;
+      var parameter = parameters.firstWhereOrNull(
+        (p) => p.name3 == parameterName,
+      );
       if (parameter == null) {
         return error(
           ErrorCodes.RequestFailed,
-          'Parameter "$name" was not found in ${parameters.map((p) => p.name3).join(', ')}',
+          'Parameter "$parameterName" was not found in ${parameters.map((p) => p.name3).join(', ')}',
         );
       }
 
@@ -124,7 +131,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         // known this argument was not editable.
         return error(
           ErrorCodes.RequestFailed,
-          "Parameter '$name' is not editable: $notEditableReason",
+          "Parameter '$parameterName' is not editable: $notEditableReason",
         );
       }
 
@@ -234,10 +241,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     );
 
     var changeBuilder = ChangeBuilder(session: result.session);
+    var utils = CorrectionUtils(result);
     await changeBuilder.addDartFileEdit(result.path, (builder) {
       if (argument == null) {
         _writeNewArgument(
           builder,
+          utils,
+          result.lineInfo,
           parameters,
           argumentList,
           parameter,
@@ -352,6 +362,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// earlier missing positionals.
   void _writeNewArgument(
     DartFileEditBuilder builder,
+    CorrectionUtils utils,
+    LineInfo lineInfo,
     List<FormalParameterElement> parameters,
     ArgumentList argumentList,
     FormalParameterElement parameter,
@@ -377,9 +389,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     }
 
     var parameterName = parameter.name3;
-    var prefix =
+    var argumentNamePrefix =
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
-    var argumentCodeToInsert = '$prefix$newValueCode';
+    var argumentCode = '$argumentNamePrefix$newValueCode';
 
     // Usually we insert at the end (after the last argument), but if the last
     // argument is child/children we should go before it.
@@ -387,18 +399,54 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       _isNotNamedChildOrChildren,
     );
 
+    var hasArgumentsBefore = argumentToInsertAfter != null;
+    var hasArgumentsAfter =
+        (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) ||
+        (argumentToInsertAfter != null &&
+            argumentToInsertAfter != argumentList.arguments.last);
+    var commaFollowsInsertion =
+        argumentToInsertAfter?.endToken.next?.type == TokenType.COMMA;
+
+    // If the invocation is already across more than one line, we will format
+    // accordingly. If it is already on one line, keep it that way.
+    var isMultiline =
+        lineInfo.getLocation(argumentList.leftParenthesis.offset).lineNumber !=
+        lineInfo.getLocation(argumentList.rightParenthesis.offset).lineNumber;
+
+    // If we are multiline, indent one level more than the invocation.
+    var indent =
+        isMultiline
+            ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
+            : '';
+
+    // The prefix we need depends on whether there is an argument before us
+    // and whether we are multiline.
+    var codePrefix = switch ((isMultiline, hasArgumentsBefore)) {
+      (true, true) => ',${utils.endOfLine}$indent',
+      (true, false) => '${utils.endOfLine}$indent',
+      (false, true) => ', ',
+      (false, false) => '',
+    };
+
+    // The suffix depends on whether there is an argument after us and whether
+    // we are multiline. If there is an argument after us, there is already
+    // the correct whitespace and comma after our insertion point.
+    var codeSuffix = switch ((
+      isMultiline,
+      hasArgumentsAfter,
+      commaFollowsInsertion,
+    )) {
+      (_, true, _) => '',
+      (true, false, false) => ',',
+      (true, false, true) => '',
+      (false, false, _) => '',
+    };
+
     // Build the final code to insert.
     var newCode = StringBuffer();
-    if (argumentToInsertAfter != null) {
-      // If we're being inserted after an argument, put a new comma between us.
-      newCode.write(', ');
-    }
-    newCode.write(argumentCodeToInsert);
-    if (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) {
-      // If we're not inserted after an existing argument but there are future
-      // arguments, add a comma in between us.
-      newCode.write(', ');
-    }
+    newCode.write(codePrefix);
+    newCode.write(argumentCode);
+    newCode.write(codeSuffix);
 
     builder.addSimpleInsertion(
       argumentToInsertAfter?.end ?? argumentList.leftParenthesis.end,

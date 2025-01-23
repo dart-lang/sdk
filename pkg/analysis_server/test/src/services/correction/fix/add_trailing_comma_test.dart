@@ -184,6 +184,27 @@ void f() {
 ''');
   }
 
+  Future<void> test_list_literal_withNullAwareElement() async {
+    await resolveTestCode('''
+void f(String? s) {
+  var l = [
+    'a',
+    ?s
+  ];
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  var l = [
+    'a',
+    ?s,
+  ];
+  print(l);
+}
+''');
+  }
+
   Future<void> test_map_literal() async {
     await resolveTestCode('''
 void f() {
@@ -199,6 +220,48 @@ void f() {
   var l = {
     'a': 1,
     'b': 2,
+  };
+  print(l);
+}
+''');
+  }
+
+  Future<void> test_map_literal_withNullAwareKey() async {
+    await resolveTestCode('''
+void f(String? k) {
+  var l = {
+    'a': 1,
+    ?k: 2
+  };
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f(String? k) {
+  var l = {
+    'a': 1,
+    ?k: 2,
+  };
+  print(l);
+}
+''');
+  }
+
+  Future<void> test_map_literal_withNullAwareValue() async {
+    await resolveTestCode('''
+void f(int? v) {
+  var l = {
+    'a': 1,
+    'b': ?v
+  };
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f(int? v) {
+  var l = {
+    'a': 1,
+    'b': ?v,
   };
   print(l);
 }
@@ -261,6 +324,27 @@ void f() {
   var l = {
     'a',
     'b',
+  };
+  print(l);
+}
+''');
+  }
+
+  Future<void> test_set_literal_withNullAwareElement() async {
+    await resolveTestCode('''
+void f(String? s) {
+  var l = {
+    'a',
+    ?s
+  };
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  var l = {
+    'a',
+    ?s,
   };
   print(l);
 }
