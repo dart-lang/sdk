@@ -348,6 +348,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Library link method statements that create type rules.
   final List<js_ast.Statement> _typeRuleLinks = [];
 
+  /// Holds additional initialization logic for enum fields.
+  final List<js_ast.Statement> _enumExtensions = [];
+
   /// Whether the current function needs to insert parameter checks.
   ///
   /// Used to avoid adding checks for formal parameters inside a synthetic
@@ -1011,6 +1014,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ..._defineExtensionMemberLinks,
       ..._nativeExtensionLinks,
       ..._typeRuleLinks,
+      // Enum extensions must be emitted after type hierachies have stabilized.
+      ..._enumExtensions
     ]);
     var function =
         js_ast.NamedFunction(functionName, js_ast.Fun(parameters, body));
@@ -7942,6 +7947,72 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ]);
   }
 
+  js_ast.Expression visitEnum(InstanceConstant node) {
+    // Non-nullable is forced here because the type of an instance constant
+    // should never appear as legacy "*" at runtime but the library where the
+    // constant is defined can cause those types to appear here.
+    var type = node
+        .getType(_staticTypeContext)
+        .withDeclaredNullability(Nullability.nonNullable);
+    var classRef = _emitClassRef(type as InterfaceType);
+    var prototype = js.call('#.prototype', [classRef]);
+    var enumAccessor = _emitTopLevelName(node.classNode);
+
+    // Enums are canonicalized based on their 'name' member alone. We
+    // append other members (such as 'index' and those introduced via enhanced
+    // enums) after canonicalization so they can be updated across hot reloads.
+    var constantProperties = <js_ast.Property>[];
+    var additionalProperties = <js_ast.Property>[];
+    if (type.typeArguments.isNotEmpty) {
+      // Generic interface type instances require a type information tag.
+      var property = js_ast.Property(
+          _propertyName(js_ast.FixedNames.rtiName), _emitType(type));
+      constantProperties.add(property);
+    }
+    node.fieldValues.forEach((k, v) {
+      var constant = visitConstant(v);
+      var member = k.asField;
+      var memberClass = member.enclosingClass!;
+      if (!memberClass.isEnum) {
+        if (member.name.text == 'index') {
+          // We transform the 'index' field of Enum fields into a special
+          // getter so that their indices are consistent across hot reloads.
+          var value = js.call('#.values.indexOf(this)', enumAccessor);
+          var jsMember = _getSymbol(_emitClassPrivateNameSymbol(
+              memberClass.enclosingLibrary,
+              getLocalClassName(memberClass),
+              member));
+          additionalProperties.add(js_ast.Method(
+              jsMember, js.fun('function() { return #; }', [value]),
+              isGetter: true));
+        } else {
+          var jsMember = _getSymbol(_emitClassPrivateNameSymbol(
+              memberClass.enclosingLibrary,
+              getLocalClassName(memberClass),
+              member));
+          constantProperties.add(js_ast.Property(jsMember, constant));
+        }
+      } else {
+        additionalProperties.add(js_ast.Property(
+            _emitMemberName(member.name.text, member: member), constant));
+      }
+    });
+
+    var canonicalizedEnum = _canonicalizeConstObject(
+        _emitJSObjectSetPrototypeOf(
+            js_ast.ObjectInitializer(constantProperties, multiline: true),
+            prototype,
+            fullyQualifiedName: false));
+
+    var enumExtension = _runtimeStatement('extendEnum(#, #)', [
+      canonicalizedEnum,
+      js_ast.ObjectInitializer(additionalProperties, multiline: true)
+    ]);
+    _enumExtensions.add(enumExtension);
+
+    return canonicalizedEnum;
+  }
+
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {
     var savedTypeEnvironment = _currentTypeEnvironment;
@@ -7950,17 +8021,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ClassTypeEnvironment(node.classNode.typeParameters);
     }
 
+    if (node.classNode.isEnum) {
+      var constant = visitEnum(node);
+      _currentTypeEnvironment = savedTypeEnvironment;
+      return constant;
+    }
+
     js_ast.Property entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = visitConstant(entry.value);
       var member = entry.key.asField;
       var cls = member.enclosingClass!;
-      // Enums cannot be overridden, so we can safely use the field name
-      // directly.  Otherwise, use a private symbol in case the field
-      // was overridden.
-      var symbol = cls.isEnum
-          ? _emitMemberName(member.name.text, member: member)
-          : _getSymbol(_emitClassPrivateNameSymbol(
-              cls.enclosingLibrary, getLocalClassName(cls), member));
+      var symbol = _getSymbol(_emitClassPrivateNameSymbol(
+          cls.enclosingLibrary, getLocalClassName(cls), member));
       return js_ast.Property(symbol, constant);
     }
 

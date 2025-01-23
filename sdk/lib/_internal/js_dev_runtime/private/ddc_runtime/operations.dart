@@ -1375,7 +1375,8 @@ bool isStateBearingSymbol(property) => JS<bool>(
   property,
 );
 
-/// Attempts to assign class [classDeclaration] as [classIdentifier] on [library].
+/// Attempts to assign class [classDeclaration] as [classIdentifier] on
+/// [library].
 ///
 /// During a hot reload, should [library.classIdentifier] already exist, this
 /// copies the members of [classDeclaration] and its prototype's properties to
@@ -1427,4 +1428,14 @@ declareTopLevelProperties(topLevelContainer, propertiesObject) {
       );
   copyProperties(topLevelContainer, propertiesObject, copyWhen: copyWhen);
   return topLevelContainer;
+}
+
+/// Appends const members in [additionalFieldsObject] to [canonicalizedEnum].
+///
+/// [additionalFieldsObject] is a JS object containing fields that should not
+/// be considered for enum identity/equality but may be updated after a hot
+/// reload.
+extendEnum(canonicalizedEnum, additionalFieldsObject) {
+  copyProperties(canonicalizedEnum, additionalFieldsObject);
+  return canonicalizedEnum;
 }
