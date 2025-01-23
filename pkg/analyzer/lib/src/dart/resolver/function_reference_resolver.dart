@@ -156,7 +156,7 @@ class FunctionReferenceResolver {
 
   ExecutableElement? _getCallMethod(
       FunctionReferenceImpl node, DartType? type) {
-    if (type is! InterfaceType) {
+    if (type is! InterfaceTypeImpl) {
       return null;
     }
     var callMethodName = Name(

@@ -16,6 +16,7 @@
 #include <utility>
 
 #include "bin/builtin.h"
+#include "bin/lockers.h"
 #include "bin/reference_counting.h"
 #include "bin/socket_base.h"
 #include "bin/thread.h"
@@ -29,7 +30,6 @@ class EventHandlerImplementation;
 class FileHandle;
 class Handle;
 class ListenSocket;
-class MonitorLocker;
 class SocketHandle;
 
 // An OverlappedBuffer encapsulates the OVERLAPPED structure and the

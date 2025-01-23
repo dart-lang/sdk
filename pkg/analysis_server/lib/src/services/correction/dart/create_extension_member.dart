@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -283,7 +284,7 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
         var element = existingExtension.declaredFragment!.element;
         var instantiated = [element].applicableTo(
           targetLibrary: libraryElement2,
-          targetType: targetType,
+          targetType: targetType as TypeImpl,
           strictCasts: true,
         );
         if (instantiated.isNotEmpty) {

@@ -9,7 +9,7 @@ import 'common/test_helper.dart';
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/break_on_function_declared_inside_map_test.dart
 //
 const LINE_A = 22;
 const LINE_B = 25;

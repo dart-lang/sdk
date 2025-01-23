@@ -19,7 +19,7 @@ const expectedLinesNotHit = <int>{LINE_C};
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/get_source_report_const_coverage_test.dart
 //
 const LINE_A = 34;
 const LINE_B = 36;

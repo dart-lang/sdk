@@ -5,49 +5,14 @@
 #ifndef RUNTIME_BIN_LOCKERS_H_
 #define RUNTIME_BIN_LOCKERS_H_
 
-#include "bin/thread.h"
 #include "platform/assert.h"
+#include "platform/lockers.h"
 
 namespace dart {
 namespace bin {
 
-class MutexLocker {
- public:
-  explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
-    ASSERT(mutex != nullptr);
-    mutex_->Lock();
-  }
-
-  virtual ~MutexLocker() { mutex_->Unlock(); }
-
- private:
-  Mutex* const mutex_;
-
-  DISALLOW_COPY_AND_ASSIGN(MutexLocker);
-};
-
-class MonitorLocker {
- public:
-  explicit MonitorLocker(Monitor* monitor) : monitor_(monitor) {
-    ASSERT(monitor != nullptr);
-    monitor_->Enter();
-  }
-
-  virtual ~MonitorLocker() { monitor_->Exit(); }
-
-  Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
-    return monitor_->Wait(millis);
-  }
-
-  void Notify() { monitor_->Notify(); }
-
-  void NotifyAll() { monitor_->NotifyAll(); }
-
- private:
-  Monitor* const monitor_;
-
-  DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
-};
+using MutexLocker = dart::platform::MutexLocker;
+using MonitorLocker = dart::platform::MonitorLocker;
 
 }  // namespace bin
 }  // namespace dart

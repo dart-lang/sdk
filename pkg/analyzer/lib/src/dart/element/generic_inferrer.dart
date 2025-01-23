@@ -102,7 +102,7 @@ class GenericInferrer {
   /// is explicitly specified using the as-yet-unreleased "variance" feature,
   /// since type parameters whose variance is explicitly specified don't undergo
   /// implicit runtime checks).
-  final Map<TypeParameterElementImpl2, DartType> _typesInferredSoFar = {};
+  final Map<TypeParameterElementImpl2, TypeImpl> _typesInferredSoFar = {};
 
   final TypeSystemOperations _typeSystemOperations;
 
@@ -138,7 +138,7 @@ class GenericInferrer {
 
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
-  List<DartType> choosePreliminaryTypes() {
+  List<TypeImpl> choosePreliminaryTypes() {
     var types = _chooseTypes(preliminary: true);
     inferenceLogWriter?.recordPreliminaryTypes(types);
     return types;
@@ -147,7 +147,7 @@ class GenericInferrer {
   /// Apply an argument constraint, which asserts that the [argumentType] static
   /// type is a subtype of the [parameterType].
   void constrainArgument(
-      DartType argumentType, DartType parameterType, String parameterName,
+      TypeImpl argumentType, TypeImpl parameterType, String parameterName,
       {InterfaceElement? genericClass, required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromArgument(
       argumentType: SharedTypeView(argumentType),
@@ -167,8 +167,8 @@ class GenericInferrer {
   /// [argumentTypes].
   void constrainArguments(
       {InterfaceElement? genericClass,
-      required List<ParameterElement> parameters,
-      required List<DartType> argumentTypes,
+      required List<ParameterElementMixin> parameters,
+      required List<TypeImpl> argumentTypes,
       required AstNodeImpl? nodeForTesting}) {
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
@@ -186,7 +186,7 @@ class GenericInferrer {
   /// Constrain a universal function type [fnType] used in a context
   /// [contextType].
   void constrainGenericFunctionInContext(
-      FunctionType fnType, TypeImpl contextType,
+      FunctionTypeImpl fnType, TypeImpl contextType,
       {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromFunctionContext(
         functionType: fnType, contextType: contextType);
@@ -210,7 +210,7 @@ class GenericInferrer {
 
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
-  void constrainReturnType(DartType declaredType, TypeImpl contextType,
+  void constrainReturnType(TypeImpl declaredType, TypeImpl contextType,
       {required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromReturnType(
         declaredType: declaredType, contextType: contextType);
@@ -227,7 +227,7 @@ class GenericInferrer {
   List<DartType>? tryChooseFinalTypes({bool failAtError = true}) {
     var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameterElement, DartType>{};
+    var knownTypes = <TypeParameterElement, TypeImpl>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
       TypeParameterElementImpl2 parameter = _typeFormals[i];
@@ -281,7 +281,7 @@ class GenericInferrer {
         // more errors (e.g. because `dynamic` is the most common bound).
       }
 
-      if (inferred is FunctionType &&
+      if (inferred is FunctionTypeImpl &&
           inferred.typeFormals.isNotEmpty &&
           !genericMetadataIsEnabled &&
           errorReporter != null) {
@@ -441,10 +441,10 @@ class GenericInferrer {
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType _chooseTypeFromConstraint(MergedTypeConstraint constraint,
+  TypeImpl _chooseTypeFromConstraint(MergedTypeConstraint constraint,
       {bool toKnownType = false, required bool isContravariant}) {
-    DartType upper = constraint.upper.unwrapTypeSchemaView();
-    DartType lower = constraint.lower.unwrapTypeSchemaView();
+    TypeImpl upper = constraint.upper.unwrapTypeSchemaView();
+    TypeImpl lower = constraint.lower.unwrapTypeSchemaView();
     // Prefer the known bound, if any.
     // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
     //
@@ -483,8 +483,8 @@ class GenericInferrer {
 
   /// Computes (or recomputes) a set of inferred types based on the constraints
   /// that have been recorded so far.
-  List<DartType> _chooseTypes({required bool preliminary}) {
-    var inferredTypes = List<DartType>.filled(
+  List<TypeImpl> _chooseTypes({required bool preliminary}) {
+    var inferredTypes = List<TypeImpl>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     var inferencePhaseConstraints = {
       for (var typeParameter in _constraints.keys)
@@ -545,7 +545,7 @@ class GenericInferrer {
     return element.getDisplayString();
   }
 
-  String _formatError(TypeParameterElementImpl2 typeParam, DartType inferred,
+  String _formatError(TypeParameterElementImpl2 typeParam, TypeImpl inferred,
       Iterable<MergedTypeConstraint> constraints) {
     var inferredStr = inferred.getDisplayString();
     var intro = "Tried to infer '$inferredStr' for '${typeParam.name3}'"
@@ -580,7 +580,7 @@ class GenericInferrer {
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 
-  DartType _inferTypeParameterFromAll(
+  TypeImpl _inferTypeParameterFromAll(
       MergedTypeConstraint constraint, MergedTypeConstraint? extendsClause,
       {required bool isContravariant,
       required TypeParameterElementImpl2 typeParameterToInfer,
@@ -616,7 +616,7 @@ class GenericInferrer {
     return choice;
   }
 
-  DartType _inferTypeParameterFromContext(
+  TypeImpl _inferTypeParameterFromContext(
       MergedTypeConstraint constraint, MergedTypeConstraint? extendsClause,
       {required bool isContravariant,
       required TypeParameterElementImpl2 typeParameterToInfer,
@@ -625,7 +625,7 @@ class GenericInferrer {
     // Both bits of the bound information should be available at the same time.
     assert(extendsClause == null || typeParameterToInfer.bound != null);
 
-    DartType t =
+    TypeImpl t =
         _chooseTypeFromConstraint(constraint, isContravariant: isContravariant);
     if (UnknownInferredType.isUnknown(t)) {
       return t;
@@ -750,8 +750,8 @@ class GenericInferrer {
 
   MergedTypeConstraint _squashConstraints(
       Iterable<MergedTypeConstraint> constraints) {
-    DartType lower = UnknownInferredType.instance;
-    DartType upper = UnknownInferredType.instance;
+    TypeImpl lower = UnknownInferredType.instance;
+    TypeImpl upper = UnknownInferredType.instance;
     TypeConstraintOrigin origin = UnknownTypeConstraintOrigin();
 
     for (var constraint in constraints) {
@@ -784,7 +784,7 @@ class GenericInferrer {
   /// The return value indicates whether the match was successful.  If it was
   /// unsuccessful, any constraints that were accumulated during the match
   /// attempt have been rewound.
-  bool _tryMatchSubtypeOf(DartType t1, DartType t2, TypeConstraintOrigin origin,
+  bool _tryMatchSubtypeOf(TypeImpl t1, TypeImpl t2, TypeConstraintOrigin origin,
       {required bool covariant, required AstNodeImpl? nodeForTesting}) {
     var gatherer = TypeConstraintGatherer(
         typeParameters: _typeParameters,

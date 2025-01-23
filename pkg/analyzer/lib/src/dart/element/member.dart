@@ -206,7 +206,7 @@ abstract class ExecutableMember extends Member
   @override
   final List<TypeParameterElement> typeParameters;
 
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   /// Initialize a newly created element to represent a callable element (like a
   /// method or function or property), based on the [declaration], and applied
@@ -324,10 +324,10 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     if (_type != null) return _type!;
 
-    _type = _substitution.substituteType(declaration.type) as FunctionType;
+    _type = _substitution.substituteType(declaration.type) as FunctionTypeImpl;
     return _type!;
   }
 
@@ -1010,7 +1010,7 @@ abstract class Member implements Element {
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
 class MethodMember extends ExecutableMember
-    implements MethodElement, MethodElement2 {
+    implements MethodElementOrMember, MethodElement2OrMember {
   factory MethodMember(
     MethodElement declaration,
     MapSubstitution augmentationSubstitution,
@@ -1099,10 +1099,12 @@ class MethodMember extends ExecutableMember
   /// arguments from the [definingType], create a method member representing the
   /// given method. Return the member that was created, or the base method if no
   /// member was created.
-  static MethodElement? from(
+  static MethodElementOrMember? from(
       MethodElement? method, InterfaceType definingType) {
     if (method == null || definingType.typeArguments.isEmpty) {
-      return method;
+      // TODO(paulberry): eliminate this cast by changing the type of the
+      // `method` parameter.
+      return method as MethodElementOrMember?;
     }
 
     return MethodMember(

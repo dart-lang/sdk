@@ -34,7 +34,7 @@ class InstantiatedExtensionWithMember {
     return SingleExtensionResolutionResult(getter: getter, setter: setter);
   }
 
-  ExtensionElement get extension => candidate.extension;
+  ExtensionElementImpl get extension => candidate.extension;
 
   ExecutableElement? get getter {
     var getter = candidate.getter;
@@ -112,7 +112,7 @@ class InstantiatedExtensionWithoutMember2 {
 }
 
 abstract class _NotInstantiatedExtension<R> {
-  final ExtensionElement extension;
+  final ExtensionElementImpl extension;
 
   _NotInstantiatedExtension(this.extension);
 
@@ -203,10 +203,13 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<InstantiatedExtensionWithoutMember> applicableTo({
     required LibraryElement targetLibrary,
-    required DartType targetType,
+    required TypeImpl targetType,
     required bool strictCasts,
   }) {
-    return map((e) => _NotInstantiatedExtensionWithoutMember(e))
+    return map((e) => _NotInstantiatedExtensionWithoutMember(
+            // TODO(paulberry): eliminate this cast by changing the extension to
+            // apply only to `Iterable<ExtensionElementImpl>`.
+            e as ExtensionElementImpl))
         .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
@@ -230,7 +233,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         if (getter != null || setter != null) {
           result.add(
             _NotInstantiatedExtensionWithMember(
-              extension,
+              // TODO(paulberry): eliminate this cast by changing the extension
+              // to apply only to `Iterable<ExtensionElementImpl>`.
+              extension as ExtensionElementImpl,
               getter: getter,
               setter: setter,
             ),
@@ -245,7 +250,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           if (fieldName == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
-                extension,
+                // TODO(paulberry): eliminate this cast by changing the
+                // extension to apply only to `Iterable<ExtensionElementImpl>`.
+                extension as ExtensionElementImpl,
                 getter: field.getter,
                 setter: field.setter,
               ),
@@ -261,7 +268,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           if (methodName == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
-                extension,
+                // TODO(paulberry): eliminate this cast by changing the
+                // extension to apply only to `Iterable<ExtensionElementImpl>`.
+                extension as ExtensionElementImpl,
                 getter: method,
               ),
             );
@@ -278,7 +287,7 @@ extension ExtensionsExtensions2 on Iterable<ExtensionElement2> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<InstantiatedExtensionWithoutMember2> applicableTo({
     required LibraryElement2 targetLibrary,
-    required DartType targetType,
+    required TypeImpl targetType,
     required bool strictCasts,
   }) {
     return map((e) => _NotInstantiatedExtensionWithoutMember2(e))
@@ -357,7 +366,7 @@ extension NotInstantiatedExtensionsExtensions<R>
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<R> applicableTo({
     required LibraryElement targetLibrary,
-    required DartType targetType,
+    required TypeImpl targetType,
   }) {
     if (identical(targetType, NeverTypeImpl.instance)) {
       return <R>[];
@@ -435,7 +444,7 @@ extension NotInstantiatedExtensionsExtensions2<R>
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<R> applicableTo({
     required LibraryElement2 targetLibrary,
-    required DartType targetType,
+    required TypeImpl targetType,
   }) {
     if (identical(targetType, NeverTypeImpl.instance)) {
       return <R>[];

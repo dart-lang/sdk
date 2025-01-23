@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,12 +44,15 @@ Set<Object> _computeExplicitlyTypedParameterSet(
 /// Given an iterable of parameters, computes a map whose keys are either the
 /// parameter name (for named parameters) or the zero-based integer index (for
 /// unnamed parameters), and whose values are the parameters themselves.
-Map<Object, ParameterElement> _computeParameterMap(
+Map<Object, ParameterElementMixin> _computeParameterMap(
     Iterable<ParameterElement> parameters) {
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name : unnamedParameterIndex++: parameter
+      parameter.isNamed ? parameter.name : unnamedParameterIndex++:
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+          parameter as ParameterElementMixin
   };
 }
 
@@ -303,7 +307,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   /// parameters that were *not* deferred.
   List<_ParamInfo> _computeUndeferredParamInfo(
       FunctionType? rawType,
-      Map<Object, ParameterElement> parameterMap,
+      Map<Object, ParameterElementMixin> parameterMap,
       List<_DeferredParamInfo> deferredFunctionLiterals) {
     if (rawType == null) return const [];
     var parameterKeysAlreadyCovered = {
@@ -534,7 +538,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
-      {required Map<Object, ParameterElement> parameterMap,
+      {required Map<Object, ParameterElementMixin> parameterMap,
       List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
@@ -547,7 +551,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
-      ParameterElement? parameter;
+      ParameterElementMixin? parameter;
       Object parameterKey;
       if (argument is NamedExpressionImpl) {
         value = argument.expression;
@@ -692,7 +696,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   Iterable<TypeParameterElement> typeVarsFreeInParamParams(
       _DeferredParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       var parameterMap = _computeParameterMap(type.parameters);
       var explicitlyTypedParameters =
           _computeExplicitlyTypedParameterSet(paramInfo.value);
@@ -713,7 +717,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   Iterable<TypeParameterElement> typeVarsFreeInParamReturns(
       _ParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       return _typeSystem.getFreeParameters(type.returnType,
               candidates: _typeVariables) ??
           const [];
@@ -746,7 +750,7 @@ class _IdenticalArgumentInfo {
 class _ParamInfo {
   /// The function parameter corresponding to the argument, or `null` if we are
   /// resolving a dynamic invocation.
-  final ParameterElement? parameter;
+  final ParameterElementMixin? parameter;
 
   _ParamInfo(this.parameter);
 }

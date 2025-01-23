@@ -409,7 +409,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 @reflectiveTest
 class LowerBoundTest extends _BoundsTestBase {
   test_bottom_any() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertBottom(T1);
       _assertNotBottom(T2);
       _checkGreatestLowerBound(T1, T2, T1);
@@ -446,7 +446,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_bottom_bottom() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertBottom(T1);
       _assertBottom(T2);
       _checkGreatestLowerBound(T1, T2, T1);
@@ -503,7 +503,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_functionType2_parameters_named() {
-    FunctionType build(
+    FunctionTypeImpl build(
       List<TypeImpl> requiredTypes,
       Map<String, TypeImpl> namedMap,
       Map<String, TypeImpl> namedRequiredMap,
@@ -534,7 +534,7 @@ class LowerBoundTest extends _BoundsTestBase {
       );
     }
 
-    void check(FunctionType T1, FunctionType T2, DartType expected) {
+    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, DartType expected) {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
@@ -606,7 +606,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_functionType2_parameters_positional() {
-    FunctionType build(
+    FunctionTypeImpl build(
       List<TypeImpl> requiredTypes,
       List<TypeImpl> positionalTypes,
     ) {
@@ -630,7 +630,7 @@ class LowerBoundTest extends _BoundsTestBase {
       );
     }
 
-    void check(FunctionType T1, FunctionType T2, DartType expected) {
+    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, DartType expected) {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
@@ -714,7 +714,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_functionType2_typeParameters() {
-    void check(FunctionType T1, FunctionType T2, DartType expected) {
+    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityNone(T2);
 
@@ -770,7 +770,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_functionType_interfaceType() {
-    void check(FunctionType T1, InterfaceType T2, DartType expected) {
+    void check(FunctionTypeImpl T1, InterfaceTypeImpl T2, DartType expected) {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
@@ -782,7 +782,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_functionType_interfaceType_Function() {
-    void check(FunctionType T1) {
+    void check(FunctionTypeImpl T1) {
       _assertNullabilityNone(T1);
       _checkGreatestLowerBound(T1, functionNone, T1);
     }
@@ -800,7 +800,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_futureOr() {
-    InterfaceType futureOrFunction(TypeImpl T, String str) {
+    InterfaceTypeImpl futureOrFunction(TypeImpl T, String str) {
       var result = futureOrNone(
         functionTypeNone(returnType: voidNone, parameters: [
           requiredParameter(type: T),
@@ -850,7 +850,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_identical() {
-    void check(DartType type) {
+    void check(TypeImpl type) {
       _checkGreatestLowerBound(type, type, type);
     }
 
@@ -860,7 +860,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_interfaceType2() {
-    void check(InterfaceType T1, InterfaceType T2, DartType expected) {
+    void check(InterfaceTypeImpl T1, InterfaceTypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityNone(T2);
 
@@ -931,7 +931,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_none_question() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityQuestion(T2);
 
@@ -951,7 +951,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_null_any() {
-    void check(DartType T2, DartType expected) {
+    void check(TypeImpl T2, DartType expected) {
       _assertNotBottom(T2);
       _assertNotNull(T2);
       _assertNotTop(T2);
@@ -959,11 +959,11 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(nullNone, T2, expected);
     }
 
-    void checkNull(DartType T2) {
+    void checkNull(TypeImpl T2) {
       check(T2, nullNone);
     }
 
-    void checkNever(DartType T2) {
+    void checkNever(TypeImpl T2) {
       check(T2, neverNone);
     }
 
@@ -984,7 +984,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_null_null() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertNull(T1);
       _assertNull(T2);
 
@@ -998,13 +998,13 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_object_any() {
-    void check(DartType T2, DartType expected) {
+    void check(TypeImpl T2, DartType expected) {
       _assertNotObject(T2);
 
       _checkGreatestLowerBound(objectNone, T2, expected);
     }
 
-    void checkNever(DartType T2) {
+    void checkNever(TypeImpl T2) {
       check(T2, neverNone);
     }
 
@@ -1045,7 +1045,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_object_object() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertObject(T1);
       _assertObject(T2);
 
@@ -1063,7 +1063,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_question_question() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNullabilityQuestion(T1);
       _assertNullabilityQuestion(T2);
 
@@ -1155,7 +1155,7 @@ class LowerBoundTest extends _BoundsTestBase {
   test_self() {
     var T = typeParameter('T');
 
-    List<DartType> types = [
+    List<TypeImpl> types = [
       dynamicType,
       invalidType,
       voidNone,
@@ -1171,7 +1171,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_top_any() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertTop(T1);
       _assertNotTop(T2);
       _checkGreatestLowerBound(T1, T2, T2);
@@ -1218,7 +1218,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_top_top() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertTop(T1);
       _assertTop(T2);
       _checkGreatestLowerBound(T1, T2, T2);
@@ -1261,7 +1261,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_typeParameter() {
-    void check({DartType? bound, required DartType T2}) {
+    void check({DartType? bound, required TypeImpl T2}) {
       var T1 = typeParameterTypeNone(
         typeParameter('T', bound: bound),
       );
@@ -1275,7 +1275,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(bound: numNone, T2: intNone);
   }
 
-  void _checkGreatestLowerBound(DartType T1, DartType T2, DartType expected,
+  void _checkGreatestLowerBound(TypeImpl T1, TypeImpl T2, DartType expected,
       {bool checkSubtype = true}) {
     var expectedStr = typeString(expected);
 
@@ -1487,7 +1487,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_optionalNamed() {
-    FunctionType build(Map<String, TypeImpl> namedTypes) {
+    FunctionTypeImpl build(Map<String, TypeImpl> namedTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: namedTypes.entries.map((entry) {
@@ -1514,7 +1514,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_optionalPositional() {
-    FunctionType build(List<TypeImpl> positionalTypes) {
+    FunctionTypeImpl build(List<TypeImpl> positionalTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: positionalTypes.map((type) {
@@ -1662,7 +1662,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_parameters_requiredPositional() {
-    FunctionType build(List<TypeImpl> requiredTypes) {
+    FunctionTypeImpl build(List<TypeImpl> requiredTypes) {
       return functionTypeNone(
         returnType: voidNone,
         parameters: requiredTypes.map((type) {
@@ -1804,7 +1804,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_typeParameters() {
-    void check(FunctionType T1, FunctionType T2, DartType expected) {
+    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityNone(T2);
 
@@ -1929,7 +1929,7 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    void assertLUB(DartType type1, DartType type2, DartType expected) {
+    void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
       expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
@@ -1990,7 +1990,7 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var aQuestion = interfaceTypeQuestion(aElement);
     var aNone = interfaceTypeNone(aElement);
 
-    void assertLUB(DartType type1, DartType type2, DartType expected) {
+    void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
       expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
@@ -2112,7 +2112,7 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    void assertLUB(DartType type1, DartType type2, DartType expected) {
+    void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
       expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
@@ -2361,7 +2361,7 @@ class UpperBound_RecordTypes_Test extends _BoundsTestBase {
 @reflectiveTest
 class UpperBoundTest extends _BoundsTestBase {
   test_bottom_any() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertBottom(T1);
       _assertNotBottom(T2);
       _checkLeastUpperBound(T1, T2, T2);
@@ -2410,7 +2410,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_bottom_bottom() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertBottom(T1);
       _assertBottom(T2);
       _checkLeastUpperBound(T1, T2, T2);
@@ -2582,7 +2582,8 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_functionType_interfaceType() {
-    void check(FunctionType T1, InterfaceType T2, InterfaceType expected) {
+    void check(
+        FunctionTypeImpl T1, InterfaceTypeImpl T2, InterfaceType expected) {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
@@ -2594,11 +2595,12 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_functionType_interfaceType_Function() {
-    void check(FunctionType T1, InterfaceType T2, InterfaceType expected) {
+    void check(
+        FunctionTypeImpl T1, InterfaceTypeImpl T2, InterfaceType expected) {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    void checkNone(FunctionType T1) {
+    void checkNone(FunctionTypeImpl T1) {
       _assertNullabilityNone(T1);
       check(T1, functionNone, functionNone);
     }
@@ -2653,7 +2655,7 @@ class UpperBoundTest extends _BoundsTestBase {
   /// `UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   /// `UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_other() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(DartType T1, TypeImpl T2, DartType expected) {
       _checkLeastUpperBound(
         futureOrNone(T1),
         T2,
@@ -2666,7 +2668,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_identical() {
-    void check(DartType type) {
+    void check(TypeImpl type) {
       _checkLeastUpperBound(type, type, type);
     }
 
@@ -2686,7 +2688,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_none_question() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityQuestion(T2);
 
@@ -2702,7 +2704,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_null_any() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNull(T1);
       _assertNotNull(T2);
 
@@ -2741,7 +2743,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_null_null() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertNull(T1);
       _assertNull(T2);
 
@@ -2755,7 +2757,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_object_any() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertObject(T1);
       _assertNotObject(T2);
 
@@ -2772,7 +2774,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_object_object() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertObject(T1);
       _assertObject(T2);
 
@@ -2790,7 +2792,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_question_question() {
-    void check(DartType T1, DartType T2, DartType expected) {
+    void check(TypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNullabilityQuestion(T1);
       _assertNullabilityQuestion(T2);
 
@@ -2806,13 +2808,13 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_top_any() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertTop(T1);
       _assertNotTop(T2);
       _checkLeastUpperBound(T1, T2, T1);
     }
 
-    void check2(DartType T1) {
+    void check2(TypeImpl T1) {
       check(T1, objectNone);
       check(T1, intNone);
       check(T1, intQuestion);
@@ -2837,7 +2839,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_top_top() {
-    void check(DartType T1, DartType T2) {
+    void check(TypeImpl T1, TypeImpl T2) {
       _assertTop(T1);
       _assertTop(T2);
       _checkLeastUpperBound(T1, T2, T1);
@@ -2880,7 +2882,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   test_typeParameter_bound() {
-    void check(TypeParameterType T1, DartType T2, DartType expected) {
+    void check(TypeParameterTypeImpl T1, TypeImpl T2, DartType expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityNone(T2);
 
@@ -3375,7 +3377,7 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
     }
   }
 
-  void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
+  void _checkLeastUpperBound(TypeImpl T1, TypeImpl T2, DartType expected) {
     var expectedStr = typeString(expected);
 
     var result = typeSystem.leastUpperBound(T1, T2);

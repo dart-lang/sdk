@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -491,9 +492,10 @@ class DeclarationHelper {
           targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
           targetType:
-              type.isDartCoreNull
-                  ? type
-                  : library.typeSystem.promoteToNonNull(type),
+              (type.isDartCoreNull
+                      ? type
+                      : library.typeSystem.promoteToNonNull(type))
+                  as TypeImpl,
           strictCasts: false,
         );
     var importData = ImportData(
@@ -749,9 +751,10 @@ class DeclarationHelper {
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
       targetType:
-          type.isDartCoreNull
-              ? type
-              : libraryElement.typeSystem.promoteToNonNull(type),
+          (type.isDartCoreNull
+                  ? type
+                  : libraryElement.typeSystem.promoteToNonNull(type))
+              as TypeImpl,
       strictCasts: false,
     );
     for (var instantiatedExtension in applicableExtensions) {

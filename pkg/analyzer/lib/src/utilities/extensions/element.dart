@@ -502,9 +502,9 @@ extension MixinElementExtension on MixinElement {
 }
 
 extension ParameterElementExtension on ParameterElement {
-  FormalParameterElement get asElement2 {
+  FormalParameterElementMixin get asElement2 {
     return switch (this) {
-      FormalParameterFragment(:var element) => element,
+      ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };

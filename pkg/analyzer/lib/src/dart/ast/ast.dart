@@ -6657,7 +6657,8 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @experimental
   @override
-  ExtensionElement2 get element2 => (element as ExtensionFragment).element;
+  ExtensionElementImpl2 get element2 =>
+      (element as ExtensionElementImpl).element;
 
   @override
   Token get endToken => _argumentList.endToken;
