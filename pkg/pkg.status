@@ -67,12 +67,7 @@ vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
-vm_service/test/breakpoint_resolution_after_reloading_with_resident_compiler_test: Skip # issue 59909
 vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
-vm_service/test/eval_with_resident_compiler_test: Skip # issue 59909
-vm_service/test/evaluate_in_frame_rpc_with_resident_compiler_test: Skip # issue 59909
-vm_service/test/evaluate_in_frame_with_scope_with_resident_compiler_test: Skip # issue 59909
-vm_service/test/evaluate_with_scope_with_resident_compiler_test: Skip # issue 59999
 vm_service/test/get_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
 vm_service/test/get_perfetto_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
 vm_service/test/reload_sources_with_resident_compiler_test: Skip # issue 59909
@@ -353,6 +348,13 @@ dartdev/test/commands/info_windows_test: SkipByDesign
 [ $runtime == vm && $checked ]
 analysis_server/test/integration/edit/sort_members_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
+
+[ $arch != x64 || $mode != release || $runtime != vm || $system != windows ]
+vm_service/test/breakpoint_resolution_after_reloading_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/eval_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_rpc_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_with_scope_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_with_scope_with_resident_compiler_test: Skip # issue 59999
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir

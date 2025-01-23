@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,15 +18,15 @@ main() {
 
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemTest {
-  late TypeParameterElement T;
+  late TypeParameterElementImpl2 T;
   late TypeParameterTypeImpl T_none;
 
   @override
   void setUp() {
     super.setUp();
 
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
+    T = typeParameter2('T') as TypeParameterElementImpl2;
+    T_none = typeParameterTypeNone2(T);
   }
 
   test_false() {
@@ -64,12 +62,12 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   }
 
   void _checkFalse(DartType type) {
-    var actual = (type as TypeImpl).referencesAny({T});
+    var actual = (type as TypeImpl).referencesAny2({T});
     expect(actual, isFalse);
   }
 
   void _checkTrue(DartType type) {
-    var actual = (type as TypeImpl).referencesAny({T});
+    var actual = (type as TypeImpl).referencesAny2({T});
     expect(actual, isTrue);
   }
 }

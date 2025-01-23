@@ -158,24 +158,30 @@ class CompileDDCCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    var runtime = sdk.dartAotRuntime;
+    var script = sdk.dartAotRuntime;
+    var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      snapshot = sdk.ddcSnapshot;
-      runtime = sdk.dart;
-      if (!Sdk.checkArtifactExists(snapshot)) {
+      script = sdk.ddcSnapshot;
+      if (!Sdk.checkArtifactExists(script)) {
         return genericErrorExitCode;
       }
+      useExecProcess = false;
     }
     final ddcCommand = <String>[
-      runtime,
-      snapshot,
+      if (useExecProcess) snapshot,
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
-      return await runProcessInheritStdio(ddcCommand);
+      VmInteropHandler.run(
+        script,
+        ddcCommand,
+        packageConfigOverride: null,
+        useExecProcess: useExecProcess,
+      );
+      return 0;
     } catch (e, st) {
       log.stderr('Error: JS compilation failed');
       log.stderr(e.toString());

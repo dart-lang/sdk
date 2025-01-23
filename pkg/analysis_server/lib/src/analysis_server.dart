@@ -140,7 +140,6 @@ abstract class AnalysisServer {
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
-  /// This field is `null` when the new plugin support is disabled.
   AbstractNotificationManager notificationManager;
 
   /// A reference to the handler for executing commands.
@@ -308,11 +307,10 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
+    var disablePubCommandVariable =
+        Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand =
-        processRunner != null &&
-                Platform.environment[PubCommand
-                        .disablePubCommandEnvironmentKey] ==
-                    null
+        processRunner != null && disablePubCommandVariable == null
             ? PubCommand(
               instrumentationService,
               resourceProvider.pathContext,
