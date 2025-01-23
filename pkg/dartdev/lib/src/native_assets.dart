@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:native_assets_cli/data_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
 import 'core.dart';
@@ -107,23 +106,10 @@ class DartNativeAssetsBuilder {
   }
 
   Future<bool> warnOnNativeAssets() async {
-    final workingDirectory = Directory.current.uri;
-
     try {
-      final packageLayout = await PackageLayout.fromWorkingDirectory(
-        _fileSystem,
-        workingDirectory,
-        runPackageName,
-      );
-      final packagesWithNativeAssets = [
-        ...await packageLayout.packagesWithAssets(Hook.build),
-        ...await packageLayout.packagesWithAssets(Hook.link)
-      ];
-      if (packagesWithNativeAssets.isEmpty) {
-        return false;
-      }
-      final packageNames =
-          packagesWithNativeAssets.map((p) => p.name).join(' ');
+      final builder = await _nativeAssetsBuildRunner;
+      final packageNames = await builder.packagesWithBuildHooks();
+      if (packageNames.isEmpty) return false;
       log.stderr(
         'Package(s) $packageNames require the native assets feature to be enabled. '
         'Enable native assets with `--enable-experiment=native-assets`.',
@@ -141,7 +127,8 @@ class DartNativeAssetsBuilder {
   Future<BuildResult?> _buildNativeAssetsShared({
     required bool linkingEnabled,
   }) async {
-    final buildResult = await (await _nativeAssetsBuildRunner).build(
+    final builder = await _nativeAssetsBuildRunner;
+    final buildResult = await builder.build(
       inputCreator: () => BuildInputBuilder()
         ..config.setupCode(
           targetOS: target.os,
@@ -177,7 +164,8 @@ class DartNativeAssetsBuilder {
     required String? recordedUsagesPath,
     required BuildResult buildResult,
   }) async {
-    final linkResult = await (await _nativeAssetsBuildRunner).link(
+    final builder = await _nativeAssetsBuildRunner;
+    final linkResult = await builder.link(
       inputCreator: () => LinkInputBuilder()
         ..config.setupCode(
           targetOS: target.os,

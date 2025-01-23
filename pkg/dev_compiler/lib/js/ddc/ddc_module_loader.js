@@ -1927,6 +1927,16 @@ if (!self.deferred_loader) {
     stackTrace(error) {
       return dartRuntimeLibrary().stackTrace(error).toString();
     }
+
+    /**
+     * Returns the source map path for a given Dart file, if one was registered.
+     *
+     * @param {String} url The path of a Dart file.
+     * @returns {?String} The associated source map location if one exists.
+     */
+    getSourceMap(url) {
+      return dartRuntimeLibrary().getSourceMap(url);
+    }
   }
 
   const debugger_ = new Debugger();

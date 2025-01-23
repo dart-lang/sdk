@@ -256,6 +256,17 @@ mixin ElementsTypesMixin {
     );
   }
 
+  FunctionTypeImpl functionTypeNone2({
+    List<TypeParameterElement2> typeFormals = const [],
+    List<FormalParameterElement> parameters = const [],
+    required DartType returnType,
+  }) {
+    return functionTypeNone(
+        parameters: parameters.map((e) => e.asElement).toList(),
+        typeFormals: typeFormals.map((e) => e.asElement).toList(),
+        returnType: returnType);
+  }
+
   FunctionTypeImpl functionTypeQuestion({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
@@ -453,6 +464,15 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
+  FormalParameterElement namedParameter2({
+    required String name,
+    required TypeImpl type,
+    bool isCovariant = false,
+  }) {
+    return namedParameter(name: name, type: type, isCovariant: isCovariant)
+        .asElement2;
+  }
+
   ParameterElementImpl namedRequiredParameter({
     required String name,
     required TypeImpl type,
@@ -466,6 +486,16 @@ mixin ElementsTypesMixin {
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
+  }
+
+  FormalParameterElement namedRequiredParameter2({
+    required String name,
+    required TypeImpl type,
+    bool isCovariant = false,
+  }) {
+    return namedRequiredParameter(
+            name: name, type: type, isCovariant: isCovariant)
+        .asElement2;
   }
 
   ParameterElementImpl positionalParameter({
@@ -483,6 +513,19 @@ mixin ElementsTypesMixin {
     parameter.isExplicitlyCovariant = isCovariant;
     parameter.defaultValueCode = defaultValueCode;
     return parameter;
+  }
+
+  FormalParameterElement positionalParameter2({
+    String? name,
+    required TypeImpl type,
+    bool isCovariant = false,
+    String? defaultValueCode,
+  }) {
+    return positionalParameter(
+            type: type,
+            isCovariant: isCovariant,
+            defaultValueCode: defaultValueCode)
+        .asElement2;
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
@@ -585,6 +628,15 @@ mixin ElementsTypesMixin {
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
+  }
+
+  FormalParameterElement requiredParameter2({
+    String? name,
+    required TypeImpl type,
+    bool isCovariant = false,
+  }) {
+    return requiredParameter(name: name, type: type, isCovariant: isCovariant)
+        .asElement2;
   }
 
   TypeAliasElementImpl typeAlias({

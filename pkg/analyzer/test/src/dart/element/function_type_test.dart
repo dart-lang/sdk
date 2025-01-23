@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -26,9 +24,9 @@ DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 class FunctionTypeTest extends AbstractTypeSystemTest {
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listElement;
+  ClassElement2 get listElement => typeProvider.listElement2;
 
-  ClassElement get mapElement => typeProvider.mapElement;
+  ClassElement2 get mapElement => typeProvider.mapElement2;
 
   InterfaceTypeImpl get objectType => typeProvider.objectType;
 
@@ -56,9 +54,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         reason: 'normalParameterTypes');
     expect(f.optionalParameterTypes, optionalParameterTypes,
         reason: 'optionalParameterTypes');
-    expect(f.parameters, parameters, reason: 'parameters');
+    expect(f.formalParameters, parameters, reason: 'parameters');
     expect(f.returnType, returnType ?? same(dynamicType), reason: 'returnType');
-    expect(f.typeFormals, typeFormals, reason: 'typeFormals');
+    expect(f.typeParameters, typeFormals, reason: 'typeFormals');
   }
 
   DartType listOf(DartType elementType) => listElement.instantiate(
@@ -416,11 +414,11 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         namedParameter(name: 'b', type: typeProvider.intType),
       ],
     );
-    var parameters = f.parameters;
+    var parameters = f.formalParameters;
     expect(parameters, hasLength(3));
-    expect(parameters[0].name, 'a');
-    expect(parameters[1].name, 'b');
-    expect(parameters[2].name, 'c');
+    expect(parameters[0].name3, 'a');
+    expect(parameters[1].name3, 'b');
+    expect(parameters[2].name3, 'c');
   }
 
   test_synthetic() {
@@ -486,9 +484,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         displayName: 'dynamic Function({Object x})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
-    expect(f.parameters[0].isNamed, isTrue);
-    expect(f.parameters[0].name, 'x');
-    expect(f.parameters[0].type, same(objectType));
+    expect(f.formalParameters[0].isNamed, isTrue);
+    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].type, same(objectType));
   }
 
   test_synthetic_normalParameter() {
@@ -504,9 +502,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
         parameters: hasLength(1));
-    expect(f.parameters[0].isRequiredPositional, isTrue);
-    expect(f.parameters[0].name, 'x');
-    expect(f.parameters[0].type, same(objectType));
+    expect(f.formalParameters[0].isRequiredPositional, isTrue);
+    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].type, same(objectType));
   }
 
   test_synthetic_optionalParameter() {
@@ -522,9 +520,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         optionalParameterNames: ['x'],
         optionalParameterTypes: [same(objectType)],
         parameters: hasLength(1));
-    expect(f.parameters[0].isOptionalPositional, isTrue);
-    expect(f.parameters[0].name, 'x');
-    expect(f.parameters[0].type, same(objectType));
+    expect(f.formalParameters[0].isOptionalPositional, isTrue);
+    expect(f.formalParameters[0].name3, 'x');
+    expect(f.formalParameters[0].type, same(objectType));
   }
 
   test_synthetic_returnType() {
@@ -539,16 +537,16 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_synthetic_typeFormals() {
-    var t = typeParameter('T');
-    FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
-      parameters: const [],
-      returnType: typeParameterTypeNone(t),
+    var t = typeParameter2('T');
+    FunctionType f = FunctionTypeImpl.v2(
+      typeParameters: [t],
+      formalParameters: const [],
+      returnType: typeParameterTypeNone2(t),
       nullabilitySuffix: NullabilitySuffix.none,
     );
     basicChecks(f,
         displayName: 'T Function<T>()',
-        returnType: typeParameterTypeNone(t),
+        returnType: typeParameterTypeNone2(t),
         typeFormals: [same(t)]);
   }
 

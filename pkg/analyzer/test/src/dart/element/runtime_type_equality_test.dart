@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -39,15 +37,15 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_parameters() {
     void check(
-      ParameterElement T1_parameter,
-      ParameterElement T2_parameter,
+      FormalParameterElement T1_parameter,
+      FormalParameterElement T2_parameter,
       bool expected,
     ) {
-      var T1 = functionTypeNone(
+      var T1 = functionTypeNone2(
         returnType: voidNone,
         parameters: [T1_parameter],
       );
-      var T2 = functionTypeNone(
+      var T2 = functionTypeNone2(
         returnType: voidNone,
         parameters: [T2_parameter],
       );
@@ -61,8 +59,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
         bool expected,
       ) {
         check(
-          requiredParameter(type: T1_type),
-          requiredParameter(type: T2_type),
+          requiredParameter2(type: T1_type),
+          requiredParameter2(type: T2_type),
           expected,
         );
       }
@@ -74,78 +72,78 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       checkRequiredParameter(intQuestion, intQuestion, true);
 
       check(
-        requiredParameter(type: intNone, name: 'a'),
-        requiredParameter(type: intNone, name: 'b'),
+        requiredParameter2(type: intNone, name: 'a'),
+        requiredParameter2(type: intNone, name: 'b'),
         true,
       );
 
       check(
-        requiredParameter(type: intNone),
-        positionalParameter(type: intNone),
+        requiredParameter2(type: intNone),
+        positionalParameter2(type: intNone),
         false,
       );
 
       check(
-        requiredParameter(type: intNone),
-        namedParameter(type: intNone, name: 'a'),
+        requiredParameter2(type: intNone),
+        namedParameter2(type: intNone, name: 'a'),
         false,
       );
 
       check(
-        requiredParameter(type: intNone),
-        namedRequiredParameter(type: intNone, name: 'a'),
+        requiredParameter2(type: intNone),
+        namedRequiredParameter2(type: intNone, name: 'a'),
         false,
       );
     }
 
     {
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'a'),
         true,
       );
 
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: boolNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'a'),
+        namedParameter2(type: boolNone, name: 'a'),
         false,
       );
 
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'b'),
+        namedParameter2(type: intNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'b'),
         false,
       );
 
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
         false,
       );
     }
 
     {
       check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
         true,
       );
 
       check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: boolNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: boolNone, name: 'a'),
         false,
       );
 
       check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'b'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'b'),
         false,
       );
 
       check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'a'),
+        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedParameter2(type: intNone, name: 'a'),
         false,
       );
     }
