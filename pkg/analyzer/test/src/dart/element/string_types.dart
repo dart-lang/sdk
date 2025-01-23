@@ -5,12 +5,13 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/type_system_base.dart';
 
 mixin StringTypes on AbstractTypeSystemTest {
-  final Map<String, DartType> _types = {};
+  final Map<String, TypeImpl> _types = {};
 
   void assertExpectedString(DartType type, String? expectedString) {
     if (expectedString != null) {
@@ -82,7 +83,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineRecordTypes();
   }
 
-  DartType typeOfString(String str) {
+  TypeImpl typeOfString(String str) {
     var type = _types[str];
     if (type == null) {
       fail('No DartType for: $str');
@@ -430,7 +431,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     mixed('(int, {String f2})', [intNone], {'f2': stringNone});
   }
 
-  void _defineType(String str, DartType type) {
+  void _defineType(String str, TypeImpl type) {
     if (typeString(type) != str) {
       fail('Expected: $str\nActual: ${typeString(type)}');
     }

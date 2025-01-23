@@ -648,11 +648,10 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  TypeImpl greatestLowerBound(DartType T1, DartType T2) {
+  TypeImpl greatestLowerBound(covariant TypeImpl T1, covariant TypeImpl T2) {
     // TODO(paulberry): make these casts unnecessary by changing the type of
     // `T1` and `T2`.
-    return _greatestLowerBoundHelper.getGreatestLowerBound(
-        T1 as TypeImpl, T2 as TypeImpl);
+    return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
   }
 
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
@@ -662,7 +661,7 @@ class TypeSystemImpl implements TypeSystem {
   /// also considered as part of the solution.
   List<DartType> inferFunctionTypeInstantiation(
     FunctionTypeImpl contextType,
-    FunctionType fnType, {
+    FunctionTypeImpl fnType, {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
     required TypeSystemOperations typeSystemOperations,
@@ -722,8 +721,8 @@ class TypeSystemImpl implements TypeSystem {
   // TODO(scheglov): Move this method to elements for classes, typedefs,
   //  and generic functions; compute lazily and cache.
   DartType instantiateToBounds(DartType type,
-      {List<bool>? hasError, Map<TypeParameterElement, DartType>? knownTypes}) {
-    List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
+      {List<bool>? hasError, Map<TypeParameterElement, TypeImpl>? knownTypes}) {
+    var typeFormals = typeFormalsAsElements(type);
     List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
         hasError: hasError, knownTypes: knownTypes);
     return instantiateType(type, arguments);
@@ -764,22 +763,22 @@ class TypeSystemImpl implements TypeSystem {
   /// See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  List<DartType> instantiateTypeFormalsToBounds(
-      List<TypeParameterElement> typeFormals,
+  List<TypeImpl> instantiateTypeFormalsToBounds(
+      List<TypeParameterElementImpl> typeFormals,
       {List<bool>? hasError,
-      Map<TypeParameterElement, DartType>? knownTypes}) {
+      Map<TypeParameterElement, TypeImpl>? knownTypes}) {
     int count = typeFormals.length;
     if (count == 0) {
-      return const <DartType>[];
+      return const <TypeImpl>[];
     }
 
     Set<TypeParameterElement> all = <TypeParameterElement>{};
     // all ground
-    Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
+    Map<TypeParameterElement, TypeImpl> defaults = knownTypes ?? {};
     // not ground
-    Map<TypeParameterElement, DartType> partials = {};
+    Map<TypeParameterElement, TypeImpl> partials = {};
 
-    for (TypeParameterElement typeParameter in typeFormals) {
+    for (var typeParameter in typeFormals) {
       all.add(typeParameter);
       if (!defaults.containsKey(typeParameter)) {
         var bound = typeParameter.bound ?? DynamicTypeImpl.instance;
@@ -791,7 +790,7 @@ class TypeSystemImpl implements TypeSystem {
     while (hasProgress) {
       hasProgress = false;
       for (TypeParameterElement parameter in partials.keys) {
-        DartType value = partials[parameter]!;
+        var value = partials[parameter]!;
         var freeParameters = getFreeParameters(value, candidates: all);
         if (freeParameters == null) {
           defaults[parameter] = value;
@@ -832,7 +831,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    List<DartType> orderedArguments =
+    List<TypeImpl> orderedArguments =
         typeFormals.map((p) => defaults[p]!).toFixedList();
     return orderedArguments;
   }
@@ -1434,11 +1433,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  TypeImpl leastUpperBound(DartType T1, DartType T2) {
-    // TODO(paulberry): make these casts unnecessary by changing the type of
-    // `T1` and `T2`.
-    return _leastUpperBoundHelper.getLeastUpperBound(
-        T1 as TypeImpl, T2 as TypeImpl);
+  TypeImpl leastUpperBound(covariant TypeImpl T1, covariant TypeImpl T2) {
+    return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
   }
 
   /// Returns a nullable version of [type].  The result would be equivalent to
@@ -1772,7 +1768,7 @@ class TypeSystemImpl implements TypeSystem {
   GenericInferrer setupGenericTypeInference({
     // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
     required List<TypeParameterElement2> typeParameters,
-    required DartType declaredReturnType,
+    required TypeImpl declaredReturnType,
     required TypeImpl contextReturnType,
     ErrorReporter? errorReporter,
     SyntacticEntity? errorEntity,
@@ -1857,13 +1853,13 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// @param type the type whose type arguments are to be returned
   /// @return the type arguments associated with the given type
-  List<TypeParameterElement> typeFormalsAsElements(DartType type) {
-    if (type is FunctionType) {
+  List<TypeParameterElementImpl> typeFormalsAsElements(DartType type) {
+    if (type is FunctionTypeImpl) {
       return type.typeFormals;
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       return type.element.typeParameters;
     } else {
-      return const <TypeParameterElement>[];
+      return const <TypeParameterElementImpl>[];
     }
   }
 

@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -281,8 +282,12 @@ class GreatestLowerBoundHelper {
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
+      // TODO(paulberry): get rid of this cast by changing the type of
+      // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+      var fParameter = fParameters[fIndex] as ParameterElementMixin;
+      // TODO(paulberry): get rid of this cast by changing the type of
+      // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+      var gParameter = gParameters[gIndex] as ParameterElementMixin;
       if (fParameter.isPositional) {
         if (gParameter.isPositional) {
           fIndex++;

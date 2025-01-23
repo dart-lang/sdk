@@ -187,7 +187,7 @@ mixin ElementsTypesMixin {
   }
 
   ExtensionElementImpl extension({
-    required DartType extendedType,
+    required TypeImpl extendedType,
     String? name,
     bool isAugmentation = false,
     List<TypeParameterElementImpl> typeParameters = const [],

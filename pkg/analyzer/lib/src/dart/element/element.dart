@@ -1592,7 +1592,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     // TODO(scheglov): Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
@@ -3732,7 +3732,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   TypeImpl? _returnType;
 
   /// The type of function defined by this executable element.
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   @override
   ElementLinkedData? linkedData;
@@ -3887,7 +3887,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
@@ -3898,7 +3898,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     );
   }
 
-  set type(FunctionType type) {
+  set type(FunctionTypeImpl type) {
     _type = type;
   }
 
@@ -4084,7 +4084,7 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
   final ExtensionElementImpl firstFragment;
 
   @override
-  DartType extendedType = InvalidTypeImpl.instance;
+  TypeImpl extendedType = InvalidTypeImpl.instance;
 
   ExtensionElementImpl2(this.reference, this.firstFragment) {
     reference.element2 = this;
@@ -4664,6 +4664,9 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 mixin FormalParameterElementMixin
     implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
+  TypeImpl get type;
+
+  @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
     buffer.write(
       type.getDisplayString(),
@@ -5116,7 +5119,7 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This is wrong. The function type needs to be a merge
   //  of the function types of all of the fragments, but I don't know how to
   //  perform that merge.
-  FunctionType get type {
+  FunctionTypeImpl get type {
     if (firstFragment is ExecutableElementImpl) {
       return (firstFragment as ExecutableElementImpl).type;
     } else if (firstFragment is FunctionTypedElementImpl) {
@@ -5246,6 +5249,9 @@ class FunctionElementImpl extends ExecutableElementImpl
 abstract class FunctionTypedElementImpl
     implements _ExistingElementImpl, FunctionTypedElement {
   set returnType(DartType returnType);
+
+  @override
+  FunctionTypeImpl get type;
 }
 
 abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
@@ -5277,7 +5283,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   bool isNullable = false;
 
   /// The type defined by this element.
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   late final GenericFunctionTypeElementImpl2 _element2 =
       GenericFunctionTypeElementImpl2(this);
@@ -5361,7 +5367,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     if (_type != null) return _type!;
 
     return _type = FunctionTypeImpl(
@@ -5375,7 +5381,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   /// Set the function type defined by this function type element to the given
   /// [type].
-  set type(FunctionType type) {
+  set type(FunctionTypeImpl type) {
     _type = type;
   }
 
@@ -8262,10 +8268,15 @@ final class MetadataImpl implements Metadata {
   }
 }
 
+abstract class MethodElement2OrMember implements MethodElement2 {
+  @override
+  FunctionTypeImpl get type;
+}
+
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
-    implements MethodElement, MethodFragment {
+    implements MethodElementOrMember, MethodFragment {
   @override
   late MethodElementImpl2 element;
 
@@ -8365,7 +8376,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
         FragmentedAnnotatableElementMixin<MethodFragment>,
         FragmentedElementMixin<MethodFragment>,
         _HasSinceSdkVersionMixin
-    implements MethodElement2 {
+    implements MethodElement2OrMember {
   @override
   final Reference reference;
 
@@ -8420,6 +8431,11 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMethodElement(this);
   }
+}
+
+abstract class MethodElementOrMember implements MethodElement {
+  @override
+  FunctionTypeImpl get type;
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -9536,6 +9552,9 @@ mixin ParameterElementMixin implements ParameterElement {
   ParameterKind get parameterKind;
 
   @override
+  TypeImpl get type;
+
+  @override
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -10141,7 +10160,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   Version? get sinceSdkVersion => variable2.sinceSdkVersion;
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
@@ -10207,7 +10226,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   Version? get sinceSdkVersion => variable2.sinceSdkVersion;
 
   @override
-  FunctionType get type {
+  FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
@@ -11116,7 +11135,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  DartType get aliasedType => firstFragment.aliasedType;
+  TypeImpl get aliasedType => firstFragment.aliasedType;
 
   @override
   TypeAliasElementImpl2 get baseElement => this;

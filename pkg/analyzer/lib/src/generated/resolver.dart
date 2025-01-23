@@ -4047,7 +4047,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   List<DartType> _inferTypeArguments({
     required List<TypeParameterElementImpl2> typeParameters,
     required AstNode errorNode,
-    required DartType declaredType,
+    required TypeImpl declaredType,
     required TypeImpl contextType,
     required AstNodeImpl? nodeForTesting,
   }) {

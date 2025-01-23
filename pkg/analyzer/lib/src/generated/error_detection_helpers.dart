@@ -16,6 +16,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -309,7 +310,7 @@ mixin ErrorDetectionHelpers {
   /// > Let `e` be an expression whose static type is an interface type that has
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
-  MethodElement2? getImplicitCallMethod(
+  MethodElement2OrMember? getImplicitCallMethod(
       DartType type, DartType context, SyntacticEntity errorNode) {
     var visitedTypes = {type};
     while (type is TypeParameterType) {

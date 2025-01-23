@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -88,7 +89,7 @@ class ExtensionMemberResolver {
   /// If the match is ambiguous, reports an error on the [nameEntity], and
   /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
-      DartType type, SyntacticEntity nameEntity, Name name) {
+      TypeImpl type, SyntacticEntity nameEntity, Name name) {
     var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .applicableTo(
@@ -338,7 +339,7 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<DartType>? _inferTypeArguments(
-      ExtensionOverride node, DartType receiverType,
+      ExtensionOverrideImpl node, TypeImpl receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
       required AstNodeImpl? nodeForTesting}) {
     var element = node.element2;
@@ -392,7 +393,7 @@ class ExtensionMemberResolver {
 
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
-  DartType _instantiateToBounds(ExtensionElement extension) {
+  DartType _instantiateToBounds(ExtensionElementImpl extension) {
     var typeParameters = extension.typeParameters;
     return Substitution.fromPairs(
       typeParameters,

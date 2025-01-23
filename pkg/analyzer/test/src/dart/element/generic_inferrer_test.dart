@@ -610,7 +610,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     expect(actualStr, expectedStr);
   }
 
-  List<DartType> _inferCall(FunctionType ft, List<DartType> arguments,
+  List<DartType> _inferCall(FunctionTypeImpl ft, List<TypeImpl> arguments,
       {TypeImpl returnType = UnknownInferredType.instance,
       bool expectError = false}) {
     var listener = RecordingErrorListener();
@@ -637,7 +637,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       nodeForTesting: null,
     );
     inferrer.constrainArguments(
-        parameters: ft.parameters,
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+        parameters: ft.parameters.cast(),
         argumentTypes: arguments,
         nodeForTesting: null);
     var typeArguments = inferrer.chooseFinalTypes();
@@ -652,7 +654,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     return typeArguments;
   }
 
-  FunctionType _inferCall2(FunctionType ft, List<DartType> arguments,
+  FunctionType _inferCall2(FunctionTypeImpl ft, List<TypeImpl> arguments,
       {TypeImpl returnType = UnknownInferredType.instance,
       bool expectError = false}) {
     var typeArguments = _inferCall(
