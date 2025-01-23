@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -106,29 +104,29 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   test_isBottom() {
-    TypeParameterElement T;
+    TypeParameterElement2 T;
 
     // BOTTOM(Never) is true
     isBottom(neverNone);
     isNotBottom(neverQuestion);
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
-    T = typeParameter('T', bound: objectQuestion);
+    T = typeParameter2('T', bound: objectQuestion);
 
-    isBottom(promotedTypeParameterTypeNone(T, neverNone));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
+    isBottom(promotedTypeParameterTypeNone2(T, neverNone));
+    isNotBottom(promotedTypeParameterTypeQuestion2(T, neverNone));
 
-    isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeNone2(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeQuestion2(T, neverQuestion));
 
     // BOTTOM(X extends T) is true iff BOTTOM(T)
-    T = typeParameter('T', bound: neverNone);
-    isBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
+    T = typeParameter2('T', bound: neverNone);
+    isBottom(typeParameterTypeNone2(T));
+    isNotBottom(typeParameterTypeQuestion2(T));
 
-    T = typeParameter('T', bound: neverQuestion);
-    isNotBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
+    T = typeParameter2('T', bound: neverQuestion);
+    isNotBottom(typeParameterTypeNone2(T));
+    isNotBottom(typeParameterTypeQuestion2(T));
 
     // BOTTOM(T) is false otherwise
     isNotBottom(dynamicType);
@@ -141,12 +139,12 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNotBottom(intNone);
     isNotBottom(intQuestion);
 
-    T = typeParameter('T', bound: numNone);
-    isNotBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
+    T = typeParameter2('T', bound: numNone);
+    isNotBottom(typeParameterTypeNone2(T));
+    isNotBottom(typeParameterTypeQuestion2(T));
 
-    isNotBottom(promotedTypeParameterTypeNone(T, intNone));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
+    isNotBottom(promotedTypeParameterTypeNone2(T, intNone));
+    isNotBottom(promotedTypeParameterTypeQuestion2(T, intNone));
   }
 
   test_isMoreBottom() {
@@ -510,29 +508,29 @@ class LowerBoundTest extends _BoundsTestBase {
       Map<String, TypeImpl> namedMap,
       Map<String, TypeImpl> namedRequiredMap,
     ) {
-      var parameters = <ParameterElement>[];
+      var formalParameters = <FormalParameterElement>[];
 
       for (var requiredType in requiredTypes) {
-        parameters.add(
-          requiredParameter(type: requiredType),
+        formalParameters.add(
+          requiredParameter2(type: requiredType),
         );
       }
 
       for (var entry in namedMap.entries) {
-        parameters.add(
-          namedParameter(name: entry.key, type: entry.value),
+        formalParameters.add(
+          namedParameter2(name: entry.key, type: entry.value),
         );
       }
 
       for (var entry in namedRequiredMap.entries) {
-        parameters.add(
-          namedRequiredParameter(name: entry.key, type: entry.value),
+        formalParameters.add(
+          namedRequiredParameter2(name: entry.key, type: entry.value),
         );
       }
 
-      return functionTypeNone(
+      return functionTypeNone2(
         returnType: voidNone,
-        parameters: parameters,
+        parameters: formalParameters,
       );
     }
 
@@ -612,23 +610,23 @@ class LowerBoundTest extends _BoundsTestBase {
       List<TypeImpl> requiredTypes,
       List<TypeImpl> positionalTypes,
     ) {
-      var parameters = <ParameterElement>[];
+      var formalParameters = <FormalParameterElement>[];
 
       for (var requiredType in requiredTypes) {
-        parameters.add(
-          requiredParameter(type: requiredType),
+        formalParameters.add(
+          requiredParameter2(type: requiredType),
         );
       }
 
       for (var positionalType in positionalTypes) {
-        parameters.add(
-          positionalParameter(type: positionalType),
+        formalParameters.add(
+          positionalParameter2(type: positionalType),
         );
       }
 
-      return functionTypeNone(
+      return functionTypeNone2(
         returnType: voidNone,
-        parameters: parameters,
+        parameters: formalParameters,
       );
     }
 

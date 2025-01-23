@@ -12,26 +12,29 @@ import 'package:test/test.dart';
 
 import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
+import '../lsp/server_abstract.dart';
+import 'shared_test_interface.dart';
 
 /// Shared `workspace/applyEdit` tests that are used by both LSP and legacy
 /// server tests.
 mixin SharedWorkspaceApplyEditTests
-    on LspRequestHelpersMixin, LspVerifyEditHelpersMixin {
-  /// Overridden by test subclasses to provide the path of a file for testing.
-  String get testFilePath;
-
-  /// The URI for [testFilePath].
-  Uri get testFileUri => Uri.file(testFilePath);
-
-  /// Overridden by test subclasses to create a new file.
-  void createFile(String path, String content);
-
-  /// Overridden by test subclasses to initialize the server.
-  Future<void> initializeServer();
-
+    on
+        SharedTestInterface,
+        LspRequestHelpersMixin,
+        LspVerifyEditHelpersMixin,
+        ClientCapabilitiesHelperMixin {
   /// Overridden by test subclasses to send LSP requests from the server to
   /// the client.
   Future<ResponseMessage> sendLspRequest(Method method, Object params);
+
+  /// Overridden by test subclasses to initialize the server.
+  @override
+  Future<void> setUp() async {
+    super.setUp();
+    setApplyEditSupport();
+    setFileCreateSupport();
+    setDocumentChangesSupport();
+  }
 
   test_applyEdit_existingFile() async {
     var code = TestCode.parse('''

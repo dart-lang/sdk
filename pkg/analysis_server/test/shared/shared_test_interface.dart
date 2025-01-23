@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 /// A common interface that can be implemented by a set of base classes to
 /// allow tests to be written to run in different configurations
 /// (LSP and LSP-over-Legacy, and in-process and out-of-process).
@@ -49,4 +51,6 @@ abstract interface class SharedTestInterface {
   /// Tells the server that the file with [uri] has had it's content replaced
   /// with [content].
   Future<void> replaceFile(int newVersion, Uri uri, String content);
+
+  FutureOr<void> setUp();
 }

@@ -221,8 +221,8 @@ class EditArgumentTest extends SharedAbstractLspAnalysisServerTest
         with
         SharedEditArgumentTests {
   @override
-  void setUp() {
-    super.setUp();
+  Future<void> setUp() async {
+    await super.setUp();
 
     writeTestPackageConfig(flutter: true);
   }

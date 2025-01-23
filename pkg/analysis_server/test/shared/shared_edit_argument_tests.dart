@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../lsp/request_helpers_mixin.dart';
+import '../lsp/server_abstract.dart';
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'shared_test_interface.dart';
@@ -14,8 +17,18 @@ import 'shared_test_interface.dart';
 /// Shared edit argument tests that are used by both LSP + Legacy server
 /// tests.
 mixin SharedEditArgumentTests
-    on SharedTestInterface, LspRequestHelpersMixin, LspVerifyEditHelpersMixin {
+    on
+        SharedTestInterface,
+        LspRequestHelpersMixin,
+        LspVerifyEditHelpersMixin,
+        ClientCapabilitiesHelperMixin {
   late TestCode code;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    setApplyEditSupport();
+  }
 
   test_comma_addArg_addsIfExists() async {
     await _expectSimpleArgumentEdit(
@@ -624,6 +637,17 @@ const myConst = E.one;
       originalArgs: "(x: 'a' + 'a')",
       edit: ArgumentEdit(name: 'x', newValue: 'b'),
       expectedArgs: "(x: 'b')",
+    );
+  }
+
+  test_unsupported_noApplyEditSupport() async {
+    setApplyEditSupport(false);
+
+    await _expectFailedEdit(
+      params: '({ required String x })',
+      originalArgs: "(x: 'a')",
+      edit: ArgumentEdit(name: 'x'),
+      message: 'The connected editor does not support applying edits',
     );
   }
 
