@@ -11,7 +11,7 @@ const String shortFile = 'break_on_equals_signs_of_assignments_test.dart';
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/break_on_equals_signs_of_assignments_test.dart
 //
 const LINE_A = 38;
 const LINE_B = 40;

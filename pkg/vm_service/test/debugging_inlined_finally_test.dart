@@ -15,7 +15,7 @@ import 'common/test_helper.dart';
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/debugging_inlined_finally_test.dart
 //
 const LINE_A = 27;
 const LINE_B = 35;

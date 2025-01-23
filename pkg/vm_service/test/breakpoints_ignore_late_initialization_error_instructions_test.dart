@@ -14,7 +14,7 @@ const String shortFile =
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/breakpoints_ignore_late_initialization_error_instructions_test.dart
 //
 const LINE_A = 34;
 const LINE_B = 44;
