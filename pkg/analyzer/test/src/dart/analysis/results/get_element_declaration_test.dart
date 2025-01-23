@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,13 +19,13 @@ main() {
 }
 
 mixin GetElementDeclarationMixin implements PubPackageResolutionTest {
-  Future<ElementDeclarationResult?> getElementDeclaration(Element element);
+  Future<ElementDeclarationResult?> getElementDeclaration(Element2 element);
 
   test_class() async {
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement!;
+    var element = findNode.classDeclaration('A').declaredFragment!.element;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
@@ -39,7 +37,8 @@ class A {} // 1
 class A {} // 2
 ''');
     {
-      var element = findNode.classDeclaration('A {} // 1').declaredElement!;
+      var element =
+          findNode.classDeclaration('A {} // 1').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
@@ -50,7 +49,8 @@ class A {} // 2
     }
 
     {
-      var element = findNode.classDeclaration('A {} // 2').declaredElement!;
+      var element =
+          findNode.classDeclaration('A {} // 2').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
@@ -69,8 +69,8 @@ class A {}
     await resolveTestCode(r'''
 part 'a.dart';
 ''');
-    var library = this.result.unit.declaredElement!.library;
-    var element = library.getClass('A')!;
+    var library = this.result.unit.declaredFragment!.element.library2;
+    var element = library.getClass2('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
@@ -80,7 +80,8 @@ part 'a.dart';
     await resolveTestCode('''
 class {}
 ''');
-    var element = findNode.classDeclaration('class {}').declaredElement!;
+    var element =
+        findNode.classDeclaration('class {}').declaredFragment!.element;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name.lexeme, '');
@@ -93,7 +94,7 @@ mixin M {}
 class A {}
 class B = A with M;
 ''');
-    var element = findElement.class_('B');
+    var element = findElement2.class_('B');
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassTypeAlias;
     expect(node.name.lexeme, 'B');
@@ -101,7 +102,7 @@ class B = A with M;
 
   test_compilationUnit() async {
     await resolveTestCode('');
-    var element = findElement.unitElement;
+    var element = findElement2.libraryElement;
     var result = await getElementDeclaration(element);
     expect(result, isNull);
   }
@@ -114,14 +115,14 @@ class A {
 }
 ''');
     {
-      var unnamed = findNode.constructor('A();').declaredElement!;
+      var unnamed = findNode.constructor('A();').declaredFragment!.element;
       var result = await getElementDeclaration(unnamed);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
     }
 
     {
-      var named = findNode.constructor('A.named();').declaredElement!;
+      var named = findNode.constructor('A.named();').declaredFragment!.element;
       var result = await getElementDeclaration(named);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -136,7 +137,8 @@ class A {
 }
 ''');
     {
-      var element = findNode.constructor('A.named(); // 1').declaredElement!;
+      var element =
+          findNode.constructor('A.named(); // 1').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -147,7 +149,8 @@ class A {
     }
 
     {
-      var element = findNode.constructor('A.named(); // 2').declaredElement!;
+      var element =
+          findNode.constructor('A.named(); // 2').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -166,7 +169,7 @@ class A {
 }
 ''');
     {
-      var element = findNode.constructor('A(); // 1').declaredElement!;
+      var element = findNode.constructor('A(); // 1').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
@@ -177,7 +180,7 @@ class A {
     }
 
     {
-      var element = findNode.constructor('A(); // 2').declaredElement!;
+      var element = findNode.constructor('A(); // 2').declaredFragment!.element;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
@@ -192,7 +195,7 @@ class A {
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement.class_('A').unnamedConstructor!;
+    var element = findElement2.class_('A').unnamedConstructor2!;
     expect(element.isSynthetic, isTrue);
 
     var result = await getElementDeclaration(element);
@@ -203,7 +206,7 @@ class A {}
     await resolveTestCode(r'''
 enum MyEnum {a, b, c}
 ''');
-    var element = findElement.enum_('MyEnum');
+    var element = findElement2.enum_('MyEnum');
     var result = await getElementDeclaration(element);
     var node = result!.node as EnumDeclaration;
     expect(node.name.lexeme, 'MyEnum');
@@ -213,7 +216,7 @@ enum MyEnum {a, b, c}
     await resolveTestCode(r'''
 enum MyEnum {a, b, c}
 ''');
-    var element = findElement.field('a');
+    var element = findElement2.field('a');
     var result = await getElementDeclaration(element);
     var node = result!.node as EnumConstantDeclaration;
     expect(node.name.lexeme, 'a');
@@ -223,7 +226,7 @@ enum MyEnum {a, b, c}
     await resolveTestCode(r'''
 extension E on int {}
 ''');
-    var element = findNode.extensionDeclaration('E').declaredElement!;
+    var element = findNode.extensionDeclaration('E').declaredFragment!.element;
     var result = await getElementDeclaration(element);
     var node = result!.node as ExtensionDeclaration;
     expect(node.name!.lexeme, 'E');
@@ -235,7 +238,7 @@ class C {
   int foo;
 }
 ''');
-    var element = findElement.field('foo');
+    var element = findElement2.field('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
@@ -248,7 +251,7 @@ main() {
   void foo() {}
 }
 ''');
-    var element = findElement.localFunction('foo');
+    var element = findElement2.localFunction('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
@@ -259,7 +262,7 @@ main() {
     await resolveTestCode(r'''
 void foo() {}
 ''');
-    var element = findElement.topFunction('foo');
+    var element = findElement2.topFunction('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
@@ -270,7 +273,7 @@ void foo() {}
     await resolveTestCode(r'''
 typedef F = void Function();
 ''');
-    var element = findElement.typeAlias('F').aliasedElement!;
+    var element = findElement2.typeAlias('F').aliasedElement2!;
     var result = await getElementDeclaration(element);
     expect(result, isNull);
   }
@@ -279,7 +282,7 @@ typedef F = void Function();
     await resolveTestCode(r'''
 typedef A = List<int>;
 ''');
-    var element = findNode.genericTypeAlias('A').declaredElement!;
+    var element = findNode.genericTypeAlias('A').declaredFragment!.element;
     var result = await getElementDeclaration(element);
     var node = result!.node as GenericTypeAlias;
     expect(node.name.lexeme, 'A');
@@ -291,7 +294,7 @@ class A {
   int get x => 0;
 }
 ''');
-    var element = findElement.getter('x');
+    var element = findElement2.getter('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
     expect(node.name.lexeme, 'x');
@@ -302,7 +305,7 @@ class A {
     await resolveTestCode(r'''
 int get x => 0;
 ''');
-    var element = findElement.topGet('x');
+    var element = findElement2.topGet('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
     expect(node.name.lexeme, 'x');
@@ -313,7 +316,7 @@ int get x => 0;
     await resolveTestCode(r'''
 library foo;
 ''');
-    var element = this.result.libraryElement;
+    var element = this.result.libraryElement2;
     var result = await getElementDeclaration(element);
     expect(result, isNull);
   }
@@ -324,7 +327,7 @@ main() {
   int foo;
 }
 ''');
-    var element = findElement.localVar('foo');
+    var element = findElement2.localVar('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
@@ -337,7 +340,7 @@ class C {
   void foo() {}
 }
 ''');
-    var element = findElement.method('foo');
+    var element = findElement2.method('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
@@ -348,7 +351,7 @@ class C {
     await resolveTestCode(r'''
 mixin M {}
 ''');
-    var element = findElement.mixin('M');
+    var element = findElement2.mixin('M');
     var result = await getElementDeclaration(element);
     var node = result!.node as MixinDeclaration;
     expect(node.name.lexeme, 'M');
@@ -358,7 +361,7 @@ mixin M {}
     await resolveTestCode(r'''
 void f(int a) {}
 ''');
-    var element = findElement.parameter('a');
+    var element = findElement2.parameter('a');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as SimpleFormalParameter;
@@ -369,9 +372,9 @@ void f(int a) {}
     await resolveTestCode(r'''
 void f({@a}) {}
 ''');
-    var f = findElement.topFunction('f');
-    var element = f.parameters.single;
-    expect(element.name, '');
+    var f = findElement2.topFunction('f');
+    var element = f.formalParameters.single;
+    expect(element.name3, '');
     expect(element.isNamed, isTrue);
 
     var result = await getElementDeclaration(element);
@@ -383,9 +386,9 @@ void f({@a}) {}
     await resolveTestCode(r'''
 void f(@a) {}
 ''');
-    var f = findElement.topFunction('f');
-    var element = f.parameters.single;
-    expect(element.name, '');
+    var f = findElement2.topFunction('f');
+    var element = f.formalParameters.single;
+    expect(element.name3, '');
     expect(element.isPositional, isTrue);
 
     var result = await getElementDeclaration(element);
@@ -399,7 +402,7 @@ class A {
   set x(_) {}
 }
 ''');
-    var element = findElement.setter('x');
+    var element = findElement2.setter('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
     expect(node.name.lexeme, 'x');
@@ -410,7 +413,7 @@ class A {
     await resolveTestCode(r'''
 set x(_) {}
 ''');
-    var element = findElement.topSet('x');
+    var element = findElement2.topSet('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
     expect(node.name.lexeme, 'x');
@@ -421,7 +424,7 @@ set x(_) {}
     await resolveTestCode(r'''
 int foo;
 ''');
-    var element = findElement.topVar('foo');
+    var element = findElement2.topVar('foo');
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
@@ -432,7 +435,7 @@ int foo;
     await resolveTestCode(r'''
 int get foo => 0;
 ''');
-    var element = findElement.topVar('foo');
+    var element = findElement2.topVar('foo');
 
     var result = await getElementDeclaration(element);
     expect(result, isNull);
@@ -444,11 +447,11 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
-      Element element) async {
-    var path = element.library!.source.fullName;
+      Element2 element) async {
+    var path = element.library2!.firstFragment.source.fullName;
     var file = getFile(path);
     var library = await _getParsedLibrary(file);
-    return library.getElementDeclaration(element);
+    return library.getElementDeclaration2(element.firstFragment);
   }
 
   Future<ParsedLibraryResult> _getParsedLibrary(File file) async {
@@ -462,11 +465,11 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
-      Element element) async {
-    var path = element.library!.source.fullName;
+      Element2 element) async {
+    var path = element.library2!.firstFragment.source.fullName;
     var file = getFile(path);
     var library = await _getResolvedLibrary(file);
-    return library.getElementDeclaration(element);
+    return library.getElementDeclaration2(element.firstFragment);
   }
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(File file) async {
