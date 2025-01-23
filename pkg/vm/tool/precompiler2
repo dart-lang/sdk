@@ -15,7 +15,7 @@
 set -e
 
 function follow_links() {
-  file="$1"
+  local file="$1"
   while [ -h "$file" ]; do
     # On Mac OS, readlink -f doesn't work.
     file="$(readlink "$file")"
@@ -30,6 +30,8 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 SDK_DIR="$CUR_DIR/../../.."
+
+. "$CUR_DIR/shared_functions.sh"
 
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()
@@ -98,18 +100,36 @@ else
   OUT_DIR="$SDK_DIR/out"
 fi
 
-HOST_ARCH="X64"
-if [[ `uname -m` == 'arm64' ]]; then
-  HOST_ARCH="ARM64"
-fi
+HOST_ARCH="$(host_arch)"
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
+TARGET_ARCH="$(parse_target_arch "$DART_CONFIGURATION")"
 BUILD_DIR="$OUT_DIR/$DART_CONFIGURATION"
-
-DART="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
-if [ ! -f "$DART" ]; then
-  DART="$BUILD_DIR/dart"
+if [ ! -d "$BUILD_DIR" ]; then
+  echo "$BUILD_DIR is not a directory"
+  exit 1
 fi
+
+function find_dart {
+  local tools_dart="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
+  if [ -f "$tools_dart" ]; then
+    echo "$tools_dart"
+  else
+    local host_dart=""
+    if [[ "$HOST_ARCH" == "$TARGET_ARCH" ]]; then
+      host_dart="$BUILD_DIR/dart"
+    else
+      host_dart="$OUT_DIR/Release$HOST_ARCH/dart"
+    fi
+    if [ ! -f "$host_dart" ]; then
+      echo "Cannot find dart at either $tools_dart or $host_dart"
+      exit 1
+    fi
+    echo "$host_dart"
+  fi
+}
+
+DART="$(find_dart)"
 
 function gen_kernel() {
   if [[ "$DART_GN_ARGS" == *"precompile_tools=true"* ]]; then
@@ -129,10 +149,29 @@ gen_kernel --platform "${BUILD_DIR}/vm_platform_strong.dill"                   \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"
 
-
+GEN_SNAPSHOT="gen_snapshot"
+# If the target architecture differs from the host architecture, use
+# gen_snapshot for the host architecture for cross compilation, which is
+# denoted by an X between the build mode and the architecture name,
+# e.g., ReleaseXARM64 on X64.
+if [[ ( "$DART_CONFIGURATION" =~ (Debug|Release|Product)X[^6] ) && \
+      ( "$HOST_ARCH" != "$TARGET_ARCH" ) ]]; then
+  case "$HOST_ARCH" in
+    "X64")
+    GEN_SNAPSHOT="clang_x64/${GEN_SNAPSHOT}"
+    ;;
+    "ARM64")
+    GEN_SNAPSHOT="clang_arm64/${GEN_SNAPSHOT}"
+    ;;
+    *)
+    echo "Unexpected host architecture $HOST_ARCH for cross compilation"
+    exit 1
+    ;;
+  esac
+fi
 
 # Step 2: Generate snapshot from the Kernel binary.
-"$BUILD_DIR"/gen_snapshot                                                      \
+${BUILD_DIR}/${GEN_SNAPSHOT}                                                   \
      ${GEN_SNAPSHOT_FLAGS}                                                     \
      "$GEN_SNAPSHOT_OPTION"                                                    \
      "$GEN_SNAPSHOT_FILENAME"                                                  \
