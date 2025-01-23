@@ -148,7 +148,7 @@ vars = {
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "f364fc8291d668d85c702a5b9f9a4f2e5c1ade0e",
-  "tools_rev": "3bdef2043af9244b804adc08896bf96d51bb49ba",
+  "tools_rev": "92114ab8a16eef77be1cd7bad3f5af28b5b1dc63",
   "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
   "web_rev": "af5de5e8548060c0795713ee7129ba6d5ff9f1b2",
   "web_socket_channel_rev": "a937243563e8ee75d11fb23610297d4f6e5cb2b9",
