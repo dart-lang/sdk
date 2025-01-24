@@ -4637,6 +4637,11 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   String get nameShared => wrappedElement.name;
 
   @override
+  ParameterKind get parameterKind {
+    return firstFragment.parameterKind;
+  }
+
+  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   TypeImpl get type => wrappedElement.type;
 
@@ -4665,6 +4670,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
       child.accept2(visitor);
     }
   }
+
   // firstFragment.typeParameters
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
@@ -4677,6 +4683,8 @@ mixin FormalParameterElementMixin
         FormalParameterElement,
         SharedNamedFunctionParameter,
         VariableElement2OrMember {
+  ParameterKind get parameterKind;
+
   @override
   TypeImpl get type;
 

@@ -561,6 +561,16 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.typeArguments,
   });
 
+  factory InstantiatedTypeAliasElementImpl.v2({
+    required TypeAliasElement2 element,
+    required List<DartType> typeArguments,
+  }) {
+    return InstantiatedTypeAliasElementImpl(
+      element: element.asElement,
+      typeArguments: typeArguments,
+    );
+  }
+
   @override
   TypeAliasElement2 get element2 => (element as TypeAliasFragment).element;
 }

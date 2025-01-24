@@ -6,6 +6,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -447,13 +448,13 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
 
   @override
   DartType? visitTypeArgument(
-    TypeParameterElement parameter,
+    TypeParameterElement2 parameter,
     DartType argument,
   ) {
     var savedVariance = _variance;
     try {
       _variance = _variance.combine(
-        (parameter as TypeParameterElementImpl).variance,
+        (parameter as TypeParameterElementImpl2).variance,
       );
       return super.visitTypeArgument(parameter, argument);
     } finally {
