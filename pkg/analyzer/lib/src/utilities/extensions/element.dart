@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 extension ClassElement2Extension on ClassElement2 {
@@ -599,7 +600,9 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
     return TypeParameterElementImpl2(
       firstFragment: fragment,
       name3: name3,
-      bound: bound,
+      // TODO(paulberry): eliminate this cast by changing this extension to
+      // apply to `TypeParameterElementImpl2`.
+      bound: bound as TypeImpl?,
     );
   }
 }

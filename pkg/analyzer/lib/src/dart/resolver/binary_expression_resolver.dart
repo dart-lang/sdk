@@ -293,7 +293,12 @@ class BinaryExpressionResolver {
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
       rightContextType = _typeSystem.refineNumericInvocationContext(
-          left.staticType, node.staticElement, contextType, rightParam.type);
+          left.staticType,
+          node.staticElement,
+          contextType,
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+          rightParam.type as TypeImpl);
     } else {
       rightContextType = UnknownInferredType.instance;
     }

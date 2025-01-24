@@ -336,9 +336,11 @@ class TypeSystemImpl implements TypeSystem {
   /// Returns [type] in which all promoted type variables have been replaced
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
-  DartType demoteType(DartType type) {
+  TypeImpl demoteType(DartType type) {
     var visitor = const DemotionVisitor();
-    return type.accept(visitor) ?? type;
+    // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor` so
+    // that it implements `TypeVisitor<TypeImpl?>`.
+    return (type.accept(visitor) ?? type) as TypeImpl;
   }
 
   /// Eliminates type variables from the context [type], replacing them with
@@ -365,7 +367,10 @@ class TypeSystemImpl implements TypeSystem {
   /// Defines the "remainder" of `T` when `S` has been removed from
   /// consideration by an instance check.  This operation is used for type
   /// promotion during flow analysis.
-  DartType factor(DartType T, DartType S) {
+  TypeImpl factor(DartType T, DartType S) {
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // parameter `T`.
+    T as TypeImpl;
     // * If T <: S then Never
     if (isSubtypeOf(T, S)) {
       return NeverTypeImpl.instance;
@@ -376,8 +381,8 @@ class TypeSystemImpl implements TypeSystem {
     // * Else if T is R? and Null <: S then factor(R, S)
     // * Else if T is R? then factor(R, S)?
     if (T_nullability == NullabilitySuffix.question) {
-      var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-      var factor_RS = factor(R, S) as TypeImpl;
+      var R = T.withNullability(NullabilitySuffix.none);
+      var factor_RS = factor(R, S);
       if (isSubtypeOf(nullNone, S)) {
         return factor_RS;
       } else {
@@ -387,7 +392,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
     // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
-    if (T is InterfaceType && T.isDartAsyncFutureOr) {
+    if (T is InterfaceTypeImpl && T.isDartAsyncFutureOr) {
       var R = T.typeArguments[0];
       var future_R = typeProvider.futureType(R);
       if (isSubtypeOf(future_R, S)) {
@@ -1492,8 +1497,10 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
-  DartType normalize(DartType T) {
-    return NormalizeHelper(this).normalize(T);
+  TypeImpl normalize(DartType T) {
+    // TODO(paulberry): eliminate this cast by changing the return type of
+    // `NormalizeHelper.normalize`.
+    return NormalizeHelper(this).normalize(T) as TypeImpl;
   }
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
@@ -1551,11 +1558,11 @@ class TypeSystemImpl implements TypeSystem {
   /// [methodElement], the context surrounding the method invocation is
   /// [invocationContext], and the context type produced so far by resolution is
   /// [currentType].
-  DartType refineNumericInvocationContext(
+  TypeImpl refineNumericInvocationContext(
       DartType? targetType,
       Element? methodElement,
       DartType invocationContext,
-      DartType currentType) {
+      TypeImpl currentType) {
     if (targetType != null && methodElement is MethodElement) {
       return _refineNumericInvocationContextNullSafe(
           targetType, methodElement, invocationContext, currentType);
@@ -1656,7 +1663,7 @@ class TypeSystemImpl implements TypeSystem {
   /// The return value will be a new list of fresh type parameters, that can
   /// be used to instantiate both function types, allowing further comparison.
   RelatedTypeParameters2? relateTypeParameters2(
-    List<TypeParameterElement2> typeParameters1,
+    List<TypeParameterElementImpl2> typeParameters1,
     List<TypeParameterElement2> typeParameters2,
   ) {
     if (typeParameters1.length != typeParameters2.length) {
@@ -1815,7 +1822,10 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Tries to promote from the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
-  DartType? tryPromoteToType(DartType to, DartType from) {
+  TypeImpl? tryPromoteToType(DartType to, DartType from) {
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // parameter `to`.
+    to as TypeImpl;
     // Allow promoting to a subtype, for example:
     //
     //     f(Base b) {
@@ -1944,11 +1954,11 @@ class TypeSystemImpl implements TypeSystem {
     return null;
   }
 
-  DartType _refineNumericInvocationContextNullSafe(
+  TypeImpl _refineNumericInvocationContextNullSafe(
       DartType targetType,
       MethodElement methodElement,
       DartType invocationContext,
-      DartType currentType) {
+      TypeImpl currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.

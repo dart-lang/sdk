@@ -41,8 +41,9 @@ class RecordLiteralResolver {
   /// The type schemas contained in [contextType] should only be used for
   /// inferring the expressions in [node] if it is a record type with a shape
   /// that matches the shape of [node].
-  RecordType? _matchContextType(RecordLiteralImpl node, DartType contextType) {
-    if (contextType is! RecordType) return null;
+  RecordTypeImpl? _matchContextType(
+      RecordLiteralImpl node, DartType contextType) {
+    if (contextType is! RecordTypeImpl) return null;
     if (contextType.namedFields.length + contextType.positionalFields.length !=
         node.fields.length) {
       return null;
@@ -132,7 +133,7 @@ class RecordLiteralResolver {
     }
   }
 
-  DartType _resolveField(ExpressionImpl field, DartType contextType) {
+  DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
     var staticType = _resolver
         .analyzeExpression(field, SharedTypeSchemaView(contextType))
         .unwrapTypeView<DartType>();

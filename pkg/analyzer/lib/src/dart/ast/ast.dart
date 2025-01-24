@@ -427,7 +427,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The list must be the same length as the number of arguments, but can
   /// contain `null` entries if a given argument doesn't correspond to a formal
   /// parameter.
-  List<ParameterElement?>? _correspondingStaticParameters;
+  List<ParameterElementMixin?>? _correspondingStaticParameters;
 
   /// Initializes a newly created list of arguments.
   ArgumentListImpl({
@@ -444,10 +444,10 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   Token get beginToken => leftParenthesis;
 
-  List<ParameterElement?>? get correspondingStaticParameters =>
+  List<ParameterElementMixin?>? get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
-  set correspondingStaticParameters(List<ParameterElement?>? parameters) {
+  set correspondingStaticParameters(List<ParameterElementMixin?>? parameters) {
     if (parameters != null && parameters.length != _arguments.length) {
       throw ArgumentError(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
@@ -486,7 +486,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// - the function being invoked is known based on static type information
   /// - the expression corresponds to one of the parameters of the function
   ///   being invoked
-  ParameterElement? _getStaticParameterElementFor(Expression expression) {
+  ParameterElementMixin? _getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters!.length != _arguments.length) {
       // Either the AST structure hasn't been resolved, the invocation of which
@@ -822,7 +822,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var element = element2;
     if (element is PromotableElementImpl2) {
       return resolverVisitor
@@ -929,7 +929,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
-  ParameterElement? get _staticParameterElementForRightHandSide {
+  ParameterElementMixin? get _staticParameterElementForRightHandSide {
     Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = staticElement;
@@ -943,9 +943,11 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         return null;
       }
       if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
-        return parameters.length == 2 ? parameters[1] : null;
+        return parameters.length == 2
+            ? (parameters[1] as ParameterElementMixin)
+            : null;
       }
-      return parameters[0];
+      return parameters[0] as ParameterElementMixin;
     }
 
     return null;
@@ -2352,7 +2354,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
   }
 
@@ -4024,7 +4026,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeConstantPatternSchema()
         .unwrapTypeSchemaView();
@@ -4740,7 +4742,7 @@ sealed class DartPattern implements AstNode, ListPatternElement {
 sealed class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
-  DartType? matchedValueType;
+  TypeImpl? matchedValueType;
 
   /// The context for this pattern.
   ///
@@ -4782,7 +4784,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// The variable pattern, itself, or wrapped in a unary pattern.
   VariablePatternImpl? get variablePattern => null;
 
-  DartType computePatternSchema(ResolverVisitor resolverVisitor);
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor);
 
   /// Dispatches this pattern to the [resolverVisitor], with the given [context]
   /// information.
@@ -5016,7 +5018,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       visitor.visitDeclaredVariablePattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
             type?.typeOrThrow.wrapSharedTypeView())
@@ -6115,7 +6117,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   bool get isAssignable => false;
 
   @override
-  ParameterElement? get staticParameterElement {
+  ParameterElementMixin? get staticParameterElement {
     var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
@@ -6128,7 +6130,9 @@ sealed class ExpressionImpl extends AstNodeImpl
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
-          return parameters[0];
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `BinaryExpressionImpl.staticInvokeType` to `FunctionTypeImpl`.
+          return parameters[0] as ParameterElementMixin;
         }
         return null;
       }
@@ -10224,7 +10228,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
   /// information.
-  ParameterElement? get _staticParameterElementForIndex {
+  ParameterElementMixin? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
     var parent = this.parent;
@@ -10232,12 +10236,15 @@ final class IndexExpressionImpl extends ExpressionImpl
       element = parent.writeElement ?? parent.readElement;
     }
 
-    if (element is ExecutableElement) {
+    if (element is ExecutableElementOrMember) {
       List<ParameterElement> parameters = element.parameters;
       if (parameters.isEmpty) {
         return null;
       }
-      return parameters[0];
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `ExecutableElementOrMember.parameters` to
+      // `List<ParameterElementMixin>`.
+      return parameters[0] as ParameterElementMixin;
     }
     return null;
   }
@@ -11291,7 +11298,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var elementType = typeArguments?.arguments.elementAtOrNull(0)?.typeOrThrow;
     return resolverVisitor
         .analyzeListPatternSchema(
@@ -11399,7 +11406,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeLogicalAndPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
@@ -11478,7 +11485,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeLogicalOrPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
@@ -11704,7 +11711,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   final Token rightBracket;
 
   @override
-  DartType? requiredType;
+  TypeImpl? requiredType;
 
   MapPatternImpl({
     required this.typeArguments,
@@ -11739,7 +11746,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var typeArgumentNodes = this.typeArguments?.arguments;
     ({SharedTypeView keyType, SharedTypeView valueType})? typeArguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
@@ -13062,7 +13069,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(
           pattern,
@@ -13198,7 +13205,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(
           pattern,
@@ -13378,7 +13385,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
         .unwrapTypeSchemaView();
@@ -13565,7 +13572,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
       visitor.visitParenthesizedPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .dispatchPatternSchema(pattern)
         .unwrapTypeSchemaView();
@@ -13793,7 +13800,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   /// The pattern type schema, used for downward inference of [expression];
   /// or `null` if the node isn't resolved yet.
-  DartType? patternTypeSchema;
+  TypeImpl? patternTypeSchema;
 
   PatternAssignmentImpl({
     required this.pattern,
@@ -14009,7 +14016,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   /// The pattern type schema, used for downward inference of [expression];
   /// or `null` if the node isn't resolved yet.
-  DartType? patternTypeSchema;
+  TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
   late final List<BindPatternVariableElementImpl> elements;
@@ -14187,7 +14194,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElement? get _staticParameterElementForOperand {
+  ParameterElementMixin? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14195,7 +14202,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
     if (parameters.isEmpty) {
       return null;
     }
-    return parameters[0];
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `staticElement` to `MethodElementOrMember?`.
+    return parameters[0] as ParameterElementMixin;
   }
 
   @override
@@ -14398,7 +14407,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElement? get _staticParameterElementForOperand {
+  ParameterElementMixin? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14406,7 +14415,9 @@ final class PrefixExpressionImpl extends ExpressionImpl
     if (parameters.isEmpty) {
       return null;
     }
-    return parameters[0];
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `staticElement` to `MethodElementOrMember?`.
+    return parameters[0] as ParameterElementMixin;
   }
 
   @override
@@ -14720,7 +14731,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeRecordPatternSchema(
           fields: resolverVisitor.buildSharedPatternFields(
@@ -15177,7 +15188,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeRelationalPatternSchema()
         .unwrapTypeSchemaView();
@@ -18859,7 +18870,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
             type?.typeOrThrow.wrapSharedTypeView())
