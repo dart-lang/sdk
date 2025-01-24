@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -267,7 +264,10 @@ class GreatestLowerBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Never`.
-    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    var fresh = _typeSystem.relateTypeParameters2(
+      f.typeParameters,
+      g.typeParameters,
+    );
     if (fresh == null) {
       return NeverTypeImpl.instance;
     }
@@ -275,19 +275,15 @@ class GreatestLowerBoundHelper {
     f = f.instantiate(fresh.typeParameterTypes);
     g = g.instantiate(fresh.typeParameterTypes);
 
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
+    var fParameters = f.formalParameters;
+    var gParameters = g.formalParameters;
 
-    var parameters = <ParameterElement>[];
+    var parameters = <FormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      // TODO(paulberry): get rid of this cast by changing the type of
-      // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-      var fParameter = fParameters[fIndex] as ParameterElementMixin;
-      // TODO(paulberry): get rid of this cast by changing the type of
-      // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-      var gParameter = gParameters[gIndex] as ParameterElementMixin;
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
       if (fParameter.isPositional) {
         if (gParameter.isPositional) {
           fIndex++;
@@ -308,7 +304,13 @@ class GreatestLowerBoundHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
+          var fName = fParameter.name3;
+          var gName = gParameter.name3;
+          if (fName == null || gName == null) {
+            return NeverTypeImpl.instance;
+          }
+
+          var compareNames = fName.compareTo(gName);
           if (compareNames == 0) {
             fIndex++;
             gIndex++;
@@ -371,9 +373,9 @@ class GreatestLowerBoundHelper {
 
     var returnType = getGreatestLowerBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl(
-      typeFormals: fresh.typeParameters,
-      parameters: parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: fresh.typeParameters,
+      formalParameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );

@@ -185,7 +185,9 @@ class FunctionTypeImpl extends TypeImpl
   }) {
     return FunctionTypeImpl(
       typeFormals: typeParameters.map((e) => e.asElement).toList(),
-      parameters: formalParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters is List<FormalParameterElementImpl>
+          ? formalParameters.map((e) => e.asElement).toList()
+          : formalParameters.map((e) => e.asElement).toList(),
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
       alias: alias,

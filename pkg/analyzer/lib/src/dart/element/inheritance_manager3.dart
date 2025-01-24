@@ -1390,18 +1390,14 @@ class Name {
   /// If the element is private, the name includes the library URI.
   ///
   /// If the name is a setter, the name ends with `=`.
-  static Name? forElement(ExecutableElement2 element) {
-    var name = element.name3;
+  static Name? forElement(Element2 element) {
+    var name = element.lookupName;
     if (name == null) {
       return null;
     }
 
-    if (element is SetterElement) {
-      name = '$name=';
-    }
-
     if (name.startsWith('_')) {
-      var libraryUri = element.firstFragment.libraryFragment.source.uri;
+      var libraryUri = element.firstFragment.libraryFragment!.source.uri;
       return Name(libraryUri, name);
     } else {
       return Name(null, name);

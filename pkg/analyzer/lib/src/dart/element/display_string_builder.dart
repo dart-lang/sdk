@@ -7,6 +7,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -197,7 +198,7 @@ class ElementDisplayStringBuilder {
 
     _writeType(type.returnType);
     _write(' Function');
-    _writeTypeParameters(type.typeFormals);
+    _writeTypeParameters2(type.typeParameters);
     _writeFormalParameters(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -353,6 +354,24 @@ class ElementDisplayStringBuilder {
 
   void writeTypeParameter(TypeParameterElement element) {
     if (element is TypeParameterElementImpl) {
+      var variance = element.variance;
+      if (!element.isLegacyCovariant && variance != Variance.unrelated) {
+        _write(variance.keyword);
+        _write(' ');
+      }
+    }
+
+    _write(element.displayName);
+
+    var bound = element.bound;
+    if (bound != null) {
+      _write(' extends ');
+      _writeType(bound);
+    }
+  }
+
+  void writeTypeParameter2(TypeParameterElement2 element) {
+    if (element is TypeParameterElementImpl2) {
       var variance = element.variance;
       if (!element.isLegacyCovariant && variance != Variance.unrelated) {
         _write(variance.keyword);
@@ -540,6 +559,19 @@ class ElementDisplayStringBuilder {
         _write(', ');
       }
       (elements[i] as TypeParameterElementImpl).appendTo(this);
+    }
+    _write('>');
+  }
+
+  void _writeTypeParameters2(List<TypeParameterElement2> elements) {
+    if (elements.isEmpty) return;
+
+    _write('<');
+    for (var i = 0; i < elements.length; i++) {
+      if (i != 0) {
+        _write(', ');
+      }
+      (elements[i] as TypeParameterElementImpl2).appendTo(this);
     }
     _write('>');
   }

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -303,13 +304,13 @@ class TypePropertyResolver {
     var setter = _setterRequested ?? _setterRecovery;
 
     return ResolutionResult(
-      getter: getter,
+      getter2: getter?.asElement2,
       // Parser recovery resulting in an empty property name should not be
       // reported as an undefined getter.
       needsGetterError:
           _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
       isGetterInvalid: _needsGetterError || _reportedGetterError,
-      setter: setter,
+      setter2: setter?.asElement2,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
   }
