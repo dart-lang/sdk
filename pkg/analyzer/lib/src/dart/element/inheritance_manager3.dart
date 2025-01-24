@@ -1391,20 +1391,9 @@ class Name {
   ///
   /// If the name is a setter, the name ends with `=`.
   static Name? forElement(Element2 element) {
-    var name = element.name3;
+    var name = element.lookupName;
     if (name == null) {
       return null;
-    }
-
-    // TODO(scheglov): use lookupName
-    if (element is MethodElement2 &&
-        name == '-' &&
-        element.formalParameters.isEmpty) {
-      name = 'unary-';
-    }
-
-    if (element is SetterElement) {
-      name = '$name=';
     }
 
     if (name.startsWith('_')) {
