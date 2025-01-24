@@ -371,7 +371,8 @@ class Package implements Comparable<Package> {
 
     for (var line in file.readAsLinesSync()) {
       // Check for a few tokens that should stop our parse.
-      if (line.startsWith('class ') ||
+      if (line.startsWith('// @skip_package_deps_validation') ||
+          line.startsWith('class ') ||
           line.startsWith('typedef ') ||
           line.startsWith('mixin ') ||
           line.startsWith('enum ') ||

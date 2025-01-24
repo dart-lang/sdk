@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This test is always used with a custom package_config.json, so don't validate
+// the imports against the pubspec.yaml.
+// @skip_package_deps_validation
+
 import 'dart:core';
 
 import 'package:const_finder_fixtures_package/package.dart';
