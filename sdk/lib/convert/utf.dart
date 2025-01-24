@@ -523,6 +523,7 @@ class _Utf8Decoder {
   static const int errorUnfinished = E7;
 
   @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
   static bool isErrorState(int state) => (state & 1) != 0;
 
   static String errorDescription(int state) {
