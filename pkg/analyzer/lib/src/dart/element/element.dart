@@ -11490,6 +11490,11 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameter2(this);
+  }
+
+  @override
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {

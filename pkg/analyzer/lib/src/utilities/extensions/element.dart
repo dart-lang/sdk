@@ -358,7 +358,7 @@ extension FieldElementExtension on FieldElement {
   }
 }
 
-extension FormalParameterExtension on FormalParameterElement {
+extension FormalParameterElementExtension on FormalParameterElement {
   ParameterElement get asElement {
     if (this case ParameterMember member) {
       return member;
@@ -383,6 +383,12 @@ extension FormalParameterExtension on FormalParameterElement {
       buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
+  }
+}
+
+extension FormalParameterElementImplExtension on FormalParameterElementImpl {
+  ParameterElementImpl get asElement {
+    return firstFragment;
   }
 }
 
