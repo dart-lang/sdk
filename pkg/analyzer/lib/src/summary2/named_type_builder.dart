@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
@@ -70,6 +72,29 @@ class NamedTypeBuilder extends TypeBuilder {
     return NamedTypeBuilder(
         linker, typeSystem, element, arguments, nullabilitySuffix,
         node: node);
+  }
+
+  factory NamedTypeBuilder.v2({
+    required Linker linker,
+    required TypeSystemImpl typeSystem,
+    required Element2 element,
+    required List<DartType> arguments,
+    required NullabilitySuffix nullabilitySuffix,
+    NamedTypeImpl? node,
+  }) {
+    return NamedTypeBuilder(
+      linker,
+      typeSystem,
+      element.asElement!,
+      arguments,
+      nullabilitySuffix,
+      node: node,
+    );
+  }
+
+  @override
+  Element2 get element3 {
+    return element.asElement2!;
   }
 
   // TODO(scheglov): Only when enabled both in the element, and target?

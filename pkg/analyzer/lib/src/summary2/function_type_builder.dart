@@ -5,6 +5,7 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The type builder for a [GenericFunctionType].
 class FunctionTypeBuilder extends TypeBuilder {
@@ -59,6 +61,30 @@ class FunctionTypeBuilder extends TypeBuilder {
       node: node,
     );
   }
+
+  factory FunctionTypeBuilder.v2({
+    required List<TypeParameterElement2> typeParameters,
+    required List<FormalParameterElement> formalParameters,
+    required TypeImpl returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    GenericFunctionTypeImpl? node,
+  }) {
+    return FunctionTypeBuilder(
+      typeParameters.map((e) => e.asElement).toList(),
+      formalParameters.map((e) => e.asElement).toList(),
+      returnType,
+      nullabilitySuffix,
+      node: node,
+    );
+  }
+
+  List<FormalParameterElementMixin> get formalParameters {
+    return parameters.map((p) => p.asElement2).toList(growable: false);
+  }
+
+  List<TypeParameterElementImpl2> get typeParameters => typeFormals
+      .map((fragment) => fragment.asElement2 as TypeParameterElementImpl2)
+      .toList();
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
