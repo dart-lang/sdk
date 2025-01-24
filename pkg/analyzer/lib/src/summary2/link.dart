@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:macros/src/executor/multi_executor.dart' as macro;
 
@@ -102,6 +104,12 @@ class Linker {
   /// from which it was created.
   ast.AstNode? getLinkingNode(Element element) {
     return elementNodes[element];
+  }
+
+  /// If the [element] is part of a library being linked, return the node
+  /// from which it was created.
+  ast.AstNode? getLinkingNode2(Element2 element) {
+    return elementNodes[element.asElement];
   }
 
   Future<void> link({
