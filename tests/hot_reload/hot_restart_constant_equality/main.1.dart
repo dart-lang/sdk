@@ -22,24 +22,29 @@ import 'library_b.dart';
 ///   constant containers, causing 'ConstantEqualityFailure's.
 class ConstObject {
   const ConstObject();
-  String get text => 'ConstObject('
+  String get text =>
+      'ConstObject('
       'reloadVariable: $variableToModifyToForceRecompile, '
       '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }
 
 Future<void> main() async {
-  Expect.equals('ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-      '${const ConstObject().text}');
+  Expect.equals(
+    'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+    '${const ConstObject().text}',
+  );
 }
+
 /** DIFF **/
 /*
-@@ -28,7 +28,6 @@
- }
+@@ -30,8 +30,7 @@
  
  Future<void> main() async {
--  Expect.equals('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
-+  Expect.equals('ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-       '${const ConstObject().text}');
+   Expect.equals(
+-    'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
++    'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+     '${const ConstObject().text}',
+   );
 -  await hotRestart();
  }
 */

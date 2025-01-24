@@ -575,8 +575,10 @@ abstract class HotReloadSuiteRunner {
             }
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
@@ -623,16 +625,18 @@ abstract class HotReloadSuiteRunner {
             (currentCode, currentDiff) = _splitTestByDiff(currentEdit.fileUri);
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            final newCurrentText = '$currentCode'
-                '${currentCode.endsWith('\n') ? '' : '\n'}'
-                '$diffOutput\n';
+            // Write an empty line between the code and the diff comment to
+            // agree with the dart formatter.
+            final newCurrentText = '$currentCode\n\n$diffOutput\n';
             File.fromUri(currentEdit.fileUri).writeAsStringSync(newCurrentText);
             _print('Writing updated diff to $currentEdit.fileUri',
                 label: test.name);
@@ -943,16 +947,15 @@ abstract class HotReloadSuiteRunner {
     return (diff1Lines.join('\n'), diff2Lines.join('\n'));
   }
 
-  /// Returns the code and diff portions of [file].
+  /// Returns the code and diff portions of [file] with all leading and trailing
+  /// whitespace trimmed.
   (String, String) _splitTestByDiff(Uri file) {
     final text = File.fromUri(file).readAsStringSync();
     final diffIndex = text.indexOf(testDiffSeparator);
     final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
-    final codeText = text.substring(0, diffSplitIndex);
-    final diffText = text.substring(diffSplitIndex, text.length - 1);
-    // Avoid 'No newline at end of file' messages in the output by appending a
-    // newline if one is not already trailing.
-    return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
+    final codeText = text.substring(0, diffSplitIndex).trim();
+    final diffText = text.substring(diffSplitIndex, text.length - 1).trim();
+    return (codeText, diffText);
   }
 }
 

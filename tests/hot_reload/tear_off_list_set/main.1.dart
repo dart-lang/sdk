@@ -42,6 +42,7 @@ Future<void> main() async {
   set.remove(c.foo);
   Expect.isEmpty(set);
 }
+
 /** DIFF **/
 /*
 @@ -9,7 +9,7 @@

@@ -20,6 +20,7 @@ Future<void> main() async {
   Expect.equals('new value', init());
   Expect.equals('old value', value);
 }
+
 /** DIFF **/
 /*
 @@ -8,7 +8,7 @@

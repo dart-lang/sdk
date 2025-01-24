@@ -29,6 +29,7 @@ Future<void> main() async {
   // special patch class.
   Expect.equals('postapocalyptic!', validate());
 }
+
 /** DIFF **/
 /*
 @@ -9,16 +9,12 @@

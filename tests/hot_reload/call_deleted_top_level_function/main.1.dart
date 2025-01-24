@@ -28,6 +28,7 @@ Future<void> main() async {
   Expect.contains('deleted', helper());
   Expect.equals(1, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
 @@ -8,15 +8,14 @@

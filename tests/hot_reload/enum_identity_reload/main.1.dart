@@ -36,9 +36,4 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -33,3 +33,4 @@
-   Expect.equals(z, Fruit.values[x[Fruit.Banana]]);
-   Expect.equals(w, Fruit.values[x[Fruit.Cantaloupe]]);
- }
-+
 */

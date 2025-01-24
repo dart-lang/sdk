@@ -19,6 +19,7 @@ Future<void> main() async {
   var newType = getType();
   Expect.identical(oldType, 34);
 }
+
 /** DIFF **/
 /*
 @@ -8,7 +8,7 @@

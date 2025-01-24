@@ -21,6 +21,7 @@ Future<void> main() async {
   Expect.type<String>(Foo().x);
   Expect.equals('42', Foo().x);
 }
+
 /** DIFF **/
 /*
 @@ -10,7 +10,7 @@

@@ -26,6 +26,7 @@ Future<void> main() async {
   Expect.equals(3, hotReloadGeneration);
   Expect.equals("before", value);
 }
+
 /** DIFF **/
 /*
 @@ -17,6 +17,7 @@

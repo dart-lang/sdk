@@ -30,9 +30,4 @@ Future<void> main() async {
  
  var x;
  
-@@ -18,3 +18,4 @@
-   Expect.equals(Fruit.Banana, x);
-   Expect.identical(Fruit.Banana, x);
- }
-+
 */

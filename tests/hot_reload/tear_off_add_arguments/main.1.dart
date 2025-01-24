@@ -48,9 +48,4 @@ Future<void> main() async {
  }
  
  Future<void> main() async {
-@@ -29,3 +28,4 @@
-   await hotReload();
-   Expect.throws<NoSuchMethodError>(helper);
- }
-+
 */

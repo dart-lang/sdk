@@ -24,6 +24,7 @@ class B extends A {
 Future<void> main() async {
   Expect.equals('a:b', await B().f());
 }
+
 /** DIFF **/
 /*
 @@ -9,7 +9,7 @@

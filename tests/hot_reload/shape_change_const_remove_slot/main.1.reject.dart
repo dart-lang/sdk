@@ -25,6 +25,7 @@ Future<void> main() async {
   await hotReload(expectRejection: true);
   helper();
 }
+
 /** DIFF **/
 /*
 @@ -8,14 +8,14 @@

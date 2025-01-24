@@ -61,9 +61,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    retained = Fruit.Apple;
-@@ -20,3 +32,4 @@
-   await hotReload();
-   helper();
- }
-+
 */

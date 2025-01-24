@@ -25,6 +25,7 @@ Future<void> main() async {
   Expect.equals(20, savedA.field);
   Expect.equals(10, helper().field);
 }
+
 /** DIFF **/
 /*
 @@ -9,7 +9,7 @@

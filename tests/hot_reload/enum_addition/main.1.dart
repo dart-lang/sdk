@@ -46,9 +46,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    Expect.equals(0, Fruit.Apple.index);
-@@ -25,3 +28,4 @@
-   Expect.equals('Fruit.Banana', Fruit.Banana.toString());
-   helper();
- }
-+
 */

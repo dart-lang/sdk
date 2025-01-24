@@ -18,6 +18,7 @@ Future<void> main() async {
   await hotReload();
   validate();
 }
+
 /** DIFF **/
 /*
 @@ -2,12 +2,15 @@

@@ -132,9 +132,4 @@ Future<void> main() async {
  }
  
  enum C {
-@@ -97,3 +97,4 @@
-   Expect.identical(c3, C.C3, 'i-c3');
-   Expect.equals(c3.hashCode, C.C3.hashCode, 'h-c3');
- }
-+
 */
