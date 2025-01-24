@@ -154,7 +154,7 @@ class CommentReferenceResolver {
     }
 
     if (element == null) {
-      InterfaceType enclosingType;
+      InterfaceTypeImpl enclosingType;
       var enclosingClass = _resolver.enclosingClass;
       if (enclosingClass != null) {
         enclosingType = enclosingClass.thisType;

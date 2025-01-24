@@ -7,6 +7,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The result of attempting to resolve an identifier to elements.
@@ -35,10 +37,10 @@ class ResolutionResult extends SimpleResolutionResult {
   final bool needsSetterError;
 
   /// The [FunctionType] referenced with `call`.
-  final FunctionType? callFunctionType;
+  final FunctionTypeImpl? callFunctionType;
 
   /// The field referenced in a [RecordType].
-  final RecordTypeField? recordField;
+  final RecordTypeFieldImpl? recordField;
 
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
@@ -55,14 +57,14 @@ class ResolutionResult extends SimpleResolutionResult {
 
 class SimpleResolutionResult {
   /// Return the element that is invoked for reading.
-  final ExecutableElement2? getter2;
+  final ExecutableElement2OrMember? getter2;
 
   /// Return the element that is invoked for writing.
   final ExecutableElement2? setter2;
 
   const SimpleResolutionResult({this.getter2, this.setter2});
 
-  ExecutableElement? get getter => getter2?.asElement;
+  ExecutableElementOrMember? get getter => getter2?.asElement;
 
   ExecutableElement? get setter => setter2?.asElement;
 }

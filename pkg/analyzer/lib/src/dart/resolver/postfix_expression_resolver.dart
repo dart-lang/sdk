@@ -97,7 +97,7 @@ class PostfixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  DartType _computeStaticReturnType(Element? element) {
+  TypeImpl _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
@@ -125,7 +125,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
+  void _resolve1(PostfixExpressionImpl node, TypeImpl receiverType) {
     ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
@@ -162,13 +162,13 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
+  void _resolve2(PostfixExpressionImpl node, TypeImpl receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
-      DartType operatorReturnType;
+      TypeImpl operatorReturnType;
       if (receiverType.isDartCoreInt) {
         // No need to check for `intVar++`, the result is `int`.
         operatorReturnType = receiverType;

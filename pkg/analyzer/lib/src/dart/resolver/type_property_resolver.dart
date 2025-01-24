@@ -37,8 +37,8 @@ class TypePropertyResolver {
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
-  ExecutableElement? _getterRequested;
-  ExecutableElement? _getterRecovery;
+  ExecutableElementOrMember? _getterRequested;
+  ExecutableElementOrMember? _getterRecovery;
 
   bool _needsSetterError = false;
   bool _reportedSetterError = false;
@@ -65,7 +65,7 @@ class TypePropertyResolver {
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
     required ExpressionImpl? receiver,
-    required DartType receiverType,
+    required TypeImpl receiverType,
     required String name,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
@@ -174,7 +174,7 @@ class TypePropertyResolver {
 
       // Recovery, get some resolution.
       receiverType = _typeSystem.resolveToBound(receiverType);
-      if (receiverType is InterfaceType) {
+      if (receiverType is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverType);
       }
 

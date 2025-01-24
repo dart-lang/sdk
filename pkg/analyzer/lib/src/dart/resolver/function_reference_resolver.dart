@@ -396,7 +396,7 @@ class FunctionReferenceResolver {
   Element? _resolveFunctionTypeFunction(
     ExpressionImpl receiver,
     SimpleIdentifier methodName,
-    FunctionType receiverType,
+    FunctionTypeImpl receiverType,
   ) {
     var methodElement = _resolver.typePropertyResolver
         .resolve(
@@ -514,16 +514,16 @@ class FunctionReferenceResolver {
     }
     var target = function.realTarget;
 
-    DartType targetType;
+    TypeImpl targetType;
     if (target is SuperExpressionImpl) {
       targetType = target.typeOrThrow;
     } else if (target is ThisExpressionImpl) {
       targetType = target.typeOrThrow;
     } else if (target is SimpleIdentifierImpl) {
       var targetElement = target.scopeLookupResult!.getter;
-      if (targetElement is VariableElement) {
+      if (targetElement is VariableElementOrMember) {
         targetType = targetElement.type;
-      } else if (targetElement is PropertyAccessorElement) {
+      } else if (targetElement is PropertyAccessorElementOrMember) {
         var variable = targetElement.variable2;
         if (variable == null) {
           node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -671,7 +671,7 @@ class FunctionReferenceResolver {
     var element = function.scopeLookupResult!.getter;
 
     if (element == null) {
-      DartType receiverType;
+      TypeImpl receiverType;
       var enclosingClass = _resolver.enclosingClass;
       if (enclosingClass != null) {
         receiverType = enclosingClass.thisType;
@@ -707,7 +707,7 @@ class FunctionReferenceResolver {
           // Continue to assign types.
         }
 
-        if (method is PropertyAccessorElement) {
+        if (method is PropertyAccessorElementOrMember) {
           function.staticElement = method;
           function.setPseudoExpressionStaticType(method.returnType);
           var variable = method.variable2;

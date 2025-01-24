@@ -291,11 +291,11 @@ extension EnumElementImplExtension on EnumElementImpl {
 }
 
 extension ExecutableElement2Extension on ExecutableElement2 {
-  ExecutableElement get asElement {
+  ExecutableElementOrMember get asElement {
     if (this case ExecutableMember member) {
       return member;
     }
-    return firstFragment as ExecutableElement;
+    return firstFragment as ExecutableElementOrMember;
   }
 }
 
@@ -306,12 +306,15 @@ extension ExecutableElement2OrNullExtension on ExecutableElement2? {
 }
 
 extension ExecutableElementExtension on ExecutableElement {
-  ExecutableElement2 get asElement2 {
+  ExecutableElement2OrMember get asElement2 {
     return switch (this) {
       ExecutableFragment(:var element) => element,
       ExecutableMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
+    }
+        // TODO(paulberry): eliminate this cast by using impl types in the
+        // switch patterns above.
+        as ExecutableElement2OrMember;
   }
 }
 

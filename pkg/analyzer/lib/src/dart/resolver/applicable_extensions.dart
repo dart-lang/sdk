@@ -35,7 +35,7 @@ class InstantiatedExtensionWithMember {
 
   ExtensionElement2 get extension => candidate.extension;
 
-  ExecutableElement2? get getter {
+  ExecutableElement2OrMember? get getter {
     var getter = candidate.getter;
     if (getter == null) {
       return null;

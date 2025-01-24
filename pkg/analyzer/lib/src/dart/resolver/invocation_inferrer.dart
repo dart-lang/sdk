@@ -226,10 +226,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
-          // TODO(paulberry): make this cast unnecessary by changing `rawType`
-          // to `FunctionTypeImpl?`.
-          rawType.typeParameters.cast(),
-          rawType);
+          rawType.typeParameters, rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeParameters,
@@ -478,7 +475,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// argument of the invocation.  Usually this is just the type of the
   /// corresponding parameter, but it can be different for certain primitive
   /// numeric operations.
-  DartType _computeContextForArgument(DartType parameterType) => parameterType;
+  TypeImpl _computeContextForArgument(TypeImpl parameterType) => parameterType;
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
@@ -507,7 +504,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var arguments = argumentList.arguments;
     for (var deferredArgument in deferredFunctionLiterals) {
       var parameter = deferredArgument.parameter;
-      DartType parameterContextType;
+      TypeImpl parameterContextType;
       if (parameter != null) {
         var parameterType = parameter.type;
         if (substitution != null) {
@@ -572,7 +569,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         // make sense.  So we store an innocuous value in the list.
         whyNotPromotedArguments.add(() => const {});
       } else {
-        DartType parameterContextType;
+        TypeImpl parameterContextType;
         if (parameter != null) {
           var parameterType = parameter.type;
           if (substitution != null) {
@@ -603,8 +600,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Computes the return type of the method or function represented by the
   /// given type that is being invoked.
-  static DartType computeInvokeReturnType(DartType? type) {
-    if (type is FunctionType) {
+  static TypeImpl computeInvokeReturnType(DartType? type) {
+    if (type is FunctionTypeImpl) {
       return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
@@ -633,15 +630,17 @@ class MethodInvocationInferrer
   }
 
   @override
-  DartType _computeContextForArgument(DartType parameterType) {
+  TypeImpl _computeContextForArgument(TypeImpl parameterType) {
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
+      // TODO(paulberry): eliminate this cast by changing the return type of
+      // `TypeSystemImpl.refineNumericInvocationContext`.
       argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
           targetType,
           node.methodName.staticElement,
           contextType,
-          parameterType);
+          parameterType) as TypeImpl;
     }
     return argumentContextType;
   }
@@ -738,7 +737,7 @@ class _IdenticalArgumentInfo {
   final ExpressionInfo<SharedTypeView>? expressionInfo;
 
   /// The static type of the argument.
-  final DartType staticType;
+  final TypeImpl staticType;
 
   _IdenticalArgumentInfo(
       {required this.expressionInfo, required this.staticType});
