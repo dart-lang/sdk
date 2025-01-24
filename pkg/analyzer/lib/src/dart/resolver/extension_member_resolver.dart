@@ -91,12 +91,13 @@ class ExtensionMemberResolver {
   /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
       TypeImpl type, SyntacticEntity nameEntity, Name name) {
-    var aaa = _resolver.libraryFragment.accessibleExtensions2;
-    var bbb = aaa.havingMemberWithBaseName(name).toList();
-    var extensions = bbb.applicableTo(
-      targetLibrary: _resolver.definingLibrary,
-      targetType: type,
-    );
+    var extensions = _resolver.libraryFragment.accessibleExtensions2
+        .havingMemberWithBaseName(name)
+        .toList()
+        .applicableTo(
+          targetLibrary: _resolver.definingLibrary,
+          targetType: type,
+        );
 
     if (extensions.isEmpty) {
       return ExtensionResolutionError.none;

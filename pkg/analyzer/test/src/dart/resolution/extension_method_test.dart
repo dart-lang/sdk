@@ -1653,6 +1653,73 @@ MethodInvocation
 ''');
   }
 
+  test_instance_method_fromInstance_privateName() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void _foo() {}
+}
+
+void f() {
+  0._foo();
+}
+''');
+    var invocation = findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(invocation, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: _foo
+    staticElement: <testLibraryFragment>::@extension::E::@method::_foo
+    element: <testLibraryFragment>::@extension::E::@method::_foo#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_privateName_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+
+extension E on int {
+  void _foo() {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+part 'a.dart';
+
+void f() {
+  0._foo();
+}
+''');
+
+    var invocation = findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(invocation, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: _foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@extension::E::@method::_foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@extension::E::@method::_foo#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_instance_method_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A {}
