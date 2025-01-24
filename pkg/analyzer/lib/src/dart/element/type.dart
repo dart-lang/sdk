@@ -989,7 +989,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is PropertyAccessorElement) {
+        if (result is PropertyAccessorElementOrMember) {
           return result;
         }
       } else {
@@ -1002,7 +1002,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is PropertyAccessorElement) {
+    if (result is PropertyAccessorElementOrMember) {
       return result;
     }
 
@@ -1044,7 +1044,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is MethodElement) {
+        if (result is MethodElementOrMember) {
           return result;
         }
       } else {
@@ -1057,7 +1057,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is MethodElement) {
+    if (result is MethodElementOrMember) {
       return result;
     }
 
@@ -1099,7 +1099,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is PropertyAccessorElement) {
+        if (result is PropertyAccessorElementOrMember) {
           return result;
         }
       } else {
@@ -1112,7 +1112,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is PropertyAccessorElement) {
+    if (result is PropertyAccessorElementOrMember) {
       return result;
     }
 

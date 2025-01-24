@@ -356,7 +356,7 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode: concreteElement is PropertyAccessorElement &&
+          errorCode: concreteElement is PropertyAccessorElementOrMember &&
                   concreteElement.isSetter
               ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
               : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,

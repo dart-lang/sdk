@@ -120,7 +120,6 @@ mixin ElementsTypesMixin {
   TypeImpl get unknownInferredType => UnknownInferredType.instance;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
-
   ClassElementImpl class_({
     required String name,
     bool isAbstract = false,
@@ -149,6 +148,31 @@ mixin ElementsTypesMixin {
     element.methods = fragment.methods;
 
     return fragment;
+  }
+
+  ClassElementImpl class_2({
+    required String name,
+    bool isAbstract = false,
+    bool isAugmentation = false,
+    bool isSealed = false,
+    InterfaceType? superType,
+    List<TypeParameterElement2> typeParameters = const [],
+    List<InterfaceType> interfaces = const [],
+    List<InterfaceType> mixins = const [],
+    List<MethodElementImpl> methods = const [],
+  }) {
+    return class_(
+        name: name,
+        isAbstract: isAbstract,
+        isAugmentation: isAugmentation,
+        isSealed: isSealed,
+        superType: superType,
+        typeParameters: typeParameters
+            .map((e) => e.asElement as TypeParameterElementImpl)
+            .toList(),
+        interfaces: interfaces,
+        mixins: mixins,
+        methods: methods);
   }
 
   InterfaceTypeImpl comparableNone(DartType type) {

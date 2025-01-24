@@ -183,6 +183,26 @@ class GenericInferrer {
     }
   }
 
+  /// Applies all the argument constraints implied by [parameters] and
+  /// [argumentTypes].
+  void constrainArguments2(
+      {InterfaceElement? genericClass,
+      required List<FormalParameterElementMixin> parameters,
+      required List<TypeImpl> argumentTypes,
+      required AstNodeImpl? nodeForTesting}) {
+    for (int i = 0; i < argumentTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      constrainArgument(
+        argumentTypes[i],
+        parameters[i].type,
+        parameters[i].name3!,
+        genericClass: genericClass,
+        nodeForTesting: nodeForTesting,
+      );
+    }
+  }
+
   /// Constrain a universal function type [fnType] used in a context
   /// [contextType].
   void constrainGenericFunctionInContext(

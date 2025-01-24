@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -69,17 +67,17 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
 
     void check(
       TypeParameterTypeImpl type,
-      TypeParameterElement element,
+      TypeParameterElement2 element,
       NullabilitySuffix nullability,
       DartType promotedBound,
     ) {
-      expect(type.element, element);
+      expect(type.element3, element);
       expect(type.nullabilitySuffix, nullability);
       expect(type.promotedBound, promotedBound);
     }
 
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
+    var T = typeParameter2('T');
+    var T_none = typeParameterTypeNone2(T);
 
     var T1 = tryPromote(numNone, T_none);
     check(T1, T, NullabilitySuffix.none, numNone);

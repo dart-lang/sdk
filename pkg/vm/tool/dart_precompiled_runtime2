@@ -23,8 +23,6 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 # Handle the case where dart-sdk/bin has been symlinked to.
 CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
-. "$CUR_DIR/shared_functions.sh"
-
 if [[ `uname` == 'Darwin' ]];
 then
   OUT_DIR="$CUR_DIR"/../../../xcodebuild/
@@ -32,34 +30,7 @@ else
   OUT_DIR="$CUR_DIR"/../../../out/
 fi
 
-HOST_ARCH="$(host_arch)"
-
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-TARGET_ARCH="$(parse_target_arch "$DART_CONFIGURATION")"
 BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
-if [ ! -d "$BIN_DIR" ]; then
-  echo "$BIN_DIR is not a directory"
-  exit 1
-fi
 
-QEMU=""
-# If the target architecture differs from the host architecture, use qemu
-# to run the cross-compiled binary. Cross compilation is denoted by an X
-# between the build mode and the architecture name, re.g., ReleaseXARM64 on X64.
-if [[ ( "$DART_CONFIGURATION" =~ (Debug|Release|Product)X[^6] ) && \
-      ( "$HOST_ARCH" != "$TARGET_ARCH" ) ]]; then
-  case "$TARGET_ARCH" in
-    "ARM64")
-    QEMU="qemu-aarch64 -L /usr/aarch64-linux-gnu/"
-    ;;
-    "ARM")
-    QEMU="qemu-arm -L /usr/arm-linux-gnueabihf/"
-    ;;
-    *)
-    echo "No qemu handling for running $TARGET_ARCH binaries on $HOST_ARCH"
-    exit 1
-    ;;
-  esac
-fi
-
-exec $QEMU "$BIN_DIR"/dartaotruntime "$@"
+exec "$BIN_DIR"/dartaotruntime "$@"

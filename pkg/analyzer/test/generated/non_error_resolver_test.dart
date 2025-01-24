@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -698,7 +696,7 @@ class D {}
 mixin E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getClass('C')!;
+    ClassElement2 classC = unit.declaredFragment!.element.getClass2('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 
@@ -1365,9 +1363,9 @@ class C<T> {
 test() {}
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_annotation_implicitTypeArg() async {
@@ -1379,9 +1377,9 @@ class C<T> {
 test() {}
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_explicitTypeArg() async {
@@ -1394,9 +1392,9 @@ void test() {
 ''');
 
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_implicitTypeArg() async {
@@ -1409,9 +1407,9 @@ void test() {
 ''');
 
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew() async {
@@ -1422,9 +1420,9 @@ class C<T> {
 test() => new C<bool>.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew_implicitTypeArg() async {
@@ -1435,9 +1433,9 @@ class C<T> {
 C<bool> test() => new C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew() async {
@@ -1448,9 +1446,9 @@ class C<T> {
 test() => C<bool>.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew_implicitTypeArg() async {
@@ -1461,9 +1459,9 @@ class C<T> {
 C<bool> test() => C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
+    var y = x.correspondingParameter!;
     expect(y, TypeMatcher<ParameterMember>());
-    expect(y.declaration, findElement.parameter('arg'));
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall() async {
@@ -1474,9 +1472,9 @@ abstract class C {
 test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
@@ -1487,9 +1485,9 @@ abstract class C {
 bool test(C c) => c.method(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_explicitTypeArg() async {
@@ -1504,9 +1502,9 @@ void test() {
 ''');
 
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_implicitTypeArg() async {
@@ -1521,9 +1519,9 @@ void test() {
 ''');
 
     var x = findNode.namedExpression('arg: true');
-    var y = x.staticParameterElement!;
-    expect(y.enclosingElement3, isNotNull);
-    expect(y.declaration, findElement.parameter('arg'));
+    var y = x.correspondingParameter!;
+    expect(y.enclosingElement2, isNotNull);
+    expect(y.baseElement, findElement2.parameter('arg'));
   }
 
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
@@ -2239,8 +2237,8 @@ void main() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
-    var z = result.unit.declaredElement!.topLevelVariables
-        .where((e) => e.name == 'z')
+    var z = result.unit.declaredFragment!.element.topLevelVariables
+        .where((e) => e.name3 == 'z')
         .single;
     assertType(z.type, 'List<String>');
   }
@@ -2295,9 +2293,9 @@ h(bool b) {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1),
     ]);
-    var parameter = findNode.stringLiteral("'x'").staticParameterElement;
-    expect(parameter!.library, isNull);
-    expect(parameter.librarySource, isNull);
+    var parameter = findNode.stringLiteral("'x'").correspondingParameter;
+    expect(parameter!.library2, isNull);
+    expect(parameter.library2?.firstFragment.source, isNull);
   }
 
   test_loadLibraryDefined() async {

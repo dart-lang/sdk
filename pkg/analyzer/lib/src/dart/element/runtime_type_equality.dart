@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -12,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class RuntimeTypeEqualityHelper {
   final TypeSystemImpl _typeSystem;
@@ -45,7 +44,7 @@ class RuntimeTypeEqualityVisitor
       return false;
     }
 
-    var typeParameters = _typeParameters(T1.typeFormals, T2.typeFormals);
+    var typeParameters = _typeParameters(T1.typeParameters, T2.typeParameters);
     if (typeParameters == null) {
       return false;
     }
@@ -65,15 +64,15 @@ class RuntimeTypeEqualityVisitor
       return false;
     }
 
-    var T1_parameters = T1.parameters;
-    var T2_parameters = T2.parameters;
-    if (T1_parameters.length != T2_parameters.length) {
+    var T1_formalParameters = T1.formalParameters;
+    var T2_formalParameters = T2.formalParameters;
+    if (T1_formalParameters.length != T2_formalParameters.length) {
       return false;
     }
 
-    for (var i = 0; i < T1_parameters.length; i++) {
-      var T1_parameter = T1_parameters[i];
-      var T2_parameter = T2_parameters[i];
+    for (var i = 0; i < T1_formalParameters.length; i++) {
+      var T1_parameter = T1_formalParameters[i];
+      var T2_parameter = T2_formalParameters[i];
 
       if (T1_parameter.isPositional != T2_parameter.isPositional) {
         return false;
@@ -83,7 +82,7 @@ class RuntimeTypeEqualityVisitor
       }
 
       if (T1_parameter.isNamed) {
-        if (T1_parameter.name != T2_parameter.name) {
+        if (T1_parameter.name3 != T2_parameter.name3) {
           return false;
         }
       }
@@ -99,7 +98,7 @@ class RuntimeTypeEqualityVisitor
   @override
   bool visitInterfaceType(InterfaceType T1, DartType T2) {
     if (T2 is InterfaceType &&
-        identical(T1.element, T2.element) &&
+        identical(T1.element3, T2.element3) &&
         _compatibleNullability(T1, T2)) {
       var T1_typeArguments = T1.typeArguments;
       var T2_typeArguments = T2.typeArguments;
@@ -178,7 +177,7 @@ class RuntimeTypeEqualityVisitor
   bool visitTypeParameterType(TypeParameterType T1, DartType T2) {
     return T2 is TypeParameterType &&
         _compatibleNullability(T1, T2) &&
-        identical(T1.element, T2.element);
+        identical(T1.element3, T2.element3);
   }
 
   @override
@@ -194,18 +193,17 @@ class RuntimeTypeEqualityVisitor
   /// returns a [_TypeParametersResult] indicating the substitutions necessary
   /// to demonstrate their equality.  If they aren't, returns `null`.
   _TypeParametersResult? _typeParameters(
-    List<TypeParameterElement> T1_parameters,
-    List<TypeParameterElement> T2_parameters,
+    List<TypeParameterElement2> T1_parameters,
+    List<TypeParameterElement2> T2_parameters,
   ) {
     if (T1_parameters.length != T2_parameters.length) {
       return null;
     }
 
-    var newParameters = <TypeParameterElementImpl>[];
+    var newParameters = <TypeParameterElementImpl2>[];
     var newTypes = <TypeParameterType>[];
     for (var i = 0; i < T1_parameters.length; i++) {
-      var name = T1_parameters[i].name;
-      var newParameter = TypeParameterElementImpl.synthetic(name);
+      var newParameter = T1_parameters[i].freshCopy();
       newParameters.add(newParameter);
 
       var newType = newParameter.instantiate(
@@ -214,8 +212,8 @@ class RuntimeTypeEqualityVisitor
       newTypes.add(newType);
     }
 
-    var T1_substitution = Substitution.fromPairs(T1_parameters, newTypes);
-    var T2_substitution = Substitution.fromPairs(T2_parameters, newTypes);
+    var T1_substitution = Substitution.fromPairs2(T1_parameters, newTypes);
+    var T2_substitution = Substitution.fromPairs2(T2_parameters, newTypes);
     for (var i = 0; i < T1_parameters.length; i++) {
       var T1_parameter = T1_parameters[i];
       var T2_parameter = T2_parameters[i];

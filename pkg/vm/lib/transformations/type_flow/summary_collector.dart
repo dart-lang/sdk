@@ -1275,29 +1275,39 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _declareVariable(decl, _typesBuilder.fromStaticType(decl.type, true));
   }
 
-  Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args,
+  TypeExpr _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args,
       {bool isInstanceCreation = false}) {
-    Type? staticResultType = null;
     Member? target;
     if (selector is DirectSelector) {
       target = selector.member;
     } else if (selector is InterfaceSelector) {
       target = selector.member;
     }
-    if (target is Procedure && node is Expression) {
-      final returnType = target.function.returnType;
+    Type? staticResultType = null;
+    if (node is Expression) {
       final staticDartType = _staticDartType(node);
-      // TODO(dartbug.com/54200): static type cannot be trusted when
-      // function type is returned.
-      if (returnType is TypeParameterType ||
-          (returnType != staticDartType && returnType is! FunctionType)) {
-        staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
+      if (staticDartType is NeverType &&
+          staticDartType.declaredNullability == Nullability.nonNullable) {
+        staticResultType = emptyType;
+      } else if (target is Procedure) {
+        final returnType = target.function.returnType;
+        // TODO(dartbug.com/54200): static type cannot be trusted when
+        // function type is returned.
+        if (returnType is TypeParameterType ||
+            (returnType != staticDartType && returnType is! FunctionType)) {
+          staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
+        }
       }
     }
     Call call = new Call(selector, args, staticResultType, isInstanceCreation);
     call.condition = _currentCondition;
     _summary.add(call);
     callSites[node] = call;
+    if (staticResultType is EmptyType) {
+      _currentCondition = emptyType;
+      _variableValues = _makeEmptyVariableValues();
+      return emptyType;
+    }
     return call;
   }
 

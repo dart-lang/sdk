@@ -337,6 +337,15 @@ t1 = _TypeCheck (%x against #lib::C1) (for x as #lib::C1)
 t2 = _Call direct [#lib::foo] (t1)
 t3 = _Call direct [#lib::bar] (t1)
 RESULT: _T {}?
+------------ never1 ------------
+%cond = _Parameter #0 [_T (dart.core::bool)+]
+t1 = _Call direct [#lib::returnNever] () {%cond}
+t2 = Not (%cond)
+t3 = _Call direct [#lib::foo] (_T (dart.core::_Smi, 1)) {t2}
+RESULT: _T {}?
+------------ returnNever ------------
+
+RESULT: _T {}
 ------------ main ------------
 
 RESULT: _T {}?

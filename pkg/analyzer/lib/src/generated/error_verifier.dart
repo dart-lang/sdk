@@ -2471,12 +2471,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      if (getter is PropertyAccessorElement) {
+      if (getter is PropertyAccessorElementOrMember) {
         reportFieldConflict(getter);
         continue;
       }
 
-      if (setter is PropertyAccessorElement) {
+      if (setter is PropertyAccessorElementOrMember) {
         reportFieldConflict(setter);
         continue;
       }
@@ -2503,7 +2503,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           ],
         );
         conflictingDeclaredNames.add(name);
-      } else if (inherited is MethodElement) {
+      } else if (inherited is MethodElementOrMember) {
         // Extension type accessors preclude inherited accessors/methods.
         if (enclosingClass is ExtensionTypeElement) {
           continue;
@@ -2532,7 +2532,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
-        if (setter is PropertyAccessorElement) {
+        if (setter is PropertyAccessorElementOrMember) {
           errorReporter.atElement(
             enclosingClass,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,

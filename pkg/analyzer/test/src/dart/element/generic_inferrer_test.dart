@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -200,21 +198,21 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   /// https://github.com/dart-lang/language/issues/1182#issuecomment-702272641
   void test_demoteType() {
     // <T>(T x) -> void
-    var T = typeParameter('T');
-    var rawType = functionTypeNone(
+    var T = typeParameter2('T');
+    var rawType = functionTypeNone2(
       typeFormals: [T],
       parameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
+        requiredParameter2(type: typeParameterTypeNone2(T)),
       ],
       returnType: voidNone,
     );
 
-    var S = typeParameter('S');
-    var S_and_int = typeParameterTypeNone(S, promotedBound: intNone);
+    var S = typeParameter2('S');
+    var S_and_int = typeParameterTypeNone2(S, promotedBound: intNone);
 
     var inferredTypes = _inferCall(rawType, [S_and_int]);
     var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
-    expect(inferredType.element, S);
+    expect(inferredType.element3, S);
     expect(inferredType.promotedBound, isNull);
   }
 
@@ -636,10 +634,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       dataForTesting: null,
       nodeForTesting: null,
     );
-    inferrer.constrainArguments(
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-        parameters: ft.parameters.cast(),
+    inferrer.constrainArguments2(
+        parameters: ft.formalParameters,
         argumentTypes: arguments,
         nodeForTesting: null);
     var typeArguments = inferrer.chooseFinalTypes();
