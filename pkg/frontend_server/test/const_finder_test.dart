@@ -142,7 +142,7 @@ void _checkConsts(String dillPath, Compiler compiler) {
     expectation['nonConstantLocations'] = <Object?>[
       <String, dynamic>{
         'file': 'file://$fixturesUrl/pkg/package.dart',
-        'line': 13,
+        'line': 17,
         'column': 25,
       },
     ];
@@ -256,27 +256,27 @@ void _checkNonConstsFrontend(String dillPath, Compiler compiler) {
       'nonConstantLocations': <dynamic>[
         <String, dynamic>{
           'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 13,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 16,
-          'column': 7,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 16,
-          'column': 22,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
           'line': 17,
           'column': 26,
         },
         <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 20,
+          'column': 7,
+        },
+        <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 20,
+          'column': 22,
+        },
+        <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 21,
+          'column': 26,
+        },
+        <String, dynamic>{
           'file': 'file://$fixturesUrl/pkg/package.dart',
-          'line': 13,
+          'line': 17,
           'column': 25,
         }
       ]
@@ -343,27 +343,27 @@ void _checkNonConstsWeb(String dillPath, Compiler compiler) {
       'nonConstantLocations': <dynamic>[
         <String, dynamic>{
           'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 13,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 16,
-          'column': 7,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 16,
-          'column': 22,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
           'line': 17,
           'column': 26,
         },
         <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 20,
+          'column': 7,
+        },
+        <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 20,
+          'column': 22,
+        },
+        <String, dynamic>{
+          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+          'line': 21,
+          'column': 26,
+        },
+        <String, dynamic>{
           'file': 'file://$fixturesUrl/pkg/package.dart',
-          'line': 13,
+          'line': 17,
           'column': 25,
         }
       ],
