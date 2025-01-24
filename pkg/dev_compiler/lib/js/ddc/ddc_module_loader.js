@@ -340,8 +340,19 @@ if (!self.dart_library) {
     }
     self.dart_library.library = library;
 
+    // Local storage may be blocked by a browser policy in which case even
+    // trying to access it will throw.
+    function isLocalStorageAvailable() {
+      try {
+        !!self.localStorage;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     // Store executed modules upon reload.
-    if (!!self.addEventListener && !!self.localStorage) {
+    if (!!self.addEventListener && isLocalStorageAvailable()) {
       self.addEventListener('beforeunload', function (event) {
         _nameToApp.forEach(function (_, appName) {
           if (!_executedLibraries.get(appName)) {
