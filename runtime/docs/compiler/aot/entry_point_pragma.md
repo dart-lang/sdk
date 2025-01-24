@@ -50,10 +50,74 @@ Note that `@pragma("vm:entry-point")` may be added to abstract classes -- in
 this case, their name will survive obfuscation, but they won't have any
 allocation stubs.
 
-### Procedures
+### Getters
 
-Any one of the following forms may be attached to a procedure (including
-getters, setters and constructors):
+Any one of the following forms may be attached to getters:
+
+```dart
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", "get")
+void get foo { ... }
+```
+
+The `"get"` annotation allows retrieval of the getter value via
+`Dart_GetField`. `Dart_Invoke` can only be used with getters that return a
+closure value, in which case it is the same as retrieving the closure via
+`Dart_GetField` and then invoking the closure using `Dart_InvokeClosure`, so
+the "get" annotation is also needed for such uses.
+
+If the second parameter is missing, `null` or `true`, it behaves the same
+as the `"get"` parameter.
+
+Getters cannot be closurized.
+
+### Setters
+
+Any one of the following forms may be attached to setters:
+
+```dart
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", "set")
+void set foo(int value) { ... }
+```
+
+The `"set"` annotation allows setting the value via `Dart_SetField`.
+
+If the second parameter is missing, `null` or `true`, it behaves the same
+as the `"set"` parameter.
+
+Setters cannot be closurized.
+
+### Constructors
+
+Any one of the following forms may be attached to constructors:
+
+```dart
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", "call")
+C(this.foo) { ... }
+```
+
+If the annotation is `"call"`, then the procedure is available for invocation
+(access via `Dart_Invoke`).
+
+If the second parameter is missing, `null` or `true`, it behaves the same
+as the `"call"` parameter.
+
+If the constructor is _generative_, the enclosing class must also be annotated
+for allocation from native or VM code.
+
+Constructors cannot be closurized.
+
+### Other Procedures
+
+Any one of the following forms may be attached to other types of procedures:
 
 ```dart
 @pragma("vm:entry-point")
@@ -61,22 +125,17 @@ getters, setters and constructors):
 @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 @pragma("vm:entry-point", "get")
 @pragma("vm:entry-point", "call")
-void foo() { ... }
+void foo(int value) { ... }
 ```
 
-If the second parameter is missing, `null` or `true`, the procedure (and its
-closurized form, excluding constructors and setters) will available for lookup
-and invocation directly from native or VM code.
+If the annotation is `"get"`, then the procedure is only available for
+closurization (access via `Dart_GetField`).
 
-If the procedure is a *generative* constructor, the enclosing class must also be
-annotated for allocation from native or VM code.
+If the annotation is `"call"`, then the procedure is only available for
+invocation (access via `Dart_Invoke`).
 
-If the annotation is "get" or "call", the procedure will only be available for
-closurization (access via `Dart_GetField`) or invocation (access via
-`Dart_Invoke`).
-
-"@pragma("vm:entry-point", "get") against constructors or setters is disallowed
-since they cannot be closurized.
+If the second parameter is missing, `null` or `true`, the procedure is available
+for both closurization and invocation.
 
 ### Fields
 
@@ -95,11 +154,11 @@ int foo;
 If the second parameter is missing, `null` or `true`, the field is marked for
 native access and for non-static fields the corresponding getter and setter in
 the interface of the enclosing class are marked for native invocation. If the
-"get" or "set" parameter is used, only the getter or setter is marked. For
+`"get"` or `"set"` parameter is used, only the getter or setter is marked. For
 static fields, the implicit getter is always marked if the field is marked
 for native access.
 
-A field containing a closure may only be invoked using Dart_Invoke if the
+A field containing a closure may only be invoked using `Dart_Invoke` if the
 getter is marked, in which case it is the same as retrieving the closure from
-the field using Dart_GetField and then invoking the closure using
-Dart_InvokeClosure.
+the field using `Dart_GetField` and then invoking the closure using
+`Dart_InvokeClosure`.

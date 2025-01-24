@@ -1524,9 +1524,9 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (FindEntryPointPragma(IG, metadata, &reusable_field_handle,
-                                 &reusable_object_handle) ==
-            EntryPointPragma::kAlways) {
+        if (EntryPointPragmaUtils::AllowsAccess(
+                FindEntryPointPragma(IG, metadata, &reusable_field_handle,
+                                     &reusable_object_handle))) {
           AddInstantiatedClass(cls);
           AddApiUse(cls);
         }
@@ -1541,19 +1541,18 @@ void Precompiler::AddAnnotatedRoots() {
         field ^= members.At(k);
         if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
-          if (metadata.IsNull()) continue;
           EntryPointPragma pragma = FindEntryPointPragma(
               IG, metadata, &reusable_field_handle, &reusable_object_handle);
-          if (pragma == EntryPointPragma::kNever) continue;
+          if (!EntryPointPragmaUtils::AllowsAccess(pragma)) continue;
 
           AddField(field);
           AddApiUse(field);
 
           if (!field.is_static()) {
-            if (pragma != EntryPointPragma::kSetterOnly) {
+            if (EntryPointPragmaUtils::AllowsGet(pragma)) {
               implicit_getters.Add(field);
             }
-            if (pragma != EntryPointPragma::kGetterOnly) {
+            if (EntryPointPragmaUtils::AllowsSet(pragma)) {
               implicit_setters.Add(field);
             }
           } else {
@@ -1562,83 +1561,92 @@ void Precompiler::AddAnnotatedRoots() {
         }
       }
 
+      auto mark_entry_point_and_api_methods =
+          [&](const Function& function, const Function& api_function,
+              const char* reason = RetainReasons::kEntryPointPragma) {
+            functions_with_entry_point_pragmas_.Insert(function);
+            // Check the api_function for being abstract, since function is
+            // derived from api_function when they differ.
+            if (!api_function.is_abstract()) {
+              AddFunction(function, reason);
+            } else {
+              AddRetainReason(function, reason);
+            }
+            AddApiUse(api_function);
+          };
+      auto mark_entry_point_method = [&](const Function& function,
+                                         const char* const reason =
+                                             RetainReasons::kEntryPointPragma) {
+        mark_entry_point_and_api_methods(function, function, reason);
+      };
+      auto mark_implicit_method_if_field_saved =
+          [&](const Function& function, const GrowableObjectArray& field_array,
+              const char* reason) {
+            for (intptr_t i = 0; i < field_array.Length(); ++i) {
+              field ^= field_array.At(i);
+              if (function.accessor_field() == field.ptr()) {
+                mark_entry_point_method(function, reason);
+              }
+            }
+          };
+
       // Check for @pragma on any functions in the class.
       members = cls.current_functions();
       for (intptr_t k = 0; k < members.Length(); k++) {
         function ^= members.At(k);
-        if (function.has_pragma()) {
-          metadata ^= lib.GetMetadata(function);
-          if (metadata.IsNull()) continue;
-          auto type = FindEntryPointPragma(IG, metadata, &reusable_field_handle,
-                                           &reusable_object_handle);
-
-          if (type == EntryPointPragma::kAlways ||
-              type == EntryPointPragma::kCallOnly) {
-            functions_with_entry_point_pragmas_.Insert(function);
-            AddApiUse(function);
-            if (!function.is_abstract()) {
-              AddFunction(function, RetainReasons::kEntryPointPragma);
-            }
-          }
-
-          if ((type == EntryPointPragma::kAlways ||
-               type == EntryPointPragma::kGetterOnly) &&
-              function.kind() != UntaggedFunction::kConstructor &&
-              !function.IsSetterFunction()) {
-            function2 = function.ImplicitClosureFunction();
-            functions_with_entry_point_pragmas_.Insert(function2);
-            if (!function.is_abstract()) {
-              AddFunction(function2, RetainReasons::kEntryPointPragma);
-            }
-
-            // Not `function2`: Dart_GetField will lookup the regular function
-            // and get the implicit closure function from that.
-            AddApiUse(function);
-          }
-
-          if (function.IsGenerativeConstructor()) {
-            AddInstantiatedClass(cls);
-            AddApiUse(function);
-            AddApiUse(cls);
-          }
-        }
-        if (function.kind() == UntaggedFunction::kImplicitGetter &&
-            !implicit_getters.IsNull()) {
-          for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
-            field ^= implicit_getters.At(i);
-            if (function.accessor_field() == field.ptr()) {
-              functions_with_entry_point_pragmas_.Insert(function);
-              AddFunction(function, RetainReasons::kImplicitGetter);
-              AddApiUse(function);
-            }
-          }
-        }
-        if (function.kind() == UntaggedFunction::kImplicitSetter &&
-            !implicit_setters.IsNull()) {
-          for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
-            field ^= implicit_setters.At(i);
-            if (function.accessor_field() == field.ptr()) {
-              functions_with_entry_point_pragmas_.Insert(function);
-              AddFunction(function, RetainReasons::kImplicitSetter);
-              AddApiUse(function);
-            }
-          }
-        }
-        if (function.kind() == UntaggedFunction::kImplicitStaticGetter &&
-            !implicit_static_getters.IsNull()) {
-          for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
-            field ^= implicit_static_getters.At(i);
-            if (function.accessor_field() == field.ptr()) {
-              functions_with_entry_point_pragmas_.Insert(function);
-              AddFunction(function, RetainReasons::kImplicitStaticGetter);
-              AddApiUse(function);
-            }
-          }
-        }
+        // Do anything that doesn't depend on having a pragma first, so that
+        // the pragma check can continue if one isn't found.
         if (function.is_old_native()) {
           // The embedder will need to lookup this library to provide the native
           // resolver, even if there are no embedder calls into the library.
           AddApiUse(lib);
+        }
+        // Implicit getters and setters are marked only if the corresponding
+        // field was recorded as having the appropriate entry point annotation.
+        if (function.IsImplicitGetterFunction()) {
+          mark_implicit_method_if_field_saved(function, implicit_getters,
+                                              RetainReasons::kImplicitGetter);
+        } else if (function.IsImplicitSetterFunction()) {
+          mark_implicit_method_if_field_saved(function, implicit_setters,
+                                              RetainReasons::kImplicitSetter);
+        } else if (function.IsImplicitStaticGetterFunction()) {
+          mark_implicit_method_if_field_saved(
+              function, implicit_static_getters,
+              RetainReasons::kImplicitStaticGetter);
+        } else if (function.has_pragma()) {
+          metadata ^= lib.GetMetadata(function);
+          auto type = FindEntryPointPragma(IG, metadata, &reusable_field_handle,
+                                           &reusable_object_handle);
+          if (!EntryPointPragmaUtils::AllowsAccess(type)) continue;
+          if (function.IsGetterFunction()) {
+            ASSERT(EntryPointPragmaUtils::AllowsGet(type));
+            mark_entry_point_method(function);
+          } else if (function.IsSetterFunction()) {
+            ASSERT(EntryPointPragmaUtils::AllowsSet(type));
+            mark_entry_point_method(function);
+          } else if (function.IsConstructor()) {
+            ASSERT(EntryPointPragmaUtils::AllowsCall(type));
+            mark_entry_point_method(function);
+            if (function.IsGenerativeConstructor()) {
+              // For generative constructors, the class must be accessible.
+              AddInstantiatedClass(cls);
+              AddApiUse(cls);
+            }
+          } else {
+            ASSERT(EntryPointPragmaUtils::AllowsCall(type) ||
+                   EntryPointPragmaUtils::AllowsGet(type));
+            if (EntryPointPragmaUtils::AllowsCall(type)) {
+              mark_entry_point_method(function);
+            }
+            if (EntryPointPragmaUtils::AllowsGet(type)) {
+              // Non-getter procedures use "get" to allow closurization.
+              function2 = function.ImplicitClosureFunction();
+              // Mark `function` as having an api use and not `function2`,
+              // because `Dart_GetField` retrieves the implicit closure
+              // function via the original function.
+              mark_entry_point_and_api_methods(function2, function);
+            }
+          }
         }
       }
 

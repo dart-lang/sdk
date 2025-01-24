@@ -2973,6 +2973,29 @@ enum class EntryPointPragma {
   kCallOnly
 };
 
+struct EntryPointPragmaUtils : public AllStatic {
+  static constexpr bool AllowsCall(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kCallOnly;
+  }
+
+  static constexpr bool AllowsGet(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kGetterOnly;
+  }
+
+  static constexpr bool AllowsSet(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kSetterOnly;
+  }
+
+  static constexpr bool AllowsAccess(EntryPointPragma pragma) {
+    // The CFE should ensure that non-kAlways annotations are appropriate
+    // for the given member.
+    return pragma != EntryPointPragma::kNever;
+  }
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return untag()->name(); }
