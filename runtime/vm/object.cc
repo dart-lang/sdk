@@ -4718,6 +4718,55 @@ static bool WriteQualifiedMemberName(Zone* zone,
   return false;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+DART_WARN_UNUSED_RESULT
+static bool VerifyEntryPointHelper(const Object& object,
+                                   EntryPointPragma expected) {
+  // Annotations are discarded in the AOT snapshot, so we can't determine
+  // precisely if this member was marked as an entry-point. Instead, we use
+  // "has_pragma()" as a proxy, since that bit is usually retained.
+
+  if (object.IsClass()) {
+    return Class::Cast(object).has_pragma() &&
+           expected == EntryPointPragma::kAlways;
+  }
+  if (object.IsField()) {
+    return Field::Cast(object).has_pragma() &&
+           expected != EntryPointPragma::kCallOnly;
+  }
+  if (!object.IsFunction()) {
+    FATAL("Unexpected annotated node %s", object.ToCString());
+  }
+
+  const auto& f = Function::Cast(object);
+  if (!f.has_pragma()) return false;
+
+  // For non-closurization uses, if the function does not have code
+  // attached, that means it was not properly annotated to allow the use.
+
+  if (f.IsGetterFunction()) {
+    return EntryPointPragmaUtils::AllowsGet(expected) && f.HasCode();
+  }
+  if (f.IsSetterFunction()) {
+    return EntryPointPragmaUtils::AllowsSet(expected) && f.HasCode();
+  }
+  if (EntryPointPragmaUtils::AllowsCall(expected)) {
+    return f.HasCode();
+  }
+  if (f.IsConstructor()) {
+    // We're not checking for a call, which is the only allowed access.
+    return false;
+  }
+  if (EntryPointPragmaUtils::AllowsGet(expected)) {
+    // For non-getter functions, a 'get' entry point expectation denotes
+    // closurization. The precompiler saves the implicit closure
+    // function information if the function is properly annotated.
+    return f.HasImplicitClosureFunction();
+  }
+  return false;
+}
+#endif
+
 DART_WARN_UNUSED_RESULT
 static ErrorPtr VerifyEntryPoint(const Library& lib,
                                  const Object& member,
@@ -4767,29 +4816,7 @@ static ErrorPtr VerifyEntryPoint(const Library& lib,
   if (!annotated.IsNull()) {
     bool is_marked_entrypoint = false;
 #if defined(DART_PRECOMPILED_RUNTIME)
-    // Annotations are discarded in the AOT snapshot, so we can't determine
-    // precisely if this member was marked as an entry-point. Instead, we use
-    // "has_pragma()" as a proxy, since that bit is usually retained.
-    if (annotated.IsClass()) {
-      is_marked_entrypoint = Class::Cast(annotated).has_pragma();
-    } else if (annotated.IsField()) {
-      is_marked_entrypoint = Field::Cast(annotated).has_pragma();
-    } else if (annotated.IsFunction()) {
-      const auto& f = Function::Cast(annotated);
-      is_marked_entrypoint = f.has_pragma();
-      if (expected == EntryPointPragma::kCallOnly && !f.HasCode()) {
-        // If the function does not have code attached, that means it was not
-        // properly annotated to allow native invocation.
-        is_marked_entrypoint = false;
-      } else if (expected == EntryPointPragma::kGetterOnly &&
-                 !f.HasImplicitClosureFunction()) {
-        // If the function does not have an implicit closure function, that
-        // means it was not properly annotated to allow native closurization.
-        is_marked_entrypoint = false;
-      }
-    } else {
-      FATAL("Unexpected annotated node %s", annotated.ToCString());
-    }
+    is_marked_entrypoint = VerifyEntryPointHelper(annotated, expected);
 #else
     const auto& metadata = Object::Handle(zone, lib.GetMetadata(annotated));
     if (metadata.IsError()) {
