@@ -4579,7 +4579,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
@@ -4980,7 +4980,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+    staticElement: <testLibraryFragment>::@mixin::A::@method::foo
     element: <testLibraryFragment>::@mixin::A::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList

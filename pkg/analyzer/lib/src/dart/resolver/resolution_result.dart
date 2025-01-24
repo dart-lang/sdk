@@ -43,10 +43,10 @@ class ResolutionResult extends SimpleResolutionResult {
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
   ResolutionResult({
-    super.getter,
+    super.getter2,
     this.needsGetterError = true,
     this.isGetterInvalid = false,
-    super.setter,
+    super.setter2,
     this.needsSetterError = true,
     this.callFunctionType,
     this.recordField,
@@ -55,14 +55,14 @@ class ResolutionResult extends SimpleResolutionResult {
 
 class SimpleResolutionResult {
   /// Return the element that is invoked for reading.
-  final ExecutableElement? getter;
+  final ExecutableElement2? getter2;
 
   /// Return the element that is invoked for writing.
-  final ExecutableElement? setter;
+  final ExecutableElement2? setter2;
 
-  const SimpleResolutionResult({this.getter, this.setter});
+  const SimpleResolutionResult({this.getter2, this.setter2});
 
-  ExecutableElement2? get getter2 => getter.asElement2;
+  ExecutableElement? get getter => getter2?.asElement;
 
-  ExecutableElement2? get setter2 => setter.asElement2;
+  ExecutableElement? get setter => setter2?.asElement;
 }
