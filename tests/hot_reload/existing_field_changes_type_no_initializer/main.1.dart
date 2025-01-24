@@ -23,6 +23,7 @@ Future<void> main() async {
 
   Expect.throws<TypeError>(() => foo.x);
 }
+
 /** DIFF **/
 /*
 @@ -6,15 +6,13 @@

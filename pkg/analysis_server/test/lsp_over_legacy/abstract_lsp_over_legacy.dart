@@ -150,9 +150,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin {
-  /// The next ID to use a request to the server.
-  var _nextRequestId = 0;
-
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
 
@@ -207,7 +204,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       AnalysisUpdateContentParams({
         convertPath(filePath): AddContentOverlay(content),
       }).toRequest(
-        '${_nextRequestId++}',
+        '${nextRequestId++}',
         clientUriConverter: server.uriConverter,
       ),
     );
@@ -241,7 +238,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// Creates a legacy request with an auto-assigned ID.
   Request createLegacyRequest(RequestParams params) {
     return params.toRequest(
-      '${_nextRequestId++}',
+      '${nextRequestId++}',
       clientUriConverter: server.uriConverter,
     );
   }
@@ -323,7 +320,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       AnalysisUpdateContentParams({
         convertPath(filePath): RemoveContentOverlay(),
       }).toRequest(
-        '${_nextRequestId++}',
+        '${nextRequestId++}',
         clientUriConverter: server.uriConverter,
       ),
     );
@@ -341,7 +338,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     var request = ServerSetClientCapabilitiesParams(
       [],
       lspCapabilities: clientCapabilities,
-    ).toRequest('${_nextRequestId++}', clientUriConverter: server.uriConverter);
+    ).toRequest('${nextRequestId++}', clientUriConverter: server.uriConverter);
 
     await handleSuccessfulRequest(request);
   }
@@ -377,7 +374,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       AnalysisUpdateContentParams({
         convertPath(filePath): ChangeContentOverlay([edit]),
       }).toRequest(
-        '${_nextRequestId++}',
+        '${nextRequestId++}',
         clientUriConverter: server.uriConverter,
       ),
     );

@@ -21,6 +21,7 @@ Future<void> main() async {
   foo = Foo(10);
   Expect.equals(10, foo.a);
 }
+
 /** DIFF **/
 /*
 @@ -9,7 +9,7 @@

@@ -39,9 +39,4 @@ Future<void> main() async {
    Expect.equals('Fruit.Cantaloupe', x.toString());
    Expect.type<int>(x.hashCode);
    Expect.equals(2, x.index);
-@@ -23,3 +22,4 @@
-   Expect.type<int>(x.hashCode);
-   Expect.equals(-1, x.index);
- }
-+
 */

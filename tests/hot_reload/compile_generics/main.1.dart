@@ -26,6 +26,7 @@ Future<void> main() async {
   balance = (MyAccountState(Account())).howAreTheThings().balance();
   Expect.equals(24, balance);
 }
+
 /** DIFF **/
 /*
 @@ -11,7 +11,7 @@

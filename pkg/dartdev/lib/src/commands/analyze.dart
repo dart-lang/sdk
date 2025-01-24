@@ -214,6 +214,8 @@ class AnalyzeCommand extends DartdevCommand {
       io.exit(_Result.crash.exitCode);
     });
 
+    // Note that we could be awaiting `null` here, if
+    // `AnalysisServer._analysisFinished` has not been initialized yet.
     await server.analysisFinished;
     analysisFinished = true;
 

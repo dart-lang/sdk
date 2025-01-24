@@ -88,6 +88,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   /// implementation are still fully verified.
   static final MemoryByteStore _sharedByteStore = MemoryByteStore();
 
+  /// The next ID to use in a request to the server.
+  var nextRequestId = 0;
+
   MemoryByteStore _byteStore = _sharedByteStore;
 
   final TestPluginManager pluginManager = TestPluginManager();
@@ -148,7 +151,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -156,7 +162,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -171,7 +180,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
         includedConverted,
         excludedConverted,
         packageRoots: {},
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      ).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -214,9 +226,10 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   Future<void> _setGeneralAnalysisSubscriptions() async {
     await handleSuccessfulRequest(
-      AnalysisSetGeneralSubscriptionsParams(
-        _analysisGeneralServices,
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetGeneralSubscriptionsParams(_analysisGeneralServices).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 }
@@ -264,9 +277,10 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   ) async {
     (_analysisFileSubscriptions[service] ??= []).add(file.path);
     await handleSuccessfulRequest(
-      AnalysisSetSubscriptionsParams(
-        _analysisFileSubscriptions,
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetSubscriptionsParams(_analysisFileSubscriptions).toRequest(
+        '${nextRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 

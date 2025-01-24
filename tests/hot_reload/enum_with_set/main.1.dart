@@ -51,7 +51,7 @@ Future<void> main() async {
  enum Enum1 {
    member1({Enum2.member1, Enum2.member2}),
    member2({Enum2.member2}),
-@@ -20,13 +22,21 @@
+@@ -20,10 +22,17 @@
    final Set<Enum2> set;
  }
  
@@ -72,8 +72,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    retained = Enum1.member4;
-   await hotReload();
-   Expect.equals('d', helper(retained));
- }
-+
 */

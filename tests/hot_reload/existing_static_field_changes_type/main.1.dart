@@ -33,6 +33,7 @@ Future<void> main() async {
   Expect.contains("type 'A' is not a subtype of type 'B'", helper());
   Expect.equals(1, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
 @@ -12,9 +12,9 @@

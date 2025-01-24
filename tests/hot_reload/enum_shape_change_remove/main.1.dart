@@ -25,7 +25,7 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -8,12 +8,18 @@
+@@ -8,12 +8,17 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/be2aabd91c67f7f331c49cb74e18fe5e469f04db/runtime/vm/isolate_reload_test.cc#L2371
  
@@ -45,5 +45,4 @@ Future<void> main() async {
    await hotReload();
    Expect.equals('Fruit.Deleted enum value from Fruit', retained.toString());
  }
-+
 */

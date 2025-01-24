@@ -28,7 +28,7 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -8,8 +8,15 @@
+@@ -8,7 +8,14 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/be2aabd91c67f7f331c49cb74e18fe5e469f04db/runtime/vm/isolate_reload_test.cc#L2308
  
@@ -36,18 +36,12 @@ Future<void> main() async {
 +enum Fruit {
 +  Apple('Apple', 'A'),
 +  Banana('Banana', 'B');
- 
++
 +  const Fruit(this.name, this.initial);
 +  final String name;
 +  final String initial;
 +}
-+
+ 
  var retained;
  
- Future<void> main() async {
-@@ -18,3 +25,4 @@
-   await hotReload();
-   Expect.equals('A', retained.initial);
- }
-+
 */

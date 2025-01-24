@@ -4024,9 +4024,10 @@ extension on AstNode {
     while (enclosingMember != null) {
       if (enclosingMember is MethodDeclaration) {
         return enclosingMember.isStatic;
-      } else if (enclosingMember is FunctionBody &&
-          enclosingMember.parent is ConstructorDeclaration) {
-        return false;
+      } else if (enclosingMember.parent case ConstructorDeclaration(
+        :var factoryKeyword,
+      ) when enclosingMember is FunctionBody) {
+        return factoryKeyword != null;
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {
         return !enclosingMember.isLate;

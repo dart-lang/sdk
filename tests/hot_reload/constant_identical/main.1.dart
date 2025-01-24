@@ -30,6 +30,7 @@ Future<void> main() async {
   Expect.identical(x, const Fruit('Pear'));
   Expect.identical(x, helper());
 }
+
 /** DIFF **/
 /*
 */

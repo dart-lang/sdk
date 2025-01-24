@@ -19,10 +19,11 @@ Future<void> main() async {
   helper();
   await hotReload();
   Expect.throws<NoSuchMethodError>(
-      helper,
-      (err) =>
-          '$err'.contains("No static method 'foo' declared in class 'C'."));
+    helper,
+    (err) => '$err'.contains("No static method 'foo' declared in class 'C'."),
+  );
 }
+
 /** DIFF **/
 /*
 @@ -8,13 +8,11 @@

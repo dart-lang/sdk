@@ -27,6 +27,7 @@ Future<void> main() async {
   // instances.
   Expect.throws(() => helper(), (e) => '$e' == 'field throws');
 }
+
 /** DIFF **/
 /*
 @@ -10,13 +10,13 @@

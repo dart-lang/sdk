@@ -130,11 +130,11 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
-  "core_rev": "7a71ad6b9170e09d5cbe39f3fccdee648659f1e7",
-  "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be",
-  "ecosystem_rev": "efe4ee4af6ac2e4c90aa525fae213b65c97295a9",
+  "core_rev": "72a206037105100fc2d6170629f6060733f1427d",
+  "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be", # https://github.com/dart-lang/dartdoc/issues/3969
+  "ecosystem_rev": "682c8efee7e752e83ed46aee6963791f314b3d46",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
-  "glob_rev": "eee18d1a577d5f965f6afbbd251798e065dced43",
+  "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
   "http_rev": "6d99ff5755d3581f44ce5c18bb029a2fa1ef0eaf",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -144,15 +144,15 @@ vars = {
   "native_rev": "c817a5e41220de370cbea6e6445e63cdc7087544", # disable tools/rev_sdk_deps.dart
   "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
   "pub_rev": "710265bae23ad5860f33287fba10b5c369f19a93", # disable tools/rev_sdk_deps.dart
-  "shelf_rev": "bf799519cda2898a7c5af06dcfdd5fe6443afd79",
+  "shelf_rev": "2a7442f7d6d3e63fdc7b387128619b263dcb7e78",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "f364fc8291d668d85c702a5b9f9a4f2e5c1ade0e",
-  "tools_rev": "92114ab8a16eef77be1cd7bad3f5af28b5b1dc63",
+  "test_rev": "7fc9521875b5ec9484dd31624f5e3ed2791050b1",
+  "tools_rev": "3bdef2043af9244b804adc08896bf96d51bb49ba",
   "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
-  "web_rev": "af5de5e8548060c0795713ee7129ba6d5ff9f1b2",
+  "web_rev": "fd3d9889a6b5ab777f6116b4972d76277e4a6404",
   "web_socket_channel_rev": "a937243563e8ee75d11fb23610297d4f6e5cb2b9",
-  "webdev_rev": "e72f365a4408dce73bc023e624adc6a9a72dd7a2",
+  "webdev_rev": "9430dd7df15e9499648d6e5b1e83382672433d18",
   "webdriver_rev": "d83d6a3cbaab152ff9b99b29382d1f48b5d5ba23",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 

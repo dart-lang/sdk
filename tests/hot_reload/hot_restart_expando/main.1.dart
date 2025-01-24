@@ -18,6 +18,7 @@ Future<void> main() async {
   var o = singleton;
   Expect.equals(null, e[o]);
 }
+
 /** DIFF **/
 /*
 @@ -15,14 +15,6 @@

@@ -10,6 +10,7 @@ class State<U, T> {
     u = l[1] is U ? l[1] : null;
   }
 }
+
 /** DIFF **/
 /*
 @@ -2,7 +2,7 @@

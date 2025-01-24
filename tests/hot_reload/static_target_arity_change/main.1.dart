@@ -30,6 +30,7 @@ Future<void> main() async {
   Expect.throws<NoSuchMethodError>(closure);
   Expect.equals(1, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
 @@ -10,14 +10,13 @@

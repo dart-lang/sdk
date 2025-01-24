@@ -11,7 +11,9 @@ import 'package:reload_test/reload_test_utils.dart';
 class A {
   toString() => 'hello from A';
 }
+
 var list = <dynamic>[];
+
 helper() {
   list.add(A());
   return list[0].toString();

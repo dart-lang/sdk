@@ -8,6 +8,7 @@ class B {
 }
 
 var bField = B(a: (String s) => "$s");
+
 /** DIFF **/
 /*
 @@ -1 +1,10 @@

@@ -39,9 +39,4 @@ Future<void> main() async {
    toString() => 'foo';
  }
  
-@@ -27,3 +28,4 @@
-   // Modification of an imported library propagates to the importing library.
-   Expect.equals('foo', helper());
- }
-+
 */

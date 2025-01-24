@@ -36,6 +36,7 @@ Future<void> main() async {
   Expect.equals(StaticsSetter.field, 5);
   Expect.equals(StaticsSetter.counter, 3);
 }
+
 /** DIFF **/
 /*
 @@ -27,15 +27,6 @@

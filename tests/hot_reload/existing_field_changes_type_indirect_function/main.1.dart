@@ -33,11 +33,14 @@ Future<void> main() async {
 
   // B is no longer a subtype of A.
   Expect.throws<TypeError>(
-      () => helper(),
-      (error) => '$error'.contains(
-          "type '(A) => bool' is not a subtype of type '(B) => bool'"));
+    () => helper(),
+    (error) => '$error'.contains(
+      "type '(A) => bool' is not a subtype of type '(B) => bool'",
+    ),
+  );
   Expect.equals(1, hotReloadGeneration);
 }
+
 /** DIFF **/
 /*
 @@ -10,7 +10,7 @@

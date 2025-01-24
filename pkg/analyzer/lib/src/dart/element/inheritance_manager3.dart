@@ -1397,7 +1397,7 @@ class Name {
     }
 
     if (name.startsWith('_')) {
-      var libraryUri = element.firstFragment.libraryFragment!.source.uri;
+      var libraryUri = element.library2!.uri;
       return Name(libraryUri, name);
     } else {
       return Name(null, name);
