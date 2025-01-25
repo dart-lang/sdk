@@ -111,7 +111,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   void addLowerConstraintForParameter(
-      TypeParameterElementImpl2 element, DartType lower,
+      TypeParameterElementImpl2 element, TypeImpl lower,
       {required AstNodeImpl? astNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.lower(
@@ -125,7 +125,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   void addUpperConstraintForParameter(
-      TypeParameterElementImpl2 element, DartType upper,
+      TypeParameterElementImpl2 element, TypeImpl upper,
       {required AstNodeImpl? astNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.upper(
@@ -189,13 +189,13 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  List<TypeImpl>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, InterfaceElementImpl2 typeDeclaration) {
     for (var interface in type.element.allSupertypes) {
       if (interface.element3 == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
         var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceType;
+            substitution.substituteType(interface) as InterfaceTypeImpl;
         return substitutedInterface.typeArguments;
       }
     }
@@ -204,8 +204,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   (
-    DartType,
-    DartType, {
+    TypeImpl,
+    TypeImpl, {
     List<TypeParameterElementImpl2> typeParametersToEliminate
   }) instantiateFunctionTypesAndProvideFreshTypeParameters(
       covariant FunctionTypeImpl P, covariant FunctionTypeImpl Q,

@@ -21,7 +21,7 @@ class BodyInferenceContext {
 
   /// The context type, computed from [imposedType].
   /// Might be `null` if an empty typing context.
-  final DartType? contextType;
+  final TypeImpl? contextType;
 
   /// Types of all `return` or `yield` statements in the body.
   final List<DartType> _returnTypes = [];
@@ -37,7 +37,7 @@ class BodyInferenceContext {
   factory BodyInferenceContext({
     required TypeSystemImpl typeSystem,
     required FunctionBodyImpl node,
-    required DartType? imposedType,
+    required TypeImpl? imposedType,
   }) {
     var contextType = _contextTypeForImposed(typeSystem, node, imposedType);
 
@@ -134,7 +134,7 @@ class BodyInferenceContext {
     // `FutureOr<void>`, let `S` be `void`.
     if (R is VoidType ||
         isAsynchronous &&
-            R is InterfaceType &&
+            R is InterfaceTypeImpl &&
             R.isDartAsyncFutureOr &&
             R.typeArguments[0] is VoidType) {
       return VoidTypeImpl.instance;
@@ -171,18 +171,20 @@ class BodyInferenceContext {
         .fold(initialType, _typeSystem.leastUpperBound);
   }
 
-  static DartType? _argumentOf(DartType type, InterfaceElement2 element) {
+  static TypeImpl? _argumentOf(DartType type, InterfaceElement2 element) {
     var elementType = type.asInstanceOf2(element);
     if (elementType != null) {
-      return elementType.typeArguments[0];
+      // TODO(paulberry): eliminate this cast by changing the type of the
+      // parameter `element` to `InterfaceElement2`.
+      return elementType.typeArguments[0] as TypeImpl?;
     }
     return null;
   }
 
-  static DartType? _contextTypeForImposed(
+  static TypeImpl? _contextTypeForImposed(
     TypeSystemImpl typeSystem,
     FunctionBody node,
-    DartType? imposedType,
+    TypeImpl? imposedType,
   ) {
     if (imposedType == null) {
       return null;

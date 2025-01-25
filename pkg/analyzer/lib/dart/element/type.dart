@@ -23,7 +23,6 @@
 /// the references to `String` and `int` are type arguments.
 library;
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -34,7 +33,7 @@ import 'package:meta/meta.dart';
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType implements SharedType {
+abstract class DartType {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.
@@ -144,7 +143,8 @@ abstract class DartType implements SharedType {
   @Deprecated('Check element, or use getDisplayString()')
   String? get name;
 
-  @override
+  /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
+  /// otherwise [NullabilitySuffix.none].
   NullabilitySuffix get nullabilitySuffix;
 
   /// Use the given [visitor] to visit this type.
@@ -203,7 +203,6 @@ abstract class DartType implements SharedType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
@@ -214,7 +213,6 @@ abstract class DartType implements SharedType {
   /// Deprecated: this getter is a part of the analyzer's private
   /// implementation, and was exposed by accident (see
   /// https://github.com/dart-lang/sdk/issues/59763). Please use `==` instead.
-  @override
   @Deprecated('Use `==` instead')
   bool isStructurallyEqualTo(covariant DartType other);
 }

@@ -11,12 +11,12 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -37,11 +37,11 @@ class BinaryExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(BinaryExpressionImpl node, {required DartType contextType}) {
+  void resolve(BinaryExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.AMPERSAND_AMPERSAND) {
@@ -157,7 +157,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveIfNull(BinaryExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var left = node.leftOperand;
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
@@ -173,7 +173,7 @@ class BinaryExpressionResolver {
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_`, `J = T1`.
-    DartType j;
+    TypeImpl j;
     if (contextType is DynamicType ||
         contextType is InvalidType ||
         contextType is UnknownInferredType) {
@@ -287,7 +287,7 @@ class BinaryExpressionResolver {
     var left = node.leftOperand;
 
     var invokeType = node.staticInvokeType;
-    DartType rightContextType;
+    TypeImpl rightContextType;
     if (invokeType != null && invokeType.parameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.

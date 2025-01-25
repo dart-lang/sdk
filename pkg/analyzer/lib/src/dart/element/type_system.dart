@@ -681,11 +681,7 @@ class TypeSystemImpl implements TypeSystem {
       return const <DartType>[];
     }
 
-    inferenceLogWriter?.enterGenericInference(
-        // TODO(paulberry): make this cast unnecessary by switching `fnType` to
-        // `FunctionTypeImpl`
-        fnType.typeParameters.cast(),
-        fnType);
+    inferenceLogWriter?.enterGenericInference(fnType.typeParameters, fnType);
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that

@@ -370,10 +370,7 @@ class ExtensionMemberResolver {
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-          // TODO(paulberry): make this cast unnecessary by changing `element`
-          // to `ExtensionElementImpl2`.
-          typeParameters.cast(),
-          element.extendedType);
+          typeParameters.cast(), element.extendedType);
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,

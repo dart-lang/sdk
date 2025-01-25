@@ -53,7 +53,9 @@ class FunctionExpressionResolver {
 
     node.typeParameters?.accept(_resolver);
     node.parameters?.accept(_resolver);
-    imposedType = node.body.resolve(_resolver, imposedType);
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `imposedType`.
+    imposedType = node.body.resolve(_resolver, imposedType as TypeImpl?);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
       // in scope, so we can visit the documentation comment now.

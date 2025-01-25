@@ -155,7 +155,7 @@ class ForResolver {
         }
       }
     }
-    InterfaceType? targetType;
+    InterfaceTypeImpl? targetType;
     if (valueType != null) {
       targetType = isAsync
           ? _resolver.typeProvider.streamType(valueType)

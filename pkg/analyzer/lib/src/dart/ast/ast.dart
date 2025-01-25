@@ -1963,7 +1963,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -5445,7 +5445,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -6085,7 +6085,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       visitor.visitExpressionFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -8210,7 +8210,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// return type context for `return` statements.
   ///
   /// Returns value is the actual return type of the method.
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType);
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType);
 }
 
 /// A function declaration.
@@ -11263,7 +11263,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   final Token rightBracket;
 
   @override
-  DartType? requiredType;
+  TypeImpl? requiredType;
 
   ListPatternImpl({
     required this.typeArguments,
@@ -12786,7 +12786,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @override

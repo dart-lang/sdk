@@ -717,7 +717,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var entry in whyNotPromoted.entries) {
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
             source, errorEntity, flowAnalysis.dataForTesting);
-        if (typeSystem.isPotentiallyNullable(entry.key.unwrapTypeView())) {
+        if (typeSystem.isPotentiallyNullable(
+            // TODO(paulberry): make this type argument unnecessary by changing
+            // the parameter of `TypeSystemImpl.isPotentiallyNullable` to
+            // (covariant) `TypeImpl`.
+            entry.key.unwrapTypeView<TypeImpl>())) {
           continue;
         }
         messages = entry.value.accept(whyNotPromotedVisitor);
@@ -2125,7 +2129,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType visitBlockFunctionBody(covariant BlockFunctionBodyImpl node,
-      {DartType? imposedType}) {
+      {TypeImpl? imposedType}) {
     var oldBodyContext = _bodyContext;
     try {
       _bodyContext = BodyInferenceContext(
@@ -2619,7 +2623,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType visitExpressionFunctionBody(
       covariant ExpressionFunctionBodyImpl node,
-      {DartType? imposedType}) {
+      {TypeImpl? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
       return imposedType ?? typeProvider.dynamicType;
     }
@@ -3191,7 +3195,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
-    DartType returnType = element.returnType;
+    var returnType = element.returnType;
     var outerFunction = _enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
 
@@ -3402,7 +3406,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.patternTypeSchema =
         analysisResult.patternSchema.unwrapTypeSchemaView();
-    node.recordStaticType(analysisResult.type.unwrapTypeView(), resolver: this);
+    node.recordStaticType(
+        // TODO(paulberry): make this type argument unnecessary by changing the
+        // parameter of `ExpressionImpl.recordStaticType` to `TypeImpl`.
+        analysisResult.type.unwrapTypeView<TypeImpl>(),
+        resolver: this);
     popRewrite(); // expression
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3735,7 +3743,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var staticType = analyzeSwitchExpression(node, node.expression,
             node.cases.length, SharedTypeSchemaView(contextType))
         .type
-        .unwrapTypeView<DartType>();
+        .unwrapTypeView<TypeImpl>();
     node.recordStaticType(staticType, resolver: this);
     popRewrite();
     legacySwitchExhaustiveness = previousExhaustiveness;
