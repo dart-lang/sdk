@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
+import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 
 /// The handler for the `analysis.updateContent` request.
 class AnalysisUpdateContentHandler extends LegacyHandler {
@@ -28,7 +29,7 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
     );
 
     for (var file in params.files.keys) {
-      if (!server.isAbsoluteAndNormalized(file)) {
+      if (!server.resourceProvider.isAbsoluteAndNormalized(file)) {
         sendResponse(Response.invalidFilePathFormat(request, file));
         return;
       }
