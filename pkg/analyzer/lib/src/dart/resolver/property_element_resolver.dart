@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -247,7 +248,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     Element? readElementRequested;
     Element? readElementRecovery;
-    DartType? getType;
+    TypeImpl? getType;
     if (hasRead) {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
@@ -267,7 +268,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       readElementRequested = readLookup?.requested.asElement;
-      if (readElementRequested is PropertyAccessorElement &&
+      if (readElementRequested is PropertyAccessorElementOrMember &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
         getType = _resolver.flowAnalysis.flow
@@ -495,11 +496,11 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: propertyName,
     );
 
-    DartType? getType;
+    TypeImpl? getType;
     if (hasRead) {
       var unpromotedType = switch (result.getter) {
-        MethodElement(:var type) => type,
-        PropertyAccessorElement(:var returnType) => returnType,
+        MethodElementOrMember(:var type) => type,
+        PropertyAccessorElementOrMember(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType
       };
       getType = _resolver.flowAnalysis.flow
@@ -809,9 +810,9 @@ class PropertyElementResolver with ScopeHelpers {
     }
     var targetType = target.staticType;
 
-    ExecutableElement? readElement;
+    ExecutableElementOrMember? readElement;
     ExecutableElement? writeElement;
-    DartType? getType;
+    TypeImpl? getType;
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {

@@ -10,12 +10,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -38,7 +38,7 @@ class AssignmentExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -82,7 +82,7 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
-    DartType rhsContext;
+    TypeImpl rhsContext;
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
@@ -184,7 +184,7 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  DartType _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+  TypeImpl _computeRhsContext(AssignmentExpressionImpl node, TypeImpl leftType,
       TokenType operator, Expression right) {
     switch (operator) {
       case TokenType.EQ:
@@ -199,7 +199,13 @@ class AssignmentExpressionResolver {
           var parameters = method.parameters;
           if (parameters.isNotEmpty) {
             return _typeSystem.refineNumericInvocationContext(
-                leftType, method, leftType, parameters[0].type);
+                leftType,
+                method,
+                leftType,
+                // TODO(paulberry): eliminate this cast by changing the type of
+                // `MethodElementOrMember.parameters` to
+                // `List<ParameterElementMixin>`.
+                parameters[0].type as TypeImpl);
           }
         }
         return UnknownInferredType.instance;

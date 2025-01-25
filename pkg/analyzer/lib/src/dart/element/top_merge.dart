@@ -361,7 +361,9 @@ class TopMergeHelper {
         aBound = aSubstitution.substituteType(aBound);
         bBound = bSubstitution.substituteType(bBound);
         var newBound = topMerge(aBound, bBound);
-        newParameters[i].bound = newBound;
+        // TODO(paulberry): eliminate this cast by changing the return type of
+        // `topMerge`.
+        newParameters[i].bound = newBound as TypeImpl;
         newParameters[i].firstFragment.bound = newBound;
       } else {
         return null;

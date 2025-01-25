@@ -444,7 +444,7 @@ class ElementResolver {
   /// the list of arguments. An error will be reported if any of the arguments
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement?>? _resolveArgumentsToFunction(
+  List<ParameterElementMixin?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
     ExecutableElement? executableElement, {
     ConstructorDeclaration? enclosingConstructor,

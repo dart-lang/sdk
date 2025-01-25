@@ -8,12 +8,12 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -38,11 +38,11 @@ class PrefixExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node, {required DartType contextType}) {
+  void resolve(PrefixExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
@@ -78,7 +78,7 @@ class PrefixExpressionResolver {
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
-      DartType innerContextType;
+      TypeImpl innerContextType;
       if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
         // Negated integer literals should undergo int->double conversion in the
         // same circumstances as non-negated integer literals, so pass the
@@ -119,7 +119,7 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  DartType _computeStaticReturnType(Element? element) {
+  TypeImpl _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
@@ -218,7 +218,7 @@ class PrefixExpressionResolver {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
       // The other cases are equivalent to invoking a method.
-      DartType staticType;
+      TypeImpl staticType;
       if (readType is DynamicType) {
         staticType = DynamicTypeImpl.instance;
       } else if (readType is InvalidType) {

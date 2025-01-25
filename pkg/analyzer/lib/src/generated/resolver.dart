@@ -717,7 +717,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var entry in whyNotPromoted.entries) {
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
             source, errorEntity, flowAnalysis.dataForTesting);
-        if (typeSystem.isPotentiallyNullable(entry.key.unwrapTypeView())) {
+        if (typeSystem.isPotentiallyNullable(
+            // TODO(paulberry): make this type argument unnecessary by changing
+            // the parameter of `TypeSystemImpl.isPotentiallyNullable` to
+            // (covariant) `TypeImpl`.
+            entry.key.unwrapTypeView<TypeImpl>())) {
           continue;
         }
         messages = entry.value.accept(whyNotPromotedVisitor);
@@ -2125,7 +2129,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType visitBlockFunctionBody(covariant BlockFunctionBodyImpl node,
-      {DartType? imposedType}) {
+      {TypeImpl? imposedType}) {
     var oldBodyContext = _bodyContext;
     try {
       _bodyContext = BodyInferenceContext(
@@ -2619,7 +2623,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType visitExpressionFunctionBody(
       covariant ExpressionFunctionBodyImpl node,
-      {DartType? imposedType}) {
+      {TypeImpl? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
       return imposedType ?? typeProvider.dynamicType;
     }
@@ -3191,7 +3195,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
-    DartType returnType = element.returnType;
+    var returnType = element.returnType;
     var outerFunction = _enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
 
@@ -3402,7 +3406,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.patternTypeSchema =
         analysisResult.patternSchema.unwrapTypeSchemaView();
-    node.recordStaticType(analysisResult.type.unwrapTypeView(), resolver: this);
+    node.recordStaticType(
+        // TODO(paulberry): make this type argument unnecessary by changing the
+        // parameter of `ExpressionImpl.recordStaticType` to `TypeImpl`.
+        analysisResult.type.unwrapTypeView<TypeImpl>(),
+        resolver: this);
     popRewrite(); // expression
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3735,7 +3743,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var staticType = analyzeSwitchExpression(node, node.expression,
             node.cases.length, SharedTypeSchemaView(contextType))
         .type
-        .unwrapTypeView<DartType>();
+        .unwrapTypeView<TypeImpl>();
     node.recordStaticType(staticType, resolver: this);
     popRewrite();
     legacySwitchExhaustiveness = previousExhaustiveness;
@@ -4292,7 +4300,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
-  static List<ParameterElement?> resolveArgumentsToParameters({
+  static List<ParameterElementMixin?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
     required List<ParameterElement> parameters,
     ErrorReporter? errorReporter,
@@ -4300,11 +4308,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
-    List<ParameterElement> unnamedParameters = <ParameterElement>[];
-    Map<String, ParameterElement>? namedParameters;
+    List<ParameterElementMixin> unnamedParameters = <ParameterElementMixin>[];
+    Map<String, ParameterElementMixin>? namedParameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
-      ParameterElement parameter = parameters[i];
+      var parameter = parameters[i] as ParameterElementMixin;
       if (parameter.isRequiredPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
@@ -4313,15 +4321,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
       } else {
-        namedParameters ??= HashMap<String, ParameterElement>();
+        namedParameters ??= HashMap<String, ParameterElementMixin>();
         namedParameters[parameter.name] = parameter;
       }
     }
     int unnamedIndex = 0;
     NodeList<Expression> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
-    List<ParameterElement?> resolvedParameters =
-        List<ParameterElement?>.filled(argumentCount, null);
+    List<ParameterElementMixin?> resolvedParameters =
+        List<ParameterElementMixin?>.filled(argumentCount, null);
     int positionalArgumentCount = 0;
     bool noBlankArguments = true;
     Expression? firstUnresolvedArgument;

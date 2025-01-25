@@ -1537,7 +1537,7 @@ class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
 
 /// The abstract class `TypeImpl` implements the behavior common to objects
 /// representing the declared type of elements in the element model.
-abstract class TypeImpl implements DartType {
+abstract class TypeImpl implements DartType, SharedType {
   @override
   final InstantiatedTypeAliasElement? alias;
 
@@ -1637,7 +1637,7 @@ abstract class TypeImpl implements DartType {
   }
 
   @override
-  bool isStructurallyEqualTo(SharedType other) => this == other;
+  bool isStructurallyEqualTo(Object other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
   bool referencesAny(Set<TypeParameterElement> parameters) {

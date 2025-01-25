@@ -634,13 +634,11 @@ class MethodInvocationInferrer
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
-      // TODO(paulberry): eliminate this cast by changing the return type of
-      // `TypeSystemImpl.refineNumericInvocationContext`.
       argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
           targetType,
           node.methodName.staticElement,
           contextType,
-          parameterType) as TypeImpl;
+          parameterType);
     }
     return argumentContextType;
   }

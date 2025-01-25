@@ -11469,7 +11469,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   final String? name3;
 
   @override
-  DartType? bound;
+  TypeImpl? bound;
 
   TypeParameterElementImpl2({
     required this.firstFragment,
@@ -11487,9 +11487,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterElement2 get baseElement => this;
 
   @override
-  TypeImpl? get boundShared =>
-      // TODO(paulberry): get rid of this cast by changing the type of `bound`.
-      bound as TypeImpl?;
+  TypeImpl? get boundShared => bound;
 
   @override
   List<TypeParameterElementImpl> get fragments {
