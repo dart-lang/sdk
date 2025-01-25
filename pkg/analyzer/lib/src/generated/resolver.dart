@@ -172,11 +172,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
-  InterfaceElement? enclosingClass;
+  InterfaceElementImpl? enclosingClass;
 
   /// The element representing the extension containing the AST nodes being
   /// visited, or `null` if we are not in the scope of an extension.
-  ExtensionElement? enclosingExtension;
+  ExtensionElementImpl? enclosingExtension;
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
@@ -245,7 +245,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// If a class, or mixin, is being resolved, the type of the class.
   /// Otherwise `null`.
-  DartType? _thisType;
+  TypeImpl? _thisType;
 
   final FlowAnalysisHelper flowAnalysis;
 
@@ -468,7 +468,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// extended type, or promoted.
   ///
   /// Otherwise `null`.
-  DartType? get thisType {
+  TypeImpl? get thisType {
     return _thisType;
   }
 
@@ -629,8 +629,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void checkPatternNeverMatchesValueType({
     required SharedMatchContext context,
     required DartPatternImpl pattern,
-    required DartType requiredType,
-    required DartType matchedValueType,
+    required TypeImpl requiredType,
+    required TypeImpl matchedValueType,
   }) {
     if (context.irrefutableContext == null) {
       if (!typeSystem.canBeSubtypeOf(matchedValueType, requiredType)) {
@@ -1307,7 +1307,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     ExecutableElement? enclosingExecutableElement,
     AugmentableElement? enclosingAugmentation,
   }) {
-    enclosingClass = enclosingClassElement;
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // parameter `enclosingClassElement`.
+    enclosingClass = enclosingClassElement as InterfaceElementImpl?;
     _setupThisType();
     _enclosingFunction = enclosingExecutableElement;
     this.enclosingAugmentation = enclosingAugmentation;
@@ -1330,21 +1332,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           node is TopLevelVariableDeclaration;
     }
 
-    void forClassElement(InterfaceElement parentElement) {
+    void forClassElement(InterfaceElementImpl parentElement) {
       enclosingClass = parentElement;
     }
 
-    if (parent is ClassDeclaration) {
+    if (parent is ClassDeclarationImpl) {
       forClassElement(parent.declaredElement!);
       return true;
     }
 
-    if (parent is ExtensionDeclaration) {
+    if (parent is ExtensionDeclarationImpl) {
       enclosingExtension = parent.declaredElement!;
       return true;
     }
 
-    if (parent is MixinDeclaration) {
+    if (parent is MixinDeclarationImpl) {
       forClassElement(parent.declaredElement!);
       return true;
     }
@@ -1617,7 +1619,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var getter = result.getter;
     if (getter != null) {
       fieldNode.element = getter;
-      if (getter is PropertyAccessorElement) {
+      if (getter is PropertyAccessorElementOrMember) {
         return (getter, SharedTypeView(getter.returnType));
       } else {
         return (getter, SharedTypeView(getter.type));
@@ -1668,7 +1670,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    var element = result.getter as MethodElement?;
+    var element = result.getter as MethodElementOrMember?;
     node.element = element;
     if (element == null) {
       return null;
@@ -1691,16 +1693,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Element? element, {
     required bool atDynamicTarget,
   }) {
-    DartType readType =
+    var readType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
-      if (element is MethodElement) {
+      if (element is MethodElementOrMember) {
         readType = element.returnType;
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is PropertyAccessorElement && element.isGetter) {
+      if (element is PropertyAccessorElementOrMember && element.isGetter) {
         readType = element.returnType;
       } else if (element is VariableElement) {
         readType = localVariableTypeProvider
@@ -1737,25 +1739,31 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Element? element, {
     required bool atDynamicTarget,
   }) {
-    DartType writeType =
+    var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is AugmentedExpression) {
       if (element is PropertyAccessorElement && element.isSetter) {
         if (element.parameters case [var valueParameter]) {
-          writeType = valueParameter.type;
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `PropertyAccessorElementOrMember.parameters` to
+          // `List<ParameterElementMixin>`.
+          writeType = valueParameter.type as TypeImpl;
         }
       }
     } else if (node is IndexExpression) {
       if (element is MethodElement) {
         var parameters = element.parameters;
         if (parameters.length == 2) {
-          writeType = parameters[1].type;
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `PropertyAccessorElementOrMember.parameters` to
+          // `List<ParameterElementMixin>`.
+          writeType = parameters[1].type as TypeImpl;
         }
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is PropertyAccessorElement && element.isSetter) {
+      if (element is PropertyAccessorElementOrMember && element.isSetter) {
         if (element.isSynthetic) {
           var variable = element.variable2;
           if (variable != null) {
@@ -1764,10 +1772,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         } else {
           var parameters = element.parameters;
           if (parameters.length == 1) {
-            writeType = parameters[0].type;
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `PropertyAccessorElementOrMember.parameters` to
+            // `List<ParameterElementMixin>`.
+            writeType = parameters[0].type as TypeImpl;
           }
         }
-      } else if (element is VariableElement) {
+      } else if (element is VariableElementOrMember) {
         writeType = element.type;
       }
     }
@@ -1801,7 +1812,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   SharedTypeView variableTypeFromInitializerType(SharedTypeView type) {
-    DartType unwrapped = type.unwrapTypeView();
+    TypeImpl unwrapped = type.unwrapTypeView();
     if (unwrapped.isDartCoreNull) {
       return SharedTypeView(DynamicTypeImpl.instance);
     }
@@ -2583,7 +2594,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     //
     // Continue the enum resolution.
     //
@@ -2651,7 +2662,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var outerExtension = enclosingExtension;
     try {
       enclosingExtension = node.declaredElement!;
@@ -4019,7 +4030,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// Creates a union of `T | Future<T>`, unless `T` is already a
   /// future-union, in which case it simply returns `T`.
-  DartType _createFutureOr(DartType type) {
+  TypeImpl _createFutureOr(TypeImpl type) {
     if (type.isDartAsyncFutureOr) {
       return type;
     }
@@ -5513,7 +5524,7 @@ class SwitchExhaustiveness {
 
   bool isExhaustive = false;
 
-  factory SwitchExhaustiveness(DartType expressionType) {
+  factory SwitchExhaustiveness(TypeImpl expressionType) {
     if (expressionType is InterfaceType) {
       var enum_ = expressionType.element;
       if (enum_ is EnumElementImpl) {
@@ -5605,7 +5616,7 @@ class _WhyNotPromotedVisitor
 
   PropertyAccessorElement? propertyReference;
 
-  DartType? propertyType;
+  TypeImpl? propertyType;
 
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta_meta.dart';
 
@@ -178,10 +179,12 @@ extension ExecutableElementExtension on ExecutableElement {
 }
 
 extension ExecutableElementExtensionQuestion on ExecutableElement? {
-  DartType? get firstParameterType {
+  TypeImpl? get firstParameterType {
     var self = this;
-    if (self is MethodElement) {
-      return self.parameters.firstOrNull?.type;
+    if (self is MethodElementOrMember) {
+      // TODO(paulberry): eliminate this cast by changing this extension to
+      // apply to `ExecutableElementOrMember?`.
+      return self.parameters.firstOrNull?.type as TypeImpl?;
     }
     return null;
   }
@@ -262,23 +265,27 @@ extension RecordTypeExtension on RecordType {
 
   /// The [name] is either an actual name like `foo` in `({int foo})`, or
   /// the name of a positional field like `$1` in `(int, String)`.
-  RecordTypeField? fieldByName(String name) {
+  RecordTypeFieldImpl? fieldByName(String name) {
     return namedField(name) ?? positionalField(name);
   }
 
-  RecordTypeNamedField? namedField(String name) {
+  RecordTypeNamedFieldImpl? namedField(String name) {
     for (var field in namedFields) {
       if (field.name == name) {
-        return field;
+        // TODO(paulberry): eliminate this cast by changing the extension to
+        // only apply to `RecordTypeImpl`.
+        return field as RecordTypeNamedFieldImpl;
       }
     }
     return null;
   }
 
-  RecordTypePositionalField? positionalField(String name) {
+  RecordTypePositionalFieldImpl? positionalField(String name) {
     var index = positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
-      return positionalFields[index];
+      // TODO(paulberry): eliminate this cast by changing the extension to only
+      // apply to `RecordTypeImpl`.
+      return positionalFields[index] as RecordTypePositionalFieldImpl;
     }
     return null;
   }

@@ -926,12 +926,12 @@ class PropertyElementResolverResult {
   final Element? writeElementRecovery;
   final bool atDynamicTarget;
   final DartType? functionTypeCallType;
-  final RecordTypeField? recordField;
+  final RecordTypeFieldImpl? recordField;
   final DartType? getType;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `_` if `[]` or `[]=` are not resolved or invalid.
-  final DartType indexContextType;
+  final TypeImpl indexContextType;
 
   PropertyElementResolverResult({
     this.readElementRequested,

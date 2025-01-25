@@ -202,7 +202,7 @@ class ConstructorMember extends ExecutableMember
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
 abstract class ExecutableMember extends Member
-    implements ExecutableElementOrMember, ExecutableElement2 {
+    implements ExecutableElementOrMember, ExecutableElement2OrMember {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -379,7 +379,7 @@ abstract class ExecutableMember extends Member
     }
   }
 
-  static ExecutableElement2 from(
+  static ExecutableElement2OrMember from(
     ExecutableElement2 element,
     MapSubstitution substitution,
   ) {
@@ -507,7 +507,7 @@ class FieldFormalParameterMember extends ParameterMember
 /// parameters are known.
 class FieldMember extends VariableMember
     implements
-        FieldElement,
+        FieldElementOrMember,
         FieldElement2,
         VariableElement2OrMember,
         PropertyInducingElementOrMember {
@@ -1348,7 +1348,9 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElementOrMember, PropertyAccessorElement2 {
+    implements
+        PropertyAccessorElementOrMember,
+        PropertyAccessorElement2OrMember {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
     MapSubstitution augmentationSubstitution,

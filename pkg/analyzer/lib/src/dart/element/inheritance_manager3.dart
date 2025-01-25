@@ -299,8 +299,6 @@ class InheritanceManager3 {
     }
 
     var substitution = Substitution.fromInterfaceType(type);
-    // TODO(paulberry): eliminate this cast by changing the return type of
-    // `ExecutalbeMember.from2`.
     return ExecutableMember.from2(rawElement, substitution);
   }
 

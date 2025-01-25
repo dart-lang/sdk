@@ -3309,6 +3309,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
     block.forEachPhi(simplifyPhi);
     evacuateTakenBranch(block);
+    updateEmptyRegions(block);
   }
 
   void simplifyPhi(HPhi phi) {
@@ -3391,24 +3392,20 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       // We want to remove an if-then-else diamond when the then- and else-
       // branches are empty and the condition does not control a HPhi. We cannot
       // change the CFG structure so we replace the HIf condition with a
-      // constant. This may leave the original condition unused. i.e. a
-      // candidate for being dead code.
+      // constant. This may leave the original condition unused and a candidate
+      // for being dead code.
       //
       // TODO(http://dartbug.com/29475): Remove empty blocks so that recognizing
       // no-op control flow is trivial.
 
-      List<HBasicBlock> dominated = block.dominatedBlocks;
-      // Diamond-like control flow dominates the then-, else- and join- blocks.
-      if (dominated.length != 3) return;
-      HBasicBlock join = dominated.last;
-      if (!join.phis.isEmpty) return; // condition controls a phi.
-      // Ignore exit block - usually the join in `if (...) return ...`
-      if (join.isExitBlock()) return;
+      final thenBlock = block.successors[0];
+      final (thenContinuation, thenSize) = _emptyRegion[thenBlock]!;
 
-      final thenSize = measureEmptyInterval(instruction.thenBlock, join);
-      if (thenSize == null) return;
-      final elseSize = measureEmptyInterval(instruction.elseBlock, join);
-      if (elseSize == null) return;
+      final elseBlock = block.successors[1];
+      final (elseContinuation, elseSize) = _emptyRegion[elseBlock]!;
+
+      if (thenContinuation != elseContinuation) return;
+      if (!thenContinuation.phis.isEmpty) return;
 
       // Pick the 'live' branch to be the smallest subgraph.
       bool value = thenSize <= elseSize;
@@ -3417,38 +3414,70 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
-  /// Returns the number of blocks from [start] up to but not including [end].
-  /// Returns `null` if any of the blocks is non-empty (other than control
-  /// flow).  Returns `null` if there is an exit from the region other than
-  /// [end] or via control flow other than HGoto and HIf.
-  int? measureEmptyInterval(HBasicBlock start, HBasicBlock end) {
-    const int maxCount = 10;
-    int count = 0;
-    for (HBasicBlock currentBlock = start; currentBlock != end;) {
-      final instruction = currentBlock.first;
-      if (instruction!.next != null) return null; // Block not empty.
-      count++;
-      // K-limit the search for `end`.
-      if (count > maxCount) return null;
-      HBasicBlock? next;
-      if (instruction is HGoto) {
-        next = currentBlock.successors.single;
-      } else if (instruction is HIf) {
-        // If no-op control flow in the subgraph was simplified, the condition
-        // will be constant, and point us down the shorter side of the diamond.
-        final condition = instruction.inputs.single;
-        if (condition.isConstantTrue()) {
-          next = instruction.thenBlock;
-        } else if (condition.isConstantFalse()) {
-          next = instruction.elseBlock;
+  /// Map from block to the continuation, and, if all paths to the continuation
+  /// are empty, the number of blocks in that region. The block is either (1)
+  /// the continuation of the block (a join point of a single-entry, single-exit
+  /// region) or (2a) an earlier block if some the path to the continuation is
+  /// not empty, or (2b) there is path that avoids the continuation (like a loop
+  /// exit or a return). A block `B` that is non-empty has the entry `(B, 0)`. A
+  /// block that dominates a region that has an exit or a path that is non-empty
+  /// is also marked as `(B, 0)`.
+  final Map<HBasicBlock, (HBasicBlock, int)> _emptyRegion = {};
+
+  void updateEmptyRegions(HBasicBlock block) {
+    // Default is to consider this block to be the entry to an non-empty region.
+    _emptyRegion[block] = (block, 0);
+
+    // To be empty, this block should have nothing except a single terminating
+    // HControlFlow instruction.
+    final instruction = block.first;
+    if (instruction == null || instruction.next != null) return;
+    if (!block.phis.isEmpty) return;
+
+    if (!(instruction is HGoto ||
+        instruction is HIf ||
+        instruction is HBreak ||
+        instruction is HSwitch)) {
+      // Other control flow instructions either generate code (e.g. HReturn),
+      // or are part of some structure like a loop or try-catch.
+      return;
+    }
+
+    // If all paths from this block reach the same continuation, we have an
+    // empty single-entry / single-exit region.  Create a new empty interval
+    // from this block to the continuation, and extend it to the continuation of
+    // the continuation.
+
+    if (block.successors.isEmpty) return;
+
+    int size = 1; // Size of empty region includes this block.
+
+    HBasicBlock? continuation;
+    if (block.successors.length == 1) {
+      continuation = block.successors.single;
+    } else {
+      for (final successor in block.successors) {
+        if (successor.id < block.id) return; // Back-edge
+        final (successorContinuation, successorSize) = _emptyRegion[successor]!;
+        size += successorSize;
+        if (continuation == null) {
+          continuation = successorContinuation;
+        } else if (continuation != successorContinuation) {
+          // This happens when (1) some successor is not empty, (2) some
+          // successor is, or contains, an edge that exits the nested
+          // forward-edge single-entry-single-exit regions.
+          return;
         }
       }
-      if (next == null) return null;
-      // Check [next] is within [start,end) region.
-      if (next.id < start.id || next.id > end.id) return null;
-      currentBlock = next;
     }
-    return count;
+
+    if (continuation!.dominator == block) {
+      final int continuationSize;
+      (continuation, continuationSize) = _emptyRegion[continuation]!;
+      size += continuationSize;
+    }
+
+    _emptyRegion[block] = (continuation, size);
   }
 
   /// If [block] is an always-taken branch, move the code from the taken branch

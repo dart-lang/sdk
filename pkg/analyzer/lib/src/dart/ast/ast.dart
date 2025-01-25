@@ -3691,10 +3691,10 @@ base mixin CompoundAssignmentExpressionImpl
   Element? writeElement;
 
   @override
-  DartType? readType;
+  TypeImpl? readType;
 
   @override
-  DartType? writeType;
+  TypeImpl? writeType;
 
   @experimental
   @override

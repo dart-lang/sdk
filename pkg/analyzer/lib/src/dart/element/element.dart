@@ -1717,7 +1717,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
           ?.element;
 
   @override
-  InterfaceType get returnType {
+  InterfaceTypeImpl get returnType {
     return firstFragment.returnType;
   }
 
@@ -3721,6 +3721,16 @@ class EnumElementImpl2 extends InterfaceElementImpl2
   }
 }
 
+/// Common base class for all analyzer-internal classes that implement
+/// `ExecutableElement2`.
+abstract class ExecutableElement2OrMember implements ExecutableElement2 {
+  @override
+  TypeImpl get returnType;
+
+  @override
+  FunctionTypeImpl get type;
+}
+
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin, MacroTargetElement
@@ -3917,7 +3927,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 }
 
 abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
-    implements ExecutableElement2 {
+    implements ExecutableElement2OrMember {
   @override
   ExecutableElement2 get baseElement => this;
 
@@ -4001,7 +4011,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   @override
-  DartType get extendedType {
+  TypeImpl get extendedType {
     return augmented.extendedType;
   }
 
@@ -4245,7 +4255,7 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     with AugmentableElement<FieldElementImpl>
-    implements FieldElement, FieldFragment {
+    implements FieldElementOrMember, FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
   bool inheritsCovariant = false;
@@ -4446,6 +4456,13 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
+}
+
+/// Common base class for all analyzer-internal classes that implement
+/// `FieldElement`.
+abstract class FieldElementOrMember implements FieldElement {
+  @override
+  TypeImpl get type;
 }
 
 /// A [ParameterElementImpl] that has the additional information of the
@@ -5136,7 +5153,7 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
     };
   }
 
-  DartType get returnType => type.returnType;
+  TypeImpl get returnType => type.returnType;
 
   // TODO(augmentations): This is wrong. The function type needs to be a merge
   //  of the function types of all of the fragments, but I don't know how to
@@ -5718,7 +5735,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
         InstanceElement2,
         TypeParameterizedElement2 {
   @override
-  List<FieldElement> fields = [];
+  List<FieldElementOrMember> fields = [];
 
   @override
   List<PropertyAccessorElementOrMember> accessors = [];
@@ -5833,7 +5850,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
           multiline: multiline, preferTypeAlias: preferTypeAlias);
 
   @override
-  FieldElement? getField(String name) {
+  FieldElementOrMember? getField(String name) {
     var length = fields.length;
     for (var i = 0; i < length; i++) {
       var field = fields[i];
@@ -6279,13 +6296,13 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  PropertyAccessorElement? getGetter(String getterName) {
+  PropertyAccessorElementOrMember? getGetter(String getterName) {
     return accessors.firstWhereOrNull(
         (accessor) => accessor.isGetter && accessor.name == getterName);
   }
 
   @override
-  MethodElement? getMethod(String methodName) {
+  MethodElementOrMember? getMethod(String methodName) {
     return methods.firstWhereOrNull((method) => method.name == methodName);
   }
 
@@ -6398,7 +6415,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  PropertyAccessorElement? lookupStaticGetter(
+  PropertyAccessorElementOrMember? lookupStaticGetter(
       String name, LibraryElement library) {
     return _implementationsOfGetter(name).firstWhereOrNull(
         (element) => element.isStatic && element.isAccessibleIn(library));
@@ -6409,7 +6426,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  MethodElement? lookupStaticMethod(String name, LibraryElement library) {
+  MethodElementOrMember? lookupStaticMethod(
+      String name, LibraryElement library) {
     return _implementationsOfMethod(name).firstWhereOrNull(
         (element) => element.isStatic && element.isAccessibleIn(library));
   }
@@ -6443,16 +6461,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The getters are returned based on the depth of their defining class; if
   /// this class contains a definition of the getter it will occur first, if
   /// Object contains a definition of the getter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+  Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
       String getterName) sync* {
     var visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
+    InterfaceElementImpl? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var getter = classElement.getGetter(getterName);
       if (getter != null) {
         yield getter;
       }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
+      for (var mixin in classElement.mixins.reversed) {
         getter = mixin.element.getGetter(getterName);
         if (getter != null) {
           yield getter;
@@ -6473,15 +6491,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The methods are returned based on the depth of their defining class; if
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
-  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
+  Iterable<MethodElementOrMember> _implementationsOfMethod(
+      String methodName) sync* {
     var visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
+    InterfaceElementImpl? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var method = classElement.getMethod(methodName);
       if (method != null) {
         yield method;
       }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
+      for (var mixin in classElement.mixins.reversed) {
         method = mixin.element.getMethod(methodName);
         if (method != null) {
           yield method;
@@ -7734,10 +7753,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   Metadata get metadata2 => _wrappedElement.metadata2;
 
   @override
-  DartType get returnType => _wrappedElement.returnType;
+  TypeImpl get returnType => _wrappedElement.returnType;
 
   @override
-  FunctionType get type => _wrappedElement.type;
+  FunctionTypeImpl get type => _wrappedElement.type;
 
   @override
   List<TypeParameterElement2> get typeParameters2 =>
@@ -8296,10 +8315,8 @@ final class MetadataImpl implements Metadata {
 
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement2`.
-abstract class MethodElement2OrMember implements MethodElement2 {
-  @override
-  FunctionTypeImpl get type;
-}
+abstract class MethodElement2OrMember
+    implements MethodElement2, ExecutableElement2OrMember {}
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
@@ -9924,6 +9941,11 @@ class PrefixFragmentImpl implements PrefixFragment {
 abstract class PromotableElementImpl2 extends VariableElementImpl2
     implements PromotableElement2 {}
 
+/// Common base class for all analyzer-internal classes that implement
+/// `PropertyAccessorElement2`.
+abstract class PropertyAccessorElement2OrMember
+    implements PropertyAccessorElement2, ExecutableElement2OrMember {}
+
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
@@ -10123,7 +10145,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 }
 
 abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
-    implements PropertyAccessorElement2 {
+    implements PropertyAccessorElement2OrMember {
   @override
   PropertyAccessorElement2 get baseElement => this;
 

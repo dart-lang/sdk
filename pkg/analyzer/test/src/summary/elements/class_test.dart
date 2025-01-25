@@ -43292,7 +43292,7 @@ library
           typeParameters
             covariant T @37
               bound: A<dynamic>
-              defaultType: A<dynamic>
+              defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@class::A
 ----------------------------------------
 library

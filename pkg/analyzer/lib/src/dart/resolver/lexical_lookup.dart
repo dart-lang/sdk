@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 
 /// Class containing static methods for performing lexical resolution of
 /// identifiers.
@@ -63,7 +64,7 @@ class LexicalLookupResult {
   final DartType? callFunctionType;
 
   /// The field referenced in a [RecordType].
-  final RecordTypeField? recordField;
+  final RecordTypeFieldImpl? recordField;
 
   LexicalLookupResult({
     this.requested,
