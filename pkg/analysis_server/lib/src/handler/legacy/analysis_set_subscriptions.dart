@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 
 /// The handler for the `analysis.setSubscriptions` request.
 class AnalysisSetSubscriptionsHandler extends LegacyHandler {
@@ -31,7 +32,7 @@ class AnalysisSetSubscriptionsHandler extends LegacyHandler {
 
     for (var fileList in params.subscriptions.values) {
       for (var file in fileList) {
-        if (!server.isAbsoluteAndNormalized(file)) {
+        if (!server.resourceProvider.isAbsoluteAndNormalized(file)) {
           sendResponse(Response.invalidFilePathFormat(request, file));
         }
       }

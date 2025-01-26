@@ -94,6 +94,7 @@ import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -468,7 +469,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// The [Future] that completes when analysis is complete.
   Future<void> get onAnalysisComplete {
-    if (isAnalysisComplete()) {
+    if (_isAnalysisComplete) {
       return Future.value();
     }
     var completer = _onAnalysisCompleteCompleter ??= Completer<void>();
@@ -524,6 +525,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   @protected
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
+
+  bool get _isAnalysisComplete => !analysisDriverScheduler.isWorking;
 
   void cancelRequest(String id) {
     cancellationTokens[id]?.cancel();
@@ -679,25 +682,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     sendLspNotifications = true;
   }
 
-  /// Return `true` if the [path] is both absolute and normalized.
-  bool isAbsoluteAndNormalized(String path) {
-    var pathContext = resourceProvider.pathContext;
-    return pathContext.isAbsolute(path) && pathContext.normalize(path) == path;
-  }
-
-  /// Return `true` if analysis is complete.
-  bool isAnalysisComplete() {
-    return !analysisDriverScheduler.isWorking;
-  }
-
-  /// Return `true` if the given path is a valid `FilePath`.
-  ///
-  /// This means that it is absolute and normalized.
-  bool isValidFilePath(String path) {
-    return resourceProvider.pathContext.isAbsolute(path) &&
-        resourceProvider.pathContext.normalize(path) == path;
-  }
-
   @override
   void notifyFlutterWidgetDescriptions(String path) {
     flutterWidgetDescriptions.flush();
@@ -786,7 +770,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// If the [path] is not a valid file path, that is absolute and normalized,
   /// send an error response, and return `true`. If OK then return `false`.
   bool sendResponseErrorIfInvalidFilePath(Request request, String path) {
-    if (!isAbsoluteAndNormalized(path)) {
+    if (!resourceProvider.isAbsoluteAndNormalized(path)) {
       sendResponse(Response.invalidFilePathFormat(request, path));
       return true;
     }
@@ -926,16 +910,18 @@ class LegacyAnalysisServer extends AnalysisServer {
     List<GeneralAnalysisService> subscriptions,
   ) {
     var newServices = subscriptions.toSet();
-    if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        !generalAnalysisServices.contains(
-          GeneralAnalysisService.ANALYZED_FILES,
-        ) &&
-        isAnalysisComplete()) {
+    var newServicesContainsAnalyzedFiles = newServices.contains(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
+    var generalServicesContainsAnalyzedFiles = generalAnalysisServices.contains(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
+    if (newServicesContainsAnalyzedFiles &&
+        !generalServicesContainsAnalyzedFiles &&
+        _isAnalysisComplete) {
       sendAnalysisNotificationAnalyzedFiles(this);
-    } else if (!newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        generalAnalysisServices.contains(
-          GeneralAnalysisService.ANALYZED_FILES,
-        )) {
+    } else if (!newServicesContainsAnalyzedFiles &&
+        generalServicesContainsAnalyzedFiles) {
       prevAnalyzedFiles = null;
     }
     generalAnalysisServices = newServices;
