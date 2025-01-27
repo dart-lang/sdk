@@ -2722,7 +2722,7 @@ void f(x) {
   v();
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v) =');
+    var element = findNode.bindPatternVariableElement('v) =');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   29 3:3 |v| WRITE
@@ -2740,7 +2740,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v)');
+    var element = findNode.bindPatternVariableElement('v)');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   46 3:5 |v| READ
@@ -2756,7 +2756,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v]');
+    var element = findNode.bindPatternVariableElement('v]');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   57 3:5 |v| READ
@@ -2788,7 +2788,7 @@ Object f(Object? x) => switch (0) {
   _ => -1,
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v');
+    var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   49 2:14 |v| READ
@@ -2804,7 +2804,7 @@ var f = switch (0) {
   _ => -1,
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v');
+    var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@topLevelVariable::f
   34 2:14 |v| READ
@@ -2824,7 +2824,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v when');
+    var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   55 3:21 |v| READ
@@ -2845,7 +2845,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v when');
+    var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   55 3:21 |v| READ
