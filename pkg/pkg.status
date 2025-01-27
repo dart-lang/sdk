@@ -125,6 +125,7 @@ vm_service/test/coverage_async_test: SkipByDesign # Debugger is disabled in AOT 
 vm_service/test/coverage_closure_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_const_field_async_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_extension_methods_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_instance_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_leaf_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/coverage_optimized_function_test: SkipByDesign # Debugger is disabled in AOT mode.
