@@ -943,10 +943,10 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
 
 class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
     with
-        _MemberBodyBuilderContext<RedirectingFactoryBuilder>,
-        _FunctionBodyBuilderContextMixin<RedirectingFactoryBuilder> {
+        _MemberBodyBuilderContext<SourceFactoryBuilder>,
+        _FunctionBodyBuilderContextMixin<SourceFactoryBuilder> {
   @override
-  final RedirectingFactoryBuilder _member;
+  final SourceFactoryBuilder _member;
 
   @override
   final Member _builtMember;
@@ -960,7 +960,7 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
 
   @override
   String get redirectingFactoryTargetName {
-    return _member.redirectionTarget.fullNameForErrors;
+    return _member.redirectionTarget!.fullNameForErrors;
   }
 }
 

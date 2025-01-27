@@ -2921,10 +2921,10 @@ severity: $severity
     // the target and possibly some type arguments, and don't depend on other
     // kinds of outline expressions themselves.
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      List<RedirectingFactoryBuilder>? redirectingFactoryBuilders =
+      List<SourceFactoryBuilder>? redirectingFactoryBuilders =
           library.redirectingFactoryBuilders;
       if (redirectingFactoryBuilders != null) {
-        for (RedirectingFactoryBuilder redirectingFactoryBuilder
+        for (SourceFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
           if (redirectingFactoryBuilder.parent.isExtension) {
             // Extensions don't build their redirecting factories so we can't

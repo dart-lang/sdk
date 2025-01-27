@@ -575,7 +575,6 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
@@ -751,6 +750,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       Procedure procedure, NameScheme nameScheme, Reference? tearOffReference) {
     _extensionTearOffParameterMap = {};
 
+    int fileStartOffset = _fragment.startOffset;
     int fileOffset = _fragment.nameOffset;
     int fileEndOffset = _fragment.endOffset;
 
@@ -838,7 +838,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
             procedure,
             new Arguments(closurePositionalArguments,
                 types: typeArguments, named: closureNamedArguments))
-          ..fileOffset = fileOffset)
+          // We need to use the fileStartOffset on the StaticInvocation to
+          // avoid a possible "fake coverage miss" on the name of the
+          // extension method.
+          ..fileOffset = fileStartOffset)
       ..fileOffset = fileOffset;
 
     FunctionExpression closure = new FunctionExpression(
@@ -851,7 +854,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
             returnType: closureReturnType)
           ..fileOffset = fileOffset
           ..fileEndOffset = fileEndOffset)
-      ..fileOffset = fileOffset;
+      // We need to use the fileStartOffset on the FunctionExpression to
+      // avoid a possible "fake coverage miss" on the name of the
+      // extension method.
+      ..fileOffset = fileStartOffset;
 
     FunctionNode function = new FunctionNode(
         new ReturnStatement(closure)..fileOffset = fileOffset,
@@ -1093,7 +1099,6 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null

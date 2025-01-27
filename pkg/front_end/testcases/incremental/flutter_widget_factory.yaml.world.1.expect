@@ -121,18 +121,18 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C37);
-  static field () → foo::Foo newFooFunction = #C38;
+  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C38);
+  static field () → foo::Foo newFooFunction = #C39;
   static field foo::Foo newFooFunctionCall = main::newFooFunction(){() → foo::Foo};
-  static field foo::Foo extensionFoo = foo::FooExtension|foo(null, $creationLocationd_0dea112b090073317d4: #C41);
+  static field foo::Foo extensionFoo = foo::FooExtension|foo(null, $creationLocationd_0dea112b090073317d4: #C42);
   static field () → foo::Foo extensionFooFunction = foo::FooExtension|get#foo(null);
   static field foo::Foo extensionFooFunctionCall = main::extensionFooFunction(){() → foo::Foo};
-  static field foo::Foo extensionBar = foo::FooExtension|bar(null, $creationLocationd_0dea112b090073317d4: #C42);
+  static field foo::Foo extensionBar = foo::FooExtension|bar(null, $creationLocationd_0dea112b090073317d4: #C43);
   static field foo::Foo extensionBaz = foo::FooExtension|baz(null);
-  static field foo::Foo extensionBoz = foo::FooExtension|boz(null, $creationLocationd_0dea112b090073317d4: #C43);
-  static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C45);
-  static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C49);
-  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
+  static field foo::Foo extensionBoz = foo::FooExtension|boz(null, $creationLocationd_0dea112b090073317d4: #C44);
+  static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C46);
+  static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C50);
+  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C54) in #t1;
   static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C57);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }
@@ -150,50 +150,50 @@ constants  {
   #C11 = 10.0
   #C12 = 9.0
   #C13 = wid::_Location {file:#C3, line:#C11, column:#C12, name:#C6, parameterLocations:#C1}
-  #C14 = 15.0
-  #C15 = 7.0
+  #C14 = 14.0
+  #C15 = 3.0
   #C16 = "FooExtension|foo"
   #C17 = wid::_Location {file:#C3, line:#C14, column:#C15, name:#C16, parameterLocations:#C1}
-  #C18 = 18.0
+  #C18 = 17.0
   #C19 = "FooExtension|bar"
   #C20 = wid::_Location {file:#C3, line:#C18, column:#C15, name:#C19, parameterLocations:#C1}
   #C21 = 21.0
   #C22 = 20.0
   #C23 = wid::_Location {file:#C3, line:#C21, column:#C22, name:#C6, parameterLocations:#C1}
-  #C24 = 24.0
+  #C24 = 23.0
   #C25 = "FooExtension|boz"
   #C26 = wid::_Location {file:#C3, line:#C24, column:#C15, name:#C25, parameterLocations:#C1}
   #C27 = 27.0
   #C28 = wid::_Location {file:#C3, line:#C27, column:#C27, name:#C6, parameterLocations:#C1}
   #C29 = foo::Foo {_location:#C28}
   #C30 = "FooExtension|constFoo"
-  #C31 = wid::_Location {file:#C3, line:#C27, column:#C15, name:#C30, parameterLocations:#C1}
+  #C31 = wid::_Location {file:#C3, line:#C5, column:#C15, name:#C30, parameterLocations:#C1}
   #C32 = 39.0
   #C33 = 33.0
   #C34 = wid::_Location {file:#C3, line:#C32, column:#C33, name:#C6, parameterLocations:#C1}
   #C35 = "org-dartlang-test:///main.dart"
   #C36 = 2.0
-  #C37 = wid::_Location {file:#C35, line:#C36, column:#C18, name:#C6, parameterLocations:#C1}
-  #C38 = static-tearoff foo::Foo::_#new#tearOff
-  #C39 = 5.0
-  #C40 = 25.0
-  #C41 = wid::_Location {file:#C35, line:#C39, column:#C40, name:#C16, parameterLocations:#C1}
-  #C42 = wid::_Location {file:#C35, line:#C4, column:#C40, name:#C19, parameterLocations:#C1}
-  #C43 = wid::_Location {file:#C35, line:#C11, column:#C40, name:#C25, parameterLocations:#C1}
-  #C44 = 30.0
-  #C45 = wid::_Location {file:#C35, line:#C9, column:#C44, name:#C30, parameterLocations:#C1}
-  #C46 = 12.0
-  #C47 = 31.0
-  #C48 = "FooExtension|get#getterFoo"
-  #C49 = wid::_Location {file:#C35, line:#C46, column:#C47, name:#C48, parameterLocations:#C1}
-  #C50 = 13.0
-  #C51 = 37.0
-  #C52 = "FooExtension|set#setterFoo"
-  #C53 = wid::_Location {file:#C35, line:#C50, column:#C51, name:#C52, parameterLocations:#C1}
-  #C54 = 14.0
+  #C37 = 18.0
+  #C38 = wid::_Location {file:#C35, line:#C36, column:#C37, name:#C6, parameterLocations:#C1}
+  #C39 = static-tearoff foo::Foo::_#new#tearOff
+  #C40 = 5.0
+  #C41 = 25.0
+  #C42 = wid::_Location {file:#C35, line:#C40, column:#C41, name:#C16, parameterLocations:#C1}
+  #C43 = wid::_Location {file:#C35, line:#C4, column:#C41, name:#C19, parameterLocations:#C1}
+  #C44 = wid::_Location {file:#C35, line:#C11, column:#C41, name:#C25, parameterLocations:#C1}
+  #C45 = 30.0
+  #C46 = wid::_Location {file:#C35, line:#C9, column:#C45, name:#C30, parameterLocations:#C1}
+  #C47 = 12.0
+  #C48 = 31.0
+  #C49 = "FooExtension|get#getterFoo"
+  #C50 = wid::_Location {file:#C35, line:#C47, column:#C48, name:#C49, parameterLocations:#C1}
+  #C51 = 13.0
+  #C52 = 37.0
+  #C53 = "FooExtension|set#setterFoo"
+  #C54 = wid::_Location {file:#C35, line:#C51, column:#C52, name:#C53, parameterLocations:#C1}
   #C55 = 28.0
   #C56 = "FooExtension|unary-"
-  #C57 = wid::_Location {file:#C35, line:#C54, column:#C55, name:#C56, parameterLocations:#C1}
+  #C57 = wid::_Location {file:#C35, line:#C14, column:#C55, name:#C56, parameterLocations:#C1}
 }
 
 

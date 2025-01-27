@@ -133,7 +133,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static field foo::Foo extensionBoz = foo::FooExtension|boz(null, $creationLocationd_0dea112b090073317d4: #C46);
   static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C50);
   static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C54) in #t1;
-  static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C58);
+  static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C57);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }
 constants  {
@@ -150,24 +150,24 @@ constants  {
   #C11 = 10.0
   #C12 = 9.0
   #C13 = wid::_Location {file:#C3, line:#C11, column:#C12, name:#C6, parameterLocations:#C1}
-  #C14 = 15.0
-  #C15 = 7.0
+  #C14 = 14.0
+  #C15 = 3.0
   #C16 = "FooExtension|foo"
   #C17 = wid::_Location {file:#C3, line:#C14, column:#C15, name:#C16, parameterLocations:#C1}
-  #C18 = 18.0
+  #C18 = 17.0
   #C19 = "FooExtension|bar"
   #C20 = wid::_Location {file:#C3, line:#C18, column:#C15, name:#C19, parameterLocations:#C1}
   #C21 = 21.0
   #C22 = 20.0
   #C23 = wid::_Location {file:#C3, line:#C21, column:#C22, name:#C6, parameterLocations:#C1}
-  #C24 = 24.0
+  #C24 = 23.0
   #C25 = "FooExtension|boz"
   #C26 = wid::_Location {file:#C3, line:#C24, column:#C15, name:#C25, parameterLocations:#C1}
   #C27 = 27.0
   #C28 = wid::_Location {file:#C3, line:#C27, column:#C27, name:#C6, parameterLocations:#C1}
   #C29 = foo::Foo {_location:#C28}
   #C30 = "FooExtension|constFoo"
-  #C31 = wid::_Location {file:#C3, line:#C27, column:#C15, name:#C30, parameterLocations:#C1}
+  #C31 = wid::_Location {file:#C3, line:#C5, column:#C15, name:#C30, parameterLocations:#C1}
   #C32 = 39.0
   #C33 = 33.0
   #C34 = wid::_Location {file:#C3, line:#C32, column:#C33, name:#C6, parameterLocations:#C1}
@@ -175,8 +175,8 @@ constants  {
   #C36 = 2.0
   #C37 = 30.0
   #C38 = wid::_Location {file:#C35, line:#C36, column:#C37, name:#C30, parameterLocations:#C1}
-  #C39 = 3.0
-  #C40 = wid::_Location {file:#C35, line:#C39, column:#C18, name:#C6, parameterLocations:#C1}
+  #C39 = 18.0
+  #C40 = wid::_Location {file:#C35, line:#C15, column:#C39, name:#C6, parameterLocations:#C1}
   #C41 = static-tearoff foo::Foo::_#new#tearOff
   #C42 = 6.0
   #C43 = 25.0
@@ -191,10 +191,9 @@ constants  {
   #C52 = 37.0
   #C53 = "FooExtension|set#setterFoo"
   #C54 = wid::_Location {file:#C35, line:#C51, column:#C52, name:#C53, parameterLocations:#C1}
-  #C55 = 14.0
-  #C56 = 28.0
-  #C57 = "FooExtension|unary-"
-  #C58 = wid::_Location {file:#C35, line:#C55, column:#C56, name:#C57, parameterLocations:#C1}
+  #C55 = 28.0
+  #C56 = "FooExtension|unary-"
+  #C57 = wid::_Location {file:#C35, line:#C14, column:#C55, name:#C56, parameterLocations:#C1}
 }
 
 

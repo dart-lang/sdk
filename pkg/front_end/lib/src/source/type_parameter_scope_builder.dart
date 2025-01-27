@@ -1913,49 +1913,31 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               nameScheme.getConstructorMemberName(name, isTearOff: true).name);
         }
 
-        SourceFactoryBuilder factoryBuilder;
+        SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
+            metadata: fragment.metadata,
+            modifiers: fragment.modifiers,
+            returnType: returnType,
+            name: name,
+            typeParameters: typeParameters,
+            formals: fragment.formals,
+            libraryBuilder: enclosingLibraryBuilder,
+            declarationBuilder: declarationBuilder,
+            fileUri: fragment.fileUri,
+            startOffset: fragment.startOffset,
+            nameOffset: fragment.fullNameOffset,
+            formalsOffset: fragment.formalsOffset,
+            endOffset: fragment.endOffset,
+            procedureReference: procedureReference,
+            tearOffReference: tearOffReference,
+            asyncModifier: fragment.redirectionTarget != null
+                ? AsyncMarker.Sync
+                : fragment.asyncModifier,
+            nameScheme: nameScheme,
+            nativeMethodName: fragment.nativeMethodName,
+            redirectionTarget: fragment.redirectionTarget);
         if (fragment.redirectionTarget != null) {
-          factoryBuilder = new RedirectingFactoryBuilder(
-              metadata: fragment.metadata,
-              modifiers: fragment.modifiers,
-              returnType: returnType,
-              name: name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              nameOffset: fragment.fullNameOffset,
-              formalsOffset: fragment.formalsOffset,
-              endOffset: fragment.endOffset,
-              procedureReference: procedureReference,
-              tearOffReference: tearOffReference,
-              nameScheme: nameScheme,
-              nativeMethodName: fragment.nativeMethodName,
-              redirectionTarget: fragment.redirectionTarget!);
           (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
-              .add(factoryBuilder as RedirectingFactoryBuilder);
-        } else {
-          factoryBuilder = new SourceFactoryBuilder(
-              metadata: fragment.metadata,
-              modifiers: fragment.modifiers,
-              returnType: returnType,
-              name: name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              nameOffset: fragment.fullNameOffset,
-              formalsOffset: fragment.formalsOffset,
-              endOffset: fragment.endOffset,
-              procedureReference: procedureReference,
-              tearOffReference: tearOffReference,
-              asyncModifier: fragment.asyncModifier,
-              nameScheme: nameScheme,
-              nativeMethodName: fragment.nativeMethodName);
+              .add(factoryBuilder);
         }
         fragment.builder = factoryBuilder;
         builders.add(new _AddBuilder(fragment.name, factoryBuilder,
