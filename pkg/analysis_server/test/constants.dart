@@ -6,6 +6,11 @@ const String CODE = 'code';
 const String COMPLETION_RESULTS = 'completion.results';
 const String CONTEXT_MESSAGES = 'contextMessages';
 const String CORRECTION = 'correction';
+
+/// Useful for debugging locally, setting this to true will cause all JSON
+/// communication to be printed to stdout.
+const debugPrintCommunication = false;
+
 const String EDITS = 'edits';
 const String END_COLUMN = 'endColumn';
 const String END_LINE = 'endLine';

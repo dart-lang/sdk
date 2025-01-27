@@ -418,6 +418,13 @@ Fragment FlowGraphBuilder::InstanceCall(
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
   }
+  if (!interface_target.IsNull()) {
+    const auto& return_type =
+        AbstractType::Handle(Z, interface_target.result_type());
+    if (return_type.IsNeverType() && return_type.IsNonNullable()) {
+      instructions += Stop("unreachable after returning Never");
+    }
+  }
   return instructions;
 }
 
@@ -665,6 +672,10 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   if (result_type != nullptr && result_type->IsConstant()) {
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
+  }
+  const auto& return_type = AbstractType::Handle(Z, target.result_type());
+  if (return_type.IsNeverType() && return_type.IsNonNullable()) {
+    instructions += Stop("unreachable after returning Never");
   }
   return instructions;
 }

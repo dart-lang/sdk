@@ -37,4 +37,4 @@ To run just the analysis server integration tests:
 
 
 [building]: https://github.com/dart-lang/sdk/wiki/Building
-[contributing]: https://github.com/dart-lang/sdk/wiki/Contributing
+[contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md

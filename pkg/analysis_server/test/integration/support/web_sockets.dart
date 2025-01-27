@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../../lsp/server_abstract.dart';
+import '../../constants.dart';
 
 /// Creates a [StreamChannel] for a connection to a WebSocket at [wsUri] that
 /// prints all communication if [debugPrintCommunication] is `true`.

@@ -24,6 +24,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
+import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
@@ -189,7 +190,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   @mustCallSuper
   void setUp() {
-    serverChannel = MockServerChannel();
+    serverChannel = MockServerChannel(printMessages: debugPrintCommunication);
 
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
