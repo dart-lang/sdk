@@ -607,6 +607,54 @@ class TypeSystemImpl implements TypeSystem {
     return parameters;
   }
 
+  /// Computes the set of free type parameters appearing in [rootType].
+  ///
+  /// If a non-null [candidates] set is given, then only type parameters
+  /// appearing in it are considered; otherwise all type parameters are
+  /// considered.
+  List<TypeParameterElement2>? getFreeParameters2(DartType rootType,
+      {Set<TypeParameterElement2>? candidates}) {
+    List<TypeParameterElement2>? parameters;
+    Set<DartType> visitedTypes = HashSet<DartType>();
+    Set<TypeParameterElement2> boundTypeParameters =
+        HashSet<TypeParameterElement2>();
+
+    void appendParameters(DartType? type) {
+      if (type == null) {
+        return;
+      }
+      if (visitedTypes.contains(type)) {
+        return;
+      }
+      visitedTypes.add(type);
+      if (type is TypeParameterType) {
+        var element = type.element3;
+        if ((candidates == null || candidates.contains(element)) &&
+            !boundTypeParameters.contains(element)) {
+          parameters ??= <TypeParameterElement2>[];
+          parameters!.add(element);
+        }
+      } else if (type is FunctionType) {
+        assert(
+            !type.typeParameters.any((t) => boundTypeParameters.contains(t)));
+        boundTypeParameters.addAll(type.typeParameters);
+        appendParameters(type.returnType);
+        type.parameters.map((p) => p.type).forEach(appendParameters);
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
+        type.alias?.typeArguments.forEach(appendParameters);
+        boundTypeParameters.removeAll(type.typeParameters);
+      } else if (type is InterfaceType) {
+        type.typeArguments.forEach(appendParameters);
+      } else if (type is RecordType) {
+        type.positionalFields.map((f) => f.type).forEach(appendParameters);
+        type.namedFields.map((f) => f.type).forEach(appendParameters);
+      }
+    }
+
+    appendParameters(rootType);
+    return parameters;
+  }
+
   /// Returns the greatest closure of [type] with respect to [typeParameters].
   ///
   /// https://github.com/dart-lang/language
@@ -828,6 +876,83 @@ class TypeSystemImpl implements TypeSystem {
       // to be Phi(B)
       for (TypeParameterElement parameter in partials.keys) {
         defaults[parameter] = Substitution.fromPairs(domain, range)
+            .substituteType(partials[parameter]!);
+      }
+    }
+
+    List<TypeImpl> orderedArguments =
+        typeFormals.map((p) => defaults[p]!).toFixedList();
+    return orderedArguments;
+  }
+
+  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
+  /// See the issue for the algorithm description.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+  List<TypeImpl> instantiateTypeFormalsToBounds2(
+      List<TypeParameterElementImpl2> typeFormals,
+      {List<bool>? hasError,
+      Map<TypeParameterElement2, TypeImpl>? knownTypes}) {
+    int count = typeFormals.length;
+    if (count == 0) {
+      return const <TypeImpl>[];
+    }
+
+    Set<TypeParameterElement2> all = <TypeParameterElement2>{};
+    // all ground
+    Map<TypeParameterElement2, TypeImpl> defaults = knownTypes ?? {};
+    // not ground
+    Map<TypeParameterElement2, TypeImpl> partials = {};
+
+    for (var typeParameter in typeFormals) {
+      all.add(typeParameter);
+      if (!defaults.containsKey(typeParameter)) {
+        var bound = typeParameter.bound ?? DynamicTypeImpl.instance;
+        partials[typeParameter] = bound;
+      }
+    }
+
+    bool hasProgress = true;
+    while (hasProgress) {
+      hasProgress = false;
+      for (TypeParameterElement2 parameter in partials.keys) {
+        var value = partials[parameter]!;
+        var freeParameters = getFreeParameters2(value, candidates: all);
+        if (freeParameters == null) {
+          defaults[parameter] = value;
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        } else if (freeParameters.every(defaults.containsKey)) {
+          defaults[parameter] =
+              Substitution.fromMap2(defaults).substituteType(value);
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        }
+      }
+    }
+
+    // If we stopped making progress, and not all types are ground,
+    // then the whole type is malbounded and an error should be reported
+    // if errors are requested, and a partially completed type should
+    // be returned.
+    if (partials.isNotEmpty) {
+      if (hasError != null) {
+        hasError[0] = true;
+      }
+      var domain = defaults.keys.toList();
+      var range = defaults.values.toList();
+      // Build a substitution Phi mapping each uncompleted type variable to
+      // dynamic, and each completed type variable to its default.
+      for (TypeParameterElement2 parameter in partials.keys) {
+        domain.add(parameter);
+        range.add(DynamicTypeImpl.instance);
+      }
+      // Set the default for an uncompleted type variable (T extends B)
+      // to be Phi(B)
+      for (TypeParameterElement2 parameter in partials.keys) {
+        defaults[parameter] = Substitution.fromPairs2(domain, range)
             .substituteType(partials[parameter]!);
       }
     }

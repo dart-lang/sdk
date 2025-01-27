@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -27,7 +24,6 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ExtensionMemberResolver {
@@ -106,7 +102,7 @@ class ExtensionMemberResolver {
     if (extensions.length == 1) {
       var instantiated = extensions[0];
       _resolver.libraryFragment.scope.notifyExtensionUsed(
-        instantiated.extension.asElement,
+        instantiated.extension,
       );
       return instantiated.asResolutionResult;
     }
@@ -115,7 +111,7 @@ class ExtensionMemberResolver {
     if (mostSpecific.length == 1) {
       var instantiated = mostSpecific.first;
       _resolver.libraryFragment.scope.notifyExtensionUsed(
-        instantiated.extension.asElement,
+        instantiated.extension,
       );
       return instantiated.asResolutionResult;
     }
@@ -157,35 +153,35 @@ class ExtensionMemberResolver {
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
       ExtensionOverride node, String name) {
-    var element = node.element;
+    var element = node.element2;
 
-    ExecutableElement? getter;
-    ExecutableElement? setter;
+    ExecutableElement2? getter;
+    ExecutableElement2? setter;
     if (name == '[]') {
-      getter = element.getMethod('[]');
-      setter = element.getMethod('[]=');
+      getter = element.getMethod2('[]');
+      setter = element.getMethod2('[]=');
     } else {
-      getter = element.getGetter(name) ?? element.getMethod(name);
-      setter = element.getSetter(name);
+      getter = element.getGetter2(name) ?? element.getMethod2(name);
+      setter = element.getSetter2(name);
     }
 
     if (getter == null && setter == null) {
       return ExtensionResolutionError.none;
     }
 
-    var substitution = Substitution.fromPairs(
-      element.typeParameters,
+    var substitution = Substitution.fromPairs2(
+      element.typeParameters2,
       node.typeArgumentTypes!,
     );
 
     var getterMember =
-        getter != null ? ExecutableMember.from2(getter, substitution) : null;
+        getter != null ? ExecutableMember.from(getter, substitution) : null;
     var setterMember =
-        setter != null ? ExecutableMember.from2(setter, substitution) : null;
+        setter != null ? ExecutableMember.from(setter, substitution) : null;
 
     return SingleExtensionResolutionResult(
-      getter2: getterMember?.asElement2,
-      setter2: setterMember?.asElement2,
+      getter2: getterMember,
+      setter2: setterMember,
     );
   }
 
@@ -394,12 +390,12 @@ class ExtensionMemberResolver {
 
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
-  DartType _instantiateToBounds(ExtensionElement extension) {
-    extension as ExtensionElementImpl;
-    var typeParameters = extension.typeParameters;
-    return Substitution.fromPairs(
+  DartType _instantiateToBounds(ExtensionElement2 extension) {
+    extension as ExtensionElementImpl2;
+    var typeParameters = extension.typeParameters2;
+    return Substitution.fromPairs2(
       typeParameters,
-      _typeSystem.instantiateTypeFormalsToBounds(typeParameters),
+      _typeSystem.instantiateTypeFormalsToBounds2(typeParameters),
     ).substituteType(extension.extendedType);
   }
 
@@ -438,8 +434,8 @@ class ExtensionMemberResolver {
     // 5. ...the instantiate-to-bounds type of T1 is a subtype of the
     //    instantiate-to-bounds type of T2 and not vice versa.
     // TODO(scheglov): store instantiated types
-    var extendedTypeBound1 = _instantiateToBounds(e1.extension.asElement);
-    var extendedTypeBound2 = _instantiateToBounds(e2.extension.asElement);
+    var extendedTypeBound1 = _instantiateToBounds(e1.extension);
+    var extendedTypeBound2 = _instantiateToBounds(e2.extension);
     return _isSubtypeOf(extendedTypeBound1, extendedTypeBound2) &&
         !_isSubtypeOf(extendedTypeBound2, extendedTypeBound1);
   }
