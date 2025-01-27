@@ -221,7 +221,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// in the right order.
   ///
   /// See [SourceLoader.buildOutlineExpressions] for details.
-  List<RedirectingFactoryBuilder>? redirectingFactoryBuilders;
+  List<SourceFactoryBuilder>? redirectingFactoryBuilders;
 
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? augmentations;
@@ -1003,7 +1003,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return formattedMessage;
   }
 
-  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+  void addProblemForRedirectingFactory(SourceFactoryBuilder factory,
       Message message, int charOffset, int length, Uri fileUri) {
     addProblem(message, charOffset, length, fileUri);
     String text = loader.target.context

@@ -455,7 +455,6 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
@@ -759,7 +758,6 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
       _fragment.declaredFormals![index].variable!;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null

@@ -575,7 +575,6 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
@@ -1093,7 +1092,6 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null

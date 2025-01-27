@@ -106,11 +106,12 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
               fileOffset, fileUri);
         }
-        if (declaration is RedirectingFactoryBuilder) {
+        if (declaration is SourceFactoryBuilder &&
+            declaration.redirectionTarget != null) {
           // Compute the immediate redirection target, not the effective.
 
           ConstructorReferenceBuilder redirectionTarget =
-              declaration.redirectionTarget;
+              declaration.redirectionTarget!;
           List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
           Builder? target = redirectionTarget.target;
           if (typeArguments != null && target is MemberBuilder) {
@@ -192,7 +193,8 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
             targetNode = null;
           }
           if (targetNode != null) {
-            List<DartType>? typeArguments = declaration.typeArguments;
+            List<DartType>? typeArguments =
+                declaration.redirectionTypeArguments;
             if (typeArguments == null) {
               int typeArgumentCount;
               if (targetBuilder!.isExtensionTypeMember) {
