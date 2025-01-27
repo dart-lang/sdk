@@ -1280,7 +1280,7 @@ function producing the value.
 
 ### assignment_to_const
 
-_Constant variables can't be assigned a value._
+_Constant variables can't be assigned a value after initialization._
 
 #### Description
 
