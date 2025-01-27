@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
@@ -454,8 +455,8 @@ class BinaryExpressionResolver {
       nameErrorEntity: node,
     );
 
-    node.staticElement = result.getter as MethodElement?;
-    node.staticInvokeType = result.getter?.type;
+    node.staticElement = result.getter2?.asElement as MethodElement?;
+    node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
         _errorReporter.atToken(

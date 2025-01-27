@@ -170,6 +170,19 @@ extension ElementExtension on Element {
   }
 }
 
+extension ExecutableElement2OrMemberQuestionExtension
+    on ExecutableElement2OrMember? {
+  TypeImpl? get firstParameterType {
+    var self = this;
+    if (self is MethodElement2OrMember) {
+      // TODO(paulberry): eliminate this cast by changing this extension to
+      // apply to `ExecutableElementOrMember?`.
+      return self.formalParameters.firstOrNull?.type as TypeImpl?;
+    }
+    return null;
+  }
+}
+
 extension ExecutableElementExtension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
@@ -178,7 +191,8 @@ extension ExecutableElementExtension on ExecutableElement {
   }
 }
 
-extension ExecutableElementExtensionQuestion on ExecutableElement? {
+extension ExecutableElementOrMemberQuestionExtension
+    on ExecutableElementOrMember? {
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is MethodElementOrMember) {

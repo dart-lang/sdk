@@ -480,13 +480,7 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ambiguous;
 
   @override
-  ExecutableElementOrMember? get getter => null;
-
-  @override
   ExecutableElement2OrMember? get getter2 => null;
-
-  @override
-  ExecutableElement? get setter => null;
 
   @override
   ExecutableElement2? get setter2 => null;

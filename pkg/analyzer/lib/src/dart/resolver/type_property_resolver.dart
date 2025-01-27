@@ -244,14 +244,14 @@ class TypePropertyResolver {
     _reportedGetterError = result == ExtensionResolutionError.ambiguous;
     _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 
-    if (result.getter != null) {
+    if (result.getter2 != null) {
       _needsGetterError = false;
-      _getterRequested = result.getter;
+      _getterRequested = result.getter2?.asElement;
     }
 
-    if (result.setter != null) {
+    if (result.setter2 != null) {
       _needsSetterError = false;
-      _setterRequested = result.setter;
+      _setterRequested = result.setter2?.asElement;
     }
   }
 

@@ -55,7 +55,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
       if (hasRead &&
-          result.getter == null &&
+          result.getter2 == null &&
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
@@ -67,7 +67,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (hasWrite &&
-          result.setter == null &&
+          result.setter2 == null &&
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
@@ -498,7 +498,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     TypeImpl? getType;
     if (hasRead) {
-      var unpromotedType = switch (result.getter) {
+      var unpromotedType = switch (result.getter2?.asElement) {
         MethodElementOrMember(:var type) => type,
         PropertyAccessorElementOrMember(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType
@@ -511,12 +511,12 @@ class PropertyElementResolver with ScopeHelpers {
                           as PropertyTarget<ExpressionImpl>
                       : ExpressionPropertyTarget(target),
                   propertyName.name,
-                  result.getter,
+                  result.getter2?.asElement,
                   SharedTypeView(unpromotedType))
               ?.unwrapTypeView() ??
           unpromotedType;
 
-      _checkForStaticMember(target, propertyName, result.getter);
+      _checkForStaticMember(target, propertyName, result.getter2?.asElement);
       if (result.needsGetterError) {
         errorReporter.atNode(
           propertyName,
@@ -527,7 +527,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (hasWrite) {
-      _checkForStaticMember(target, propertyName, result.setter);
+      _checkForStaticMember(target, propertyName, result.setter2?.asElement);
       if (result.needsSetterError) {
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
@@ -539,10 +539,10 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     return PropertyElementResolverResult(
-      readElementRequested: result.getter,
-      readElementRecovery: result.setter,
-      writeElementRequested: result.setter,
-      writeElementRecovery: result.getter,
+      readElementRequested: result.getter2?.asElement,
+      readElementRecovery: result.setter2?.asElement,
+      writeElementRequested: result.setter2?.asElement,
+      writeElementRecovery: result.getter2?.asElement,
       atDynamicTarget: _typeSystem.isDynamicBounded(targetType),
       recordField: result.recordField,
       getType: getType,
@@ -632,7 +632,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElement;
     DartType? getType;
     if (hasRead) {
-      readElement = result.getter;
+      readElement = result.getter2?.asElement;
       if (readElement == null) {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
@@ -650,7 +650,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     ExecutableElement? writeElement;
     if (hasWrite) {
-      writeElement = result.setter;
+      writeElement = result.setter2?.asElement;
       if (writeElement == null) {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
@@ -904,8 +904,8 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
   }) {
-    var readElement = result.getter;
-    var writeElement = result.setter;
+    var readElement = result.getter2?.asElement;
+    var writeElement = result.setter2?.asElement;
 
     var contextType = hasRead
         ? readElement.firstParameterType

@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class MethodInvocationResolver with ScopeHelpers {
   /// The resolver driving this participant.
@@ -414,7 +415,7 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(override, name);
-    var member = result.getter;
+    var member = result.getter2?.asElement;
 
     if (member == null) {
       _setInvalidTypeResolution(node,
@@ -853,7 +854,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return _rewriteAsFunctionExpressionInvocation(node, recordField.type);
     }
 
-    var target = result.getter;
+    var target = result.getter2?.asElement;
     if (target != null) {
       nameNode.staticElement = target;
 

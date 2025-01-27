@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class CommentReferenceResolver {
   final TypeProviderImpl _typeProvider;
@@ -181,7 +182,7 @@ class CommentReferenceResolver {
         propertyErrorEntity: identifier,
         nameErrorEntity: identifier,
       );
-      element = result.getter ?? result.setter;
+      element = result.getter2?.asElement ?? result.setter2?.asElement;
     }
     return element;
   }
