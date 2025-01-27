@@ -63,7 +63,7 @@ class AssignmentExpressionResolver {
     if (hasRead) {
       _resolver.setReadElement(
         left,
-        readElement,
+        readElement.asElement2,
         atDynamicTarget: leftResolution.atDynamicTarget,
       );
       {
@@ -76,7 +76,7 @@ class AssignmentExpressionResolver {
     }
     _resolver.setWriteElement(
       left,
-      writeElement,
+      writeElement.asElement2,
       atDynamicTarget: leftResolution.atDynamicTarget,
     );
 
