@@ -130,4 +130,4 @@ one above, the
 [linter issue tracker]: https://github.com/dart-lang/linter/issues
 [Linking a pull request]: https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
 [coding style]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/coding_style.md
-[contributing]: https://github.com/dart-lang/sdk/wiki/Contributing
+[contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
