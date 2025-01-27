@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared
     show
@@ -191,7 +189,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   List<TypeImpl>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, InterfaceElementImpl2 typeDeclaration) {
-    for (var interface in type.element.allSupertypes) {
+    for (var interface in type.element3.allSupertypes) {
       if (interface.element3 == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
         var substitutedInterface =
