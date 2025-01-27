@@ -56,7 +56,11 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   String? name;
 
-  MockServerChannel();
+  /// True if we are printing out messages exchanged with the server.
+  final bool printMessages;
+
+  MockServerChannel({bool? printMessages})
+    : printMessages = printMessages ?? false;
 
   /// Return the broadcast stream of notifications.
   Stream<Notification> get notifications {
@@ -99,12 +103,14 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   @override
   void sendRequest(Request request) {
+    var jsonString = jsonEncode(request.toJson());
+    if (printMessages) {
+      print('<== $jsonString');
+    }
+
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    request =
-        Request.fromJson(
-          jsonDecode(jsonEncode(request.toJson())) as Map<String, Object?>,
-        )!;
+    request = Request.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
 
     serverRequestsSent.add(request);
     responseController.add(request);
@@ -117,12 +123,15 @@ class MockServerChannel implements ServerCommunicationChannel {
       return;
     }
 
+    var jsonString = jsonEncode(response.toJson());
+    if (printMessages) {
+      print('<== $jsonString');
+    }
+
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
     response =
-        Response.fromJson(
-          jsonDecode(jsonEncode(response.toJson())) as Map<String, Object?>,
-        )!;
+        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
 
     responsesReceived.add(response);
     responseController.add(response);
@@ -138,12 +147,14 @@ class MockServerChannel implements ServerCommunicationChannel {
       throw Exception('simulateRequestFromClient after connection closed');
     }
 
+    var jsonString = jsonEncode(request.toJson());
+    if (printMessages) {
+      print('==> $jsonString');
+    }
+
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    request =
-        Request.fromJson(
-          jsonDecode(jsonEncode(request)) as Map<String, Object?>,
-        )!;
+    request = Request.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
 
     requestController.add(request);
     var response = await waitForResponse(request);
@@ -166,12 +177,15 @@ class MockServerChannel implements ServerCommunicationChannel {
       throw Exception('simulateRequestFromClient after connection closed');
     }
 
+    var jsonString = jsonEncode(response.toJson());
+    if (printMessages) {
+      print('==> $jsonString');
+    }
+
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
     response =
-        Response.fromJson(
-          jsonDecode(jsonEncode(response)) as Map<String, Object?>,
-        )!;
+        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
 
     requestController.add(response);
   }

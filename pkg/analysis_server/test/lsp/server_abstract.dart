@@ -31,6 +31,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
 import 'package:unified_analytics/unified_analytics.dart';
 
+import '../constants.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/shared_test_interface.dart';
@@ -40,10 +41,6 @@ import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
-
-/// Useful for debugging locally, setting this to true will cause all JSON
-/// communication to be printed to stdout.
-const debugPrintCommunication = false;
 
 abstract class AbstractLspAnalysisServerTest
     with
