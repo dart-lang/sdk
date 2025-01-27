@@ -1,5 +1,7 @@
 ## 3.8.0
 
+**Released on:** Unreleased
+
 ### Libraries
 
 #### `dart:core`
@@ -7,6 +9,8 @@
 - Added `Iterable.withIterator` constructor.
 
 ## 3.7.0
+
+**Released on:** Unreleased
 
 ### Language
 
@@ -298,7 +302,40 @@ AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
 
 [#59716]: https://github.com/dart-lang/sdk/issues/59716
 
+## 3.6.2
+
+**Released on:** Unreleased
+
+- Fixes a bug where `HttpServer` responses were not correctly encoded
+  if a "Content-Type" header was set (issue [#59719][]).
+
+[#59719]: https://github.com/dart-lang/sdk/issues/59719
+
+## 3.6.1
+
+**Released on:** 2025-01-08
+
+- When inside a pub workspace, `pub get` will now delete stray
+  `.dart_tool/package_config.json` files in directories between the
+  workspace root and workspace directories. Preventing confusing behavior
+  when migrating a repository to pub workspaces (issue [pub#4445][]).
+- Fixes crash during AOT and dart2wasm compilation which was caused by
+  the incorrect generic covariant field in a constant object (issue
+  [#57084][]).
+- Fixes analysis options discovery in the presence of workspaces
+  (issue [#56552][]).
+- When running `dart fix` on a folder that contains a library with multiple
+  files and more than one needs a fix, the fix will now be applied correctly
+  only once to each file (issue [#59572][]).
+
+[pub#4445]: https://github.com/dart-lang/pub/issues/4445
+[#57084]: https://github.com/dart-lang/sdk/issues/57084
+[#56552]: https://github.com/dart-lang/sdk/issues/56552
+[#59572]: https://github.com/dart-lang/sdk/issues/59572
+
 ## 3.6.0
+
+**Released on:** 2024-12-11
 
 ### Language
 
