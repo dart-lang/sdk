@@ -15,6 +15,8 @@ namespace dart {
 // Forward declarations.
 class Array;
 class Closure;
+class FlowGraphDeserializer;
+class FlowGraphSerializer;
 class Function;
 class Instance;
 class Integer;
@@ -132,6 +134,9 @@ class ArgumentsDescriptor : public ValueObject {
     return Array::ContainsCompressedPointers();
   }
 
+  void Write(FlowGraphSerializer* s) const;
+  static ArrayPtr Read(FlowGraphDeserializer* d);
+
  private:
   // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.
@@ -173,6 +178,8 @@ class ArgumentsDescriptor : public ValueObject {
   static intptr_t position_index(intptr_t index) {
     return kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
   }
+
+  bool IsCached() const;
 
   const Array& array_;
 
