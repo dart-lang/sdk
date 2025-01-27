@@ -145,6 +145,7 @@ class _YieldFinder extends RecursiveVisitor {
       addTarget(c, _StateTargetPlacement.Inner);
       recurse(c.body);
     }
+    addTarget(node.catches.last, _StateTargetPlacement.After);
     addTarget(node, _StateTargetPlacement.After);
   }
 
@@ -237,6 +238,10 @@ class ExceptionHandlerStack {
 
   final StateMachineCodeGenerator codeGen;
 
+  /// Holds exceptions and stacktraces from nested catch blocks so that the
+  /// enclosing ones can be restored when an inner block is exited.
+  final List<(w.Local, w.Local)> _previousCatchLocals = [];
+
   ExceptionHandlerStack(this.codeGen);
 
   void _pushTryCatch(TryCatch node) {
@@ -317,6 +322,14 @@ class ExceptionHandlerStack {
       final exceptionLocal =
           b.addLocal(codeGen.translator.topInfo.nonNullableType);
 
+      final previousException =
+          b.addLocal(codeGen.translator.topInfo.nullableType);
+
+      final previousStackTrace =
+          b.addLocal(codeGen.translator.stackTraceInfo.repr.nullableType);
+
+      _previousCatchLocals.add((previousException, previousStackTrace));
+
       void generateCatchBody() {
         // Set continuations of finalizers that can be reached by this `catch`
         // (or `catch_all`) as "rethrow".
@@ -327,6 +340,12 @@ class ExceptionHandlerStack {
                 () => b.local_get(stackTraceLocal));
           }
         }
+
+        // Store the current exception in case we enter a nested catch block.
+        codeGen.getSuspendStateCurrentException();
+        b.local_set(previousException);
+        codeGen.getSuspendStateCurrentStackTrace();
+        b.local_set(previousStackTrace);
 
         // Set the untyped "current exception" variable. Catch blocks will do the
         // type tests as necessary using this variable and set their exception
@@ -376,6 +395,22 @@ class ExceptionHandlerStack {
     }
 
     _tryBlockNumHandlers.clear();
+  }
+
+  void _finalizeCatchBlocks(Object? debug) {
+    if (_previousCatchLocals.isEmpty) return;
+
+    final (previousException, previousStackTrace) =
+        _previousCatchLocals.removeLast();
+
+    final b = codeGen.b;
+
+    // Restore the exception and stacktrace from the enclosing try/catch
+    // if there is one.
+    codeGen
+        .setSuspendStateCurrentException(() => b.local_get(previousException));
+    codeGen.setSuspendStateCurrentStackTrace(
+        () => b.local_get(previousStackTrace));
   }
 }
 
@@ -976,6 +1011,8 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     exceptionHandlers._terminateTryBlocks();
     exceptionHandlers._pop();
 
+    final afterCatch = afterTargets[node.catches.last]!;
+
     void emitCatchBlock(Catch catch_, Catch? nextCatch, bool emitGuard) {
       if (emitGuard) {
         getSuspendStateCurrentException();
@@ -1023,7 +1060,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
       catchVariableStack.removeLast();
 
-      _jumpToTarget(after);
+      _jumpToTarget(afterCatch);
     }
 
     for (int catchIdx = 0; catchIdx < node.catches.length; catchIdx += 1) {
@@ -1053,6 +1090,12 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
     b.throw_(translator.getExceptionTag(b.module));
+
+    emitTargetLabel(afterCatch);
+
+    exceptionHandlers._finalizeCatchBlocks(node.location);
+
+    _jumpToTarget(after);
 
     emitTargetLabel(after);
   }
