@@ -45,6 +45,22 @@ void main() {
   });
 }
 
+typedef ExpectedLabel =
+    ({
+      // Main label of the completion (eg 'myFunc')
+      String? label,
+      // The detail part of the label (shown after label, usually truncated signature)
+      String? labelDetail,
+      // Additional label description (usually the auto-import URI)
+      String? labelDescription,
+      // Filter text (usually same as label, never with `()` or other suffixes)
+      String? filterText,
+      // Main detail (shown in popout, usually full signature)
+      String? detail,
+      // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
+      String? resolvedDetailPrefix,
+    });
+
 abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   AbstractCompletionTest() {
@@ -214,21 +230,39 @@ void f() {
 class CompletionLabelDetailsTest extends AbstractCompletionTest {
   late String fileAPath;
 
+  /// A helper for [expectLabels] that only verifies a single label.
+  Future<void> expectLabel(
+    String content, {
+    Uri? completionFileUri,
+    required String? label,
+    required String? labelDetail,
+    required String? labelDescription,
+    required String? filterText,
+    required String? detail,
+    String? resolvedDetailPrefix,
+  }) async {
+    return expectLabels(
+      content,
+      completionFileUri: completionFileUri,
+      labels: [
+        (
+          label: label,
+          labelDetail: labelDetail,
+          labelDescription: labelDescription,
+          filterText: filterText,
+          detail: detail,
+          resolvedDetailPrefix: resolvedDetailPrefix,
+        ),
+      ],
+    );
+  }
+
+  /// Expect that invoking completion at the position marked in [content] in
+  /// [completionFileUri] provides completions with the expected [labels].
   Future<void> expectLabels(
     String content, {
     Uri? completionFileUri,
-    // Main label of the completion (eg 'myFunc')
-    required String? label,
-    // The detail part of the label (shown after label, usually truncated signature)
-    required String? labelDetail,
-    // Additional label description (usually the auto-import URI)
-    required String? labelDescription,
-    // Filter text (usually same as label, never with `()` or other suffixes)
-    required String? filterText,
-    // Main detail (shown in popout, usually full signature)
-    required String? detail,
-    // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
-    String? resolvedDetailPrefix,
+    required List<ExpectedLabel> labels,
   }) async {
     completionFileUri ??= mainFileUri;
 
@@ -240,45 +274,57 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
       completionFileUri,
       code.position.position,
     );
-    var completion = completions.singleWhereOrNull((c) => c.label == label);
-    if (completion == null) {
-      fail(
-        'Did not find completion "$label" in completion results:'
-        '\n    ${completions.map((c) => c.label).join('\n    ')}',
+
+    for (var (
+          :label,
+          :labelDetail,
+          :labelDescription,
+          :filterText,
+          :detail,
+          :resolvedDetailPrefix,
+        )
+        in labels) {
+      var completion = completions.singleWhereOrNull(
+        (c) => c.label == label && c.detail == detail,
+      );
+      if (completion == null) {
+        fail(
+          'Did not find completion "$label" with detail "$detail" in completion results:'
+          '\n    ${completions.map((c) => '${c.label} (${c.detail})').join('\n    ')}',
+        );
+      }
+
+      expect(completion.filterText, filterText);
+
+      // If both fields are expected to be null, expect the whole object to be
+      // null (to reduce payload size).
+      if (labelDetail == null && labelDescription == null) {
+        expect(completion.labelDetails, isNull);
+      } else {
+        var labelDetails = completion.labelDetails;
+        if (labelDetails == null) {
+          fail('Completion "$label" does not have labelDetails');
+        }
+        expect(labelDetails.detail, labelDetail);
+        expect(labelDetails.description, labelDescription);
+      }
+
+      // Verify that resolution does not modify these results.
+      var resolved = await resolveCompletion(completion);
+      expect(resolved.label, completion.label);
+      expect(resolved.filterText, completion.filterText);
+      expect(
+        resolved.detail,
+        resolvedDetailPrefix != null
+            ? '$resolvedDetailPrefix${completion.detail ?? ''}'
+            : completion.detail,
+      );
+      expect(resolved.labelDetails?.detail, completion.labelDetails?.detail);
+      expect(
+        resolved.labelDetails?.description,
+        completion.labelDetails?.description,
       );
     }
-
-    expect(completion.detail, detail);
-    expect(completion.filterText, filterText);
-
-    // If both fields are expected to be null, expect the whole object to be
-    // null (to reduce payload size).
-    if (labelDetail == null && labelDescription == null) {
-      expect(completion.labelDetails, isNull);
-    } else {
-      var labelDetails = completion.labelDetails;
-      if (labelDetails == null) {
-        fail('Completion "$label" does not have labelDetails');
-      }
-      expect(labelDetails.detail, labelDetail);
-      expect(labelDetails.description, labelDescription);
-    }
-
-    // Verify that resolution does not modify these results.
-    var resolved = await resolveCompletion(completion);
-    expect(resolved.label, completion.label);
-    expect(resolved.filterText, completion.filterText);
-    expect(
-      resolved.detail,
-      resolvedDetailPrefix != null
-          ? '$resolvedDetailPrefix${completion.detail ?? ''}'
-          : completion.detail,
-    );
-    expect(resolved.labelDetails?.detail, completion.labelDetails?.detail);
-    expect(
-      resolved.labelDetails?.description,
-      completion.labelDetails?.description,
-    );
   }
 
   @override
@@ -303,7 +349,7 @@ class Foo {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'value:',
       labelDetail: ' int',
@@ -324,7 +370,7 @@ class Foo {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'value:',
       labelDetail: ' int',
@@ -345,7 +391,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '(…) → String',
@@ -366,7 +412,7 @@ String f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '() → String',
@@ -387,7 +433,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '(…) → void',
@@ -408,7 +454,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '() → void',
@@ -424,7 +470,7 @@ String f(String a, {String b}) {
   f^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'f',
       labelDetail: '(…) → String',
@@ -441,7 +487,7 @@ String f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'f',
       labelDetail: '() → String',
@@ -458,7 +504,7 @@ void f(String a, {String b}) {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'f',
       labelDetail: '(…) → void',
@@ -475,7 +521,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'f',
       labelDetail: '() → void',
@@ -492,7 +538,7 @@ void f() {
   a^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '() → String',
@@ -510,7 +556,7 @@ void f() {
   a^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: ' String',
@@ -529,7 +575,7 @@ class Derived extends Base {
   @over^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'override ==',
       labelDetail: '(…) → bool',
@@ -549,13 +595,49 @@ class Derived extends Base {
   @over^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'override aa',
       labelDetail: '(…) → String',
       labelDescription: null,
       filterText: null,
       detail: '(String a) → String',
+    );
+  }
+
+  /// Ensure overrides for getters and setters can be distinguished.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/59929
+  Future<void> test_local_override_getterAndSetter() async {
+    var content = '''
+class A {
+  int? value;
+}
+
+class B extends A {
+  val^
+}
+''';
+    await expectLabels(
+      content,
+      labels: [
+        (
+          label: 'override value',
+          labelDetail: ' int? get',
+          labelDescription: null,
+          filterText: 'value',
+          detail: 'int? get',
+          resolvedDetailPrefix: null,
+        ),
+        (
+          label: 'override value',
+          labelDetail: ' set (int?)',
+          labelDescription: null,
+          filterText: 'value',
+          detail: 'set (int?)',
+          resolvedDetailPrefix: null,
+        ),
+      ],
     );
   }
 
@@ -569,12 +651,12 @@ class Derived extends Base {
   a^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
-      label: 'aa',
+      label: 'override aa',
       labelDetail: '(…) → String',
       labelDescription: null,
-      filterText: null,
+      filterText: 'aa',
       detail: '(String a) → String',
     );
   }
@@ -586,7 +668,7 @@ void f() {
   a^
 }
 ''';
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: ' String',
@@ -606,7 +688,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '(…) → String',
@@ -627,7 +709,7 @@ String f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '() → String',
@@ -648,7 +730,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '(…) → void',
@@ -669,7 +751,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'a',
       labelDetail: '() → void',
@@ -693,7 +775,7 @@ void f() {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       completionFileUri: toUri(testMainFilePath),
       label: 'a',
@@ -710,9 +792,9 @@ void f() {
 bool a = ^
 ''';
 
-    /// expectLabels verifies the whole labelDetails object is null if
+    /// expectLabel verifies the whole labelDetails object is null if
     /// both fields are expected to be null.
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'true',
       labelDetail: null,
@@ -729,7 +811,7 @@ void f((int, int) record) {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: r'$1',
       labelDetail: ' int',
@@ -746,7 +828,7 @@ void f(int variable) {
 }
 ''';
 
-    await expectLabels(
+    await expectLabel(
       content,
       label: 'variable',
       labelDetail: ' int',
@@ -1795,7 +1877,7 @@ class Student extends Person {
     var code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
-    var item = res.singleWhere((c) => c.label == 'name => …');
+    var item = res.singleWhere((c) => c.label == 'override name => …');
     // filterText is set explicitly because it's not the same as label.
     expect(item.filterText, 'name');
   }
@@ -1819,7 +1901,7 @@ class BaseImpl extends Base {
     var code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
-    var item = res.singleWhere((c) => c.label == 'myMethod() { … }');
+    var item = res.singleWhere((c) => c.label == 'override myMethod() { … }');
     // filterText is set explicitly because it's not the same as label.
     expect(item.filterText, 'myMethod');
   }
@@ -3709,7 +3791,7 @@ class BaseImpl extends Base {
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.singleWhere(
-      (c) => c.label == 'myMethod(A a, b.B b, C c) { … }',
+      (c) => c.label == 'override myMethod(A a, b.B b, C c) { … }',
     );
     var resolved = await resolveCompletion(completion);
 
