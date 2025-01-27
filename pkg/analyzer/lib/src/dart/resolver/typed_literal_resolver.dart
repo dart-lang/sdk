@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -709,11 +707,11 @@ class TypedLiteralResolver {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType is InterfaceType &&
-        literalType.element == _typeProvider.mapElement) {
+        literalType.element3 == _typeProvider.mapElement2) {
       node.becomeMap();
     } else {
       assert(literalType is InterfaceType &&
-          literalType.element == _typeProvider.setElement);
+          literalType.element3 == _typeProvider.setElement2);
       node.becomeSet();
     }
     if (_strictInference &&
