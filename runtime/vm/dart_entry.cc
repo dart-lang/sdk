@@ -442,6 +442,12 @@ const char* ArgumentsDescriptor::ToCString() const {
   return buf.buffer();
 }
 
+bool ArgumentsDescriptor::IsCached() const {
+  const intptr_t num_arguments = Count();
+  return (num_arguments < kCachedDescriptorCount) &&
+         (array_.ptr() == cached_args_descriptors_[num_arguments]);
+}
+
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
                                   intptr_t num_arguments,
                                   intptr_t size_arguments,
