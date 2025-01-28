@@ -2,24 +2,143 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../utils/aot_snapshot.gni")
 import("../../utils/application_snapshot.gni")
 
 # All samples.
 group("all") {
-  deps = [ ":run_kernel" ]
+  deps = [
+    ":aot",
+    ":kernel",
+  ]
+}
+
+group("aot") {
+  deps = [
+    ":run_main_aot",
+    ":run_timer_aot",
+    ":run_timer_async_aot",
+    ":run_two_programs_aot",
+  ]
+}
+
+group("kernel") {
+  deps = [
+    ":run_main_kernel",
+    ":run_timer_async_kernel",
+    ":run_timer_kernel",
+    ":run_two_programs_kernel",
+  ]
+}
+
+# Generates a pair of executables for kernel and AOT snapshots.
+template("sample") {
+  executable("${target_name}_kernel") {
+    # Otherwise build with --no-clang fails.
+    if (is_linux) {
+      ldflags = [ "-Wl,--allow-shlib-undefined" ]
+    }
+    include_dirs = [
+      "../../runtime",
+      "../../runtime/engine",
+    ]
+    deps = [ "../../runtime/engine:dart_engine_jit_shared" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+    data_deps = []
+    foreach(snapshot, invoker.snapshots) {
+      data_deps += [ "${snapshot}_kernel" ]
+    }
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "snapshots",
+                             "deps",
+                             "data_deps",
+                           ])
+  }
+
+  executable("${target_name}_aot") {
+    # Otherwise build with MSAN fails.
+    if (is_linux) {
+      ldflags = [ "-Wl,--allow-shlib-undefined" ]
+    }
+    include_dirs = [
+      "../../runtime",
+      "../../runtime/engine",
+    ]
+    deps = [ "../../runtime/engine:dart_engine_aot_shared" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+    data_deps = []
+    foreach(snapshot, invoker.snapshots) {
+      data_deps += [ "${snapshot}_aot" ]
+    }
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "snapshots",
+                             "deps",
+                             "data_deps",
+                           ])
+  }
+}
+
+# For a given main_dart generates Kernel and AOT snapshots
+template("snapshots") {
+  # Kernel snapshot
+  application_snapshot("${target_name}_kernel") {
+    main_dart = invoker.main_dart
+    dart_snapshot_kind = "kernel"
+    training_args = []  # Not used
+    gen_kernel_args = [ "--link-platform" ]
+  }
+
+  # AOT snapshot
+  aot_snapshot("${target_name}_aot") {
+    main_dart = invoker.main_dart
+  }
 }
 
 # Sample binary to run given kernel snapshot.
-executable("run_kernel") {
-  sources = [ "run_kernel.cc" ]
-  deps = [ "../../runtime/bin:dart_embedder_runtime_jit" ]
-  include_dirs = [ "../../runtime" ]
-  data_deps = [ ":hello_kernel" ]
+sample("run_main") {
+  sources = [ "run_main.cc" ]
+  snapshots = [ ":hello" ]
 }
 
-# Kernel snapshot of ./hello.dart.
-application_snapshot("hello_kernel") {
+snapshots("hello") {
   main_dart = "hello.dart"
-  dart_snapshot_kind = "kernel"
-  training_args = []  # Not used
+}
+
+# Sample binary to run two snapshots simultaneously.
+sample("run_two_programs") {
+  sources = [ "run_two_programs.cc" ]
+  snapshots = [
+    ":program1",
+    ":program2",
+  ]
+}
+
+snapshots("program1") {
+  main_dart = "program1.dart"
+}
+
+snapshots("program2") {
+  main_dart = "program2.dart"
+}
+
+sample("run_timer") {
+  sources = [ "run_timer.cc" ]
+  snapshots = [ ":timer" ]
+}
+
+sample("run_timer_async") {
+  sources = [ "run_timer_async.cc" ]
+  snapshots = [ ":timer" ]
+}
+
+snapshots("timer") {
+  main_dart = "timer.dart"
 }

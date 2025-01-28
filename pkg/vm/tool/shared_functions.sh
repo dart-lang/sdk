@@ -25,7 +25,8 @@ function host_arch() {
 
 function parse_target_arch() {
   case "$1" in
-  *X64)
+  *X64 | \
+  *X64C)
   echo "X64"
   ;;
   *ARM64 | \

@@ -84,7 +84,7 @@ class MacroTestConfig extends CfeTestConfig {
       }
     });
     printer.writeConstantTable(component);
-    String actual = buffer.toString();
+    String actual = _sanitizeStackTraces(buffer.toString());
     String expectationFileName = '${testData.name}.expect';
     Uri expectedUri = dataDir.uri.resolve(expectationFileName);
     File file = new File.fromUri(expectedUri);
@@ -120,6 +120,40 @@ class MacroTestConfig extends CfeTestConfig {
     }
   }
 }
+
+/// Matches output of a stack trace
+final _stackFrameRE =
+    RegExp(r'^// #(\d+ +)(new )?([^(]*)\((.*)(:\d+:\d+)\) *\n',
+        multiLine: true);
+
+/// Sanitizes stack traces, removing implementation details.
+///
+/// Recognizes stack traces and:
+/// - removes platform implementation details
+///   - removes frames from `dart:_` libraries
+///   - removes frames from `dart:` libraries with private names.
+/// - removes position of platform library code (`:12:4` -> `:-:-`).
+/// - removes stack frame number (always consecutive anyway).
+String _sanitizeStackTraces(String output) =>
+    output.replaceAllMapped(_stackFrameRE, (m) {
+      var frameNr = m[1]!;
+      var newPrefix = m[2] ?? "";
+      var name = m[3]!;
+      var uri = m[4]!;
+      var location = m[5]!;
+
+      if (uri.startsWith('dart:')) {
+        // Remove all internal functions.
+        if (uri.startsWith('_', 'dart:'.length) ||
+            name.startsWith('_') ||
+            name.contains('._')) {
+          return "";
+        }
+        location = ":-:-";
+      }
+      frameNr = frameNr.length == 8 ? "        " : " " * frameNr.length;
+      return "// #$frameNr$newPrefix$name($uri$location)\n";
+    });
 
 bool _isMember(MemberBuilder memberBuilder, Member member) {
   if (memberBuilder is PropertyBuilder && memberBuilder.isField) {

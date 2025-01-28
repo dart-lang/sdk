@@ -2740,6 +2740,7 @@ sake
 same
 sample
 samples
+sanitizes
 sanity
 sate
 satisfied

@@ -46,6 +46,8 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Iruntime',
     '-Ithird_party',
     '-Iruntime/include',
+    if (filepath.contains('samples/embedder'))
+      '-Iruntime/engine',
     '-Ithird_party/boringssl/src/include',
     '-Ithird_party/perfetto/include',
     '-Ithird_party/zlib',
