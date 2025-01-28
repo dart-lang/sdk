@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [FunctionExpressionInvocation]s.
 class FunctionExpressionInvocationResolver {
@@ -83,7 +84,7 @@ class FunctionExpressionInvocationResolver {
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );
-    var callElement = result.getter;
+    var callElement = result.getter2?.asElement;
 
     if (callElement == null) {
       if (result.needsGetterError) {
@@ -169,7 +170,7 @@ class FunctionExpressionInvocationResolver {
       function,
       FunctionElement.CALL_METHOD_NAME,
     );
-    var callElement = result.getter;
+    var callElement = result.getter2?.asElement;
     node.staticElement = callElement;
 
     if (callElement == null) {

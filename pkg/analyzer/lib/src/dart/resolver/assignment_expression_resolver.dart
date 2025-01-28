@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [AssignmentExpression]s.
 class AssignmentExpressionResolver {
@@ -254,7 +255,7 @@ class AssignmentExpressionResolver {
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
-    node.staticElement = result.getter as MethodElement?;
+    node.staticElement = result.getter2?.asElement as MethodElement?;
     if (result.needsGetterError) {
       _errorReporter.atToken(
         operator,

@@ -1576,6 +1576,9 @@ class SuperFormalParameterMember extends ParameterMember
     return ParameterMember.from(superConstructorParameter, substitution);
   }
 
+  FormalParameterElement? get superConstructorParameter2 =>
+      superConstructorParameter?.asElement2;
+
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitSuperFormalParameterElement(this);

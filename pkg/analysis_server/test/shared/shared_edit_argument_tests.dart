@@ -28,6 +28,7 @@ mixin SharedEditArgumentTests
   Future<void> setUp() async {
     await super.setUp();
     setApplyEditSupport();
+    setDocumentChangesSupport();
   }
 
   test_comma_addArg_addsIfExists() async {
@@ -63,6 +64,30 @@ mixin SharedEditArgumentTests
       originalArgs: '(x: 1, y: 1,)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
       expectedArgs: '(x: 1, y: 2,)',
+    );
+  }
+
+  test_documentChanges_supported() async {
+    // Ensure documentChanges are supported. The verification in
+    // LspChangeVerifier will verify the resulting edits match the capabilities.
+    setDocumentChangesSupport();
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x })',
+      originalArgs: '(x: 1)',
+      edit: ArgumentEdit(name: 'x', newValue: 2),
+      expectedArgs: '(x: 2)',
+    );
+  }
+
+  test_documentChanges_unsupported() async {
+    // documentChanges are NOT supported. The verification in
+    // LspChangeVerifier will verify the resulting edits match the capabilities.
+    setDocumentChangesSupport(false);
+    await _expectSimpleArgumentEdit(
+      params: '({ int? x })',
+      originalArgs: '(x: 1)',
+      edit: ArgumentEdit(name: 'x', newValue: 2),
+      expectedArgs: '(x: 2)',
     );
   }
 

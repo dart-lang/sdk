@@ -427,11 +427,13 @@ part 'a.dart';
 package:test/test.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::<fragment>::@getter::exitCode#element
+    setter: dart:io::<fragment>::@setter::exitCode#element
 package:test/a.dart
   prefix.exitCode
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::<fragment>::@getter::exitCode#element
+    setter: dart:io::<fragment>::@setter::exitCode#element
 ''');
   }
 
@@ -468,31 +470,31 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aaa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 ''');
   }
 
@@ -523,24 +525,24 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 ''');
   }
 
@@ -575,7 +577,7 @@ package:test/test.dart
     getter: <null>
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Random
     prefix: <testLibraryFragment>::@prefix2::prefix
     getter: <null>
@@ -587,7 +589,7 @@ package:test/a.dart
     getter: <null>
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 package:test/aa.dart
   loadLibrary
     getter: <null>
@@ -596,7 +598,7 @@ package:test/aa.dart
     getter: <null>
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:math::@class::Random
 ''');
   }
 
@@ -632,24 +634,24 @@ part 'a.dart';
 package:test/test.dart
   prefix.File
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibraryFragment>::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::Directory
 package:test/a.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: package:test/x.dart::@class::Directory
 package:test/aa.dart
   prefix.File
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: dart:io::@class::File
   prefix.Directory
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
-    getter: <null>
+    getter: package:test/x.dart::@class::Directory
 ''');
   }
 
@@ -1273,14 +1275,14 @@ part 'a.dart';
 package:test/test.dart
   _.X
     _: <testLibraryFragment>::@prefix2::_
-    getter: <null>
+    getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
     package:test/x.dart::@extension::X
 package:test/a.dart
   _.X
     _: <testLibraryFragment>::@prefix2::_
-    getter: <null>
+    getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
     package:test/x.dart::@extension::X

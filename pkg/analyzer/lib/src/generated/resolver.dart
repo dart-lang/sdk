@@ -1620,7 +1620,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    var getter = result.getter;
+    var getter = result.getter2?.asElement;
     if (getter != null) {
       fieldNode.element = getter;
       if (getter is PropertyAccessorElementOrMember) {
@@ -1674,7 +1674,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    var element = result.getter as MethodElementOrMember?;
+    var element = result.getter2?.asElement as MethodElementOrMember?;
     node.element = element;
     if (element == null) {
       return null;
@@ -2031,7 +2031,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         propertyErrorEntity: node.augmentedKeyword,
         nameErrorEntity: node.augmentedKeyword,
       );
-      var callElement = result.getter;
+      var callElement = result.getter2?.asElement;
       var functionType = callElement?.type ?? result.callFunctionType;
 
       if (functionType == null) {

@@ -20,7 +20,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -9869,9 +9868,8 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   String? get name3 => firstFragment.name2;
 
   @override
-  Scope get scope {
-    var libraryFragment = firstFragment.libraryFragment;
-    return LibraryFragmentScope(libraryFragment);
+  PrefixScope get scope {
+    return asElement.scope;
   }
 
   @override

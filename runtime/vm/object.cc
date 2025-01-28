@@ -13330,7 +13330,7 @@ void Field::SetStaticValue(const Object& value) const {
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   thread->isolate()->field_table()->SetAt(id, value.ptr());
 }
 

@@ -4,12 +4,10 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The result of attempting to resolve an identifier to elements.
 class ResolutionResult extends SimpleResolutionResult {
@@ -63,8 +61,4 @@ class SimpleResolutionResult {
   final ExecutableElement2? setter2;
 
   const SimpleResolutionResult({this.getter2, this.setter2});
-
-  ExecutableElementOrMember? get getter => getter2?.asElement;
-
-  ExecutableElement? get setter => setter2?.asElement;
 }

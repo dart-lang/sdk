@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A resolver for [FunctionReference] nodes.
 ///
@@ -166,13 +167,17 @@ class FunctionReferenceResolver {
       // applies.
       return _extensionResolver
           .findExtension(type, node, callMethodName)
-          .getter;
+          .getter2
+          ?.asElement;
     }
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod2(
             FunctionElement.CALL_METHOD_NAME, type.element.library) ??
-        _extensionResolver.findExtension(type, node, callMethodName).getter;
+        _extensionResolver
+            .findExtension(type, node, callMethodName)
+            .getter2
+            ?.asElement;
   }
 
   void _reportInvalidAccessToStaticMember(
@@ -357,7 +362,7 @@ class FunctionReferenceResolver {
     var propertyName = function.propertyName;
     var result =
         _extensionResolver.getOverrideMember(override, propertyName.name);
-    var member = result.getter;
+    var member = result.getter2?.asElement;
 
     if (member == null) {
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
@@ -406,7 +411,8 @@ class FunctionReferenceResolver {
           propertyErrorEntity: methodName,
           nameErrorEntity: methodName,
         )
-        .getter;
+        .getter2
+        ?.asElement;
     if (methodElement != null && methodElement.isStatic) {
       _reportInvalidAccessToStaticMember(methodName, methodElement,
           implicitReceiver: false);
@@ -586,7 +592,8 @@ class FunctionReferenceResolver {
           propertyErrorEntity: function.propertyName,
           nameErrorEntity: function,
         )
-        .getter;
+        .getter2
+        ?.asElement;
 
     if (propertyElement is TypeParameterElement) {
       _resolve(node: node, rawType: propertyElement!.type);
@@ -699,7 +706,7 @@ class FunctionReferenceResolver {
         nameErrorEntity: function,
       );
 
-      var method = result.getter;
+      var method = result.getter2?.asElement;
       if (method != null) {
         if (method.isStatic) {
           _reportInvalidAccessToStaticMember(function, method,
@@ -916,7 +923,8 @@ class FunctionReferenceResolver {
           propertyErrorEntity: name,
           nameErrorEntity: nameErrorEntity,
         )
-        .getter;
+        .getter2
+        ?.asElement;
     name.staticElement = element;
     if (element != null && element.isStatic) {
       _reportInvalidAccessToStaticMember(name, element,

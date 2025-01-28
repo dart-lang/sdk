@@ -445,8 +445,8 @@ class LibraryFragmentScope implements Scope {
     );
   }
 
-  void notifyExtensionUsed(ExtensionElement element) {
-    _importsTracking?.notifyExtensionUsed(element);
+  void notifyExtensionUsed(ExtensionElement2 element) {
+    _importsTracking?.notifyExtensionUsed(element.asElement);
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
