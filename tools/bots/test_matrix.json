@@ -1823,12 +1823,26 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
-            "dartaotruntime",
-            "gen_snapshot",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - runtime - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "build dart - step 3 - runtime/bin:dart - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
             "runtime"
           ]
         },
