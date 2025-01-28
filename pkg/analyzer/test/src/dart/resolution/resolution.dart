@@ -107,13 +107,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     newFile(testFile.path, content);
   }
 
-  void assertDartObjectText(
-    DartObject? object,
-    String expected, {
-    LibraryElement? libraryElement,
-  }) {
-    libraryElement ??= result.libraryElement;
-
+  void assertDartObjectText(DartObject? object, String expected) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(
       sink: buffer,
