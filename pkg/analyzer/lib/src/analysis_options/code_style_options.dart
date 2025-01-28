@@ -36,6 +36,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   String get preferredQuoteForStrings => _lintQuote() ?? "'";
 
   @override
+  bool get sortCombinators => _isLintEnabled('combinators_ordering');
+
+  @override
   bool get sortConstructorsFirst => _isLintEnabled('sort_constructors_first');
 
   @override
