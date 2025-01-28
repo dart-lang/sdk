@@ -304,12 +304,17 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
   Uint8List bytes = new File.fromUri(output).readAsBytesSync();
   new BinaryBuilder(bytes).readComponent(component);
 
+  int librariesBefore = component.libraries.length;
+
   bytes = File.fromUri(instrumentationLibDill).readAsBytesSync();
   new BinaryBuilder(bytes).readComponent(component);
 
+  assert(librariesBefore + 1 == component.libraries.length);
+
   List<Procedure> procedures = [];
   List<Constructor> constructors = [];
-  for (Library lib in component.libraries) {
+  for (int i = 0; i < librariesBefore; i++) {
+    Library lib = component.libraries[i];
     if (lib.importUri.scheme == "dart") continue;
     for (Class c in lib.classes) {
       addIfWantedProcedures(config, procedures, c.procedures);
