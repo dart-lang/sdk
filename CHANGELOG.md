@@ -3,7 +3,13 @@
 - Fixes a bug where `HttpServer` responses were not correctly encoded
   if a "Content-Type" header was set (issue [#59719][]).
 
+- Fix `dart format` to parse code at language version 3.6 so that digit
+  separators can be parsed correctly (issue [#59815][], dart_style issue
+  [#1630][dart_style #1630]).
+
 [#59719]: https://github.com/dart-lang/sdk/issues/59719
+[#59815]: https://github.com/dart-lang/sdk/issues/59815
+[dart_style #1630]: https://github.com/dart-lang/dart_style/issues/1630
 
 ## 3.6.1 - 2025-01-08
 
