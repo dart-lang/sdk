@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -21,7 +19,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [AssignmentExpression]s.
 class AssignmentExpressionResolver {
@@ -56,14 +53,14 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
-    var readElement = leftResolution.readElement;
-    var writeElement = leftResolution.writeElement;
+    var readElement = leftResolution.readElement2;
+    var writeElement = leftResolution.writeElement2;
     var writeElement2 = leftResolution.writeElement2;
 
     if (hasRead) {
       _resolver.setReadElement(
         left,
-        readElement.asElement2,
+        readElement,
         atDynamicTarget: leftResolution.atDynamicTarget,
       );
       {
@@ -76,7 +73,7 @@ class AssignmentExpressionResolver {
     }
     _resolver.setWriteElement(
       left,
-      writeElement.asElement2,
+      writeElement,
       atDynamicTarget: leftResolution.atDynamicTarget,
     );
 
@@ -86,7 +83,7 @@ class AssignmentExpressionResolver {
     TypeImpl rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement) {
+      if (writeElement is VariableElement2) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifierImpl, isRead: false);
       }
@@ -195,11 +192,11 @@ class AssignmentExpressionResolver {
       case TokenType.BAR_BAR_EQ:
         return _typeProvider.boolType;
       default:
-        var method = node.staticElement;
+        var method = node.element;
         if (method != null) {
-          var parameters = method.parameters;
+          var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
-            return _typeSystem.refineNumericInvocationContext(
+            return _typeSystem.refineNumericInvocationContext2(
                 leftType,
                 method,
                 leftType,
@@ -255,7 +252,7 @@ class AssignmentExpressionResolver {
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
-    node.staticElement = result.getter2?.asElement as MethodElement?;
+    node.element = result.getter2 as MethodElement2?;
     if (result.needsGetterError) {
       _errorReporter.atToken(
         operator,
@@ -282,12 +279,12 @@ class AssignmentExpressionResolver {
       assignedType = _typeProvider.boolType;
     } else {
       var leftType = node.readType!;
-      var operatorElement = node.staticElement;
+      var operatorElement = node.element;
       if (leftType is DynamicType) {
         assignedType = DynamicTypeImpl.instance;
       } else if (operatorElement != null) {
         var rightType = rightHandSide.typeOrThrow;
-        assignedType = _typeSystem.refineBinaryExpressionType(
+        assignedType = _typeSystem.refineBinaryExpressionType2(
           leftType,
           operator,
           rightType,

@@ -1674,6 +1674,19 @@ class TypeSystemImpl implements TypeSystem {
         leftType, operatorElement, [rightType], currentType);
   }
 
+  /// Determine the type of a binary expression with the given [operator] whose
+  /// left operand has the type [leftType] and whose right operand has the type
+  /// [rightType], given that resolution has so far produced the [currentType].
+  DartType refineBinaryExpressionType2(
+      DartType leftType,
+      TokenType operator,
+      DartType rightType,
+      DartType currentType,
+      MethodElement2? operatorElement) {
+    return refineBinaryExpressionType(
+        leftType, operator, rightType, currentType, operatorElement?.asElement);
+  }
+
   /// Determines the context type for the parameters of a method invocation
   /// where the type of the target is [targetType], the method being invoked is
   /// [methodElement], the context surrounding the method invocation is
@@ -1691,6 +1704,20 @@ class TypeSystemImpl implements TypeSystem {
       // No special rules apply.
       return currentType;
     }
+  }
+
+  /// Determines the context type for the parameters of a method invocation
+  /// where the type of the target is [targetType], the method being invoked is
+  /// [methodElement], the context surrounding the method invocation is
+  /// [invocationContext], and the context type produced so far by resolution is
+  /// [currentType].
+  TypeImpl refineNumericInvocationContext2(
+      DartType? targetType,
+      Element2? methodElement,
+      DartType invocationContext,
+      TypeImpl currentType) {
+    return refineNumericInvocationContext(
+        targetType, methodElement?.asElement, invocationContext, currentType);
   }
 
   /// Determines the type of a method invocation where the type of the target is
