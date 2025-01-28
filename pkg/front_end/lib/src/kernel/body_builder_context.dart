@@ -757,11 +757,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   TypeBuilder get returnType => _member.returnType;
 
   @override
-  void setBody(Statement body) {
-    _member.body = body;
-  }
-
-  @override
   List<FormalParameterBuilder>? get formals => _member.formals;
 
   @override
@@ -878,6 +873,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
+  void setBody(Statement body) {
+    _member.body = body;
+  }
+
+  @override
   bool isConstructorCyclic(String name) {
     return _declarationContext.isConstructorCyclic(_member.name, name);
   }
@@ -908,6 +908,11 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
+  void setBody(Statement body) {
+    _member.body = body;
+  }
+
+  @override
   bool isConstructorCyclic(String name) {
     return _declarationContext.isConstructorCyclic(_member.name, name);
   }
@@ -929,6 +934,11 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   FactoryBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  void setBody(Statement body) {
+    _member.setBody(body);
+  }
 
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {
@@ -954,6 +964,12 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   RedirectingFactoryBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void setBody(Statement body) {
+    _member.setBody(body);
+  }
 
   @override
   bool get isRedirectingFactory => true;

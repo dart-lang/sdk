@@ -2,20 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-
 import '../base/problems.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
-import '../dill/dill_member_builder.dart';
-import '../type_inference/type_schema.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 
@@ -106,112 +98,8 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
               fileOffset, fileUri);
         }
-        if (declaration is SourceFactoryBuilder &&
-            declaration.redirectionTarget != null) {
-          // Compute the immediate redirection target, not the effective.
-
-          ConstructorReferenceBuilder redirectionTarget =
-              declaration.redirectionTarget!;
-          List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
-          Builder? target = redirectionTarget.target;
-          if (typeArguments != null && target is MemberBuilder) {
-            TypeName redirectionTargetName = redirectionTarget.typeName;
-            if (redirectionTargetName.qualifier == null) {
-              // Do nothing. This is the case of an identifier followed by
-              // type arguments, such as the following:
-              //   B<T>
-              //   B<T>.named
-            } else {
-              if (target.name.isEmpty) {
-                // Do nothing. This is the case of a qualified
-                // non-constructor prefix (for example, with a library
-                // qualifier) followed by type arguments, such as the
-                // following:
-                //   lib.B<T>
-              } else if (target.name != redirectionTargetName.name) {
-                // Do nothing. This is the case of a qualified
-                // non-constructor prefix followed by type arguments followed
-                // by a constructor name, such as the following:
-                //   lib.B<T>.named
-              } else {
-                // TODO(cstefantsova,johnniwinther): Handle this in case in
-                // ConstructorReferenceBuilder.resolveIn and unify with other
-                // cases of handling of type arguments after constructor
-                // names.
-                addProblem(
-                    messageConstructorWithTypeArguments,
-                    redirectionTargetName.nameOffset,
-                    redirectionTargetName.nameLength);
-              }
-            }
-          }
-
-          Builder? targetBuilder = redirectionTarget.target;
-          Member? targetNode;
-          if (targetBuilder is FunctionBuilder) {
-            targetNode = targetBuilder.invokeTarget!;
-          } else if (targetBuilder is DillMemberBuilder) {
-            targetNode = targetBuilder.invokeTarget!;
-          } else if (targetBuilder is AmbiguousBuilder) {
-            libraryBuilder.addProblemForRedirectingFactory(
-                declaration,
-                templateDuplicatedDeclarationUse
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength,
-                redirectionTarget.fileUri);
-          } else {
-            libraryBuilder.addProblemForRedirectingFactory(
-                declaration,
-                templateRedirectionTargetNotFound
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength,
-                redirectionTarget.fileUri);
-          }
-          if (targetNode != null &&
-              targetNode is Constructor &&
-              targetNode.enclosingClass.isAbstract) {
-            libraryBuilder.addProblemForRedirectingFactory(
-                declaration,
-                templateAbstractRedirectedClassInstantiation
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength,
-                redirectionTarget.fileUri);
-            targetNode = null;
-          }
-          if (targetNode != null &&
-              targetNode is Constructor &&
-              targetNode.enclosingClass.isEnum) {
-            libraryBuilder.addProblemForRedirectingFactory(
-                declaration,
-                messageEnumFactoryRedirectsToConstructor,
-                redirectionTarget.charOffset,
-                noLength,
-                redirectionTarget.fileUri);
-            targetNode = null;
-          }
-          if (targetNode != null) {
-            List<DartType>? typeArguments =
-                declaration.redirectionTypeArguments;
-            if (typeArguments == null) {
-              int typeArgumentCount;
-              if (targetBuilder!.isExtensionTypeMember) {
-                ExtensionTypeDeclarationBuilder
-                    extensionTypeDeclarationBuilder =
-                    targetBuilder.parent as ExtensionTypeDeclarationBuilder;
-                typeArgumentCount =
-                    extensionTypeDeclarationBuilder.typeParametersCount;
-              } else {
-                typeArgumentCount =
-                    targetNode.enclosingClass!.typeParameters.length;
-              }
-              typeArguments = new List<DartType>.filled(
-                  typeArgumentCount, const UnknownType());
-            }
-            declaration.setRedirectingFactoryBody(targetNode, typeArguments);
-          }
+        if (declaration is SourceFactoryBuilder) {
+          declaration.resolveRedirectingFactory(this);
         }
       }
     }
