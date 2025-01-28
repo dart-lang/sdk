@@ -7037,6 +7037,7 @@ LintCode:
         * `String.replaceAllMapped` at the 1st positional parameter
         * `String.replaceFirstMapped` at the 1st positional parameter
         * `String.splitMapJoin` at the named parameters `onMatch` and `onNonMatch`
+        * `String.splitMap` at the named parameter `onMatch` and `onNonMatch`
 
       **BAD:**
       ```dart

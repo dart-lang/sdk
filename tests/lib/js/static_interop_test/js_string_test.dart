@@ -768,6 +768,29 @@ void testSplitMapJoin(TestMode mode) {
       '<>a<bc>a<bd>a<e>', r('abcabdae').splitMapJoin(a('a'), onNonMatch: rest));
 }
 
+void testSplitMap(TestMode mode) {
+  String r(String s) => getStr(s, Position.jsStringImplReceiver, mode);
+  String a(String s) => getStr(s, Position.jsStringImplArgument, mode);
+  String mark(Match m) => a('[${m[0]}]');
+  String rest(String s) => a('<${s}>');
+
+  Expect.listEquals(['a', '[b]', 'ca', '[b]', 'dae'],
+      r('abcabdae').splitMap(a('b'), onMatch: mark, onNonMatch: rest));
+  Expect.listEquals(['abcabdae'],
+      r('abcabdae').splitMap(a('f'), onMatch: mark, onNonMatch: rest));
+  Expect.listEquals(
+      [''], r('').splitMap(a('from'), onMatch: mark, onNonMatch: rest));
+  Expect.listEquals(['', '[', ']', '', '[', ']', '', '[', ']', '', ''],
+      r('').splitMap(a(''), onMatch: mark, onNonMatch: rest));
+  Expect.listEquals(['', '[', ']', '', '[', ']', '', '[', ']', '', ''],
+      r('ABC').splitMap(a(''), onMatch: mark, onNonMatch: rest));
+  Expect.listEquals(['', '[a]', 'bc', '[a]', 'bd', '[a]', 'e'],
+      r('abcabdae').splitMap(a('a'), onMatch: mark));
+  Expect.listEquals(
+      ['', '<>', 'a', '<', 'bc', '>', 'a', '<', 'bd', '>', 'a', '<', 'e', '>'],
+      r('abcabdae').splitMap(a('a'), onNonMatch: rest));
+}
+
 void main() {
   for (final mode in [
     TestMode.jsStringImplReceiver,
@@ -793,6 +816,7 @@ void main() {
     testSplitUserPattern(mode);
     testReplace(mode);
     testSplitMapJoin(mode);
+    testSplitMap(mode);
   }
 
   testOutOfRange();
