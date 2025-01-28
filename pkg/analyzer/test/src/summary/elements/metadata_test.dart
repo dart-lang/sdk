@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -408,9 +404,8 @@ class C {
 }
 ''');
     // Check metadata without asking any other properties.
-    var x = _elementOfDefiningUnit(library, ['@class', 'C', '@field', 'x'])
-        as FieldElement;
-    expect(x.metadata, hasLength(1));
+    var x = library.getClass2('C')!.getField2('x')!;
+    expect(x.metadata2.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library
@@ -10360,9 +10355,8 @@ const a = 0;
 int x = 0;
 ''');
     // Check metadata without asking any other properties.
-    var x = _elementOfDefiningUnit(library, ['@topLevelVariable', 'x'])
-        as TopLevelVariableElement;
-    expect(x.metadata, hasLength(1));
+    var x = library.getTopLevelVariable('x')!;
+    expect(x.metadata2.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
 library
@@ -12075,23 +12069,6 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
-  }
-
-  // TODO(scheglov): This is duplicate.
-  Element _elementOfDefiningUnit(
-      LibraryElementImpl library, List<String> names) {
-    var reference = library.definingCompilationUnit.reference!;
-    for (var name in names) {
-      reference = reference.getChild(name);
-    }
-
-    var element = reference.element;
-    if (element != null) {
-      return element;
-    }
-
-    var elementFactory = library.linkedData!.elementFactory;
-    return elementFactory.elementOfReference(reference)!;
   }
 }
 
