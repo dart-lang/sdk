@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -80,7 +78,7 @@ class FunctionExpressionInvocationResolver {
     var result = _typePropertyResolver.resolve(
       receiver: function,
       receiverType: receiverType,
-      name: FunctionElement.CALL_METHOD_NAME,
+      name: MethodElement2.CALL_METHOD_NAME,
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );
@@ -168,7 +166,7 @@ class FunctionExpressionInvocationResolver {
       {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(
       function,
-      FunctionElement.CALL_METHOD_NAME,
+      MethodElement2.CALL_METHOD_NAME,
     );
     var callElement = result.getter2?.asElement;
     node.staticElement = callElement;
