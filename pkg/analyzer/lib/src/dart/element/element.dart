@@ -4555,6 +4555,13 @@ class FormalParameterElementImpl extends PromotableElementImpl2
     }
   }
 
+  /// Creates a synthetic parameter with [name], [type] and [parameterKind].
+  factory FormalParameterElementImpl.synthetic(
+      String? name, DartType type, ParameterKind parameterKind) {
+    var fragment = ParameterElementImpl.synthetic(name, type, parameterKind);
+    return FormalParameterElementImpl(fragment);
+  }
+
   @override
   FormalParameterElement get baseElement => this;
 
@@ -11234,6 +11241,13 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   @override
   TypeImpl get aliasedType => firstFragment.aliasedType;
 
+  set aliasedType(TypeImpl value) {
+    firstFragment.aliasedType = value;
+  }
+
+  /// The aliased type, might be `null` if not yet linked.
+  DartType? get aliasedTypeRaw => firstFragment.aliasedTypeRaw;
+
   @override
   TypeAliasElementImpl2 get baseElement => this;
 
@@ -11509,6 +11523,11 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   TypeImpl? get boundShared => bound;
+
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType? get defaultType => firstFragment.defaultType;
 
   @override
   List<TypeParameterElementImpl> get fragments {

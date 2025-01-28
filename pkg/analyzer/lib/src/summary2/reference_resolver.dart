@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -395,7 +395,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    Element? element;
+    Element2? element;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
@@ -405,7 +405,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
       if (prefixElement is PrefixElement) {
         var name = node.name2.lexeme;
-        element = prefixElement.scope.lookup(name).getter;
+        element = prefixElement.scope.lookup(name).getter2;
       }
     } else {
       var name = node.name2.lexeme;
@@ -415,17 +415,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         return;
       }
 
-      element = scope.lookup(name).getter;
+      element = scope.lookup(name).getter2;
     }
-    node.element2 = element.asElement2;
+    node.element2 = element;
 
     node.typeArguments?.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
-    } else if (element is TypeParameterElement) {
-      node.type = TypeParameterTypeImpl(
+    } else if (element is TypeParameterElement2) {
+      node.type = TypeParameterTypeImpl.v2(
         element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
