@@ -577,6 +577,7 @@ trace to find the place to insert the appropriate support.
                     '--no-embed-sources',
                     '--no-link-platform',
                     '--enable-asserts',
+                    '--link-platform',
             ]:
                 pass
             elif self.get_option(['--depfile']):
