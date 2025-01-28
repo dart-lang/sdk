@@ -182,8 +182,7 @@ class ExpressionEvaluationTestDriver {
                 'gen',
                 'utils',
                 'ddc',
-                '${setup.canaryFeatures ? 'canary' : 'stable'}'
-                    '${setup.soundNullSafety ? '' : '_unsound'}',
+                setup.canaryFeatures ? 'canary' : 'stable',
                 'sdk',
                 'ddc',
                 'dart_sdk.js'))
@@ -202,18 +201,7 @@ class ExpressionEvaluationTestDriver {
 <script>
   'use strict';
   let dartApplication = true;
-  var sound = ${setup.soundNullSafety};
-
-  let sdkOptions = {};
-
-  if (sound) {
-    sdkOptions['nativeNonNullAsserts'] = true;
-  } else {
-    sdkOptions['weakNullSafetyWarnings'] = false;
-    sdkOptions['weakNullSafetyErrors'] = false;
-    sdkOptions['nonNullAsserts'] = true;
-  }
-
+  let sdkOptions = { nativeNonNullAsserts: true };
   // Unlike the typical app bootstraper, we delay calling main until all
   // breakpoints are setup.
   let scheduleMain = () => {
@@ -232,17 +220,8 @@ class ExpressionEvaluationTestDriver {
 <script>
   'use strict';
   let dartApplication = true;
-  var sound = ${setup.soundNullSafety};
   var sdk = dart_library.import('dart_sdk');
-
-  if (sound) {
-    sdk.dart.nativeNonNullAsserts(true);
-  } else {
-    sdk.dart.weakNullSafetyWarnings(false);
-    sdk.dart.weakNullSafetyErrors(false);
-    sdk.dart.nonNullAsserts(true);
-  }
-
+  sdk.dart.nativeNonNullAsserts(true);
   // Unlike the typical app bootstraper, we delay calling main until all
   // breakpoints are setup.
   let scheduleMain = () => {
@@ -257,8 +236,7 @@ class ExpressionEvaluationTestDriver {
                 'gen',
                 'utils',
                 'ddc',
-                '${setup.canaryFeatures ? 'canary' : 'stable'}'
-                    '${setup.soundNullSafety ? '' : '_unsound'}',
+                setup.canaryFeatures ? 'canary' : 'stable',
                 'sdk',
                 'amd',
                 'dart_sdk'))
@@ -292,19 +270,10 @@ class ExpressionEvaluationTestDriver {
   let scheduleMain = () => {
     scheduleMainCalled = true;
   };
-  var sound = ${setup.soundNullSafety};
   require(['dart_sdk', '$moduleName'],
         function(sdk, app) {
     'use strict';
-
-    if (sound) {
-      sdk.dart.nativeNonNullAsserts(true);
-    } else {
-      sdk.dart.weakNullSafetyWarnings(false);
-      sdk.dart.weakNullSafetyErrors(false);
-      sdk.dart.nonNullAsserts(true);
-    }
-
+    sdk.dart.nativeNonNullAsserts(true);
     scheduleMain = () => {
       app.$mainLibraryName.main([]);
     };

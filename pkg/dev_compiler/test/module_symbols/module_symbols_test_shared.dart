@@ -37,7 +37,6 @@ class TestCompiler {
     var compilerOptions = Options(
         replCompile: true,
         moduleName: moduleName,
-        soundNullSafety: setup.soundNullSafety,
         moduleFormats: [setup.moduleFormat],
         emitDebugSymbols: true);
     var coreTypes = compilerResult.coreTypes;

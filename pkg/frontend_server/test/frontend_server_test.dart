@@ -2760,17 +2760,13 @@ e() {
           expect(sourceFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
 
-          String source = sourceFile.readAsStringSync();
+          String source = sourceFile.readAsStringSync().trim();
           // Split on the comment at the end of each library bundle.
           List<String> jsLibraryBundles =
               source.split(new RegExp("//# sourceMappingURL=.*.map"));
-
-          // Both library bundles should include the sound null safety
-          // validation.
-          expect(jsLibraryBundles[0],
-              contains('dart._checkModuleNullSafetyMode(true);'));
-          expect(jsLibraryBundles[1],
-              contains('dart._checkModuleNullSafetyMode(true);'));
+          // There should be two library bundles present.
+          expect(jsLibraryBundles.length, equals(3));
+          expect(jsLibraryBundles.last, isEmpty);
           frontendServer.accept();
           frontendServer.quit();
           expectationCompleter.complete(true);

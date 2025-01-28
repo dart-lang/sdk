@@ -221,7 +221,6 @@ class IncrementalJavaScriptBundler {
         emitDebugMetadata: emitDebugMetadata,
         emitDebugSymbols: emitDebugSymbols,
         moduleName: libraryBundleName,
-        soundNullSafety: true,
         canaryFeatures: canaryFeatures,
         moduleFormats: [_moduleFormat],
       );

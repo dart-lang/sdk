@@ -15,7 +15,6 @@ import 'modular_helpers.dart';
 
 void main(List<String> args) async {
   final options = Options.parse(args);
-  final soundNullSafety = true;
   await resolveScripts(options);
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
@@ -23,8 +22,8 @@ void main(List<String> args) async {
       options,
       IOPipeline([
         PrecompileMacroAotStep(verbose: options.verbose),
-        SourceToSummaryDillStep(soundNullSafety: soundNullSafety),
-        DDCStep(soundNullSafety: soundNullSafety, canaryFeatures: false),
+        SourceToSummaryDillStep(),
+        DDCStep(canaryFeatures: false),
         RunD8(),
       ], cacheSharedModules: true));
 }

@@ -65,7 +65,6 @@ class TestExpressionCompiler {
       replCompile: true,
       moduleName: moduleName,
       experiments: experiments,
-      soundNullSafety: setup.soundNullSafety,
       emitDebugMetadata: true,
       canaryFeatures: setup.canaryFeatures,
       enableAsserts: setup.enableAsserts,

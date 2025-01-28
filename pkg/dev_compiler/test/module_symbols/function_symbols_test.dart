@@ -9,7 +9,7 @@ import '../shared_test_options.dart';
 import 'module_symbols_test_shared.dart';
 
 void main() async {
-  var options = SetupCompilerOptions(soundNullSafety: true);
+  var options = SetupCompilerOptions();
   group('top level function debug symbols', () {
     late final TestDriver driver;
     late final FunctionSymbol functionSymbol;

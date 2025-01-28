@@ -11,13 +11,10 @@ import 'expression_compiler_suite.dart';
 void main(List<String> args) {
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
     group('Module format: $moduleFormat |', () {
-      group('Sound null safety |', () {
-        runTests(SetupCompilerOptions(
-          soundNullSafety: true,
-          moduleFormat: moduleFormat,
-          args: args,
-        ));
-      });
+      runTests(SetupCompilerOptions(
+        moduleFormat: moduleFormat,
+        args: args,
+      ));
     });
   }
 }
