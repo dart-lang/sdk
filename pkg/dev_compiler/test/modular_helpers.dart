@@ -27,10 +27,6 @@ const jsId = DataId('js');
 const txtId = DataId('txt');
 
 class SourceToSummaryDillStep implements IOModularStep {
-  bool soundNullSafety;
-
-  SourceToSummaryDillStep({required this.soundNullSafety});
-
   @override
   List<DataId> get resultData => const [dillId];
 
@@ -102,7 +98,6 @@ class SourceToSummaryDillStep implements IOModularStep {
       '--multi-root-scheme',
       rootScheme,
       ...extraArgs,
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       '--output',
       '${toUri(module, dillId)}',
       if (!module.isSdk) ...[
@@ -136,10 +131,9 @@ class SourceToSummaryDillStep implements IOModularStep {
 }
 
 class DDCStep implements IOModularStep {
-  bool soundNullSafety;
   bool canaryFeatures;
 
-  DDCStep({required this.soundNullSafety, required this.canaryFeatures});
+  DDCStep({required this.canaryFeatures});
 
   @override
   List<DataId> get resultData => const [jsId];
@@ -207,7 +201,6 @@ class DDCStep implements IOModularStep {
       rootScheme,
       ...sources,
       ...extraArgs,
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       if (canaryFeatures) '--canary',
       for (String flag in flags) '--enable-experiment=$flag',
       ...transitiveDependencies

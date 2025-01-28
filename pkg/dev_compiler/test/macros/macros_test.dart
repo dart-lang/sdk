@@ -156,7 +156,6 @@ void main() {
 ''');
       ddcArgs = [
         '--enable-experiment=macros',
-        '--sound-null-safety',
         '--dart-sdk-summary',
         _resolvePath('../../ddc_outline.dill'),
         '--packages=${packageConfig.uri}',

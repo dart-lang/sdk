@@ -10,34 +10,23 @@ import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void main(List<String> args) async {
-  await runAllTests(true, args);
+  await runAllTests(args);
 }
 
-Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
-  final driver = await ExpressionEvaluationTestDriver.init();
+Future<void> runAllTests(List<String> args) async {
+  var driver = await ExpressionEvaluationTestDriver.init();
   tearDownAll(() async {
     await driver.finish();
   });
-  final mode = soundNullSafety ? 'Sound' : 'Weak';
-  group('($mode null safety)', () {
-    group('(AMD module system)', () {
-      final setup = SetupCompilerOptions(
-        soundNullSafety: soundNullSafety,
-        moduleFormat: ModuleFormat.amd,
-        args: args,
-        enableExperiments: [],
-      );
-      runSharedTests(setup, driver);
-    });
-    group('(DDC module system)', () {
-      final setup = SetupCompilerOptions(
-        soundNullSafety: soundNullSafety,
-        moduleFormat: ModuleFormat.ddc,
-        args: args,
-        enableExperiments: [],
-      );
-      runSharedTests(setup, driver);
-    });
+  group('(AMD module system)', () {
+    var setup = SetupCompilerOptions(
+        moduleFormat: ModuleFormat.amd, args: args, enableExperiments: []);
+    runSharedTests(setup, driver);
+  });
+  group('(DDC module system)', () {
+    final setup = SetupCompilerOptions(
+        moduleFormat: ModuleFormat.ddc, args: args, enableExperiments: []);
+    runSharedTests(setup, driver);
   });
 }
 

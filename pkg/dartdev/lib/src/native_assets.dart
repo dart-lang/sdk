@@ -114,14 +114,19 @@ class DartNativeAssetsBuilder {
         'Package(s) $packageNames require the native assets feature to be enabled. '
         'Enable native assets with `--enable-experiment=native-assets`.',
       );
+      return true;
     } on FormatException catch (e) {
       // This can be thrown if the package_config.json is malformed or has
       // duplicate entries.
       log.stderr(
-        'Error encountered while parsing package_config.json: ${e.message}',
+        'Error encountered while parsing '
+        '${packageConfigUri.toFilePath()}: ${e.message}.',
       );
+      // If the package config cannot be read, don't fail here. The dartdev
+      // command invoking this function can fail if it requires to have a valid
+      // package config.
+      return false;
     }
-    return true;
   }
 
   Future<BuildResult?> _buildNativeAssetsShared({

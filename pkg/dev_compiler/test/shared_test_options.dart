@@ -40,33 +40,25 @@ class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
   static final buildRoot =
       fe.computePlatformBinariesLocation(forceBuildDir: true);
-  static final _sdkUnsoundSummaryPath =
-      buildRoot.resolve('ddc_outline_unsound.dill');
-  static final _sdkSoundSummaryPath = buildRoot.resolve('ddc_outline.dill');
 
   final List<String> errors = [];
   final List<String> diagnosticMessages = [];
   final ModuleFormat moduleFormat;
   final fe.CompilerOptions options;
-  final bool soundNullSafety;
   final bool canaryFeatures;
   final bool enableAsserts;
 
   static fe.CompilerOptions _getOptions(
-      {required bool enableAsserts,
-      required bool soundNullSafety,
-      required List<String> enableExperiments}) {
+      {required bool enableAsserts, required List<String> enableExperiments}) {
     var options = fe.CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target =
-          DevCompilerTarget(TargetFlags(soundNullSafety: soundNullSafety))
+      ..target = DevCompilerTarget(TargetFlags())
       ..omitPlatform = true
-      ..sdkSummary =
-          soundNullSafety ? _sdkSoundSummaryPath : _sdkUnsoundSummaryPath
+      ..sdkSummary = buildRoot.resolve('ddc_outline.dill')
       ..environmentDefines =
           addGeneratedVariables({}, enableAsserts: enableAsserts)
-      ..nnbdMode = soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak
+      ..nnbdMode = fe.NnbdMode.Strong
       ..explicitExperimentalFlags = fe.parseExperimentalFlags(
           fe.parseExperimentalArguments(enableExperiments),
           onError: (e) => throw e);
@@ -75,12 +67,10 @@ class SetupCompilerOptions {
 
   SetupCompilerOptions._({
     this.enableAsserts = true,
-    this.soundNullSafety = true,
     this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
     List<String> enableExperiments = const [],
   }) : options = _getOptions(
-            soundNullSafety: soundNullSafety,
             enableAsserts: enableAsserts,
             enableExperiments: enableExperiments) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
@@ -107,7 +97,6 @@ class SetupCompilerOptions {
   ///
   /// `dart test/expression_compiler/assertions_enabled_test.dart --canary --enable-asserts`
   factory SetupCompilerOptions({
-    bool soundNullSafety = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     List<String> enableExperiments = const [],
     List<String> args = const [],
@@ -130,7 +119,6 @@ class SetupCompilerOptions {
     }
     return SetupCompilerOptions._(
       enableAsserts: enableAsserts,
-      soundNullSafety: soundNullSafety,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
       enableExperiments: enableExperiments,

@@ -188,6 +188,10 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       );
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
+    pipeline = pipeline.addMiddleware(
+        createMiddleware(errorHandler: (Object error, StackTrace st) {
+      return Response.internalServerError(body: error.toString());
+    }));
 
     if (_devToolsConfiguration?.enable ?? false) {
       // If we are enabling DevTools in DDS, then we also need to start the Dart

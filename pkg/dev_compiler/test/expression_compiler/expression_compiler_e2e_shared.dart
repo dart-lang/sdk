@@ -462,14 +462,14 @@ void runNullSafeSharedTests(
         await driver.checkInFrame(
             breakpointId: 'soundNullSafetyBP',
             expression: 'soundNullSafety',
-            expectedResult: setup.soundNullSafety.toString());
+            expectedResult: 'true');
       });
 
       test('in expression compilation', () async {
         await driver.checkInFrame(
             breakpointId: 'soundNullSafetyBP',
             expression: '!(<Null>[] is List<int>)',
-            expectedResult: setup.soundNullSafety.toString());
+            expectedResult: 'true');
       });
     });
 
@@ -895,14 +895,14 @@ void runAgnosticSharedTestsShard1(
         await driver.checkInFrame(
             breakpointId: 'soundNullSafetyBP',
             expression: 'soundNullSafety',
-            expectedResult: setup.soundNullSafety.toString());
+            expectedResult: 'true');
       });
 
       test('in expression compilation', () async {
         await driver.checkInFrame(
             breakpointId: 'soundNullSafetyBP',
             expression: '!(<Null>[] is List<int>)',
-            expectedResult: setup.soundNullSafety.toString());
+            expectedResult: 'true');
       });
     });
 

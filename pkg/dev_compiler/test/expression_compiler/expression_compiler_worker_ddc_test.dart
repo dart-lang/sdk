@@ -12,12 +12,9 @@ void main(List<String> args) async {
   // Set to true to enable debug output
   var debug = false;
 
-  group('ddc module format - sound null safety -', () {
-    var setup = SetupCompilerOptions(
-      moduleFormat: ModuleFormat.ddc,
-      soundNullSafety: true,
-      args: args,
-    );
+  group('ddc module format -', () {
+    var setup =
+        SetupCompilerOptions(moduleFormat: ModuleFormat.ddc, args: args);
     runTests(setup, verbose: debug);
   });
 }
