@@ -1910,15 +1910,16 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   /// Static type at call-site, often better than union-over-targets.
   AbstractValue? staticType;
 
-  /// `true` if the type parameters at the call known to be invariant with
+  /// `true` if the type parameters at the call are known to be invariant with
   /// respect to the type parameters of the receiver instance. This corresponds
-  /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
-  /// additional analysis.
+  /// to the [ir.InstanceInvocation.isInvariant] property.  Parametric
+  /// covariance checks of the target may be omitted. If the target has explicit
+  /// `covariant` checks, these might still need to be checked.
   bool isInvariant = false;
 
   /// `true` for an indexed getter or setter if the index is known to be in
-  /// range. This corresponds to the [ir.MethodInvocation.isBoundsSafe] property
-  /// but and may updated with additional analysis.
+  /// range. This corresponds to the [ir.InstanceInvocation.isBoundsSafe]
+  /// property but and may updated with additional analysis.
   bool isBoundsSafe = false;
 
   // Cached target when non-nullable receiver type and selector determine a

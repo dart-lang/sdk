@@ -1738,6 +1738,9 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// parameter of the Future, Stream or Iterable.
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
 
+  /// Returns `true` if [field] has an explicit `covariant` declaration.
+  bool isFieldCovariantByDeclaration(FieldEntity field);
+
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
