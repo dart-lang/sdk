@@ -479,7 +479,8 @@
     "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
-          "-O1"
+          "-O1",
+          "--no-strip-wasm"
         ],
         "use-sdk": true,
         "host-asserts": false,
