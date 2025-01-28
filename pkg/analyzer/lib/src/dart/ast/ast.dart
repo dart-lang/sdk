@@ -897,6 +897,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken => _rightHandSide.endToken;
 
@@ -14169,6 +14173,10 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @experimental
   @override
   MethodElement2? get element => staticElement?.asElement2;
+
+  set element(MethodElement2? value) {
+    staticElement = value?.asElement;
+  }
 
   @override
   Token get endToken => operator;

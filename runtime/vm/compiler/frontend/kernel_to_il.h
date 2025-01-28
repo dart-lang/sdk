@@ -259,7 +259,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                   intptr_t type_args_len = 0);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment StringInterpolate(TokenPosition position);
-  Fragment ThrowTypeError();
 
   // [incompatible_arguments] should be true if the NSM is due to a mismatch
   // between the provided arguments and the function signature.

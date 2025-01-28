@@ -607,7 +607,7 @@ abstract class _TypeSubstitutor
     return NamedTypeBuilder(
       type.linker,
       type.typeSystem,
-      type.element,
+      type.element3,
       arguments,
       type.nullabilitySuffix,
     );

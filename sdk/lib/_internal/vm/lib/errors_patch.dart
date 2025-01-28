@@ -41,13 +41,17 @@ class _AssertionError extends Error implements AssertionError {
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
   @pragma("vm:entry-point", "call")
-  static _throwNew(int assertionStart, int assertionEnd, Object? message) {
+  static Never _throwNew(
+    int assertionStart,
+    int assertionEnd,
+    Object? message,
+  ) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "AssertionError_throwNewSource")
-  external static _throwNewSource(
+  external static Never _throwNewSource(
     String failedAssertion,
     String? scriptUrl,
     int line,
@@ -56,7 +60,7 @@ class _AssertionError extends Error implements AssertionError {
   );
 
   @pragma("vm:external-name", "AssertionError_throwNew")
-  external static _doThrowNew(
+  external static Never _doThrowNew(
     int assertionStart,
     int assertionEnd,
     Object? message,
@@ -110,7 +114,7 @@ class _TypeError extends Error implements TypeError {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "TypeError_throwNew")
-  external static _throwNew(
+  external static Never _throwNew(
     int location,
     Object srcValue,
     _Type dstType,
@@ -136,7 +140,7 @@ class _InternalError {
 @patch
 @pragma("vm:entry-point")
 class UnsupportedError {
-  static _throwNew(String msg) {
+  static Never _throwNew(String msg) {
     throw new UnsupportedError(msg);
   }
 }
@@ -145,7 +149,7 @@ class UnsupportedError {
 @pragma("vm:entry-point")
 class StateError {
   @pragma("vm:entry-point")
-  static _throwNew(String msg) {
+  static Never _throwNew(String msg) {
     throw new StateError(msg);
   }
 }
@@ -163,7 +167,7 @@ class NoSuchMethodError {
 
   NoSuchMethodError._withInvocation(this._receiver, this._invocation);
 
-  static void _throwNewInvocation(Object? receiver, Invocation invocation) {
+  static Never _throwNewInvocation(Object? receiver, Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(receiver, invocation);
   }
 
@@ -171,7 +175,7 @@ class NoSuchMethodError {
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
   @pragma("vm:entry-point", "call")
-  static void _throwNew(
+  static Never _throwNew(
     Object receiver,
     String memberName,
     int invocationType,

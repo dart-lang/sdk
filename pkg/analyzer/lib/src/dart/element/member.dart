@@ -510,7 +510,8 @@ class FieldMember extends VariableMember
         FieldElementOrMember,
         FieldElement2,
         VariableElement2OrMember,
-        PropertyInducingElementOrMember {
+        PropertyInducingElementOrMember,
+        PropertyInducingElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
@@ -726,7 +727,8 @@ class FieldMember extends VariableMember
 
 /// A getter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class GetterMember extends PropertyAccessorMember implements GetterElement {
+class GetterMember extends PropertyAccessorMember
+    implements GetterElement2OrMember {
   GetterMember._(
     super.declaration,
     super.augmentationSubstitution,
@@ -763,8 +765,8 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
   String? get lookupName => _element2.lookupName;
 
   @override
-  PropertyInducingElement2? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2?;
+  PropertyInducingElement2OrMember? get variable3 =>
+      variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
   GetterElement get _element2 => declaration.asElement2 as GetterElement;
@@ -1484,7 +1486,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
 /// A setter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class SetterMember extends PropertyAccessorMember implements SetterElement {
+class SetterMember extends PropertyAccessorMember
+    implements SetterElement2OrMember {
   SetterMember._(
     super.declaration,
     super.augmentationSubstitution,
@@ -1521,8 +1524,8 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
   String? get lookupName => _element2.lookupName;
 
   @override
-  PropertyInducingElement2? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2?;
+  PropertyInducingElement2OrMember? get variable3 =>
+      variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
   SetterElement get _element2 => declaration.asElement2 as SetterElement;

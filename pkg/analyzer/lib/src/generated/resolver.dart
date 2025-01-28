@@ -1694,21 +1694,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void setReadElement(
     Expression node,
-    Element? element, {
+    Element2? element, {
     required bool atDynamicTarget,
   }) {
     var readType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
-      if (element is MethodElementOrMember) {
+      if (element is MethodElement2OrMember) {
         readType = element.returnType;
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is PropertyAccessorElementOrMember && element.isGetter) {
+      if (element is GetterElement2OrMember) {
         readType = element.returnType;
-      } else if (element is VariableElement) {
+      } else if (element is VariableElement2) {
         readType = localVariableTypeProvider
             .getType(node as SimpleIdentifierImpl, isRead: true);
       }
@@ -1716,15 +1716,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.readElement = element;
+      parent.readElement = element.asElement;
       parent.readType = readType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement = element;
+      parent.readElement = element.asElement;
       parent.readType = readType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement = element;
+      parent.readElement = element.asElement;
       parent.readType = readType;
     }
   }
@@ -1740,14 +1740,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void setWriteElement(
     Expression node,
-    Element? element, {
+    Element2? element, {
     required bool atDynamicTarget,
   }) {
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is AugmentedExpression) {
-      if (element is PropertyAccessorElement && element.isSetter) {
-        if (element.parameters case [var valueParameter]) {
+      if (element is SetterElement) {
+        if (element.formalParameters case [var valueParameter]) {
           // TODO(paulberry): eliminate this cast by changing the type of
           // `PropertyAccessorElementOrMember.parameters` to
           // `List<ParameterElementMixin>`.
@@ -1755,8 +1755,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     } else if (node is IndexExpression) {
-      if (element is MethodElement) {
-        var parameters = element.parameters;
+      if (element is MethodElement2) {
+        var parameters = element.formalParameters;
         if (parameters.length == 2) {
           // TODO(paulberry): eliminate this cast by changing the type of
           // `PropertyAccessorElementOrMember.parameters` to
@@ -1767,14 +1767,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is PropertyAccessorElementOrMember && element.isSetter) {
+      if (element is SetterElement2OrMember) {
         if (element.isSynthetic) {
-          var variable = element.variable2;
+          var variable = element.variable3;
           if (variable != null) {
             writeType = variable.type;
           }
         } else {
-          var parameters = element.parameters;
+          var parameters = element.formalParameters;
           if (parameters.length == 1) {
             // TODO(paulberry): eliminate this cast by changing the type of
             // `PropertyAccessorElementOrMember.parameters` to
@@ -1782,22 +1782,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             writeType = parameters[0].type as TypeImpl;
           }
         }
-      } else if (element is VariableElementOrMember) {
+      } else if (element is VariableElement2OrMember) {
         writeType = element.type;
       }
     }
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.writeElement = element;
+      parent.writeElement = element.asElement;
       parent.writeType = writeType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement = element;
+      parent.writeElement = element.asElement;
       parent.writeType = writeType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement = element;
+      parent.writeElement = element.asElement;
       parent.writeType = writeType;
     }
   }

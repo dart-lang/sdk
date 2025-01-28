@@ -14,6 +14,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class VarianceBuilder {
   final Linker _linker;
@@ -64,7 +65,7 @@ class VarianceBuilder {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element;
+      var element = type.element3.asElement;
       var arguments = type.arguments;
       if (element is InterfaceElement) {
         var result = Variance.unrelated;

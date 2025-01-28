@@ -1015,6 +1015,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.getFieldType(this);
   }
 
+  bool _isFieldCovariantByDeclaration(JField field) {
+    assert(checkFamily(field));
+    final data = members.getData(field) as JFieldData;
+    return data.isCovariantByDeclaration;
+  }
+
   @override
   DartType getTypeVariableBound(JTypeVariable typeVariable) {
     assert(checkFamily(typeVariable));
@@ -2507,6 +2513,11 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   DartType getFieldType(FieldEntity field) {
     return elementMap._getFieldType(field as JField);
+  }
+
+  @override
+  bool isFieldCovariantByDeclaration(FieldEntity field) {
+    return elementMap._isFieldCovariantByDeclaration(field as JField);
   }
 
   @override

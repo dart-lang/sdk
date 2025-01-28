@@ -108,12 +108,12 @@ Block
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: package:test/a.dart::<fragment>::@class::A::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
           staticType: int
         readElement: <null>
         readElement2: <null>
         readType: null
-        writeElement: package:test/a.dart::<fragment>::@class::A::@setter::foo
+        writeElement: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@setterAugmentation::foo
         writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
         writeType: int
         staticElement: <null>
@@ -275,12 +275,12 @@ Block
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: package:test/a.dart::<fragment>::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::@fragment::package:test/test.dart::@setterAugmentation::foo::@parameter::_
           staticType: int
         readElement: <null>
         readElement2: <null>
         readType: null
-        writeElement: package:test/a.dart::<fragment>::@setter::foo
+        writeElement: package:test/a.dart::@fragment::package:test/test.dart::@setterAugmentation::foo
         writeElement2: package:test/a.dart::<fragment>::@setter::foo#element
         writeType: int
         staticElement: <null>

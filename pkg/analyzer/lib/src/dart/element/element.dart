@@ -4260,7 +4260,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   bool inheritsCovariant = false;
 
   /// The element corresponding to this fragment.
-  FieldElement2? _element;
+  FieldElementImpl2? _element;
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
@@ -4275,7 +4275,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElement get declaration => this;
 
   @override
-  FieldElement2 get element {
+  FieldElementImpl2 get element {
     if (_element != null) {
       return _element!;
     }
@@ -4290,7 +4290,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return FieldElementImpl2(firstFragment as FieldElementImpl);
   }
 
-  set element(FieldElement2 element) => _element = element;
+  set element(FieldElementImpl2 element) => _element = element;
 
   @override
   bool get isAbstract {
@@ -4553,6 +4553,13 @@ class FormalParameterElementImpl extends PromotableElementImpl2
       fragment.element = this;
       fragment = fragment.nextFragment;
     }
+  }
+
+  /// Creates a synthetic parameter with [name], [type] and [parameterKind].
+  factory FormalParameterElementImpl.synthetic(
+      String? name, DartType type, ParameterKind parameterKind) {
+    var fragment = ParameterElementImpl.synthetic(name, type, parameterKind);
+    return FormalParameterElementImpl(fragment);
   }
 
   @override
@@ -5502,6 +5509,11 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
   }
 }
 
+/// Common base class for all analyzer-internal classes that implement
+/// [GetterElement].
+abstract class GetterElement2OrMember
+    implements PropertyAccessorElement2OrMember, GetterElement {}
+
 class GetterElementImpl extends PropertyAccessorElementImpl2
     with
         FragmentedExecutableElementMixin<GetterFragment>,
@@ -5510,7 +5522,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
         FragmentedAnnotatableElementMixin<GetterFragment>,
         FragmentedElementMixin<GetterFragment>,
         _HasSinceSdkVersionMixin
-    implements GetterElement {
+    implements GetterElement2OrMember {
   @override
   final PropertyAccessorElementImpl firstFragment;
 
@@ -9942,7 +9954,10 @@ abstract class PromotableElementImpl2 extends VariableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement2`.
 abstract class PropertyAccessorElement2OrMember
-    implements PropertyAccessorElement2, ExecutableElement2OrMember {}
+    implements PropertyAccessorElement2, ExecutableElement2OrMember {
+  @override
+  PropertyInducingElement2OrMember? get variable3;
+}
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
@@ -10165,7 +10180,9 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
+  PropertyInducingElementImpl2? get variable3 {
+    return firstFragment.variable2?.element;
+  }
 }
 
 /// Implicit getter for a [PropertyInducingElementImpl].
@@ -10310,6 +10327,11 @@ abstract class PropertyAccessorElementOrMember
   PropertyInducingElementOrMember? get variable2;
 }
 
+/// Common base class for all analyzer-internal classes that implement
+/// [PropertyInducingElement2].
+abstract class PropertyInducingElement2OrMember
+    implements VariableElement2OrMember, PropertyInducingElement2 {}
+
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
@@ -10350,6 +10372,9 @@ abstract class PropertyInducingElementImpl
 
   @override
   List<Fragment> get children3 => const [];
+
+  @override
+  PropertyInducingElementImpl2 get element;
 
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment;
@@ -10491,7 +10516,7 @@ abstract class PropertyInducingElementImpl
 }
 
 abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
-    implements PropertyInducingElement2 {
+    implements PropertyInducingElement2OrMember {
   @override
   bool get hasInitializer {
     return _fragments.any((f) => f.hasInitializer);
@@ -10529,6 +10554,11 @@ abstract class PropertyInducingElementTypeInference {
   TypeImpl perform();
 }
 
+/// Common base class for all analyzer-internal classes that implement
+/// [SetterElement].
+abstract class SetterElement2OrMember
+    implements PropertyAccessorElement2OrMember, SetterElement {}
+
 class SetterElementImpl extends PropertyAccessorElementImpl2
     with
         FragmentedExecutableElementMixin<SetterFragment>,
@@ -10537,7 +10567,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
         FragmentedAnnotatableElementMixin<SetterFragment>,
         FragmentedElementMixin<SetterFragment>,
         _HasSinceSdkVersionMixin
-    implements SetterElement {
+    implements SetterElement2OrMember {
   @override
   final PropertyAccessorElementImpl firstFragment;
 
@@ -11211,6 +11241,13 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   @override
   TypeImpl get aliasedType => firstFragment.aliasedType;
 
+  set aliasedType(TypeImpl value) {
+    firstFragment.aliasedType = value;
+  }
+
+  /// The aliased type, might be `null` if not yet linked.
+  DartType? get aliasedTypeRaw => firstFragment.aliasedTypeRaw;
+
   @override
   TypeAliasElementImpl2 get baseElement => this;
 
@@ -11486,6 +11523,11 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   TypeImpl? get boundShared => bound;
+
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType? get defaultType => firstFragment.defaultType;
 
   @override
   List<TypeParameterElementImpl> get fragments {

@@ -68,12 +68,12 @@ class PrefixExpressionResolver {
 
       _resolver.setReadElement(
         operand,
-        readElement,
+        readElement.asElement2,
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
       _resolver.setWriteElement(
         operand,
-        writeElement,
+        writeElement.asElement2,
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
 

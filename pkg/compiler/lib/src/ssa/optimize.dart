@@ -2147,6 +2147,13 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         }
       }
 
+      if (node.isInvariant &&
+          !_closedWorld.elementEnvironment.isFieldCovariantByDeclaration(
+            member,
+          )) {
+        return assignField();
+      }
+
       if (!_closedWorld.annotationsData
           .getParameterCheckPolicy(member)
           .isEmitted) {

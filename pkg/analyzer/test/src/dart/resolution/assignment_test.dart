@@ -1936,12 +1936,12 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
@@ -2903,12 +2903,12 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
