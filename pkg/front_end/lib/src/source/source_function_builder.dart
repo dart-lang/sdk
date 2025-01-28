@@ -67,10 +67,6 @@ abstract class SourceFunctionBuilder
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 
-  Statement? get body;
-
-  void set body(Statement? newBody);
-
   bool get isNative;
 
   /// Returns the [index]th parameter of this function.

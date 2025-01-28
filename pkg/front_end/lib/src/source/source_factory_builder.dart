@@ -7,27 +7,18 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../api_prototype/lowering_predicates.dart';
 import '../base/identifiers.dart';
 import '../base/local_scope.dart';
-import '../base/messages.dart'
-    show
-        messageConstFactoryRedirectionToNonConst,
-        noLength,
-        templateCyclicRedirectingFactoryConstructors,
-        templateIncompatibleRedirecteeFunctionType,
-        templateRedirectingFactoryIncompatibleTypeArgument,
-        templateTypeArgumentMismatch;
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -37,17 +28,15 @@ import '../dill/dill_member_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
-import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
+import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'redirecting_factory_body.dart';
-import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
-import 'source_extension_type_declaration_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart'
@@ -70,16 +59,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final List<FormalParameterBuilder>? formals;
 
-  /// If this procedure is an extension instance member or extension type
-  /// instance member, [_thisVariable] holds the synthetically added `this`
-  /// parameter.
-  VariableDeclaration? _thisVariable;
-
-  /// If this procedure is an extension instance member or extension type
-  /// instance member, [_thisTypeParameters] holds the type parameters copied
-  /// from the extension/extension type declaration.
-  List<TypeParameter>? _thisTypeParameters;
-
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -99,7 +78,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   late final Procedure _procedureInternal;
   late final Procedure? _factoryTearOff;
 
-  SourceFactoryBuilder? actualOrigin;
+  SourceFactoryBuilder? _actualOrigin;
 
   List<SourceFactoryBuilder>? _augmentations;
 
@@ -114,7 +93,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   final ConstructorReferenceBuilder? redirectionTarget;
 
-  List<DartType>? _redirectionTypeArguments;
+  List<DartType>? __redirectionTypeArguments;
 
   FreshTypeParameters? _tearOffTypeParameters;
 
@@ -206,11 +185,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       if (formal.isWildcard) {
         continue;
       }
-      if (!isConstructor ||
-          // Coverage-ignore(suite): Not run.
-          !formal.isInitializingFormal && !formal.isSuperInitializingFormal) {
-        local[formal.name] = formal;
-      }
+      local[formal.name] = formal;
     }
     return new FormalParameterScope(local: local, parent: parent);
   }
@@ -281,149 +256,37 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   final String? nativeMethodName;
 
-  Statement? bodyInternal;
-
-  @override
-  void set body(Statement? newBody) {
-//    if (newBody != null) {
-//      if (isAbstract) {
-//        // TODO(danrubel): Is this check needed?
-//        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
-//            newBody.fileOffset, fileUri);
-//      }
-//    }
-    bodyInternal = newBody;
-    // A forwarding semi-stub is a method that is abstract in the source code,
-    // but which needs to have a forwarding stub body in order to ensure that
-    // covariance checks occur.  We don't want to replace the forwarding stub
-    // body with null.
-    TreeNode? parent = function.parent;
-    if (!(newBody == null &&
-        // Coverage-ignore(suite): Not run.
-        parent is Procedure &&
-        // Coverage-ignore(suite): Not run.
-        parent.isForwardingSemiStub)) {
-      function.body = newBody;
-      newBody?.parent = function;
-    }
+  void setBody(Statement value) {
+    function.body = value..parent = function;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
-  bool get supportsTypeParameters => true;
-
   void buildFunction() {
     function.asyncMarker = asyncModifier;
-    function.body = body;
-    body?.parent = function;
+    if (redirectionTarget == null && !isAbstract && !isExternal) {
+      function.body = new EmptyStatement()..parent = function;
+    }
     buildTypeParametersAndFormals(
         libraryBuilder, function, typeParameters, formals,
-        classTypeParameters: null,
-        supportsTypeParameters: supportsTypeParameters);
-    if (!(isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
-        isSetter &&
-        // Coverage-ignore(suite): Not run.
-        (formals?.length != 1 || formals![0].isOptionalPositional)) {
-      // Coverage-ignore-block(suite): Not run.
-      // Replace illegal parameters by single dummy parameter.
-      // Do this after building the parameters, since the diet listener
-      // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
-      function.positionalParameters.clear();
-      function.positionalParameters.add(parameter);
-      parameter.parent = function;
-      function.namedParameters.clear();
-      function.requiredParameterCount = 1;
-    } else if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
-        // Coverage-ignore(suite): Not run.
-        isSetter &&
-        // Coverage-ignore(suite): Not run.
-        (formals?.length != 2 || formals![1].isOptionalPositional)) {
-      // Coverage-ignore-block(suite): Not run.
-      // Replace illegal parameters by single dummy parameter (after #this).
-      // Do this after building the parameters, since the diet listener
-      // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration thisParameter = function.positionalParameters[0];
-      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
-      function.positionalParameters.clear();
-      function.positionalParameters.add(thisParameter);
-      function.positionalParameters.add(parameter);
-      parameter.parent = function;
-      function.namedParameters.clear();
-      function.requiredParameterCount = 2;
-    }
+        classTypeParameters: null, supportsTypeParameters: true);
     if (returnType is! InferableTypeBuilder) {
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isExtensionInstanceMember || isExtensionTypeInstanceMember) {
-      // Coverage-ignore-block(suite): Not run.
-      SourceDeclarationBuilderMixin declarationBuilder =
-          parent as SourceDeclarationBuilderMixin;
-      if (declarationBuilder.typeParameters != null) {
-        int count = declarationBuilder.typeParameters!.length;
-        _thisTypeParameters = new List<TypeParameter>.generate(
-            count, (int index) => function.typeParameters[index],
-            growable: false);
-      }
-      if (isExtensionTypeInstanceMember && isConstructor) {
-        SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-            parent as SourceExtensionTypeDeclarationBuilder;
-        List<DartType> typeArguments;
-        if (_thisTypeParameters != null) {
-          typeArguments = [
-            for (TypeParameter parameter in _thisTypeParameters!)
-              new TypeParameterType.withDefaultNullability(parameter)
-          ];
-        } else {
-          typeArguments = [];
-        }
-        _thisVariable = new VariableDeclarationImpl(syntheticThisName,
-            isFinal: true,
-            type: new ExtensionType(
-                extensionTypeDeclarationBuilder.extensionTypeDeclaration,
-                Nullability.nonNullable,
-                typeArguments))
-          ..fileOffset = fileOffset
-          ..isLowered = true;
-      } else {
-        _thisVariable = function.positionalParameters.first;
-      }
-    }
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (this is! ConstructorBuilder &&
-        (isExtensionInstanceMember || isExtensionTypeInstanceMember)) {
-      // Coverage-ignore-block(suite): Not run.
-      return formals![index + 1].variable!;
-    } else {
-      return formals![index].variable!;
-    }
-  }
+  VariableDeclaration getFormalParameter(int index) =>
+      formals![index].variable!;
 
   @override
-  VariableDeclaration? get thisVariable {
-    assert(
-        _thisVariable != null ||
-            !(isExtensionInstanceMember || isExtensionTypeInstanceMember),
-        "ProcedureBuilder.thisVariable has not been set.");
-    return _thisVariable;
-  }
+  VariableDeclaration? get thisVariable => null;
 
   @override
-  List<TypeParameter>? get thisTypeParameters {
-    // Use [_thisVariable] as marker for whether this type parameters have
-    // been computed.
-    assert(
-        _thisVariable != null ||
-            !(isExtensionInstanceMember || isExtensionTypeInstanceMember),
-        "ProcedureBuilder.thisTypeParameters has not been set.");
-    return _thisTypeParameters;
-  }
+  List<TypeParameter>? get thisTypeParameters => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -461,7 +324,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  SourceFactoryBuilder get origin => actualOrigin ?? this;
+  SourceFactoryBuilder get origin => _actualOrigin ?? this;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -561,7 +424,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
           augmentationLibraryBuilder: augmentation.libraryBuilder,
           origin: this,
           augmentation: augmentation)) {
-        augmentation.actualOrigin = this;
+        augmentation._actualOrigin = this;
         (_augmentations ??= []).add(augmentation);
       }
     } else {
@@ -651,30 +514,20 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     }
   }
 
-  List<DartType>? get redirectionTypeArguments {
+  List<DartType>? get _redirectionTypeArguments {
     assert(redirectionTarget != null);
-    return _redirectionTypeArguments;
+    return __redirectionTypeArguments;
   }
 
-  void set redirectionTypeArguments(List<DartType>? value) {
+  void set _redirectionTypeArguments(List<DartType>? value) {
     assert(redirectionTarget != null);
-    _redirectionTypeArguments = value;
+    __redirectionTypeArguments = value;
   }
 
-  @override
-  Statement? get body {
-    if (redirectionTarget == null &&
-        bodyInternal == null &&
-        !isAbstract &&
-        !isExternal) {
-      bodyInternal = new EmptyStatement();
-    }
-    return bodyInternal;
-  }
-
-  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    if (bodyInternal != null) {
-      unexpected("null", "${bodyInternal.runtimeType}", fileOffset, fileUri);
+  void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+    if (_procedureInternal.function.body != null) {
+      unexpected("null", "${_procedureInternal.function.body.runtimeType}",
+          fileOffset, fileUri);
     }
 
     // Ensure that constant factories only have constant targets/bodies.
@@ -684,32 +537,31 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
           fileOffset, noLength, fileUri);
     }
 
-    bodyInternal =
-        createRedirectingFactoryBody(target, typeArguments, function);
-    _procedureInternal.function.body = bodyInternal;
+    _procedureInternal.function.body =
+        createRedirectingFactoryBody(target, typeArguments, function)
+          ..parent = _procedureInternal.function;
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
-    bodyInternal?.parent = function;
     if (isAugmenting) {
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullability(
-                  actualOrigin!.function.typeParameters[i]);
+                  origin.function.typeParameters[i]);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
             growable: false);
       }
-      actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
+      origin._setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
-  void setRedirectingFactoryError(String message) {
+  void _setRedirectingFactoryError(String message) {
     assert(redirectionTarget != null);
 
-    body = createRedirectingFactoryErrorBody(message);
+    setBody(createRedirectingFactoryErrorBody(message));
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_factoryTearOff != null) {
@@ -745,7 +597,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
     if (redirectionTarget != null) {
       if (redirectionTarget!.typeArguments != null) {
-        redirectionTypeArguments = new List<DartType>.generate(
+        _redirectionTypeArguments = new List<DartType>.generate(
             redirectionTarget!.typeArguments!.length,
             (int i) => redirectionTarget!.typeArguments![i]
                 .build(libraryBuilder, TypeUse.redirectionTypeArgument),
@@ -936,25 +788,23 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     }
 
     if (redirectionTarget != null) {
-      SourceFactoryBuilder redirectingOrigin = origin;
-      if (redirectingOrigin.redirectionTarget != null) {
+      if (origin.redirectionTarget != null) {
         // Coverage-ignore-block(suite): Not run.
-        redirectingOrigin.redirectionTypeArguments = redirectionTypeArguments;
+        origin._redirectionTypeArguments = _redirectionTypeArguments;
       }
     }
   }
 
-  List<DartType>? getRedirectionTypeArguments() {
+  List<DartType>? _getRedirectionTypeArguments() {
     assert(redirectionTarget != null);
     return _procedure.function.redirectingFactoryTarget!.typeArguments;
   }
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
-  FunctionType? _computeRedirecteeType(
-      SourceFactoryBuilder factory, TypeEnvironment typeEnvironment) {
-    assert(factory.redirectionTarget != null);
-    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget!;
+  FunctionType? _computeRedirecteeType(TypeEnvironment typeEnvironment) {
+    assert(this.redirectionTarget != null);
+    ConstructorReferenceBuilder redirectionTarget = this.redirectionTarget!;
     Builder? targetBuilder = redirectionTarget.target;
     FunctionNode targetNode;
     if (targetBuilder == null) return null;
@@ -973,13 +823,12 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
           fileOffset, fileUri);
     }
 
-    List<DartType>? typeArguments = factory.getRedirectionTypeArguments();
+    List<DartType>? typeArguments = _getRedirectionTypeArguments();
     FunctionType targetFunctionType =
         targetNode.computeFunctionType(Nullability.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
-      libraryBuilder.addProblemForRedirectingFactory(
-          factory,
+      _addProblemForRedirectingFactory(
           templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
@@ -1006,8 +855,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
           // Coverage-ignore-block(suite): Not run.
-          libraryBuilder.addProblemForRedirectingFactory(
-              factory,
+          _addProblemForRedirectingFactory(
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument, typeParameterBound),
               redirectionTarget.charOffset,
@@ -1017,8 +865,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         } else {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            libraryBuilder.addProblemForRedirectingFactory(
-                factory,
+            _addProblemForRedirectingFactory(
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound),
                 redirectionTarget.charOffset,
@@ -1087,6 +934,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     return false;
   }
 
+  void _addProblemForRedirectingFactory(
+      Message message, int charOffset, int length, Uri fileUri) {
+    libraryBuilder.addProblem(message, charOffset, length, fileUri);
+    String text = libraryBuilder.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    _setRedirectingFactoryError(text);
+  }
+
   /// Checks this factory builder if it is for a redirecting factory.
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
     assert(redirectionTarget != null);
@@ -1096,8 +953,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
     // Check that factory declaration is not cyclic.
     if (_isCyclicRedirectingFactory(this)) {
-      libraryBuilder.addProblemForRedirectingFactory(
-          this,
+      _addProblemForRedirectingFactory(
           templateCyclicRedirectingFactoryConstructors
               .withArguments("${declarationBuilder.name}"
                   "${name == '' ? '' : '.${name}'}"),
@@ -1120,13 +976,12 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullability(
-                  actualOrigin!.function.typeParameters[i]);
+                  origin.function.typeParameters[i]);
         }
         factoryType = substitute(factoryType, substitution) as FunctionType;
       }
     }
-    FunctionType? redirecteeType =
-        _computeRedirecteeType(this, typeEnvironment);
+    FunctionType? redirecteeType = _computeRedirecteeType(typeEnvironment);
     Map<TypeParameter, DartType> substitutionMap = {};
     for (int i = 0; i < factoryType.typeParameters.length; i++) {
       TypeParameter functionTypeParameter = origin.function.typeParameters[i];
@@ -1151,7 +1006,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       String? errorMessage = redirectionTargetBuilder
           .function.redirectingFactoryTarget?.errorMessage;
       if (errorMessage != null) {
-        setRedirectingFactoryError(errorMessage);
+        _setRedirectingFactoryError(errorMessage);
       }
     }
 
@@ -1169,8 +1024,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
           redirecteeType,
           factoryTypeWithoutTypeParameters,
           SubtypeCheckMode.withNullabilities)) {
-        libraryBuilder.addProblemForRedirectingFactory(
-            this,
+        _addProblemForRedirectingFactory(
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryTypeWithoutTypeParameters),
             redirectionTarget!.charOffset,
@@ -1191,6 +1045,108 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       return new RedirectingFactoryBodyBuilderContext(this, _procedure);
     } else {
       return new FactoryBodyBuilderContext(this, _procedure);
+    }
+  }
+
+  void resolveRedirectingFactory(ClassDeclaration classDeclaration) {
+    ConstructorReferenceBuilder? redirectionTarget = this.redirectionTarget;
+    if (redirectionTarget != null) {
+      // Compute the immediate redirection target, not the effective.
+      List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+      Builder? target = redirectionTarget.target;
+      if (typeArguments != null && target is MemberBuilder) {
+        TypeName redirectionTargetName = redirectionTarget.typeName;
+        if (redirectionTargetName.qualifier == null) {
+          // Do nothing. This is the case of an identifier followed by
+          // type arguments, such as the following:
+          //   B<T>
+          //   B<T>.named
+        } else {
+          if (target.name.isEmpty) {
+            // Do nothing. This is the case of a qualified
+            // non-constructor prefix (for example, with a library
+            // qualifier) followed by type arguments, such as the
+            // following:
+            //   lib.B<T>
+          } else if (target.name != redirectionTargetName.name) {
+            // Do nothing. This is the case of a qualified
+            // non-constructor prefix followed by type arguments followed
+            // by a constructor name, such as the following:
+            //   lib.B<T>.named
+          } else {
+            // TODO(cstefantsova,johnniwinther): Handle this in case in
+            // ConstructorReferenceBuilder.resolveIn and unify with other
+            // cases of handling of type arguments after constructor
+            // names.
+            libraryBuilder.addProblem(
+                messageConstructorWithTypeArguments,
+                redirectionTargetName.nameOffset,
+                redirectionTargetName.nameLength,
+                fileUri);
+          }
+        }
+      }
+
+      Builder? targetBuilder = redirectionTarget.target;
+      Member? targetNode;
+      if (targetBuilder is FunctionBuilder) {
+        targetNode = targetBuilder.invokeTarget!;
+      } else if (targetBuilder is DillMemberBuilder) {
+        targetNode = targetBuilder.invokeTarget!;
+      } else if (targetBuilder is AmbiguousBuilder) {
+        _addProblemForRedirectingFactory(
+            templateDuplicatedDeclarationUse
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+      } else {
+        _addProblemForRedirectingFactory(
+            templateRedirectionTargetNotFound
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+      }
+      if (targetNode != null &&
+          targetNode is Constructor &&
+          targetNode.enclosingClass.isAbstract) {
+        _addProblemForRedirectingFactory(
+            templateAbstractRedirectedClassInstantiation
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+        targetNode = null;
+      }
+      if (targetNode != null &&
+          targetNode is Constructor &&
+          targetNode.enclosingClass.isEnum) {
+        _addProblemForRedirectingFactory(
+            messageEnumFactoryRedirectsToConstructor,
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+        targetNode = null;
+      }
+      if (targetNode != null) {
+        List<DartType>? typeArguments = _redirectionTypeArguments;
+        if (typeArguments == null) {
+          int typeArgumentCount;
+          if (targetBuilder!.isExtensionTypeMember) {
+            ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+                targetBuilder.parent as ExtensionTypeDeclarationBuilder;
+            typeArgumentCount =
+                extensionTypeDeclarationBuilder.typeParametersCount;
+          } else {
+            typeArgumentCount =
+                targetNode.enclosingClass!.typeParameters.length;
+          }
+          typeArguments =
+              new List<DartType>.filled(typeArgumentCount, const UnknownType());
+        }
+        _setRedirectingFactoryBody(targetNode, typeArguments);
+      }
     }
   }
 }

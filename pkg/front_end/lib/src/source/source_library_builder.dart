@@ -1003,16 +1003,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return formattedMessage;
   }
 
-  void addProblemForRedirectingFactory(SourceFactoryBuilder factory,
-      Message message, int charOffset, int length, Uri fileUri) {
-    addProblem(message, charOffset, length, fileUri);
-    String text = loader.target.context
-        .format(
-            message.withLocation(fileUri, charOffset, length), Severity.error)
-        .plain;
-    factory.setRedirectingFactoryError(text);
-  }
-
   void checkGetterSetterTypes(TypeEnvironment typeEnvironment,
       {required DartType getterType,
       required String getterName,
