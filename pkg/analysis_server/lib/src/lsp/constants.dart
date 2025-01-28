@@ -323,6 +323,21 @@ abstract final class ServerErrorCodes {
   /// General state error.
   static const StateError = ErrorCodes(-32015);
 
+  /// A request was made that requires use of workspace/applyEdit but the
+  /// current editor does not support it.
+  static const EditsUnsupportedByEditor = ErrorCodes(-32016);
+
+  /// An editArgument request tried to modify an invocation at a position where
+  /// there was no invocation.
+  static const EditArgumentInvalidPosition = ErrorCodes(-32017);
+
+  /// An editArgument request tried to modify a parameter that does not exist or
+  /// is not editable.
+  static const EditArgumentInvalidParameter = ErrorCodes(-32018);
+
+  /// An editArgument request tried to set an argument value that is not valid.
+  static const EditArgumentInvalidValue = ErrorCodes(-32019);
+
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
   /// has invalid offsets, suggesting the client and server have become out of sync

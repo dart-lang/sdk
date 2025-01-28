@@ -52,7 +52,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
 
     if (!editorClientCapabilities.applyEdit) {
       return error(
-        ErrorCodes.RequestFailed,
+        ServerErrorCodes.EditsUnsupportedByEditor,
         'The connected editor does not support applying edits',
       );
     }
@@ -86,8 +86,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       var invocation = getInvocationInfo(result, offset);
       if (invocation == null) {
         return error(
-          ErrorCodes.RequestFailed,
-          'No invocation was found at the position',
+          ServerErrorCodes.EditArgumentInvalidPosition,
+          'No invocation was found at the provided position',
         );
       }
 
@@ -109,8 +109,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       );
       if (parameter == null) {
         return error(
-          ErrorCodes.RequestFailed,
-          'Parameter "$parameterName" was not found in ${parameters.map((p) => p.name3).join(', ')}',
+          ServerErrorCodes.EditArgumentInvalidParameter,
+          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name3).join(', ')}",
         );
       }
 
@@ -129,9 +129,12 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         // This should never happen unless a client is broken, because either
         // they should have failed the version check, or they would've already
         // known this argument was not editable.
+        var notEditableReasonLower =
+            notEditableReason.substring(0, 1).toLowerCase() +
+            notEditableReason.substring(1);
         return error(
-          ErrorCodes.RequestFailed,
-          "Parameter '$parameterName' is not editable: $notEditableReason",
+          ServerErrorCodes.EditArgumentInvalidParameter,
+          "The parameter '$parameterName' is not editable because $notEditableReasonLower",
         );
       }
 
@@ -183,8 +186,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         return success('null');
       } else {
         return error(
-          ErrorCodes.RequestFailed,
-          'Value for non-nullable parameter "${edit.name}" cannot be null',
+          ServerErrorCodes.EditArgumentInvalidValue,
+          "The value for the parameter '${edit.name}' cannot be null",
         );
       }
     }
@@ -213,14 +216,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         return success(value.toString());
       } else {
         return error(
-          ErrorCodes.RequestFailed,
-          'Value for parameter "${edit.name}" should be one of ${allowedValues.map((v) => '"$v"').join(', ')} but was "$value"',
+          ServerErrorCodes.EditArgumentInvalidValue,
+          "The value for the parameter '${edit.name}' should be one of ${allowedValues.map((v) => "'$v'").join(', ')} but was '$value'",
         );
       }
     } else {
       return error(
-        ErrorCodes.RequestFailed,
-        'Value for parameter "${edit.name}" should be $type but was ${value.runtimeType}',
+        ServerErrorCodes.EditArgumentInvalidValue,
+        "The value for the parameter '${edit.name}' should be $type but was ${value.runtimeType}",
       );
     }
   }
@@ -312,7 +315,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     if (editResponse.error != null) {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client failed to apply workspace edit: $editDescription',
+        "The editor failed to apply the workspace edit '$editDescription'",
         editResponse.error.toString(),
       );
     }
@@ -331,7 +334,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       // changed.
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client did not apply workspace edit: $editDescription '
+        "The editor did not apply the workspace edit '$editDescription' "
         '(reason: ${failureReason ?? 'not given'})',
         workspaceEdit.toString(),
       );
