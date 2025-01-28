@@ -165,7 +165,10 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_rbe = False
-    command = ['buildtools/ninja/ninja', '-C', out_dir]
+    if os.path.isfile('buildtools/ninja/ninja'):
+        command = ['buildtools/ninja/ninja', '-C', out_dir]
+    elif os.path.isfile(os.path.join('/usr', 'bin', 'ninja')):
+        command = [os.path.join('/usr', 'bin', 'ninja'), '-C', out_dir]
     if options.verbose:
         command += ['-v']
     if UseRBE(out_dir):
@@ -213,7 +216,16 @@ def CheckCleanBuild(build_config, args, env):
 
 
 def SanitizerEnvironmentVariables():
-    with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
+    if os.path.isfile('tools/bots/test_matrix.json'):
+        _test_matrix_path = 'tools/bots/test_matrix.json'
+    else:
+        if os.path.isfile(os.path.join(DART_ROOT, 'tools/bots/test_matrix.json')):
+            _test_matrix_path = os.path.join(DART_ROOT, 'tools/bots/test_matrix.json')
+        else:
+            _test_matrix_path = os.path.join(
+                os.path.join(os.getcwd(), 'tools/bots/test_matrix.json')
+            )
+    with io.open(_test_matrix_path, encoding='utf-8') as fd:
         config = json.loads(fd.read())
         env = dict()
         for k, v in config['sanitizer_options'].items():
