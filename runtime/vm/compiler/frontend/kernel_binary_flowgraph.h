@@ -226,7 +226,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
-  Fragment ThrowTypeError();
   Fragment LoadInstantiatorTypeArguments();
   Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);

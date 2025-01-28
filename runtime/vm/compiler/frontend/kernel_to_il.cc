@@ -528,6 +528,7 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
       StaticCall(TokenPosition::Synthetic(position.Pos()), throw_new,
                  /* argument_count = */ 1, ICData::kStatic);
   instructions += Drop();
+  ASSERT(instructions.is_closed());
 
   return instructions;
 }
@@ -566,7 +567,7 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
       already_initialized += ThrowLateInitializationError(
           position, "_throwFieldAlreadyInitialized",
           String::ZoneHandle(Z, field.name()));
-      already_initialized += Goto(join);
+      ASSERT(already_initialized.is_closed());
     }
 
     instructions = Fragment(instructions.entry, join);
@@ -711,47 +712,6 @@ Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowTypeError() {
-  const Class& klass =
-      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::TypeError()));
-  ASSERT(!klass.IsNull());
-  GrowableHandlePtrArray<const String> pieces(Z, 3);
-  pieces.Add(Symbols::TypeError());
-  pieces.Add(Symbols::Dot());
-  pieces.Add(H.DartSymbolObfuscate("_create"));
-
-  const Function& constructor = Function::ZoneHandle(
-      Z, klass.LookupConstructorAllowPrivate(
-             String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces))));
-  ASSERT(!constructor.IsNull());
-
-  const String& url = H.DartString(
-      parsed_function_->function().ToLibNamePrefixedQualifiedCString(),
-      Heap::kOld);
-
-  Fragment instructions;
-
-  // Create instance of _TypeError
-  instructions += AllocateObject(TokenPosition::kNoSource, klass, 0);
-  LocalVariable* instance = MakeTemporary();
-
-  // Call _TypeError._create constructor.
-  instructions += LoadLocal(instance);                             // this
-  instructions += Constant(url);                                   // url
-  instructions += NullConstant();                                  // line
-  instructions += IntConstant(0);                                  // column
-  instructions += Constant(H.DartSymbolPlain("Malformed type."));  // message
-
-  instructions += StaticCall(TokenPosition::kNoSource, constructor,
-                             /* argument_count = */ 5, ICData::kStatic);
-  instructions += Drop();
-
-  // Throw the exception
-  instructions += ThrowException(TokenPosition::kNoSource);
-
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
                                                   const Function& target,
                                                   bool incompatible_arguments,
@@ -818,6 +778,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(TokenPosition position,
   instructions += NullConstant();  // argumentNames
   instructions += StaticCall(position, throw_function, /* argument_count = */ 7,
                              ICData::kNoRebind);
+  ASSERT(instructions.is_closed());
   return instructions;
 }
 
@@ -2859,7 +2820,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   throw_nsm += ThrowNoSuchMethodError(TokenPosition::kNoSource, function,
                                       /*incompatible_arguments=*/false,
                                       /*receiver_pushed=*/true);
-  throw_nsm += ThrowException(TokenPosition::kNoSource);  // Close graph.
+  ASSERT(throw_nsm.is_closed());
 
   // There is no prologue code for a record field getter.
   PrologueInfo prologue_info(-1, -1);
