@@ -187,37 +187,6 @@ class MyClass {
     expect(method.kind, equals(SymbolKind.Method));
   }
 
-  Future<void> test_macroGenerated() async {
-    setDartTextDocumentContentProviderSupport();
-    addMacros([declareInTypeMacro()]);
-
-    const content = '''
-import 'macros.dart';
-
-@DeclareInType('void f() {}')
-class A {}
-''';
-    newFile(mainFilePath, content);
-    await initialize();
-
-    var result = await getDocumentSymbols(mainFileMacroUri);
-    var symbols = result.map(
-      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
-      (symbolInfos) => symbolInfos,
-    );
-    expect(symbols, hasLength(2));
-
-    var topLevel = symbols[0];
-    expect(topLevel.name, equals('A'));
-    expect(topLevel.kind, equals(SymbolKind.Class));
-    expect(topLevel.containerName, isNull);
-
-    var myClass = symbols[1];
-    expect(myClass.name, equals('f'));
-    expect(myClass.kind, equals(SymbolKind.Method));
-    expect(myClass.containerName, equals('A'));
-  }
-
   Future<void> test_noAnalysisRoot_openedFile() async {
     // When there are no analysis roots and we open a file, it should be added as
     // a temporary root allowing us to service requests for it.

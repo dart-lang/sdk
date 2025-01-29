@@ -11,7 +11,6 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -273,27 +272,6 @@ extension type C(int it) implements A {}
     _assertContainsClass(subtypes, 'C');
   }
 
-  Future<void> test_searchAllSubtypes_inMacroGeneratedCode() async {
-    addMacros([declareTypesPhaseMacro()]);
-
-    await resolveTestCode('''
-import 'macros.dart';
-
-@DeclareTypesPhase('B', 'class B extends A {}')
-class A {}
-''');
-
-    var element = findElement2.class_('A');
-    var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes(
-      element,
-      subtypes,
-      OperationPerformanceImpl('<root>'),
-    );
-    expect(subtypes, hasLength(1));
-    _assertContainsClass(subtypes, 'B');
-  }
-
   Future<void> test_searchAllSubtypes_mixin() async {
     await resolveTestCode('''
 class T {}
@@ -360,31 +338,6 @@ int test;
 
     assertHasElement('test', codeA.indexOf('test; // 1'));
     assertHasElement('test', codeB.indexOf('test() {} // 2'));
-  }
-
-  Future<void> test_searchMemberDeclarations_inMacroGeneratedCode() async {
-    addMacros([declareInTypeMacro()]);
-
-    await resolveTestCode('''
-import 'macros.dart';
-
-@DeclareInType('  void m() {}')
-class A {}
-''');
-
-    var matches = await searchEngine.searchMemberDeclarations('m');
-    expect(matches, hasLength(1));
-    expect(
-      matches,
-      contains(
-        predicate(
-          (SearchMatch m) =>
-              m.element2.name3 == 'm' &&
-              m.kind == MatchKind.DECLARATION &&
-              isMacroGenerated(m.file),
-        ),
-      ),
-    );
   }
 
   Future<void> test_searchMemberReferences() async {
@@ -573,35 +526,6 @@ void f(A a) {}
               m.sourceRange.length == 'A'.length;
         }),
       ]),
-    );
-  }
-
-  Future<void> test_searchReferences_getter_inMacroGeneratedCode() async {
-    addMacros([declareInTypeMacro()]);
-
-    await resolveTestCode('''
-import 'macros.dart';
-
-@DeclareInType('  dynamic m() => x;')
-class A {
-  int get x => 0;
-}
-''');
-
-    var element = findElement2.getter('x');
-
-    var matches = await searchEngine.searchReferences(element);
-    expect(matches, hasLength(1));
-    expect(
-      matches,
-      contains(
-        predicate(
-          (SearchMatch m) =>
-              m.element2.name3 == 'm' &&
-              m.kind == MatchKind.REFERENCE &&
-              isMacroGenerated(m.file),
-        ),
-      ),
     );
   }
 
@@ -814,30 +738,6 @@ class B extends A {}
 
     assertHasOneElement('A');
     assertHasOneElement('B');
-  }
-
-  Future<void> test_searchTopLevelDeclarations_inMacroGeneratedCode() async {
-    addMacros([declareInLibraryMacro()]);
-
-    await resolveTestCode('''
-import 'macros.dart';
-
-@DeclareInLibrary('final x = 0;')
-class A {}
-''');
-
-    var matches = await searchEngine.searchTopLevelDeclarations('.*');
-    expect(
-      matches,
-      contains(
-        predicate(
-          (SearchMatch m) =>
-              m.element2.name3 == 'x' &&
-              m.kind == MatchKind.DECLARATION &&
-              isMacroGenerated(m.file),
-        ),
-      ),
-    );
   }
 
   String _configureForPackage_aaa() {

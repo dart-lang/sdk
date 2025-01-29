@@ -434,27 +434,6 @@ ClassDeclaration
 ''');
   }
 
-  void test_class_macro() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-macro class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  macroKeyword: macro
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_mixin() {
     var parseResult = parseStringWithErrors(r'''
 /// text
@@ -563,35 +542,6 @@ ClassDeclaration
         name: B
   leftBracket: {
   rightBracket: }
-''');
-  }
-
-  void test_classAlias_macro() {
-    var parseResult = parseStringWithErrors(r'''
-mixin M {}
-/// text
-macro class A = Object with M;
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classTypeAlias('class A');
-    assertParsedNodeText(node, r'''
-ClassTypeAlias
-  documentationComment: Comment
-    tokens
-      /// text
-  typedefKeyword: class
-  name: A
-  equals: =
-  macroKeyword: macro
-  superclass: NamedType
-    name: Object
-  withClause: WithClause
-    withKeyword: with
-    mixinTypes
-      NamedType
-        name: M
-  semicolon: ;
 ''');
   }
 

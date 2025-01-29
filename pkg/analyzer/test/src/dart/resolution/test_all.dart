@@ -68,7 +68,6 @@ import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'logical_and_pattern_test.dart' as logical_and_pattern;
 import 'logical_or_pattern_test.dart' as logical_or_pattern;
-import 'macro_test.dart' as macro;
 import 'map_pattern_test.dart' as map_pattern;
 import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
@@ -177,7 +176,6 @@ main() {
     local_variable.main();
     logical_and_pattern.main();
     logical_or_pattern.main();
-    macro.main();
     map_pattern.main();
     metadata.main();
     method_declaration.main();

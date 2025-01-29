@@ -471,60 +471,6 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  Future<void> test_method_in_macro() async {
-    addMacros([declareInTypeMacro()], isFlutter: true);
-    await indexTestUnit('''
-import 'package:flutter/material.dart';
-import 'macros.dart';
-
-@DeclareInType('  void f() {    var a = createColumn();  }')
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return createColumn();
-  }
-
-  Widget createColumn() {
-    var a = Text('AAA');
-    var b = Text('BBB');
-    return Column(
-      children: <Widget>[a, b],
-    );
-  }
-}
-''');
-    _createRefactoringForStringOffset('createColumn() {');
-
-    await assertSuccessfulRefactoring2('''
->>>>>>>>>> /home/test/lib/test.dart
-import 'package:flutter/material.dart';
-import 'macros.dart';
-
-@DeclareInType('  void f() {    var a = createColumn();  }')
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Test();
-  }
-}
-
-class Test extends StatelessWidget {
-  const Test({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var a = Text('AAA');
-    var b = Text('BBB');
-    return Column(
-      children: <Widget>[a, b],
-    );
-  }
-}
-''');
-  }
-
   Future<void> test_method_parameters() async {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';

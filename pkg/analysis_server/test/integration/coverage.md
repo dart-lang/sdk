@@ -105,4 +105,3 @@ server calls. This file is validated by `coverage_test.dart`.
 
 ## lsp domain
 - [x] lsp.handle
-- [x] lsp.notification

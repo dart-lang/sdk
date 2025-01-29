@@ -27,7 +27,6 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
-import 'test_macros.dart';
 
 // TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
 // Keep them as consistent with each other as they are today. Ultimately combine
@@ -236,7 +235,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
-    with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   // TODO(scheglov): Consider turning it back into a getter.
   late String testFilePath = resourceProvider.convertPath(
     '$testPackageLibPath/test.dart',
