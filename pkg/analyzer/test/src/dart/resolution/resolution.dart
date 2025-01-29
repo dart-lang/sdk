@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -157,11 +154,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element, isNull);
   }
 
-  void assertElementString(Element element, String expected) {
-    var str = element.getDisplayString();
-    expect(str, expected);
-  }
-
   void assertElementTypes(List<DartType>? types, List<String> expected,
       {bool ordered = false}) {
     if (types == null) {
@@ -174,10 +166,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(typeStrList, unorderedEquals(expected));
     }
-  }
-
-  void assertEnclosingElement(Element element, Element expectedEnclosing) {
-    expect(element.enclosingElement3, expectedEnclosing);
   }
 
   Future<void> assertErrorsInCode(
@@ -324,11 +312,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expected,
   ) {
     var actualMapString = Map.fromEntries(
-      substitution.map.entries.where((entry) {
-        return entry.key.enclosingElement3 is! ExecutableElement;
+      substitution.map2.entries.where((entry) {
+        return entry.key.enclosingElement2 is! ExecutableElement2;
       }).map((entry) {
         return MapEntry(
-          entry.key.name,
+          entry.key.name3,
           typeString(entry.value),
         );
       }),
