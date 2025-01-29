@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:linter/src/lint_codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -946,8 +945,11 @@ main() {
 int a = 0;
 var b = 1 + 2;
 ''');
-    assertType(findElement.topVar('a').type, 'int');
-    assertElement(findNode.namedType('int a'), intElement.asElement);
+    assertType(findElement2.topVar('a').type, 'int');
+    assertElement(
+      findNode.namedType('int a').element2,
+      declaration: intElement,
+    );
 
     assertType(findElement.topVar('b').type, 'int');
   }

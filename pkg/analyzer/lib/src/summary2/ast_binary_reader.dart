@@ -713,7 +713,7 @@ class AstBinaryReader {
 
     var node = ImplicitCallReferenceImpl(
       expression: expression,
-      staticElement: staticElement,
+      element: staticElement.asElement2,
       typeArguments: typeArguments,
       typeArgumentTypes: typeArgumentTypes,
     );

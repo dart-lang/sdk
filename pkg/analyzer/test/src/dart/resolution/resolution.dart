@@ -130,40 +130,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertElement(Object? nodeOrElement, Object? elementOrMatcher) {
-    Element? element;
-    if (nodeOrElement is AstNode) {
-      element = getNodeElement(nodeOrElement);
-    } else {
-      element = nodeOrElement as Element?;
-    }
-
-    expect(element, _elementMatcher(elementOrMatcher));
-  }
-
-  void assertElement2(
-    Object? nodeOrElement, {
-    required Element declaration,
-    Map<String, String> substitution = const {},
-  }) {
-    Element? element;
-    if (nodeOrElement is AstNode) {
-      element = getNodeElement(nodeOrElement);
-    } else {
-      element = nodeOrElement as Element?;
-    }
-
-    var actualDeclaration = element?.declaration;
-    expect(actualDeclaration, same(declaration));
-
-    if (element is Member) {
-      assertSubstitution(element.substitution, substitution);
-    } else if (substitution.isNotEmpty) {
-      fail('Expected to be a Member: (${element.runtimeType}) $element');
-    }
-  }
-
-  void assertElement3(
+  void assertElement(
     Object? nodeOrElement, {
     required Element2 declaration,
     Map<String, String> substitution = const {},
@@ -185,14 +152,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Object? nodeOrElement) {
-    Element? element;
-    if (nodeOrElement is AstNode) {
-      element = getNodeElement(nodeOrElement);
-    } else {
-      element = nodeOrElement as Element?;
-    }
-
+  void assertElementNull(Element2? element) {
     expect(element, isNull);
   }
 
@@ -433,57 +393,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
-  Element? getNodeElement(AstNode node) {
-    if (node is Annotation) {
-      return node.element;
-    } else if (node is AssignmentExpression) {
-      return node.staticElement;
-    } else if (node is BinaryExpression) {
-      return node.staticElement;
-    } else if (node is ConstructorReference) {
-      return node.constructorName.staticElement;
-    } else if (node is Declaration) {
-      return node.declaredElement;
-    } else if (node is ExtensionOverride) {
-      return node.element;
-    } else if (node is FormalParameter) {
-      return node.declaredElement;
-    } else if (node is FunctionExpressionInvocation) {
-      return node.staticElement;
-    } else if (node is FunctionReference) {
-      var function = node.function.unParenthesized;
-      if (function is Identifier) {
-        return function.staticElement;
-      } else if (function is PropertyAccess) {
-        return function.propertyName.staticElement;
-      } else if (function is ConstructorReference) {
-        return function.constructorName.staticElement;
-      } else {
-        fail('Unsupported node: (${function.runtimeType}) $function');
-      }
-    } else if (node is Identifier) {
-      return node.staticElement;
-    } else if (node is ImplicitCallReference) {
-      return node.staticElement;
-    } else if (node is IndexExpression) {
-      return node.staticElement;
-    } else if (node is InstanceCreationExpression) {
-      return node.constructorName.staticElement;
-    } else if (node is MethodInvocation) {
-      return node.methodName.staticElement;
-    } else if (node is PostfixExpression) {
-      return node.staticElement;
-    } else if (node is PrefixExpression) {
-      return node.staticElement;
-    } else if (node is PropertyAccess) {
-      return node.propertyName.staticElement;
-    } else if (node is NamedType) {
-      return node.element;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-  }
-
   Element2? getNodeElement2(AstNode node) {
     if (node is Annotation) {
       return node.element2;
@@ -573,14 +482,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// tests.
   String typeString(DartType type) => type.getDisplayString();
 
-  Matcher _elementMatcher(Object? elementOrMatcher) {
-    if (elementOrMatcher is Element) {
-      return _ElementMatcher(this, declaration: elementOrMatcher);
-    } else {
-      return wrapMatcher(elementOrMatcher);
-    }
-  }
-
   String _resolvedNodeText(AstNode node) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(
@@ -603,38 +504,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ),
     );
     return buffer.toString();
-  }
-}
-
-class _ElementMatcher extends Matcher {
-  final ResolutionTest test;
-  final Element declaration;
-
-  _ElementMatcher(
-    this.test, {
-    required this.declaration,
-  });
-
-  @override
-  Description describe(Description description) {
-    return description.add('declaration: $declaration\n');
-  }
-
-  @override
-  bool matches(element, Map matchState) {
-    if (element is Element) {
-      if (!identical(element.declaration, declaration)) {
-        return false;
-      }
-
-      if (element is Member) {
-        test.assertSubstitution(element.substitution, const {});
-        return true;
-      } else {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

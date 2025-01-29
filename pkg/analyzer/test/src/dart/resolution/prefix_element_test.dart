@@ -27,17 +27,17 @@ var foo = 0;
 import 'a.dart' as prefix;
 ''');
 
-    var scope = findElement.prefix('prefix').scope;
-    var importFind = findElement.importFind('package:test/a.dart');
+    var scope = findElement2.prefix('prefix').scope;
+    var importFind = findElement2.importFind('package:test/a.dart');
 
     assertElement(
-      scope.lookup('foo').getter,
-      importFind.topGet('foo'),
+      scope.lookup('foo').getter2,
+      declaration: importFind.topGet('foo'),
     );
 
     assertElement(
-      scope.lookup('foo').setter,
-      importFind.topSet('foo'),
+      scope.lookup('foo').setter2,
+      declaration: importFind.topSet('foo'),
     );
   }
 
@@ -93,12 +93,12 @@ import 'a.dart' as prefix;
 import 'dart:math' as prefix;
 ''');
 
-    var scope = findElement.prefix('prefix').scope;
-    var aImport = findElement.importFind('package:test/a.dart');
+    var scope = findElement2.prefix('prefix').scope;
+    var aImport = findElement2.importFind('package:test/a.dart');
 
     assertElement(
-      scope.lookup('pi').getter,
-      aImport.topGet('pi'),
+      scope.lookup('pi').getter2,
+      declaration: aImport.topGet('pi'),
     );
   }
 
@@ -115,12 +115,12 @@ import 'dart:math' as prefix;
 import 'a.dart' as prefix;
 ''');
 
-    var scope = findElement.prefix('prefix').scope;
-    var aImport = findElement.importFind('package:test/a.dart');
+    var scope = findElement2.prefix('prefix').scope;
+    var aImport = findElement2.importFind('package:test/a.dart');
 
     assertElement(
-      scope.lookup('pi').getter,
-      aImport.topGet('pi'),
+      scope.lookup('pi').getter2,
+      declaration: aImport.topGet('pi'),
     );
   }
 
@@ -141,17 +141,17 @@ import 'a.dart' as prefix;
 import 'b.dart' as prefix;
 ''');
 
-    var scope = findElement.prefix('prefix').scope;
-    var importFind = findElement.importFind('package:test/a.dart');
+    var scope = findElement2.prefix('prefix').scope;
+    var importFind = findElement2.importFind('package:test/a.dart');
 
     assertElement(
-      scope.lookup('foo').getter,
-      importFind.topGet('foo'),
+      scope.lookup('foo').getter2,
+      declaration: importFind.topGet('foo'),
     );
 
     assertElement(
-      scope.lookup('foo').setter,
-      importFind.topSet('foo'),
+      scope.lookup('foo').setter2,
+      declaration: importFind.topSet('foo'),
     );
   }
 
@@ -172,23 +172,23 @@ import 'a.dart' as prefix;
 import 'b.dart' as prefix2;
 ''');
 
-    var scope = findElement.prefix('prefix').scope;
-    var importFind = findElement.importFind('package:test/a.dart');
+    var scope = findElement2.prefix('prefix').scope;
+    var importFind = findElement2.importFind('package:test/a.dart');
 
     assertElement(
-      scope.lookup('foo').getter,
-      importFind.topGet('foo'),
+      scope.lookup('foo').getter2,
+      declaration: importFind.topGet('foo'),
     );
     assertElement(
-      scope.lookup('foo').setter,
-      importFind.topSet('foo'),
+      scope.lookup('foo').setter2,
+      declaration: importFind.topSet('foo'),
     );
 
     assertElementNull(
-      scope.lookup('bar').getter,
+      scope.lookup('bar').getter2,
     );
     assertElementNull(
-      scope.lookup('bar').setter,
+      scope.lookup('bar').setter2,
     );
   }
 
@@ -201,11 +201,11 @@ import 'dart:math' as math;
     var scope = findElement.prefix('math').scope;
 
     assertElementNull(
-      scope.lookup('noSuchGetter').getter,
+      scope.lookup('noSuchGetter').getter2,
     );
 
     assertElementNull(
-      scope.lookup('noSuchSetter').setter,
+      scope.lookup('noSuchSetter').setter2,
     );
   }
 
@@ -215,20 +215,20 @@ import 'dart:math' as math;
 import 'dart:math' as math hide sin;
 ''');
 
-    var scope = findElement.prefix('math').scope;
-    var mathFind = findElement.importFind('dart:math');
+    var scope = findElement2.prefix('math').scope;
+    var mathFind = findElement2.importFind('dart:math');
 
     assertElementNull(
-      scope.lookup('sin').getter,
+      scope.lookup('sin').getter2,
     );
 
     assertElement(
-      scope.lookup('cos').getter,
-      mathFind.topFunction('cos'),
+      scope.lookup('cos').getter2,
+      declaration: mathFind.topFunction('cos'),
     );
     assertElement(
-      scope.lookup('tan').getter,
-      mathFind.topFunction('tan'),
+      scope.lookup('tan').getter2,
+      declaration: mathFind.topFunction('tan'),
     );
   }
 
@@ -238,16 +238,16 @@ import 'dart:math' as math hide sin;
 import 'dart:math' as math show sin;
 ''');
 
-    var scope = findElement.prefix('math').scope;
-    var mathFind = findElement.importFind('dart:math');
+    var scope = findElement2.prefix('math').scope;
+    var mathFind = findElement2.importFind('dart:math');
 
     assertElement(
-      scope.lookup('sin').getter,
-      mathFind.topFunction('sin'),
+      scope.lookup('sin').getter2,
+      declaration: mathFind.topFunction('sin'),
     );
 
     assertElementNull(
-      scope.lookup('cos').getter,
+      scope.lookup('cos').getter2,
     );
   }
 }

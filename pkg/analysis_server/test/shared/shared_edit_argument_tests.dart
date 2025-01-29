@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -225,9 +226,10 @@ mixin SharedEditArgumentTests
       params: '([int? x, int y = 10, int? z])',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'z', newValue: 2),
+      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
       message:
-          "Parameter 'z' is not editable: "
-          "A value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
+          "The parameter 'z' is not editable because "
+          "a value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
     );
   }
 
@@ -236,9 +238,10 @@ mixin SharedEditArgumentTests
       params: '([int? x = 10, int? y])',
       originalArgs: '()',
       edit: ArgumentEdit(name: 'y', newValue: 2),
+      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
       message:
-          "Parameter 'y' is not editable: "
-          "A value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
+          "The parameter 'y' is not editable because "
+          "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
     );
   }
 
@@ -268,9 +271,10 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y, int? z)',
       originalArgs: '(1)',
       edit: ArgumentEdit(name: 'z', newValue: 2),
+      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
       message:
-          "Parameter 'z' is not editable: "
-          "A value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
+          "The parameter 'z' is not editable because "
+          "a value for the 3rd parameter can't be added until a value for all preceding positional parameters have been added.",
     );
   }
 
@@ -280,9 +284,10 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y)',
       originalArgs: '()',
       edit: ArgumentEdit(name: 'y', newValue: 2),
+      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
       message:
-          "Parameter 'y' is not editable: "
-          "A value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
+          "The parameter 'y' is not editable because "
+          "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
     );
   }
 
@@ -292,9 +297,10 @@ mixin SharedEditArgumentTests
       params: '(int? x, int? y, { int? z })',
       originalArgs: '(z: 1)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
+      errorCode: ServerErrorCodes.EditArgumentInvalidParameter,
       message:
-          "Parameter 'y' is not editable: "
-          "A value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
+          "The parameter 'y' is not editable because "
+          "a value for the 2nd parameter can't be added until a value for all preceding positional parameters have been added.",
     );
   }
 
@@ -358,7 +364,8 @@ mixin SharedEditArgumentTests
       params: '({ bool? x })',
       originalArgs: '(x: true)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      message: 'Value for parameter "x" should be bool? but was String',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' should be bool? but was String",
     );
   }
 
@@ -376,7 +383,8 @@ mixin SharedEditArgumentTests
       params: '({ required bool x })',
       originalArgs: '(x: true)',
       edit: ArgumentEdit(name: 'x'),
-      message: 'Value for non-nullable parameter "x" cannot be null',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' cannot be null",
     );
   }
 
@@ -403,7 +411,9 @@ mixin SharedEditArgumentTests
       params: '({ double? x })',
       originalArgs: '(x: 1.1)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      message: 'Value for parameter "x" should be double? but was String',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message:
+          "The value for the parameter 'x' should be double? but was String",
     );
   }
 
@@ -421,7 +431,8 @@ mixin SharedEditArgumentTests
       params: '({ required double x })',
       originalArgs: '(x: 1.0)',
       edit: ArgumentEdit(name: 'x'),
-      message: 'Value for non-nullable parameter "x" cannot be null',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' cannot be null",
     );
   }
 
@@ -467,8 +478,9 @@ mixin SharedEditArgumentTests
       params: '({ E? x })',
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
       message:
-          'Value for parameter "x" should be one of "E.one", "E.two" but was "invalid"',
+          "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
     );
   }
 
@@ -488,7 +500,8 @@ mixin SharedEditArgumentTests
       params: '({ required E x })',
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x'),
-      message: 'Value for non-nullable parameter "x" cannot be null',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' cannot be null",
     );
   }
 
@@ -520,7 +533,8 @@ const myConst = E.one;
       params: '({ int? x })',
       originalArgs: '(x: 1)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
-      message: 'Value for parameter "x" should be int? but was String',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' should be int? but was String",
     );
   }
 
@@ -538,7 +552,8 @@ const myConst = E.one;
       params: '({ required int x })',
       originalArgs: '(x: 1)',
       edit: ArgumentEdit(name: 'x'),
-      message: 'Value for non-nullable parameter "x" cannot be null',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' cannot be null",
     );
   }
 
@@ -592,7 +607,8 @@ const myConst = E.one;
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x', newValue: 123),
-      message: 'Value for parameter "x" should be String? but was int',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' should be String? but was int",
     );
   }
 
@@ -619,7 +635,8 @@ const myConst = E.one;
       params: '({ required String x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x'),
-      message: 'Value for non-nullable parameter "x" cannot be null',
+      errorCode: ServerErrorCodes.EditArgumentInvalidValue,
+      message: "The value for the parameter 'x' cannot be null",
     );
   }
 
@@ -720,6 +737,7 @@ const myConst = E.one;
       params: '({ required String x })',
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x'),
+      errorCode: ServerErrorCodes.EditsUnsupportedByEditor,
       message: 'The connected editor does not support applying edits',
     );
   }
@@ -753,6 +771,7 @@ const myConst = E.one;
     required String params,
     required String originalArgs,
     required ArgumentEdit edit,
+    required ErrorCodes errorCode,
     required String message,
     String? additionalCode,
   }) async {
@@ -777,7 +796,7 @@ class MyWidget extends StatelessWidget {
 
     await expectLater(
       editArgument(testFileUri, code.position.position, edit),
-      throwsA(isResponseError(ErrorCodes.RequestFailed, message: message)),
+      throwsA(isResponseError(errorCode, message: message)),
     );
   }
 
