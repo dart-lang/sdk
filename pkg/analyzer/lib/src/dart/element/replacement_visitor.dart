@@ -337,7 +337,6 @@ class ReplacementVisitor
       var type = parameter.type;
       var newType = visitType(type);
 
-      // ignore: deprecated_member_use_from_same_package
       var kind = parameter.parameterKind;
       var newKind = visitParameterKind(kind);
 

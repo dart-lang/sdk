@@ -4,7 +4,6 @@
 //
 // SharedOptions=--enable-experiment=macros
 // ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
 
 // There is no public API exposed yet, the in-progress API lives here.
 import 'package:macros/macros.dart';
