@@ -1765,7 +1765,9 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    element: <null>
+    element: multiplyDefinedElement
+      package:test/a.dart::@function::foo
+      package:test/b.dart::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1811,7 +1813,9 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
-    element: <null>
+    element: multiplyDefinedElement
+      package:test/a.dart::@function::foo
+      package:test/b.dart::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

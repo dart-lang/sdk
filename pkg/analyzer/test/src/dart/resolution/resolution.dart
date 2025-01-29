@@ -447,10 +447,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ExpectedContextMessage message(File file, int offset, int length) =>
       ExpectedContextMessage(file, offset, length);
 
-  Matcher multiplyDefinedElementMatcher(List<Element> elements) {
-    return _MultiplyDefinedElementMatcher(elements);
-  }
-
   Future<ResolvedUnitResult> resolveFile(File file);
 
   /// Resolve [file] into [result].
@@ -504,27 +500,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ),
     );
     return buffer.toString();
-  }
-}
-
-class _MultiplyDefinedElementMatcher extends Matcher {
-  final Iterable<Element> elements;
-
-  _MultiplyDefinedElementMatcher(this.elements);
-
-  @override
-  Description describe(Description description) {
-    return description.add('elements: $elements\n');
-  }
-
-  @override
-  bool matches(element, Map matchState) {
-    if (element is MultiplyDefinedElementImpl) {
-      var actualSet = element.conflictingElements.toSet();
-      actualSet.removeAll(elements);
-      return actualSet.isEmpty;
-    }
-    return false;
   }
 }
 
