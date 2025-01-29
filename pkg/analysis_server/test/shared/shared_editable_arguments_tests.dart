@@ -75,6 +75,7 @@ $content
     Object? displayValue = anything,
     Object? hasArgument = anything,
     Object? isDefault = anything,
+    Object? defaultValue = anything,
     Object? isRequired = anything,
     Object? isNullable = anything,
     Object? isEditable = anything,
@@ -88,6 +89,7 @@ $content
         .having((arg) => arg.displayValue, 'displayValue', displayValue)
         .having((arg) => arg.hasArgument, 'hasArgument', hasArgument)
         .having((arg) => arg.isDefault, 'isDefault', isDefault)
+        .having((arg) => arg.defaultValue, 'defaultValue', defaultValue)
         .having((arg) => arg.isRequired, 'isRequired', isRequired)
         .having((arg) => arg.isNullable, 'isNullable', isNullable)
         .having((arg) => arg.isEditable, 'isEditable', isEditable)
@@ -123,6 +125,104 @@ $content
           'enum types must have options / non-enums must not have options',
           isTrue,
         );
+  }
+
+  test_defaultValue_named_default() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a = 1});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: 1)));
+  }
+
+  test_defaultValue_named_default_constantVariable() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  static const constantOne = 1;
+
+  const MyWidget({int? a = constantOne});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: 1)));
+  }
+
+  test_defaultValue_named_default_null() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a = null});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: null)));
+  }
+
+  test_defaultValue_named_noDefault() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: null)));
+  }
+
+  test_defaultValue_named_required_noDefault() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({required int? a});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: null)));
+  }
+
+  test_defaultValue_positional() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: null)));
+  }
+
+  test_defaultValue_positional_optional_default() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget([int? a = 1]);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: 1)));
+  }
+
+  test_defaultValue_positional_optional_noDefault() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget([int? a]);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
   test_documentation_literal() async {
@@ -977,14 +1077,27 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          isArg('supplied', type: 'bool', value: false, isDefault: false),
+          isArg(
+            'supplied',
+            type: 'bool',
+            value: false,
+            isDefault: false,
+            defaultValue: true,
+          ),
           isArg(
             'suppliedAsDefault',
             type: 'bool',
             value: true,
             isDefault: true,
+            defaultValue: true,
           ),
-          isArg('notSupplied', type: 'bool', value: true, isDefault: true),
+          isArg(
+            'notSupplied',
+            type: 'bool',
+            value: true,
+            isDefault: true,
+            defaultValue: true,
+          ),
         ]),
       ),
     );
@@ -1054,14 +1167,27 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          isArg('supplied', type: 'double', value: 2.0, isDefault: false),
+          isArg(
+            'supplied',
+            type: 'double',
+            value: 2.0,
+            isDefault: false,
+            defaultValue: 1.0,
+          ),
           isArg(
             'suppliedAsDefault',
             type: 'double',
             value: 1.0,
             isDefault: true,
+            defaultValue: 1.0,
           ),
-          isArg('notSupplied', type: 'double', value: 1.0, isDefault: true),
+          isArg(
+            'notSupplied',
+            type: 'double',
+            value: 1.0,
+            isDefault: true,
+            defaultValue: 1.0,
+          ),
         ]),
       ),
     );
@@ -1167,6 +1293,7 @@ class MyWidget extends StatelessWidget {
             type: 'enum',
             value: 'E.two',
             isDefault: false,
+            defaultValue: 'E.one',
             options: optionsMatcher,
           ),
           isArg(
@@ -1174,6 +1301,7 @@ class MyWidget extends StatelessWidget {
             type: 'enum',
             value: 'E.one',
             isDefault: true,
+            defaultValue: 'E.one',
             options: optionsMatcher,
           ),
           isArg(
@@ -1181,6 +1309,7 @@ class MyWidget extends StatelessWidget {
             type: 'enum',
             value: 'E.one',
             isDefault: true,
+            defaultValue: 'E.one',
             options: optionsMatcher,
           ),
         ]),
@@ -1260,9 +1389,27 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          isArg('supplied', type: 'int', value: 2, isDefault: false),
-          isArg('suppliedAsDefault', type: 'int', value: 1, isDefault: true),
-          isArg('notSupplied', type: 'int', value: 1, isDefault: true),
+          isArg(
+            'supplied',
+            type: 'int',
+            value: 2,
+            isDefault: false,
+            defaultValue: 1,
+          ),
+          isArg(
+            'suppliedAsDefault',
+            type: 'int',
+            value: 1,
+            isDefault: true,
+            defaultValue: 1,
+          ),
+          isArg(
+            'notSupplied',
+            type: 'int',
+            value: 1,
+            isDefault: true,
+            defaultValue: 1,
+          ),
         ]),
       ),
     );
@@ -1332,14 +1479,27 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          isArg('supplied', type: 'string', value: 'b', isDefault: false),
+          isArg(
+            'supplied',
+            type: 'string',
+            value: 'b',
+            isDefault: false,
+            defaultValue: 'a',
+          ),
           isArg(
             'suppliedAsDefault',
             type: 'string',
             value: 'a',
             isDefault: true,
+            defaultValue: 'a',
           ),
-          isArg('notSupplied', type: 'string', value: 'a', isDefault: true),
+          isArg(
+            'notSupplied',
+            type: 'string',
+            value: 'a',
+            isDefault: true,
+            defaultValue: 'a',
+          ),
         ]),
       ),
     );

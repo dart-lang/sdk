@@ -788,7 +788,9 @@ void f(A a) {}
 NamedType
   name: A
   element: <null>
-  element2: <null>
+  element2: multiplyDefinedElement
+    package:test/a.dart::@class::A
+    package:test/b.dart::@class::A
   type: InvalidType
 ''');
   }

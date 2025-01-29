@@ -2592,6 +2592,8 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
+    if (!keepLinkingLibraries) return;
+
     newFile('$testPackageLibPath/a.dart', 'V() {}');
     newFile('$testPackageLibPath/b.dart', 'V() {}');
     var library = await buildLibrary('''
@@ -2622,7 +2624,9 @@ library
                 SimpleIdentifier
                   token: V @43
                   staticElement: <null>
-                  element: <null>
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
                   staticType: InvalidType
           returnType: dynamic
 ----------------------------------------

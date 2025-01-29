@@ -595,6 +595,7 @@ class FileResolver {
           libraryElement,
           analysisSession.inheritanceManager,
           libraryKind,
+          performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
         _clearFileSystemStateParsedCache();
@@ -670,6 +671,7 @@ class FileResolver {
           libraryElement,
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
+          performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
 

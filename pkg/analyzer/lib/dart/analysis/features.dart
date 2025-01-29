@@ -136,13 +136,14 @@ abstract class FeatureSet {
   }) = ExperimentStatus.fromStrings2;
 
   /// Computes the set of features for the latest language version known
-  /// to the analyzer, without any experiments.  Use it only if you really
-  /// don't care which language version you want to use, and sure that the
-  /// code that you process is valid for the latest language version.
+  /// to the analyzer, with experiments according to [flags].  Use it only if
+  /// you really don't care which language version you want to use, and sure
+  /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion() =
-      ExperimentStatus.latestLanguageVersion;
+  factory FeatureSet.latestLanguageVersion({
+    List<String> flags,
+  }) = ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

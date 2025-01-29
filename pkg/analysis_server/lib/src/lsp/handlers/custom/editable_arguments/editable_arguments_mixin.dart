@@ -152,17 +152,17 @@ mixin EditableArgumentsMixin {
     return null;
   }
 
-  /// Returns the name of an enum constant prefixed with the enum name.
-  String? getQualifiedEnumConstantName(FieldElement2 enumConstant) {
-    var enumName = enumConstant.enclosingElement2.name3;
-    var name = enumConstant.name3;
-    return enumName != null && name != null ? '$enumName.$name' : null;
-  }
-
   /// Returns a list of the constants of an enum constant prefixed with the enum
   /// name.
   List<String> getQualifiedEnumConstantNames(EnumElement2 element3) =>
       element3.constants2.map(getQualifiedEnumConstantName).nonNulls.toList();
+
+  /// Returns the name of an enum constant prefixed with the enum name.
+  static String? getQualifiedEnumConstantName(FieldElement2 enumConstant) {
+    var enumName = enumConstant.enclosingElement2.name3;
+    var name = enumConstant.name3;
+    return enumName != null && name != null ? '$enumName.$name' : null;
+  }
 }
 
 extension on InvocationExpressionImpl {

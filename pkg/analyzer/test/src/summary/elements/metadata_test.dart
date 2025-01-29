@@ -11949,6 +11949,8 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
+    if (!keepLinkingLibraries) return;
+
     newFile('$testPackageLibPath/a.dart', 'const v = 0;');
     newFile('$testPackageLibPath/b.dart', 'const v = 0;');
     var library = await buildLibrary('''
@@ -11980,7 +11982,9 @@ library
               name: SimpleIdentifier
                 token: v @36
                 staticElement: <null>
-                element: <null>
+                element: multiplyDefinedElement
+                  package:test/a.dart::<fragment>::@getter::v#element
+                  package:test/b.dart::<fragment>::@getter::v#element
                 staticType: null
               element: <null>
               element2: <null>

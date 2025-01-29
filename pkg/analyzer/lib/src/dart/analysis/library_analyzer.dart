@@ -72,6 +72,7 @@ class AnalysisForCompletionResult {
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
+  final OperationPerformanceImpl performance;
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
@@ -96,6 +97,7 @@ class LibraryAnalyzer {
     this._libraryElement,
     this._inheritance,
     this._library, {
+    required this.performance,
     TestingData? testingData,
     required TypeSystemOperations typeSystemOperations,
     bool enableLintRuleTiming = false,
@@ -117,8 +119,13 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   List<UnitAnalysisResult> analyze() {
-    _parseAndResolve();
-    _computeDiagnostics();
+    performance.run('parseAndResolve', (performance) {
+      _parseAndResolve();
+    });
+
+    performance.run('computeDiagnostics', (performance) {
+      _computeDiagnostics();
+    });
 
     // Return full results.
     var results = <UnitAnalysisResult>[];
