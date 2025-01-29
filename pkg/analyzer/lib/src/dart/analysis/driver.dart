@@ -1392,16 +1392,19 @@ class AnalysisDriver {
             libraryElement.typeSystem,
             strictCasts: analysisOptions.strictCasts);
 
-        var results = LibraryAnalyzer(
-          analysisOptions,
-          declaredVariables,
-          libraryElement,
-          libraryContext.elementFactory.analysisSession.inheritanceManager,
-          library,
-          testingData: testingData,
-          typeSystemOperations: typeSystemOperations,
-          enableLintRuleTiming: _enableLintRuleTiming,
-        ).analyze();
+        var results = performance.run('LibraryAnalyzer', (performance) {
+          return LibraryAnalyzer(
+            analysisOptions,
+            declaredVariables,
+            libraryElement,
+            libraryContext.elementFactory.analysisSession.inheritanceManager,
+            library,
+            performance: performance,
+            testingData: testingData,
+            typeSystemOperations: typeSystemOperations,
+            enableLintRuleTiming: _enableLintRuleTiming,
+          ).analyze();
+        });
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
 
@@ -2082,20 +2085,23 @@ class AnalysisDriver {
       var typeSystemOperations = TypeSystemOperations(libraryElement.typeSystem,
           strictCasts: analysisOptions.strictCasts);
 
-      var analysisResult = LibraryAnalyzer(
-        analysisOptions as AnalysisOptionsImpl,
-        declaredVariables,
-        libraryElement,
-        libraryContext.elementFactory.analysisSession.inheritanceManager,
-        library,
-        testingData: testingData,
-        typeSystemOperations: typeSystemOperations,
-      ).analyzeForCompletion(
-        file: file,
-        offset: request.offset,
-        unitElement: unitElement,
-        performance: performance,
-      );
+      var analysisResult = performance.run('LibraryAnalyzer', (performance) {
+        return LibraryAnalyzer(
+          analysisOptions as AnalysisOptionsImpl,
+          declaredVariables,
+          libraryElement,
+          libraryContext.elementFactory.analysisSession.inheritanceManager,
+          library,
+          performance: OperationPerformanceImpl('<root>'),
+          testingData: testingData,
+          typeSystemOperations: typeSystemOperations,
+        ).analyzeForCompletion(
+          file: file,
+          offset: request.offset,
+          unitElement: unitElement,
+          performance: performance,
+        );
+      });
 
       return ResolvedForCompletionResultImpl(
         analysisSession: currentSession,
