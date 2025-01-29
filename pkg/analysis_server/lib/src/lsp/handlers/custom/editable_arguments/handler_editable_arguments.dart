@@ -167,12 +167,14 @@ class EditableArgumentsHandler
   }) {
     var valueExpression =
         argument is NamedExpression ? argument.expression : argument;
+    var hasArgument = valueExpression != null;
 
     // Lazily compute the values if we will use this parameter/argument.
     late var values = _getValues(parameter, valueExpression);
 
     String? type;
     Object? value;
+    Object? defaultValue;
     List<String>? options;
 
     // Determine whether a value for this parameter is editable.
@@ -186,38 +188,37 @@ class EditableArgumentsHandler
     if (parameter.type.isDartCoreDouble) {
       type = 'double';
       value =
-          (values.argumentValue ?? values.parameterValue)?.toDoubleValue() ??
-          (values.argumentValue ?? values.parameterValue)?.toIntValue();
+          values.argumentValue?.toDoubleValue() ??
+          values.argumentValue?.toIntValue();
+      defaultValue =
+          values.parameterValue?.toDoubleValue() ??
+          values.parameterValue?.toIntValue();
     } else if (parameter.type.isDartCoreInt) {
       type = 'int';
-      value = (values.argumentValue ?? values.parameterValue)?.toIntValue();
+      value = values.argumentValue?.toIntValue();
+      defaultValue = values.parameterValue?.toIntValue();
     } else if (parameter.type.isDartCoreBool) {
       type = 'bool';
-      value = (values.argumentValue ?? values.parameterValue)?.toBoolValue();
+      value = values.argumentValue?.toBoolValue();
+      defaultValue = values.parameterValue?.toBoolValue();
     } else if (parameter.type.isDartCoreString) {
       type = 'string';
-      value = (values.argumentValue ?? values.parameterValue)?.toStringValue();
+      value = values.argumentValue?.toStringValue();
+      defaultValue = values.parameterValue?.toStringValue();
     } else if (parameter.type case InterfaceType(:EnumElement2 element3)) {
       type = 'enum';
       options = getQualifiedEnumConstantNames(element3);
-
-      // Try to match the argument value up with the enum.
-      var valueObject = values.argumentValue ?? values.parameterValue;
-      if (valueObject?.type case InterfaceType(
-        element3: EnumElement2 valueElement,
-      ) when element3 == valueElement) {
-        var index = valueObject?.getField('index')?.toIntValue();
-        if (index != null) {
-          var enumConstant = element3.constants2.elementAtOrNull(index);
-          if (enumConstant != null) {
-            value = getQualifiedEnumConstantName(enumConstant);
-          }
-        }
-      }
+      value = values.argumentValue?.toEnumStringValue(element3);
+      defaultValue = values.parameterValue?.toEnumStringValue(element3);
     } else {
       // TODO(dantup): Determine which parameters we don't include (such as
       //  Widgets) and which we include just without values.
       return null;
+    }
+
+    // If no argument is present, we always populate "value" with the default.
+    if (!hasArgument) {
+      value = defaultValue;
     }
 
     var isEditable = notEditableReason == null;
@@ -246,6 +247,7 @@ class EditableArgumentsHandler
       displayValue: displayValue,
       options: options,
       isDefault: values.isDefault,
+      defaultValue: defaultValue,
       hasArgument: valueExpression != null,
       isRequired: parameter.isRequired,
       isNullable:
@@ -253,5 +255,25 @@ class EditableArgumentsHandler
       isEditable: notEditableReason == null,
       notEditableReason: notEditableReason,
     );
+  }
+}
+
+extension on DartObject? {
+  Object? toEnumStringValue(EnumElement2 element3) {
+    var valueObject = this;
+    if (valueObject?.type case InterfaceType(
+      element3: EnumElement2 valueElement,
+    ) when element3 == valueElement) {
+      var index = valueObject?.getField('index')?.toIntValue();
+      if (index != null) {
+        var enumConstant = element3.constants2.elementAtOrNull(index);
+        if (enumConstant != null) {
+          return EditableArgumentsMixin.getQualifiedEnumConstantName(
+            enumConstant,
+          );
+        }
+      }
+    }
+    return null;
   }
 }

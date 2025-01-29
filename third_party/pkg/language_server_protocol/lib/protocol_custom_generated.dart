@@ -1437,6 +1437,10 @@ class EditableArgument implements ToJsonable {
     EditableArgument.fromJson,
   );
 
+  /// The default value for this parameter if no argument is supplied. Setting
+  /// the argument to this value does not remove it from the argument list.
+  final Object? defaultValue;
+
   /// A string that can be displayed to indicate the value for this argument.
   /// This will be populated in cases where the source code is not literally the
   /// same as the value field, for example an expression or named constant.
@@ -1482,6 +1486,7 @@ class EditableArgument implements ToJsonable {
   /// and displayValue can be shown as the current value instead.
   final Object? value;
   EditableArgument({
+    this.defaultValue,
     this.displayValue,
     required this.hasArgument,
     required this.isDefault,
@@ -1496,6 +1501,7 @@ class EditableArgument implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
+        defaultValue,
         displayValue,
         hasArgument,
         isDefault,
@@ -1513,6 +1519,7 @@ class EditableArgument implements ToJsonable {
   bool operator ==(Object other) {
     return other is EditableArgument &&
         other.runtimeType == EditableArgument &&
+        defaultValue == other.defaultValue &&
         displayValue == other.displayValue &&
         hasArgument == other.hasArgument &&
         isDefault == other.isDefault &&
@@ -1529,6 +1536,9 @@ class EditableArgument implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (defaultValue != null) {
+      result['defaultValue'] = defaultValue;
+    }
     if (displayValue != null) {
       result['displayValue'] = displayValue;
     }
@@ -1601,6 +1611,8 @@ class EditableArgument implements ToJsonable {
   }
 
   static EditableArgument fromJson(Map<String, Object?> json) {
+    final defaultValueJson = json['defaultValue'];
+    final defaultValue = defaultValueJson;
     final displayValueJson = json['displayValue'];
     final displayValue = displayValueJson as String?;
     final hasArgumentJson = json['hasArgument'];
@@ -1625,6 +1637,7 @@ class EditableArgument implements ToJsonable {
     final valueJson = json['value'];
     final value = valueJson;
     return EditableArgument(
+      defaultValue: defaultValue,
       displayValue: displayValue,
       hasArgument: hasArgument,
       isDefault: isDefault,

@@ -468,6 +468,16 @@ List<LspEntity> getCustomClasses() {
             'because there is no argument or because it is explicitly provided '
             'as the same value.',
       ),
+      Field(
+        name: 'defaultValue',
+        type: TypeReference.LspAny,
+        allowsNull: false,
+        allowsUndefined: true,
+        comment:
+            'The default value for this parameter if no argument is supplied. '
+            'Setting the argument to this value does not remove it from the '
+            'argument list.',
+      ),
       field(
         'displayValue',
         type: 'string',
