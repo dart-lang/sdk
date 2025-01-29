@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,13 +16,13 @@ class TypeAliasSelfReferenceFinder {
           if (node is FunctionTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
-            var element = node.declaredElement as TypeAliasElementImpl;
-            element.hasSelfReference = finder.hasSelfReference;
+            var fragment = node.declaredFragment as TypeAliasElementImpl;
+            fragment.hasSelfReference = finder.hasSelfReference;
           } else if (node is GenericTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
-            var element = node.declaredElement as TypeAliasElementImpl;
-            element.hasSelfReference = finder.hasSelfReference;
+            var fragment = node.declaredFragment as TypeAliasElementImpl;
+            fragment.hasSelfReference = finder.hasSelfReference;
           }
         }
       }
@@ -89,12 +87,12 @@ class _Finder {
     if (node == null) return;
 
     if (node is NamedType) {
-      var element = node.element;
-      if (element is! ElementImpl) {
+      var element = node.element2;
+      if (element is! ElementImpl2) {
         return;
       }
 
-      var typeNode = linker.getLinkingNode(element);
+      var typeNode = linker.getLinkingNode2(element);
       if (typeNode != null) {
         if (typeNode == self) {
           hasSelfReference = true;
