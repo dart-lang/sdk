@@ -3582,7 +3582,8 @@ List<Object> ccc = [null];
 List<Object> ddd = [1 as dynamic];
 List<Object> eee = [new Object()];
 ''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 73, 4),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          73, 4),
     ]);
     expectInitializerType('aaa', 'List<Object>');
     expectInitializerType('bbb', 'List<Object>');

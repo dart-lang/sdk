@@ -1229,11 +1229,20 @@ class _ConstLiteralVerifier {
   bool _validateListExpression(
       DartType listElementType, Expression expression, DartObjectImpl value) {
     if (!verifier._runtimeTypeMatch(value, listElementType)) {
-      verifier._errorReporter.atNode(
-        expression,
-        CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-        arguments: [value.type, listElementType],
-      );
+      if (verifier._runtimeTypeMatch(
+          value, verifier._typeSystem.makeNullable(listElementType))) {
+        verifier._errorReporter.atNode(
+          expression,
+          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          arguments: [value.type, listElementType],
+        );
+      } else {
+        verifier._errorReporter.atNode(
+          expression,
+          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+          arguments: [value.type, listElementType],
+        );
+      }
       return false;
     }
 
@@ -1316,11 +1325,21 @@ class _ConstLiteralVerifier {
       }
 
       if (!verifier._runtimeTypeMatch(keyValue, expectedKeyType)) {
-        verifier._errorReporter.atNode(
-          keyExpression,
-          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-          arguments: [keyType, expectedKeyType],
-        );
+        if (!isKeyNullAware &&
+            verifier._runtimeTypeMatch(
+                keyValue, verifier._typeSystem.makeNullable(expectedKeyType))) {
+          verifier._errorReporter.atNode(
+            keyExpression,
+            CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+            arguments: [keyType, expectedKeyType],
+          );
+        } else {
+          verifier._errorReporter.atNode(
+            keyExpression,
+            CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+            arguments: [keyType, expectedKeyType],
+          );
+        }
       }
 
       var featureSet = verifier._currentLibrary.featureSet;
@@ -1354,11 +1373,21 @@ class _ConstLiteralVerifier {
     }
     if (valueValue is DartObjectImpl) {
       if (!verifier._runtimeTypeMatch(valueValue, expectedValueType)) {
-        verifier._errorReporter.atNode(
-          valueExpression,
-          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-          arguments: [valueValue.type, expectedValueType],
-        );
+        if (!isValueNullAware &&
+            verifier._runtimeTypeMatch(valueValue,
+                verifier._typeSystem.makeNullable(expectedValueType))) {
+          verifier._errorReporter.atNode(
+            valueExpression,
+            CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+            arguments: [valueValue.type, expectedValueType],
+          );
+        } else {
+          verifier._errorReporter.atNode(
+            valueExpression,
+            CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+            arguments: [valueValue.type, expectedValueType],
+          );
+        }
       }
     }
 
@@ -1402,11 +1431,20 @@ class _ConstLiteralVerifier {
     DartObjectImpl value,
   ) {
     if (!verifier._runtimeTypeMatch(value, config.elementType)) {
-      verifier._errorReporter.atNode(
-        expression,
-        CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
-        arguments: [value.type, config.elementType],
-      );
+      if (verifier._runtimeTypeMatch(
+          value, verifier._typeSystem.makeNullable(config.elementType))) {
+        verifier._errorReporter.atNode(
+          expression,
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          arguments: [value.type, config.elementType],
+        );
+      } else {
+        verifier._errorReporter.atNode(
+          expression,
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+          arguments: [value.type, config.elementType],
+        );
+      }
       return false;
     }
 

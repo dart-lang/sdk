@@ -3145,6 +3145,17 @@ class CompileTimeErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the actual type of the list element
+  ///  1: the expected type of the list element
+  static const CompileTimeErrorCode
+      LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
+    'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the list type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  );
+
   ///  Reported when there is an issue converting a macro application argument
   ///  into a value. So, we cannot instantiate the macro, and run it.
   ///  Parameters:
@@ -3270,6 +3281,17 @@ class CompileTimeErrorCode extends ErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the type of the expression being used as a key
+  ///  1: the type of keys declared for the map
+  static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY =
+      CompileTimeErrorCode(
+    'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the map key type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  );
+
+  ///  Parameters:
   ///  0: the type of the expression being used as a value
   ///  1: the type of values declared for the map
   static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
@@ -3277,6 +3299,17 @@ class CompileTimeErrorCode extends ErrorCode {
     'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
     "The element type '{0}' can't be assigned to the map value type '{1}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the type of the expression being used as a value
+  ///  1: the type of values declared for the map
+  static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY =
+      CompileTimeErrorCode(
+    'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the map value type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   );
 
   ///  12.1 Constants: A constant expression is ... a constant list literal.
@@ -4986,6 +5019,17 @@ class CompileTimeErrorCode extends ErrorCode {
     'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
     "The element type '{0}' can't be assigned to the set type '{1}'.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the actual type of the set element
+  ///  1: the expected type of the set element
+  static const CompileTimeErrorCode
+      SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
+    'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+    "The element type '{0}' can't be assigned to the set type '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   );
 
   ///  No parameters.
