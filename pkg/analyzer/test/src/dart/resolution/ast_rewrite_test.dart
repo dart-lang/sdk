@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -1709,7 +1710,7 @@ void f() {
     // getters and setters on `C`, and does not recover with other elements
     // (methods, constructors). This prefixed identifier can have a real
     // `staticElement` if we add such recovery.
-    assertElement(identifier, null);
+    expect(identifier.element, isNull);
   }
 
   test_constructorReference_inAssignment_onRightSide() async {

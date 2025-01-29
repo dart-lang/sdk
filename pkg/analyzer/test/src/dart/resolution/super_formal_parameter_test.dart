@@ -40,7 +40,7 @@ class C<V> extends B<V> {
 
     var B = findElement2.unnamedConstructor('B');
     var B_key = B.superFormalParameter('key');
-    assertElement3(
+    assertElement(
       B_key_member,
       declaration: B_key,
       substitution: {'U': 'V'},
@@ -51,7 +51,7 @@ class C<V> extends B<V> {
 
     var A = findElement2.unnamedConstructor('A');
     var A_key = A.parameter('key');
-    assertElement3(
+    assertElement(
       A_key_member,
       declaration: A_key,
       substitution: {

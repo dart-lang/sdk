@@ -160,7 +160,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'A'),
     );
@@ -199,7 +199,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('_foo'),
       declaration: findElement2.getter('_foo', of: 'A'),
     );
@@ -230,7 +230,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'A'),
     );
@@ -263,7 +263,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'M'),
     );
@@ -286,7 +286,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'M2'),
     );
@@ -307,7 +307,7 @@ mixin M2 {}
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'M1'),
     );
@@ -324,7 +324,7 @@ mixin M {}
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'A'),
     );
@@ -345,7 +345,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'M1'),
     );
@@ -364,7 +364,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'A'),
     );
@@ -397,7 +397,7 @@ class B {
 class C extends A implements B {}
 ''');
     var C = findElement2.class_('C');
-    assertElement3(
+    assertElement(
       C._lookUpInheritedConcreteGetter('foo'),
       declaration: findElement2.getter('foo', of: 'A'),
     );
@@ -464,7 +464,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -503,7 +503,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('_foo'),
       declaration: findElement2.method('_foo', of: 'A'),
     );
@@ -534,7 +534,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -567,7 +567,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'M'),
     );
@@ -590,7 +590,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'M2'),
     );
@@ -611,7 +611,7 @@ mixin M2 {}
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'M1'),
     );
@@ -628,7 +628,7 @@ mixin M {}
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -649,7 +649,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'M1'),
     );
@@ -668,7 +668,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -701,7 +701,7 @@ class B {
 class C extends A implements B {}
 ''');
     var C = findElement2.class_('C');
-    assertElement3(
+    assertElement(
       C._lookUpInheritedConcreteMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -768,7 +768,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'A'),
     );
@@ -807,7 +807,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('_foo'),
       declaration: findElement2.setter('_foo', of: 'A'),
     );
@@ -838,7 +838,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'A'),
     );
@@ -871,7 +871,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'M'),
     );
@@ -894,7 +894,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'M2'),
     );
@@ -915,7 +915,7 @@ mixin M2 {}
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'M1'),
     );
@@ -932,7 +932,7 @@ mixin M {}
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'A'),
     );
@@ -953,7 +953,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'M1'),
     );
@@ -972,7 +972,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'A'),
     );
@@ -1005,7 +1005,7 @@ class B {
 class C extends A implements B {}
 ''');
     var C = findElement2.class_('C');
-    assertElement3(
+    assertElement(
       C._lookUpInheritedConcreteSetter('foo'),
       declaration: findElement2.setter('foo', of: 'A'),
     );
@@ -1072,7 +1072,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -1111,7 +1111,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('_foo'),
       declaration: findElement2.method('_foo', of: 'A'),
     );
@@ -1142,7 +1142,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -1161,7 +1161,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'M'),
     );
@@ -1184,7 +1184,7 @@ mixin M2 {
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'M2'),
     );
@@ -1205,7 +1205,7 @@ mixin M2 {}
 class B extends A with M1, M2 {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'M1'),
     );
@@ -1222,7 +1222,7 @@ mixin M {}
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -1241,7 +1241,7 @@ mixin M {
 class B extends A with M {}
 ''');
     var B = findElement2.class_('B');
-    assertElement3(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
@@ -1274,7 +1274,7 @@ class B {
 class C extends A implements B {}
 ''');
     var C = findElement2.class_('C');
-    assertElement3(
+    assertElement(
       C._lookUpInheritedMethod('foo'),
       declaration: findElement2.method('foo', of: 'A'),
     );
