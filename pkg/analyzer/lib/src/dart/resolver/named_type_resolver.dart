@@ -263,8 +263,8 @@ class NamedTypeResolver with ScopeHelpers {
             dataForTesting: dataForTesting, nodeForTesting: node);
       }
 
-      return typeSystem.instantiateInterfaceToBounds(
-        element: element,
+      return typeSystem.instantiateInterfaceToBounds2(
+        element: element.asElement2,
         nullabilitySuffix: nullability,
       );
     } else if (element is TypeAliasElementImpl) {

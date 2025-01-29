@@ -40,6 +40,7 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:macros/src/executor.dart' as macro;
@@ -222,8 +223,8 @@ class LibraryBuilder with MacroApplicationsContainer {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateInterfaceToBounds(
-          element: enum_.element,
+        element.typeSystem.instantiateInterfaceToBounds2(
+          element: enum_.element.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
