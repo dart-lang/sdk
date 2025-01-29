@@ -9725,11 +9725,11 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   List<DartType> typeArgumentTypes;
 
   @override
-  MethodElement staticElement;
+  MethodElement2 element;
 
   ImplicitCallReferenceImpl({
     required ExpressionImpl expression,
-    required this.staticElement,
+    required this.element,
     required TypeArgumentListImpl? typeArguments,
     required this.typeArgumentTypes,
   })  : _expression = expression,
@@ -9740,10 +9740,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @override
   Token get beginToken => expression.beginToken;
-
-  @experimental
-  @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => typeArguments?.endToken ?? expression.endToken;
@@ -9758,6 +9754,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   Precedence get precedence =>
       typeArguments == null ? expression.precedence : Precedence.postfix;
+
+  @experimental
+  @override
+  MethodElement get staticElement => element.asElement;
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;

@@ -4141,7 +4141,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var callReference = ImplicitCallReferenceImpl(
       expression: expression,
-      staticElement: callMethod.asElement,
+      element: callMethod,
       typeArguments: null,
       typeArgumentTypes: typeArgumentTypes,
     );
