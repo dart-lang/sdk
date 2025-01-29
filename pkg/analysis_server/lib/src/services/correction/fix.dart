@@ -577,6 +577,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Convert to use '?.'",
   );
+  static const CONVERT_TO_NULL_AWARE_LIST_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareListElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY = FixKind(
+    'dart.fix.convert.toNullAwareMapEntryKey',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE = FixKind(
+    'dart.fix.convert.toNullAwareMayEntryValue',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_SET_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareSetElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
   static const CONVERT_TO_NULL_AWARE_MULTI = FixKind(
     'dart.fix.convert.toNullAware.multi',
     DartFixKindPriority.inFile,

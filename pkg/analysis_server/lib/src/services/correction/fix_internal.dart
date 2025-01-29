@@ -69,6 +69,9 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_list_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_map_entry.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_set_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
@@ -848,6 +851,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED: [
     MakeVariableNotFinal.new,
   ],
+  CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareListElement.new,
+  ],
+  CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryKey.new,
+  ],
+  CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryValue.new,
+  ],
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
@@ -970,6 +982,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+  ],
+  CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareSetElement.new,
   ],
   CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
     AddClassModifier.baseModifier,

@@ -9625,6 +9625,14 @@ CompileTimeErrorCode:
         return v;
       }
       ```
+  LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the list element
+      1: the expected type of the list element
   LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
     hasPublishedDocs: true
@@ -9896,6 +9904,14 @@ CompileTimeErrorCode:
       ```dart
       var collection = <String>{'a', 'b'};
       ```
+  MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_KEY_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a key
+      1: the type of keys declared for the map
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
     hasPublishedDocs: true
@@ -9932,6 +9948,14 @@ CompileTimeErrorCode:
       ```dart
       var m = <int, String>{2 : 'a'};
       ```
+  MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a value
+      1: the type of values declared for the map
   MAP_VALUE_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
     hasPublishedDocs: true
@@ -15262,6 +15286,14 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the sealed class being extended, implemented, or mixed in
+  SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the set element
+      1: the expected type of the set element
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true

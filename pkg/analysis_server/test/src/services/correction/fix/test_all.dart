@@ -92,6 +92,12 @@ import 'convert_to_initializing_formal_test.dart'
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_list_element_test.dart'
+    as convert_to_null_aware_list_element_test;
+import 'convert_to_null_aware_map_entry_test.dart'
+    as convert_to_null_aware_map_entry_test;
+import 'convert_to_null_aware_set_element_test.dart'
+    as convert_to_null_aware_set_element_test;
 import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
@@ -381,6 +387,9 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_list_element_test.main();
+    convert_to_null_aware_map_entry_test.main();
+    convert_to_null_aware_set_element_test.main();
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
