@@ -4900,7 +4900,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
-      this.result.libraryElement2 as LibraryElementImpl,
+      this.result.libraryElement2,
       errorReporter,
       lexicalEnvironment: lexicalEnvironment,
     );

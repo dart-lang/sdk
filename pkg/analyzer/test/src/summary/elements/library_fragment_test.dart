@@ -611,15 +611,11 @@ var foo = 0;
 var foo = 1.2;
 ''');
 
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'a.dart' as prefix;
-
-// ignore:unused_import
 import 'b.dart' as prefix;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -642,15 +638,11 @@ package:test/test.dart
 var pi = 4;
 ''');
 
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'a.dart' as prefix;
-
-// ignore:unused_import
 import 'dart:math' as prefix;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -669,15 +661,11 @@ package:test/test.dart
 var pi = 4;
 ''');
 
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'dart:math' as prefix;
-
-// ignore:unused_import
 import 'a.dart' as prefix;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -700,15 +688,11 @@ var foo = 0;
 export 'a.dart';
 ''');
 
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'a.dart' as prefix;
-
-// ignore:unused_import
 import 'b.dart' as prefix;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -731,15 +715,11 @@ var foo = 0;
 var bar = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'a.dart' as prefix;
-
-// ignore:unused_import
 import 'b.dart' as prefix2;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -767,12 +747,10 @@ package:test/test.dart
   }
 
   test_scope_hasPrefix_lookup_notFound() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'dart:math' as math;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -786,12 +764,10 @@ package:test/test.dart
   }
 
   test_scope_hasPrefix_lookup_respectsCombinator_hide() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'dart:math' as math hide sin;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [
@@ -809,12 +785,10 @@ package:test/test.dart
   }
 
   test_scope_hasPrefix_lookup_respectsCombinator_show() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
+    var library = await buildLibrary(r'''
 import 'dart:math' as math show sin;
 ''');
 
-    var library = result.libraryElement2 as LibraryElementImpl;
     _assertScopeLookups(library, [
       Uri.parse('package:test/test.dart'),
     ], [

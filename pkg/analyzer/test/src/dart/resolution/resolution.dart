@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -47,7 +48,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final ResolvedNodeTextConfiguration nodeTextConfiguration =
       ResolvedNodeTextConfiguration();
 
-  late ResolvedUnitResult result;
+  late ResolvedUnitResultImpl result;
   late FindNode findNode;
   late FindElement findElement;
   late FindElement2 findElement2;
@@ -69,7 +70,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement2 get futureElement => typeProvider.futureElement2;
 
   InheritanceManager3 get inheritanceManager {
-    var library = result.libraryElement2 as LibraryElementImpl;
+    var library = result.libraryElement2;
     return library.session.inheritanceManager;
   }
 
@@ -101,7 +102,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   TypeProvider get typeProvider => result.typeProvider;
 
-  TypeSystemImpl get typeSystem => result.typeSystem as TypeSystemImpl;
+  TypeSystemImpl get typeSystem => result.typeSystem;
 
   void addTestFile(String content) {
     newFile(testFile.path, content);
@@ -447,7 +448,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ExpectedContextMessage message(File file, int offset, int length) =>
       ExpectedContextMessage(file, offset, length);
 
-  Future<ResolvedUnitResult> resolveFile(File file);
+  Future<ResolvedUnitResultImpl> resolveFile(File file);
 
   /// Resolve [file] into [result].
   Future<void> resolveFile2(File file) async {
