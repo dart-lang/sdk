@@ -1,5 +1,7 @@
 ## 3.6.2
 
+Released on: 2025-01-30
+
 - Fixes a bug where `HttpServer` responses were not correctly encoded
   if a "Content-Type" header was set (issue [#59719][]).
 - Fix `dart format` to parse code at language version 3.6 so that digit
