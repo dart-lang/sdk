@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -3515,14 +3513,14 @@ const v2 = -v1;
 
   void _assertHasPrimitiveEqualityFalse(String name) {
     var value = _evaluateConstant(name);
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = result.libraryElement2.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isFalse);
   }
 
   void _assertHasPrimitiveEqualityTrue(String name) {
     var value = _evaluateConstant(name);
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = result.libraryElement2.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
   }
@@ -4894,7 +4892,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var unit = this.result.unit;
-    var source = unit.declaredElement!.source;
+    var source = unit.declaredFragment!.source;
     var errorListener = GatheringErrorListener();
     var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
@@ -4902,7 +4900,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
-      this.result.libraryElement as LibraryElementImpl,
+      this.result.libraryElement2 as LibraryElementImpl,
       errorReporter,
       lexicalEnvironment: lexicalEnvironment,
     );
@@ -4932,18 +4930,21 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   }
 
   DartObjectImpl? _field(String variableName) {
-    var element = findElement.field(variableName) as ConstVariableElement;
-    return _evaluationResult(element);
+    var element = findElement2.field(variableName);
+    var constFragment = element.firstFragment as ConstVariableElement;
+    return _evaluationResult(constFragment);
   }
 
   DartObjectImpl? _localVar(String variableName) {
-    var element = findElement.localVar(variableName) as ConstVariableElement;
-    return _evaluationResult(element);
+    var element = findElement2.localVar(variableName);
+    var constFragment = element.firstFragment as ConstVariableElement;
+    return _evaluationResult(constFragment);
   }
 
   DartObjectImpl? _topLevelVar(String variableName) {
-    var element = findElement.topVar(variableName) as ConstVariableElement;
-    return _evaluationResult(element);
+    var element = findElement2.topVar(variableName);
+    var constFragment = element.firstFragment as ConstVariableElement;
+    return _evaluationResult(constFragment);
   }
 }
 
