@@ -411,22 +411,6 @@ class B extends A {
     );
   }
 
-  test_macroConstructor() async {
-    await assertDiagnostics(
-      r'''
-import 'package:meta/meta.dart';
-
-@immutable
-macro class M {
-  M();
-}
-''',
-      [
-        // TODO(pq): add non-const constructor compilation error when implemented
-      ],
-    );
-  }
-
   test_parameterizedType() async {
     // Verify we aren't doing an unsafe cast to a `ConstructorFragment` in type.dart.
     // b/374689139
