@@ -11,6 +11,8 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/macros.dart' as macros
     show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/binary/ast_from_binary.dart' as kernel
+    show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -28,6 +30,7 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import '../kernel/compiler.dart';
 import '../kernel/compiler_new.dart';
+import '../kernel/hot_reload_delta_inspector.dart';
 import '../kernel/module_metadata.dart';
 import '../kernel/module_symbols.dart';
 import '../kernel/module_symbols_collector.dart';
@@ -362,6 +365,33 @@ Future<CompilerResult> _compile(List<String> args,
 
   var component = result.component;
   var compiledLibraries = result.compiledLibraries;
+
+  final reloadDeltaKernel = options.reloadDeltaKernel;
+  final reloadLastAcceptedKernel = options.reloadLastAcceptedKernel;
+  if (reloadDeltaKernel != null) {
+    if (reloadLastAcceptedKernel != null) {
+      final lastAcceptedComponent = Component();
+      kernel.BinaryBuilder((await File(reloadLastAcceptedKernel).readAsBytes()))
+          .readComponent(lastAcceptedComponent);
+      final deltaInspector = HotReloadDeltaInspector();
+      final rejectionReasons = deltaInspector.compareGenerations(
+          lastAcceptedComponent, compiledLibraries);
+      if (rejectionReasons.isNotEmpty) {
+        throw StateError(
+            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}');
+      }
+    }
+    var sink = File(reloadDeltaKernel).openWrite();
+    kernel.BinaryPrinter(sink, includeSources: false, includeSourceBytes: false)
+        .writeComponentFile(compiledLibraries);
+    await sink.flush();
+    await sink.close();
+  } else {
+    if (reloadLastAcceptedKernel != null) {
+      throw ArgumentError("Must provide 'new-reload-delta-kernel' if "
+          "'old-reload-delta-kernel' provided.");
+    }
+  }
 
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];

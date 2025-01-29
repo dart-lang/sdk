@@ -23,7 +23,7 @@ class HotReloadDeltaInspector {
   // TODO(nshahan): Annotate delta component with information for DDC.
   List<String> compareGenerations(Component lastAccepted, Component delta) {
     _partialLastAcceptedLibraryIndex = LibraryIndex(lastAccepted,
-        [for (var library in delta.libraries) '${library.fileUri}']);
+        [for (var library in delta.libraries) '${library.importUri}']);
     _rejectionMessages.clear();
 
     for (var library in delta.libraries) {
