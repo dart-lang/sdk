@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -53,6 +55,12 @@ class ConstructorElementToInfer {
             returnType: element.returnType,
             nullabilitySuffix: NullabilitySuffix.none,
           );
+  }
+
+  ConstructorElement2 get element2 => element.asElement2;
+
+  List<TypeParameterElement2> get typeParameters2 {
+    return typeParameters.map((e) => e.asElement2).toList();
   }
 }
 

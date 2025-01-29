@@ -197,6 +197,30 @@ class ConstructorMember extends ExecutableMember
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
+
+  /// If the given [constructor]'s type is different when any type parameters
+  /// from the defining type's declaration are replaced with the actual type
+  /// arguments from the [definingType], create a constructor member
+  /// representing the given constructor. Return the member that was created, or
+  /// the original constructor if no member was created.
+  static ConstructorElement2 from2(
+      ConstructorElement2 constructor, InterfaceType definingType) {
+    if (definingType.typeArguments.isEmpty) {
+      return constructor;
+    }
+
+    var augmentationSubstitution = Substitution.empty;
+    if (constructor is ConstructorMember) {
+      augmentationSubstitution = constructor.augmentationSubstitution;
+      constructor = constructor.baseElement;
+    }
+
+    return ConstructorMember(
+      declaration: constructor.asElement,
+      augmentationSubstitution: augmentationSubstitution,
+      substitution: Substitution.fromInterfaceType(definingType),
+    );
+  }
 }
 
 /// An executable element defined in a parameterized type where the values of

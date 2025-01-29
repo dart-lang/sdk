@@ -4472,6 +4472,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   ConstructorElement2? get element => staticElement?.asElement2;
 
+  set element(ConstructorElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken {
     if (name case var name?) {
