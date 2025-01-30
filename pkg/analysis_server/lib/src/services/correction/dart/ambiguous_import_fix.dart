@@ -45,6 +45,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       libraryResult,
       unitResult,
       conflictingElements,
+      name,
       prefix,
     );
 
@@ -97,17 +98,13 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
     List<Element2> conflictingElements,
+    String name,
     String? prefix,
   ) {
     // The uris of all import directives that import the conflicting elements.
     var uris = <String>[];
     // The import directives that import the conflicting elements.
     var importDirectives = <ImportDirective>[];
-
-    var name = conflictingElements.firstOrNull?.name3;
-    if (name == null || name.isEmpty) {
-      return (null, importDirectives, uris);
-    }
 
     // Search in each unit up the chain for related imports.
     while (unitResult is ResolvedUnitResult) {
@@ -126,9 +123,13 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
             continue;
           }
 
-          // If this library is imported directly or if the directive exports the
-          // library for this element.
-          if (libraryImport.namespace.get2(name) == conflictingElement) {
+          // If this library is imported directly or if the directive exports
+          // the library for this element.
+          var element =
+              prefix != null
+                  ? libraryImport.namespace.getPrefixed2(prefix, name)
+                  : libraryImport.namespace.get2(name);
+          if (element == conflictingElement) {
             var uri = directive.uri.stringValue;
             if (uri != null) {
               uris.add(uri);
@@ -166,8 +167,9 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -239,8 +241,9 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
