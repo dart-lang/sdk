@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/identifiers.dart';
-import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
         messagePatchDeclarationMismatch,
@@ -14,7 +13,6 @@ import '../base/messages.dart'
         messagePatchNonExternal,
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -58,12 +56,6 @@ abstract class SourceFunctionBuilder
 
   @override
   bool get isFactory;
-
-  /// This is the formal parameter scope as specified in the Dart Programming
-  /// Language Specification, 4th ed, section 9.2.
-  LocalScope computeFormalParameterScope(LookupScope parent);
-
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 

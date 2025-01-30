@@ -76,7 +76,17 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+    if (_fragment.formals == null) {
+      return new FormalParameterScope(parent: typeParameterScope);
+    }
+    Map<String, Builder> local = <String, Builder>{};
+    for (FormalParameterBuilder formal in _fragment.formals!) {
+      if (formal.isWildcard) {
+        continue;
+      }
+      local[formal.name] = formal;
+    }
+    return new FormalParameterScope(local: local, parent: typeParameterScope);
   }
 
   @override

@@ -8,6 +8,18 @@
 
 - Added `Iterable.withIterator` constructor.
 
+### Tools
+
+#### Dart Development Compiler (dartdevc)
+
+In order to align with dart2js semantics, DDC will now throw a runtime error
+when a redirecting factory is torn off and one of its optional non-nullable
+parameters is provided no value. The implicit null passed to the factory will
+not match the non-nullable type and this will now throw.
+
+In the future this will likely be a compile-time error and will be entirely
+disallowed.
+
 ## 3.7.0
 
 **Released on:** Unreleased
@@ -304,12 +316,24 @@ AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
 
 ## 3.6.2
 
-**Released on:** Unreleased
+**Released on:** 2025-01-30
 
 - Fixes a bug where `HttpServer` responses were not correctly encoded
   if a "Content-Type" header was set (issue [#59719][]).
+- Fix `dart format` to parse code at language version 3.6 so that digit
+  separators can be parsed correctly (issue [#59815][], dart_style issue
+  [#1630][dart_style #1630]).
+- Fixes an issue where the DevTools analytics did not distinguish
+  between new and legacy inspector events (issue [#59884][]).
+- When running `dart fix` on a folder that contains a library with multiple
+  files and more than one needs a fix, the fix will now be applied correctly
+  only once to each file (issue [#59572][]).
 
 [#59719]: https://github.com/dart-lang/sdk/issues/59719
+[#59815]: https://github.com/dart-lang/sdk/issues/59815
+[dart_style #1630]: https://github.com/dart-lang/dart_style/issues/1630
+[#59884]: https://github.com/dart-lang/sdk/issues/59884
+[#59572]: https://github.com/dart-lang/sdk/issues/59572
 
 ## 3.6.1
 
@@ -324,14 +348,10 @@ AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
   [#57084][]).
 - Fixes analysis options discovery in the presence of workspaces
   (issue [#56552][]).
-- When running `dart fix` on a folder that contains a library with multiple
-  files and more than one needs a fix, the fix will now be applied correctly
-  only once to each file (issue [#59572][]).
 
 [pub#4445]: https://github.com/dart-lang/pub/issues/4445
 [#57084]: https://github.com/dart-lang/sdk/issues/57084
 [#56552]: https://github.com/dart-lang/sdk/issues/56552
-[#59572]: https://github.com/dart-lang/sdk/issues/59572
 
 ## 3.6.0
 

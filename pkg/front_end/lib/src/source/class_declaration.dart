@@ -99,7 +99,7 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
               fileOffset, fileUri);
         }
         if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory(this);
+          declaration.resolveRedirectingFactory();
         }
       }
     }

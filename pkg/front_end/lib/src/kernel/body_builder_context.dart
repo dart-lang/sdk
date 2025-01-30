@@ -24,7 +24,6 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
-import '../source/source_factory_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
@@ -760,11 +759,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   List<FormalParameterBuilder>? get formals => _member.formals;
 
   @override
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    return _member.computeFormalParameterInitializerScope(parent);
-  }
-
-  @override
   FormalParameterBuilder? getFormalParameterByName(Identifier name) {
     return _member.getFormal(name);
   }
@@ -873,6 +867,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    return _member.computeFormalParameterInitializerScope(parent);
+  }
+
+  @override
   void setBody(Statement body) {
     _member.body = body;
   }
@@ -908,6 +907,11 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    return _member.computeFormalParameterInitializerScope(parent);
+  }
+
+  @override
   void setBody(Statement body) {
     _member.body = body;
   }
@@ -919,65 +923,6 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
 
   @override
   TreeNode get _initializerParent => _member.invokeTarget;
-}
-
-class FactoryBodyBuilderContext extends BodyBuilderContext
-    with
-        _MemberBodyBuilderContext<SourceFactoryBuilder>,
-        _FunctionBodyBuilderContextMixin<SourceFactoryBuilder> {
-  @override
-  final SourceFactoryBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  FactoryBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  void setBody(Statement body) {
-    _member.setBody(body);
-  }
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    _member.asyncModifier = asyncModifier;
-  }
-
-  @override
-  DartType get returnTypeContext {
-    return _member.function.returnType;
-  }
-}
-
-class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
-    with
-        _MemberBodyBuilderContext<SourceFactoryBuilder>,
-        _FunctionBodyBuilderContextMixin<SourceFactoryBuilder> {
-  @override
-  final SourceFactoryBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  RedirectingFactoryBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void setBody(Statement body) {
-    _member.setBody(body);
-  }
-
-  @override
-  bool get isRedirectingFactory => true;
-
-  @override
-  String get redirectingFactoryTargetName {
-    return _member.redirectionTarget!.fullNameForErrors;
-  }
 }
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {

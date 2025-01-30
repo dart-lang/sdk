@@ -4256,7 +4256,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
+    void initParameter(
+        VariableDeclaration p, js_ast.Identifier jsParam, bool isOptional) {
       // When the parameter is covariant, insert the null check before the
       // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
@@ -4269,7 +4270,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Eliminate it when possible.
         body.add(js.statement('if (# == null) return false;', [jsParam]));
       }
-      if (isCovariantParameter(p)) {
+      if (isCovariantParameter(p) ||
+          // TODO(52582): This should be unreachable once the CFE ensures that
+          // redirecting factories parameter types match the target constructor.
+          // Matches dart2js check semantics for redirecting factory tearoffs.
+          // If a non-nullable optional argument with a null initializer is
+          // detected, we add an additional covariant check at runtime.
+          (f.parent is Procedure &&
+              isOptional &&
+              isConstructorTearOffLowering(f.parent as Procedure) &&
+              !p.type.isPotentiallyNullable &&
+              !p.initializer!
+                  .getStaticType(_staticTypeContext)
+                  .isPotentiallyNonNullable)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
@@ -4283,11 +4296,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
+    var counter = 0;
     for (var p in f.positionalParameters) {
       var jsParam = _emitVariableRef(p);
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, counter >= f.requiredParameterCount);
       }
+      counter++;
     }
     for (var p in f.namedParameters) {
       // Parameters will be passed using their real names, not the (possibly
@@ -4305,7 +4320,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]));
 
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, !p.isRequired);
       }
     }
 
