@@ -42,7 +42,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -12,15 +12,14 @@
  
  class Foo {
    int x = 4;

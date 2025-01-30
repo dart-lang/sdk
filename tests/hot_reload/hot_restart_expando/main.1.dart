@@ -21,7 +21,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -15,14 +15,6 @@
  external Object get singleton;
  
  Future<void> main() async {

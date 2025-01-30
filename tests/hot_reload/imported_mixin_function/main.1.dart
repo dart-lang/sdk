@@ -24,7 +24,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -14,7 +14,7 @@
  
  class A extends Object with ImportedMixin {}
  

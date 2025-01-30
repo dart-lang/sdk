@@ -43,7 +43,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -10,19 +10,22 @@
  
  class Box {
    final x;

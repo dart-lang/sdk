@@ -28,7 +28,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -8,14 +8,13 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/368cb645e5ff5baa1d1ed86bfd2e7d818471a652/runtime/vm/isolate_reload_test.cc#L4210
  

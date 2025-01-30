@@ -27,7 +27,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -9,14 +9,18 @@
  bool beforeRestart = true;
  bool calledBeforeRestart = false;
  bool calledAfterRestart = false;

@@ -37,7 +37,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -10,7 +10,7 @@
  
  class A {}
  

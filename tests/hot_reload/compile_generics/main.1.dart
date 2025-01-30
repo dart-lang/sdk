@@ -29,7 +29,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -11,7 +11,7 @@
  // https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L204
  
  class Account {

@@ -46,7 +46,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -9,7 +9,10 @@
  // https://github.com/dart-lang/sdk/blob/368cb645e5ff5baa1d1ed86bfd2e7d818471a652/runtime/vm/isolate_reload_test.cc#L5371
  
  void helper() {
@@ -58,7 +57,7 @@ Future<void> main() async {
  }
  
  class C {
-@@ -22,7 +25,12 @@
+@@ -22,7 +25,12 @@ var b = const C(const C(2));
  var c = const C(const C(3));
  var d = const C(const C(4));
  

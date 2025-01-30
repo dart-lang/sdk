@@ -26,7 +26,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -6,15 +6,13 @@
  import 'package:reload_test/reload_test_utils.dart';
  
  class Foo {
