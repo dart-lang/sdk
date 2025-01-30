@@ -1004,12 +1004,12 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
           _sink.writeIf(e.isFinal, 'final ');
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
         case EnumElementImpl2():
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('enum ');
         case ExtensionElementImpl2():
           _sink.write('extension ');
@@ -1022,11 +1022,11 @@ class _Element2Writer extends _AbstractElementWriter {
           //     e.hasImplementsSelfReference,
           //     'hasImplementsSelfReference ',
           //   );
-          //   // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('extension type ');
         case MixinElementImpl2():
           _sink.writeIf(e.isBase, 'base ');
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('mixin ');
       }
 
@@ -1623,6 +1623,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeAugmentationTarget(f);
       // _writeAugmentation(f);
     });
+  }
+
+  void _writeNotSimplyBounded(InterfaceElementImpl2 e) {
+    _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
   }
 
   void _writePrefixElement(PrefixElementImpl2 e) {

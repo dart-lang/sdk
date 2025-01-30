@@ -2723,7 +2723,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
-    extension type A
+    notSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters

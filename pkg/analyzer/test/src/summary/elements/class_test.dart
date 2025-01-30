@@ -20738,7 +20738,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::A
           element: <testLibrary>::@typeAlias::A
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20812,7 +20812,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20949,7 +20949,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20958,7 +20958,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21163,7 +21163,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21172,7 +21172,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21248,7 +21248,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21344,7 +21344,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21398,7 +21398,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21452,7 +21452,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21589,7 +21589,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::G
           element: <testLibrary>::@typeAlias::G
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21650,7 +21650,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25559,7 +25559,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25622,7 +25622,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25679,7 +25679,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25733,7 +25733,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25814,7 +25814,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25901,7 +25901,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25991,7 +25991,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26081,7 +26081,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26144,7 +26144,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26198,7 +26198,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26252,7 +26252,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26306,7 +26306,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26382,7 +26382,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -26467,7 +26467,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -26532,7 +26532,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -26589,7 +26589,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -29249,7 +29249,7 @@ library
               element: <testLibraryFragment>::@class::E::@constructor::new#element
               typeName: E
   classes
-    class alias C
+    notSimplyBounded class alias C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -43249,7 +43249,7 @@ library
             T @37
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters

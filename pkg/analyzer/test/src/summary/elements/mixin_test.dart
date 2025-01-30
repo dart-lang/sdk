@@ -8782,7 +8782,7 @@ library
             T @37
               element: <not-implemented>
   mixins
-    mixin A
+    notSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       typeParameters

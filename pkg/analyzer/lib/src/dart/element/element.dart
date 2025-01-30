@@ -6271,6 +6271,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  InterfaceElementImpl? get nextFragment;
+
+  @override
   InterfaceTypeImpl? get supertype {
     linkedData?.read(this);
     return _supertype;
@@ -6605,6 +6608,16 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceElementImpl get firstFragment;
 
+  @override
+  List<InterfaceElementImpl> get fragments {
+    return [
+      for (InterfaceElementImpl? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
   InheritanceManager3 get inheritanceManager {
     var library = library2 as LibraryElementImpl;
     return library.session.inheritanceManager;
@@ -6617,6 +6630,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
     // TODO(paulberry): eliminate this cast by changing the type of the `values`
     // parameter
     _interfaces = values.cast();
+  }
+
+  set isSimplyBounded(bool value) {
+    for (var fragment in fragments) {
+      fragment.isSimplyBounded = value;
+    }
   }
 
   @override
@@ -11267,6 +11286,12 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   bool get isSimplyBounded => firstFragment.isSimplyBounded;
+
+  set isSimplyBounded(bool value) {
+    for (var fragment in fragments) {
+      fragment.isSimplyBounded = value;
+    }
+  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_ALIAS;

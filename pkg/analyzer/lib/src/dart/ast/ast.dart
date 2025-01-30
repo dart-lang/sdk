@@ -5779,7 +5779,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  EnumFragment? get declaredFragment => declaredElement as EnumFragment?;
+  EnumElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -6826,8 +6826,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ExtensionTypeFragment? get declaredFragment =>
-      declaredElement as ExtensionTypeFragment;
+  ExtensionTypeElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -8807,8 +8806,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  TypeAliasFragment? get declaredFragment =>
-      declaredElement as TypeAliasFragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -9137,7 +9135,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  ElementImpl? declaredElement;
+  TypeAliasElementImpl? declaredElement;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -9163,7 +9161,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  Fragment? get declaredFragment => declaredElement as Fragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   GenericFunctionType? get functionType {
