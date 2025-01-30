@@ -1262,7 +1262,7 @@ class InferrerEngine {
   }
 
   /// Returns the type of [element].
-  TypeInformation typeOfParameter(Local element) {
+  ParameterTypeInformation typeOfParameter(Local element) {
     return types.getInferredTypeOfParameter(element);
   }
 
