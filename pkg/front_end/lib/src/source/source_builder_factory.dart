@@ -31,7 +31,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -791,7 +790,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixins,
+      required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -837,8 +836,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
-      required MixinApplicationBuilder? supertypeBuilder,
-      required List<TypeBuilder>? interfaceBuilders,
+      required List<TypeBuilder>? mixins,
+      required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset}) {
     String name = identifier.name;
@@ -857,8 +856,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
-    declarationFragment.supertypeBuilder = supertypeBuilder;
-    declarationFragment.interfaces = interfaceBuilders;
+    declarationFragment.mixins = mixins;
+    declarationFragment.interfaces = interfaces;
     declarationFragment.constructorReferences =
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
@@ -903,14 +902,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int nameOffset,
       required int endOffset}) {
     TypeBuilder? supertype;
-    MixinApplicationBuilder? mixinApplication;
+    List<TypeBuilder>? mixins;
     if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
       supertype = supertypeConstraints.first;
       if (supertypeConstraints.length > 1) {
-        mixinApplication = new MixinApplicationBuilder(
-            supertypeConstraints.skip(1).toList(),
-            supertype.fileUri!,
-            supertype.charOffset!);
+        mixins = supertypeConstraints.skip(1).toList();
       }
     }
 
@@ -935,7 +931,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.supertype = supertype;
-    declarationFragment.mixins = mixinApplication;
+    declarationFragment.mixins = mixins;
     declarationFragment.interfaces = interfaces;
     declarationFragment.constructorReferences =
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
@@ -950,20 +946,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  MixinApplicationBuilder addMixinApplication(
-      List<TypeBuilder> mixins, int charOffset) {
-    return new MixinApplicationBuilder(
-        mixins, _compilationUnit.fileUri, charOffset);
-  }
-
-  @override
   void addNamedMixinApplication(
       {required List<MetadataBuilder>? metadata,
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder mixinApplication,
+      required List<TypeBuilder> mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -988,7 +977,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         typeParameters: typeParameters,
         supertype: supertype,
-        mixins: mixinApplication,
+        mixins: mixins,
         interfaces: interfaces,
         compilationUnitScope: _compilationUnitScope));
   }
@@ -998,7 +987,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required SourceLibraryBuilder enclosingLibraryBuilder,
       required List<NominalParameterBuilder> unboundNominalParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixinApplicationBuilder,
+      required List<TypeBuilder>? mixins,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
@@ -1027,7 +1016,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             "interfaces", "unnamed mixin application", nameOffset, fileUri);
       }
     }
-    if (mixinApplicationBuilder != null) {
+    if (mixins != null) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -1098,10 +1087,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
-      for (int i = 0; i < mixinApplicationBuilder.mixins.length; i++) {
-        TypeBuilder mixin = mixinApplicationBuilder.mixins[i];
-        isNamedMixinApplication =
-            name != null && mixin == mixinApplicationBuilder.mixins.last;
+      for (int i = 0; i < mixins.length; i++) {
+        TypeBuilder mixin = mixins[i];
+        isNamedMixinApplication = name != null && mixin == mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (typeParameterNames != null) {

@@ -26,7 +26,6 @@ import '../builder/constructor_reference_builder.dart' as type;
 import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
-import '../builder/mixin_application_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../kernel/body_builder.dart' as type
@@ -137,11 +136,6 @@ class ValueKinds {
   static const ValueKind PrefixOrParserRecoveryOrNull =
       const UnionValueKind([PrefixOrNull, ParserRecovery]);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
-  static const ValueKind MixinApplicationBuilder =
-      const SingleValueKind<type.MixinApplicationBuilder>();
-  static const ValueKind MixinApplicationBuilderOrNull =
-      const SingleValueKind<type.MixinApplicationBuilder>(
-          NullValues.MixinApplicationBuilder);
   static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =

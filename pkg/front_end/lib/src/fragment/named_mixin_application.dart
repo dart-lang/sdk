@@ -16,7 +16,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
   final List<NominalParameterBuilder>? typeParameters;
   final TypeBuilder? supertype;
-  final MixinApplicationBuilder mixins;
+  final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
   final LookupScope compilationUnitScope;
 

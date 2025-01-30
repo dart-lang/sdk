@@ -25,7 +25,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
