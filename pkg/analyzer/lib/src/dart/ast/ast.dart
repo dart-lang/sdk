@@ -18119,8 +18119,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @experimental
   @override
-  TypeParameterFragment? get declaredFragment =>
-      declaredElement as TypeParameterFragment?;
+  TypeParameterElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken {

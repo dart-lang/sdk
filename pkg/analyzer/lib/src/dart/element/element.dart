@@ -11563,7 +11563,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  TypeParameterType instantiate({
+  TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl.v2(
