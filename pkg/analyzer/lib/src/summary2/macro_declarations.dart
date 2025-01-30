@@ -557,8 +557,8 @@ class DeclarationBuilder {
         return DynamicTypeImpl.instance;
       case InterfaceElementImpl():
         if (typeCode.typeArguments.isEmpty) {
-          return _typeSystem.instantiateInterfaceToBounds(
-            element: element,
+          return _typeSystem.instantiateInterfaceToBounds2(
+            element: element.asElement2,
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }

@@ -586,6 +586,12 @@ extension TypeAliasElementExtension on TypeAliasElement {
   }
 }
 
+extension TypeAliasElementImplExtension on TypeAliasElementImpl {
+  TypeAliasElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;

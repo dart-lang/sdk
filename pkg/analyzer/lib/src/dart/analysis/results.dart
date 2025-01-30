@@ -495,7 +495,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
-  LibraryElement2 get libraryElement2 => libraryFragment.element;
+  LibraryElementImpl get libraryElement2 {
+    return libraryFragment.element as LibraryElementImpl;
+  }
 
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;

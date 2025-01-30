@@ -30,6 +30,9 @@ class Options {
   /// expressions on demand in the current scope of a breakpoint.
   final bool emitFullCompiledKernel;
 
+  final String? reloadLastAcceptedKernel;
+  final String? reloadDeltaKernel;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -117,6 +120,8 @@ class Options {
       this.emitDebugMetadata = false,
       this.emitDebugSymbols = false,
       this.emitFullCompiledKernel = false,
+      this.reloadLastAcceptedKernel,
+      this.reloadDeltaKernel,
       this.summaryModules = const {},
       this.moduleFormats = const [],
       required this.moduleName,
@@ -143,6 +148,9 @@ class Options {
             emitDebugSymbols: args['emit-debug-symbols'] as bool,
             emitFullCompiledKernel:
                 args['experimental-output-compiled-kernel'] as bool,
+            reloadLastAcceptedKernel:
+                args['reload-last-accepted-kernel'] as String?,
+            reloadDeltaKernel: args['reload-delta-kernel'] as String?,
             summaryModules:
                 _parseCustomSummaryModules(args['summary'] as List<String>),
             moduleFormats: parseModuleFormatOption(args),
@@ -212,6 +220,17 @@ class Options {
               'Output a full kernel file for currently compiled module next to '
               'the .js output.',
           defaultsTo: false,
+          hide: true)
+      ..addOption('reload-last-accepted-kernel',
+          help: 'Provides a file path to read a dill file. The enclosed kernel '
+              'will be diffed against the kernel produced by this compilation '
+              'as an incremental hot reload step.',
+          hide: true)
+      ..addOption('reload-delta-kernel',
+          help: 'Provides a file path to write a dill file to. The resulting '
+              'kernel can be passed to future compilations via '
+              '`reload-last-accepted-kernel` to get incremental hot reload '
+              'checks.',
           hide: true)
       ..addMultiOption('precompiled-macro',
           help:

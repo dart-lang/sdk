@@ -754,7 +754,17 @@ class TypeSystemImpl implements TypeSystem {
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters;
+    return instantiateInterfaceToBounds2(
+      element: element.asElement2,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  InterfaceTypeImpl instantiateInterfaceToBounds2({
+    required covariant InterfaceElementImpl2 element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeParameters = element.typeParameters2;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiate(
       typeArguments: typeArguments,
@@ -800,7 +810,17 @@ class TypeSystemImpl implements TypeSystem {
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    var typeParameters = element.typeParameters;
+    return instantiateTypeAliasToBounds2(
+      element: element.asElement2,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  TypeImpl instantiateTypeAliasToBounds2({
+    required covariant TypeAliasElementImpl2 element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeParameters = element.typeParameters2;
     var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiate(
       typeArguments: typeArguments,
@@ -2050,10 +2070,10 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<DartType> _defaultTypeArguments(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElement2> typeParameters,
   ) {
     return typeParameters.map((typeParameter) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl2;
       return typeParameterImpl.defaultType!;
     }).toFixedList();
   }

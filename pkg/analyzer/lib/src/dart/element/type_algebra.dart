@@ -188,6 +188,12 @@ abstract class MapSubstitution extends Substitution {
   const MapSubstitution();
 
   Map<TypeParameterElement, DartType> get map;
+
+  Map<TypeParameterElement2, DartType> get map2 {
+    return map.map((key, value) {
+      return MapEntry(key.asElement2, value);
+    });
+  }
 }
 
 abstract class Substitution {
