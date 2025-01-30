@@ -8,6 +8,18 @@
 
 - Added `Iterable.withIterator` constructor.
 
+### Tools
+
+#### Dart Development Compiler (dartdevc)
+
+In order to align with dart2js semantics, DDC will now throw a runtime error
+when a redirecting factory is torn off and one of its optional non-nullable
+parameters is provided no value. The implicit null passed to the factory will
+not match the non-nullable type and this will now throw.
+
+In the future this will likely be a compile-time error and will be entirely
+disallowed.
+
 ## 3.7.0
 
 **Released on:** Unreleased
