@@ -52,7 +52,7 @@ typedef _Hasher<K> = int Function(K object);
 /// planets.addAll({4: 'Mars'});
 /// final gasGiants = {6: 'Jupiter', 5: 'Saturn'};
 /// planets.addEntries(gasGiants.entries);
-/// print(planets); // fx {5: Saturn, 6: Jupiter, 3: Earth, 4: Mars}
+/// print(planets); // fx {3: Earth, 4: Mars, 6: Jupiter, 5: Saturn}
 /// ```
 /// To check if the map is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of map entries, use [length].
@@ -64,10 +64,10 @@ typedef _Hasher<K> = int Function(K object);
 /// ```dart continued
 /// planets.forEach((key, value) {
 ///   print('$key \t $value');
-///   // 5        Saturn
-///   // 4        Mars
 ///   // 3        Earth
+///   // 4        Mars
 ///   // 6        Jupiter
+///   // 5        Saturn
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
@@ -84,8 +84,8 @@ typedef _Hasher<K> = int Function(K object);
 /// To remove an entry with a specific key, use [remove].
 /// ```dart continued
 /// final removeValue = planets.remove(5);
-/// print(removeValue); // Jupiter
-/// print(planets); // fx {4: Mars, 3: Earth, 5: Saturn}
+/// print(removeValue); // Saturn
+/// print(planets); // fx {3: Earth, 4: Mars, 6: Jupiter}
 /// ```
 /// To remove multiple entries at the same time, based on their keys and values,
 /// use [removeWhere].
