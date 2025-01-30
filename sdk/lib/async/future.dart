@@ -235,7 +235,7 @@ abstract interface class Future<T> {
   static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture = _Future<bool>.zoneValue(
+  static final _Future<bool> _falseFuture = new _Future<bool>.zoneValue(
     false,
     _rootZone,
   );
@@ -253,7 +253,7 @@ abstract interface class Future<T> {
   /// If a non-future value is returned, the returned future is completed
   /// with that value.
   factory Future(FutureOr<T> computation()) {
-    _Future<T> result = _Future<T>();
+    _Future<T> result = new _Future<T>();
     Timer.run(() {
       FutureOr<T> computationResult;
       try {
@@ -280,7 +280,7 @@ abstract interface class Future<T> {
   /// If calling [computation] returns a non-future value,
   /// the returned future is completed with that value.
   factory Future.microtask(FutureOr<T> computation()) {
-    _Future<T> result = _Future<T>();
+    _Future<T> result = new _Future<T>();
     scheduleMicrotask(() {
       FutureOr<T> computationResult;
       try {
@@ -314,7 +314,7 @@ abstract interface class Future<T> {
     try {
       result = computation();
     } catch (error, stackTrace) {
-      var future = _Future<T>();
+      var future = new _Future<T>();
       _asyncCompleteWithErrorCallback(future, error, stackTrace);
       return future;
     }
@@ -349,7 +349,7 @@ abstract interface class Future<T> {
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
-    return _Future<T>.immediate(value == null ? value as T : value);
+    return new _Future<T>.immediate(value == null ? value as T : value);
   }
 
   /// Creates a future that completes with an error.
@@ -371,7 +371,7 @@ abstract interface class Future<T> {
   /// ```
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
-    return _Future<T>.immediateError(error, stackTrace);
+    return new _Future<T>.immediateError(error, stackTrace);
   }
 
   /// Creates a future that runs its computation after a delay.
@@ -390,7 +390,7 @@ abstract interface class Future<T> {
   /// If [computation] is omitted,
   /// it will be treated as if [computation] was `() => null`,
   /// and the future will eventually complete with the `null` value.
-  /// In that case, [T] **must** be nullable.
+  /// In that case, [T] must be nullable.
   ///
   /// If calling [computation] throws, the created future will complete with the
   /// error.
@@ -405,32 +405,28 @@ abstract interface class Future<T> {
   /// });
   /// ```
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
+    if (computation == null && !typeAcceptsNull<T>()) {
+      throw ArgumentError.value(
+        null,
+        "computation",
+        "The type parameter is not nullable",
+      );
+    }
     _Future<T> result = _Future<T>();
-    if (computation == null) {
-      const T? defaultResult = null;
-      if (defaultResult is T) {
-        result._zone.createTimer(duration, () {
-          result._complete(defaultResult);
-        });
+    new Timer(duration, () {
+      if (computation == null) {
+        result._complete(null as T);
       } else {
-        throw ArgumentError(
-          "Required when the type parameter is not nullable",
-          "computation",
-        );
-      }
-    } else {
-      var registeredComputation = result._zone.registerCallback(computation);
-      result._zone.createTimer(duration, () {
         FutureOr<T> computationResult;
         try {
-          computationResult = result._zone.run(registeredComputation);
+          computationResult = computation();
         } catch (e, s) {
           _completeWithErrorCallback(result, e, s);
           return;
         }
         result._complete(computationResult);
-      });
-    }
+      }
+    });
     return result;
   }
 
@@ -708,63 +704,31 @@ abstract interface class Future<T> {
   /// // Outputs: 'Finished with 3'
   /// ```
   static Future<void> doWhile(FutureOr<bool> action()) {
-    var zone = Zone.current;
-    _Future<void> doneSignal = _Future<void>.zone(zone);
-
-    /// As a function instead of a tear-off because some compilers
-    /// prefer that. (Same overhead for creating, but tear-offs have
-    /// more complicated equality, which isn't used anyway.)
-    void completeError(Object e, StackTrace s) {
-      doneSignal._completeError(e, s);
-    }
-
-    // Bind/register the callbacks only once, and reuse them on every iteration.
-    // This avoids, e.g., deeply nested stack traces from the `stack_trace`
+    _Future<void> doneSignal = new _Future<void>();
+    late void Function(bool) nextIteration;
+    // Bind this callback explicitly so that each iteration isn't bound in the
+    // context of all the previous iterations' callbacks.
+    // This avoids, e.g., deeply nested stack traces from the stack trace
     // package.
-    void Function(bool)? registeredNextIteration;
-    void Function(Object, StackTrace)? registeredCompleteError;
-
-    /// True until the first asynchronous gap.
-    bool sync = true;
-    void nextIteration(bool keepGoing) {
+    nextIteration = Zone.current.bindUnaryCallbackGuarded((bool keepGoing) {
       while (keepGoing) {
         FutureOr<bool> result;
         try {
           result = action();
         } catch (error, stackTrace) {
-          if (sync) {
-            // Complete asynchronously if still running synchronously.
-            _asyncCompleteWithErrorCallback(doneSignal, error, stackTrace);
-          } else {
-            _completeWithErrorCallback(doneSignal, error, stackTrace);
-          }
+          // Cannot use _completeWithErrorCallback because it completes
+          // the future synchronously.
+          _asyncCompleteWithErrorCallback(doneSignal, error, stackTrace);
           return;
         }
         if (result is Future<bool>) {
-          if (result is _Future<bool>) {
-            var onValue =
-                registeredNextIteration ??= zone.registerUnaryCallback(
-                  nextIteration,
-                );
-            var onError =
-                registeredCompleteError ??= zone.registerBinaryCallback(
-                  completeError,
-                );
-            // Reuse registered callbacks when it's a `_Future`.
-            result._addThenListener(zone, onValue, onError);
-          } else {
-            // Let `then` do callback registration for non-native futures.
-            // It will do that anyway.
-            result.then(nextIteration, onError: completeError);
-          }
-          sync = false;
+          result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
         keepGoing = result;
       }
       doneSignal._complete(null);
-    }
-
+    });
     nextIteration(true);
     return doneSignal;
   }
@@ -934,7 +898,7 @@ abstract interface class Future<T> {
 
   /// Stop waiting for this future after [timeLimit] has passed.
   ///
-  /// Creates a _timeout future_ that completes
+  /// Creates a new _timeout future_ that completes
   /// with the same result as this future, the _source future_,
   /// *if* the source future completes in time.
   ///
@@ -1195,7 +1159,7 @@ class TimeoutException implements Exception {
 /// one — you can use a Completer as follows:
 /// ```dart
 /// class AsyncOperation {
-///   final Completer _completer = Completer();
+///   final Completer _completer = new Completer();
 ///
 ///   Future<T> doOperation() {
 ///     _startOperation();
@@ -1234,7 +1198,7 @@ abstract interface class Completer<T> {
   ///   completer.complete('completion value');
   /// }
   /// ```
-  factory Completer() = _AsyncCompleter<T>;
+  factory Completer() => new _AsyncCompleter<T>();
 
   /// Completes the future synchronously.
   ///
@@ -1285,7 +1249,7 @@ abstract interface class Completer<T> {
   ///   foo();  // In this case, foo() runs after bar().
   /// });
   /// ```
-  factory Completer.sync() = _SyncCompleter<T>;
+  factory Completer.sync() => new _SyncCompleter<T>();
 
   /// The future that is completed by this completer.
   ///
@@ -1367,7 +1331,7 @@ abstract interface class Completer<T> {
   bool get isCompleted;
 }
 
-// Helper function completing a `_Future` with error, but checking the zone
+// Helper function completing a _Future with error, but checking the zone
 // for error replacement and missing stack trace first.
 // Only used for errors that are *caught*.
 // A user provided error object should use `_interceptUserError` which

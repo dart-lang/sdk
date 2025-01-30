@@ -33,14 +33,6 @@ abstract interface class Timer {
   ///
   /// The [callback] function is invoked after the given [duration].
   ///
-  /// The [callback] is registered in the current zone using
-  /// [Zone.registerCallback], and the timer is created using
-  /// that zone's [Zone.createTimer].
-  /// The default timer implementation will run the registered callback
-  /// in that zone using [Zone.run] when the timer expires,
-  /// and if the callback throws, errors will be reported as an
-  /// uncaught asynchronous error using the zone's [Zone.handleUncaughtError].
-  ///
   /// Example:
   /// ```dart
   /// final timer =
@@ -48,11 +40,15 @@ abstract interface class Timer {
   /// // Outputs after 5 seconds: "Timer finished".
   /// ```
   factory Timer(Duration duration, void Function() callback) {
-    var zone = Zone._current;
-    if (!identical(zone, _rootZone)) {
-      callback = zone.registerCallback(callback);
+    if (Zone.current == Zone.root) {
+      // No need to bind the callback. We know that the root's timer will
+      // be invoked in the root zone.
+      return Zone.current.createTimer(duration, callback);
     }
-    return zone.createTimer(duration, callback);
+    return Zone.current.createTimer(
+      duration,
+      Zone.current.bindCallbackGuarded(callback),
+    );
   }
 
   /// Creates a new repeating timer.
@@ -60,19 +56,8 @@ abstract interface class Timer {
   /// The [callback] is invoked repeatedly with [duration] intervals until
   /// canceled with the [cancel] function.
   ///
-  /// The [callback] is registered in the current zone using
-  /// [Zone.registerUnaryCallback], and the timer is created using
-  /// that zone's [Zone.createPeriodicTimer].
-  /// The default timer implementation will run the registered callback
-  /// in that zone using [Zone.runUnary] when the timer ticks,
-  /// and if the callback throws, errors will be reported as an
-  /// uncaught asynchronous error using the zone's [Zone.handleUncaughtError].
-  ///
-  /// If the callback throws, that will not cancel the timer.
-  ///
   /// The exact timing depends on the underlying timer implementation.
   /// No more than `n` callbacks will be made in `duration * n` time,
-  /// within the precision of the timer's granularity,
   /// but the time between two consecutive callbacks
   /// can be shorter and longer than `duration`.
   ///
@@ -101,23 +86,25 @@ abstract interface class Timer {
   /// // "Cancel timer"
   /// ```
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
-    Zone zone = Zone._current;
-    if (!identical(zone, _rootZone)) {
-      callback = zone.registerUnaryCallback(callback);
+    if (Zone.current == Zone.root) {
+      // No need to bind the callback. We know that the root's timer will
+      // be invoked in the root zone.
+      return Zone.current.createPeriodicTimer(duration, callback);
     }
-    return zone.createPeriodicTimer(duration, callback);
+    var boundCallback = Zone.current.bindUnaryCallbackGuarded<Timer>(callback);
+    return Zone.current.createPeriodicTimer(duration, boundCallback);
   }
 
   /// Runs the given [callback] asynchronously as soon as possible.
   ///
-  /// This function is equivalent to `Timer(Duration.zero, callback)`.
+  /// This function is equivalent to `new Timer(Duration.zero, callback)`.
   ///
   /// Example:
   /// ```dart
   /// Timer.run(() => print('timer run'));
   /// ```
   static void run(void Function() callback) {
-    Timer(Duration.zero, callback);
+    new Timer(Duration.zero, callback);
   }
 
   /// Cancels the timer.

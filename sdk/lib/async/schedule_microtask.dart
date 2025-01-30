@@ -4,12 +4,12 @@
 
 part of dart.async;
 
-/// Entry of linked list of scheduled microtasks.
+typedef void _AsyncCallback();
+
 class _AsyncCallbackEntry {
-  final Zone zone;
-  final void Function() callback;
+  final _AsyncCallback callback;
   _AsyncCallbackEntry? next;
-  _AsyncCallbackEntry(this.zone, this.callback);
+  _AsyncCallbackEntry(this.callback);
 }
 
 /// Head of single linked list of pending callbacks.
@@ -21,9 +21,8 @@ _AsyncCallbackEntry? _lastCallback;
 /// Tail of priority callbacks added by the currently executing callback.
 ///
 /// Priority callbacks are put at the beginning of the
-/// callback queue, after prior priority callbacks, so that if one callback
-/// schedules more than one priority callback, they are still enqueued
-/// in scheduling order.
+/// callback queue, so that if one callback schedules more than one
+/// priority callback, they are still enqueued in scheduling order.
 _AsyncCallbackEntry? _lastPriorityCallback;
 
 /// Whether we are currently inside the callback loop.
@@ -38,19 +37,7 @@ void _microtaskLoop() {
     var next = entry.next;
     _nextCallback = next;
     if (next == null) _lastCallback = null;
-    var zone = entry.zone;
-    var callback = entry.callback;
-    if (identical(_rootZone, zone)) {
-      callback();
-    } else if (_rootZone.inSameErrorZone(zone)) {
-      // Let an error reach event loop synchronously,
-      // gives better error reporting. The surrounding `_startMicrotaskLoop`
-      // will reschedule as the next microtask to continue.
-      zone.run(callback);
-    } else {
-      // If it's an error zone, handle its own errors.
-      _runGuardedInZone(zone, callback);
-    }
+    (entry.callback)();
   }
 }
 
@@ -73,8 +60,8 @@ void _startMicrotaskLoop() {
 ///
 /// The microtask is called after all other currently scheduled
 /// microtasks, but as part of the current system event.
-void _scheduleAsyncCallback(Zone zone, void Function() callback) {
-  _AsyncCallbackEntry newEntry = _AsyncCallbackEntry(zone, callback);
+void _scheduleAsyncCallback(_AsyncCallback callback) {
+  _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
   _AsyncCallbackEntry? lastCallback = _lastCallback;
   if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
@@ -93,13 +80,13 @@ void _scheduleAsyncCallback(Zone zone, void Function() callback) {
 /// It is only used internally to give higher priority to error reporting.
 ///
 /// Is always run in the root zone.
-void _schedulePriorityAsyncCallback(Zone zone, void Function() callback) {
+void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
   if (_nextCallback == null) {
-    _scheduleAsyncCallback(zone, callback);
+    _scheduleAsyncCallback(callback);
     _lastPriorityCallback = _lastCallback;
     return;
   }
-  _AsyncCallbackEntry entry = _AsyncCallbackEntry(zone, callback);
+  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
   _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
   if (lastPriorityCallback == null) {
     entry.next = _nextCallback;
@@ -140,16 +127,28 @@ void _schedulePriorityAsyncCallback(Zone zone, void Function() callback) {
 /// better asynchronous code with fewer surprises.
 @pragma('vm:entry-point', 'call')
 void scheduleMicrotask(void Function() callback) {
-  Zone currentZone = Zone._current;
+  _Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {
-    _rootScheduleMicrotask(null, null, currentZone, callback);
-  } else {
-    currentZone.scheduleMicrotask(currentZone.registerCallback(callback));
+    // No need to bind the callback. We know that the root's scheduleMicrotask
+    // will be invoked in the root zone.
+    _rootScheduleMicrotask(null, null, _rootZone, callback);
+    return;
   }
+  _ZoneFunction implementation = currentZone._scheduleMicrotask;
+  if (identical(_rootZone, implementation.zone) &&
+      _rootZone.inSameErrorZone(currentZone)) {
+    _rootScheduleMicrotask(
+      null,
+      null,
+      currentZone,
+      currentZone.registerCallback(callback),
+    );
+    return;
+  }
+  Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
 }
 
 class _AsyncRun {
   /// Schedule the given callback before any other event in the event-loop.
-  /// Interface to the platform's microtask event loop.
   external static void _scheduleImmediate(void Function() callback);
 }
