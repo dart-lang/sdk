@@ -17,7 +17,6 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -218,7 +217,7 @@ abstract class BuilderFactory {
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixins,
+      required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -230,8 +229,8 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
-      required MixinApplicationBuilder? supertypeBuilder,
-      required List<TypeBuilder>? interfaceBuilders,
+      required List<TypeBuilder>? mixins,
+      required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset});
 
@@ -282,14 +281,11 @@ abstract class BuilderFactory {
       required List<NominalParameterBuilder>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder mixinApplication,
+      required List<TypeBuilder> mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
       required int endOffset});
-
-  MixinApplicationBuilder addMixinApplication(
-      List<TypeBuilder> mixins, int charOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder>? metadata,

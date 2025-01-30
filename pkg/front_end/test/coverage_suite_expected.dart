@@ -148,10 +148,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 97,
     missCount: 0,
   ),
-  // 99.88331388564761%.
+  // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
     hitCount: 856,
-    missCount: 1,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_serializer.dart": (
@@ -183,10 +183,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 31,
     missCount: 0,
   ),
-  // 99.26470588235294%.
+  // 100.0%.
   "package:front_end/src/base/modifiers.dart": (
     hitCount: 135,
-    missCount: 1,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
@@ -208,10 +208,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 260,
     missCount: 0,
   ),
-  // 99.38837920489296%.
+  // 100.0%.
   "package:front_end/src/base/scope.dart": (
     hitCount: 650,
-    missCount: 4,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/ticker.dart": (
@@ -615,7 +615,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3735,
+    hitCount: 3731,
     missCount: 0,
   ),
   // 100.0%.
@@ -640,7 +640,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/expression_generator.dart": (
-    hitCount: 2522,
+    hitCount: 2527,
     missCount: 0,
   ),
   // 100.0%.
@@ -944,10 +944,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1003,
     missCount: 0,
   ),
-  // 97.91666666666666%.
+  // 100.0%.
   "package:front_end/src/source/source_function_builder.dart": (
     hitCount: 47,
-    missCount: 1,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
@@ -1109,10 +1109,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 20,
     missCount: 0,
   ),
-  // 92.0%.
+  // 100.0%.
   "package:front_end/src/util/local_stack.dart": (
     hitCount: 23,
-    missCount: 2,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/util/parser_ast.dart": (

@@ -604,9 +604,6 @@ class B extends A {
       final b;
       const D(c) : b = c + 2, super(c + 1);
     }
-    class E {
-      const E() : assert(true_!);
-    }
   ''',
     [
       ConstantData(r'const A()', 'ConstructedConstant(A())'),
@@ -615,7 +612,6 @@ class B extends A {
         r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))',
       ),
-      ConstantData(r'const E()', 'ConstructedConstant(E())'),
     ],
   ),
   TestData(

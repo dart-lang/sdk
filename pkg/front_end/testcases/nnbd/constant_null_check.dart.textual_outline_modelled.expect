@@ -18,3 +18,5 @@ const int b = a!;
 expect(expected, actual) {}
 
 main() {}
+
+test() {}
