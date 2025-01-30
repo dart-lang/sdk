@@ -186,9 +186,6 @@ class ErrorsResultImpl implements ErrorsResult {
   final bool isLibrary;
 
   @override
-  final bool isMacroPart;
-
-  @override
   final bool isPart;
 
   @override
@@ -216,11 +213,13 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.uri,
     required this.lineInfo,
     required this.isLibrary,
-    required this.isMacroPart,
     required this.isPart,
     required this.errors,
     required this.analysisOptions,
   });
+
+  @override
+  bool get isMacroPart => false;
 
   @override
   String get path => file.path;
@@ -256,9 +255,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   File get file => fileState.resource;
 
   @override
-  bool get isMacroPart {
-    return fileState.isMacroPart;
-  }
+  bool get isMacroPart => false;
 
   @override
   String get path => fileState.path;

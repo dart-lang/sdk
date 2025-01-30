@@ -5,7 +5,6 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'dart:collection';
-import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -15,7 +14,6 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
@@ -37,14 +35,12 @@ class LinkedElementFactory {
   AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
-  final MacroSupport? macroSupport;
   bool isApplyingInformativeData = false;
 
   LinkedElementFactory(
     this.analysisContext,
     this.analysisSession,
     this.rootReference,
-    this.macroSupport,
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
@@ -80,26 +76,6 @@ class LinkedElementFactory {
 
   void addBundle(BundleReader bundle) {
     addLibraries(bundle.libraryMap);
-  }
-
-  /// Adds newly compiled kernel for a macro bundle.
-  void addKernelMacroBundle({
-    required KernelMacroSupport macroSupport,
-    required Uint8List kernelBytes,
-    required Set<Uri> libraries,
-  }) {
-    macroSupport.add(
-      kernelBytes: kernelBytes,
-      libraries: libraries,
-    );
-    // Check if elements of libraries are ready.
-    // This is the case when we have just linked them.
-    for (var uri in libraries) {
-      var element = rootReference['$uri']?.element;
-      if (element is LibraryElementImpl) {
-        _setMacroExecutorForLibrary(element);
-      }
-    }
   }
 
   void addLibraries(Map<Uri, LibraryReader> libraries) {
@@ -165,7 +141,6 @@ class LinkedElementFactory {
       librarySource: librarySource,
     );
     setLibraryTypeSystem(libraryElement);
-    _setMacroExecutorForLibrary(libraryElement);
     return libraryElement;
   }
 
@@ -264,7 +239,6 @@ class LinkedElementFactory {
     addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
     for (var uri in uriSet) {
       _libraryReaders.remove(uri);
-      macroSupport?.removeLibrary(uri);
       var libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }
@@ -314,15 +288,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(Element? libraryElement) {
-    if (libraryElement is LibraryElementImpl) {
-      libraryElement.bundleMacroExecutor?.dispose();
-    }
-  }
-
-  void _setMacroExecutorForLibrary(LibraryElementImpl element) {
-    var uri = element.source.uri;
-    var macroExecutor = macroSupport?.forLibrary(uri);
-    element.bundleMacroExecutor = macroExecutor;
-  }
+  void _disposeLibrary(Element? libraryElement) {}
 }

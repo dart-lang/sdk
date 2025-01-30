@@ -16,8 +16,6 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -177,9 +175,6 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
-  /// By default the kernel implementation is used, this can override it.
-  MacroSupportFactory? macroSupportFactory;
-
   AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
       AnalyzerStatePrinterConfiguration();
 
@@ -210,7 +205,6 @@ abstract class ContextResolutionTest
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
-      macroSupportFactory: macroSupportFactory,
       drainStreams: false,
     );
 
@@ -342,9 +336,6 @@ abstract class ContextResolutionTest
   @mustCallSuper
   Future<void> tearDown() async {
     await disposeAnalysisContextCollection();
-    KernelCompilationService.disposeDelayed(
-      const Duration(milliseconds: 500),
-    );
   }
 
   /// Override this method to update [analysisOptions] for every context root,
@@ -448,24 +439,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     return bundleFile;
   }
 
-  bool configureWithCommonMacros() {
-    try {
-      writeTestPackageConfig(
-        PackageConfigFileBuilder(),
-        macrosEnvironment: MacrosEnvironment.instance,
-      );
-
-      newFile(
-        '$testPackageLibPath/append.dart',
-        getMacroCode('append.dart'),
-      );
-
-      return true;
-    } catch (_) {
-      markTestSkipped('Cannot initialize macro environment.');
-      return false;
-    }
-  }
 
   @override
   void setUp() {

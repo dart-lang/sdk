@@ -32,15 +32,11 @@ import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:macros/macros.dart' as macro;
-import 'package:macros/src/executor.dart' as macro;
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -138,7 +134,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
@@ -244,7 +239,6 @@ class ConstructorElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor = reader.readElement() as ConstructorElement?;
@@ -492,7 +486,6 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
     if (element is ConstFieldElementImpl) {
@@ -527,7 +520,6 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
     applyConstantOffsets?.perform();
@@ -589,7 +581,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       unitElement: unitElement,
     );
 
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     element.fieldNameNonPromotabilityInfo =
@@ -1955,7 +1946,6 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
     applyConstantOffsets?.perform();
@@ -1983,7 +1973,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
 
@@ -2139,9 +2128,6 @@ class ResolutionReader {
     return _reader.readEnum(values);
   }
 
-  List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
-    return readTypedList(_readMacroDiagnostic);
-  }
 
   Map<K, V> readMap<K, V>({
     required K Function() readKey,
@@ -2445,89 +2431,7 @@ class ResolutionReader {
     return readTypedList(_readInterfaceType);
   }
 
-  AnalyzerMacroDiagnostic _readMacroDiagnostic() {
-    var kind = readEnum(MacroDiagnosticKind.values);
-    switch (kind) {
-      case MacroDiagnosticKind.argument:
-        return ArgumentMacroDiagnostic(
-          annotationIndex: readUInt30(),
-          argumentIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-        );
-      case MacroDiagnosticKind.exception:
-        return ExceptionMacroDiagnostic(
-          annotationIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-          stackTrace: _reader.readStringUtf8(),
-        );
-      case MacroDiagnosticKind.introspectionCycle:
-        return DeclarationsIntrospectionCycleDiagnostic(
-          annotationIndex: readUInt30(),
-          introspectedElement: readElement() as ElementImpl,
-          components: readTypedList(() {
-            return DeclarationsIntrospectionCycleComponent(
-              element: readElement() as ElementImpl,
-              annotationIndex: readUInt30(),
-              introspectedElement: readElement() as ElementImpl,
-            );
-          }),
-        );
-      case MacroDiagnosticKind.invalidTarget:
-        return InvalidMacroTargetDiagnostic(
-          annotationIndex: readUInt30(),
-          supportedKinds: _reader.readStringUtf8List(),
-        );
-      case MacroDiagnosticKind.macro:
-        return MacroDiagnostic(
-          severity: readEnum(macro.Severity.values),
-          message: _readMacroDiagnosticMessage(),
-          contextMessages: readTypedList(_readMacroDiagnosticMessage),
-          correctionMessage: _reader.readOptionalStringUtf8(),
-        );
-      case MacroDiagnosticKind.notAllowedDeclaration:
-        return NotAllowedDeclarationDiagnostic(
-          annotationIndex: readUInt30(),
-          phase: readEnum(macro.Phase.values),
-          code: _reader.readStringUtf8(),
-          nodeRanges: readTypedList(readSourceRange),
-        );
-    }
-  }
 
-  MacroDiagnosticMessage _readMacroDiagnosticMessage() {
-    var message = _reader.readStringUtf8();
-
-    MacroDiagnosticTarget target;
-    var targetKind = readEnum(MacroDiagnosticTargetKind.values);
-    switch (targetKind) {
-      case MacroDiagnosticTargetKind.application:
-        target = ApplicationMacroDiagnosticTarget(
-          annotationIndex: readUInt30(),
-        );
-      case MacroDiagnosticTargetKind.element:
-        var element = readElement();
-        target = ElementMacroDiagnosticTarget(
-          element: element as ElementImpl,
-        );
-      case MacroDiagnosticTargetKind.elementAnnotation:
-        var element = readElement();
-        target = ElementAnnotationMacroDiagnosticTarget(
-          element: element as ElementImpl,
-          annotationIndex: readUInt30(),
-        );
-      case MacroDiagnosticTargetKind.type:
-        var location = TypeAnnotationLocationReader(
-          reader: _reader,
-          readElement: readElement,
-        ).read();
-        target = TypeAnnotationMacroDiagnosticTarget(location: location);
-    }
-
-    return MacroDiagnosticMessage(
-      message: message,
-      target: target,
-    );
-  }
 
   List<T> _readNodeList<T>() {
     return readTypedList(() {
@@ -2654,7 +2558,6 @@ class TopLevelVariableElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
     if (element is ConstTopLevelVariableElementImpl) {
@@ -2690,7 +2593,6 @@ class TypeAliasElementLinkedData
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();
     applyConstantOffsets?.perform();

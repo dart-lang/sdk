@@ -25,7 +25,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -57,13 +56,10 @@ import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
-import 'package:macros/macros.dart' as macro;
 
 class EnclosingExecutableContext {
   final ExecutableElement? element;
@@ -536,7 +532,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
-      _reportMacroDiagnostics(declaredFragment);
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -628,7 +623,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
-      _reportMacroDiagnostics(element);
       super.visitConstructorDeclaration(node);
     });
   }
@@ -904,7 +898,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           augmentKeyword: node.augmentKeyword,
           element: element,
         );
-        _reportMacroDiagnostics(element);
       }
 
       super.visitFieldDeclaration(node);
@@ -992,7 +985,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
-      _reportMacroDiagnostics(element);
       super.visitFunctionDeclaration(node);
     });
   }
@@ -1070,7 +1062,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForMainFunction1(node.name, node.declaredElement!);
     _checkForTypeAliasCannotReferenceItself(
         node.name, node.declaredElement as TypeAliasElementImpl);
-    _reportMacroDiagnostics(element);
     super.visitGenericTypeAlias(node);
   }
 
@@ -1162,15 +1153,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (node.element case var element?) {
-      _reportMacroDiagnostics(element);
-    }
-
-    super.visitLibraryDirective(node);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _typeArgumentsVerifier.checkListLiteral(node);
     _checkForListElementTypeNotAssignable(node);
@@ -1219,7 +1201,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
-      _reportMacroDiagnostics(element);
       super.visitMethodDeclaration(node);
     });
   }
@@ -1293,7 +1274,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _reportMacroDiagnostics(declaredFragment);
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -1612,7 +1592,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
-      _reportMacroDiagnostics(element);
     }
 
     super.visitTopLevelVariableDeclaration(node);
@@ -6490,14 +6469,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     return null;
   }
 
-  void _reportMacroDiagnostics(MacroTargetElement element) {
-    _MacroDiagnosticsReporter(
-      libraryContext: libraryContext,
-      errorReporter: errorReporter,
-      element: element,
-    ).report();
-  }
-
   void _withEnclosingExecutable(
     ExecutableElement element,
     void Function() operation,
@@ -6680,34 +6651,6 @@ class LibraryVerificationContext {
     required this.files,
   });
 
-  _MacroSyntacticTypeAnnotationLocation? declarationByElement(Element element) {
-    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
-    if (unitElement == null) {
-      return null;
-    }
-
-    var uri = unitElement.source.uri;
-    var fileAnalysis = files.entries.firstWhereOrNull((entry) {
-      return entry.key.uri == uri;
-    })?.value;
-    if (fileAnalysis == null) {
-      return null;
-    }
-
-    var locator = DeclarationByElementLocator(element);
-    fileAnalysis.unit.accept(locator);
-
-    var node = locator.result;
-    if (node == null) {
-      return null;
-    }
-
-    return _MacroSyntacticTypeAnnotationLocation(
-      fileAnalysis: fileAnalysis,
-      entity: node,
-    );
-  }
-
   bool libraryCycleContains(Uri uri) {
     return libraryKind.libraryCycle.libraryUris.contains(uri);
   }
@@ -6718,507 +6661,6 @@ class LibraryVerificationContext {
 
   Set<InterfaceElement> setOfOn(MixinElement declaration) {
     return _setOfOnMaps[declaration] ??= Set.identity();
-  }
-}
-
-class _MacroDiagnosticsReporter {
-  final LibraryVerificationContext libraryContext;
-  final ErrorReporter errorReporter;
-  final MacroTargetElement element;
-
-  _MacroDiagnosticsReporter({
-    required this.libraryContext,
-    required this.errorReporter,
-    required this.element,
-  });
-
-  void report() {
-    _reportApplicationFromSameLibraryCycle();
-
-    for (var diagnostic in element.macroDiagnostics) {
-      switch (diagnostic) {
-        case ArgumentMacroDiagnostic():
-          _reportArgument(diagnostic);
-        case DeclarationsIntrospectionCycleDiagnostic():
-          _reportIntrospectionCycle(diagnostic);
-        case ExceptionMacroDiagnostic():
-          _reportException(diagnostic);
-        case InvalidMacroTargetDiagnostic():
-          _reportInvalidTarget(diagnostic);
-        case MacroDiagnostic():
-          _reportCustom(diagnostic);
-        case NotAllowedDeclarationDiagnostic():
-          _reportNotAllowedDeclaration(diagnostic);
-      }
-    }
-  }
-
-  DiagnosticMessage _convertMessage(MacroDiagnosticMessage object) {
-    var target = object.target;
-    switch (target) {
-      case ApplicationMacroDiagnosticTarget():
-        var node = element.annotationAst(target.annotationIndex);
-        return DiagnosticMessageImpl(
-          filePath: element.source!.fullName,
-          length: node.length,
-          message: object.message,
-          offset: node.offset,
-          url: null,
-        );
-      case ElementMacroDiagnosticTarget():
-        var element = target.element;
-        return DiagnosticMessageImpl(
-          filePath: element.source!.fullName,
-          length: element.nameLength,
-          message: object.message,
-          offset: element.nameOffset,
-          url: null,
-        );
-      case TypeAnnotationMacroDiagnosticTarget():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
-      case ElementAnnotationMacroDiagnosticTarget():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
-    }
-  }
-
-  void _reportApplicationFromSameLibraryCycle() {
-    for (var annotation in element.metadata) {
-      var element = annotation.element;
-      if (element is! ConstructorElementImpl) continue;
-
-      var macroElement = element.enclosingElement3;
-      if (macroElement is! ClassElementImpl) continue;
-      if (!macroElement.isMacro) continue;
-
-      var macroUri = macroElement.library.source.uri;
-      if (!libraryContext.libraryCycleContains(macroUri)) continue;
-
-      errorReporter.atNode(
-        _annotationNameIdentifier(annotation),
-        CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
-        arguments: [
-          macroElement.name,
-        ],
-      );
-    }
-  }
-
-  void _reportArgument(ArgumentMacroDiagnostic diagnostic) {
-    var annotation = element.annotationAst(diagnostic.annotationIndex);
-    var arguments = annotation.arguments!.arguments;
-    errorReporter.atNode(
-      arguments[diagnostic.argumentIndex],
-      CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR,
-      arguments: [diagnostic.message],
-    );
-  }
-
-  void _reportCustom(MacroDiagnostic diagnostic) {
-    var errorCode = switch (diagnostic.severity) {
-      macro.Severity.info => HintCode.MACRO_INFO,
-      macro.Severity.warning => WarningCode.MACRO_WARNING,
-      macro.Severity.error => CompileTimeErrorCode.MACRO_ERROR,
-    };
-
-    var contextMessages =
-        diagnostic.contextMessages.map(_convertMessage).toList();
-
-    var target = diagnostic.message.target;
-    switch (target) {
-      case ApplicationMacroDiagnosticTarget():
-        var node = element.annotationAst(target.annotationIndex);
-        errorReporter.reportError(
-          AnalysisError.forValues(
-            source: element.source!,
-            offset: node.offset,
-            length: node.length,
-            errorCode: errorCode,
-            message: diagnostic.message.message,
-            correctionMessage: diagnostic.correctionMessage,
-            contextMessages: contextMessages,
-          ),
-        );
-      case ElementMacroDiagnosticTarget():
-        errorReporter.reportError(
-          AnalysisError.forValues(
-            source: target.element.source!,
-            offset: target.element.nameOffset,
-            length: target.element.nameLength,
-            errorCode: errorCode,
-            message: diagnostic.message.message,
-            correctionMessage: diagnostic.correctionMessage,
-            contextMessages: contextMessages,
-          ),
-        );
-      case ElementAnnotationMacroDiagnosticTarget():
-        var location = libraryContext.declarationByElement(
-          target.element,
-        );
-        if (location == null) {
-          return;
-        }
-        var node = target.element.annotationAst(target.annotationIndex);
-        location.fileAnalysis.errorReporter.reportError(
-          AnalysisError.forValues(
-            source: target.element.source!,
-            offset: node.offset,
-            length: node.length,
-            errorCode: errorCode,
-            message: diagnostic.message.message,
-            correctionMessage: diagnostic.correctionMessage,
-            contextMessages: contextMessages,
-          ),
-        );
-      case TypeAnnotationMacroDiagnosticTarget():
-        var nodeLocation = _MacroTypeAnnotationLocationConverter(
-          libraryVerificationContext: libraryContext,
-        ).convert(target.location);
-        var fileAnalysis = nodeLocation?.fileAnalysis;
-        var errorEntity = nodeLocation?.entity;
-        if (fileAnalysis != null && errorEntity != null) {
-          fileAnalysis.errorReporter.reportError(
-            AnalysisError.forValues(
-              source: fileAnalysis.element.source,
-              offset: errorEntity.offset,
-              length: errorEntity.length,
-              errorCode: errorCode,
-              message: diagnostic.message.message,
-              correctionMessage: diagnostic.correctionMessage,
-              contextMessages: contextMessages,
-            ),
-          );
-        }
-    }
-  }
-
-  void _reportException(ExceptionMacroDiagnostic diagnostic) {
-    errorReporter.atNode(
-      element.annotationAst(diagnostic.annotationIndex),
-      CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION,
-      arguments: [
-        diagnostic.message,
-        diagnostic.stackTrace,
-      ],
-    );
-  }
-
-  void _reportIntrospectionCycle(
-    DeclarationsIntrospectionCycleDiagnostic diagnostic,
-  ) {
-    var messages = diagnostic.components.map<DiagnosticMessage>(
-      (component) {
-        var target = _macroAnnotationNameIdentifier(
-          element: component.element,
-          annotationIndex: component.annotationIndex,
-        );
-        var introspectedName = component.introspectedElement.name;
-        return DiagnosticMessageImpl(
-          filePath: component.element.source!.fullName,
-          length: target.length,
-          message: "The macro application introspects '$introspectedName'.",
-          offset: target.offset,
-          url: null,
-        );
-      },
-    ).toList();
-
-    errorReporter.atNode(
-      _macroAnnotationNameIdentifier(
-        element: element,
-        annotationIndex: diagnostic.annotationIndex,
-      ),
-      CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE,
-      arguments: [diagnostic.introspectedElement.name!],
-      contextMessages: messages,
-    );
-  }
-
-  void _reportInvalidTarget(InvalidMacroTargetDiagnostic diagnostic) {
-    errorReporter.atNode(
-      element.annotationAst(diagnostic.annotationIndex),
-      CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET,
-      arguments: [
-        diagnostic.supportedKinds.commaSeparatedWithOr,
-      ],
-    );
-  }
-
-  void _reportNotAllowedDeclaration(
-    NotAllowedDeclarationDiagnostic diagnostic,
-  ) {
-    errorReporter.atNode(
-      element.annotationAst(diagnostic.annotationIndex),
-      CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION,
-      arguments: [
-        diagnostic.phase.name,
-        diagnostic.nodeRanges
-            .map((r) => '(${r.offset}, ${r.length})')
-            .join(' '),
-        diagnostic.code.trimRight(),
-      ],
-    );
-  }
-
-  static SimpleIdentifier _annotationNameIdentifier(
-    ElementAnnotationImpl annotation,
-  ) {
-    var fullName = annotation.annotationAst.name;
-    if (fullName is PrefixedIdentifierImpl) {
-      return fullName.identifier;
-    } else {
-      return fullName as SimpleIdentifierImpl;
-    }
-  }
-
-  static SimpleIdentifier _macroAnnotationNameIdentifier({
-    required ElementImpl element,
-    required int annotationIndex,
-  }) {
-    var annotationNode = element.annotationAst(annotationIndex);
-    var fullName = annotationNode.name;
-    if (fullName is PrefixedIdentifierImpl) {
-      return fullName.identifier;
-    } else {
-      return fullName as SimpleIdentifierImpl;
-    }
-  }
-}
-
-class _MacroSyntacticTypeAnnotationLocation {
-  final FileAnalysis fileAnalysis;
-
-  /// Usually a [AstNode], sometimes [Token] if the type is omitted.
-  final SyntacticEntity entity;
-
-  _MacroSyntacticTypeAnnotationLocation({
-    required this.fileAnalysis,
-    required this.entity,
-  });
-
-  _MacroSyntacticTypeAnnotationLocation next(SyntacticEntity entity) {
-    return _MacroSyntacticTypeAnnotationLocation(
-      fileAnalysis: fileAnalysis,
-      entity: entity,
-    );
-  }
-}
-
-class _MacroTypeAnnotationLocationConverter {
-  final LibraryVerificationContext libraryVerificationContext;
-
-  _MacroTypeAnnotationLocationConverter({
-    required this.libraryVerificationContext,
-  });
-
-  /// Returns the syntactic location for the offset independent [location];
-  _MacroSyntacticTypeAnnotationLocation? convert(
-    TypeAnnotationLocation location,
-  ) {
-    switch (location) {
-      case AliasedTypeLocation():
-        return _aliasedType(location);
-      case ElementTypeLocation():
-        var element = location.element;
-        return libraryVerificationContext.declarationByElement(element);
-      case ExtendsClauseTypeLocation():
-        return _extendsClause(location);
-      case FormalParameterTypeLocation():
-        return _formalParameter(location);
-      case ListIndexTypeLocation():
-        return _listIndex(location);
-      case RecordNamedFieldTypeLocation():
-        return _recordNamedField(location);
-      case RecordPositionalFieldTypeLocation():
-        return _recordPositionalField(location);
-      case ReturnTypeLocation():
-        return _returnType(location);
-      case VariableTypeLocation():
-        return _variableType(location);
-      default:
-        throw UnimplementedError('${location.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _aliasedType(
-    AliasedTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case GenericTypeAlias():
-        return nodeLocation.next(node.type);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _extendsClause(
-    ExtendsClauseTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case ClassDeclaration():
-        var next = node.extendsClause!.superclass;
-        return nodeLocation.next(next);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _formalParameter(
-    FormalParameterTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case ConstructorDeclaration():
-        var parameterList = node.parameters;
-        var next = parameterList.parameters[location.index];
-        return nodeLocation.next(next);
-      case FunctionDeclaration():
-        var parameterList = node.functionExpression.parameters;
-        var next = parameterList!.parameters[location.index];
-        return nodeLocation.next(next);
-      case GenericFunctionType():
-        var parameterList = node.parameters;
-        var parameter = parameterList.parameters[location.index];
-        parameter = parameter.notDefault;
-        return nodeLocation.next(parameter.typeOrSelf);
-      case MethodDeclaration():
-        var parameterList = node.parameters;
-        var next = parameterList!.parameters[location.index];
-        return nodeLocation.next(next);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _listIndex(
-    ListIndexTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case NamedType():
-        var argument = node.typeArguments?.arguments[location.index];
-        if (argument == null) {
-          return null;
-        }
-        return nodeLocation.next(argument);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _recordNamedField(
-    RecordNamedFieldTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case RecordTypeAnnotation():
-        var field = node.namedFields?.fields[location.index].type;
-        if (field == null) {
-          return null;
-        }
-        return nodeLocation.next(field);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _recordPositionalField(
-    RecordPositionalFieldTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case RecordTypeAnnotation():
-        var field = node.positionalFields[location.index];
-        return nodeLocation.next(field);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _returnType(
-    ReturnTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    switch (node) {
-      case FunctionDeclaration():
-        var next = node.returnType ?? node.name;
-        return nodeLocation.next(next);
-      case GenericFunctionType():
-        var next = node.returnType ?? node;
-        return nodeLocation.next(next);
-      case MethodDeclaration():
-        var next = node.returnType ?? node.name;
-        return nodeLocation.next(next);
-      default:
-        throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
-  _MacroSyntacticTypeAnnotationLocation? _variableType(
-    VariableTypeLocation location,
-  ) {
-    var nodeLocation = convert(location.parent);
-    if (nodeLocation == null) {
-      return null;
-    }
-    var node = nodeLocation.entity;
-    if (node is DefaultFormalParameter) {
-      node = node.parameter;
-    }
-    var parent = node.ifTypeOrNull<AstNode>()?.parent;
-    switch (node) {
-      case FieldFormalParameter():
-        var next = node.type ?? node.name;
-        return nodeLocation.next(next);
-      case SimpleFormalParameter():
-        var next = node.type ?? node.name;
-        if (next == null) {
-          return null;
-        }
-        return nodeLocation.next(next);
-      case SuperFormalParameter():
-        var next = node.type ?? node.name;
-        return nodeLocation.next(next);
-      case VariableDeclaration():
-        if (parent is VariableDeclarationList) {
-          var next = parent.type ?? node.name;
-          return nodeLocation.next(next);
-        }
-    }
-    throw UnimplementedError(
-      '${node.runtimeType} ${parent.runtimeType}',
-    );
   }
 }
 

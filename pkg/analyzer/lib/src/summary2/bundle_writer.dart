@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -26,8 +25,6 @@ import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
@@ -123,7 +120,6 @@ class BundleWriter {
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _resolutionSink.writeMacroDiagnostics(libraryElement.macroDiagnostics);
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
@@ -164,7 +160,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
@@ -205,7 +200,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
@@ -400,7 +394,6 @@ class BundleWriter {
     _writeAugmentationTargetAny(element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
@@ -440,7 +433,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
       _resolutionSink.writeType(fragment.returnType);
       _writeList(fragment.parameters, _writeParameterElement);
     });
@@ -516,7 +508,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
       _writeList(fragment.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
       _resolutionSink.writeType(fragment.returnType);
@@ -535,7 +526,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
       if (element.augmentationTarget == null) {
@@ -677,7 +667,6 @@ class BundleWriter {
     _writeAugmentationTargetAny(fragment);
     _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
     _resolutionSink._writeAnnotationList(fragment.metadata);
-    _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
     _resolutionSink.writeType(fragment.type);
 
     _resolutionSink._writeOptionalNode(fragment.constantInitializer);
@@ -697,7 +686,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
       _resolutionSink._writeAliasedElement(fragment.aliasedElement);
       _resolutionSink.writeType(fragment.aliasedType);
     });
@@ -824,10 +812,6 @@ class ResolutionSink extends _SummaryDataWriter {
       writeByte(Tag.RawElement);
       _writeElement(element);
     }
-  }
-
-  void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
-    writeList(elements, _writeMacroDiagnostic);
   }
 
   void writeOptionalTypeList(List<DartType>? types) {
@@ -989,73 +973,6 @@ class ResolutionSink extends _SummaryDataWriter {
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
-  void _writeMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
-    switch (diagnostic) {
-      case ArgumentMacroDiagnostic():
-        writeEnum(MacroDiagnosticKind.argument);
-        writeUInt30(diagnostic.annotationIndex);
-        writeUInt30(diagnostic.argumentIndex);
-        writeStringUtf8(diagnostic.message);
-      case DeclarationsIntrospectionCycleDiagnostic():
-        writeEnum(MacroDiagnosticKind.introspectionCycle);
-        writeUInt30(diagnostic.annotationIndex);
-        writeElement(diagnostic.introspectedElement);
-        writeList(diagnostic.components, (component) {
-          writeElement(component.element);
-          writeUInt30(component.annotationIndex);
-          writeElement(component.introspectedElement);
-        });
-      case ExceptionMacroDiagnostic():
-        writeEnum(MacroDiagnosticKind.exception);
-        writeUInt30(diagnostic.annotationIndex);
-        writeStringUtf8(diagnostic.message);
-        writeStringUtf8(diagnostic.stackTrace);
-      case InvalidMacroTargetDiagnostic():
-        writeEnum(MacroDiagnosticKind.invalidTarget);
-        writeUInt30(diagnostic.annotationIndex);
-        writeStringUtf8Iterable(diagnostic.supportedKinds);
-      case MacroDiagnostic():
-        writeEnum(MacroDiagnosticKind.macro);
-        writeEnum(diagnostic.severity);
-        _writeMacroDiagnosticMessage(diagnostic.message);
-        writeList(
-          diagnostic.contextMessages,
-          _writeMacroDiagnosticMessage,
-        );
-        writeOptionalStringUtf8(diagnostic.correctionMessage);
-      case NotAllowedDeclarationDiagnostic():
-        writeEnum(MacroDiagnosticKind.notAllowedDeclaration);
-        writeUInt30(diagnostic.annotationIndex);
-        writeEnum(diagnostic.phase);
-        writeStringUtf8(diagnostic.code);
-        writeList(diagnostic.nodeRanges, _writeSourceRange);
-    }
-  }
-
-  void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
-    writeStringUtf8(object.message);
-
-    var target = object.target;
-    switch (target) {
-      case ApplicationMacroDiagnosticTarget():
-        writeEnum(MacroDiagnosticTargetKind.application);
-        writeUInt30(target.annotationIndex);
-      case ElementMacroDiagnosticTarget():
-        writeEnum(MacroDiagnosticTargetKind.element);
-        writeElement(target.element);
-      case ElementAnnotationMacroDiagnosticTarget():
-        writeEnum(MacroDiagnosticTargetKind.elementAnnotation);
-        writeElement(target.element);
-        writeUInt30(target.annotationIndex);
-      case TypeAnnotationMacroDiagnosticTarget():
-        writeEnum(MacroDiagnosticTargetKind.type);
-        TypeAnnotationLocationWriter(
-          sink: this,
-          writeElement: writeElement,
-        ).write(target.location);
-    }
-  }
-
   void _writeNode(AstNode node) {
     var astWriter = AstBinaryWriter(
       sink: this,
@@ -1097,11 +1014,6 @@ class ResolutionSink extends _SummaryDataWriter {
     });
 
     _writeNullabilitySuffix(type.nullabilitySuffix);
-  }
-
-  void _writeSourceRange(SourceRange range) {
-    writeUInt30(range.offset);
-    writeUInt30(range.length);
   }
 
   void _writeTypeAliasElementArguments(DartType type) {

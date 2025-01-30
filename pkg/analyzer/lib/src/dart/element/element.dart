@@ -52,8 +52,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/macro.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -3732,7 +3730,7 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, MacroTargetElement
+    with TypeParameterizedElementMixin
     implements ExecutableElementOrMember, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -5614,7 +5612,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, MacroTargetElement
+    with TypeParameterizedElementMixin
     implements InstanceElement, InstanceFragment {
   @override
   ElementLinkedData? linkedData;
@@ -7031,7 +7029,7 @@ class LabelElementImpl2 extends ElementImpl2
 
 /// A concrete implementation of a [LibraryElement] or [LibraryElement2].
 class LibraryElementImpl extends ElementImpl
-    with _HasLibraryMixin, MacroTargetElement
+    with _HasLibraryMixin
     implements LibraryElement, LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
@@ -7056,7 +7054,6 @@ class LibraryElementImpl extends ElementImpl
 
   late List<ExportedReference> exportedReferences;
 
-  @override
   LibraryElementLinkedData? linkedData;
 
   /// The union of names for all searchable elements in this library.
@@ -7107,9 +7104,6 @@ class LibraryElementImpl extends ElementImpl
   /// The public [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace? _publicNamespace;
-
-  /// The macro executor for the bundle to which this library belongs.
-  BundleMacroExecutor? bundleMacroExecutor;
 
   /// Information about why non-promotable private fields in the library are not
   /// promotable.
@@ -7954,27 +7948,6 @@ class MacroGeneratedLibraryFragment {
     required this.code,
     required this.informativeBytes,
   });
-}
-
-mixin MacroTargetElement on ElementImpl {
-  /// Diagnostics registered while applying macros to this element.
-  List<AnalyzerMacroDiagnostic> _macroDiagnostics = const [];
-
-  ElementLinkedData? get linkedData;
-
-  /// Diagnostics registered while applying macros to this element.
-  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
-    linkedData?.read(this);
-    return _macroDiagnostics;
-  }
-
-  set macroDiagnostics(List<AnalyzerMacroDiagnostic> value) {
-    _macroDiagnostics = value;
-  }
-
-  void addMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
-    _macroDiagnostics = [..._macroDiagnostics, diagnostic];
-  }
 }
 
 final class MetadataImpl implements Metadata {
@@ -10357,7 +10330,6 @@ abstract class PropertyInducingElement2OrMember
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
-    with MacroTargetElement
     implements PropertyInducingElementOrMember, PropertyInducingFragment {
   @override
   String? name2;
@@ -10383,7 +10355,6 @@ abstract class PropertyInducingElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
-  @override
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created synthetic element to have the given [name] and
@@ -10990,10 +10961,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin,
-        AugmentableElement<TypeAliasElementImpl>,
-        MacroTargetElement
+    with TypeParameterizedElementMixin, AugmentableElement<TypeAliasElementImpl>
     implements TypeAliasElement, TypeAliasFragment {
   @override
   String? name2;
