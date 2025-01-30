@@ -4,6 +4,27 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- The `Timer` and `Timer.periodic` constructors and the top-level
+  `scheduleMicrotask` function no longer *bind* and *guard* their callback
+  in the current zone, using `Zone.bindCallbackGuarded` and
+  `Zone.bindUnaryCallbackGuarded`. They only registers the callback
+  before calling the zone's `Zone.createTimer`, `Zone.createPeriodicTimer`
+  or `Zone.scheduleMicrotask` with the registered function.
+- The default `Zone.createTimer` and `Zone.createPeriodicTimer`,
+  no longer registers the callback in the current zone, which would
+  be a second registration if called through `Timer` or `Timer.periodic`.
+- The default (root) zone's `Zone.createTimer`, `Zone.createPeriodicTimer`
+  and `Zone.scheduleMicrotask` now always run the callback using
+  `Zone.run`/`Zone.runUnary`, and catch and reports errors from that
+  to the same zone, rather than relying on the callback
+  having been bound (and guarded) in the zone.
+- Together these changes ensure that if a custom zone's
+  `Zone.registerCallback` (or similar for a unary or binary function)
+  returns a new function which can throw, that thrown error is reported
+  in the correct error zone.
+
 #### `dart:core`
 
 - Added `Iterable.withIterator` constructor.

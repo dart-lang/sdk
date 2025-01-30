@@ -339,7 +339,7 @@ class _BufferingStreamSubscription<T>
   // Hooks called when the input is paused, unpaused or canceled.
   // These must not throw. If overwritten to call user code, include suitable
   // try/catch wrapping and send any errors to
-  // [_Zone.current.handleUncaughtError].
+  // [Zone.current.handleUncaughtError].
   void _onPause() {
     assert(_isInputPaused);
   }
