@@ -35033,7 +35033,7 @@ library
                   leftOperand: AugmentedExpression
                     augmentedKeyword: augmented @65
                     element: <testLibraryFragment>::@class::A::@field::foo
-                    element2: <testLibraryFragment>::@class::A::@field::foo#element
+                    fragment: <testLibraryFragment>::@class::A::@field::foo
                     staticType: int
                   operator: + @75
                   rightOperand: IntegerLiteral

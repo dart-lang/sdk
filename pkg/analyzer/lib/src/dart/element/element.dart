@@ -5908,7 +5908,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   MethodElement2? getMethod2(String name) {
-    return methods2.firstWhereOrNull((e) => e.name3 == name);
+    return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
   @override

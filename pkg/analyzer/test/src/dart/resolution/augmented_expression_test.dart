@@ -37,7 +37,7 @@ augment class A {
 AugmentedExpression
   augmentedKeyword: augmented
   element: package:test/a.dart::<fragment>::@class::A::@field::foo
-  element2: package:test/a.dart::<fragment>::@class::A::@field::foo#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@field::foo
   staticType: int
 ''');
   }
@@ -68,7 +68,7 @@ ReturnStatement
   expression: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@getter::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: int
   semicolon: ;
 ''');
@@ -103,7 +103,7 @@ Block
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
           element: package:test/a.dart::<fragment>::@class::A::@setter::foo
-          element2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
+          fragment: package:test/a.dart::<fragment>::@class::A::@setter::foo
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
@@ -152,7 +152,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
-    element2: <null>
+    fragment: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -198,7 +198,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
-    element2: <null>
+    fragment: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -239,7 +239,7 @@ ReturnStatement
   expression: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@getter::foo
-    element2: package:test/a.dart::<fragment>::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@getter::foo
     staticType: int
   semicolon: ;
 ''');
@@ -270,7 +270,7 @@ Block
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
           element: package:test/a.dart::<fragment>::@setter::foo
-          element2: package:test/a.dart::<fragment>::@setter::foo#element
+          fragment: package:test/a.dart::<fragment>::@setter::foo
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
@@ -309,7 +309,7 @@ augment num foo = augmented;
 AugmentedExpression
   augmentedKeyword: augmented
   element: package:test/a.dart::<fragment>::@topLevelVariable::foo
-  element2: package:test/a.dart::@topLevelVariable::foo
+  fragment: package:test/a.dart::<fragment>::@topLevelVariable::foo
   staticType: int
 ''');
   }

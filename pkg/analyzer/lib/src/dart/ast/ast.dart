@@ -1582,11 +1582,9 @@ abstract final class AugmentedExpression implements Expression {
   /// The referenced augmented element: getter, setter, variable.
   Element? get element;
 
-  /// The referenced augmented element: getter, setter, variable.
-  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
-  //  element. In this case I think that's closer to the right semantics.
+  /// The referenced augmented fragment: getter, setter, variable.
   @experimental
-  Element2? get element2;
+  Fragment? get fragment;
 }
 
 final class AugmentedExpressionImpl extends ExpressionImpl
@@ -1604,12 +1602,16 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
-  @experimental
-  @override
-  Element2? get element2 => (element as Fragment?)?.element;
-
   @override
   Token get endToken => augmentedKeyword;
+
+  @experimental
+  @override
+  Fragment? get fragment => element as Fragment?;
+
+  set fragment(Fragment? value) {
+    element = value as Element?;
+  }
 
   @override
   bool get isAssignable => true;
@@ -14392,6 +14394,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @experimental
   @override
   MethodElement2? get element => staticElement?.asElement2;
+
+  set element(MethodElement2? element) {
+    staticElement = element?.asElement;
+  }
 
   @override
   Token get endToken => _operand.endToken;

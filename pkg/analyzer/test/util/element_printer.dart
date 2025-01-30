@@ -210,6 +210,15 @@ class ElementPrinter {
     });
   }
 
+  void writelnNamedFragment(String name, Fragment? fragment) {
+    _sink.writeWithIndent('$name: ');
+    if (fragment != null) {
+      writelnFragmentReference(fragment);
+    } else {
+      _sink.writeln('<null>');
+    }
+  }
+
   void writeNamedElement(String name, Element? element) {
     _sink.writeWithIndent('$name: ');
     writeElement(element);
