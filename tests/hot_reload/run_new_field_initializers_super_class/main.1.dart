@@ -33,7 +33,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -10,6 +10,7 @@
  
  class Super {
    static var foo = 'right';
@@ -41,7 +40,7 @@ Future<void> main() async {
  }
  
  class Foo extends Super {
-@@ -18,8 +19,7 @@
+@@ -18,8 +19,7 @@ class Foo extends Super {
  
  late Foo value;
  String helper() {

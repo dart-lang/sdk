@@ -164,15 +164,6 @@ extension type FooBar(int i) {}
 ''');
   }
 
-  test_macroClass_lowerCase() async {
-    await assertDiagnostics(
-      r'''
-macro class a {}
-''',
-      [lint(12, 1)],
-    );
-  }
-
   test_mixin_lowerCase() async {
     await assertDiagnostics(
       r'''

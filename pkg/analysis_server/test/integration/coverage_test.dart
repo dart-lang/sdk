@@ -109,42 +109,6 @@ void main() {
           });
         }
       });
-
-      // notifications
-      group('notification', () {
-        for (var notification in domain.notifications) {
-          var fullName = '${domain.name}.${notification.event}';
-          test(fullName, () {
-            if (!allMembers.contains(fullName)) {
-              fail('$fullName not found in ${coverageFile.path}');
-            }
-
-            var fileName = getCamelWords(
-              notification.event,
-            ).map((s) => s.toLowerCase()).join('_');
-            var testName = path.join(domain.name, '${fileName}_test.dart');
-            var testPath = path.join(
-              pathPrefix,
-              'test',
-              'integration',
-              testName,
-            );
-
-            // Test that if checked, a test file exists; if not checked, no such
-            // file exists.
-            var fileExists = FileSystemEntity.isFileSync(testPath);
-            var isMarkedAsCovered = coveredMembers.contains(fullName);
-            expect(
-              fileExists,
-              isMarkedAsCovered,
-              reason:
-                  isMarkedAsCovered
-                      ? '$testName marked as covered but has no test at $testPath'
-                      : '$testName marked as not covered has test at $testPath',
-            );
-          });
-        }
-      });
     });
   }
 

@@ -37,6 +37,7 @@ linter:
     - unawaited_futures
     - unnecessary_breaks
     - unnecessary_final
+    - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main

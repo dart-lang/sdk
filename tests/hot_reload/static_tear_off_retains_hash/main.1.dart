@@ -25,7 +25,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -13,7 +13,7 @@
  foo() {}
  
  void helper() {

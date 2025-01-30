@@ -1111,39 +1111,6 @@ class B {}
     );
   }
 
-  Future<void> test_kind_class_referencedInMacro() async {
-    addMacros([declareInTypeMacro()]);
-
-    var originalSource = '''
-import 'macros.dart';
-
-class ClassToMove^ {}
-
-@DeclareInType('  ClassToMove? c;')
-class A {}
-''';
-    var declarationName = 'ClassToMove';
-
-    // Verify that `main.macro.dart` is unmodified.
-    var expected = '''
->>>>>>>>>> lib/class_to_move.dart created
-class ClassToMove {}
->>>>>>>>>> lib/main.dart
-import 'package:test/class_to_move.dart';
-
-import 'macros.dart';
-
-@DeclareInType('  ClassToMove? c;')
-class A {}
-''';
-
-    await _singleDeclaration(
-      originalSource: originalSource,
-      expected: expected,
-      declarationName: declarationName,
-    );
-  }
-
   Future<void> test_kind_extensionType() async {
     var originalSource = '''
 class A {}

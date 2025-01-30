@@ -106,45 +106,6 @@ void f() {
 }
 ''');
 
-  Future<void> test_macroGenerated() async {
-    setDartTextDocumentContentProviderSupport();
-    addMacros([declareInTypeMacro()]);
-
-    const content = '''
-import 'macros.dart';
-
-@DeclareInType('void f() { f(); }')
-class A {}
-''';
-    newFile(mainFilePath, content);
-    await Future.wait([waitForAnalysisComplete(), initialize()]);
-
-    // Fetch the content and locate the two references to `f` we will test.
-    var generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
-    var generatedContent = generatedFile!.content!;
-    var functionDefinitionOffset = generatedContent.indexOf('f() {');
-    var functionCallOffset = generatedContent.indexOf('f();');
-    var functionDefinitionPosition = positionFromOffset(
-      functionDefinitionOffset,
-      generatedContent,
-    );
-    var functionCallOffsetPosition = positionFromOffset(
-      functionCallOffset,
-      generatedContent,
-    );
-
-    // Request document highlights on one occurrence of `f`.
-    var highlights = await getDocumentHighlights(
-      mainFileMacroUri,
-      functionDefinitionPosition,
-    );
-
-    // Ensure we got back both.
-    expect(highlights, hasLength(2));
-    expect(highlights![0].range.start, functionDefinitionPosition);
-    expect(highlights[1].range.start, functionCallOffsetPosition);
-  }
-
   Future<void> test_method_underscore() => _testMarkedContent('''
 class C {
   /*[0*/_/*0]*/() {

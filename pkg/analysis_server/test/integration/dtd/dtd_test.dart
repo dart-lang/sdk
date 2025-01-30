@@ -24,7 +24,7 @@ class DtdTest
         with SharedDtdTests {
   @override
   void createFile(String path, String content) {
-    newFile(path, content);
+    writeFile(path, content);
   }
 
   @override

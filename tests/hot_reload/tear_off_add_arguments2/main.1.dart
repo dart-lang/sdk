@@ -31,7 +31,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -15,12 +15,12 @@
  var f, r1, r2;
  
  class C {

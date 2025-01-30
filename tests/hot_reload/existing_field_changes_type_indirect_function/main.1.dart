@@ -43,7 +43,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -10,7 +10,7 @@
  
  class A {}
  
@@ -52,7 +51,7 @@ Future<void> main() async {
  
  typedef bool Predicate(B b);
  
-@@ -22,8 +22,7 @@
+@@ -22,8 +22,7 @@ class Foo {
  late Foo value;
  
  helper() {

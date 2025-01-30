@@ -9,7 +9,6 @@ B get value2 => const B(2);
 
 /** DIFF **/
 /*
-@@ -4,5 +4,5 @@
  
  import 'library_a.dart';
  

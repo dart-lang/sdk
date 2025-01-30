@@ -27,7 +27,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -11,12 +11,11 @@
  var a, hash1, hash2;
  
  class A {

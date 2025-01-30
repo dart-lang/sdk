@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
-import 'package:analyzer/file_system/file_system.dart' as analyzer_fs;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -21,7 +20,6 @@ import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart' show analysisOptionsContent;
 import '../../support/configuration_files.dart';
-import '../../test_macros.dart' as macros;
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
@@ -105,7 +103,7 @@ typedef NotificationProcessor =
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
-    with MockPackagesMixin, ConfigurationFilesMixin, macros.TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
@@ -188,13 +186,6 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
 
   List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
-
-  /// A wrapper around [writeFile] with a matching signature as the in-memory
-  /// tests so that [macros.TestMacros] can be used by both.
-  @override
-  analyzer_fs.File newFile(String filePath, String content) {
-    return resourceProvider.getFile(writeFile(filePath, content));
-  }
 
   /// Read a source file with the given absolute [pathname].
   String readFile(String pathname) => File(pathname).readAsStringSync();

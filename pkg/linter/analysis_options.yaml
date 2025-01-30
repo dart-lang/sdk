@@ -52,6 +52,7 @@ linter:
     - unawaited_futures # pedantic
     - unnecessary_breaks
     - unnecessary_final
+    - unnecessary_ignore
     - unnecessary_lambdas
     - unnecessary_library_directive
     - unnecessary_null_checks

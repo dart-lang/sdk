@@ -340,12 +340,6 @@ void f() {
     _assertSource(code, findNode.classDeclaration(code));
   }
 
-  void test_visitClassDeclaration_abstractMacro() {
-    var code = 'abstract macro class C {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
   void test_visitClassDeclaration_augment() {
     var code = 'augment class A {}';
     var findNode = _parseStringToFindNode(code);
@@ -432,16 +426,6 @@ interface class A {}
 ''');
     _assertSource(
       'interface class A {}',
-      findNode.classDeclaration('class A'),
-    );
-  }
-
-  void test_visitClassDeclaration_macro() {
-    var findNode = _parseStringToFindNode(r'''
-macro class A {}
-''');
-    _assertSource(
-      'macro class A {}',
       findNode.classDeclaration('class A'),
     );
   }
@@ -557,14 +541,6 @@ $code
     _assertSource(code, findNode.classTypeAlias('class C'));
   }
 
-  void test_visitClassTypeAlias_abstractMacro() {
-    var code = 'abstract macro class C = S with M;';
-    var findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.classTypeAlias(code));
-  }
-
   void test_visitClassTypeAlias_augment() {
     var findNode = _parseStringToFindNode(r'''
 augment class A = S with M;
@@ -617,16 +593,6 @@ interface class A = S with M;
 ''');
     _assertSource(
       'interface class A = S with M;',
-      findNode.classTypeAlias('class A'),
-    );
-  }
-
-  void test_visitClassTypeAlias_macro() {
-    var findNode = _parseStringToFindNode(r'''
-macro class A = S with M;
-''');
-    _assertSource(
-      'macro class A = S with M;',
       findNode.classTypeAlias('class A'),
     );
   }

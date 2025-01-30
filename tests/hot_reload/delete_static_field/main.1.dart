@@ -32,7 +32,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -16,15 +16,11 @@
    int value = 42;
  }
  

@@ -35,7 +35,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -11,6 +11,7 @@
  
  class Fruit {
    final String name;

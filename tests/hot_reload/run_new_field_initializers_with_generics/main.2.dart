@@ -39,7 +39,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -11,13 +11,14 @@
  class Foo<T> {
    T? x;
    List<T> y = List<T>.empty();

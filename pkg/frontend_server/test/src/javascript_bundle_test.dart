@@ -481,7 +481,8 @@ void main() {
         new Component(libraries: [libraryA2, libraryB2, libraryC2]);
 
     await javaScriptBundler.invalidate(
-        partialComponent, testComponent, uriA, packageConfig);
+        partialComponent, testComponent, uriA, packageConfig,
+        recompileRestart: false);
 
     final _MemorySink manifestSink = new _MemorySink();
     final _MemorySink codeSink = new _MemorySink();
@@ -584,7 +585,8 @@ void main() {
     final Component partialComponent = new Component(libraries: [libraryC2]);
 
     await javaScriptBundler.invalidate(
-        partialComponent, testComponent, uriA, packageConfig);
+        partialComponent, testComponent, uriA, packageConfig,
+        recompileRestart: false);
 
     final _MemorySink manifestSink = new _MemorySink();
     final _MemorySink codeSink = new _MemorySink();

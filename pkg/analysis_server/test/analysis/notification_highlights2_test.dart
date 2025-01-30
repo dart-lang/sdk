@@ -708,19 +708,6 @@ class A {
 ''');
   }
 
-  Future<void> test_class_macroKeyword() async {
-    var testCode = TestCode.parse(r'''
-macro class A {}
-''');
-    addTestFile(testCode.code);
-    await prepareHighlights();
-    assertHighlightText(testCode, -1, r'''
-0 + 5 |macro| BUILT_IN
-6 + 5 |class| KEYWORD
-12 + 1 |A| CLASS
-''');
-  }
-
   Future<void> test_class_method_functionTypedFormalParameter() async {
     var testCode = TestCode.parse(r'''
 class A {

@@ -1452,6 +1452,7 @@ recognizing
 recompilation
 recompile
 recompiled
+recompiles
 recompiling
 recompute
 recomputed
@@ -1533,6 +1534,7 @@ resource
 respond
 response
 responses
+restart
 restoring
 restriction
 restricts

@@ -36,7 +36,6 @@ import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
-import '../test_macros.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
@@ -51,8 +50,7 @@ abstract class AbstractLspAnalysisServerTest
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
-        ConfigurationFilesMixin,
-        TestMacros {
+        ConfigurationFilesMixin {
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;

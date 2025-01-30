@@ -25,14 +25,9 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'support/configuration_files.dart';
-import 'test_macros.dart';
 
 class AbstractContextTest
-    with
-        MockPackagesMixin,
-        ConfigurationFilesMixin,
-        ResourceProviderMixin,
-        TestMacros {
+    with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
   static final ByteStore _byteStore = MemoryByteStore();
