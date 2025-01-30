@@ -4716,16 +4716,20 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitNullCheck(NullCheck node) {
-    final Constant constant = _evaluateSubexpression(node.operand);
-    if (constant is AbortConstant) return constant;
-    if (constant is NullConstant) {
-      return createEvaluationErrorConstant(node, messageConstEvalNonNull);
-    }
-    if (shouldBeUnevaluated) {
+    if (enableConstFunctions) {
       // Coverage-ignore-block(suite): Not run.
-      return unevaluated(node, new NullCheck(_wrap(constant)));
+      final Constant constant = _evaluateSubexpression(node.operand);
+      if (constant is AbortConstant) return constant;
+      if (constant is NullConstant) {
+        return createEvaluationErrorConstant(node, messageConstEvalNonNull);
+      }
+      if (shouldBeUnevaluated) {
+        return unevaluated(node, new NullCheck(_wrap(constant)));
+      }
+      return constant;
+    } else {
+      return _notAConstantExpression(node);
     }
-    return constant;
   }
 
   @override

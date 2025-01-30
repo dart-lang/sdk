@@ -205,7 +205,6 @@ abstract class Generator {
     } else {
       if (_helper.constantContext != ConstantContext.none &&
           selector.name != lengthName) {
-        // Coverage-ignore-block(suite): Not run.
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
