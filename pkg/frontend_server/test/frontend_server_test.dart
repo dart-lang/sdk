@@ -67,7 +67,8 @@ class _MockedCompiler implements CompilerInterface {
   }
 
   @override
-  Future<void> recompileDelta({String? entryPoint}) async {
+  Future<void> recompileDelta(
+      {String? entryPoint, bool recompileRestart = false}) async {
     verifyRecompileDelta(entryPoint);
   }
 
@@ -2388,7 +2389,9 @@ void main(List<String> arguments, SendPort sendPort) {
     // library bundle of a multi-bundle compilation.
     group('recompile to JavaScript with in-body change', () {
       Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
+          {required String moduleFormat,
+          bool canary = false,
+          bool recompileRestart = false}) async {
         // Five libraries, a to e, in two library bundles, {a, b} and {c, d, e}:
         //    (a <-> b) -> (c <-> d <-> e)
         // In body changes are performed on d and e. With advanced invalidation,
@@ -2526,7 +2529,8 @@ d() {
 """);
               // Trigger a recompile that invalidates 'd.dart'. The entry point
               // uri (a.dart) is passed explicitly.
-              frontendServer.recompile(fileD.uri, entryPoint: entryPoint);
+              frontendServer.recompile(fileD.uri,
+                  entryPoint: entryPoint, recompileRestart: recompileRestart);
               break;
             case 1:
               CompilationResult result =
@@ -2562,7 +2566,8 @@ e() {
 """);
               // Trigger a recompile that invalidates 'd.dart'. The entry point
               // uri (a.dart) is omitted.
-              frontendServer.recompile(fileE.uri);
+              frontendServer.recompile(fileE.uri,
+                  recompileRestart: recompileRestart);
               break;
             case 2:
               CompilationResult result =
@@ -2608,6 +2613,113 @@ e() {
 
       test('DDC module format and canary', () async {
         await runTests(moduleFormat: 'ddc', canary: true);
+      });
+
+      test('DDC module format and canary and recompile-restart', () async {
+        // Test that `recompile-restart` makes no difference for the given
+        // inputs.
+        await runTests(
+            moduleFormat: 'ddc', canary: true, recompileRestart: true);
+      });
+
+      group(
+          'valid change that is invalid for hot reload fails with recompile, '
+          'but not recompile-restart', () {
+        Future<void> runTests({bool recompileRestart = false}) async {
+          // Making a const class non-const is not valid for a hot reload.
+          File fileA = new File('${tempDir.path}/a.dart')
+            ..createSync()
+            ..writeAsStringSync('''
+          class A {
+            const A();
+          }
+
+          main() {}
+          ''');
+          File packageConfig =
+              new File('${tempDir.path}/.dart_tool/package_config.json')
+                ..createSync(recursive: true)
+                ..writeAsStringSync('''
+              {
+                "configVersion": 2,
+                "packages": [
+                  {
+                    "name": "a",
+                    "rootUri": "../",
+                    "packageUri": "./"
+                  }
+                ]
+              }
+              ''');
+
+          String entryPoint = 'package:a/a.dart';
+
+          File dillFile = new File('${tempDir.path}/app.dill');
+
+          expect(dillFile.existsSync(), false);
+
+          final List<String> args = <String>[
+            '--sdk-root=${sdkRoot.toFilePath()}',
+            '--incremental',
+            '--platform=${ddcPlatformKernel.path}',
+            '--output-dill=${dillFile.path}',
+            '--target=dartdevc',
+            // Errors are only emitted with the DDC library bundle format.
+            '--dartdevc-module-format=ddc',
+            '--dartdevc-canary',
+            '--packages=${packageConfig.path}',
+            '--emit-debug-symbols',
+          ];
+
+          FrontendServer frontendServer = new FrontendServer();
+          Future<int> result = frontendServer.open(args);
+          frontendServer.compile(entryPoint);
+          int count = 0;
+          frontendServer.listen((Result compiledResult) {
+            switch (count) {
+              case 0:
+                CompilationResult result =
+                    new CompilationResult.parse(compiledResult.status);
+                expect(result.errorsCount, equals(0));
+
+                frontendServer.accept();
+
+                fileA.writeAsStringSync('''
+                class A {
+                  A();
+                }
+
+                main() {}
+                ''');
+                frontendServer.recompile(fileA.uri,
+                    entryPoint: entryPoint, recompileRestart: recompileRestart);
+                break;
+              case 1:
+                CompilationResult result =
+                    new CompilationResult.parse(compiledResult.status);
+                expect(result.errorsCount, equals(recompileRestart ? 0 : 1));
+
+                frontendServer.accept();
+                frontendServer.quit();
+                break;
+              default:
+                break;
+            }
+            count++;
+          });
+
+          expect(await result, 0);
+          expect(count, 2);
+          frontendServer.close();
+        }
+
+        test('recompile', () async {
+          await runTests(recompileRestart: false);
+        });
+
+        test('recompile-restart', () async {
+          await runTests(recompileRestart: true);
+        });
       });
     });
 
@@ -3591,15 +3703,17 @@ class FrontendServer {
   void recompile(Uri? invalidatedUri,
       {String boundaryKey = 'abc',
       List<Uri>? invalidatedUris,
-      String? entryPoint}) {
+      String? entryPoint,
+      bool recompileRestart = false}) {
     invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
     outputParser.expectSources = true;
-    inputStreamController.add('recompile '
-            '${entryPoint != null ? '$entryPoint ' : ''}'
-            '$boundaryKey\n'
-            '${invalidatedUris.map((uri) => '$uri\n').join()}'
-            '$boundaryKey\n'
-        .codeUnits);
+    inputStreamController
+        .add('${recompileRestart ? 'recompile-restart ' : 'recompile '}'
+                '${entryPoint != null ? '$entryPoint ' : ''}'
+                '$boundaryKey\n'
+                '${invalidatedUris.map((uri) => '$uri\n').join()}'
+                '$boundaryKey\n'
+            .codeUnits);
   }
 
   /// Compiles the native assets in isolation.

@@ -263,6 +263,7 @@ ${argParser.usage}
 enum _State {
   READY_FOR_INSTRUCTION,
   RECOMPILE_LIST,
+  RECOMPILE_RESTART_LIST,
   // compileExpression
   COMPILE_EXPRESSION_EXPRESSION,
   COMPILE_EXPRESSION_DEFS,
@@ -312,7 +313,11 @@ abstract class CompilerInterface {
 
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
-  Future<void> recompileDelta({String? entryPoint});
+  ///
+  /// If [recompileRestart] is true, recompiles assuming the frontend server was
+  /// given a `recompile-restart` request.
+  Future<void> recompileDelta(
+      {String? entryPoint, bool recompileRestart = false});
 
   /// Accept results of previous compilation so that next recompilation cycle
   /// won't recompile sources that were previously reported as changed.
@@ -692,7 +697,7 @@ class FrontendCompiler implements CompilerInterface {
       if (_compilerOptions.target!.name == 'dartdevc') {
         await writeJavaScriptBundle(results, _kernelBinaryFilename,
             options['filesystem-scheme'], options['dartdevc-module-format'],
-            fullComponent: true);
+            fullComponent: true, recompileRestart: false);
       }
       await writeDillFile(
         results,
@@ -829,9 +834,12 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   /// Write a JavaScript bundle containing the provided component.
+  ///
+  /// [recompileRestart] should be true when this is part of a
+  /// `recompile-restart` request.
   Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
-      {required bool fullComponent}) async {
+      {required bool fullComponent, required bool recompileRestart}) async {
     PackageConfig packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             new File('.dart_tool/package_config.json').absolute.uri);
@@ -850,11 +858,9 @@ class FrontendCompiler implements CompilerInterface {
     if (fullComponent) {
       await bundler.initialize(component, _mainSource, packageConfig);
     } else {
-      await bundler.invalidate(
-          component,
-          _generator.lastKnownGoodResult!.component,
-          _mainSource,
-          packageConfig);
+      await bundler.invalidate(component,
+          _generator.lastKnownGoodResult!.component, _mainSource, packageConfig,
+          recompileRestart: recompileRestart);
     }
 
     // Create JavaScript bundler.
@@ -1018,7 +1024,8 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<void> recompileDelta({String? entryPoint}) async {
+  Future<void> recompileDelta(
+      {String? entryPoint, bool recompileRestart = false}) async {
     final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
@@ -1046,7 +1053,7 @@ class FrontendCompiler implements CompilerInterface {
       try {
         await writeJavaScriptBundle(results, _kernelBinaryFilename,
             _options['filesystem-scheme'], _options['dartdevc-module-format'],
-            fullComponent: false);
+            fullComponent: false, recompileRestart: recompileRestart);
       } catch (e) {
         _outputStream.writeln('$e');
         errors.add(e.toString());
@@ -1389,6 +1396,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
       case _State.READY_FOR_INSTRUCTION:
         const String COMPILE_INSTRUCTION_SPACE = 'compile ';
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
+        const String RECOMPILE_RESTART_INSTRUCTION_SPACE = 'recompile-restart ';
         const String NATIVE_ASSETS_INSTRUCTION_SPACE = 'native-assets ';
         const String NATIVE_ASSETS_ONLY_INSTRUCTION = 'native-assets-only';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
@@ -1401,6 +1409,19 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           await compiler.compile(entryPoint, options, generator: generator);
         } else if (string == NATIVE_ASSETS_ONLY_INSTRUCTION) {
           await compiler.compileNativeAssetsOnly(options, generator: generator);
+        } else if (string.startsWith(RECOMPILE_RESTART_INSTRUCTION_SPACE)) {
+          // 'recompile-restart [<entryPoint>] <boundarykey>'
+          //   where <boundarykey> can't have spaces
+          final String remainder =
+              string.substring(RECOMPILE_RESTART_INSTRUCTION_SPACE.length);
+          final int spaceDelim = remainder.lastIndexOf(' ');
+          if (spaceDelim > -1) {
+            recompileEntryPoint = remainder.substring(0, spaceDelim);
+            boundaryKey = remainder.substring(spaceDelim + 1);
+          } else {
+            boundaryKey = remainder;
+          }
+          state = _State.RECOMPILE_RESTART_LIST;
         } else if (string.startsWith(RECOMPILE_INSTRUCTION_SPACE)) {
           // 'recompile [<entryPoint>] <boundarykey>'
           //   where <boundarykey> can't have spaces
@@ -1477,8 +1498,11 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         }
         break;
       case _State.RECOMPILE_LIST:
+      case _State.RECOMPILE_RESTART_LIST:
         if (string == boundaryKey) {
-          await compiler.recompileDelta(entryPoint: recompileEntryPoint);
+          await compiler.recompileDelta(
+              entryPoint: recompileEntryPoint,
+              recompileRestart: state == _State.RECOMPILE_RESTART_LIST);
           state = _State.READY_FOR_INSTRUCTION;
         } else {
           compiler.invalidate(Uri.base.resolve(string));
