@@ -1914,27 +1914,18 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
 
         SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             returnType: returnType,
             name: name,
             typeParameters: typeParameters,
-            formals: fragment.formals,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.fullNameOffset,
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
+            fileOffset: fragment.fullNameOffset,
             procedureReference: procedureReference,
             tearOffReference: tearOffReference,
-            asyncModifier: fragment.redirectionTarget != null
-                ? AsyncMarker.Sync
-                : fragment.asyncModifier,
             nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName,
-            redirectionTarget: fragment.redirectionTarget);
+            fragment: fragment);
         if (fragment.redirectionTarget != null) {
           (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
               .add(factoryBuilder);

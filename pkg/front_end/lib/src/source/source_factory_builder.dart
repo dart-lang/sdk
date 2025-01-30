@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -25,6 +26,7 @@ import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -33,7 +35,6 @@ import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'redirecting_factory_body.dart';
 import 'source_class_builder.dart';
@@ -44,20 +45,11 @@ import 'source_loader.dart'
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
-    implements SourceFunctionBuilder, InferredTypeListener {
-  @override
-  final List<MetadataBuilder>? metadata;
-
+    implements SourceFunctionBuilder {
   final Modifiers modifiers;
 
   @override
   final String name;
-
-  @override
-  final List<NominalParameterBuilder>? typeParameters;
-
-  @override
-  final List<FormalParameterBuilder>? formals;
 
   @override
   final SourceLibraryBuilder libraryBuilder;
@@ -65,18 +57,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final DeclarationBuilder declarationBuilder;
 
-  final int formalsOffset;
-
-  AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
-
   @override
   final bool isExtensionInstanceMember = false;
-
-  @override
-  final TypeBuilder returnType;
-
-  late final Procedure _procedureInternal;
-  late final Procedure? _factoryTearOff;
 
   SourceFactoryBuilder? _actualOrigin;
 
@@ -84,72 +66,60 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
-  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
-
-  final int nameOffset;
-
   @override
   final Uri fileUri;
 
-  final ConstructorReferenceBuilder? redirectionTarget;
+  @override
+  final int fileOffset;
 
-  List<DartType>? __redirectionTypeArguments;
+  final FactoryFragment _introductory;
 
-  FreshTypeParameters? _tearOffTypeParameters;
-
-  bool _hasBeenCheckedAsRedirectingFactory = false;
+  final _FactoryEncoding _encoding;
 
   SourceFactoryBuilder(
-      {required this.metadata,
-      required this.modifiers,
-      required this.returnType,
+      {required this.modifiers,
+      required TypeBuilder returnType,
       required this.name,
-      required this.typeParameters,
-      required this.formals,
+      required List<NominalParameterBuilder>? typeParameters,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
-      required int startOffset,
-      required this.nameOffset,
-      required this.formalsOffset,
-      required int endOffset,
+      required this.fileOffset,
       required Reference? procedureReference,
       required Reference? tearOffReference,
-      required AsyncMarker asyncModifier,
       required NameScheme nameScheme,
-      this.nativeMethodName,
-      required this.redirectionTarget})
-      : _memberName = nameScheme.getDeclaredName(name) {
-    returnType.registerInferredTypeListener(this);
-    _procedureInternal = new Procedure(
-        dummyName,
-        nameScheme.isExtensionTypeMember
-            ? ProcedureKind.Method
-            : ProcedureKind.Factory,
-        new FunctionNode(null),
-        fileUri: fileUri,
-        reference: procedureReference)
-      ..fileStartOffset = startOffset
-      ..fileOffset = nameOffset
-      ..fileEndOffset = endOffset
-      ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_procedureInternal);
-    _factoryTearOff = createFactoryTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        fileUri,
-        nameOffset,
-        tearOffReference,
-        forceCreateLowering: nameScheme.isExtensionTypeMember)
-      ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
-    this.asyncModifier = asyncModifier;
-  }
+      required FactoryFragment fragment})
+      : _memberName = nameScheme.getDeclaredName(name),
+        _introductory = fragment,
+        _encoding = new _FactoryEncoding(fragment,
+            name: name,
+            libraryBuilder: libraryBuilder,
+            typeParameters: typeParameters,
+            returnType: returnType,
+            nameScheme: nameScheme,
+            procedureReference: procedureReference,
+            tearOffReference: tearOffReference);
+
+  @override
+  List<MetadataBuilder>? get metadata => _introductory.metadata;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<NominalParameterBuilder>? get typeParameters => _encoding.typeParameters;
+
+  @override
+  TypeBuilder get returnType => _encoding.returnType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>? get formals => _introductory.formals;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
+  ConstructorReferenceBuilder? get redirectionTarget =>
+      _introductory.redirectionTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -159,6 +129,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isExternal => modifiers.isExternal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstract => modifiers.isAbstract;
 
   @override
@@ -178,109 +149,20 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isAssignable => false;
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope parent) {
-    if (formals == null) return new FormalParameterScope(parent: parent);
-    Map<String, Builder> local = <String, Builder>{};
-    for (FormalParameterBuilder formal in formals!) {
-      if (formal.isWildcard) {
-        continue;
-      }
-      local[formal.name] = formal;
-    }
-    return new FormalParameterScope(local: local, parent: parent);
-  }
-
-  @override
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    // From
-    // [dartLangSpec.tex](../../../../../../docs/language/dartLangSpec.tex) at
-    // revision 94b23d3b125e9d246e07a2b43b61740759a0dace:
-    //
-    // When the formal parameter list of a non-redirecting generative
-    // constructor contains any initializing formals, a new scope is
-    // introduced, the _formal parameter initializer scope_, which is the
-    // current scope of the initializer list of the constructor, and which is
-    // enclosed in the scope where the constructor is declared.  Each
-    // initializing formal in the formal parameter list introduces a final
-    // local variable into the formal parameter initializer scope, but not into
-    // the formal parameter scope; every other formal parameter introduces a
-    // local variable into both the formal parameter scope and the formal
-    // parameter initializer scope.
-
-    if (formals == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (FormalParameterBuilder formal in formals!) {
-      // Wildcard initializing formal parameters do not introduce a local
-      // variable in the initializer list.
-      if (formal.isWildcard) continue;
-
-      local[formal.name] = formal.forFormalParameterInitializerScope();
-    }
-    return parent.createNestedFixedScope(
-        debugName: "formal parameter initializer",
-        kind: ScopeKind.initializers,
-        local: local);
-  }
-
-  // TODO(johnniwinther): Remove this.
-  LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      if (variable.isWildcard) continue;
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
-  }
-
-  @override
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in $formals");
-    }
-    return null;
-  }
-
-  final String? nativeMethodName;
+  FormalParameterBuilder? getFormal(Identifier identifier) =>
+      _encoding.getFormal(identifier);
 
   void setBody(Statement value) {
-    function.body = value..parent = function;
+    _encoding.setBody(value);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isNative => nativeMethodName != null;
-
-  void buildFunction() {
-    function.asyncMarker = asyncModifier;
-    if (redirectionTarget == null && !isAbstract && !isExternal) {
-      function.body = new EmptyStatement()..parent = function;
-    }
-    buildTypeParametersAndFormals(
-        libraryBuilder, function, typeParameters, formals,
-        classTypeParameters: null, supportsTypeParameters: true);
-    if (returnType is! InferableTypeBuilder) {
-      function.returnType =
-          returnType.build(libraryBuilder, TypeUse.returnType);
-    }
-  }
+  bool get isNative => _encoding.isNative;
 
   @override
   VariableDeclaration getFormalParameter(int index) =>
-      formals![index].variable!;
+      _introductory.formals![index].variable!;
 
   @override
   VariableDeclaration? get thisVariable => null;
@@ -289,21 +171,9 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void onInferredType(DartType type) {
-    function.returnType = type;
-  }
-
-  @override
   void becomeNative(SourceLoader loader) {
-    for (Annotatable annotatable in annotatables) {
-      loader.addNativeAnnotation(annotatable, nativeMethodName!);
-    }
-    _procedureInternal.isExternal = true;
+    _encoding.becomeNative(loader);
   }
-
-  @override
-  int get fileOffset => nameOffset;
 
   @override
   Builder get parent => declarationBuilder;
@@ -315,12 +185,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   List<SourceFactoryBuilder>? get augmentationsForTesting => _augmentations;
 
-  AsyncMarker get asyncModifier => actualAsyncModifier;
-
-  void set asyncModifier(AsyncMarker newModifier) {
-    actualAsyncModifier = newModifier;
-    function.asyncMarker = actualAsyncModifier;
-    function.dartAsyncMarker = actualAsyncModifier;
+  void _setAsyncModifier(AsyncMarker newModifier) {
+    _encoding.asyncModifier = newModifier;
   }
 
   @override
@@ -360,18 +226,19 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => false;
 
   Procedure get _procedure =>
-      isAugmenting ? origin._procedure : _procedureInternal;
+      isAugmenting ? origin._procedure : _encoding.procedure;
+
+  Procedure? get _tearOff => isAugmenting ? origin._tearOff : _encoding.tearOff;
 
   @override
-  FunctionNode get function => _procedureInternal.function;
+  FunctionNode get function => _encoding.function;
 
   @override
-  Member? get readTarget => origin._factoryTearOff ?? _procedure;
+  Member get readTarget => _tearOff ?? _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference =>
-      (origin._factoryTearOff ?? _procedure).reference;
+  Reference get readTargetReference => readTarget.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -393,19 +260,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    if (_factoryTearOff != null) {
-      if (index < _factoryTearOff.function.positionalParameters.length) {
-        return _factoryTearOff.function.positionalParameters[index];
-      } else {
-        index -= _factoryTearOff.function.positionalParameters.length;
-        if (index < _factoryTearOff.function.namedParameters.length) {
-          return _factoryTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
+  VariableDeclaration? getTearOffParameter(int index) =>
+      _encoding.getTearOffParameter(index);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -446,12 +302,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
+    return _encoding.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
-    context.reportGenericFunctionTypesForFormals(formals);
-    return count;
   }
 
   @override
@@ -462,13 +314,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    if (redirectionTarget != null) {
-      // Default values are not required on redirecting factory constructors so
-      // we don't call [checkInitializersInFormals].
-    } else {
-      library.checkInitializersInFormals(formals, typeEnvironment,
-          isAbstract: isAbstract, isExternal: isExternal);
-    }
+    _encoding.checkTypes(library, nameSpace, typeEnvironment);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
@@ -477,17 +323,22 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     }
   }
 
+  bool _hasBeenCheckedAsRedirectingFactory = false;
+
   /// Checks the redirecting factories of this factory builder and its
   /// augmentations.
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    if (redirectionTarget != null) {
-      _checkRedirectingFactory(typeEnvironment);
+    if (_hasBeenCheckedAsRedirectingFactory) return;
+    _hasBeenCheckedAsRedirectingFactory = true;
+
+    if (_introductory.redirectionTarget != null) {
+      _encoding.checkRedirectingFactory(typeEnvironment);
     }
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
         if (augmentation.redirectionTarget != null) {
-          augmentation._checkRedirectingFactory(typeEnvironment);
+          augmentation.checkRedirectingFactories(typeEnvironment);
         }
       }
     }
@@ -514,111 +365,18 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     }
   }
 
-  List<DartType>? get _redirectionTypeArguments {
-    assert(redirectionTarget != null);
-    return __redirectionTypeArguments;
-  }
+  // Coverage-ignore(suite): Not run.
+  List<DartType>? get _redirectionTypeArguments =>
+      _encoding.redirectionTypeArguments;
 
+  // Coverage-ignore(suite): Not run.
   void set _redirectionTypeArguments(List<DartType>? value) {
-    assert(redirectionTarget != null);
-    __redirectionTypeArguments = value;
-  }
-
-  void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    if (_procedureInternal.function.body != null) {
-      unexpected("null", "${_procedureInternal.function.body.runtimeType}",
-          fileOffset, fileUri);
-    }
-
-    // Ensure that constant factories only have constant targets/bodies.
-    if (isConst && !target.isConst) {
-      // Coverage-ignore-block(suite): Not run.
-      libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
-          fileOffset, noLength, fileUri);
-    }
-
-    _procedureInternal.function.body =
-        createRedirectingFactoryBody(target, typeArguments, function)
-          ..parent = _procedureInternal.function;
-    _procedureInternal.function.redirectingFactoryTarget =
-        new RedirectingFactoryTarget(target, typeArguments);
-    if (isAugmenting) {
-      if (function.typeParameters.isNotEmpty) {
-        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
-        for (int i = 0; i < function.typeParameters.length; i++) {
-          substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullability(
-                  origin.function.typeParameters[i]);
-        }
-        typeArguments = new List<DartType>.generate(typeArguments.length,
-            (int i) => substitute(typeArguments[i], substitution),
-            growable: false);
-      }
-      origin._setRedirectingFactoryBody(target, typeArguments);
-    }
-  }
-
-  void _setRedirectingFactoryError(String message) {
-    assert(redirectionTarget != null);
-
-    setBody(createRedirectingFactoryErrorBody(message));
-    _procedure.function.redirectingFactoryTarget =
-        new RedirectingFactoryTarget.error(message);
-    if (_factoryTearOff != null) {
-      _factoryTearOff.function.body = createRedirectingFactoryErrorBody(message)
-        ..parent = _factoryTearOff.function;
-    }
+    _encoding.redirectionTypeArguments = value;
   }
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _build();
-    f(
-        member: _procedureInternal,
-        tearOff: _factoryTearOff,
-        kind: isExtensionTypeMember
-            ? (redirectionTarget != null
-                ? BuiltMemberKind.ExtensionTypeRedirectingFactory
-                : BuiltMemberKind.ExtensionTypeFactory)
-            : (redirectionTarget != null
-                ? BuiltMemberKind.RedirectingFactory
-                : BuiltMemberKind.Factory));
-  }
-
-  void _build() {
-    buildFunction();
-    _procedureInternal.function.fileOffset = formalsOffset;
-    _procedureInternal.function.fileEndOffset =
-        _procedureInternal.fileEndOffset;
-    _procedureInternal.isAbstract = isAbstract;
-    _procedureInternal.isExternal = isExternal;
-    _procedureInternal.isConst = isConst;
-    _procedureInternal.isStatic = isStatic;
-
-    if (redirectionTarget != null) {
-      if (redirectionTarget!.typeArguments != null) {
-        _redirectionTypeArguments = new List<DartType>.generate(
-            redirectionTarget!.typeArguments!.length,
-            (int i) => redirectionTarget!.typeArguments![i]
-                .build(libraryBuilder, TypeUse.redirectionTypeArgument),
-            growable: false);
-      }
-      if (_factoryTearOff != null) {
-        _tearOffTypeParameters =
-            buildRedirectingFactoryTearOffProcedureParameters(
-                tearOff: _factoryTearOff,
-                implementationConstructor: _procedureInternal,
-                libraryBuilder: libraryBuilder);
-      }
-    } else {
-      if (_factoryTearOff != null) {
-        _delayedDefaultValueCloner = buildConstructorTearOffProcedure(
-            tearOff: _factoryTearOff,
-            declarationConstructor: _procedure,
-            implementationConstructor: _procedureInternal,
-            libraryBuilder: libraryBuilder);
-      }
-    }
+    _encoding.buildOutlineNodes(f);
   }
 
   bool _hasBuiltOutlineExpressions = false;
@@ -629,52 +387,355 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     if (_hasBuiltOutlineExpressions) return;
     _hasBuiltOutlineExpressions = true;
 
-    if (redirectionTarget != null && isConst && isAugmenting) {
+    if (_introductory.redirectionTarget != null && isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
     }
 
-    formals?.infer(classHierarchy);
+    _encoding.buildOutlineExpressions(
+        classHierarchy, delayedDefaultValueCloners);
+
+    if (isConst && isAugmenting) {
+      _finishAugmentation();
+    }
+  }
+
+  void _finishAugmentation() {
+    finishProcedureAugmentation(_procedure, _encoding.procedure);
+
+    if (_encoding.tearOff != null) {
+      finishProcedureAugmentation(_tearOff!, _encoding.tearOff!);
+    }
+
+    if (_introductory.redirectionTarget != null) {
+      if (origin.redirectionTarget != null) {
+        // Coverage-ignore-block(suite): Not run.
+        origin._redirectionTypeArguments = _redirectionTypeArguments;
+      }
+    }
+  }
+
+  BodyBuilderContext createBodyBuilderContext() {
+    return new FactoryBodyBuilderContext(this, _procedure);
+  }
+
+  void resolveRedirectingFactory() {
+    _encoding.resolveRedirectingFactory();
+  }
+
+  void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+    _encoding.setRedirectingFactoryBody(target, typeArguments);
+  }
+}
+
+class FactoryBodyBuilderContext extends BodyBuilderContext {
+  final SourceFactoryBuilder _member;
+
+  final Member _builtMember;
+
+  FactoryBodyBuilderContext(this._member, this._builtMember)
+      : super(_member.libraryBuilder, _member.declarationBuilder,
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  VariableDeclaration getFormalParameter(int index) {
+    return _member.getFormalParameter(index);
+  }
+
+  @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    return _member.getTearOffParameter(index);
+  }
+
+  @override
+  TypeBuilder get returnType => _member.returnType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>? get formals => _member.formals;
+
+  @override
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    /// Initializer formals or super parameters cannot occur in getters so
+    /// we don't need to create a new scope.
+    return parent;
+  }
+
+  @override
+  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
+    return _member.getFormal(name);
+  }
+
+  @override
+  int get memberNameLength => _member.name.length;
+
+  @override
+  FunctionNode get function {
+    return _member.function;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFactory {
+    return _member.isFactory;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNativeMethod {
+    return _member.isNative;
+  }
+
+  @override
+  bool get isExternalFunction {
+    return _member.isExternal;
+  }
+
+  @override
+  bool get isSetter {
+    return _member.isSetter;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  AugmentSuperTarget? get augmentSuperTarget {
+    if (_member.isAugmentation) {
+      return _member.augmentSuperTarget;
+    }
+    return null;
+  }
+
+  @override
+  int get memberNameOffset => _member.fileOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void registerSuperCall() {
+    _builtMember.transformerFlags |= TransformerFlag.superCalls;
+  }
+
+  @override
+  void setBody(Statement body) {
+    _member.setBody(body);
+  }
+
+  @override
+  void setAsyncModifier(AsyncMarker asyncModifier) {
+    _member._setAsyncModifier(asyncModifier);
+  }
+
+  @override
+  bool get isRedirectingFactory => _member.redirectionTarget != null;
+
+  @override
+  DartType get returnTypeContext {
+    return _member.function.returnType;
+  }
+
+  @override
+  String get redirectingFactoryTargetName {
+    return _member.redirectionTarget!.fullNameForErrors;
+  }
+}
+
+class _FactoryEncoding implements InferredTypeListener {
+  late final Procedure _procedureInternal;
+  late final Procedure? _factoryTearOff;
+
+  final FactoryFragment _fragment;
+
+  AsyncMarker _asyncModifier;
+
+  final List<NominalParameterBuilder>? typeParameters;
+
+  final TypeBuilder returnType;
+
+  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
+
+  List<DartType>? _redirectionTypeArguments;
+
+  FreshTypeParameters? _tearOffTypeParameters;
+
+  _FactoryEncoding(this._fragment,
+      {required String name,
+      required SourceLibraryBuilder libraryBuilder,
+      required this.typeParameters,
+      required this.returnType,
+      required NameScheme nameScheme,
+      required Reference? procedureReference,
+      required Reference? tearOffReference})
+      : _asyncModifier = _fragment.redirectionTarget != null
+            ? AsyncMarker.Sync
+            : _fragment.asyncModifier {
+    _procedureInternal = new Procedure(
+        dummyName,
+        nameScheme.isExtensionTypeMember
+            ? ProcedureKind.Method
+            : ProcedureKind.Factory,
+        new FunctionNode(null)
+          ..asyncMarker = _asyncModifier
+          ..dartAsyncMarker = _asyncModifier,
+        fileUri: _fragment.fileUri,
+        reference: procedureReference)
+      ..fileStartOffset = _fragment.startOffset
+      ..fileOffset = _fragment.fullNameOffset
+      ..fileEndOffset = _fragment.endOffset
+      ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
+    nameScheme
+        .getConstructorMemberName(name, isTearOff: false)
+        .attachMember(_procedureInternal);
+    _factoryTearOff = createFactoryTearOffProcedure(
+        nameScheme.getConstructorMemberName(name, isTearOff: true),
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.fullNameOffset,
+        tearOffReference,
+        forceCreateLowering: nameScheme.isExtensionTypeMember)
+      ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
+    returnType.registerInferredTypeListener(this);
+  }
+
+  Procedure get procedure => _procedureInternal;
+
+  Procedure? get tearOff => _factoryTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void onInferredType(DartType type) {
+    _procedureInternal.function.returnType = type;
+  }
+
+  void set asyncModifier(AsyncMarker newModifier) {
+    _asyncModifier = newModifier;
+    _procedureInternal.function.asyncMarker = _asyncModifier;
+    _procedureInternal.function.dartAsyncMarker = _asyncModifier;
+  }
+
+  List<DartType>? get redirectionTypeArguments {
+    assert(_fragment.redirectionTarget != null);
+    return _redirectionTypeArguments;
+  }
+
+  void set redirectionTypeArguments(List<DartType>? value) {
+    assert(_fragment.redirectionTarget != null);
+    _redirectionTypeArguments = value;
+  }
+
+  void buildOutlineNodes(BuildNodesCallback f) {
+    _procedureInternal.function.asyncMarker = _asyncModifier;
+    if (_fragment.redirectionTarget == null &&
+        !_fragment.modifiers.isAbstract &&
+        !_fragment.modifiers.isExternal) {
+      _procedureInternal.function.body = new EmptyStatement()
+        ..parent = _procedureInternal.function;
+    }
+    buildTypeParametersAndFormals(_fragment.builder.libraryBuilder,
+        _procedureInternal.function, typeParameters, _fragment.formals,
+        classTypeParameters: null, supportsTypeParameters: true);
+    if (returnType is! InferableTypeBuilder) {
+      _procedureInternal.function.returnType = returnType.build(
+          _fragment.builder.libraryBuilder, TypeUse.returnType);
+    }
+    _procedureInternal.function.fileOffset = _fragment.formalsOffset;
+    _procedureInternal.function.fileEndOffset =
+        _procedureInternal.fileEndOffset;
+    _procedureInternal.isAbstract = _fragment.modifiers.isAbstract;
+    _procedureInternal.isExternal = _fragment.modifiers.isExternal;
+    _procedureInternal.isConst = _fragment.modifiers.isConst;
+    _procedureInternal.isStatic = _fragment.modifiers.isStatic;
+
+    if (_fragment.redirectionTarget != null) {
+      if (_fragment.redirectionTarget!.typeArguments != null) {
+        redirectionTypeArguments = new List<DartType>.generate(
+            _fragment.redirectionTarget!.typeArguments!.length,
+            (int i) => _fragment.redirectionTarget!.typeArguments![i].build(
+                _fragment.builder.libraryBuilder,
+                TypeUse.redirectionTypeArgument),
+            growable: false);
+      }
+      if (_factoryTearOff != null) {
+        _tearOffTypeParameters =
+            buildRedirectingFactoryTearOffProcedureParameters(
+                tearOff: _factoryTearOff,
+                implementationConstructor: _procedureInternal,
+                libraryBuilder: _fragment.builder.libraryBuilder);
+      }
+    } else {
+      if (_factoryTearOff != null) {
+        _delayedDefaultValueCloner = buildConstructorTearOffProcedure(
+            tearOff: _factoryTearOff,
+            declarationConstructor: _fragment.builder._procedure,
+            implementationConstructor: _procedureInternal,
+            libraryBuilder: _fragment.builder.libraryBuilder);
+      }
+    }
+    f(
+        member: _procedureInternal,
+        tearOff: _factoryTearOff,
+        kind: _fragment.builder.isExtensionTypeMember
+            ? (_fragment.redirectionTarget != null
+                ? BuiltMemberKind.ExtensionTypeRedirectingFactory
+                : BuiltMemberKind.ExtensionTypeFactory)
+            : (_fragment.redirectionTarget != null
+                ? BuiltMemberKind.RedirectingFactory
+                : BuiltMemberKind.Factory));
+  }
+
+  // TODO(johnniwinther): Remove this.
+  LookupScope _computeTypeParameterScope(LookupScope parent) {
+    if (typeParameters == null) return parent;
+    Map<String, Builder> local = <String, Builder>{};
+    for (NominalParameterBuilder variable in typeParameters!) {
+      if (variable.isWildcard) continue;
+      local[variable.name] = variable;
+    }
+    return new TypeParameterScope(parent, local);
+  }
+
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    _fragment.formals?.infer(classHierarchy);
 
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
 
-    DeclarationBuilder? classOrExtensionBuilder =
-        isClassMember || isExtensionMember || isExtensionTypeMember
-            ? parent as DeclarationBuilder
-            : null;
-    LookupScope parentScope =
-        classOrExtensionBuilder?.scope ?? // Coverage-ignore(suite): Not run.
-            libraryBuilder.scope;
-    for (Annotatable annotatable in annotatables) {
-      MetadataBuilder.buildAnnotations(annotatable, metadata,
-          createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
-          createFileUriExpression: isAugmented);
+    LookupScope parentScope = _fragment.builder.declarationBuilder.scope;
+    for (Annotatable annotatable in _fragment.builder.annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable,
+          _fragment.metadata,
+          _fragment.builder.createBodyBuilderContext(),
+          _fragment.builder.libraryBuilder,
+          _fragment.fileUri,
+          parentScope,
+          createFileUriExpression: _fragment.builder.isAugmented);
     }
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(),
+            _fragment.builder.libraryBuilder,
+            _fragment.builder.createBodyBuilderContext(),
             classHierarchy,
-            computeTypeParameterScope(parentScope));
+            _computeTypeParameterScope(parentScope));
       }
     }
 
-    if (formals != null) {
+    if (_fragment.formals != null) {
       // For const constructors we need to include default parameter values
       // into the outline. For all other formals we need to call
       // buildOutlineExpressions to clear initializerToken to prevent
       // consuming too much memory.
-      for (FormalParameterBuilder formal in formals!) {
-        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+      for (FormalParameterBuilder formal in _fragment.formals!) {
+        formal.buildOutlineExpressions(_fragment.builder.libraryBuilder,
+            _fragment.builder.declarationBuilder,
             buildDefaultValue: FormalParameterBuilder
-                .needsDefaultValuesBuiltAsOutlineExpressions(this));
+                .needsDefaultValuesBuiltAsOutlineExpressions(
+                    _fragment.builder));
       }
     }
 
-    if (redirectionTarget == null) {
+    if (_fragment.redirectionTarget == null) {
       return;
     }
 
@@ -687,13 +748,20 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
+      TypeInferrer inferrer = _fragment
+          .builder.libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
-              fileUri, declarationBuilder.thisType, libraryBuilder, null);
-      InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(libraryBuilder,
-              createBodyBuilderContext(), declarationBuilder.scope, fileUri);
-      Builder? targetBuilder = redirectionTarget!.target;
+              _fragment.fileUri,
+              _fragment.builder.declarationBuilder.thisType,
+              _fragment.builder.libraryBuilder,
+              null);
+      InferenceHelper helper = _fragment.builder.libraryBuilder.loader
+          .createBodyBuilderForOutlineExpression(
+              _fragment.builder.libraryBuilder,
+              _fragment.builder.createBodyBuilderContext(),
+              _fragment.builder.declarationBuilder.scope,
+              _fragment.fileUri);
+      Builder? targetBuilder = _fragment.redirectionTarget!.target;
 
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -708,30 +776,31 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         target = targetBuilder.invokeTarget!;
       } else {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
-            fileOffset, fileUri);
+            _fragment.fullNameOffset, _fragment.fileUri);
       }
 
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
           helper,
           _procedureInternal.function.returnType,
-          _procedure.function,
-          fileOffset,
+          _fragment.builder._procedure.function,
+          _fragment.fullNameOffset,
           target,
           target.function!.computeFunctionType(Nullability.nonNullable));
       if (typeArguments == null) {
-        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-            "RedirectingFactoryTarget.buildOutlineExpressions",
-            expectedPhase: CompilationPhaseForProblemReporting.outline));
+        assert(_fragment.builder.libraryBuilder.loader
+            .assertProblemReportedElsewhere(
+                "RedirectingFactoryTarget.buildOutlineExpressions",
+                expectedPhase: CompilationPhaseForProblemReporting.outline));
         // Use 'dynamic' for recovery.
         typeArguments = new List<DartType>.filled(
-            declarationBuilder.typeParametersCount, const DynamicType(),
+            _fragment.builder.declarationBuilder.typeParametersCount,
+            const DynamicType(),
             growable: true);
       }
 
-      _procedureInternal.function.body =
-          createRedirectingFactoryBody(target, typeArguments, function);
-      assert(function == _procedureInternal.function);
-      _procedureInternal.function.body!.parent = function;
+      _procedureInternal.function.body = createRedirectingFactoryBody(
+          target, typeArguments, _procedureInternal.function);
+      _procedureInternal.function.body!.parent = _procedureInternal.function;
       _procedureInternal.function.redirectingFactoryTarget =
           new RedirectingFactoryTarget(target, typeArguments);
     }
@@ -769,42 +838,285 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
             target!,
             typeArguments,
             _tearOffTypeParameters!,
-            libraryBuilder));
+            _fragment.builder.libraryBuilder));
       }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          target!, _procedure,
-          libraryBuilder: libraryBuilder, identicalSignatures: false));
-    }
-    if (isConst && isAugmenting) {
-      _finishAugmentation();
+          target!, _fragment.builder._procedure,
+          libraryBuilder: _fragment.builder.libraryBuilder,
+          identicalSignatures: false));
     }
   }
 
-  void _finishAugmentation() {
-    finishProcedureAugmentation(origin._procedure, _procedureInternal);
-
-    if (_factoryTearOff != null) {
-      finishProcedureAugmentation(origin._factoryTearOff!, _factoryTearOff);
-    }
-
+  void resolveRedirectingFactory() {
+    ConstructorReferenceBuilder? redirectionTarget =
+        _fragment.redirectionTarget;
     if (redirectionTarget != null) {
-      if (origin.redirectionTarget != null) {
-        // Coverage-ignore-block(suite): Not run.
-        origin._redirectionTypeArguments = _redirectionTypeArguments;
+      // Compute the immediate redirection target, not the effective.
+      List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+      Builder? target = redirectionTarget.target;
+      if (typeArguments != null && target is MemberBuilder) {
+        TypeName redirectionTargetName = redirectionTarget.typeName;
+        if (redirectionTargetName.qualifier == null) {
+          // Do nothing. This is the case of an identifier followed by
+          // type arguments, such as the following:
+          //   B<T>
+          //   B<T>.named
+        } else {
+          if (target.name.isEmpty) {
+            // Do nothing. This is the case of a qualified
+            // non-constructor prefix (for example, with a library
+            // qualifier) followed by type arguments, such as the
+            // following:
+            //   lib.B<T>
+          } else if (target.name != redirectionTargetName.name) {
+            // Do nothing. This is the case of a qualified
+            // non-constructor prefix followed by type arguments followed
+            // by a constructor name, such as the following:
+            //   lib.B<T>.named
+          } else {
+            // TODO(cstefantsova,johnniwinther): Handle this in case in
+            // ConstructorReferenceBuilder.resolveIn and unify with other
+            // cases of handling of type arguments after constructor
+            // names.
+            _fragment.builder.libraryBuilder.addProblem(
+                messageConstructorWithTypeArguments,
+                redirectionTargetName.nameOffset,
+                redirectionTargetName.nameLength,
+                _fragment.fileUri);
+          }
+        }
+      }
+
+      Builder? targetBuilder = redirectionTarget.target;
+      Member? targetNode;
+      if (targetBuilder is FunctionBuilder) {
+        targetNode = targetBuilder.invokeTarget!;
+      } else if (targetBuilder is DillMemberBuilder) {
+        targetNode = targetBuilder.invokeTarget!;
+      } else if (targetBuilder is AmbiguousBuilder) {
+        _addProblemForRedirectingFactory(
+            templateDuplicatedDeclarationUse
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+      } else {
+        _addProblemForRedirectingFactory(
+            templateRedirectionTargetNotFound
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+      }
+      if (targetNode != null &&
+          targetNode is Constructor &&
+          targetNode.enclosingClass.isAbstract) {
+        _addProblemForRedirectingFactory(
+            templateAbstractRedirectedClassInstantiation
+                .withArguments(redirectionTarget.fullNameForErrors),
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+        targetNode = null;
+      }
+      if (targetNode != null &&
+          targetNode is Constructor &&
+          targetNode.enclosingClass.isEnum) {
+        _addProblemForRedirectingFactory(
+            messageEnumFactoryRedirectsToConstructor,
+            redirectionTarget.charOffset,
+            noLength,
+            redirectionTarget.fileUri);
+        targetNode = null;
+      }
+      if (targetNode != null) {
+        List<DartType>? typeArguments = redirectionTypeArguments;
+        if (typeArguments == null) {
+          int typeArgumentCount;
+          if (targetBuilder!.isExtensionTypeMember) {
+            ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+                targetBuilder.parent as ExtensionTypeDeclarationBuilder;
+            typeArgumentCount =
+                extensionTypeDeclarationBuilder.typeParametersCount;
+          } else {
+            typeArgumentCount =
+                targetNode.enclosingClass!.typeParameters.length;
+          }
+          typeArguments =
+              new List<DartType>.filled(typeArgumentCount, const UnknownType());
+        }
+        setRedirectingFactoryBody(targetNode, typeArguments);
       }
     }
   }
 
-  List<DartType>? _getRedirectionTypeArguments() {
-    assert(redirectionTarget != null);
-    return _procedure.function.redirectingFactoryTarget!.typeArguments;
+  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+    if (_procedureInternal.function.body != null) {
+      unexpected("null", "${_procedureInternal.function.body.runtimeType}",
+          _fragment.fullNameOffset, _fragment.fileUri);
+    }
+
+    // Ensure that constant factories only have constant targets/bodies.
+    if (_fragment.modifiers.isConst && !target.isConst) {
+      // Coverage-ignore-block(suite): Not run.
+      _fragment.builder.libraryBuilder.addProblem(
+          messageConstFactoryRedirectionToNonConst,
+          _fragment.fullNameOffset,
+          noLength,
+          _fragment.fileUri);
+    }
+
+    _procedureInternal.function.body = createRedirectingFactoryBody(
+        target, typeArguments, _procedureInternal.function)
+      ..parent = _procedureInternal.function;
+    _procedureInternal.function.redirectingFactoryTarget =
+        new RedirectingFactoryTarget(target, typeArguments);
+    if (_fragment.builder.isAugmenting) {
+      if (_procedureInternal.function.typeParameters.isNotEmpty) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0;
+            i < _procedureInternal.function.typeParameters.length;
+            i++) {
+          substitution[_procedureInternal.function.typeParameters[i]] =
+              new TypeParameterType.withDefaultNullability(
+                  _fragment.builder.origin.function.typeParameters[i]);
+        }
+        typeArguments = new List<DartType>.generate(typeArguments.length,
+            (int i) => substitute(typeArguments[i], substitution),
+            growable: false);
+      }
+      _fragment.builder.origin
+          ._setRedirectingFactoryBody(target, typeArguments);
+    }
+  }
+
+  void _addProblemForRedirectingFactory(
+      Message message, int charOffset, int length, Uri fileUri) {
+    _fragment.builder.libraryBuilder
+        .addProblem(message, charOffset, length, fileUri);
+    String text = _fragment.builder.libraryBuilder.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    _setRedirectingFactoryError(text);
+  }
+
+  void _setRedirectingFactoryError(String message) {
+    assert(_fragment.redirectionTarget != null);
+
+    setBody(createRedirectingFactoryErrorBody(message));
+    _fragment.builder._procedure.function.redirectingFactoryTarget =
+        new RedirectingFactoryTarget.error(message);
+    if (_factoryTearOff != null) {
+      _factoryTearOff.function.body = createRedirectingFactoryErrorBody(message)
+        ..parent = _factoryTearOff.function;
+    }
+  }
+
+  /// Checks this factory builder if it is for a redirecting factory.
+  void checkRedirectingFactory(TypeEnvironment typeEnvironment) {
+    assert(_fragment.redirectionTarget != null);
+
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(_fragment.builder)) {
+      _addProblemForRedirectingFactory(
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${_fragment.builder.declarationBuilder.name}"
+                  "${_fragment.name == '' ? '' : '.${_fragment.name}'}"),
+          _fragment.fullNameOffset,
+          noLength,
+          _fragment.fileUri);
+      return;
+    }
+
+    // The factory type cannot contain any type parameters other than those of
+    // its enclosing class, because constructors cannot specify type parameters
+    // of their own.
+    FunctionType factoryType = _procedureInternal.function
+        .computeThisFunctionType(Nullability.nonNullable);
+    if (_fragment.builder.isAugmenting) {
+      // The redirection target type uses the origin type parameters so we must
+      // substitute augmentation type parameters before checking subtyping.
+      if (_procedureInternal.function.typeParameters.isNotEmpty) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0;
+            i < _procedureInternal.function.typeParameters.length;
+            i++) {
+          substitution[_procedureInternal.function.typeParameters[i]] =
+              new TypeParameterType.withDefaultNullability(
+                  _fragment.builder.origin.function.typeParameters[i]);
+        }
+        factoryType = substitute(factoryType, substitution) as FunctionType;
+      }
+    }
+    FunctionType? redirecteeType = _computeRedirecteeType(typeEnvironment);
+    Map<TypeParameter, DartType> substitutionMap = {};
+    for (int i = 0; i < factoryType.typeParameters.length; i++) {
+      TypeParameter functionTypeParameter =
+          _fragment.builder.origin.function.typeParameters[i];
+      substitutionMap[functionTypeParameter] =
+          new StructuralParameterType.withDefaultNullability(
+              factoryType.typeParameters[i]);
+    }
+    redirecteeType = redirecteeType != null
+        ? substitute(redirecteeType, substitutionMap) as FunctionType
+        : null;
+
+    // TODO(hillerstrom): It would be preferable to know whether a failure
+    // happened during [_computeRedirecteeType].
+    if (redirecteeType == null) {
+      return;
+    }
+
+    Builder? redirectionTargetBuilder = _fragment.redirectionTarget!.target;
+    if (redirectionTargetBuilder is SourceFactoryBuilder &&
+        redirectionTargetBuilder.redirectionTarget != null) {
+      redirectionTargetBuilder.checkRedirectingFactories(typeEnvironment);
+      String? errorMessage = redirectionTargetBuilder
+          .function.redirectingFactoryTarget?.errorMessage;
+      if (errorMessage != null) {
+        _setRedirectingFactoryError(errorMessage);
+      }
+    }
+
+    Builder? redirectionTargetParent =
+        _fragment.redirectionTarget!.target?.parent;
+    bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
+        ? redirectionTargetParent.isEnum
+        : false;
+    if (!((_fragment.builder.classBuilder?.cls.isEnum ?? false) &&
+        (_fragment.redirectionTarget!.target?.isConstructor ?? false) &&
+        redirectingTargetParentIsEnum)) {
+      // Check whether [redirecteeType] <: [factoryType].
+      FunctionType factoryTypeWithoutTypeParameters =
+          factoryType.withoutTypeParameters;
+      if (!typeEnvironment.isSubtypeOf(
+          redirecteeType,
+          factoryTypeWithoutTypeParameters,
+          SubtypeCheckMode.withNullabilities)) {
+        _addProblemForRedirectingFactory(
+            templateIncompatibleRedirecteeFunctionType.withArguments(
+                redirecteeType, factoryTypeWithoutTypeParameters),
+            _fragment.redirectionTarget!.charOffset,
+            noLength,
+            _fragment.redirectionTarget!.fileUri);
+      }
+    } else {
+      // Redirection to generative enum constructors is forbidden.
+      assert(_fragment.builder.libraryBuilder.loader
+          .assertProblemReportedElsewhere(
+              "RedirectingFactoryBuilder._checkRedirectingFactory: "
+              "Redirection to generative enum constructor.",
+              expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+    }
   }
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
   FunctionType? _computeRedirecteeType(TypeEnvironment typeEnvironment) {
-    assert(this.redirectionTarget != null);
-    ConstructorReferenceBuilder redirectionTarget = this.redirectionTarget!;
+    assert(_fragment.redirectionTarget != null);
+    ConstructorReferenceBuilder redirectionTarget =
+        _fragment.redirectionTarget!;
     Builder? targetBuilder = redirectionTarget.target;
     FunctionNode targetNode;
     if (targetBuilder == null) return null;
@@ -820,7 +1132,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       return null;
     } else {
       unhandled("${targetBuilder.runtimeType}", "computeRedirecteeType",
-          fileOffset, fileUri);
+          _fragment.fullNameOffset, _fragment.fileUri);
     }
 
     List<DartType>? typeArguments = _getRedirectionTypeArguments();
@@ -900,7 +1212,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     return hasProblem ? null : targetFunctionType;
   }
 
-  bool _isCyclicRedirectingFactory(SourceFactoryBuilder factory) {
+  static bool _isCyclicRedirectingFactory(SourceFactoryBuilder factory) {
     assert(factory.redirectionTarget != null);
     // We use the [tortoise and hare algorithm]
     // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
@@ -934,219 +1246,82 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     return false;
   }
 
-  void _addProblemForRedirectingFactory(
-      Message message, int charOffset, int length, Uri fileUri) {
-    libraryBuilder.addProblem(message, charOffset, length, fileUri);
-    String text = libraryBuilder.loader.target.context
-        .format(
-            message.withLocation(fileUri, charOffset, length), Severity.error)
-        .plain;
-    _setRedirectingFactoryError(text);
+  List<DartType>? _getRedirectionTypeArguments() {
+    assert(_fragment.redirectionTarget != null);
+    return _fragment
+        .builder._procedure.function.redirectingFactoryTarget!.typeArguments;
   }
 
-  /// Checks this factory builder if it is for a redirecting factory.
-  void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
-    assert(redirectionTarget != null);
+  void setBody(Statement value) {
+    _procedureInternal.function.body = value
+      ..parent = _procedureInternal.function;
+  }
 
-    if (_hasBeenCheckedAsRedirectingFactory) return;
-    _hasBeenCheckedAsRedirectingFactory = true;
-
-    // Check that factory declaration is not cyclic.
-    if (_isCyclicRedirectingFactory(this)) {
-      _addProblemForRedirectingFactory(
-          templateCyclicRedirectingFactoryConstructors
-              .withArguments("${declarationBuilder.name}"
-                  "${name == '' ? '' : '.${name}'}"),
-          fileOffset,
-          noLength,
-          fileUri);
-      return;
+  void becomeNative(SourceLoader loader) {
+    for (Annotatable annotatable in _fragment.builder.annotatables) {
+      loader.addNativeAnnotation(annotatable, _fragment.nativeMethodName!);
     }
+    _procedureInternal.isExternal = true;
+  }
 
-    // The factory type cannot contain any type parameters other than those of
-    // its enclosing class, because constructors cannot specify type parameters
-    // of their own.
-    FunctionType factoryType =
-        function.computeThisFunctionType(Nullability.nonNullable);
-    if (isAugmenting) {
-      // The redirection target type uses the origin type parameters so we must
-      // substitute augmentation type parameters before checking subtyping.
-      if (function.typeParameters.isNotEmpty) {
-        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
-        for (int i = 0; i < function.typeParameters.length; i++) {
-          substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullability(
-                  origin.function.typeParameters[i]);
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => _fragment.nativeMethodName != null;
+
+  FunctionNode get function => _procedureInternal.function;
+
+  FormalParameterBuilder? getFormal(Identifier identifier) {
+    if (_fragment.formals != null) {
+      for (FormalParameterBuilder formal in _fragment.formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
         }
-        factoryType = substitute(factoryType, substitution) as FunctionType;
-      }
-    }
-    FunctionType? redirecteeType = _computeRedirecteeType(typeEnvironment);
-    Map<TypeParameter, DartType> substitutionMap = {};
-    for (int i = 0; i < factoryType.typeParameters.length; i++) {
-      TypeParameter functionTypeParameter = origin.function.typeParameters[i];
-      substitutionMap[functionTypeParameter] =
-          new StructuralParameterType.withDefaultNullability(
-              factoryType.typeParameters[i]);
-    }
-    redirecteeType = redirecteeType != null
-        ? substitute(redirecteeType, substitutionMap) as FunctionType
-        : null;
-
-    // TODO(hillerstrom): It would be preferable to know whether a failure
-    // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) {
-      return;
-    }
-
-    Builder? redirectionTargetBuilder = redirectionTarget!.target;
-    if (redirectionTargetBuilder is SourceFactoryBuilder &&
-        redirectionTargetBuilder.redirectionTarget != null) {
-      redirectionTargetBuilder._checkRedirectingFactory(typeEnvironment);
-      String? errorMessage = redirectionTargetBuilder
-          .function.redirectingFactoryTarget?.errorMessage;
-      if (errorMessage != null) {
-        _setRedirectingFactoryError(errorMessage);
-      }
-    }
-
-    Builder? redirectionTargetParent = redirectionTarget!.target?.parent;
-    bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
-        ? redirectionTargetParent.isEnum
-        : false;
-    if (!((classBuilder?.cls.isEnum ?? false) &&
-        (redirectionTarget!.target?.isConstructor ?? false) &&
-        redirectingTargetParentIsEnum)) {
-      // Check whether [redirecteeType] <: [factoryType].
-      FunctionType factoryTypeWithoutTypeParameters =
-          factoryType.withoutTypeParameters;
-      if (!typeEnvironment.isSubtypeOf(
-          redirecteeType,
-          factoryTypeWithoutTypeParameters,
-          SubtypeCheckMode.withNullabilities)) {
-        _addProblemForRedirectingFactory(
-            templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType, factoryTypeWithoutTypeParameters),
-            redirectionTarget!.charOffset,
-            noLength,
-            redirectionTarget!.fileUri);
-      }
-    } else {
-      // Redirection to generative enum constructors is forbidden.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "RedirectingFactoryBuilder._checkRedirectingFactory: "
-          "Redirection to generative enum constructor.",
-          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
-    }
-  }
-
-  BodyBuilderContext createBodyBuilderContext() {
-    if (redirectionTarget != null) {
-      return new RedirectingFactoryBodyBuilderContext(this, _procedure);
-    } else {
-      return new FactoryBodyBuilderContext(this, _procedure);
-    }
-  }
-
-  void resolveRedirectingFactory(ClassDeclaration classDeclaration) {
-    ConstructorReferenceBuilder? redirectionTarget = this.redirectionTarget;
-    if (redirectionTarget != null) {
-      // Compute the immediate redirection target, not the effective.
-      List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
-      Builder? target = redirectionTarget.target;
-      if (typeArguments != null && target is MemberBuilder) {
-        TypeName redirectionTargetName = redirectionTarget.typeName;
-        if (redirectionTargetName.qualifier == null) {
-          // Do nothing. This is the case of an identifier followed by
-          // type arguments, such as the following:
-          //   B<T>
-          //   B<T>.named
-        } else {
-          if (target.name.isEmpty) {
-            // Do nothing. This is the case of a qualified
-            // non-constructor prefix (for example, with a library
-            // qualifier) followed by type arguments, such as the
-            // following:
-            //   lib.B<T>
-          } else if (target.name != redirectionTargetName.name) {
-            // Do nothing. This is the case of a qualified
-            // non-constructor prefix followed by type arguments followed
-            // by a constructor name, such as the following:
-            //   lib.B<T>.named
-          } else {
-            // TODO(cstefantsova,johnniwinther): Handle this in case in
-            // ConstructorReferenceBuilder.resolveIn and unify with other
-            // cases of handling of type arguments after constructor
-            // names.
-            libraryBuilder.addProblem(
-                messageConstructorWithTypeArguments,
-                redirectionTargetName.nameOffset,
-                redirectionTargetName.nameLength,
-                fileUri);
-          }
+        if (formal.name == identifier.name &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
         }
       }
+      // Coverage-ignore(suite): Not run.
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in ${_fragment.formals}");
+    }
+    return null;
+  }
 
-      Builder? targetBuilder = redirectionTarget.target;
-      Member? targetNode;
-      if (targetBuilder is FunctionBuilder) {
-        targetNode = targetBuilder.invokeTarget!;
-      } else if (targetBuilder is DillMemberBuilder) {
-        targetNode = targetBuilder.invokeTarget!;
-      } else if (targetBuilder is AmbiguousBuilder) {
-        _addProblemForRedirectingFactory(
-            templateDuplicatedDeclarationUse
-                .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
+  VariableDeclaration? getTearOffParameter(int index) {
+    if (_factoryTearOff != null) {
+      if (index < _factoryTearOff.function.positionalParameters.length) {
+        return _factoryTearOff.function.positionalParameters[index];
       } else {
-        _addProblemForRedirectingFactory(
-            templateRedirectionTargetNotFound
-                .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
-      }
-      if (targetNode != null &&
-          targetNode is Constructor &&
-          targetNode.enclosingClass.isAbstract) {
-        _addProblemForRedirectingFactory(
-            templateAbstractRedirectedClassInstantiation
-                .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
-        targetNode = null;
-      }
-      if (targetNode != null &&
-          targetNode is Constructor &&
-          targetNode.enclosingClass.isEnum) {
-        _addProblemForRedirectingFactory(
-            messageEnumFactoryRedirectsToConstructor,
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
-        targetNode = null;
-      }
-      if (targetNode != null) {
-        List<DartType>? typeArguments = _redirectionTypeArguments;
-        if (typeArguments == null) {
-          int typeArgumentCount;
-          if (targetBuilder!.isExtensionTypeMember) {
-            ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-                targetBuilder.parent as ExtensionTypeDeclarationBuilder;
-            typeArgumentCount =
-                extensionTypeDeclarationBuilder.typeParametersCount;
-          } else {
-            typeArgumentCount =
-                targetNode.enclosingClass!.typeParameters.length;
-          }
-          typeArguments =
-              new List<DartType>.filled(typeArgumentCount, const UnknownType());
+        index -= _factoryTearOff.function.positionalParameters.length;
+        if (index < _factoryTearOff.function.namedParameters.length) {
+          return _factoryTearOff.function.namedParameters[index];
         }
-        _setRedirectingFactoryBody(targetNode, typeArguments);
       }
+    }
+    return null;
+  }
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(_fragment.formals);
+    return count;
+  }
+
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    if (_fragment.redirectionTarget != null) {
+      // Default values are not required on redirecting factory constructors so
+      // we don't call [checkInitializersInFormals].
+    } else {
+      library.checkInitializersInFormals(_fragment.formals, typeEnvironment,
+          isAbstract: _fragment.modifiers.isAbstract,
+          isExternal: _fragment.modifiers.isExternal);
     }
   }
 }
