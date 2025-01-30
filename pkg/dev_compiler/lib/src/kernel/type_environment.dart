@@ -85,7 +85,9 @@ class EmptyTypeEnvironment implements DDCTypeEnvironment {
 
 /// A type environment introduced by a class with one or more generic type
 /// parameters.
-class ClassTypeEnvironment implements DDCTypeEnvironment {
+class ClassTypeEnvironment
+    implements DDCTypeEnvironment, ExtendableTypeEnvironment {
+  @override
   final List<TypeParameter> _typeParameters;
 
   ClassTypeEnvironment(this._typeParameters);
@@ -94,7 +96,7 @@ class ClassTypeEnvironment implements DDCTypeEnvironment {
   DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty
         ? this
-        : ExtendedClassTypeEnvironment(this, [...parameters]);
+        : ExtendedTypeEnvironment<ClassTypeEnvironment>(this, [...parameters]);
   }
 
   @override
@@ -125,17 +127,19 @@ class ClassTypeEnvironment implements DDCTypeEnvironment {
 
 /// A type environment introduced by a subroutine, wherein an RTI object is
 /// explicitly provided.
-class RtiTypeEnvironment implements DDCTypeEnvironment {
+class RtiTypeEnvironment
+    implements DDCTypeEnvironment, ExtendableTypeEnvironment {
+  @override
   final List<TypeParameter> _typeParameters;
 
   RtiTypeEnvironment(this._typeParameters);
 
   @override
   DDCTypeEnvironment extend(List<TypeParameter> parameters) {
-    /// RtiTypeEnvironments are only used for constructors, factories, and type
-    /// signatures - none of which can accept generic arguments.
-    throw Exception(
-        'RtiTypeEnvironments should not receive extended type parameters.');
+    /// RtiTypeEnvironments are only used for factories and type signatures. Of
+    /// these factories can have generic functions defined in their bodies that
+    /// require extending the environment.
+    return ExtendedTypeEnvironment<RtiTypeEnvironment>(this, [...parameters]);
   }
 
   @override
@@ -210,19 +214,25 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
   bool get isSingleTypeParameter => _typeParameters.length == 1;
 }
 
-/// A type environment based on one introduced by a generic class but extended
-/// with additional parameters from methods with generic type parameters.
-class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
-  final ClassTypeEnvironment _classEnvironment;
+abstract class ExtendableTypeEnvironment extends DDCTypeEnvironment {
+  List<TypeParameter> get _typeParameters;
+}
+
+/// A type environment based on one introduced by a generic environment but
+/// extended with additional parameters from methods/functions with generic type
+/// parameters.
+class ExtendedTypeEnvironment<T extends ExtendableTypeEnvironment>
+    implements DDCTypeEnvironment {
+  final T _baseTypeEnvironment;
   final List<TypeParameter> _typeParameters;
 
-  ExtendedClassTypeEnvironment(this._classEnvironment, this._typeParameters);
+  ExtendedTypeEnvironment(this._baseTypeEnvironment, this._typeParameters);
 
   @override
   DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty
         ? this
-        : ExtendedClassTypeEnvironment(_classEnvironment, [
+        : ExtendedTypeEnvironment(_baseTypeEnvironment, [
             // Place new parameters first so they can effectively shadow
             // parameters already in the environment.
             ...parameters, ..._typeParameters
@@ -231,36 +241,36 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
 
   @override
   DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
-    var classEnvironmentNeeded =
-        requiredParameters.any(_classEnvironment._typeParameters.contains);
+    var baseEnvironmentNeeded =
+        requiredParameters.any(_baseTypeEnvironment._typeParameters.contains);
     var additionalParameters =
         requiredParameters.where(_typeParameters.contains);
     if (additionalParameters.isEmpty) {
-      return classEnvironmentNeeded
-          // Simply using the class environment has a compact representation
+      return baseEnvironmentNeeded
+          // Simply using the base environment has a compact representation
           // and is already constructed.
-          ? _classEnvironment
+          ? _baseTypeEnvironment
           // No type parameters are needed from this environment.
           : const EmptyTypeEnvironment();
     }
     // This is already the exact environment needed.
     if (additionalParameters.length == _typeParameters.length) return this;
-    // An extended class environment with fewer additional parameters is needed.
-    return ExtendedClassTypeEnvironment(
-        _classEnvironment, additionalParameters.toList());
+    // An extended environment with fewer additional parameters is needed.
+    return ExtendedTypeEnvironment(
+        _baseTypeEnvironment, additionalParameters.toList());
   }
 
   @override
   int recipeIndexOf(TypeParameter parameter) {
     // Search in the extended type parameters first. They can shadow parameters
-    // from the class.
+    // from the base environment.
     var i = _typeParameters.indexOf(parameter);
     // Type parameter was found and should be a one based index. Zero refers to
-    // the original class rti that is the basis on this environment.
+    // the original rti that is the basis of this environment.
     if (i >= 0) return i + 1;
-    i = _classEnvironment.recipeIndexOf(parameter);
+    i = _baseTypeEnvironment.recipeIndexOf(parameter);
     // The type parameter bindings with the closest scope have the lowest
-    // indices. Since the parameter was found in the class binding the index
+    // indices. Since the parameter was found in the base binding the index
     // must be offset by the number of extended parameters.
     if (i > 0) return i + _typeParameters.length;
     // Type parameter not found.
@@ -269,7 +279,7 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
 
   @override
   List<TypeParameter> get classTypeParameters =>
-      UnmodifiableListView(_classEnvironment.classTypeParameters);
+      UnmodifiableListView(_baseTypeEnvironment.classTypeParameters);
 
   @override
   List<TypeParameter> get functionTypeParameters =>
