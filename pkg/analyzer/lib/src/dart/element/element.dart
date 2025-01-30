@@ -7831,7 +7831,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   List<Fragment> get children3 => const [];
 
   @override
-  LocalVariableElement2 get element => _element2;
+  LocalVariableElementImpl2 get element => _element2;
 
   @override
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
@@ -9606,6 +9606,9 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 mixin ParameterElementMixin
     implements ParameterElement, VariableElementOrMember {
   @override
+  FormalParameterElementImpl get element;
+
+  @override
   bool get isNamed => parameterKind.isNamed;
 
   @override
@@ -10554,6 +10557,11 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
     } else {
       return this;
     }
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return (firstFragment as PropertyInducingElementImpl)
+        .shouldUseTypeForInitializerInference;
   }
 
   List<PropertyInducingElementImpl> get _fragments;
@@ -11706,7 +11714,7 @@ abstract class VariableElement2OrMember implements VariableElement2 {
 
 /// A concrete implementation of a [VariableElement].
 abstract class VariableElementImpl extends ElementImpl
-    implements VariableElementOrMember {
+    implements VariableElementOrMember, VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
 
@@ -11728,6 +11736,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   String get displayName => name;
+
+  @override
+  VariableElementImpl2 get element;
 
   /// Return the result of evaluating this variable's initializer as a
   /// compile-time constant expression, or `null` if this variable is not a

@@ -18389,11 +18389,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  VariableFragment? get declaredFragment {
-    if (declaredElement case VariableFragment fragment) {
-      return fragment;
-    }
-    return null;
+  VariableElementImpl? get declaredFragment {
+    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the

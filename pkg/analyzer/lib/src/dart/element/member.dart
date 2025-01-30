@@ -1212,14 +1212,14 @@ class ParameterMember extends VariableMember
       children.map((fragment) => fragment.asElement2).nonNulls.toList();
 
   @override
-  ParameterElement get declaration => super.declaration as ParameterElement;
+  ParameterElementImpl get declaration =>
+      super.declaration as ParameterElementImpl;
 
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
 
   @override
-  // TODO(scheglov): we lose types
-  FormalParameterElement get element => declaration.element;
+  FormalParameterElementImpl get element => declaration.element;
 
   @override
   Element2? get enclosingElement2 => _element2.enclosingElement2;

@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -40,9 +38,9 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredElement!;
+    var element = node.declaredFragment!.element;
     var isTopLevel =
-        element is FieldElement || element is TopLevelVariableElement;
+        element is FieldElement2 || element is TopLevelVariableElement2;
 
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);
@@ -50,7 +48,7 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    var contextType = element is! PropertyInducingElementImpl ||
+    var contextType = element is! PropertyInducingElementImpl2 ||
             element.shouldUseTypeForInitializerInference
         ? element.type
         : UnknownInferredType.instance;
@@ -60,7 +58,7 @@ class VariableDeclarationResolver {
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 
     var initializerType = initializer.typeOrThrow;
-    if (parent.type == null && element is LocalVariableElementImpl) {
+    if (parent.type == null && element is LocalVariableElementImpl2) {
       element.type = _resolver
           .variableTypeFromInitializerType(SharedTypeView(initializerType))
           .unwrapTypeView();
@@ -75,8 +73,9 @@ class VariableDeclarationResolver {
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
-    if (element is ConstLocalVariableElementImpl) {
-      element.constantInitializer = initializer;
+    if (element is LocalVariableElementImpl2 && element.isConst) {
+      var fragment = element.firstFragment as ConstLocalVariableElementImpl;
+      fragment.constantInitializer = initializer;
     }
 
     _resolver.checkForAssignableExpressionAtType(
