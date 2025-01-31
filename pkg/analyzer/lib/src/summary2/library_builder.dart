@@ -88,8 +88,7 @@ class LibraryBuilder {
   /// The fields that were speculatively created as [ConstFieldElementImpl],
   /// but we want to clear [ConstVariableElement.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
-  /// at the time when we create them, because of future augmentations, user
-  /// written or macro generated.
+  /// at the time when we create them, because of future augmentations.
   final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
 
   LibraryBuilder._({

@@ -32,7 +32,6 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
-import '../../summary/macros_environment.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
@@ -386,24 +385,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
   String get workspaceRootPath => '/home';
 
-  /// Creates `package:macro` and `package:_macro` files, adds to [config].
-  void addMacrosEnvironment(
-    PackageConfigFileBuilder config,
-    MacrosEnvironment macrosEnvironment,
-  ) {
-    var packagesRootFolder = getFolder(packagesRootPath);
-    macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
-    macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
-    config.add(
-      name: '_macros',
-      rootPath: getFolder('$packagesRootPath/_macros').path,
-    );
-    config.add(
-      name: 'macros',
-      rootPath: getFolder('$packagesRootPath/macros').path,
-    );
-  }
-
   /// Build summary bundle for a single URI `package:foo/foo.dart`.
   Future<File> buildPackageFooSummary({
     required Map<String, String> files,
@@ -483,7 +464,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     bool flutter = false,
     bool js = false,
     bool meta = false,
-    MacrosEnvironment? macrosEnvironment,
   }) {
     config = config.copy();
 
@@ -519,10 +499,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     if (meta || flutter) {
       var metaPath = addMeta().parent.path;
       config.add(name: 'meta', rootPath: metaPath);
-    }
-
-    if (macrosEnvironment != null) {
-      addMacrosEnvironment(config, macrosEnvironment);
     }
 
     writePackageConfig(testPackageRootPath, config);

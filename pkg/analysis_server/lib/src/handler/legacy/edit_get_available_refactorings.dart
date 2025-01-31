@@ -9,7 +9,6 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// The handler for the `edit.getAvailableRefactorings` request.
@@ -34,10 +33,6 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var length = params.length;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-    if (isMacroGenerated(file)) {
-      sendResult(EditGetAvailableRefactoringsResult([]));
       return;
     }
 

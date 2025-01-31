@@ -2741,7 +2741,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token get leftBracket;
 
   /// The `macro` keyword, or `null` if the keyword was absent.
-  @experimental
+  @Deprecated('Support for macros was removed')
   Token? get macroKeyword;
 
   /// The members defined by the class.
@@ -2992,12 +2992,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   final Token? abstractKeyword;
 
-  /// The token for the `macro` keyword, or `null` if this isn't defining a
-  /// macro class.
-// TODO(brianwilkerson): Move this comment to the getter when it's added to
-  //  the public API.
-  final Token? macroKeyword;
-
   @override
   final Token? sealedKeyword;
 
@@ -3042,7 +3036,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -3070,7 +3063,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ??
-        macroKeyword ??
         sealedKeyword ??
         baseKeyword ??
         interfaceKeyword ??
@@ -3115,7 +3107,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)

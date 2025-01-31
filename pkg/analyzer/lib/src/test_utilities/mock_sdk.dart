@@ -1584,18 +1584,6 @@ extension NullableObjectUtilExtension on Object? {
   ],
 );
 
-final MockSdkLibrary _LIB_MACROS = MockSdkLibrary(
-  '_macros',
-  [
-    MockSdkLibraryUnit(
-      '_macros/_macros.dart',
-      '''
-library dart._macros;
-''',
-    )
-  ],
-);
-
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   'math',
   [
@@ -1675,7 +1663,6 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_JS,
   _LIB_JS_ANNOTATIONS,
   _LIB_JS_INTEROP,
-  _LIB_MACROS,
   _LIB_MATH,
   _LIB_TYPED_DATA,
   _LIB_WASM,

@@ -13,7 +13,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../summary/macros_environment.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -38,7 +37,6 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
 
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
-      macrosEnvironment: MacrosEnvironment.instance,
     );
   }
 

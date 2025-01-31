@@ -16,9 +16,6 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  static const String _macroUriStr = 'package:macros/macros.dart';
-  static const String _macroImplApiUriStr = 'package:_macros/src/api.dart';
-
   final MemoryByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
   final IdProvider idProvider;
@@ -74,9 +71,6 @@ class AnalyzerStatePrinter {
           throw UnimplementedError('$cycle');
         }
       }
-    }
-    if (cycle.libraries.any((e) => e.file.uriStr == _macroUriStr)) {
-      return _macroUriStr;
     }
     return idProvider.libraryCycle(cycle);
   }
@@ -246,13 +240,6 @@ class AnalyzerStatePrinter {
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.discoverReferencedFiles();
 
-    if (configuration.discardPartialMacroAugmentationFiles) {
-      var pattern = RegExp(r'^.*\.macro\d+\.dart$');
-      testData.files.removeWhere((file, value) {
-        return pattern.hasMatch(file.path);
-      });
-    }
-
     _verifyKnownFiles();
 
     // Discover libraries for parts.
@@ -317,9 +304,6 @@ class AnalyzerStatePrinter {
         if (configuration.omitSdkFiles && fileData.uri.isScheme('dart')) {
           continue;
         }
-        if (_isMacroApiUri(fileData.uri)) {
-          continue;
-        }
         var file = fileData.file;
         sink.writelnWithIndent(file.posixPath);
         sink.withIndent(() {
@@ -354,9 +338,6 @@ class AnalyzerStatePrinter {
       for (var entry in testData.libraryCycles.entries) {
         if (configuration.omitSdkFiles &&
             entry.key.any((e) => e.uri.isScheme('dart'))) {
-          continue;
-        }
-        if (entry.key.any((e) => _isMacroApiUri(e.uri))) {
           continue;
         }
         cyclesToPrint.add(
@@ -513,9 +494,6 @@ class AnalyzerStatePrinter {
           if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
             sink.write(' ${file.uri}');
           }
-          if (file.uriStr == _macroUriStr) {
-            sink.write(' $_macroUriStr');
-          }
 
           if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
@@ -626,9 +604,6 @@ class AnalyzerStatePrinter {
       if (configuration.omitSdkFiles && uri.isScheme('dart')) {
         continue;
       }
-      if (const {_macroUriStr, _macroImplApiUriStr}.contains('$uri')) {
-        continue;
-      }
       uriStrList.add('$uri');
     }
 
@@ -642,17 +617,9 @@ class AnalyzerStatePrinter {
       });
     }
   }
-
-  static bool _isMacroApiUri(Uri uri) {
-    var uriStr = '$uri';
-    return uriStr.startsWith('package:macros/') ||
-        uriStr.startsWith('package:_macros/');
-  }
 }
 
 class AnalyzerStatePrinterConfiguration {
-  bool discardPartialMacroAugmentationFiles = true;
-
   Set<File> filesToPrintContent = {};
 
   bool omitSdkFiles = true;

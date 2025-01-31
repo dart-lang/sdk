@@ -810,15 +810,7 @@ class InformativeDataApplier {
 
   Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
     var uri = element.source.uri;
-    if (_unitsInformativeBytes2[uri] case var bytes?) {
-      return bytes;
-    }
-
-    if (element.macroGenerated case var macroGenerated?) {
-      return macroGenerated.informativeBytes;
-    }
-
-    return null;
+    return _unitsInformativeBytes2[uri];
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(

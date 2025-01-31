@@ -47,16 +47,6 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'MacroArgumentsTest',
-      methodName: '_assertTypesPhaseArgumentsText',
-      argument: _ArgumentNamed('expected'),
-    ),
-    _AssertMethod(
-      className: 'MacroElementsBaseTest',
-      methodName: '_assertMacroCode',
-      argument: _ArgumentIndex(1),
-    ),
-    _AssertMethod(
       className: 'ElementsBaseTest',
       methodName: 'checkElementText',
       argument: _ArgumentIndex(1),
@@ -95,16 +85,6 @@ class NodeTextExpectationsCollector {
       className: 'LibraryFragmentElementTest',
       methodName: '_assertScopeLookups',
       argument: _ArgumentIndex(3),
-    ),
-    _AssertMethod(
-      className: 'MacroIntrospectElementTest',
-      methodName: '_assertIntrospectText',
-      argument: _ArgumentIndex(1),
-    ),
-    _AssertMethod(
-      className: 'MacroIntrospectNodeTest',
-      methodName: '_assertIntrospectText',
-      argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'MetadataResolutionTest',

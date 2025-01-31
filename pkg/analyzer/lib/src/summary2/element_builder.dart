@@ -108,7 +108,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.isBase = node.baseKeyword != null;
     fragment.isFinal = node.finalKeyword != null;
     fragment.isInterface = node.interfaceKeyword != null;
-    fragment.isMacro = node.macroKeyword != null;
     fragment.isMixinClass = node.mixinKeyword != null;
     if (node.sealedKeyword != null) {
       fragment.isAbstract = true;
@@ -179,7 +178,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     fragment.isBase = node.baseKeyword != null;
     fragment.isFinal = node.finalKeyword != null;
     fragment.isInterface = node.interfaceKeyword != null;
-    fragment.isMacro = node.macroKeyword != null;
     fragment.isMixinApplication = true;
     fragment.isMixinClass = node.mixinKeyword != null;
     if (node.sealedKeyword != null) {

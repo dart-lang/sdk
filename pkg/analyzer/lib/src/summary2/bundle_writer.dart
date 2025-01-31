@@ -76,9 +76,6 @@ class BundleWriter {
       _sink._writeStringReference(library.uriStr);
       _sink.writeUInt30(library.offset);
       _sink.writeUint30List(library.classMembersOffsets);
-      _sink.writeOptionalObject(library.macroGenerated, (it) {
-        _sink.writeStringUtf8(it.code);
-      });
     });
 
     var referencesOffset = _sink.offset;
@@ -124,15 +121,11 @@ class BundleWriter {
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
 
-    var lastUnit = libraryElement.units.lastOrNull;
-    var macroGenerated = lastUnit?.macroGenerated;
-
     _libraries.add(
       _Library(
         uriStr: '${libraryElement.source.uri}',
         offset: libraryOffset,
         classMembersOffsets: _classMembersLengths,
-        macroGenerated: macroGenerated,
       ),
     );
   }
@@ -745,11 +738,6 @@ class BundleWriter {
       _writePropertyAccessorElement,
     );
 
-    _sink.writeOptionalObject(unitElement.macroGenerated, (macroGenerated) {
-      _sink.writeStringUtf8(macroGenerated.code);
-      _sink.writeUint8List(macroGenerated.informativeBytes);
-    });
-
     // Write parts after this library fragment, so that when we read, we
     // process fragments of declarations in the same order as we build them.
     _writeList(unitElement.parts, _writePartElement);
@@ -1220,14 +1208,10 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
-  /// The only (if any) macro generated fragment.
-  final MacroGeneratedLibraryFragment? macroGenerated;
-
   _Library({
     required this.uriStr,
     required this.offset,
     required this.classMembersOffsets,
-    required this.macroGenerated,
   });
 }
 
