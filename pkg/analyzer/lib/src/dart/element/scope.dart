@@ -134,6 +134,16 @@ class ImportsTracking {
     return trackerOf(import).importToUsedElements[import] ?? {};
   }
 
+  /// The elements that are used from [import].
+  Set<Element2> elementsOf2(LibraryImportElementImpl import) {
+    return trackerOf(import)
+            .importToUsedElements[import]
+            ?.map((e) => e.asElement2)
+            .nonNulls
+            .toSet() ??
+        {};
+  }
+
   void notifyExtensionUsed(ExtensionElement element) {
     for (var tracking in map.values) {
       tracking.notifyExtensionUsed(element);
@@ -177,6 +187,11 @@ class ImportsTrackingOfPrefix {
     _buildElementToImportsMap();
   }
 
+  Map<LibraryImportElementImpl, Set<Element2>> get importToUsedElements2 {
+    return importToUsedElements.mapValue(
+        (elements) => elements.map((e) => e.asElement2).nonNulls.toSet());
+  }
+
   /// The elements that are used from [import].
   Set<Element> elementsOf(LibraryImportElementImpl import) {
     return importToUsedElements[import] ?? {};
@@ -184,10 +199,10 @@ class ImportsTrackingOfPrefix {
 
   /// The subset of [elementsOf], excludes elements that are from deprecated
   /// exports inside the imported library.
-  Set<Element> elementsOf2(LibraryImportElementImpl import) {
+  Set<Element2> elementsOf2(LibraryImportElementImpl import) {
     var result = importToAccessedElements2[import];
     if (result != null) {
-      return result;
+      return result.map((e) => e.asElement2).nonNulls.toSet();
     }
 
     var accessedElements = elementsOf(import);
@@ -216,7 +231,8 @@ class ImportsTrackingOfPrefix {
     }
 
     result ??= accessedElements;
-    return importToAccessedElements2[import] = result;
+    importToAccessedElements2[import] = result;
+    return result.map((e) => e.asElement2).nonNulls.toSet();
   }
 
   void lookupResult(Element? element) {
