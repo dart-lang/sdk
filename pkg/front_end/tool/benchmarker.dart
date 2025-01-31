@@ -12,6 +12,8 @@ late final Uri repoDir = computeRepoDirUri();
 void main(List<String> args) {
   if (args.contains("--help")) return _help();
   _checkEnvironment();
+  bool doCacheBenchmarkingToo = false;
+  bool silent = false;
   int iterations = 5;
   int core = 7;
   String? aotRuntime;
@@ -31,6 +33,10 @@ void main(List<String> args) {
       arguments.add(arg.substring("--arguments=".length));
     } else if (arg.startsWith("--filesize=")) {
       checkFileSize = arg.substring("--filesize=".length);
+    } else if (arg == "--cache") {
+      doCacheBenchmarkingToo = true;
+    } else if (arg == "--silent") {
+      silent = true;
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -44,6 +50,17 @@ void main(List<String> args) {
     print("Note: Running without any arguments to the snapshots.");
   }
 
+  _doRun(iterations, snapshots, aotRuntime, core, arguments, checkFileSize,
+      cacheBenchmarking: false, silent: silent);
+  if (doCacheBenchmarkingToo) {
+    _doRun(iterations, snapshots, aotRuntime, core, arguments, checkFileSize,
+        cacheBenchmarking: true, silent: silent);
+  }
+}
+
+void _doRun(int iterations, List<String> snapshots, String aotRuntime, int core,
+    List<String> arguments, String? checkFileSize,
+    {required bool cacheBenchmarking, required bool silent}) {
   print("Will now run $iterations iterations with "
       "${snapshots.length} snapshots.");
 
@@ -54,9 +71,14 @@ void main(List<String> args) {
     List<Map<String, num>> snapshotResults = [];
     runResults.add(snapshotResults);
     for (int iteration = 0; iteration < iterations; iteration++) {
+      // We want this silent to mean no stdout print, but still want progress
+      // info which is what the dot provides.
+      if (silent) stdout.write(".");
       Map<String, num> benchmarkRun = _benchmark(
           aotRuntime, core, snapshot, [], arguments,
-          warnings: warnings);
+          warnings: warnings,
+          cacheBenchmarking: cacheBenchmarking,
+          silent: silent);
       if (checkFileSize != null) {
         File f = new File(checkFileSize);
         if (f.existsSync()) {
@@ -67,14 +89,17 @@ void main(List<String> args) {
     }
 
     // Do a single GC run too.
-    gcInfos.add(_verboseGcRun(aotRuntime, snapshot, [], arguments));
+    if (silent) stdout.write(".");
+    gcInfos
+        .add(_verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true));
   }
   stdout.write("\n\n");
 
   List<Map<String, num>> firstSnapshotResults = runResults.first;
   for (int i = 1; i < runResults.length; i++) {
     if (i > 1) print("");
-    print("Comparing snapshot #1 with snapshot #${i + 1}");
+    print("Comparing snapshot #1 (${_getName(snapshots[0])}) with "
+        "snapshot #${i + 1} (${_getName(snapshots[i])})");
     List<Map<String, num>> compareToResults = runResults[i];
     if (!_compare(firstSnapshotResults, compareToResults)) {
       print("No change.");
@@ -90,6 +115,10 @@ void main(List<String> args) {
     print("sudo out/ReleaseX64/dart pkg/front_end/tool/perf_event_tool.dart");
     print("will attempt to give you such information.");
   }
+}
+
+String _getName(String urlIsh) {
+  return Uri.parse(urlIsh).pathSegments.last;
 }
 
 void _help() {
@@ -170,10 +199,10 @@ List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
 
 Map<String, num> benchmark(
     String snapshot, List<String> extraVmArguments, List<String> arguments,
-    {String? aotRuntime, int? core}) {
+    {String? aotRuntime, int? core, bool cacheBenchmarking = false}) {
   return _benchmark(aotRuntime ?? _computeAotRuntime(), core ?? 7, snapshot,
       extraVmArguments, arguments,
-      silent: true);
+      silent: true, cacheBenchmarking: cacheBenchmarking);
 }
 
 late final RegExp _extractNumbers =
@@ -181,19 +210,27 @@ late final RegExp _extractNumbers =
 
 Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
     List<String> extraVmArguments, List<String> arguments,
-    {bool silent = false, Warnings? warnings}) {
+    {bool silent = false, Warnings? warnings, bool cacheBenchmarking = false}) {
   if (!silent) stdout.write(".");
+
+  // These influence scaling, so only pick 3 (apparently that's now the
+  // magic limit)
+  String scalingEvents = "cycles:u,"
+      "instructions:u,"
+      "branch-misses:u";
+  if (cacheBenchmarking) {
+    scalingEvents = "L1-icache-load-misses:u,"
+        "LLC-loads:u,"
+        "LLC-load-misses:u";
+  }
   ProcessResult processResult = Process.runSync("perf", [
     "stat",
     "-B",
     "-e",
     // These doesn't influence scaling
     "task-clock:u,context-switches:u,cpu-migrations:u,page-faults:u,"
-        // These influence scaling, so only pick 3 (apparently that's now the
-        // magic limit)
-        "cycles:u,"
-        "instructions:u,"
-        "branch-misses:u",
+        // These influence scaling
+        "$scalingEvents",
     "taskset",
     "-c",
     "$core",
@@ -309,6 +346,10 @@ bool _whichOk(String what) {
 
 GCInfo parseVerboseGcOutput(ProcessResult processResult) {
   List<String> stderrLines = processResult.stderr.split("\n");
+  return parseVerboseGcText(stderrLines);
+}
+
+GCInfo parseVerboseGcText(List<String> stderrLines) {
   double combinedTime = 0;
   Map<String, int> countWhat = {};
   for (String line in stderrLines) {
