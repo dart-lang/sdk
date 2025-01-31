@@ -83,9 +83,9 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// To remove an entry with a specific key, use [remove].
 /// ```dart continued
-/// final removeValue = planets.remove(5);
-/// print(removeValue); // Saturn
-/// print(planets); // fx {3: Earth, 4: Mars, 6: Jupiter}
+/// final removeValue = planets.remove(6);
+/// print(removeValue); // Jupiter
+/// print(planets); // fx {4: Mars, 3: Earth, 5: Saturn}
 /// ```
 /// To remove multiple entries at the same time, based on their keys and values,
 /// use [removeWhere].
