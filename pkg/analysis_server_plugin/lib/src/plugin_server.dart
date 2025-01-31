@@ -189,6 +189,9 @@ class PluginServer {
   Future<void> _analyzeAllFilesInContextCollection({
     required AnalysisContextCollection contextCollection,
   }) async {
+    _channel.sendNotification(
+        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
+            .toNotification());
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
       var paths = analysisContext.contextRoot
           .analyzedFiles()
@@ -203,6 +206,9 @@ class PluginServer {
         paths: paths,
       );
     });
+    _channel.sendNotification(
+        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
+            .toNotification());
   }
 
   Future<void> _analyzeFile({
@@ -496,6 +502,9 @@ class PluginServer {
   /// Handles the fact that files with [paths] were changed.
   Future<void> _handleContentChanged(List<String> paths) async {
     if (_contextCollection case var contextCollection?) {
+      _channel.sendNotification(
+          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
+              .toNotification());
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
         for (var path in paths) {
           analysisContext.changeFile(path);
@@ -504,6 +513,9 @@ class PluginServer {
         await _handleAffectedFiles(
             analysisContext: analysisContext, paths: affected);
       });
+      _channel.sendNotification(
+          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
+              .toNotification());
     }
   }
 

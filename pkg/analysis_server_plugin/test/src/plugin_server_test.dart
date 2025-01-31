@@ -9,6 +9,7 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -31,6 +32,13 @@ class PluginServerTest extends PluginServerTestBase {
 
   String get packagePath => convertPath('/package1');
 
+  StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
+    return StreamQueue(channel.notifications
+        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+  }
+
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -45,9 +53,7 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
@@ -74,9 +80,7 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'double x = 3.14;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
   }
@@ -86,9 +90,7 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'double x = 3.14;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
@@ -100,9 +102,7 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
@@ -120,9 +120,7 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
@@ -148,9 +146,7 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
@@ -174,9 +170,7 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
@@ -187,9 +181,7 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var paramsQueue = StreamQueue(channel.notifications
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
   }

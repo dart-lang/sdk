@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
+/// @docImport 'package:analysis_server/src/plugin/plugin_watcher.dart';
+library;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -320,6 +324,14 @@ class PluginManager {
 
   final StreamController<void> _pluginsChanged = StreamController.broadcast();
 
+  /// Whether plugins are "initialized."
+  ///
+  /// Plugins are declared to be initialized either (a) when the [PluginWatcher]
+  /// has determined no plugins are configured to be run, or (b) when the
+  /// plugins are configured and the first status notification is received by
+  /// the analysis server.
+  Completer<void> initializedCompleter = Completer();
+
   /// Initialize a newly created plugin manager. The notifications from the
   /// running plugins will be handled by the given [notificationManager].
   PluginManager(
@@ -376,6 +388,7 @@ class PluginManager {
       );
       _pluginMap[path] = plugin;
       try {
+        instrumentationService.logInfo('Starting plugin "$plugin"');
         var session = await plugin.start(byteStorePath, sdkPath);
         unawaited(
           session?.onDone.then((_) {
@@ -948,7 +961,7 @@ class PluginSession {
   /// Return a future that will complete when the plugin has stopped.
   Future<void> get onDone => pluginStoppedCompleter.future;
 
-  /// Handle the given [notification].
+  /// Handle the given [notification] from [PluginServer].
   void handleNotification(Notification notification) {
     if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
       var params = PluginErrorParams.fromNotification(notification);

@@ -231,6 +231,9 @@ class TestPluginManager implements PluginManager {
   @override
   List<PluginInfo> plugins = [];
 
+  @override
+  Completer<void> initializedCompleter = Completer();
+
   StreamController<void> pluginsChangedController =
       StreamController.broadcast();
 
