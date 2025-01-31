@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -60,12 +61,14 @@ plugins:
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
     var analysisErrorsParamsQueue = StreamQueue(notifications
+        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
         .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
         .where((p) => p.file == filePath));
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors, isEmpty);
 
     var pluginErrorParamsQueue = StreamQueue(notifications
+        .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
         .map((n) => protocol.PluginErrorParams.fromNotification(n)));
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
@@ -116,12 +119,14 @@ plugins:
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
     var analysisErrorsParamsQueue = StreamQueue(notifications
+        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
         .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
         .where((p) => p.file == filePath));
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors.single, isNotNull);
 
     var pluginErrorParamsQueue = StreamQueue(notifications
+        .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
         .map((n) => protocol.PluginErrorParams.fromNotification(n)));
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);

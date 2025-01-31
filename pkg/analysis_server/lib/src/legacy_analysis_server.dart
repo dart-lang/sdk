@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
+library;
+
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math' show max;
@@ -267,9 +270,14 @@ class LegacyAnalysisServer extends AnalysisServer {
   late final FutureOr<InitializedStateMessageHandler> lspInitialized =
       InitializedStateMessageHandler(this);
 
-  /// A flag indicating the value of the 'analyzing' parameter sent in the last
-  /// status message to the client.
+  /// Whether either the last status message sent to the client or the last
+  /// status message sent from any [PluginServer] indicated `isWorking: true`.
+  @visibleForTesting
   bool statusAnalyzing = false;
+
+  /// Whether the analysis server is currently analyzing (not including any
+  /// plugins).
+  bool serverStatusAnalyzing = false;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = {};
@@ -321,6 +329,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   int nextSearchId = 0;
 
   /// The [Completer] that completes when analysis is complete.
+  ///
+  /// This Completer is not used for communicating to the client whether we are
+  /// analyzing; it is only used by some 'search_find' handlers, and in some tests.
   Completer<void>? _onAnalysisCompleteCompleter;
 
   /// The controller that is notified when analysis is started.
@@ -423,6 +434,30 @@ class LegacyAnalysisServer extends AnalysisServer {
       discardedRequests,
     ).listen(handleRequestOrResponse, onDone: done, onError: error);
     _newRefactoringManager();
+
+    pluginManager.initializedCompleter.future.then((_) {
+      // Perform "on idle" tasks in case the `pluginManger` determines that no
+      // plugins should be run, _after_ the analysis server has reported its
+      // final `isAnalyzing: false` status.
+      _performOnIdleActions(
+        // Use the existing plugin analyzing status.
+        isPluginAnalyzing: notificationManager.pluginStatusAnalyzing,
+      );
+    });
+
+    notificationManager.pluginAnalysisStatusChanges.listen((
+      pluginStatusAnalyzing,
+    ) {
+      if (!pluginManager.initializedCompleter.isCompleted) {
+        // Without `this.`, some portion of the analyzer believes we are accessing
+        // the super parameter, instead of the field in the super class.
+        // See https://github.com/dart-lang/sdk/issues/59996.
+        // ignore: unnecessary_this
+        this.pluginManager.initializedCompleter.complete();
+      } else {
+        _performOnIdleActions(isPluginAnalyzing: pluginStatusAnalyzing);
+      }
+    });
   }
 
   /// The most recently registered set of client capabilities. The default is to
@@ -468,6 +503,10 @@ class LegacyAnalysisServer extends AnalysisServer {
       _editorClientCapabilities;
 
   /// The [Future] that completes when analysis is complete.
+  ///
+  /// This Future is not used for communicating to the client whether we are
+  /// analyzing; it is only used by 'search_find' handlers, tests, and for
+  /// performance calculations.
   Future<void> get onAnalysisComplete {
     if (_isAnalysisComplete) {
       return Future.value();
@@ -526,6 +565,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
 
+  // TODO(srawlins): Do we need to alter this to account for plugin status?
   bool get _isAnalysisComplete => !analysisDriverScheduler.isWorking;
 
   void cancelRequest(String id) {
@@ -817,43 +857,20 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotificationNew(analysis.AnalysisStatus status) {
-    var isAnalyzing = status.isWorking;
-    if (isAnalyzing) {
+    var isServerAnalyzing = status.isWorking;
+    if (isServerAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
     var onAnalysisCompleteCompleter = _onAnalysisCompleteCompleter;
-    if (onAnalysisCompleteCompleter != null && !isAnalyzing) {
+    if (onAnalysisCompleteCompleter != null && !isServerAnalyzing) {
       onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
-    // Perform on-idle actions.
-    if (!isAnalyzing) {
-      if (generalAnalysisServices.contains(
-        GeneralAnalysisService.ANALYZED_FILES,
-      )) {
-        sendAnalysisNotificationAnalyzedFiles(this);
-      }
-      _scheduleAnalysisImplementedNotification();
-      filesResolvedSinceLastIdle.clear();
-    }
-    // Only send status when subscribed.
-    if (!serverServices.contains(ServerService.STATUS)) {
-      return;
-    }
-    // Only send status when it changes
-    if (statusAnalyzing == isAnalyzing) {
-      return;
-    }
-    statusAnalyzing = isAnalyzing;
-    if (!isAnalyzing) {
-      // Only send analysis analytics after analysis is complete.
-      reportAnalysisAnalytics();
-    }
-    var analysis = AnalysisStatus(isAnalyzing);
-    channel.sendNotification(
-      ServerStatusParams(
-        analysis: analysis,
-      ).toNotification(clientUriConverter: uriConverter),
+    serverStatusAnalyzing = isServerAnalyzing;
+
+    _performOnIdleActions(
+      // Use the existing plugin analyzing status.
+      isPluginAnalyzing: notificationManager.pluginStatusAnalyzing,
     );
   }
 
@@ -1097,6 +1114,46 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Initializes [_refactoringManager] with a new instance.
   void _newRefactoringManager() {
     _refactoringManager = RefactoringManager(this, refactoringWorkspace);
+  }
+
+  /// Performs "on idle" actions, given either a new status for whether the
+  /// server is analyzing, or a new status for whether the plugin isolate is
+  /// analyzing.
+  void _performOnIdleActions({required bool isPluginAnalyzing}) {
+    // Perform on-idle actions.
+    var isAnalyzing =
+        serverStatusAnalyzing ||
+        isPluginAnalyzing ||
+        !pluginManager.initializedCompleter.isCompleted;
+    if (!serverStatusAnalyzing) {
+      if (generalAnalysisServices.contains(
+        GeneralAnalysisService.ANALYZED_FILES,
+      )) {
+        sendAnalysisNotificationAnalyzedFiles(this);
+      }
+      _scheduleAnalysisImplementedNotification();
+      filesResolvedSinceLastIdle.clear();
+    }
+    // Only send status when subscribed.
+    if (!serverServices.contains(ServerService.STATUS)) {
+      return;
+    }
+
+    // Only send status when it changes.
+    if (statusAnalyzing == isAnalyzing) {
+      return;
+    }
+    statusAnalyzing = isAnalyzing;
+    if (!serverStatusAnalyzing) {
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+    var analysis = AnalysisStatus(isAnalyzing);
+    channel.sendNotification(
+      ServerStatusParams(
+        analysis: analysis,
+      ).toNotification(clientUriConverter: uriConverter),
+    );
   }
 
   void _scheduleAnalysisImplementedNotification() {

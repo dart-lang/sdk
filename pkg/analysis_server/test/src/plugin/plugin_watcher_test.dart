@@ -107,6 +107,9 @@ class TestPluginManager implements PluginManager {
   List<ContextRoot> removedContextRoots = <ContextRoot>[];
 
   @override
+  Completer<void> initializedCompleter = Completer();
+
+  @override
   Future<void> addPluginToContextRoot(
     ContextRoot contextRoot,
     String path, {

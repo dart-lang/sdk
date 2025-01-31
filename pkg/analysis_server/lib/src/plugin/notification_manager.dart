@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
@@ -71,6 +72,14 @@ abstract class AbstractNotificationManager {
   /// The object used to merge results.
   final ResultMerger merger = ResultMerger();
 
+  /// Whether the plugin isolate is currently analyzing, as per its last status
+  /// notification.
+  bool pluginStatusAnalyzing = false;
+
+  /// The controller that is notified when analysis status changes.
+  final StreamController<bool> _analysisStatusChangesController =
+      StreamController.broadcast();
+
   /// Initialize a newly created notification manager.
   AbstractNotificationManager(this._pathContext)
     : folding = ResultCollector<List<FoldingRegion>>(serverId),
@@ -78,6 +87,13 @@ abstract class AbstractNotificationManager {
       _navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
       _occurrences = ResultCollector<List<Occurrences>>(serverId),
       _outlines = ResultCollector<List<Outline>>(serverId);
+
+  /// The Stream of analysis statuses from the plugin isolate.
+  ///
+  /// Each value emitted represents whether the plugin isolate is analyzing or
+  /// not, as per each status notification.
+  Stream<bool> get pluginAnalysisStatusChanges =>
+      _analysisStatusChangesController.stream;
 
   /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
@@ -120,6 +136,8 @@ abstract class AbstractNotificationManager {
         recordOutlines(pluginId, params.file, params.outline);
       case plugin.PLUGIN_NOTIFICATION_ERROR:
         sendPluginErrorNotification(notification);
+      case plugin.PLUGIN_NOTIFICATION_STATUS:
+        _setPluginStatus(notification);
     }
   }
 
@@ -334,6 +352,23 @@ abstract class AbstractNotificationManager {
     // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
     return isIncluded() && !isExcluded();
+  }
+
+  /// Records a status notification from the analyzer plugin.
+  void _setPluginStatus(plugin.Notification notification) {
+    var params = plugin.PluginStatusParams.fromNotification(notification);
+    var analysis = params.analysis;
+    if (analysis == null) {
+      return;
+    }
+    var isAnalyzing = analysis.isAnalyzing;
+    _analysisStatusChangesController.add(isAnalyzing);
+
+    // Only send status when it changes.
+    if (pluginStatusAnalyzing == isAnalyzing) {
+      return;
+    }
+    pluginStatusAnalyzing = isAnalyzing;
   }
 }
 

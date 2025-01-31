@@ -201,6 +201,10 @@ class LspAnalysisServer extends AnalysisServer {
       _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
         (_) => _onPluginsChanged(),
       );
+
+      // TODO(srawlins): Listen to
+      // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
+      // tasks.
     }
   }
 
