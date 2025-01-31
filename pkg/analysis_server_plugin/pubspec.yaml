@@ -7,7 +7,6 @@ environment:
   sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
-  _fe_analyzer_shared: ^79.0.0
   analyzer: ^7.2.0
   analyzer_plugin: ^0.13.0
   meta: ^1.16.0
