@@ -2529,7 +2529,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sourceInformation = _sourceInformationBuilder.buildThrow(
         node.expression,
       );
-      _closeAndGotoExit(HThrow(pop(), sourceInformation));
+      _closeAndGotoExit(
+        HThrow(
+          pop(),
+          sourceInformation,
+          withoutHelperFrame: closedWorld.annotationsData
+              .throwWithoutHelperFrame(node),
+        ),
+      );
     } else {
       expression.accept(this);
       pop();
@@ -7759,6 +7766,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           pop(),
           _abstractValueDomain.emptyType,
           sourceInformation,
+          withoutHelperFrame: closedWorld.annotationsData
+              .throwWithoutHelperFrame(node),
         ),
       );
       _isReachable = false;

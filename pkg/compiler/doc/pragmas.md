@@ -12,6 +12,7 @@
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority` | [Affects deferred library loading](#load-priority) |
 | `dart2js:resource-identifier` | [Collects data references to resources](resource_identifiers.md) |
+| `dart2js:stack-starts-at-throw` | [Affects stack trace from `throw` expressions](#stack-statrs-at-throw) |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
 ## Unsafe pragmas for general use
@@ -213,6 +214,21 @@ there are multiple annotations, the one nearest the late field wins.
 In the future this annotation might be extended to apply to `late` local
 variables, static variables, and top-level variables.
 
+
+#### Stack starts at throw
+
+In order to generate smaller code, `throw` expressions are usually implemented
+by calling a helper method to capture the stack trace and perform the actual
+throw. This adds one (or occasionally two) frames to the stack trace showing the
+helper functions. It is possible for the stack trace to be captured directly in
+the method containing the `throw` expression. This takes a little extra code, so
+is opt-in via the following annotation.
+
+```dart
+@pragma('dart2js:stack-starts-at-throw')
+```
+
+This annotation can be placed on a method, class or library.
 
 ### Annotations related to deferred library loading
 

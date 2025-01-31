@@ -3417,11 +3417,13 @@ class HReturn extends HControlFlow {
 }
 
 class HThrowExpression extends HInstruction {
+  final bool withoutHelperFrame;
   HThrowExpression(
     super.value,
     super.type,
-    SourceInformation? sourceInformation,
-  ) : super._oneInput() {
+    SourceInformation? sourceInformation, {
+    this.withoutHelperFrame = false,
+  }) : super._oneInput() {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3466,10 +3468,12 @@ class HYield extends HInstruction {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
+  final bool withoutHelperFrame;
   HThrow(
     HInstruction value,
     SourceInformation? sourceInformation, {
     this.isRethrow = false,
+    this.withoutHelperFrame = false,
   }) {
     inputs.add(value);
     this.sourceInformation = sourceInformation;

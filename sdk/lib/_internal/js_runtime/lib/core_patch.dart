@@ -23,7 +23,7 @@ import 'dart:_js_helper'
         quoteStringForRegExp,
         getTraceFromException,
         RuntimeError,
-        wrapException,
+        initializeExceptionWrapper,
         wrapZoneUnaryCallback,
         TrustedGetRuntimeType;
 
@@ -273,11 +273,11 @@ class Error {
   StackTrace? get stackTrace => Primitives.extractStackTrace(this);
 
   @patch
+  @pragma('dart2js:never-inline')
   static Never _throw(Object error, StackTrace stackTrace) {
-    error = wrapException(error);
+    error = initializeExceptionWrapper(error, JS('', 'new Error()'));
     JS('void', '#.stack = #', error, stackTrace.toString());
-    JS('', 'throw #', error);
-    throw "unreachable";
+    JS<Never>('', 'throw #', error);
   }
 }
 
