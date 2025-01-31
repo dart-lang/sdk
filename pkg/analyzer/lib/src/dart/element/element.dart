@@ -10056,7 +10056,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   set element(PropertyAccessorElementImpl2 element) => _element = element;
 
   @override
-  Fragment? get enclosingFragment {
+  Fragment get enclosingFragment {
     var enclosing = enclosingElement3;
     if (enclosing is InstanceFragment) {
       return enclosing as InstanceFragment;
@@ -10158,7 +10158,7 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   PropertyAccessorElement2 get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+  Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
 
   @override
   PropertyAccessorElementImpl get firstFragment;
@@ -10585,7 +10585,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+  Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
 
   @override
   List<PropertyAccessorElementImpl> get fragments {

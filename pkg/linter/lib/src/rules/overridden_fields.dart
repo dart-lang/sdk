@@ -49,12 +49,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
         if (overriddenMember is GetterElement && overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement2;
-          if (definingInterface != null) {
-            rule.reportLintForToken(
-              variable.name,
-              arguments: [definingInterface.displayName],
-            );
-          }
+          rule.reportLintForToken(
+            variable.name,
+            arguments: [definingInterface.displayName],
+          );
         }
       }
     }

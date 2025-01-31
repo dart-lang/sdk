@@ -2323,6 +2323,9 @@ abstract class PropertyAccessorElement2 implements ExecutableElement2 {
   PropertyAccessorElement2 get baseElement;
 
   @override
+  Element2 get enclosingElement2;
+
+  @override
   PropertyAccessorFragment get firstFragment;
 
   @override
