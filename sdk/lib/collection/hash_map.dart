@@ -52,7 +52,7 @@ typedef _Hasher<K> = int Function(K object);
 /// planets.addAll({4: 'Mars'});
 /// final gasGiants = {6: 'Jupiter', 5: 'Saturn'};
 /// planets.addEntries(gasGiants.entries);
-/// print(planets); // fx {3: Earth, 4: Mars, 6: Jupiter, 5: Saturn}
+/// print(planets); // fx {5: Saturn, 6: Jupiter, 3: Earth, 4: Mars}
 /// ```
 /// To check if the map is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of map entries, use [length].
