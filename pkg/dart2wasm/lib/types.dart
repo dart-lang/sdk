@@ -1041,16 +1041,12 @@ class RuntimeTypeInformation {
 
   /// Table of type names indexed by class id.
   late final InstanceConstant typeNames;
-  late final DartType typeNamesType;
 
   /// See sdk/lib/_internal/wasm/lib/type.dart:_typeRowDisplacement*
   /// for what this contains and how it's used for substitution.
   late final InstanceConstant typeRowDisplacementOffsets;
-  late final DartType typeRowDisplacementOffsetsType;
   late final InstanceConstant typeRowDisplacementTable;
-  late final DartType typeRowDisplacementTableType;
   late final InstanceConstant typeRowDisplacementSubstTable;
-  late final DartType typeRowDisplacementSubstTableType;
 
   CoreTypes get coreTypes => translator.coreTypes;
   Types get types => translator.types;
@@ -1210,12 +1206,8 @@ class RuntimeTypeInformation {
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
-    final arrayOfArrayOfType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
     final wasmI32 =
         InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
-    final arrayOfI32 = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [wasmI32]);
 
     final maxId = translator.classIdNumbering.maxClassId;
     int normalize(int value) => (100 * value) ~/ maxId;
@@ -1231,20 +1223,18 @@ class RuntimeTypeInformation {
             ? 0
             : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
     ]);
-    typeRowDisplacementTableType = arrayOfI32;
+
     typeRowDisplacementSubstTable =
         translator.constants.makeArrayOf(arrayOfType, [
       for (final entry in table)
         _substitutionTableByIndex[
             entry == null ? noSubstitutionIndex : entry.$2],
     ]);
-    typeRowDisplacementSubstTableType = arrayOfArrayOfType;
 
     typeRowDisplacementOffsets = translator.constants.makeArrayOf(wasmI32, [
       for (int classId = 0; classId < translator.classes.length; ++classId)
         IntConstant(rowForSuperclass[classId]?.offset ?? -1),
     ]);
-    typeRowDisplacementOffsetsType = arrayOfI32;
   }
 
   void _initTypeNames() {
@@ -1262,8 +1252,6 @@ class RuntimeTypeInformation {
       }
     }
     typeNames = translator.constants.makeArrayOf(stringType, nameConstants);
-    typeNamesType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
   }
 
   Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {
@@ -1354,4 +1342,9 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
       _functionsContainingParameters[slot].add(_functionStack[inner]);
     }
   }
+}
+
+extension InstanceConstantInterfaceType on InstanceConstant {
+  InterfaceType get interfaceType =>
+      InterfaceType(classNode, Nullability.nonNullable, typeArguments);
 }

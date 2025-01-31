@@ -803,28 +803,32 @@ class Intrinsifier {
           return w.NumType.i32;
         case "_typeRowDisplacementOffsets":
           final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementOffsetsType)
+              .translateStorageType(
+                  types.rtt.typeRowDisplacementOffsets.interfaceType)
               .unpacked;
           translator.constants.instantiateConstant(
               b, types.rtt.typeRowDisplacementOffsets, type);
           return type;
         case "_typeRowDisplacementTable":
           final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementTableType)
+              .translateStorageType(
+                  types.rtt.typeRowDisplacementTable.interfaceType)
               .unpacked;
           translator.constants
               .instantiateConstant(b, types.rtt.typeRowDisplacementTable, type);
           return type;
         case "_typeRowDisplacementSubstTable":
           final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementSubstTableType)
+              .translateStorageType(
+                  types.rtt.typeRowDisplacementSubstTable.interfaceType)
               .unpacked;
           translator.constants.instantiateConstant(
               b, types.rtt.typeRowDisplacementSubstTable, type);
           return type;
         case "_typeNames":
-          final type =
-              translator.translateStorageType(types.rtt.typeNamesType).unpacked;
+          final type = translator
+              .translateStorageType(types.rtt.typeNames.interfaceType)
+              .unpacked;
           if (translator.options.minify) {
             b.ref_null((type as w.RefType).heapType);
           } else {
