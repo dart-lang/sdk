@@ -11,8 +11,12 @@ external SendPort _newServicePort();
 class _IOService {
   static final SendPort _port = _newServicePort();
 
-  static RawReceivePort? _receivePort;
-  static late SendPort _replyToPort;
+  static final RawReceivePort _receivePort = RawReceivePort((
+    List<Object?> data,
+  ) {
+    assert(data.length == 2);
+    _forwardResponse(data[0] as int, data[1]);
+  }, 'IO Service');
   static HashMap<int, Completer> _messageMap = new HashMap<int, Completer>();
   static int _id = 0;
 
@@ -24,36 +28,27 @@ class _IOService {
     } while (_messageMap.containsKey(id));
     final Completer completer = new Completer();
     try {
-      _ensureInitialize();
-      _messageMap[id] = completer;
-      _port.send(<dynamic>[id, _replyToPort, request, data]);
-    } catch (error) {
-      _messageMap.remove(id)!.complete(error);
-      if (_messageMap.length == 0) {
-        _finalize();
+      if (_messageMap.isEmpty) {
+        // This is the first outgoing request after being in an idle state,
+        // make sure to mark [_receivePort] alive.
+        _receivePort.keepIsolateAlive = true;
       }
+      _messageMap[id] = completer;
+      _port.send(<dynamic>[id, _receivePort.sendPort, request, data]);
+    } catch (error) {
+      _forwardResponse(id, error);
     }
     return completer.future;
   }
 
-  static void _ensureInitialize() {
-    if (_receivePort == null) {
-      _receivePort = new RawReceivePort(null, 'IO Service');
-      _replyToPort = _receivePort!.sendPort;
-      _receivePort!.handler = (List<Object?> data) {
-        assert(data.length == 2);
-        _messageMap.remove(data[0])!.complete(data[1]);
-        if (_messageMap.length == 0) {
-          _finalize();
-        }
-      };
+  static void _forwardResponse(int id, Object? response) {
+    _messageMap.remove(id)!.complete(response);
+    if (_messageMap.isEmpty) {
+      // Last pending response received. We are entering idle state so
+      // mark _receivePort inactive.
+      _id = 0;
+      _receivePort.keepIsolateAlive = false;
     }
-  }
-
-  static void _finalize() {
-    _id = 0;
-    _receivePort!.close();
-    _receivePort = null;
   }
 
   static int _getNextId() {
