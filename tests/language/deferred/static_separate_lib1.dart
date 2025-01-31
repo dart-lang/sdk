@@ -45,7 +45,7 @@ class C4 {
 
 class C5 {
   static const foo = const [
-    const {1: 3}
+    const {1: 3},
   ];
   bar() {
     () {}(); // Hack to avoid inlining.

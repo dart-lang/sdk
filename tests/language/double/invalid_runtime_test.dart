@@ -8,6 +8,5 @@
 // Test an invalid double format
 
 main() {
-
   ;
 }
