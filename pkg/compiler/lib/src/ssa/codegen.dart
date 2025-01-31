@@ -2994,11 +2994,22 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     } else {
       use(node.inputs[0]);
-      _pushCallStatic(_commonElements.wrapExceptionHelper, [
-        pop(),
-      ], sourceInformation);
+      if (node.withoutHelperFrame) {
+        _pushCallStatic(_commonElements.initializeExceptionWrapper, [
+          pop(),
+          _newErrorObject(sourceInformation),
+        ], sourceInformation);
+      } else {
+        _pushCallStatic(_commonElements.wrapExceptionHelper, [
+          pop(),
+        ], sourceInformation);
+      }
       pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     }
+  }
+
+  js.Expression _newErrorObject(SourceInformation? sourceInformation) {
+    return js.js('new Error()').withSourceInformation(sourceInformation);
   }
 
   @override
@@ -3185,6 +3196,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.inputs[0]);
     _pushCallStatic(_commonElements.throwExpressionHelper, [
       pop(),
+      if (node.withoutHelperFrame) _newErrorObject(node.sourceInformation),
     ], node.sourceInformation);
   }
 

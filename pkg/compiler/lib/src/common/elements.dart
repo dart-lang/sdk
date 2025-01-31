@@ -898,6 +898,9 @@ abstract class CommonElements {
 
   FunctionEntity get stringInterpolationHelper => _findHelperFunction('S');
 
+  FunctionEntity get initializeExceptionWrapper =>
+      _findHelperFunction('initializeExceptionWrapper');
+
   FunctionEntity get wrapExceptionHelper =>
       _findHelperFunction('wrapException');
 
