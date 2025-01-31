@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
@@ -19,53 +16,52 @@ void computeSimplyBounded(Linker linker) {
   var walker = SimplyBoundedDependencyWalker(linker);
   var nodes = <SimplyBoundedNode>[];
   for (var libraryBuilder in linker.builders.values) {
-    for (var unit in libraryBuilder.element.units) {
-      for (var element in unit.classes) {
-        var node = walker.getNode(element);
-        nodes.add(node);
-      }
-      for (var element in unit.enums) {
-        var node = walker.getNode(element);
-        nodes.add(node);
-      }
-      for (var element in unit.extensionTypes) {
-        var node = walker.getNode(element);
-        nodes.add(node);
-      }
-      for (var element in unit.mixins) {
-        var node = walker.getNode(element);
-        nodes.add(node);
-      }
-      for (var element in unit.typeAliases) {
-        var node = walker.getNode(element);
-        nodes.add(node);
-      }
+    var libraryElement = libraryBuilder.element;
+    for (var element in libraryElement.classes) {
+      var node = walker.getNode(element);
+      nodes.add(node);
+    }
+    for (var element in libraryElement.enums) {
+      var node = walker.getNode(element);
+      nodes.add(node);
+    }
+    for (var element in libraryElement.extensionTypes) {
+      var node = walker.getNode(element);
+      nodes.add(node);
+    }
+    for (var element in libraryElement.mixins) {
+      var node = walker.getNode(element);
+      nodes.add(node);
+    }
+    for (var element in libraryElement.typeAliases) {
+      var node = walker.getNode(element);
+      nodes.add(node);
     }
   }
 
   for (var node in nodes) {
     walker.walk(node);
     var node2 = node._node;
-    if (node2 is ClassDeclaration) {
-      var element = node2.declaredElement as ClassElementImpl;
+    if (node2 is ClassDeclarationImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is ClassTypeAlias) {
-      var element = node2.declaredElement as ClassElementImpl;
+    } else if (node2 is ClassTypeAliasImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is EnumDeclaration) {
-      var element = node2.declaredElement as EnumElementImpl;
+    } else if (node2 is EnumDeclarationImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is ExtensionTypeDeclaration) {
-      var element = node2.declaredElement as ExtensionTypeElementImpl;
+    } else if (node2 is ExtensionTypeDeclarationImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is GenericTypeAlias) {
-      var element = node2.declaredElement as TypeAliasElementImpl;
+    } else if (node2 is GenericTypeAliasImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is FunctionTypeAlias) {
-      var element = node2.declaredElement as TypeAliasElementImpl;
+    } else if (node2 is FunctionTypeAliasImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is MixinDeclaration) {
-      var element = node2.declaredElement as MixinElementImpl;
+    } else if (node2 is MixinDeclarationImpl) {
+      var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
       throw UnimplementedError('${node2.runtimeType}');
@@ -77,7 +73,7 @@ void computeSimplyBounded(Linker linker) {
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
   final Linker linker;
-  final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
+  final Map<Element2, SimplyBoundedNode> nodeMap = Map.identity();
 
   SimplyBoundedDependencyWalker(this.linker);
 
@@ -93,10 +89,10 @@ class SimplyBoundedDependencyWalker
     }
   }
 
-  SimplyBoundedNode getNode(Element element) {
+  SimplyBoundedNode getNode(Element2 element) {
     var graphNode = nodeMap[element];
     if (graphNode == null) {
-      var node = linker.getLinkingNode(element);
+      var node = linker.getLinkingNode2(element);
       if (node is ClassDeclaration) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
@@ -287,9 +283,9 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
       bool allowTypeParameters) {
     if (type is NamedType) {
-      var element = type.element;
+      var element = type.element2;
 
-      if (element is TypeParameterElement) {
+      if (element is TypeParameterElement2) {
         return allowTypeParameters;
       }
 
@@ -299,7 +295,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
 
         // If not a node being linked, then the flag is already set.
         if (graphNode == null) {
-          if (element is TypeParameterizedElement) {
+          if (element is TypeParameterizedElement2) {
             return element.isSimplyBounded;
           }
           return true;

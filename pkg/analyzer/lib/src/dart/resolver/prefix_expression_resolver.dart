@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -21,7 +19,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [PrefixExpression]s.
 class PrefixExpressionResolver {
@@ -63,17 +60,17 @@ class PrefixExpressionResolver {
         hasRead: true,
       );
 
-      var readElement = operandResolution.readElement;
-      var writeElement = operandResolution.writeElement;
+      var readElement = operandResolution.readElement2;
+      var writeElement = operandResolution.writeElement2;
 
       _resolver.setReadElement(
         operand,
-        readElement.asElement2,
+        readElement,
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
       _resolver.setWriteElement(
         operand,
-        writeElement.asElement2,
+        writeElement,
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
 
@@ -120,8 +117,8 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  TypeImpl _computeStaticReturnType(Element? element) {
-    if (element is PropertyAccessorElement) {
+  TypeImpl _computeStaticReturnType(Element2? element) {
+    if (element is PropertyAccessorElement2) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
@@ -130,7 +127,7 @@ class PrefixExpressionResolver {
       return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
-    } else if (element is ExecutableElement) {
+    } else if (element is ExecutableElement2) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return InvalidTypeImpl.instance;
@@ -159,18 +156,18 @@ class PrefixExpressionResolver {
       ExpressionImpl operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverrideImpl) {
-        var element = operand.element;
-        var member = element.getMethod(methodName);
+        var element = operand.element2;
+        var member = element.getMethod2(methodName);
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
           _errorReporter.atToken(
             node.operator,
             CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-            arguments: [methodName, element.name!],
+            arguments: [methodName, element.name3!],
           );
         }
-        node.staticElement = member;
+        node.element = member;
         return;
       }
 
@@ -193,7 +190,7 @@ class PrefixExpressionResolver {
         propertyErrorEntity: node.operator,
         nameErrorEntity: operand,
       );
-      node.staticElement = result.getter2?.asElement as MethodElement?;
+      node.element = result.getter2 as MethodElement2?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
           _errorReporter.atToken(
@@ -225,7 +222,7 @@ class PrefixExpressionResolver {
       } else if (readType is InvalidType) {
         staticType = InvalidTypeImpl.instance;
       } else {
-        var staticMethodElement = node.staticElement;
+        var staticMethodElement = node.element;
         staticType = _computeStaticReturnType(staticMethodElement);
       }
       Expression operand = node.operand;
@@ -262,13 +259,13 @@ class PrefixExpressionResolver {
     operand.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
 
     switch (augmentationTarget) {
-      case MethodElement operatorElement:
-        operand.element = operatorElement;
+      case MethodFragment fragment:
+        operand.fragment = fragment;
         operand.setPseudoExpressionStaticType(
             _resolver.thisType ?? InvalidTypeImpl.instance);
-        if (operatorElement.name == methodName) {
-          node.staticElement = operatorElement;
-          node.recordStaticType(operatorElement.returnType,
+        if (fragment.element.lookupName == methodName) {
+          node.element = fragment.element;
+          node.recordStaticType(fragment.element.returnType,
               resolver: _resolver);
         } else {
           _errorReporter.atToken(
@@ -280,10 +277,10 @@ class PrefixExpressionResolver {
           );
           node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
         }
-      case PropertyAccessorElement accessor:
-        operand.element = accessor;
-        if (accessor.isGetter) {
-          operand.setPseudoExpressionStaticType(accessor.returnType);
+      case PropertyAccessorFragment fragment:
+        operand.fragment = fragment;
+        if (fragment.element is GetterElement) {
+          operand.setPseudoExpressionStaticType(fragment.element.returnType);
           _resolve1(node);
           _resolve2(node);
         } else {
@@ -293,9 +290,9 @@ class PrefixExpressionResolver {
           );
           node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
         }
-      case PropertyInducingElement property:
-        operand.element = property;
-        operand.setPseudoExpressionStaticType(property.type);
+      case PropertyInducingFragment fragment:
+        operand.fragment = fragment;
+        operand.setPseudoExpressionStaticType(fragment.element.type);
         _resolve1(node);
         _resolve2(node);
     }

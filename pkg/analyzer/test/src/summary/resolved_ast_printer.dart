@@ -138,7 +138,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
-      _writeElement2('element2', node.element2);
+      _writeFragment('fragment', node.fragment);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1840,6 +1840,12 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeElement2(String name, Element2? element) {
     if (_withResolution) {
       _elementPrinter.writelnNamedElement2(name, element);
+    }
+  }
+
+  void _writeFragment(String name, Fragment? fragment) {
+    if (_withResolution) {
+      _elementPrinter.writelnNamedFragment(name, fragment);
     }
   }
 

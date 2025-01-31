@@ -126,7 +126,6 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
     uri: uri,
     lineInfo: lineInfo,
     isLibrary: true,
-    isMacroPart: false,
     isPart: false,
     errors: [error],
     analysisOptions: AnalysisOptionsImpl(),

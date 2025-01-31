@@ -157,9 +157,6 @@ class FileTracker {
         case FileStateRefreshResult.nothing:
           return;
         case FileStateRefreshResult.contentChanged:
-          if (file.mightBeExecutedByMacroClass) {
-            break;
-          }
           return;
         case FileStateRefreshResult.apiChanged:
           break;

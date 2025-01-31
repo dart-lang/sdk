@@ -65,31 +65,6 @@ class AnalysisDriverUnlinkedUnit {
   }
 }
 
-/// Unlinked information about a `macro` class.
-class MacroClass {
-  final String name;
-  final List<String> constructors;
-
-  MacroClass({
-    required this.name,
-    required this.constructors,
-  });
-
-  factory MacroClass.read(
-    SummaryDataReader reader,
-  ) {
-    return MacroClass(
-      name: reader.readStringUtf8(),
-      constructors: reader.readStringUtf8List(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    sink.writeStringUtf8Iterable(constructors);
-  }
-}
-
 class UnlinkedCombinator {
   final int keywordOffset;
   final int endOffset;
@@ -540,9 +515,6 @@ class UnlinkedUnit {
   /// Offsets of the first character of each line in the source code.
   final Uint32List lineStarts;
 
-  /// The list of `macro` classes.
-  final List<MacroClass> macroClasses;
-
   /// `part` directives.
   final List<UnlinkedPartDirective> parts;
 
@@ -567,7 +539,6 @@ class UnlinkedUnit {
     required this.isDartCore,
     required this.libraryDirective,
     required this.lineStarts,
-    required this.macroClasses,
     required this.parts,
     required this.partOfNameDirective,
     required this.partOfUriDirective,
@@ -591,9 +562,6 @@ class UnlinkedUnit {
         UnlinkedLibraryDirective.read,
       ),
       lineStarts: reader.readUInt30List(),
-      macroClasses: reader.readTypedList(
-        () => MacroClass.read(reader),
-      ),
       parts: reader.readTypedList(
         () => UnlinkedPartDirective.read(reader),
       ),
@@ -626,9 +594,6 @@ class UnlinkedUnit {
       (x) => x.write(sink),
     );
     sink.writeUint30List(lineStarts);
-    sink.writeList<MacroClass>(macroClasses, (x) {
-      x.write(sink);
-    });
     sink.writeList<UnlinkedPartDirective>(parts, (x) {
       x.write(sink);
     });

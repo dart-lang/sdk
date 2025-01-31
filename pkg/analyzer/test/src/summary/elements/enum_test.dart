@@ -5159,7 +5159,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
-    enum E
+    notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
@@ -5255,7 +5255,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
-    enum E
+    notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
@@ -5353,7 +5353,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
-    enum E
+    notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
@@ -5445,7 +5445,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
-    enum E
+    notSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       typeParameters

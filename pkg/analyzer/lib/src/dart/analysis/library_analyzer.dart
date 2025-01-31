@@ -419,9 +419,6 @@ class LibraryAnalyzer {
 
     for (var MapEntry(key: fileAnalysis, value: currentUnit)
         in analysesToContextUnits.entries) {
-      // Skip computing lints on macro generated augmentations.
-      // See: https://github.com/dart-lang/sdk/issues/54875
-      if (fileAnalysis.file.isMacroPart) return;
       // Skip computing lints on files that don't exist.
       // See: https://github.com/Dart-Code/Dart-Code/issues/5343
       if (!fileAnalysis.file.exists) continue;
@@ -808,22 +805,6 @@ class LibraryAnalyzer {
       } else if (directive is PartOfDirectiveImpl) {
         // TODO(scheglov): this should be LibraryFragment.
         directive.element = _libraryElement;
-      }
-    }
-
-    // The macro part does not have an explicit `part` directive.
-    // So, we look into the file part includes.
-    var macroInclude = fileKind.partIncludes.lastOrNull;
-    if (macroInclude is PartIncludeWithFile) {
-      var includedFile = macroInclude.includedFile;
-      if (includedFile.isMacroPart) {
-        _resolvePartDirective(
-          enclosingFile: fileAnalysis,
-          directive: null,
-          partState: macroInclude,
-          partElement: fileElement.parts.last,
-          errorReporter: containerErrorReporter,
-        );
       }
     }
 

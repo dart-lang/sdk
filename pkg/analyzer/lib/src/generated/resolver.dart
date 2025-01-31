@@ -1197,6 +1197,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return expression;
     }
 
+    // Don't rewrite function declarations.
+    if (expression.parent is FunctionDeclaration) {
+      return expression;
+    }
+
     var staticType = expression.staticType;
     if (staticType is! FunctionTypeImpl || staticType.typeFormals.isEmpty) {
       return expression;

@@ -4187,7 +4187,7 @@ library
               leftOperand: AugmentedExpression
                 augmentedKeyword: augmented @45
                 element: <testLibraryFragment>::@topLevelVariable::foo
-                element2: <testLibrary>::@topLevelVariable::foo
+                fragment: <testLibraryFragment>::@topLevelVariable::foo
                 staticType: int
               operator: + @55
               rightOperand: IntegerLiteral

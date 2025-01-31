@@ -292,51 +292,6 @@ void f() {
 ''');
   }
 
-  test_addFile_library_producesMacroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    driver.addFile2(a);
-    await collector.nextStatusIdle();
-
-    // We produced both the library, and its macro-generated file.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: exists isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[status] idle
-''');
-  }
-
   test_addFile_notAbsolutePath() async {
     var driver = driverFor(testFile);
     expect(() {
@@ -938,63 +893,6 @@ var B = 1.2;
       staticElement: package:test/b.dart::<fragment>::@getter::B
       element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: double
-[status] idle
-''');
-  }
-
-  test_changeFile_library_producesMacroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    driver.addFile2(a);
-
-    // Discard results so far.
-    await collector.nextStatusIdle();
-    collector.take();
-
-    modifyFile2(a, r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B2', 'class B2 {}')
-class A {}
-''');
-    driver.changeFile2(a);
-    await collector.nextStatusIdle();
-
-    // We produced both the library, and its macro-generated file.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: exists isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-class B2 {}
----
 [status] idle
 ''');
   }
@@ -1691,64 +1589,6 @@ part of 'a.dart';
 ''');
   }
 
-  test_getErrors_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var a_macro = getFile('$testPackageLibPath/a.macro.dart');
-    collector.getErrors('AM1', a_macro);
-    await collector.nextStatusIdle();
-
-    // The library was analyzed.
-    // The future for the macro generated file completed.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[future] getErrors AM1
-  ErrorsResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[stream]
-  ResolvedUnitResult #2
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: exists isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[status] idle
-''');
-  }
-
   test_getErrors_notAbsolutePath() async {
     var driver = driverFor(testFile);
     var result = await driver.getErrors('not_absolute.dart');
@@ -1789,52 +1629,6 @@ class D {
     await driver.assertFilesDefiningClassMemberName('m1', [a]);
     await driver.assertFilesDefiningClassMemberName('m2', [b, c]);
     await driver.assertFilesDefiningClassMemberName('m3', [d]);
-  }
-
-  test_getFilesDefiningClassMemberName_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareInType('  void foo() {}')
-class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-import 'append.dart';
-
-@DeclareInType('  void bar() {}')
-class B {}
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
-import 'append.dart';
-
-@DeclareInType('  void foo() {}')
-class C {}
-''');
-
-    // Run twice: when linking, and when reading.
-    for (var i = 0; i < 2; i++) {
-      var driver = driverFor(testFile);
-      driver.addFile2(a);
-      driver.addFile2(b);
-      driver.addFile2(c);
-
-      await driver.assertFilesDefiningClassMemberName('foo', [
-        a.macroForLibrary,
-        c.macroForLibrary,
-      ]);
-
-      await driver.assertFilesDefiningClassMemberName('bar', [
-        b.macroForLibrary,
-      ]);
-
-      await disposeAnalysisContextCollection();
-    }
   }
 
   test_getFilesDefiningClassMemberName_mixin() async {
@@ -1954,55 +1748,6 @@ int c = 0;
       includesAll: [t, a, b],
       excludesAll: [c],
     );
-  }
-
-  test_getFilesReferencingName_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareInLibrary('{{dart:core@int}} get foo => 0;')
-class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-import 'append.dart';
-
-@DeclareInLibrary('{{dart:core@double}} get foo => 1.2;')
-class B {}
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
-import 'append.dart';
-
-@DeclareInLibrary('{{dart:core@int}} get foo => 0;')
-class C {}
-''');
-
-    // Run twice: when linking, and when reading.
-    for (var i = 0; i < 2; i++) {
-      var driver = driverFor(testFile);
-      driver.addFile2(a);
-      driver.addFile2(b);
-      driver.addFile2(c);
-
-      await driver.assertFilesReferencingName(
-        'int',
-        includesAll: [a.macroForLibrary, c.macroForLibrary],
-        excludesAll: [b.macroForLibrary],
-      );
-
-      await driver.assertFilesReferencingName(
-        'double',
-        includesAll: [b.macroForLibrary],
-        excludesAll: [a.macroForLibrary, c.macroForLibrary],
-      );
-
-      await disposeAnalysisContextCollection();
-    }
   }
 
   test_getFileSync_changedFile() async {
@@ -2154,60 +1899,6 @@ void f() {
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[status] idle
-''');
-  }
-
-  test_getIndex_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareInLibrary('void f() { foo(); }')
-@DeclareInLibrary('void foo() {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var a_macro = getFile('$testPackageLibPath/a.macro.dart');
-    collector.getIndex('AM1', a_macro);
-    await collector.nextStatusIdle();
-
-    // The library, and the macro generated file were analyzed.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[future] getIndex AM1
-  strings
-    --nullString--
-    foo
-    package:test/a.dart
-    package:test/a.macro.dart
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: exists isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-void foo() {}
-void f() { foo(); }
----
 [status] idle
 ''');
   }
@@ -2530,57 +2221,6 @@ class A {}
 ''');
   }
 
-  test_getResolvedLibrary_withMacroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedLibrary('A1', a);
-    await collector.nextStatusIdle();
-
-    // We produced both the library, and its macro-generated file.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[future] getResolvedLibrary A1
-  ResolvedLibraryResult #1
-    element: package:test/a.dart
-    units
-      ResolvedUnitResult #0
-      ResolvedUnitResult #2
-        path: /home/test/lib/a.macro.dart
-        uri: package:test/a.macro.dart
-        flags: exists isMacroPart isPart
-        content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[stream]
-  ResolvedUnitResult #2
-[status] idle
-''');
-  }
-
   test_getResolvedLibraryByUri() async {
     newFile('$testPackageLibPath/a.dart', '');
 
@@ -2716,58 +2356,6 @@ part of 'b.dart';
     await assertEventsText(collector, r'''
 [future] getResolvedLibraryByUri A1
   CannotResolveUriResult
-''');
-  }
-
-  test_getResolvedLibraryByUri_withMacroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('A1', uri);
-    await collector.nextStatusIdle();
-
-    // We produced both the library, and its macro-generated file.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[future] getResolvedLibraryByUri A1
-  ResolvedLibraryResult #1
-    element: package:test/a.dart
-    units
-      ResolvedUnitResult #0
-      ResolvedUnitResult #2
-        path: /home/test/lib/a.macro.dart
-        uri: package:test/a.macro.dart
-        flags: exists isMacroPart isPart
-        content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[stream]
-  ResolvedUnitResult #2
-[status] idle
 ''');
   }
 
@@ -3030,93 +2618,6 @@ part of 'a.dart';
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[status] idle
-''');
-  }
-
-  test_getResolvedUnit_macroGenerated_hasLibrary() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var a_macro = getFile('$testPackageLibPath/a.macro.dart');
-    collector.getResolvedUnit('AM1', a_macro);
-    await collector.nextStatusIdle();
-
-    // Even though we asked the macro-generated file, the library was analyzed
-    // instead, and results for both produced.
-    configuration.withMacroFileContent();
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[future] getResolvedUnit AM1
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: exists isMacroPart isPart
-    content
----
-part of 'package:test/a.dart';
-
-class B {}
----
-[stream]
-  ResolvedUnitResult #1
-[status] idle
-''');
-  }
-
-  test_getResolvedUnit_macroGenerated_noLibrary() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var a_macro = getFile('$testPackageLibPath/a.macro.dart');
-    collector.getResolvedUnit('AM1', a_macro);
-    await collector.nextStatusIdle();
-
-    // We try to analyze `a.dart`, but it does not exist.
-    // Then we separately analyze `a.macro.dart`, it also does not exist.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
-[operation] analyzeFile
-  file: /home/test/lib/a.macro.dart
-  library: /home/test/lib/a.macro.dart
-[future] getResolvedUnit AM1
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.macro.dart
-    uri: package:test/a.macro.dart
-    flags: isLibrary
-[stream]
-  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -3532,44 +3033,6 @@ import 'package:test/b.dart';
     var driver = driverFor(testFile);
     var result = await driver.getUnitElement('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());
-  }
-
-  test_getUnitElement_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'append.dart';
-
-@DeclareTypesPhase('B', 'class B {}')
-class A {}
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    var a_macro = getFile('$testPackageLibPath/a.macro.dart');
-    collector.getUnitElement('AM1', a_macro);
-    await collector.nextStatusIdle();
-
-    configuration.unitElementConfiguration.elementSelector2 = (fragment) {
-      return fragment.classes2.map((fragment) => fragment.element).toList();
-    };
-
-    // The enclosing element is an augmentation library, in a library.
-    // The macro generated file has `class B`.
-    await assertEventsText(collector, r'''
-[status] working
-[future] getUnitElement AM1
-  path: /home/test/lib/a.macro.dart
-  uri: package:test/a.macro.dart
-  flags: isMacroPart isPart
-  enclosing: package:test/a.dart::<fragment>
-  selectedElements
-    package:test/a.dart::@class::B
-[status] idle
-''');
   }
 
   test_hermetic_modifyLibraryFile_resolvePart() async {
@@ -5953,16 +5416,5 @@ extension on AnalysisDriver {
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
-  }
-}
-
-extension on DriverEventsPrinterConfiguration {
-  void withMacroFileContent() {
-    errorsConfiguration.withContentPredicate = (result) {
-      return result.isMacroPart;
-    };
-    libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
-      return result.isMacroPart;
-    };
   }
 }

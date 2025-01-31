@@ -52,8 +52,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/macro.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -3732,7 +3730,7 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, MacroTargetElement
+    with TypeParameterizedElementMixin
     implements ExecutableElementOrMember, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -5614,7 +5612,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, MacroTargetElement
+    with TypeParameterizedElementMixin
     implements InstanceElement, InstanceFragment {
   @override
   ElementLinkedData? linkedData;
@@ -5908,7 +5906,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   MethodElement2? getMethod2(String name) {
-    return methods2.firstWhereOrNull((e) => e.name3 == name);
+    return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
   @override
@@ -6271,6 +6269,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  InterfaceElementImpl? get nextFragment;
+
+  @override
   InterfaceTypeImpl? get supertype {
     linkedData?.read(this);
     return _supertype;
@@ -6605,6 +6606,16 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceElementImpl get firstFragment;
 
+  @override
+  List<InterfaceElementImpl> get fragments {
+    return [
+      for (InterfaceElementImpl? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
   InheritanceManager3 get inheritanceManager {
     var library = library2 as LibraryElementImpl;
     return library.session.inheritanceManager;
@@ -6617,6 +6628,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
     // TODO(paulberry): eliminate this cast by changing the type of the `values`
     // parameter
     _interfaces = values.cast();
+  }
+
+  set isSimplyBounded(bool value) {
+    for (var fragment in fragments) {
+      fragment.isSimplyBounded = value;
+    }
   }
 
   @override
@@ -7012,7 +7029,7 @@ class LabelElementImpl2 extends ElementImpl2
 
 /// A concrete implementation of a [LibraryElement] or [LibraryElement2].
 class LibraryElementImpl extends ElementImpl
-    with _HasLibraryMixin, MacroTargetElement
+    with _HasLibraryMixin
     implements LibraryElement, LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
@@ -7037,7 +7054,6 @@ class LibraryElementImpl extends ElementImpl
 
   late List<ExportedReference> exportedReferences;
 
-  @override
   LibraryElementLinkedData? linkedData;
 
   /// The union of names for all searchable elements in this library.
@@ -7088,9 +7104,6 @@ class LibraryElementImpl extends ElementImpl
   /// The public [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace? _publicNamespace;
-
-  /// The macro executor for the bundle to which this library belongs.
-  BundleMacroExecutor? bundleMacroExecutor;
 
   /// Information about why non-promotable private fields in the library are not
   /// promotable.
@@ -7812,7 +7825,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   List<Fragment> get children3 => const [];
 
   @override
-  LocalVariableElement2 get element => _element2;
+  LocalVariableElementImpl2 get element => _element2;
 
   @override
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
@@ -7935,27 +7948,6 @@ class MacroGeneratedLibraryFragment {
     required this.code,
     required this.informativeBytes,
   });
-}
-
-mixin MacroTargetElement on ElementImpl {
-  /// Diagnostics registered while applying macros to this element.
-  List<AnalyzerMacroDiagnostic> _macroDiagnostics = const [];
-
-  ElementLinkedData? get linkedData;
-
-  /// Diagnostics registered while applying macros to this element.
-  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
-    linkedData?.read(this);
-    return _macroDiagnostics;
-  }
-
-  set macroDiagnostics(List<AnalyzerMacroDiagnostic> value) {
-    _macroDiagnostics = value;
-  }
-
-  void addMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
-    _macroDiagnostics = [..._macroDiagnostics, diagnostic];
-  }
 }
 
 final class MetadataImpl implements Metadata {
@@ -9587,6 +9579,9 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 mixin ParameterElementMixin
     implements ParameterElement, VariableElementOrMember {
   @override
+  FormalParameterElementImpl get element;
+
+  @override
   bool get isNamed => parameterKind.isNamed;
 
   @override
@@ -10335,7 +10330,6 @@ abstract class PropertyInducingElement2OrMember
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
-    with MacroTargetElement
     implements PropertyInducingElementOrMember, PropertyInducingFragment {
   @override
   String? name2;
@@ -10361,7 +10355,6 @@ abstract class PropertyInducingElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
-  @override
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created synthetic element to have the given [name] and
@@ -10535,6 +10528,11 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
     } else {
       return this;
     }
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return (firstFragment as PropertyInducingElementImpl)
+        .shouldUseTypeForInitializerInference;
   }
 
   List<PropertyInducingElementImpl> get _fragments;
@@ -10963,10 +10961,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin,
-        AugmentableElement<TypeAliasElementImpl>,
-        MacroTargetElement
+    with TypeParameterizedElementMixin, AugmentableElement<TypeAliasElementImpl>
     implements TypeAliasElement, TypeAliasFragment {
   @override
   String? name2;
@@ -11268,6 +11263,12 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   @override
   bool get isSimplyBounded => firstFragment.isSimplyBounded;
 
+  set isSimplyBounded(bool value) {
+    for (var fragment in fragments) {
+      fragment.isSimplyBounded = value;
+    }
+  }
+
   @override
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
@@ -11563,7 +11564,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  TypeParameterType instantiate({
+  TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl.v2(
@@ -11681,7 +11682,7 @@ abstract class VariableElement2OrMember implements VariableElement2 {
 
 /// A concrete implementation of a [VariableElement].
 abstract class VariableElementImpl extends ElementImpl
-    implements VariableElementOrMember {
+    implements VariableElementOrMember, VariableFragment {
   /// The type of this variable.
   TypeImpl? _type;
 
@@ -11703,6 +11704,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   String get displayName => name;
+
+  @override
+  VariableElementImpl2 get element;
 
   /// Return the result of evaluating this variable's initializer as a
   /// compile-time constant expression, or `null` if this variable is not a

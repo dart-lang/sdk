@@ -351,7 +351,6 @@ class FileResolver {
         uri: file.uri,
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
-        isMacroPart: file.isMacroPart,
         isPart: file.kind is PartFileKind,
         errors: errors,
         analysisOptions: file.analysisOptions,
@@ -790,7 +789,6 @@ class FileResolver {
         fileSystemState: fsState!,
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
-        macroSupport: null,
         packagesFile: null,
         testData: testData?.libraryContext,
       );

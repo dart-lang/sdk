@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -61,72 +60,16 @@ class LibraryCycle {
   /// include [implSignature] of the macro defining library.
   final String implSignature;
 
-  /// The transitive macro implementation signature of this cycle.
-  ///
-  /// It is based on full code signatures of all files that might affect
-  /// macro implementation code.
-  final String implSignatureMacro;
-
-  late final bool declaresMacroClass = () {
-    for (var library in libraries) {
-      for (var file in library.files) {
-        if (file.unlinked2.macroClasses.isNotEmpty) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }();
-
-  /// Set to `true` if this library cycle contains code that might be executed
-  /// by a macro - declares a macro class itself, or is directly or indirectly
-  /// imported into a cycle that declares one.
-  bool mightBeExecutedByMacroClass = false;
-
-  /// If a cycle imports a library that declares a macro, then it can have
-  /// macro applications, and so macro-generated files.
-  late final bool importsMacroClass = () {
-    for (var dependency in directDependencies) {
-      if (dependency.declaresMacroClass) {
-        return true;
-      }
-    }
-    return false;
-  }();
-
-  /// Set to `true` if this library cycle [importsMacroClass], and we have
-  /// already created macro generated [FileState]s.
-  bool hasMacroFilesCreated = false;
-
   LibraryCycle({
     required this.libraries,
     required this.libraryUris,
     required this.directDependencies,
     required this.apiSignature,
     required this.implSignature,
-    required this.implSignatureMacro,
   }) {
     for (var directDependency in directDependencies) {
       directDependency.directUsers.add(this);
     }
-  }
-
-  /// The key to store the bundle with multiple libraries, containing
-  /// potentially reusable macro generated code for each library.
-  String get cachedMacrosKey {
-    var builder = ApiSignature();
-    builder.addInt(AnalysisDriver.DATA_VERSION);
-
-    builder.addString(implSignatureMacro);
-
-    var sortedLibraries = libraries.sortedBy((l) => l.file.path);
-    for (var library in sortedLibraries) {
-      builder.addString(library.file.path);
-      builder.addString(library.file.uriStr);
-    }
-
-    var keyHex = builder.toHex();
-    return '$keyHex.macro_results';
   }
 
   /// The key of the linked libraries in the byte store.
@@ -148,23 +91,6 @@ class LibraryCycle {
     }
     for (var directDependency in directDependencies) {
       directDependency.directUsers.remove(this);
-    }
-  }
-
-  /// Mark this cycle and its dependencies are potentially executed by a macro.
-  void markMightBeExecutedByMacroClass() {
-    if (!mightBeExecutedByMacroClass) {
-      mightBeExecutedByMacroClass = true;
-      // Mark each file of the cycle.
-      for (var library in libraries) {
-        for (var file in library.files) {
-          file.mightBeExecutedByMacroClass = true;
-        }
-      }
-      // Recursively mark all dependencies.
-      for (var dependency in directDependencies) {
-        dependency.markMightBeExecutedByMacroClass();
-      }
     }
   }
 
@@ -227,10 +153,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   void evaluateScc(List<_LibraryNode> scc) {
     var apiSignature = ApiSignature();
     var implSignature = ApiSignature();
-    var implSignature2 = ApiSignature();
     apiSignature.addUint32List(_salt);
     implSignature.addUint32List(_salt);
-    implSignature2.addUint32List(_salt);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
@@ -246,7 +170,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
         directDependencies,
         apiSignature,
         implSignature,
-        implSignature2,
         graph.Node.getDependencies(node),
       );
     }
@@ -288,12 +211,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
       implSignature: implSignature.toHex(),
-      implSignatureMacro: implSignature2.toHex(),
     );
-
-    if (cycle.declaresMacroClass) {
-      cycle.markMightBeExecutedByMacroClass();
-    }
 
     // Set the instance into the libraries.
     for (var node in scc) {
@@ -309,7 +227,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     Set<LibraryCycle> directDependencies,
     ApiSignature apiSignature,
     ApiSignature implSignature,
-    ApiSignature implSignatureMacro,
     List<_LibraryNode> directlyReferenced,
   ) {
     apiSignature.addInt(directlyReferenced.length);
@@ -321,12 +238,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       if (referencedCycle == null) continue;
 
       if (directDependencies.add(referencedCycle)) {
-        if (referencedCycle.declaresMacroClass) {
-          apiSignature.addString(referencedCycle.implSignature);
-          implSignatureMacro.addString(referencedCycle.implSignature);
-        } else {
-          apiSignature.addString(referencedCycle.apiSignature);
-        }
+        apiSignature.addString(referencedCycle.apiSignature);
         implSignature.addString(referencedCycle.implSignature);
       }
     }

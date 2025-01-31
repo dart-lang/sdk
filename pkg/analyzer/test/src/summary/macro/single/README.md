@@ -1,1 +1,0 @@
-Each macro file in this directory is used by a test with the  same name.

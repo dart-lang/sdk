@@ -163,7 +163,6 @@ abstract class AbstractCodeActionsProducer
       uri: server.uriConverter.toClientUri(path),
       lineInfo: lineInfo,
       isLibrary: true,
-      isMacroPart: false,
       isPart: false,
       errors: errors,
       analysisOptions: analysisOptions,

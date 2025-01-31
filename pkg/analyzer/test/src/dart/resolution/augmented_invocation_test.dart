@@ -116,7 +116,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@class::A::@getter::foo
-      element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+      fragment: package:test/a.dart::<fragment>::@class::A::@getter::foo
       staticType: int Function(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -533,7 +533,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
-      element2: package:test/a.dart::<fragment>::@getter::foo#element
+      fragment: package:test/a.dart::<fragment>::@getter::foo
       staticType: int Function(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -611,7 +611,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
-      element2: package:test/a.dart::<fragment>::@getter::foo#element
+      fragment: package:test/a.dart::<fragment>::@getter::foo
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -653,7 +653,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
-      element2: package:test/a.dart::<fragment>::@getter::foo#element
+      fragment: package:test/a.dart::<fragment>::@getter::foo
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (

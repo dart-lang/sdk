@@ -1582,11 +1582,9 @@ abstract final class AugmentedExpression implements Expression {
   /// The referenced augmented element: getter, setter, variable.
   Element? get element;
 
-  /// The referenced augmented element: getter, setter, variable.
-  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
-  //  element. In this case I think that's closer to the right semantics.
+  /// The referenced augmented fragment: getter, setter, variable.
   @experimental
-  Element2? get element2;
+  Fragment? get fragment;
 }
 
 final class AugmentedExpressionImpl extends ExpressionImpl
@@ -1604,12 +1602,16 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
-  @experimental
-  @override
-  Element2? get element2 => (element as Fragment?)?.element;
-
   @override
   Token get endToken => augmentedKeyword;
+
+  @experimental
+  @override
+  Fragment? get fragment => element as Fragment?;
+
+  set fragment(Fragment? value) {
+    element = value as Element?;
+  }
 
   @override
   bool get isAssignable => true;
@@ -5779,7 +5781,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  EnumFragment? get declaredFragment => declaredElement as EnumFragment?;
+  EnumElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -6826,8 +6828,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ExtensionTypeFragment? get declaredFragment =>
-      declaredElement as ExtensionTypeFragment;
+  ExtensionTypeElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -8807,8 +8808,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  TypeAliasFragment? get declaredFragment =>
-      declaredElement as TypeAliasFragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -9137,7 +9137,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  ElementImpl? declaredElement;
+  TypeAliasElementImpl? declaredElement;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -9163,7 +9163,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  Fragment? get declaredFragment => declaredElement as Fragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   GenericFunctionType? get functionType {
@@ -14395,6 +14395,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken => _operand.endToken;
 
@@ -18119,8 +18123,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @experimental
   @override
-  TypeParameterFragment? get declaredFragment =>
-      declaredElement as TypeParameterFragment?;
+  TypeParameterElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken {
@@ -18392,11 +18395,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  VariableFragment? get declaredFragment {
-    if (declaredElement case VariableFragment fragment) {
-      return fragment;
-    }
-    return null;
+  VariableElementImpl? get declaredFragment {
+    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the

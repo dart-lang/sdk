@@ -455,7 +455,7 @@ BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@method::+
-    element2: package:test/a.dart::<fragment>::@class::A::@method::+#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@method::+
     staticType: A
   operator: +
   rightOperand: IntegerLiteral
@@ -496,7 +496,7 @@ BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    element2: package:test/a.dart::<fragment>::@class::A::@method::unary-#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@method::unary-
     staticType: A
   operator: +
   rightOperand: IntegerLiteral
@@ -533,7 +533,7 @@ BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@field::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@field::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@field::foo
     staticType: num
   operator: +
   rightOperand: IntegerLiteral
@@ -572,7 +572,7 @@ BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@getter::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: int
   operator: +
   rightOperand: IntegerLiteral
@@ -613,7 +613,7 @@ BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@setter::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@setter::foo
     staticType: InvalidType
   operator: +
   rightOperand: IntegerLiteral

@@ -406,7 +406,7 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@field::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@field::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@field::foo
     staticType: int
   staticElement: dart:core::<fragment>::@class::int::@method::unary-
   element: dart:core::<fragment>::@class::int::@method::unary-#element
@@ -440,7 +440,7 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@getter::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: int
   staticElement: dart:core::<fragment>::@class::int::@method::unary-
   element: dart:core::<fragment>::@class::int::@method::unary-#element
@@ -476,7 +476,7 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@method::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@method::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@method::foo
     staticType: A
   staticElement: <null>
   element: <null>
@@ -512,7 +512,7 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@setter::foo
-    element2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@setter::foo
     staticType: InvalidType
   staticElement: <null>
   element: <null>
@@ -546,9 +546,9 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    element2: package:test/a.dart::<fragment>::@class::A::@method::unary-#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@method::unary-
     staticType: A
-  staticElement: package:test/a.dart::<fragment>::@class::A::@method::unary-
+  staticElement: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@methodAugmentation::unary-
   element: package:test/a.dart::<fragment>::@class::A::@method::unary-#element
   staticType: int
 ''');
@@ -1430,7 +1430,7 @@ PrefixExpression
   operand: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    element2: package:test/a.dart::<fragment>::@class::A::@method::unary-#element
+    fragment: package:test/a.dart::<fragment>::@class::A::@method::unary-
     staticType: A
   staticElement: <null>
   element: <null>
