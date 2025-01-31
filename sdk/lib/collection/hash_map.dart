@@ -64,10 +64,10 @@ typedef _Hasher<K> = int Function(K object);
 /// ```dart continued
 /// planets.forEach((key, value) {
 ///   print('$key \t $value');
-///   // 3        Earth
-///   // 4        Mars
-///   // 6        Jupiter
 ///   // 5        Saturn
+///   // 4        Mars
+///   // 3        Earth
+///   // 6        Jupiter
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
