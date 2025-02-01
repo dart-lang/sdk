@@ -10,7 +10,8 @@ import 'package:reload_test/reload_test_utils.dart';
 
 // Tests reload succeeds when instance format changes.
 // Change: Bar {c:42}, Foo : Bar {d, e} -> Foo {c:42}
-// Validate: c keeps the value in the retained Foo object.
+// In the VM: c keeps the value in the retained Foo object.
+// For DDC: c adopts the value in the newly declared field in Bar.
 
 class Foo {
   var c;
@@ -24,13 +25,17 @@ Future<void> main() async {
   Expect.equals(42, f.c);
   await hotReload();
 
-  Expect.equals(42, f.c);
+  if (isVmRuntime) {
+    Expect.equals(42, f.c);
+  } else if (isDdcRuntime) {
+    Expect.isNull(f.c);
+  }
 }
 
 /** DIFF **/
 /*
- // Change: Bar {c:42}, Foo : Bar {d, e} -> Foo {c:42}
- // Validate: c keeps the value in the retained Foo object.
+ // In the VM: c keeps the value in the retained Foo object.
+ // For DDC: c adopts the value in the newly declared field in Bar.
  
 -class Bar {
 +class Foo {
