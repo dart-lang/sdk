@@ -4564,7 +4564,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(
     this.errorReporter, {
     required this.nameScope,
-    List<LibraryElement> docImportLibraries = const [],
+    List<LibraryElement2> docImportLibraries = const [],
   }) : _docImportScope =
             DocumentationCommentScope(nameScope, docImportLibraries);
 
@@ -4610,10 +4610,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
-        _define(exception.declaredElement!);
+        _define(exception.declaredElement!.asElement2!);
         var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _define(stackTrace.declaredElement!);
+          _define(stackTrace.declaredElement!.asElement2!);
         }
         super.visitCatchClause(node);
       } finally {
@@ -4633,7 +4633,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
@@ -4642,7 +4642,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.implementsClause?.accept(this);
       node.nativeClause?.accept(this);
 
-      nameScope = InstanceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element.asElement2);
       _visitDocumentationComment(node.documentationComment);
       node.members.accept(this);
     } finally {
@@ -4657,8 +4657,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       ClassElement element = node.declaredElement!;
       nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters),
-        element,
+        TypeParameterScope(
+          nameScope,
+          element.typeParameters.map((e) => e.asElement2).toList(),
+        ),
+        element.asElement2,
       );
       _visitDocumentationComment(node.documentationComment);
       node.typeParameters?.accept(this);
@@ -4690,7 +4693,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       try {
         nameScope = ConstructorInitializerScope(
           nameScope,
-          element,
+          element.asElement2,
         );
         node.initializers.accept(this);
         _visitDocumentationComment(node.documentationComment);
@@ -4702,7 +4705,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = FormalParameterScope(
         nameScope,
-        element.parameters,
+        element.parameters.map((e) => e.asElement2).toList(),
       );
       node.body.accept(this);
     } finally {
@@ -4717,7 +4720,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _define(node.declaredElement!);
+    _define(node.declaredElement!.asElement2!);
     super.visitDeclaredIdentifier(node);
   }
 
@@ -4750,14 +4753,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
-      nameScope = InstanceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element.asElement2);
       _visitDocumentationComment(node.documentationComment);
       node.constants.accept(this);
       node.members.accept(this);
@@ -4781,13 +4784,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
 
-      nameScope = ExtensionScope(nameScope, element);
+      nameScope = ExtensionScope(nameScope, element.asElement2);
       _visitDocumentationComment(node.documentationComment);
       node.members.accept(this);
     } finally {
@@ -4806,14 +4809,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.representation.accept(this);
       node.implementsClause?.accept(this);
 
-      nameScope = InstanceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element.asElement2);
       _visitDocumentationComment(node.documentationComment);
       node.members.accept(this);
     } finally {
@@ -4845,7 +4848,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.iterable.accept(this);
 
     for (var variable in node.variables) {
-      _define(variable);
+      _define(variable.asElement2);
     }
 
     node.pattern.accept(this);
@@ -4875,19 +4878,19 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (parent is FunctionExpression) {
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement!.parameters,
+        parent.declaredElement!.parameters.map((e) => e.asElement2).toList(),
       );
     } else if (parent is FunctionTypeAlias) {
       var aliasedElement = parent.declaredElement!.aliasedElement;
       var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
-        functionElement.parameters,
+        functionElement.parameters.map((e) => e.asElement2).toList(),
       );
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement!.parameters,
+        parent.declaredElement!.parameters.map((e) => e.asElement2).toList(),
       );
     }
   }
@@ -4921,7 +4924,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
@@ -4951,8 +4954,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       ExecutableElement element = node.declaredElement!;
       nameScope = FormalParameterScope(
-        TypeParameterScope(nameScope, element.typeParameters),
-        element.parameters,
+        TypeParameterScope(
+          nameScope,
+          element.typeParameters.map((e) => e.asElement2).toList(),
+        ),
+        element.parameters.map((e) => e.asElement2).toList(),
       );
       super.visitFunctionExpression(node);
     } finally {
@@ -4967,7 +4973,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement!;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters.map((e) => e.asElement2).toList(),
+      );
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -4988,7 +4997,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       ParameterElement element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
@@ -5012,7 +5021,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       GenericFunctionTypeElement element = node.declaredElement!;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters.map((e) => e.asElement2).toList(),
+      );
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
@@ -5026,7 +5038,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement as TypeAliasElement;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters.map((e) => e.asElement2).toList(),
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
@@ -5034,8 +5049,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         nameScope = FormalParameterScope(
-            TypeParameterScope(nameScope, aliasedElement.typeParameters),
-            aliasedElement.parameters);
+          TypeParameterScope(
+            nameScope,
+            aliasedElement.typeParameters.map((e) => e.asElement2).toList(),
+          ),
+          aliasedElement.parameters.map((e) => e.asElement2).toList(),
+        );
       }
       _visitDocumentationComment(node.documentationComment);
     } finally {
@@ -5047,7 +5066,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitGuardedPattern(covariant GuardedPatternImpl node) {
     var patternVariables = node.variables.values.toList();
     for (var variable in patternVariables) {
-      _define(variable.asElement!);
+      _define(variable);
     }
 
     node.pattern.accept(this);
@@ -5112,7 +5131,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
-        element.typeParameters,
+        element.typeParameters.map((e) => e.asElement2).toList(),
       );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
@@ -5148,13 +5167,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredElement!;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters.map((e) => e.asElement2).toList(),
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
       node.implementsClause?.accept(this);
 
-      nameScope = InstanceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element.asElement2);
       _visitDocumentationComment(node.documentationComment);
       node.members.accept(this);
     } finally {
@@ -5175,7 +5197,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      _define(variable);
+      _define(variable.asElement2);
     }
 
     super.visitPatternVariableDeclaration(node);
@@ -5269,7 +5291,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         for (var variable in variables.values) {
-          _define(variable.asElement!);
+          _define(variable);
         }
         case_.accept(this);
       });
@@ -5307,7 +5329,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var lastMember = group.members.last;
         _withDeclaredLocals(lastMember, lastMember.statements, () {
           for (var variable in group.variables.values) {
-            _define(variable.asElement!);
+            _define(variable);
           }
           lastMember.statements.accept(this);
         });
@@ -5331,7 +5353,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
 
     if (node.parent!.parent is ForParts) {
-      _define(node.declaredElement!);
+      _define(node.declaredElement!.asElement2!);
     }
   }
 
@@ -5361,7 +5383,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     return outerScope;
   }
 
-  void _define(Element element) {
+  void _define(Element2 element) {
     (nameScope as LocalScope).add(element);
   }
 
@@ -5490,7 +5512,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var enclosedScope = LocalScope(nameScope);
       for (var statement in BlockScope.elementsInStatements(statements)) {
         if (!statement.isWildcardFunction) {
-          enclosedScope.add(statement);
+          enclosedScope.add(statement.asElement2!);
         }
       }
 

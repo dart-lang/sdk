@@ -279,14 +279,14 @@ extension IdentifierImplExtension on IdentifierImpl {
         name2: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.identifier.staticElement.asElement2;
+      )..element2 = self.identifier.staticElement?.asElement2;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
         name2: self.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.staticElement.asElement2;
+      )..element2 = self.staticElement?.asElement2;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
     }

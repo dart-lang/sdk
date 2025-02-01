@@ -178,6 +178,9 @@ class ImportsVerifier {
     for (var firstDirective in usedImports) {
       var firstElement = firstDirective.element!;
       var tracker = importsTracking.trackerOf(firstElement);
+      if (tracker == null) {
+        continue;
+      }
 
       // Ignore unresolved imports.
       var importedLibrary = firstElement.importedLibrary;
@@ -241,8 +244,12 @@ class ImportsVerifier {
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
         var importElement = importDirective.element!;
-        var prefixElement = importElement.prefix?.element;
-        var tracking = importsTracking.map[prefixElement]!;
+        var prefixElement = importElement.prefix2?.element;
+
+        var tracking = importsTracking.map[prefixElement];
+        if (tracking == null) {
+          continue;
+        }
 
         // Ignore the group of imports with a prefix in a comment reference.
         if (tracking.hasPrefixUsedInCommentReference) {
@@ -260,8 +267,7 @@ class ImportsVerifier {
             continue;
           }
 
-          var isUsed =
-              tracking.importToUsedElements2.containsKey(importElement);
+          var isUsed = tracking.importToUsedElements.containsKey(importElement);
           if (!isUsed) {
             _unusedImports.add(importDirective);
             errorReporter.atNode(
@@ -310,7 +316,7 @@ class ImportsVerifier {
           for (var identifier in combinator.shownNames) {
             var element = identifier.element;
             if (element != null) {
-              var importElements = importsTracking.elementsOf2(importElement);
+              var importElements = importsTracking.elementsOf(importElement);
 
               var isUsed = importElements.contains(element);
               if (element is PropertyInducingElement2) {

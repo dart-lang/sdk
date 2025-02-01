@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class DuplicateDefinitionVerifier {
   final LibraryElementImpl _currentLibrary;
@@ -170,7 +171,7 @@ class DuplicateDefinitionVerifier {
           _diagnosticFactory.duplicateDefinition(
             CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
             importPrefix,
-            existing,
+            existing.asElement!,
             [name],
           ),
         );

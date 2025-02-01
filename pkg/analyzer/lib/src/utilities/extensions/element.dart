@@ -14,6 +14,20 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
+extension BindPatternVariableElementImpl2Extension
+    on BindPatternVariableElementImpl2 {
+  BindPatternVariableElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension BindPatternVariableElementImplExtension
+    on BindPatternVariableElementImpl {
+  BindPatternVariableElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ClassElement2Extension on ClassElement2 {
   ClassElement get asElement {
     return firstFragment as ClassElement;
@@ -146,6 +160,8 @@ extension Element2OrNullExtension on Element2? {
     switch (self) {
       case null:
         return null;
+      case BindPatternVariableElementImpl2 element2:
+        return element2.asElement;
       case ConstructorElementImpl2 element2:
         return element2.asElement;
       case DynamicElementImpl2():
@@ -508,6 +524,12 @@ extension MixinElement2Extension on MixinElement2 {
 extension MixinElementExtension on MixinElement {
   MixinElement2 get asElement2 {
     return (this as MixinElementImpl).element;
+  }
+}
+
+extension MixinElementImplExtension on MixinElementImpl {
+  MixinElementImpl2 get asElement2 {
+    return element;
   }
 }
 

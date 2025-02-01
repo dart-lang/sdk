@@ -683,6 +683,10 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   @override
   bool get isDartCoreObject => firstFragment.isDartCoreObject;
 
+  bool get isDartCoreRecord {
+    return name3 == 'Record' && library2.isDartCore;
+  }
+
   bool get isEnumLike {
     // Must be a concrete class.
     if (isAbstract) {
@@ -844,14 +848,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions;
+    return scope.accessibleExtensions.map((e) => e.asElement).toList();
   }
 
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
-    return scope.accessibleExtensions
-        .map((element) => element.augmented as ExtensionElement2)
-        .toList();
+    return scope.accessibleExtensions;
   }
 
   @override
@@ -9849,6 +9851,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   @override
   PrefixScope get scope {
     return asElement.scope;
+  }
+
+  set scope(PrefixScope value) {
+    asElement.scope = value;
   }
 
   @override

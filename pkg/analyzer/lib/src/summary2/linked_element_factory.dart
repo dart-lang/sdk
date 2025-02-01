@@ -7,6 +7,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 
@@ -202,6 +204,11 @@ class LinkedElementFactory {
       throw StateError('Expected existing element: $reference');
     }
     return element;
+  }
+
+  // TODO(scheglov): Why would this method return `null`?
+  Element2? elementOfReference2(Reference reference) {
+    return elementOfReference(reference)?.asElement2;
   }
 
   bool hasLibrary(Uri uri) {
