@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
@@ -44,28 +43,11 @@ class LibraryCycle {
   /// of all files that [libraries] reference.
   final String apiSignature;
 
-  /// The transitive implementation signature of this cycle.
-  ///
-  /// It is based on the full code signatures of all files of the [libraries],
-  /// and full code signatures of the cycles that the [libraries] reference
-  /// directly. So, indirectly it is based on full code signatures of the
-  /// transitive closure of all files that [libraries] reference.
-  ///
-  /// Usually, when a library is imported we need its [apiSignature], because
-  /// its API is all we can see from outside. But if the library contains
-  /// a macro, and we use it, we run full code of the macro defining library,
-  /// potentially executing every method body of the transitive closure of
-  /// the libraries imported by the macro defining library. So, the resulting
-  /// library (that imports a macro defining library) API signature must
-  /// include [implSignature] of the macro defining library.
-  final String implSignature;
-
   LibraryCycle({
     required this.libraries,
     required this.libraryUris,
     required this.directDependencies,
     required this.apiSignature,
-    required this.implSignature,
   }) {
     for (var directDependency in directDependencies) {
       directDependency.directUsers.add(this);
@@ -74,9 +56,6 @@ class LibraryCycle {
 
   /// The key of the linked libraries in the byte store.
   String get linkedKey => '$apiSignature.linked';
-
-  /// The key of the macro kernel in the byte store.
-  String get macroKey => '$implSignature.macro_kernel';
 
   /// Dispose this cycle and any cycles that directly or indirectly use it.
   ///
@@ -152,9 +131,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     var apiSignature = ApiSignature();
-    var implSignature = ApiSignature();
     apiSignature.addUint32List(_salt);
-    implSignature.addUint32List(_salt);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
@@ -169,7 +146,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       _appendDirectlyReferenced(
         directDependencies,
         apiSignature,
-        implSignature,
         graph.Node.getDependencies(node),
       );
     }
@@ -185,22 +161,12 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       apiSignature.addLanguageVersion(file.packageLanguageVersion);
       apiSignature.addString(file.uriStr);
 
-      implSignature.addLanguageVersion(file.packageLanguageVersion);
-      implSignature.addString(file.uriStr);
-      implSignature.addString(Platform.version);
-
       var libraryFiles = node.kind.files;
 
       apiSignature.addInt(libraryFiles.length);
       for (var file in libraryFiles) {
         apiSignature.addBool(file.exists);
         apiSignature.addBytes(file.apiSignature);
-      }
-
-      implSignature.addInt(libraryFiles.length);
-      for (var file in libraryFiles) {
-        implSignature.addBool(file.exists);
-        implSignature.addString(file.contentHash);
       }
     }
 
@@ -210,7 +176,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       libraryUris: libraryUris,
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
-      implSignature: implSignature.toHex(),
     );
 
     // Set the instance into the libraries.
@@ -226,11 +191,9 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   void _appendDirectlyReferenced(
     Set<LibraryCycle> directDependencies,
     ApiSignature apiSignature,
-    ApiSignature implSignature,
     List<_LibraryNode> directlyReferenced,
   ) {
     apiSignature.addInt(directlyReferenced.length);
-    implSignature.addInt(directlyReferenced.length);
     for (var referencedLibrary in directlyReferenced) {
       var referencedCycle = referencedLibrary.kind.internal_libraryCycle;
 
@@ -239,7 +202,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       if (directDependencies.add(referencedCycle)) {
         apiSignature.addString(referencedCycle.apiSignature);
-        implSignature.addString(referencedCycle.implSignature);
       }
     }
   }

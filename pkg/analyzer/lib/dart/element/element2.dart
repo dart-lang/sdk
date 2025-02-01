@@ -193,11 +193,6 @@ abstract class ClassElement2 implements InterfaceElement2 {
   /// not extended or mixed in.
   bool get isInterface;
 
-  /// Whether the class is a macro class.
-  ///
-  /// A class is a macro class if it has a `macro` modifer.
-  bool get isMacro;
-
   /// Whether the class is a mixin application.
   ///
   /// A class is a mixin application if it was declared using the syntax
@@ -2321,6 +2316,9 @@ abstract class PromotableFragment implements VariableFragment {
 abstract class PropertyAccessorElement2 implements ExecutableElement2 {
   @override
   PropertyAccessorElement2 get baseElement;
+
+  @override
+  Element2 get enclosingElement2;
 
   @override
   PropertyAccessorFragment get firstFragment;

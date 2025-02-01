@@ -6,8 +6,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Loading a deferred library without prefix is not allowed.
-import "constraints_lib2.dart"
-
-    ;
+import "constraints_lib2.dart";
 
 void main() {}

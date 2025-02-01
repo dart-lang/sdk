@@ -12,7 +12,4 @@ main() {
   var v = 1.0;
   Expect.throwsRangeError(() => v.toStringAsExponential(-1));
   Expect.throwsRangeError(() => v.toStringAsExponential(21));
-
-
-
 }

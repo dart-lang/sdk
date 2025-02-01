@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
 import 'package:path/path.dart' as path;
@@ -14,15 +13,7 @@ main() {
   var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
   var pathToAnalyze = provider.pathContext.join(packageRoot, 'analyzer');
   var testDirPath = provider.pathContext.join(pathToAnalyze, 'test');
-  _VerifyTests(testDirPath).build(
-    analysisContextPredicate: (analysisContext) {
-      var root = analysisContext.contextRoot.root;
-      if (root.endsWithNames(['macro', 'single'])) {
-        return false;
-      }
-      return true;
-    },
-  );
+  _VerifyTests(testDirPath).build();
 }
 
 class _VerifyTests extends VerifyTests {

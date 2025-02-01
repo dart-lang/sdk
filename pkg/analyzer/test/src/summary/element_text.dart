@@ -54,7 +54,6 @@ class ElementTextConfiguration {
   ElementPrinterConfiguration elementPrinterConfiguration =
       ElementPrinterConfiguration();
   bool Function(Object) filter;
-  List<Pattern>? macroDiagnosticMessagePatterns;
   bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
@@ -65,7 +64,6 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
-  bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
@@ -628,7 +626,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('getter2', f.getter2);
@@ -968,7 +965,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -992,7 +988,6 @@ class _Element2Writer extends _AbstractElementWriter {
       switch (e) {
         case ClassElementImpl2():
           _sink.writeIf(e.isAbstract, 'abstract ');
-          // _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
@@ -1108,7 +1103,6 @@ class _Element2Writer extends _AbstractElementWriter {
           // TODO(brianwilkerson): Figure out why we can't ask the fragments
           //  these questions.
           // _sink.writeIf(f.isAbstract, 'abstract ');
-          // _sink.writeIf(f.isMacro, 'macro ');
           // _sink.writeIf(f.isSealed, 'sealed ');
           // _sink.writeIf(f.isBase, 'base ');
           // _sink.writeIf(f.isInterface, 'interface ');
@@ -1357,7 +1351,6 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
-      // _writeMacroDiagnostics(f);
       // _writeAugmentationTarget(f);
       // _writeAugmentation(f);
     });
@@ -1503,7 +1496,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -1584,7 +1576,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterFragment,
       );
       // _writeType('returnType', e.returnType);
-      // _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -1695,7 +1686,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('getter2', f.getter2);
@@ -1784,7 +1774,6 @@ class _Element2Writer extends _AbstractElementWriter {
       //   });
       // }
 
-      // _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -2287,7 +2276,6 @@ class _ElementWriter extends _AbstractElementWriter {
       switch (e) {
         case ClassElementImpl():
           _sink.writeIf(e.isAbstract, 'abstract ');
-          _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
@@ -2916,13 +2904,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeEnclosingElement(e);
-
-    if (e.macroGenerated case var macroGenerated?) {
-      _sink.writelnWithIndent('macroGeneratedCode');
-      _sink.writeln('---');
-      _sink.write(macroGenerated.code);
-      _sink.writeln('---');
-    }
 
     if (configuration.withImports) {
       var imports = e.libraryImports.where((import) {

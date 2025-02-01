@@ -80,7 +80,6 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -178,9 +177,6 @@ class AssistProcessor {
   AssistProcessor(this._assistContext);
 
   Future<List<Assist>> compute() async {
-    if (isMacroGenerated(_assistContext.unitResult.file.path)) {
-      return _assists;
-    }
     await _addFromProducers();
     return _assists;
   }

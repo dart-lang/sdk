@@ -5,7 +5,6 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'dart:collection';
-import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -402,14 +401,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.INTERFACE, isInterface);
   }
 
-  bool get isMacro {
-    return hasModifier(Modifier.MACRO);
-  }
-
-  set isMacro(bool isMacro) {
-    setModifier(Modifier.MACRO, isMacro);
-  }
-
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
@@ -736,9 +727,6 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   bool get isInterface => firstFragment.isInterface;
 
   @override
-  bool get isMacro => firstFragment.isMacro;
-
-  @override
   bool get isMixinApplication => firstFragment.isMixinApplication;
 
   @override
@@ -843,8 +831,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// The scope of this fragment, `null` if it has not been created yet.
   LibraryFragmentScope? _scope;
-
-  MacroGeneratedLibraryFragment? macroGenerated;
 
   ElementLinkedData? linkedData;
 
@@ -7939,17 +7925,6 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   DartObject? computeConstantValue() => _wrappedElement.computeConstantValue();
 }
 
-/// Additional information for a macro generated fragment.
-class MacroGeneratedLibraryFragment {
-  final String code;
-  final Uint8List informativeBytes;
-
-  MacroGeneratedLibraryFragment({
-    required this.code,
-    required this.informativeBytes,
-  });
-}
-
 final class MetadataImpl implements Metadata {
   final int _metadataFlags;
 
@@ -8717,9 +8692,6 @@ enum Modifier {
 
   /// Indicates that modifier 'lazy' was applied to the element.
   LATE,
-
-  /// Indicates that a class is a macro builder.
-  MACRO,
 
   /// Indicates that a class is a mixin application.
   MIXIN_APPLICATION,
@@ -10056,7 +10028,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   set element(PropertyAccessorElementImpl2 element) => _element = element;
 
   @override
-  Fragment? get enclosingFragment {
+  Fragment get enclosingFragment {
     var enclosing = enclosingElement3;
     if (enclosing is InstanceFragment) {
       return enclosing as InstanceFragment;
@@ -10158,7 +10130,7 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   PropertyAccessorElement2 get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+  Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
 
   @override
   PropertyAccessorElementImpl get firstFragment;
@@ -10585,7 +10557,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+  Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
 
   @override
   List<PropertyAccessorElementImpl> get fragments {

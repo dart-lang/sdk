@@ -380,20 +380,6 @@ A f() => new A();
 ''');
     await assertNoEdits();
   }
-
-  Future<void> test_unnecessaryNew_macroGenerated() async {
-    newAnalysisOptionsYamlFile(testPackageRootPath, '''
-linter:
-  rules:
-    - unnecessary_new
-''');
-    var macroFilePath = join(testPackageLibPath, 'test.macro.dart');
-    newFile(macroFilePath, '''
-class A {}
-A f() => new A();
-''');
-    await assertNoEdits();
-  }
 }
 
 abstract class BulkFixesTest extends PubPackageAnalysisServerTest {

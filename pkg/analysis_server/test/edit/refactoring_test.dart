@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -964,27 +963,6 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     return getRefactorings(offset, search.length);
   }
 
-  /// Returns the list of available refactorings for the given [offset] and
-  /// [length].
-  Future<void> getRefactoringsInFile(File file, int offset, int length) async {
-    var request = EditGetAvailableRefactoringsParams(
-      file.path,
-      offset,
-      length,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
-    var response = await serverChannel.simulateRequestFromClient(request);
-    var result = EditGetAvailableRefactoringsResult.fromResponse(
-      response,
-      clientUriConverter: server.uriConverter,
-    );
-    kinds = result.kinds;
-  }
-
-  Future<void> getRefactoringsInFileForString(File file, String search) {
-    var offset = offsetInFile(file, search);
-    return getRefactoringsInFile(file, offset, search.length);
-  }
-
   @override
   Future<void> setUp() async {
     super.setUp();
@@ -1012,18 +990,6 @@ void f() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
-  }
-
-  Future<void> test_extractLocal_macroGenerated() async {
-    var macroFilePath = join(testPackageLibPath, 'test.macro.dart');
-    var generatedFile = newFile(macroFilePath, '''
-void f() {
-  var a = 1 + 2;
-}
-''');
-    await waitForTasksFinished();
-    await getRefactoringsInFileForString(generatedFile, '1 + 2');
-    expect(kinds, isEmpty);
   }
 
   Future<void> test_extractLocal_withoutSelection() async {

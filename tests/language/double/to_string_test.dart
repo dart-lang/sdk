@@ -14,9 +14,13 @@ main() {
   Expect.equals("0.01", (0.01).toString());
   Expect.equals("0.0123", (0.0123).toString());
   Expect.equals(
-      "1.1111111111111111e+21", (1111111111111111111111.0).toString());
+    "1.1111111111111111e+21",
+    (1111111111111111111111.0).toString(),
+  );
   Expect.equals(
-      "1.1111111111111111e+22", (11111111111111111111111.0).toString());
+    "1.1111111111111111e+22",
+    (11111111111111111111111.0).toString(),
+  );
   Expect.equals("0.00001", (0.00001).toString());
   Expect.equals("0.000001", (0.000001).toString());
   Expect.equals("1e-7", (0.0000001).toString());
@@ -32,9 +36,13 @@ main() {
   Expect.equals("-0.01", (-0.01).toString());
   Expect.equals("-0.0123", (-0.0123).toString());
   Expect.equals(
-      "-1.1111111111111111e+21", (-1111111111111111111111.0).toString());
+    "-1.1111111111111111e+21",
+    (-1111111111111111111111.0).toString(),
+  );
   Expect.equals(
-      "-1.1111111111111111e+22", (-11111111111111111111111.0).toString());
+    "-1.1111111111111111e+22",
+    (-11111111111111111111111.0).toString(),
+  );
   Expect.equals("-0.00001", (-0.00001).toString());
   Expect.equals("-0.000001", (-0.000001).toString());
   Expect.equals("-1e-7", (-0.0000001).toString());
@@ -50,7 +58,9 @@ main() {
   Expect.equals("1e-7", (0.0000001).toString());
   Expect.equals("-1e-7", (-0.0000001).toString());
   Expect.equals(
-      "1.0000000000000001e+21", (1000000000000000128000.0).toString());
+    "1.0000000000000001e+21",
+    (1000000000000000128000.0).toString(),
+  );
   Expect.equals("0.000001", (0.000001).toString());
   Expect.equals("1e-7", (0.0000001).toString());
 }

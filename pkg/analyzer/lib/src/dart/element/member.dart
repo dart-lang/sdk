@@ -1445,6 +1445,11 @@ abstract class PropertyAccessorMember extends ExecutableMember
       super.declaration as PropertyAccessorElementImpl;
 
   @override
+  Element2 get enclosingElement2 {
+    return super.enclosingElement2!;
+  }
+
+  @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override

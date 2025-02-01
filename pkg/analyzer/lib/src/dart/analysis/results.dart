@@ -219,9 +219,6 @@ class ErrorsResultImpl implements ErrorsResult {
   });
 
   @override
-  bool get isMacroPart => false;
-
-  @override
   String get path => file.path;
 }
 
@@ -253,9 +250,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   @override
   File get file => fileState.resource;
-
-  @override
-  bool get isMacroPart => false;
 
   @override
   String get path => fileState.path;

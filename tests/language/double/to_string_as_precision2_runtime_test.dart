@@ -12,7 +12,4 @@ main() {
   var v = 0.0;
   Expect.throwsRangeError(() => v.toStringAsPrecision(0));
   Expect.throwsRangeError(() => v.toStringAsPrecision(22));
-
-
-
 }

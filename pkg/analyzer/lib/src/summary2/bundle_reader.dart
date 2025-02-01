@@ -73,9 +73,6 @@ class BundleReader {
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
-        macroGeneratedCode: _reader.readOptionalObject((reader) {
-          return _reader.readStringUtf8();
-        }),
       );
     });
 
@@ -93,7 +90,6 @@ class BundleReader {
         offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
-        macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
     }
   }
@@ -621,7 +617,6 @@ class LibraryReader {
   final Reference _reference;
   final int _offset;
   final InfoDeclarationStore _deserializedDataStore;
-  final String? macroGeneratedCode;
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -640,7 +635,6 @@ class LibraryReader {
     required int offset,
     required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
-    required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -1891,13 +1885,6 @@ class LibraryReader {
     unitElement.accessors = accessorFragments.toFixedList();
     unitElement.topLevelVariables = variableFragments.toFixedList();
 
-    unitElement.macroGenerated = _reader.readOptionalObject((reader) {
-      return MacroGeneratedLibraryFragment(
-        code: _reader.readStringUtf8(),
-        informativeBytes: _reader.readUint8List(),
-      );
-    });
-
     unitElement.parts = _reader.readTypedList(() {
       return _readPartElement(
         containerUnit: unitElement,
@@ -2614,14 +2601,10 @@ class _LibraryHeader {
   /// we need to know how much data to skip for each class.
   final Uint32List classMembersLengths;
 
-  /// The only (if any) macro generated augmentation code.
-  final String? macroGeneratedCode;
-
   _LibraryHeader({
     required this.uri,
     required this.offset,
     required this.classMembersLengths,
-    required this.macroGeneratedCode,
   });
 }
 

@@ -2685,7 +2685,7 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var macroKeyword = pop(NullValues.Token) as Token?;
+    pop(NullValues.Token) as Token?; // macroKeyword
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -2701,7 +2701,6 @@ class AstBuilder extends StackListener {
         typeParameters: typeParameters,
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
-        macroKeyword: macroKeyword,
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,

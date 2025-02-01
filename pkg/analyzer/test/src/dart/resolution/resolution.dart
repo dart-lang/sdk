@@ -28,7 +28,6 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import '../../../util/element_printer.dart';
-import '../../summary/macros_environment.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
 import 'dart_object_printer.dart';
@@ -374,13 +373,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
           message: text,
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
-
-  String getMacroCode(String relativePath) {
-    var code = MacrosEnvironment.instance.packageAnalyzerFolder
-        .getChildAssumingFile('test/src/summary/macro/$relativePath')
-        .readAsStringSync();
-    return code.replaceAll('/*macro*/', 'macro');
-  }
 
   Element2? getNodeElement2(AstNode node) {
     if (node is Annotation) {
