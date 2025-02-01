@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -75,7 +76,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ClassElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
@@ -83,7 +87,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InstanceScope(scope, element);
+    scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -98,7 +102,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ClassElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -123,7 +130,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ConstructorElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -143,14 +153,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as EnumElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = InstanceScope(scope, element);
+    scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -173,13 +186,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExtensionElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
 
-    scope = ExtensionScope(scope, element);
+    scope = ExtensionScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -199,14 +215,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExtensionTypeElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.representation.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InstanceScope(scope, element);
+    scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
     LinkingNodeContext(node.representation, scope);
 
@@ -228,7 +247,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as FieldFormalParameterElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.type?.accept(this);
     node.typeParameters?.accept(this);
@@ -249,7 +271,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExecutableElementImpl;
 
-    scope = TypeParameterScope(outerScope, element.typeParameters);
+    scope = TypeParameterScope(
+      outerScope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -272,7 +297,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as TypeAliasElementImpl;
 
-    scope = TypeParameterScope(outerScope, element.typeParameters);
+    scope = TypeParameterScope(
+      outerScope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
@@ -289,7 +317,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ParameterElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
@@ -305,7 +336,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as GenericFunctionTypeElementImpl;
-    scope = TypeParameterScope(outerScope, element.typeParameters);
+    scope = TypeParameterScope(
+      outerScope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
@@ -326,7 +360,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as TypeAliasElementImpl;
 
-    scope = TypeParameterScope(outerScope, element.typeParameters);
+    scope = TypeParameterScope(
+      outerScope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
@@ -354,7 +391,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExecutableElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -372,14 +412,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as MixinElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InstanceScope(scope, element);
+    scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -490,7 +533,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as SuperFormalParameterElementImpl;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters.map((e) => e.asElement2).toList(),
+    );
 
     node.type?.accept(this);
     node.typeParameters?.accept(this);

@@ -683,6 +683,10 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   @override
   bool get isDartCoreObject => firstFragment.isDartCoreObject;
 
+  bool get isDartCoreRecord {
+    return name3 == 'Record' && library2.isDartCore;
+  }
+
   bool get isEnumLike {
     // Must be a concrete class.
     if (isAbstract) {
@@ -844,14 +848,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions;
+    return scope.accessibleExtensions.map((e) => e.asElement).toList();
   }
 
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
-    return scope.accessibleExtensions
-        .map((element) => element.augmented as ExtensionElement2)
-        .toList();
+    return scope.accessibleExtensions;
   }
 
   @override
@@ -9851,6 +9853,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
     return asElement.scope;
   }
 
+  set scope(PrefixScope value) {
+    asElement.scope = value;
+  }
+
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitPrefixElement(this);
@@ -11672,6 +11678,12 @@ abstract class VariableElementImpl extends ElementImpl
   Expression? get constantInitializer => null;
 
   @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+
+  @override
   VariableElement get declaration => this;
 
   @override
@@ -11768,6 +11780,12 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class VariableElementImpl2 extends ElementImpl2
     implements VariableElement2OrMember {
+  @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {

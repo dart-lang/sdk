@@ -675,7 +675,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement as BindPatternVariableElementImpl)
+        .map((e) => e.asElement)
         .toList();
   }
 
@@ -1154,7 +1154,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement as BindPatternVariableElementImpl)
+        .map((e) => e.asElement)
         .toList();
   }
 
@@ -1571,7 +1571,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _define(Element element) {
     if (_nameScope case LocalScope nameScope) {
-      nameScope.add(element);
+      nameScope.add(element.asElement2!);
     }
   }
 
