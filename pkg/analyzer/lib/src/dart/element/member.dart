@@ -562,6 +562,12 @@ class FieldMember extends VariableMember
       children.map((fragment) => fragment.asElement2).nonNulls.toList();
 
   @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
@@ -1210,6 +1216,12 @@ class ParameterMember extends VariableMember
   @override
   List<Element2> get children2 =>
       children.map((fragment) => fragment.asElement2).nonNulls.toList();
+
+  @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
 
   @override
   ParameterElementImpl get declaration =>

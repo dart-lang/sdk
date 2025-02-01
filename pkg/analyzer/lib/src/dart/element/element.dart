@@ -11672,6 +11672,12 @@ abstract class VariableElementImpl extends ElementImpl
   Expression? get constantInitializer => null;
 
   @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+
+  @override
   VariableElement get declaration => this;
 
   @override
@@ -11768,6 +11774,12 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class VariableElementImpl2 extends ElementImpl2
     implements VariableElement2OrMember {
+  @override
+  ConstantInitializer? get constantInitializer2 {
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {

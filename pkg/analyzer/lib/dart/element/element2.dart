@@ -50,6 +50,7 @@ library;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
@@ -251,6 +252,22 @@ abstract class ClassFragment implements InterfaceFragment {
 
   @override
   ClassFragment? get previousFragment;
+}
+
+/// The initializer of a constant variable, or the default value for a formal
+/// parameter.
+abstract class ConstantInitializer {
+  /// The expression of the initializer.
+  ///
+  /// For variables that have multiple fragments, this is the expression from
+  /// the last fragment. For formal parameters, only the first fragment can
+  /// have the default value.
+  Expression get expression;
+
+  /// Returns the result of evaluating [expression], computes it if necessary.
+  ///
+  /// Returns `null` if the value could not be computed because of errors.
+  DartObject? evaluate();
 }
 
 /// An element representing a constructor defined by a class, enum, or extension
@@ -2806,6 +2823,13 @@ abstract class TypeParameterizedFragment implements Fragment, Annotatable {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableElement2 implements Element2 {
+  /// The constant initializer for this constant variable, or the default
+  /// value for this formal parameter.
+  ///
+  /// Is `null` if this variable is not a constant, or does not have the
+  /// initializer or the default value specified.
+  ConstantInitializer? get constantInitializer2;
+
   @override
   VariableFragment get firstFragment;
 
@@ -2857,6 +2881,13 @@ abstract class VariableElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableFragment implements Fragment {
+  /// The constant initializer for this constant variable fragment, or the
+  /// default value for this formal parameter fragment.
+  ///
+  /// Is `null` if this variable fragment is not a constant, or does not have
+  /// the initializer or the default value specified.
+  ConstantInitializer? get constantInitializer2;
+
   @override
   VariableElement2 get element;
 
