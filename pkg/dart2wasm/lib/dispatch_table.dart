@@ -222,7 +222,6 @@ class DispatchTable {
 
   final Translator translator;
   final List<TableSelectorInfo> _selectorMetadata;
-  final Map<TreeNode, ProcedureAttributesMetadata> _procedureAttributeMetadata;
 
   /// Maps selector IDs to selectors.
   final Map<int, SelectorInfo> _selectorInfo = {};
@@ -254,16 +253,16 @@ class DispatchTable {
                     as TableSelectorMetadataRepository)
                 .mapping[translator.component]!
                 .selectors,
-        _procedureAttributeMetadata =
-            (translator.component.metadata["vm.procedure-attributes.metadata"]
-                    as ProcedureAttributesMetadataRepository)
-                .mapping,
         _importedWasmTables = WasmTableImporter(translator, 'dispatch');
 
   SelectorInfo selectorForTarget(Reference target) {
+    // Dispatch table currently doesn't have unchecked entries.
+    assert(!target.isUncheckedEntryReference);
+
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
-    ProcedureAttributesMetadata metadata = _procedureAttributeMetadata[member]!;
+    ProcedureAttributesMetadata metadata =
+        translator.procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
@@ -274,7 +273,8 @@ class DispatchTable {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
-    ProcedureAttributesMetadata metadata = _procedureAttributeMetadata[member]!;
+    ProcedureAttributesMetadata metadata =
+        translator.procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
@@ -382,14 +382,18 @@ class DispatchTable {
         if (member is Field) {
           addMember(member.getterReference, staticDispatch);
           if (member.hasSetter) {
-            addMember(member.setterReference!, staticDispatch);
+            final target = translator.getFunctionEntry(member.setterReference!,
+                uncheckedEntry: false);
+            addMember(target, staticDispatch);
           }
         } else if (member is Procedure) {
-          addMember(member.reference, staticDispatch);
+          final target = translator.getFunctionEntry(member.reference,
+              uncheckedEntry: false);
+          addMember(target, staticDispatch);
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
           if (member.kind == ProcedureKind.Method &&
-              _procedureAttributeMetadata[member]!.hasTearOffUses) {
+              translator.procedureAttributeMetadata[member]!.hasTearOffUses) {
             addMember(member.tearOffReference, staticDispatch);
           }
         }

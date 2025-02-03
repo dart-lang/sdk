@@ -632,9 +632,10 @@ abstract class ProcedureStateMachineEntryCodeGenerator
 
     closures = translator.getClosures(member);
 
-    // We don't support inlining state machine functions atm. Only when we
-    // inline and have call-site guarantees we would use the unchecked entry.
-    setupParametersAndContexts(member, useUncheckedEntry: false);
+    // We don't support multiple function entry points for state machine
+    // functions atm.
+    setupParametersForNormalEntry(member);
+    setupContexts(member);
 
     Context? context = closures.contexts[member.function];
     if (context != null && context.isEmpty) context = context.parent;
