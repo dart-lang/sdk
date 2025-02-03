@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -39,6 +40,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -251,6 +253,16 @@ class FileResolver {
     removedCacheKeys.addAll(fsState!.dispose());
     removedCacheKeys.addAll(libraryContext!.dispose());
     releaseAndClearRemovedIds();
+  }
+
+  /// Looks for references to the given Element. All the files currently
+  ///  cached by the resolver are searched, generated files are ignored.
+  Future<List<CiderSearchMatch>> findReferences(Element2 element,
+      {OperationPerformanceImpl? performance}) {
+    return findReferences2(
+      element.asElement!,
+      performance: performance,
+    );
   }
 
   /// Looks for references to the given Element. All the files currently
