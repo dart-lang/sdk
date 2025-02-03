@@ -2683,7 +2683,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var analysisSession = _currentLibrary.session;
-    var errors = analysisSession.classHierarchy.errors(element);
+    var errors = analysisSession.classHierarchy.errors(element.asElement2);
 
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {

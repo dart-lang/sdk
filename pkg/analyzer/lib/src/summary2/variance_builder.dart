@@ -104,8 +104,8 @@ class VarianceBuilder {
       return _computeFunctionType(
         variable,
         returnType: type.returnType,
-        typeFormals: type.typeFormals,
-        parameters: type.parameters,
+        typeFormals: type.typeParameters.map((e) => e.asElement).toList(),
+        parameters: type.formalParameters.map((e) => e.asElement).toList(),
       );
     } else if (type is RecordTypeBuilder) {
       var result = Variance.unrelated;
@@ -153,7 +153,7 @@ class VarianceBuilder {
     return result;
   }
 
-  void _functionTypeAlias(FunctionTypeAlias node) {
+  void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var parameterList = node.typeParameters;
     if (parameterList == null) {
       return;
@@ -179,7 +179,9 @@ class VarianceBuilder {
           parameter.declaredElement!,
           returnType: node.returnType?.type,
           typeFormals: null,
-          parameters: FunctionTypeBuilder.getParameters(node.parameters),
+          parameters: FunctionTypeBuilder.getParameters(node.parameters)
+              .map((e) => e.asElement)
+              .toList(),
         );
         _setVariance(parameter, variance);
       }
@@ -231,9 +233,9 @@ class VarianceBuilder {
     var node = _linker.getLinkingNode(element);
     if (node == null) {
       // Not linking.
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAliasImpl) {
       _genericTypeAlias(node);
-    } else if (node is FunctionTypeAlias) {
+    } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');

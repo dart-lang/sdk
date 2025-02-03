@@ -544,18 +544,21 @@ abstract class _TypeSubstitutor
     int before = useCounter;
 
     var inner = this;
-    var typeFormals = type.typeFormals;
-    if (typeFormals.isNotEmpty) {
+    var typeParameters = type.typeParameters;
+    if (typeParameters.isNotEmpty) {
       inner = newInnerEnvironment();
-      typeFormals = inner.freshTypeParameters(typeFormals);
+      typeParameters = inner
+          .freshTypeParameters(typeParameters.map((e) => e.asElement).toList())
+          .map((e) => e.asElement2 as TypeParameterElementImpl2)
+          .toList();
     }
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
 
-    var parameters = type.parameters.map((parameter) {
-      var type = parameter.type.accept(inner);
-      return parameter.copyWith(type: type);
+    var formalParameters = type.formalParameters.map((formalParameter) {
+      var type = formalParameter.type.accept(inner);
+      return formalParameter.copyWith(type: type);
     }).toList();
 
     inner.invertVariance();
@@ -567,8 +570,8 @@ abstract class _TypeSubstitutor
     if (useCounter == before) return type;
 
     return FunctionTypeBuilder(
-      typeFormals,
-      parameters,
+      typeParameters,
+      formalParameters,
       returnType,
       type.nullabilitySuffix,
     );

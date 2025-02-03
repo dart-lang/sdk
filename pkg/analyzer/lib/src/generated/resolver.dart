@@ -430,11 +430,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// current node is inside a function body.
   BodyInferenceContext? get bodyContext => _bodyContext;
 
+  /// The class containing the AST nodes being visited,
+  /// or `null` if we are not in the scope of a class.
+  InterfaceElementImpl2? get enclosingClass2 {
+    return enclosingClass?.asElement2;
+  }
+
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
   ///
   /// @return the element representing the function containing the current node
   ExecutableElement? get enclosingFunction => _enclosingFunction;
+
+  /// Return the element representing the function containing the current node,
+  /// or `null` if the current node is not contained in a function.
+  ///
+  /// @return the element representing the function containing the current node
+  ExecutableElement2? get enclosingFunction2 => _enclosingFunction.asElement2;
 
   @override
   FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,

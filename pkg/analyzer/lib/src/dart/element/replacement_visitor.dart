@@ -55,20 +55,20 @@ class ReplacementVisitor
 
   DartType? createFunctionTypeBuilder({
     required FunctionTypeBuilder type,
-    required List<TypeParameterElement2>? newTypeParameters,
-    required List<FormalParameterElement>? newParameters,
+    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<FormalParameterElementImpl>? newFormalParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null &&
         newReturnType == null &&
-        newParameters == null) {
+        newFormalParameters == null) {
       return null;
     }
 
     return FunctionTypeBuilder.v2(
       typeParameters: newTypeParameters ?? type.typeParameters,
-      formalParameters: newParameters ?? type.formalParameters,
+      formalParameters: newFormalParameters ?? type.formalParameters,
       returnType: newReturnType ?? type.returnType,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );
@@ -330,7 +330,7 @@ class ReplacementVisitor
 
     changeVariance();
 
-    List<FormalParameterElement>? newParameters;
+    List<FormalParameterElementImpl>? newFormalParameters;
     for (var i = 0; i < node.formalParameters.length; i++) {
       var parameter = node.formalParameters[i];
 
@@ -341,8 +341,8 @@ class ReplacementVisitor
       var newKind = visitParameterKind(kind);
 
       if (newType != null || newKind != null) {
-        newParameters ??= node.formalParameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
+        newFormalParameters ??= node.formalParameters.toList(growable: false);
+        newFormalParameters[i] = parameter.copyWith(
           type: newType,
           kind: newKind,
         );
@@ -354,7 +354,7 @@ class ReplacementVisitor
     return createFunctionTypeBuilder(
       type: node,
       newTypeParameters: newTypeParameters,
-      newParameters: newParameters,
+      newFormalParameters: newFormalParameters,
       newReturnType: newReturnType,
       newNullability: newNullability,
     );

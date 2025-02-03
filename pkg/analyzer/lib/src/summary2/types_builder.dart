@@ -707,7 +707,7 @@ class _MixinsInference {
   void _resetHierarchies() {
     for (var declaration in _declarations.values) {
       var element = declaration.element;
-      element.library.session.classHierarchy.remove(element);
+      element.library.session.classHierarchy.remove(element.asElement2);
     }
   }
 }
