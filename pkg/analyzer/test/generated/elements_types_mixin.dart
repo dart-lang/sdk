@@ -120,6 +120,7 @@ mixin ElementsTypesMixin {
   TypeImpl get unknownInferredType => UnknownInferredType.instance;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
+
   ClassElementImpl class_({
     required String name,
     bool isAbstract = false,

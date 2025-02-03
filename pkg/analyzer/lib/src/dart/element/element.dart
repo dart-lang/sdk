@@ -3022,7 +3022,7 @@ abstract class ElementImpl implements Element, Element2 {
   LibraryElementImpl? get library => thisOrAncestorOfType();
 
   @override
-  LibraryElement2? get library2 => thisOrAncestorOfType2();
+  LibraryElementImpl? get library2 => thisOrAncestorOfType2();
 
   @override
   Source? get librarySource => library?.source;
@@ -5802,7 +5802,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   ElementKind get kind => firstFragment.kind;
 
   @override
-  LibraryElement2 get library2 => firstFragment.library2!;
+  LibraryElementImpl get library2 => firstFragment.library2!;
 
   @override
   List<ElementAnnotation> get metadata => firstFragment.metadata;
@@ -6147,7 +6147,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   List<InterfaceType> get allSupertypes {
     return _allSupertypes ??=
-        library.session.classHierarchy.implementedInterfaces(this);
+        library.session.classHierarchy.implementedInterfaces(element);
   }
 
   @override
@@ -6605,8 +6605,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   InheritanceManager3 get inheritanceManager {
-    var library = library2 as LibraryElementImpl;
-    return library.session.inheritanceManager;
+    return library2.session.inheritanceManager;
   }
 
   @override
@@ -6785,6 +6784,10 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
         )
         .ifTypeOrNull();
   }
+
+  void resetCachedAllSupertypes() {
+    firstFragment._allSupertypes = null;
+  }
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
@@ -6951,12 +6954,12 @@ class LabelElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.LABEL;
 
   @override
-  LibraryElement2 get library2 {
+  LibraryElementImpl get library2 {
     return libraryFragment.element;
   }
 
   @override
-  LibraryFragment get libraryFragment => enclosingUnit as LibraryFragment;
+  CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
   @override
   String get name => super.name!;
@@ -7295,7 +7298,7 @@ class LibraryElementImpl extends ElementImpl
   LibraryElementImpl get library => this;
 
   @override
-  LibraryElement2 get library2 => this;
+  LibraryElementImpl get library2 => this;
 
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
@@ -7832,12 +7835,12 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
-  LibraryElement2 get library2 {
+  LibraryElementImpl get library2 {
     return libraryFragment.element;
   }
 
   @override
-  LibraryFragment get libraryFragment => enclosingUnit as LibraryFragment;
+  CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
   @override
   // TODO(scheglov): make it a nullable field
@@ -9767,7 +9770,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   ElementKind get kind => ElementKind.PREFIX;
 
   @override
-  LibraryElement2 get library2 => library as LibraryElement2;
+  LibraryElementImpl get library2 => library;
 
   @override
   String get name {
