@@ -727,18 +727,18 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
 [status] idle
 ''');
 
@@ -748,9 +748,9 @@ part of 'a.dart';
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A1
-  ResolvedUnitResult #0
-[future] getResolvedUnit B2
   ResolvedUnitResult #1
+[future] getResolvedUnit B2
+  ResolvedUnitResult #0
 ''');
 
     // Ask for resolved library.
@@ -762,8 +762,8 @@ part of 'a.dart';
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
       ResolvedUnitResult #1
+      ResolvedUnitResult #0
 ''');
   }
 
@@ -788,18 +788,18 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
 [status] idle
 ''');
 
@@ -809,9 +809,9 @@ part of 'a.dart';
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A1
-  ResolvedUnitResult #0
-[future] getResolvedUnit B2
   ResolvedUnitResult #1
+[future] getResolvedUnit B2
+  ResolvedUnitResult #0
 ''');
 
     // Ask for resolved library.
@@ -823,8 +823,8 @@ part of 'a.dart';
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
       ResolvedUnitResult #1
+      ResolvedUnitResult #0
 ''');
   }
 
@@ -1570,16 +1570,16 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: isLibrary
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getErrors B1
-  ErrorsResult #2
+  ErrorsResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [stream]
   ResolvedUnitResult #3
     path: /home/test/lib/b.dart
@@ -2080,16 +2080,16 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -2114,20 +2114,20 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
       ResolvedUnitResult #2
         path: /home/test/lib/b.dart
         uri: package:test/b.dart
         flags: exists isPart
+[stream]
+  ResolvedUnitResult #1
 [stream]
   ResolvedUnitResult #2
 [status] idle
@@ -2139,7 +2139,7 @@ part of 'a.dart';
     collector.getResolvedLibrary('A2', a);
     await assertEventsText(collector, r'''
 [future] getResolvedLibrary A2
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
 ''');
 
     // Ask `a`, returns cached.
@@ -2147,7 +2147,7 @@ part of 'a.dart';
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A3
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
 ''');
 
     // Ask `b`, returns cached.
@@ -2207,16 +2207,16 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -2235,16 +2235,16 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedLibraryByUri A1
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -2291,8 +2291,6 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [future] getResolvedUnit B1
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
@@ -2304,6 +2302,8 @@ part of 'a.dart';
     units
       ResolvedUnitResult #0
       ResolvedUnitResult #1
+[stream]
+  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2567,13 +2567,13 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [future] getResolvedUnit B1
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[stream]
+  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2606,13 +2606,13 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [future] getErrors B1
   ErrorsResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
@@ -2754,13 +2754,13 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [future] getResolvedUnit B1
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[stream]
+  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2793,18 +2793,18 @@ part of 'a.dart';
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: isLibrary
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -3002,18 +3002,18 @@ import 'package:test/b.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-    errors
-      7 +21 URI_DOES_NOT_EXIST
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #1
+  ResolvedLibraryResult #0
     element: package:test/a.dart
     units
-      ResolvedUnitResult #0
+      ResolvedUnitResult #1
+        path: /home/test/lib/a.dart
+        uri: package:test/a.dart
+        flags: exists isLibrary
+        errors
+          7 +21 URI_DOES_NOT_EXIST
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
 
@@ -3067,13 +3067,8 @@ final B = A;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
@@ -3081,6 +3076,11 @@ final B = A;
       B: int
 [stream]
   ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
 [status] idle
 ''');
 
@@ -3098,13 +3098,8 @@ final A = 1.2;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #2
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B2
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
@@ -3112,6 +3107,11 @@ final A = 1.2;
       B: int
 [stream]
   ResolvedUnitResult #3
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #2
 [status] idle
 ''');
   }
@@ -3469,16 +3469,16 @@ final a = A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: exists isLibrary
 [future] getErrors B1
-  ErrorsResult #1
+  ErrorsResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
@@ -3516,16 +3516,16 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getErrors B1
-  ErrorsResult #1
+  ErrorsResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
@@ -3628,18 +3628,18 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[stream]
-  ResolvedUnitResult #2
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #3
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #2
 [status] idle
 ''');
   }
@@ -3674,18 +3674,18 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[stream]
-  ResolvedUnitResult #0
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #1
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
 [status] idle
 ''');
   }
@@ -3778,18 +3778,18 @@ Future<int>? f;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
 [future] getResolvedUnit B1
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [stream]
   ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
 [status] idle
 ''');
   }

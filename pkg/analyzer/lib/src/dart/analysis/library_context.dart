@@ -118,10 +118,10 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  Future<void> load({
+  void load({
     required LibraryFileKind targetLibrary,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     addToLogRing('[load][targetLibrary: ${targetLibrary.file}]');
     var librariesTotal = 0;
     var librariesLoaded = 0;
@@ -130,7 +130,7 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    Future<void> loadBundle(LibraryCycle cycle) async {
+    void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
 
       performance.getDataInt('cycleCount').increment();
@@ -139,7 +139,7 @@ class LibraryContext {
       librariesTotal += cycle.libraries.length;
 
       for (var directDependency in cycle.directDependencies) {
-        await loadBundle(directDependency);
+        loadBundle(directDependency);
       }
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
@@ -160,16 +160,13 @@ class LibraryContext {
 
         LinkResult linkResult;
         try {
-          linkResult = await performance.runAsync(
-            'link',
-            (performance) async {
-              return await link(
-                elementFactory: elementFactory,
-                performance: performance,
-                inputLibraries: cycle.libraries,
-              );
-            },
-          );
+          linkResult = performance.run('link', (performance) {
+            return link(
+              elementFactory: elementFactory,
+              performance: performance,
+              inputLibraries: cycle.libraries,
+            );
+          });
           librariesLinked += cycle.libraries.length;
         } catch (exception, stackTrace) {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
@@ -199,7 +196,7 @@ class LibraryContext {
       }
     }
 
-    await logger.runAsync('Prepare linked bundles', () async {
+    logger.run('Prepare linked bundles', () {
       var libraryCycle = performance.run('libraryCycle', (performance) {
         fileSystemState.newFileOperationPerformance = performance;
         try {
@@ -208,7 +205,7 @@ class LibraryContext {
           fileSystemState.newFileOperationPerformance = null;
         }
       });
-      await loadBundle(libraryCycle);
+      loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'

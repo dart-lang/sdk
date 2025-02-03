@@ -119,6 +119,14 @@ void [!^f!]() {}
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_importPrefix() async {
+    var contents = '''
+import 'dart:math' as [!^math!];
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_method() async {
     var contents = '''
 class A {
@@ -180,6 +188,15 @@ extension on String {
 extension StringExtension on String {
   String get [!myField!] => '';
 }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_importPrefix() async {
+    var contents = '''
+/// This is a comment for [^math]
+import 'dart:math' as [!math!];
 ''';
 
     await testContents(contents);
@@ -448,6 +465,91 @@ foo(Object pair) {
 ''';
 
     await testContents(contents);
+  }
+
+  Future<void> test_importPrefix() async {
+    var contents = '''
+import 'dart:math' as [!math!];
+
+^math.Random? r;
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_importPrefix_multiple() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+/*[2*/^math/*2]*/.Random? r;
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.last.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
+  }
+
+  Future<void> test_importPrefix_multiple_alone() async {
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+void foo() {
+  // ignore: prefix_identifier_not_followed_by_dot
+  /*[2*/^math/*2]*/;
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.range, equals(code.ranges[index].range));
+    }
+  }
+
+  Future<void> test_importPrefix_multiple_comment() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+/// This is a comment that talks about [/*[2*/^math/*2]*/].
+math.Random? r;
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.last.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
   }
 
   Future<void> test_locationLink_class() async {

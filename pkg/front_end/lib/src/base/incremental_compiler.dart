@@ -55,7 +55,6 @@ import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/experimental_flags.dart';
@@ -69,7 +68,6 @@ import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../base/nnbd_mode.dart';
-import '../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
@@ -86,8 +84,6 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import '../kernel/macro/macro.dart' show NeededPrecompilations;
-import '../kernel_generator_impl.dart' show precompileMacros;
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
     show
@@ -143,12 +139,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // This will be set if the right environment variable is set
   // (enableIncrementalCompilerBenchmarking).
   Benchmarker? _benchmarker;
-
-  /// Map by library [Uri] to the [macros.ExecutorFactoryToken]s that was
-  /// retrieved when registering the compiled macro executor for that library.
-  ///
-  /// This is primarily used for invalidation.
-  final Map<Uri, macros.ExecutorFactoryToken> macroExecutorFactoryTokens = {};
 
   RecorderForTesting? get recorderForTesting => null;
 
@@ -317,12 +307,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _rewriteEntryPointsIfPart(
           entryPoints, reusedResult, experimentalInvalidation != null);
 
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_invalidatePrecompiledMacros);
-      await _invalidatePrecompiledMacros(
-          c.options, reusedResult.notReusedLibraries);
-
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
       _benchmarker
@@ -357,46 +341,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
       IncrementalKernelTarget currentKernelTarget;
-      while (true) {
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
-        currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-            reusedLibraries, experimentalInvalidation, entryPoints);
-        Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
-            _experimentalInvalidationCreateRebuildBodiesBuilders(
-                currentKernelTarget, experimentalInvalidation, uriTranslator);
-        entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
 
-        // TODO(johnniwinther,jensj): Ensure that the internal state of the
-        // incremental compiler is consistent across 1 or more macro
-        // precompilations.
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        NeededPrecompilations? neededPrecompilations =
-            await currentKernelTarget.computeNeededPrecompilations();
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        if (context.options.globalFeatures.macros.isEnabled) {
-          Map<Uri, macros.ExecutorFactoryToken>? precompiled =
-              await precompileMacros(neededPrecompilations, c.options);
-          if (precompiled != null) {
-            // Coverage-ignore-block(suite): Not run.
-            macroExecutorFactoryTokens.addAll(precompiled);
-            continue;
-          }
-        }
-        _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases
-                .incremental_experimentalInvalidationPatchUpScopes);
-        _experimentalInvalidationPatchUpScopes(
-            experimentalInvalidation, rebuildBodiesMap);
-        rebuildBodiesMap = null;
-        break;
-      }
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
+      currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
+          reusedLibraries, experimentalInvalidation, entryPoints);
+      Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
+          _experimentalInvalidationCreateRebuildBodiesBuilders(
+              currentKernelTarget, experimentalInvalidation, uriTranslator);
+      entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
+
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+      await currentKernelTarget.computeNeededPrecompilations();
+      _benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases
+              .incremental_experimentalInvalidationPatchUpScopes);
+      _experimentalInvalidationPatchUpScopes(
+          experimentalInvalidation, rebuildBodiesMap);
+      rebuildBodiesMap = null;
 
       // Checkpoint: Build the actual outline.
       // Note that the [Component] is not the "full" component.
@@ -410,14 +376,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        buildResult = await currentKernelTarget.buildComponent(
-            macroApplications: buildResult.macroApplications,
-            verify: c.options.verify);
+        buildResult =
+            await currentKernelTarget.buildComponent(verify: c.options.verify);
         componentWithDill = buildResult.component;
       }
-      buildResult.macroApplications
-          // Coverage-ignore(suite): Not run.
-          ?.close();
 
       _benchmarker
           // Coverage-ignore(suite): Not run.
@@ -1188,25 +1150,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
-    if (context.options.globalFeatures.macros.isEnabled) {
-      /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
-      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-        // TODO(johnniwinther): Should this include non-local (i.e. injected)
-        // members?
-        Iterator<ClassBuilder> iterator = builder.localMembersIteratorOfType();
-        while (iterator.moveNext()) {
-          ClassBuilder childBuilder = iterator.current;
-          if (childBuilder.isMacro) {
-            // Changes to a library with macro classes can affect any class that
-            // depends on it.
-            recorderForTesting?.recordAdvancedInvalidationResult(
-                AdvancedInvalidationResult.macroChange);
-            return null;
-          }
-        }
-      }
-    }
-
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
     for (DillLibraryBuilder builder in reusedResult.directlyInvalidated) {
@@ -1506,24 +1449,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           neededDillLibraries.add(builder.library);
         }
       }
-    }
-  }
-
-  /// Removes the precompiled macros whose libraries cannot be reused.
-  Future<void> _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
-      Set<LibraryBuilder> notReusedLibraries) async {
-    if (notReusedLibraries.isEmpty) {
-      return;
-    }
-    if (macroExecutorFactoryTokens.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
-      await Future.wait(notReusedLibraries
-          .map((library) => library.importUri)
-          .where(macroExecutorFactoryTokens.containsKey)
-          .map((importUri) => processedOptions.macroExecutor
-              .unregisterExecutorFactory(
-                  macroExecutorFactoryTokens.remove(importUri)!,
-                  libraries: {importUri})));
     }
   }
 
@@ -2873,10 +2798,6 @@ enum AdvancedInvalidationResult {
 
   /// Package config has been updated, advanced invalidation is not supported.
   packageUpdate,
-
-  /// Change to (dependency of) macro library, advanced invalidation is not
-  /// supported.
-  macroChange,
 
   /// Problems in invalidated library, advanced invalidation is not supported.
   problemsInLibrary,

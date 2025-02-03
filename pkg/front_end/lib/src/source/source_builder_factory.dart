@@ -79,13 +79,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   final List<Export> exports = <Export>[];
 
-  /// Map from synthesized names used for omitted types to their corresponding
-  /// synthesized type declarations.
-  ///
-  /// This is used in macro generated code to create type annotations from
-  /// inferred types in the original code.
-  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
-
   /// Map from mixin application classes to their mixin types.
   ///
   /// This is used to check that super access in mixin declarations have a
@@ -128,15 +121,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required IndexedLibrary? indexedLibrary,
-      required Map<String, Builder>? omittedTypeDeclarationBuilders})
+      required IndexedLibrary? indexedLibrary})
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _compilationUnitScope = scope,
         indexedLibrary = indexedLibrary,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _typeScopes =
             new LocalStack([new TypeScope(TypeScopeKind.library, scope)]);
 
@@ -2114,13 +2105,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? arguments,
       int charOffset,
       {required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
-    if (_omittedTypeDeclarationBuilders != null) {
-      // Coverage-ignore-block(suite): Not run.
-      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
-      if (builder is OmittedTypeDeclarationBuilder) {
-        return new DependentTypeBuilder(builder.omittedTypeBuilder);
-      }
-    }
     return _registerUnresolvedNamedType(new NamedTypeBuilderImpl(
         typeName, nullabilityBuilder,
         arguments: arguments,

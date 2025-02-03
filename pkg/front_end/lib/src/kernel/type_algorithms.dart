@@ -379,9 +379,6 @@ List<List<RawTypeCycleElement>> _findRawTypePathsToDeclaration(
             case BuiltinTypeDeclarationBuilder():
               // Do nothing.
               break;
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
               // Do nothing.
               break;
