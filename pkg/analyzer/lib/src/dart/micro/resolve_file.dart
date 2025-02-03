@@ -415,8 +415,8 @@ class FileResolver {
       throw ArgumentError('$uri is not a library.');
     }
 
-    await performance.runAsync('libraryContext', (performance) async {
-      await libraryContext!.load(
+    performance.run('libraryContext', (performance) {
+      libraryContext!.load(
         targetLibrary: kind,
         performance: performance,
       );
@@ -470,7 +470,7 @@ class FileResolver {
     var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
     // Load the library, link if necessary.
-    await libraryContext!.load(
+    libraryContext!.load(
       targetLibrary: libraryKind,
       performance: performance,
     );
@@ -480,7 +480,7 @@ class FileResolver {
     var linkedKeysToRelease = libraryContext!.unloadAll();
 
     // Load the library again, the reference count is `>= 2`.
-    await libraryContext!.load(
+    libraryContext!.load(
       targetLibrary: libraryKind,
       performance: performance,
     );
@@ -569,8 +569,8 @@ class FileResolver {
       var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
       var completionOffset = lineOffset + completionColumn;
 
-      await performance.runAsync('libraryContext', (performance) async {
-        await libraryContext!.load(
+      performance.run('libraryContext', (performance) {
+        libraryContext!.load(
           targetLibrary: libraryKind,
           performance: performance,
         );
@@ -645,8 +645,8 @@ class FileResolver {
       var file = fileContext.file;
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
-      await performance.runAsync('libraryContext', (performance) async {
-        await libraryContext!.load(
+      performance.run('libraryContext', (performance) {
+        libraryContext!.load(
           targetLibrary: libraryKind,
           performance: performance,
         );

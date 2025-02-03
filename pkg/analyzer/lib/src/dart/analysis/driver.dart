@@ -1332,20 +1332,17 @@ class AnalysisDriver {
           return;
         }
 
-        await performance.runAsync(
-          'libraryContext',
-          (performance) async {
-            await libraryContext.load(
-              targetLibrary: library,
-              performance: performance,
-            );
-          },
-        );
+        performance.run('libraryContext', (performance) {
+          libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
+        });
 
         for (var import in library.docLibraryImports) {
           if (import is LibraryImportWithFile) {
             if (import.importedLibrary case var libraryFileKind?) {
-              await libraryContext.load(
+              libraryContext.load(
                 targetLibrary: libraryFileKind,
                 performance: OperationPerformanceImpl('<root>'),
               );
@@ -1776,15 +1773,12 @@ class AnalysisDriver {
         var kind = file.kind;
         var library = kind.library ?? kind.asLibrary;
 
-        await performance.runAsync(
-          'libraryContext',
-          (performance) async {
-            await libraryContext.load(
-              targetLibrary: library,
-              performance: performance,
-            );
-          },
-        );
+        performance.run('libraryContext', (performance) {
+          libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
+        });
 
         var element = libraryContext.computeUnitElement(library, file);
         var result = UnitElementResultImpl(
@@ -1877,7 +1871,7 @@ class AnalysisDriver {
     var library = kind.library ?? kind.asLibrary;
 
     // Errors are based on elements, so load them.
-    await libraryContext.load(
+    libraryContext.load(
       targetLibrary: library,
       performance: OperationPerformanceImpl('<root>'),
     );
@@ -2012,15 +2006,12 @@ class AnalysisDriver {
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
 
-      await performance.runAsync(
-        'libraryContext',
-        (performance) async {
-          await libraryContext.load(
-            targetLibrary: library,
-            performance: performance,
-          );
-        },
-      );
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(
+          targetLibrary: library,
+          performance: performance,
+        );
+      });
       var unitElement = libraryContext.computeUnitElement(library, file);
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(file.resource);

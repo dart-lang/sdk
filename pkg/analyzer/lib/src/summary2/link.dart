@@ -30,13 +30,13 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
-Future<LinkResult> link({
+LinkResult link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
   required List<LibraryFileKind> inputLibraries,
-}) async {
+}) {
   var linker = Linker(elementFactory);
-  await linker.link(
+  linker.link(
     performance: performance,
     inputLibraries: inputLibraries,
   );
@@ -87,10 +87,10 @@ class Linker {
     return elementNodes[element.asElement];
   }
 
-  Future<void> link({
+  void link({
     required OperationPerformanceImpl performance,
     required List<LibraryFileKind> inputLibraries,
-  }) async {
+  }) {
     performance.run('LibraryBuilder.build', (performance) {
       for (var inputLibrary in inputLibraries) {
         LibraryBuilder.build(
@@ -101,8 +101,8 @@ class Linker {
       }
     });
 
-    await performance.runAsync('buildOutlines', (performance) async {
-      await _buildOutlines(
+    performance.run('buildOutlines', (performance) {
+      _buildOutlines(
         performance: performance,
       );
     });
@@ -189,19 +189,16 @@ class Linker {
     }
   }
 
-  Future<void> _buildOutlines({
+  void _buildOutlines({
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     _createTypeSystemIfNotLinkingDartCore();
 
-    await performance.runAsync(
-      'computeLibraryScopes',
-      (performance) async {
-        await _computeLibraryScopes(
-          performance: performance,
-        );
-      },
-    );
+    performance.run('computeLibraryScopes', (performance) {
+      _computeLibraryScopes(
+        performance: performance,
+      );
+    });
 
     _createTypeSystem();
     _resolveTypes();
@@ -237,9 +234,9 @@ class Linker {
     }
   }
 
-  Future<void> _computeLibraryScopes({
+  void _computeLibraryScopes({
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     for (var library in builders.values) {
       library.buildElements();
     }
