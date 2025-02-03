@@ -4654,6 +4654,10 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   // TODO(augmentations): Implement the merge of formal parameters.
   TypeImpl get type => wrappedElement.type;
 
+  set type(TypeImpl value) {
+    wrappedElement.type = value;
+  }
+
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElement2> get typeParameters2 => const [];
