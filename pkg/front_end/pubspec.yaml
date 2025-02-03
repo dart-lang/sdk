@@ -14,7 +14,6 @@ dependencies:
   kernel: any
   macros: any
   package_config: any
-  vm: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
@@ -32,6 +31,7 @@ dev_dependencies:
   test_reflective_loader: any
   test: any
   testing: any
+  vm: any
   vm_service: any
   web_socket_channel: any
 

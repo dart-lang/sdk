@@ -373,10 +373,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         parsedArgs['enable-experiment'] as List<String>,
         nullableEnvironmentDefines,
         verbose: verbose,
-        nnbdMode: nnbdMode,
-        requirePrebuiltMacros: parsedArgs['require-prebuilt-macros'],
-        precompiledMacros: parsedArgs['precompiled-macro'],
-        macroSerializationMode: macroSerializationMode);
+        nnbdMode: nnbdMode);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -467,8 +464,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
-
-  await state.processedOpts.dispose();
 
   if (!wroteUsedDills && recordUsedInputs) {
     // The path taken didn't record inputs used: Say we used everything.

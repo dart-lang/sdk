@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 import 'package:kernel/target/targets.dart' show Target;
-import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
@@ -17,7 +16,7 @@ import '../base/nnbd_mode.dart' show NnbdMode;
 import '../base/processed_options.dart' show ProcessedOptions;
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
-import 'util.dart' show equalLists, equalMaps, equalSets;
+import 'util.dart' show equalMaps, equalSets;
 
 /// Initializes the compiler for a modular build.
 ///
@@ -49,11 +48,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool omitPlatform = false,
     bool trackNeededDillLibraries = false,
     bool verbose = false,
-    NnbdMode nnbdMode = NnbdMode.Strong,
-    bool requirePrebuiltMacros = false,
-    List<String> precompiledMacros = const [],
-    SerializationMode macroSerializationMode =
-        SerializationMode.byteData}) async {
+    NnbdMode nnbdMode = NnbdMode.Strong}) async {
   bool isRetry = false;
   while (true) {
     try {
@@ -86,18 +81,13 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           !equalSets(oldState.tags, tags) ||
           (sdkSummary != null &&
               (cachedSdkInput == null ||
-                  !digestsEqual(cachedSdkInput.digest, sdkDigest))) ||
-          // TODO(davidmorgan): add correct change detection for macros.
-          oldState.options.requirePrebuiltMacros != requirePrebuiltMacros ||
-          !equalLists(oldState.options.precompiledMacros, precompiledMacros) ||
-          oldState.options.macroSerializationMode != macroSerializationMode) {
+                  !digestsEqual(cachedSdkInput.digest, sdkDigest)))) {
         // No - or immediately not correct - previous state.
         // We'll load a new sdk, anything loaded already will have a wrong root.
         workerInputCache.clear();
         workerInputCacheLibs.clear();
 
         // The sdk was either not cached or it has changed.
-        await oldState?.processedOpts.dispose();
         options = new CompilerOptions()
           ..compileSdk = compileSdk
           ..sdkRoot = sdkRoot
@@ -110,10 +100,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..environmentDefines = environmentDefines
           ..explicitExperimentalFlags = explicitExperimentalFlags
           ..verbose = verbose
-          ..nnbdMode = nnbdMode
-          ..requirePrebuiltMacros = requirePrebuiltMacros
-          ..precompiledMacros = precompiledMacros
-          ..macroSerializationMode = macroSerializationMode;
+          ..nnbdMode = nnbdMode;
 
         processedOpts = new ProcessedOptions(options: options);
         if (sdkSummary != null && sdkDigest != null) {

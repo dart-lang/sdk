@@ -201,7 +201,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       case NominalParameterBuilder():
       case StructuralParameterBuilder():
       case BuiltinTypeDeclarationBuilder():
-      case OmittedTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
       case null:
         _unaliasedRhsType = type;
@@ -281,7 +280,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
-      case OmittedTypeDeclarationBuilder():
         // These types won't change after substitution, so we just return them.
         return unaliasedRhsType;
       case null:

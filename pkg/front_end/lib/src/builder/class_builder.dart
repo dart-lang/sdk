@@ -106,8 +106,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isAbstract;
 
-  bool get isMacro;
-
   bool get isSealed;
 
   bool get isBase;

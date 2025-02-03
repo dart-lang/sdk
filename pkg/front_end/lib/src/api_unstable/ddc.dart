@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/kernel.dart' show Component, Library;
 import 'package:kernel/target/targets.dart' show Target;
-import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
@@ -105,10 +104,7 @@ InitializedCompilerState initializeCompiler(
     {FileSystem? fileSystem,
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
-    required NnbdMode nnbdMode,
-    bool requirePrebuiltMacros = false,
-    List<String>? precompiledMacros,
-    String? macroSerializationMode}) {
+    required NnbdMode nnbdMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -120,9 +116,7 @@ InitializedCompilerState initializeCompiler(
       equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
-      equalMaps(oldState.options.environmentDefines, environmentDefines) &&
-      equalLists(oldState.options.precompiledMacros, precompiledMacros) &&
-      oldState.options.requirePrebuiltMacros == requirePrebuiltMacros) {
+      equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
     return oldState;
   }
@@ -137,11 +131,7 @@ InitializedCompilerState initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
     ..environmentDefines = environmentDefines
-    ..nnbdMode = nnbdMode
-    ..precompiledMacros = precompiledMacros
-    ..macroSerializationMode = macroSerializationMode == null
-        ? null
-        : new SerializationMode.fromOption(macroSerializationMode);
+    ..nnbdMode = nnbdMode;
   if (explicitExperimentalFlags != null) {
     options.explicitExperimentalFlags = explicitExperimentalFlags;
   }
@@ -191,8 +181,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       environmentDefines: environmentDefines,
       outlineOnly: false,
       omitPlatform: false,
-      requirePrebuiltMacros: requirePrebuiltMacros,
-      precompiledMacros: precompiledMacros,
       trackNeededDillLibraries: trackNeededDillLibraries,
       nnbdMode: nnbdMode);
 }

@@ -83,28 +83,21 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       trackNeededDillLibraries: trackNeededDillLibraries,
       environmentDefines: environmentDefines,
       verbose: verbose,
-      nnbdMode: nnbdMode,
-      requirePrebuiltMacros: requirePrebuiltMacros,
-      precompiledMacros: precompiledMacros,
-      macroSerializationMode: macroSerializationMode);
+      nnbdMode: nnbdMode);
 }
 
 InitializedCompilerState initializeCompiler(
-  InitializedCompilerState? oldState,
-  Uri? sdkSummary,
-  Uri? librariesSpecificationUri,
-  Uri? packagesFile,
-  List<Uri> additionalDills,
-  Target target,
-  FileSystem fileSystem,
-  Iterable<String> experiments,
-  Map<String, String>? environmentDefines, {
-  bool verbose = false,
-  NnbdMode nnbdMode = NnbdMode.Strong,
-  bool requirePrebuiltMacros = false,
-  List<String> precompiledMacros = const [],
-  SerializationMode macroSerializationMode = SerializationMode.byteData,
-}) {
+    InitializedCompilerState? oldState,
+    Uri? sdkSummary,
+    Uri? librariesSpecificationUri,
+    Uri? packagesFile,
+    List<Uri> additionalDills,
+    Target target,
+    FileSystem fileSystem,
+    Iterable<String> experiments,
+    Map<String, String>? environmentDefines,
+    {bool verbose = false,
+    NnbdMode nnbdMode = NnbdMode.Strong}) {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -122,10 +115,7 @@ InitializedCompilerState initializeCompiler(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
     ..verbose = verbose
-    ..nnbdMode = nnbdMode
-    ..requirePrebuiltMacros = requirePrebuiltMacros
-    ..precompiledMacros = precompiledMacros
-    ..macroSerializationMode = macroSerializationMode;
+    ..nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

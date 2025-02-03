@@ -80,7 +80,6 @@ import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
-import 'macro/macro.dart';
 
 class KernelTarget {
   final Ticker ticker;
@@ -335,12 +334,13 @@ class KernelTarget {
 
   bool _hasComputedNeededPrecompilations = false;
 
-  Future<NeededPrecompilations?> computeNeededPrecompilations() async {
+  // TODO(johnniwinther): Remove this.
+  Future<void> computeNeededPrecompilations() async {
     assert(!_hasComputedNeededPrecompilations,
         "Needed precompilations have already been computed.");
     _hasComputedNeededPrecompilations = true;
     if (loader.roots.isEmpty) return null;
-    return await withCrashReporting<NeededPrecompilations?>(() async {
+    return await withCrashReporting<void>(() async {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
@@ -368,16 +368,7 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
-      NeededPrecompilations? result =
-          context.options.globalFeatures.macros.isEnabled
-              ? loader.computeMacroDeclarations()
-              : null;
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
-      return result;
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -404,80 +395,6 @@ class KernelTarget {
         libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 1 macros.
-  Future<void> _buildForPhase1(MacroApplications macroApplications,
-      Iterable<SourceLibraryBuilder> augmentationLibraries) async {
-    await loader.buildOutlines();
-    if (augmentationLibraries.isNotEmpty) {
-      buildSyntheticLibrariesUntilBuildScopes(augmentationLibraries);
-      // Normally augmentation libraries are applied in
-      // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
-      // we instead apply them directly here.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.applyAugmentations();
-      }
-      buildSyntheticLibrariesUntilComputeDefaultTypes(augmentationLibraries);
-
-      await loader.computeAdditionalMacroApplications(
-          macroApplications, augmentationLibraries);
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 2 macros.
-  void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
-    benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
-    loader.computeVariances(augmentationLibraries);
-
-    loader.finishTypeParameters(
-        augmentationLibraries, objectClassBuilder, dynamicType);
-    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
-    }
-    loader.resolveConstructors(augmentationLibraries);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Future<void> _applyMacroPhase2(
-      MacroApplications macroApplications,
-      List<SourceClassBuilder> sortedSourceClassBuilders,
-      List<SourceExtensionTypeDeclarationBuilder>
-          sortedSourceExtensionTypeBuilders) async {
-    benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-    macroApplications.enterDeclarationsMacroPhase(loader.hierarchyBuilder);
-
-    Future<void> applyDeclarationMacros() async {
-      await macroApplications.applyDeclarationsMacros(
-          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders,
-          (SourceLibraryBuilder augmentationLibrary) async {
-        List<SourceLibraryBuilder> augmentationLibraries = [
-          augmentationLibrary
-        ];
-        // TODO(johnniwinther): How should we use the benchmarker here?
-        benchmarker?.enterPhase(
-            BenchmarkPhases.outline_buildMacroDeclarationsForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-        benchmarker?.enterPhase(
-            BenchmarkPhases.outline_buildMacroDeclarationsForPhase2);
-        _buildForPhase2(augmentationLibraries);
-
-        await applyDeclarationMacros();
-      });
-    }
-
-    await applyDeclarationMacros();
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Builds [augmentationLibraries] to the state expected after applying phase
-  /// 3 macros.
-  void _buildForPhase3(List<SourceLibraryBuilder> augmentationLibraries) {
-    // Currently there nothing to do here. The method is left in for symmetry.
-  }
-
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.roots.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
@@ -486,18 +403,7 @@ class KernelTarget {
     return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         // Coverage-ignore-block(suite): Not run.
-        NeededPrecompilations? neededPrecompilations =
-            await computeNeededPrecompilations();
-        // To support macros, the needed macro libraries must be compiled be
-        // they are applied. Any supporting pipeline must therefore call
-        // [computeNeededPrecompilations] before calling [buildOutlines] in
-        // order to perform any need compilation in advance.
-        //
-        // If [neededPrecompilations] is non-null here, it means that macro
-        // compilation was needed but not performed.
-        if (neededPrecompilations != null) {
-          throw new UnsupportedError('Macro precompilation is not supported.');
-        }
+        await computeNeededPrecompilations();
       }
 
       benchmarker
@@ -518,8 +424,6 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
-      MacroApplications? macroApplications =
-          await loader.computeMacroApplications();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -531,17 +435,6 @@ class KernelTarget {
           ?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
       loader.computeDefaultTypes(loader.sourceLibraryBuilders, dynamicType,
           nullType, bottomType, objectClassBuilder);
-
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
-        macroApplications.enterTypeMacroPhase();
-        List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyTypeMacros();
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.outline_buildMacroTypesForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-      }
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -599,12 +492,6 @@ class KernelTarget {
           objectClass,
           enumClass,
           underscoreEnumClass);
-
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders,
-            sortedSourceExtensionTypeBuilders);
-      }
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -714,8 +601,7 @@ class KernelTarget {
       // library builders. To avoid it we null it out here.
       sortedSourceClassBuilders = null;
 
-      return new BuildResult(
-          component: component, macroApplications: macroApplications);
+      return new BuildResult(component: component);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -728,32 +614,14 @@ class KernelTarget {
   /// If [verify], run the default kernel verification on the resulting
   /// component.
   Future<BuildResult> buildComponent(
-      {required MacroApplications? macroApplications,
-      bool verify = false,
+      {bool verify = false,
       bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      return new BuildResult(macroApplications: macroApplications);
+      return new BuildResult();
     }
     return await withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
-
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
-        macroApplications.enterDefinitionMacroPhase();
-        List<SourceLibraryBuilder> augmentationLibraries =
-            await macroApplications.applyDefinitionMacros();
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase1);
-        await _buildForPhase1(macroApplications, augmentationLibraries);
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase2);
-        _buildForPhase2(augmentationLibraries);
-        benchmarker
-            ?.enterPhase(BenchmarkPhases.body_buildMacroDefinitionsForPhase3);
-        _buildForPhase3(augmentationLibraries);
-      }
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -813,16 +681,6 @@ class KernelTarget {
           ?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
-      if (loader.macroClass != null) {
-        // Coverage-ignore-block(suite): Not run.
-        checkMacroApplications(loader.hierarchy, loader.macroClass!,
-            loader.sourceLibraryBuilders, macroApplications);
-      }
-      if (macroApplications != null) {
-        // Coverage-ignore-block(suite): Not run.
-        macroApplications.buildMergedAugmentationLibraries(component!);
-      }
-
       if (verify) {
         benchmarker
             // Coverage-ignore(suite): Not run.
@@ -852,8 +710,7 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.onBuildComponentComplete(component!);
 
-      return new BuildResult(
-          component: component, macroApplications: macroApplications);
+      return new BuildResult(component: component);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -1159,9 +1016,6 @@ class KernelTarget {
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(
             builder, constructorReference, tearOffReference));
@@ -1911,9 +1765,6 @@ class KernelDiagnosticReporter
 
 class BuildResult {
   final Component? component;
-  final NeededPrecompilations? neededPrecompilations;
-  final MacroApplications? macroApplications;
 
-  BuildResult(
-      {this.component, this.macroApplications, this.neededPrecompilations});
+  BuildResult({this.component});
 }

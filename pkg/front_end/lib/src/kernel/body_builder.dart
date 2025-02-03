@@ -6629,9 +6629,6 @@ class BodyBuilder extends StackListenerImpl
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
               return buildUnresolvedError(errorName, nameLastToken.charOffset,
                   arguments: arguments,
@@ -6677,9 +6674,6 @@ class BodyBuilder extends StackListenerImpl
             case InvalidTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case null:
           }
         }
@@ -6776,9 +6770,6 @@ class BodyBuilder extends StackListenerImpl
         case InvalidTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
         case null:
       }
     } else {
@@ -6870,9 +6861,6 @@ class BodyBuilder extends StackListenerImpl
       case StructuralParameterBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
         errorName ??=
             debugName(typeDeclarationBuilder!.fullNameForErrors, name);

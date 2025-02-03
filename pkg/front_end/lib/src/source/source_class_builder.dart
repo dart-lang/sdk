@@ -201,9 +201,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   bool get declaresConstConstructor => _modifiers.declaresConstConstructor;
 
   @override
-  bool get isMacro => _modifiers.isMacro;
-
-  @override
   bool get isSealed => _modifiers.isSealed;
 
   @override
@@ -363,19 +360,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
-    if (!cls.isMacro) {
-      // TODO(jensj): cls / actualCls is not the same --- so for instance it sets
-      // macro on the "parent" class depending on whatever it processes last of
-      // "non-parent" classes.
-      // This means that when a macro class has an augmentation which is not a
-      // macro class the macro class will be marked as no longer a macro class
-      // and at least via the incremental compiler subsequent applications of it
-      // will fail.
-      // Now it's *only* set if it's not already a macro, i.e. once it's a macro
-      // it stays a macro which seems reasonable although I don't know what the
-      // actual rules are.
-      cls.isMacro = isMacro;
-    }
     cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
     cls.isBase = isBase;
@@ -641,8 +625,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       ClassHierarchyBuilder hierarchyBuilder,
       Class objectClass,
       Class enumClass,
-      Class underscoreEnumClass,
-      Class? macroClass) {
+      Class underscoreEnumClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
@@ -787,27 +770,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 fileUri);
           }
         }
-      }
-    }
-    // Coverage-ignore(suite): Not run.
-    if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
-      // TODO(johnniwinther): Merge this check with the loop above.
-      bool isMacroFound = false;
-      List<Supertype> interfaces = classHierarchyNode.superclasses;
-      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
-        if (interfaces[i].classNode == macroClass) {
-          isMacroFound = true;
-        }
-      }
-      interfaces = classHierarchyNode.interfaces;
-      for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
-        if (interfaces[i].classNode == macroClass) {
-          isMacroFound = true;
-        }
-      }
-      if (isMacroFound) {
-        addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
-            fileOffset, noLength);
       }
     }
 

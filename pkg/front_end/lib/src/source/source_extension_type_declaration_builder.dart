@@ -471,7 +471,6 @@ class SourceExtensionTypeDeclarationBuilder
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
-            case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -669,8 +668,6 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltinTypeDeclarationBuilder():
       // Coverage-ignore(suite): Not run.
       case InvalidTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      case OmittedTypeDeclarationBuilder():
       case null:
         return nullability;
     }
