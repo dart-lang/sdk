@@ -25,11 +25,9 @@ dependencies:
 dev_dependencies:
   browser_launcher: any
   expect: any
-  frontend_server: any
   http_multi_server: any
   js: any
   lints: any
-  macros: any
   modular_test: any
   reload_test: any
   shelf: any
