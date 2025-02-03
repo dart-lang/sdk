@@ -1146,7 +1146,6 @@
   "../../../tests/language/double_literals/double_literal_coercion_test.dart",
   "../../../tests/language/double_literals/implicit_double_context_test.dart",
   "../../../tests/language/dynamic/call_test.dart",
-  "../../../tests/language/dynamic/dynamic2_runtime_test.dart",
   "../../../tests/language/dynamic/dynamic_test.dart",
   "../../../tests/language/dynamic/field_runtime_test.dart",
   "../../../tests/language/dynamic/hash_code_test.dart",
