@@ -74,7 +74,6 @@ dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
-dart/spawn_uri_from_kernel_blob_test: SkipByDesign # Only run in JIT.
 
 [ $compiler == dartkp ]
 dart/await_type_check_with_dynamic_loading_test: SkipByDesign # Uses dart:mirrors.

@@ -696,7 +696,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != nullptr);
   uint8_t* kernel_buffer = nullptr;
-  std::shared_ptr<uint8_t> kernel_buffer_ptr;
   intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = nullptr;
 
@@ -762,8 +761,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   if (kernel_buffer == nullptr && !isolate_run_app_snapshot) {
     dfe.ReadScript(script_uri, app_snapshot, &kernel_buffer,
-                   &kernel_buffer_size, /*decode_uri=*/true,
-                   &kernel_buffer_ptr);
+                   &kernel_buffer_size, /*decode_uri=*/true);
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
@@ -772,13 +770,8 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   auto isolate_group_data = new IsolateGroupData(
       script_uri, packages_config, app_snapshot, isolate_run_app_snapshot);
   if (kernel_buffer != nullptr) {
-    if (kernel_buffer_ptr) {
-      isolate_group_data->SetKernelBufferAlreadyOwned(
-          std::move(kernel_buffer_ptr), kernel_buffer_size);
-    } else {
-      isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
-                                                    kernel_buffer_size);
-    }
+    isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
+                                                  kernel_buffer_size);
   }
 
   Dart_Isolate isolate = nullptr;
@@ -895,16 +888,6 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
                                           package_config, flags, callback_data,
                                           error, &exit_code);
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static const char* RegisterKernelBlob(const uint8_t* kernel_buffer,
-                                      intptr_t kernel_buffer_size) {
-  return dfe.RegisterKernelBlob(kernel_buffer, kernel_buffer_size);
-}
-static void UnregisterKernelBlob(const char* kernel_blob_uri) {
-  dfe.UnregisterKernelBlob(kernel_blob_uri);
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static void OnIsolateShutdown(void* isolate_group_data, void* isolate_data) {
   Dart_EnterScope();
@@ -1399,10 +1382,6 @@ void main(int argc, char** argv) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   init_params.start_kernel_isolate =
       dfe.UseDartFrontend() && dfe.CanUseDartFrontend();
-  if (init_params.start_kernel_isolate) {
-    init_params.register_kernel_blob = RegisterKernelBlob;
-    init_params.unregister_kernel_blob = UnregisterKernelBlob;
-  }
 #else
   init_params.start_kernel_isolate = false;
 #endif

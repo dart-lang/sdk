@@ -1228,20 +1228,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static Dart_IsolateGroupCleanupCallback GroupCleanupCallback() {
     return cleanup_group_callback_;
   }
-  static void SetRegisterKernelBlobCallback(
-      Dart_RegisterKernelBlobCallback cb) {
-    register_kernel_blob_callback_ = cb;
-  }
-  static Dart_RegisterKernelBlobCallback RegisterKernelBlobCallback() {
-    return register_kernel_blob_callback_;
-  }
-  static void SetUnregisterKernelBlobCallback(
-      Dart_UnregisterKernelBlobCallback cb) {
-    unregister_kernel_blob_callback_ = cb;
-  }
-  static Dart_UnregisterKernelBlobCallback UnregisterKernelBlobCallback() {
-    return unregister_kernel_blob_callback_;
-  }
 
 #if !defined(PRODUCT)
   // This method first ensures that the default Service ID zone for this isolate
@@ -1729,8 +1715,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_IsolateCleanupCallback cleanup_callback_;
   static Dart_IsolateGroupCleanupCallback cleanup_group_callback_;
-  static Dart_RegisterKernelBlobCallback register_kernel_blob_callback_;
-  static Dart_UnregisterKernelBlobCallback unregister_kernel_blob_callback_;
 
 #if !defined(PRODUCT)
   static void WakePauseEventHandler(Dart_Isolate isolate);

@@ -1249,53 +1249,6 @@ DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
   return root_lib.url();
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, kernel_blob,
-                               arguments->NativeArgAt(0));
-  auto register_kernel_blob_callback = Isolate::RegisterKernelBlobCallback();
-  if (register_kernel_blob_callback == nullptr) {
-    Exceptions::ThrowUnsupportedError(
-        "Registration of kernel blobs is not supported by this Dart embedder.");
-  }
-  bool is_kernel = false;
-  {
-    NoSafepointScope no_safepoint;
-    is_kernel =
-        Dart_IsKernel(reinterpret_cast<uint8_t*>(kernel_blob.DataAddr(0)),
-                      kernel_blob.LengthInBytes());
-  }
-  if (!is_kernel) {
-    const auto& error = String::Handle(
-        zone, String::New("kernelBlob doesn\'t contain a valid kernel.\n"));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
-  }
-  const char* uri = nullptr;
-  {
-    NoSafepointScope no_safepoint;
-    uri = register_kernel_blob_callback(
-        reinterpret_cast<uint8_t*>(kernel_blob.DataAddr(0)),
-        kernel_blob.LengthInBytes());
-  }
-  if (uri == nullptr) {
-    Exceptions::ThrowOOM();
-  }
-  return String::New(uri);
-}
-
-DEFINE_NATIVE_ENTRY(Isolate_unregisterKernelBlob, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, kernel_blob_uri,
-                               arguments->NativeArgAt(0));
-  auto unregister_kernel_blob_callback =
-      Isolate::UnregisterKernelBlobCallback();
-  if (unregister_kernel_blob_callback == nullptr) {
-    Exceptions::ThrowUnsupportedError(
-        "Registration of kernel blobs is not supported by this Dart embedder.");
-  }
-  unregister_kernel_blob_callback(kernel_blob_uri.ToCString());
-  return Object::null();
-}
-
 DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));

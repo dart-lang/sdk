@@ -837,7 +837,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)(void);
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000008)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000009)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -862,36 +862,6 @@ typedef struct Dart_CodeObserver {
 
   Dart_OnNewCodeCallback on_new_code;
 } Dart_CodeObserver;
-
-/**
- * Optional callback provided by the embedder that is used by the VM to
- * implement registration of kernel blobs for the subsequent Isolate.spawnUri
- * If no callback is provided, the registration of kernel blobs will throw
- * an error.
- *
- * \param kernel_buffer A buffer which contains a kernel program. Callback
- *                      should copy the contents of `kernel_buffer` as
- *                      it may be freed immediately after registration.
- * \param kernel_buffer_size The size of `kernel_buffer`.
- *
- * \return A C string representing URI which can be later used
- *         to spawn a new isolate. This C String should be scope allocated
- *         or owned by the embedder.
- *         Returns NULL if embedder runs out of memory.
- */
-typedef const char* (*Dart_RegisterKernelBlobCallback)(
-    const uint8_t* kernel_buffer,
-    intptr_t kernel_buffer_size);
-
-/**
- * Optional callback provided by the embedder that is used by the VM to
- * unregister kernel blobs.
- * If no callback is provided, the unregistration of kernel blobs will throw
- * an error.
- *
- * \param kernel_blob_uri URI of the kernel blob to unregister.
- */
-typedef void (*Dart_UnregisterKernelBlobCallback)(const char* kernel_blob_uri);
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -970,16 +940,6 @@ typedef struct {
    * as early as during the Dart_Initialize() call.
    */
   Dart_CodeObserver* code_observer;
-
-  /**
-   * Kernel blob registration callback function. See Dart_RegisterKernelBlobCallback.
-   */
-  Dart_RegisterKernelBlobCallback register_kernel_blob;
-
-  /**
-   * Kernel blob unregistration callback function. See Dart_UnregisterKernelBlobCallback.
-   */
-  Dart_UnregisterKernelBlobCallback unregister_kernel_blob;
 
 #if defined(__Fuchsia__)
   /**
