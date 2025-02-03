@@ -10,6 +10,12 @@
 
 ### Tools
 
+#### Analyzer
+
+- Added the experimental [`unnecessary_ignore`][] lint rule.
+
+[`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
+
 #### Dart Development Compiler (dartdevc)
 
 In order to align with dart2js semantics, DDC will now throw a runtime error
@@ -94,7 +100,7 @@ main() {
 - Code completion now suggests instance variables when completing inside the
   initializer of a _late_ field.
 - Assists and quick fixes that add a const keyword now consider the
-  `prefer_const_declarations` lint rule, prefering to add `const` to a variable
+  `prefer_const_declarations` lint rule, preferring to add `const` to a variable
   declaration rather than the initial value.
 - Add a fix to add a missing `on` keyword in an extension declaration.
 - Add a fix to wrap an ambiguous property access or method call in an extension
@@ -109,6 +115,7 @@ main() {
 - Add the [`unnecessary_underscores`][] lint rule.
 - Add the experimental [`specify_nonobvious_property_types`][] lint rule.
 - Add the experimental [`omit_obvious_property_types`][] lint rule.
+- Add the experimental [`unnecessary_async`][] lint rule.
 - Add the experimental [`unsafe_variance`][] lint rule.
 - Remove the [`package_api_docs`][] lint rule.
 - Remove the [`unsafe_html`][] lint rule.
@@ -117,6 +124,7 @@ main() {
 [`unnecessary_underscores`]: https://dart.dev/lints/unnecessary_underscores
 [`specify_nonobvious_property_types`]: https://dart.dev/tools/linter-rules/specify_nonobvious_property_types
 [`omit_obvious_property_types`]: https://dart.dev/tools/linter-rules/omit_obvious_property_types
+[`unnecessary_async`]: http://dart.dev/lints/unnecessary_async
 [`unsafe_variance`]: https://dart.dev/tools/linter-rules/unsafe_variance
 [`package_api_docs`]: https://dart.dev/tools/linter-rules/package_api_docs
 [`unsafe_html`]: https://dart.dev/tools/linter-rules/unsafe_html

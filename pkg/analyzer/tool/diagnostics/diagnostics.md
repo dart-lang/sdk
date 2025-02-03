@@ -10469,7 +10469,7 @@ directive._
 The analyzer produces this diagnostic when a comment that appears to be an
 attempt to specify a language version override doesn't conform to the
 requirements for such a comment. For more information, see
-[Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+[Per-library language version selection](https://dart.dev/resources/language/evolution#per-library-language-version-selection).
 
 #### Example
 
@@ -28699,12 +28699,13 @@ ignored._
 
 #### Description
 
-The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.
+The analyzer produces this diagnostic when an ignore is specified to
+ignore a diagnostic that isn't produced.
 
 #### Example
 
-The following code produces this diagnostic because the `unused_local_variable`
-diagnostic isn't reported at the ignored location:
+The following code produces this diagnostic because the
+`unused_local_variable` diagnostic isn't reported at the ignored location:
 
 ```dart
 // ignore: [!unused_local_variable!]
