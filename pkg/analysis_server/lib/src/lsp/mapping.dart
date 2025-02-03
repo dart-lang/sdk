@@ -1438,22 +1438,6 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
   }
 }
 
-List<lsp.DocumentHighlight> toHighlights(
-  server.LineInfo lineInfo,
-  List<server.Occurrences> occurrences,
-) {
-  return occurrences
-      .map(
-        (occurrence) => occurrence.offsets.map(
-          (offset) => lsp.DocumentHighlight(
-            range: toRange(lineInfo, offset, occurrence.length),
-          ),
-        ),
-      )
-      .flattenedToSet
-      .toList();
-}
-
 lsp.Location toLocation(
   ClientUriConverter uriConverter,
   server.Location location,

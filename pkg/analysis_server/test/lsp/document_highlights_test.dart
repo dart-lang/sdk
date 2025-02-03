@@ -212,6 +212,34 @@ void f() {
 }
 ''');
 
+  Future<void> test_type_class_constructors() async {
+    await _testMarkedContent('''
+class /*[0*/A^/*0]*/ {
+  A(); // Unnamed constructor is own entity
+  /*[1*/A/*1]*/.named();
+}
+
+/*[2*/A/*2]*/ a = A(); // Unnamed constructor is own entity
+var b = /*[3*/A/*3]*/.new();
+var c = /*[4*/A/*4]*/.new;
+''');
+  }
+
+  /// The type name in unnamed constructors are their own entity and not
+  /// part of the type name.
+  Future<void> test_type_class_constructors_unnamed() async {
+    await _testMarkedContent('''
+class A {
+  /*[0*/A^/*0]*/();
+  A.named();
+}
+
+A a = /*[1*/A/*1]*/();
+var b = A./*[2*/new/*2]*/();
+var c = A./*[3*/new/*3]*/;
+''');
+  }
+
   Future<void> test_typeAlias_class_declaration() => _testMarkedContent('''
 class MyClass {}
 mixin MyMixin {}
