@@ -1168,7 +1168,7 @@ class AnalysisDriver {
 
     if (_resolveForCompletionRequests.removeLastOrNull() case var request?) {
       try {
-        var result = await _resolveForCompletion(request);
+        var result = _resolveForCompletion(request);
         request.completer.complete(result);
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace, null);
@@ -1180,31 +1180,31 @@ class AnalysisDriver {
 
     // Analyze a requested file.
     if (_requestedFiles.firstKey case var path?) {
-      await _analyzeFile(path);
+      _analyzeFile(path);
       return;
     }
 
     // Analyze a requested library.
     if (_requestedLibraries.firstKey case var path?) {
-      await _getResolvedLibrary(path);
+      _getResolvedLibrary(path);
       return;
     }
 
     // Process an error request.
     if (_errorsRequestedFiles.firstKey case var path?) {
-      await _getErrors(path);
+      _getErrors(path);
       return;
     }
 
     // Process an index request.
     if (_indexRequestedFiles.firstKey case var path?) {
-      await _getIndex(path);
+      _getIndex(path);
       return;
     }
 
     // Process a unit element request.
     if (_unitElementRequestedFiles.firstKey case var path?) {
-      await _getUnitElement(path);
+      _getUnitElement(path);
       return;
     }
 
@@ -1223,14 +1223,14 @@ class AnalysisDriver {
     // Analyze a priority file.
     for (var path in _priorityFiles) {
       if (_fileTracker.isFilePending(path)) {
-        await _analyzeFile(path);
+        _analyzeFile(path);
         return;
       }
     }
 
     // Analyze a general file.
     if (_fileTracker.anyPendingFile case var path?) {
-      await _produceErrors(path);
+      _produceErrors(path);
       return;
     }
   }
@@ -1278,11 +1278,11 @@ class AnalysisDriver {
     return request.completer.future;
   }
 
-  Future<void> _analyzeFile(String path) async {
-    await scheduler.accumulatedPerformance.runAsync(
+  void _analyzeFile(String path) {
+    scheduler.accumulatedPerformance.run(
       'analyzeFile',
-      (performance) async {
-        await _analyzeFileImpl(
+      (performance) {
+        _analyzeFileImpl(
           path: path,
           performance: performance,
         );
@@ -1290,7 +1290,7 @@ class AnalysisDriver {
     );
   }
 
-  Future<void> _analyzeFileImpl({
+  void _analyzeFileImpl({
     required String path,
     required OperationPerformanceImpl performance,
   }) {
@@ -1305,7 +1305,7 @@ class AnalysisDriver {
     var library = kind.library ?? kind.asLibrary;
 
     // We need the fully resolved unit, or the result is not cached.
-    return _logger.runAsync('Compute analysis result for $path', () async {
+    return _logger.run('Compute analysis result for $path', () {
       _logger.writeln('Work in $name');
       try {
         testView?.numOfAnalyzedLibraries++;
@@ -1637,7 +1637,7 @@ class AnalysisDriver {
     }
   }
 
-  Future<void> _getErrors(String path) async {
+  void _getErrors(String path) {
     var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1655,7 +1655,7 @@ class AnalysisDriver {
       return;
     }
 
-    await _analyzeFile(path);
+    _analyzeFile(path);
   }
 
   /// Return [AnalysisError]s for the given [serialized] errors.
@@ -1695,7 +1695,7 @@ class AnalysisDriver {
     request.completer.complete(result);
   }
 
-  Future<void> _getIndex(String path) async {
+  void _getIndex(String path) {
     var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1713,11 +1713,11 @@ class AnalysisDriver {
       return;
     }
 
-    await _analyzeFile(path);
+    _analyzeFile(path);
   }
 
   /// Completes the [getResolvedLibrary] request.
-  Future<void> _getResolvedLibrary(String path) async {
+  void _getResolvedLibrary(String path) {
     var file = _fsState.getFileForPath(path);
     var kind = file.kind;
     switch (kind) {
@@ -1738,7 +1738,7 @@ class AnalysisDriver {
       return;
     }
 
-    await _analyzeFile(path);
+    _analyzeFile(path);
   }
 
   /// Return the key to store fully resolved results for the [signature].
@@ -1763,10 +1763,10 @@ class AnalysisDriver {
     return signature.toHex();
   }
 
-  Future<void> _getUnitElement(String path) async {
-    await scheduler.accumulatedPerformance.runAsync(
+  void _getUnitElement(String path) {
+    scheduler.accumulatedPerformance.run(
       'getUnitElement',
-      (performance) async {
+      (performance) {
         var file = _fsState.getFileForPath(path);
 
         // Prepare the library - the file itself, or the known library.
@@ -1863,18 +1863,12 @@ class AnalysisDriver {
     }
   }
 
-  Future<void> _produceErrors(String path) async {
+  void _produceErrors(String path) {
     var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
     var kind = file.kind;
     var library = kind.library ?? kind.asLibrary;
-
-    // Errors are based on elements, so load them.
-    libraryContext.load(
-      targetLibrary: library,
-      performance: OperationPerformanceImpl('<root>'),
-    );
 
     // Check if we have cached errors for all library files.
     List<(FileState, String, Uint8List)>? forAllFiles = [];
@@ -1921,7 +1915,7 @@ class AnalysisDriver {
     }
 
     // Analyze, will produce results into the stream.
-    await _analyzeFile(path);
+    _analyzeFile(path);
   }
 
   void _removePotentiallyAffectedLibraries(
@@ -1987,10 +1981,10 @@ class AnalysisDriver {
     );
   }
 
-  Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
+  ResolvedForCompletionResultImpl? _resolveForCompletion(
     _ResolveForCompletionRequest request,
   ) {
-    return request.performance.runAsync('body', (performance) async {
+    return request.performance.run('body', (performance) {
       var path = request.path;
       if (!_isAbsolutePath(path)) {
         return null;
