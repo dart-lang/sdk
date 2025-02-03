@@ -13,7 +13,7 @@ import '../syntax_helper.dart';
 
 class C extends SyntaxTracker {
   C([Object? x = absent, Object? y = absent])
-      : super('new C${SyntaxTracker.args(x, y)}');
+    : super('new C${SyntaxTracker.args(x, y)}');
 }
 
 /// Helper function to work around the fact that not all types can be expressed

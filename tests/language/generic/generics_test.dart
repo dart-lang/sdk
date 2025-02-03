@@ -43,8 +43,12 @@ class LongerGeneric<A, B, C, D, E, F, G, H, I, J> {
   void func() {
     LongGeneric<String, A, LongGeneric<C, List<E>, Map<G, Map<I, J>>>> id;
 
-    LongGeneric<num, Map<int, int>,
-        LongGeneric<C, List<E>, Map<G, LongGeneric<I, J, List<A>>>>> id2;
+    LongGeneric<
+      num,
+      Map<int, int>,
+      LongGeneric<C, List<E>, Map<G, LongGeneric<I, J, List<A>>>>
+    >
+    id2;
   }
 }
 

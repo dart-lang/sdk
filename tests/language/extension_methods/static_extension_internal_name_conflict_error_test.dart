@@ -6,9 +6,9 @@
 
 // It is an error to have duplicate type parameter names.
 extension E1<T, T> on int {
-//              ^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] A type variable can't have the same name as another.
+  //            ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] A type variable can't have the same name as another.
 }
 
 extension E2 on int {}

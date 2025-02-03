@@ -11,14 +11,8 @@ import "package:expect/expect.dart";
 class Example {
   static int _var = 1;
   static int get nextVar => _var++;
-  Example() {
-
-
-  }
-  static test() {
-
-
-  }
+  Example() {}
+  static test() {}
 }
 
 class Example1 {

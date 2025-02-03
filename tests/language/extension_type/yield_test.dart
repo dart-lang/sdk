@@ -26,7 +26,7 @@ Iterable<T> duplicateList<T>(MyList<T> list) sync* {
 
 Stream<T> toStream<T>(MyList<T> list) async* {
   for (var a in list) {
-     yield a;
+    yield a;
   }
 }
 
@@ -54,6 +54,12 @@ main() async {
   Expect.listEquals([1, 2, 3], await toList(stream));
   MyStream<int> stream1 = MyStream<int>(toStream<int>(list));
   MyStream<int> stream2 = MyStream<int>(toStream<int>(list));
-  Expect.listEquals([1, 2, 3, 1, 2, 3], 
-      await toList(MyStream<int>(duplicateStream(stream1, stream2))));
+  Expect.listEquals([
+    1,
+    2,
+    3,
+    1,
+    2,
+    3,
+  ], await toList(MyStream<int>(duplicateStream(stream1, stream2))));
 }

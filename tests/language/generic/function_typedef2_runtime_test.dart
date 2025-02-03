@@ -12,27 +12,10 @@ class A {}
 
 typedef int F();
 
+typedef K = Function(Function<A>(A));
+typedef L = Function({bool x});
 
-
-
-
-typedef K = Function(
-    Function<A>(A
-
-        ));
-typedef L = Function(
-    {
-
-    bool
-
-        x});
-
-typedef M = Function(
-    {
-
-    bool
-
-        int});
+typedef M = Function({bool int});
 
 foo({bool int = false}) {}
 main() {

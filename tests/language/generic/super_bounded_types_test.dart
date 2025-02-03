@@ -441,20 +441,23 @@ void testCovariantSuperbound<N extends Never>() {
   void Function(void Function(FcovCyclicCoBound<FutureOr<void>>)) x389;
   void Function(void Function(FcovCyclicCoBound<FutureOr<Object?>>)) x390;
   void Function(void Function(FcovCyclicCoBound<Function(Function(dynamic))>))
-      x391;
+  x391;
   void Function(void Function(FcovCyclicCoBound<Function(Function(void))>))
-      x392;
+  x392;
   void Function(void Function(FcovCyclicCoBound<Function(Function(Object?))>))
-      x393;
+  x393;
   void Function(
-      void Function(
-          FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>)) x394;
+    void Function(FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>),
+  )
+  x394;
   void Function(
-          void Function(FcovCyclicCoBound<Function(Function(FutureOr<void>))>))
-      x395;
+    void Function(FcovCyclicCoBound<Function(Function(FutureOr<void>))>),
+  )
+  x395;
   void Function(
-      void Function(
-          FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>)) x396;
+    void Function(FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>),
+  )
+  x396;
   void Function(void Function(CFcov<dynamic>)) x397;
   void Function(void Function(CFcov<void>)) x398;
   void Function(void Function(CFcov<Object?>)) x399;
@@ -522,20 +525,23 @@ void testCovariantSuperbound<N extends Never>() {
   void Function(void Function(CcovCyclicCoBound<FutureOr<void>>)) x461;
   void Function(void Function(CcovCyclicCoBound<FutureOr<Object?>>)) x462;
   void Function(void Function(CcovCyclicCoBound<Function(Function(dynamic))>))
-      x463;
+  x463;
   void Function(void Function(CcovCyclicCoBound<Function(Function(void))>))
-      x464;
+  x464;
   void Function(void Function(CcovCyclicCoBound<Function(Function(Object?))>))
-      x465;
+  x465;
   void Function(
-      void Function(
-          CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>)) x466;
+    void Function(CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>),
+  )
+  x466;
   void Function(
-          void Function(CcovCyclicCoBound<Function(Function(FutureOr<void>))>))
-      x467;
+    void Function(CcovCyclicCoBound<Function(Function(FutureOr<void>))>),
+  )
+  x467;
   void Function(
-      void Function(
-          CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>)) x468;
+    void Function(CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>),
+  )
+  x468;
   void Function(FcovBound<dynamic>) x469;
   void Function(FcovBound<void>) x470;
   void Function(FcovBound<Object?>) x471;
@@ -678,11 +684,14 @@ void testCovariantSuperbound<N extends Never>() {
   void Function(FcovCyclicCoBound<Function(Function(void))>) Function() x608;
   void Function(FcovCyclicCoBound<Function(Function(Object?))>) Function() x609;
   void Function(FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>)
-      Function() x610;
+  Function()
+  x610;
   void Function(FcovCyclicCoBound<Function(Function(FutureOr<void>))>)
-      Function() x611;
+  Function()
+  x611;
   void Function(FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>)
-      Function() x612;
+  Function()
+  x612;
   void Function(CFcov<dynamic>) Function() x613;
   void Function(CFcov<void>) Function() x614;
   void Function(CFcov<Object?>) Function() x615;
@@ -753,11 +762,14 @@ void testCovariantSuperbound<N extends Never>() {
   void Function(CcovCyclicCoBound<Function(Function(void))>) Function() x680;
   void Function(CcovCyclicCoBound<Function(Function(Object?))>) Function() x681;
   void Function(CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>)
-      Function() x682;
+  Function()
+  x682;
   void Function(CcovCyclicCoBound<Function(Function(FutureOr<void>))>)
-      Function() x683;
+  Function()
+  x683;
   void Function(CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>)
-      Function() x684;
+  Function()
+  x684;
   void Function<Y extends FcovBound<dynamic>>() x685;
   void Function<Y extends FcovBound<void>>() x686;
   void Function<Y extends FcovBound<Object?>>() x687;
@@ -789,18 +801,19 @@ void testCovariantSuperbound<N extends Never>() {
   void Function<Y extends FcovCyclicCoBound<FutureOr<void>>>() x713;
   void Function<Y extends FcovCyclicCoBound<FutureOr<Object?>>>() x714;
   void Function<Y extends FcovCyclicCoBound<Function(Function(dynamic))>>()
-      x715;
+  x715;
   void Function<Y extends FcovCyclicCoBound<Function(Function(void))>>() x716;
   void Function<Y extends FcovCyclicCoBound<Function(Function(Object?))>>()
-      x717;
-  void Function<
-          Y extends FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
-      x718;
-  void Function<
-      Y extends FcovCyclicCoBound<Function(Function(FutureOr<void>))>>() x719;
-  void Function<
-          Y extends FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
-      x720;
+  x717;
+  void
+  Function<Y extends FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
+  x718;
+  void
+  Function<Y extends FcovCyclicCoBound<Function(Function(FutureOr<void>))>>()
+  x719;
+  void
+  Function<Y extends FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
+  x720;
   void Function<Y extends CFcov<dynamic>>() x721;
   void Function<Y extends CFcov<void>>() x722;
   void Function<Y extends CFcov<Object?>>() x723;
@@ -868,18 +881,19 @@ void testCovariantSuperbound<N extends Never>() {
   void Function<Y extends CcovCyclicCoBound<FutureOr<void>>>() x785;
   void Function<Y extends CcovCyclicCoBound<FutureOr<Object?>>>() x786;
   void Function<Y extends CcovCyclicCoBound<Function(Function(dynamic))>>()
-      x787;
+  x787;
   void Function<Y extends CcovCyclicCoBound<Function(Function(void))>>() x788;
   void Function<Y extends CcovCyclicCoBound<Function(Function(Object?))>>()
-      x789;
-  void Function<
-          Y extends CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
-      x790;
-  void Function<
-      Y extends CcovCyclicCoBound<Function(Function(FutureOr<void>))>>() x791;
-  void Function<
-          Y extends CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
-      x792;
+  x789;
+  void
+  Function<Y extends CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
+  x790;
+  void
+  Function<Y extends CcovCyclicCoBound<Function(Function(FutureOr<void>))>>()
+  x791;
+  void
+  Function<Y extends CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
+  x792;
   void Function<Y extends A<FcovBound<dynamic>>>() x793;
   void Function<Y extends A<FcovBound<void>>>() x794;
   void Function<Y extends A<FcovBound<Object?>>>() x795;
@@ -911,20 +925,22 @@ void testCovariantSuperbound<N extends Never>() {
   void Function<Y extends A<FcovCyclicCoBound<FutureOr<void>>>>() x821;
   void Function<Y extends A<FcovCyclicCoBound<FutureOr<Object?>>>>() x822;
   void Function<Y extends A<FcovCyclicCoBound<Function(Function(dynamic))>>>()
-      x823;
+  x823;
   void Function<Y extends A<FcovCyclicCoBound<Function(Function(void))>>>()
-      x824;
+  x824;
   void Function<Y extends A<FcovCyclicCoBound<Function(Function(Object?))>>>()
-      x825;
+  x825;
   void Function<
-      Y extends A<
-          FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>>() x826;
+    Y extends A<FcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>
+  >()
+  x826;
+  void
+  Function<Y extends A<FcovCyclicCoBound<Function(Function(FutureOr<void>))>>>()
+  x827;
   void Function<
-          Y extends A<FcovCyclicCoBound<Function(Function(FutureOr<void>))>>>()
-      x827;
-  void Function<
-      Y extends A<
-          FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>>() x828;
+    Y extends A<FcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>
+  >()
+  x828;
   void Function<Y extends A<CFcov<dynamic>>>() x829;
   void Function<Y extends A<CFcov<void>>>() x830;
   void Function<Y extends A<CFcov<Object?>>>() x831;
@@ -992,20 +1008,22 @@ void testCovariantSuperbound<N extends Never>() {
   void Function<Y extends A<CcovCyclicCoBound<FutureOr<void>>>>() x893;
   void Function<Y extends A<CcovCyclicCoBound<FutureOr<Object?>>>>() x894;
   void Function<Y extends A<CcovCyclicCoBound<Function(Function(dynamic))>>>()
-      x895;
+  x895;
   void Function<Y extends A<CcovCyclicCoBound<Function(Function(void))>>>()
-      x896;
+  x896;
   void Function<Y extends A<CcovCyclicCoBound<Function(Function(Object?))>>>()
-      x897;
+  x897;
   void Function<
-      Y extends A<
-          CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>>() x898;
+    Y extends A<CcovCyclicCoBound<Function(Function(FutureOr<dynamic>))>>
+  >()
+  x898;
+  void
+  Function<Y extends A<CcovCyclicCoBound<Function(Function(FutureOr<void>))>>>()
+  x899;
   void Function<
-          Y extends A<CcovCyclicCoBound<Function(Function(FutureOr<void>))>>>()
-      x899;
-  void Function<
-      Y extends A<
-          CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>>() x900;
+    Y extends A<CcovCyclicCoBound<Function(Function(FutureOr<Object?>))>>
+  >()
+  x900;
   Finv<FcovBound<dynamic>> x901;
   Finv<FcovBound<void>> x902;
   Finv<FcovBound<Object?>> x903;
@@ -1467,20 +1485,23 @@ void testInvariantSuperbound<N extends Never>() {
   void Function(void Function(FinvCyclicCoBound<FutureOr<void>>)) x149;
   void Function(void Function(FinvCyclicCoBound<FutureOr<Object?>>)) x150;
   void Function(void Function(FinvCyclicCoBound<Function(Function(dynamic))>))
-      x151;
+  x151;
   void Function(void Function(FinvCyclicCoBound<Function(Function(void))>))
-      x152;
+  x152;
   void Function(void Function(FinvCyclicCoBound<Function(Function(Object?))>))
-      x153;
+  x153;
   void Function(
-      void Function(
-          FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>)) x154;
+    void Function(FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>),
+  )
+  x154;
   void Function(
-          void Function(FinvCyclicCoBound<Function(Function(FutureOr<void>))>))
-      x155;
+    void Function(FinvCyclicCoBound<Function(Function(FutureOr<void>))>),
+  )
+  x155;
   void Function(
-      void Function(
-          FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>)) x156;
+    void Function(FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>),
+  )
+  x156;
   void Function(FinvBound<dynamic>) x157;
   void Function(FinvBound<void>) x158;
   void Function(FinvBound<Object?>) x159;
@@ -1551,11 +1572,14 @@ void testInvariantSuperbound<N extends Never>() {
   void Function(FinvCyclicCoBound<Function(Function(void))>) Function() x224;
   void Function(FinvCyclicCoBound<Function(Function(Object?))>) Function() x225;
   void Function(FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>)
-      Function() x226;
+  Function()
+  x226;
   void Function(FinvCyclicCoBound<Function(Function(FutureOr<void>))>)
-      Function() x227;
+  Function()
+  x227;
   void Function(FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>)
-      Function() x228;
+  Function()
+  x228;
   void Function<Y extends FinvBound<dynamic>>() x229;
   void Function<Y extends FinvBound<void>>() x230;
   void Function<Y extends FinvBound<Object?>>() x231;
@@ -1587,18 +1611,19 @@ void testInvariantSuperbound<N extends Never>() {
   void Function<Y extends FinvCyclicCoBound<FutureOr<void>>>() x257;
   void Function<Y extends FinvCyclicCoBound<FutureOr<Object?>>>() x258;
   void Function<Y extends FinvCyclicCoBound<Function(Function(dynamic))>>()
-      x259;
+  x259;
   void Function<Y extends FinvCyclicCoBound<Function(Function(void))>>() x260;
   void Function<Y extends FinvCyclicCoBound<Function(Function(Object?))>>()
-      x261;
-  void Function<
-          Y extends FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
-      x262;
-  void Function<
-      Y extends FinvCyclicCoBound<Function(Function(FutureOr<void>))>>() x263;
-  void Function<
-          Y extends FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
-      x264;
+  x261;
+  void
+  Function<Y extends FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
+  x262;
+  void
+  Function<Y extends FinvCyclicCoBound<Function(Function(FutureOr<void>))>>()
+  x263;
+  void
+  Function<Y extends FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
+  x264;
   void Function<Y extends A<FinvBound<dynamic>>>() x265;
   void Function<Y extends A<FinvBound<void>>>() x266;
   void Function<Y extends A<FinvBound<Object?>>>() x267;
@@ -1630,20 +1655,22 @@ void testInvariantSuperbound<N extends Never>() {
   void Function<Y extends A<FinvCyclicCoBound<FutureOr<void>>>>() x293;
   void Function<Y extends A<FinvCyclicCoBound<FutureOr<Object?>>>>() x294;
   void Function<Y extends A<FinvCyclicCoBound<Function(Function(dynamic))>>>()
-      x295;
+  x295;
   void Function<Y extends A<FinvCyclicCoBound<Function(Function(void))>>>()
-      x296;
+  x296;
   void Function<Y extends A<FinvCyclicCoBound<Function(Function(Object?))>>>()
-      x297;
+  x297;
   void Function<
-      Y extends A<
-          FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>>>() x298;
+    Y extends A<FinvCyclicCoBound<Function(Function(FutureOr<dynamic>))>>
+  >()
+  x298;
+  void
+  Function<Y extends A<FinvCyclicCoBound<Function(Function(FutureOr<void>))>>>()
+  x299;
   void Function<
-          Y extends A<FinvCyclicCoBound<Function(Function(FutureOr<void>))>>>()
-      x299;
-  void Function<
-      Y extends A<
-          FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>>>() x300;
+    Y extends A<FinvCyclicCoBound<Function(Function(FutureOr<Object?>))>>
+  >()
+  x300;
   Finv<FinvBound<dynamic>> x301;
   Finv<FinvBound<void>> x302;
   Finv<FinvBound<Object?>> x303;
@@ -1936,26 +1963,29 @@ void testVarianceLessSuperbound<N extends Never>() {
   void Function(void Function(FunuCyclicCoBound<Function(void)>)) x210;
   void Function(void Function(FunuCyclicCoBound<Function(Object?)>)) x211;
   void Function(void Function(FunuCyclicCoBound<Function(FutureOr<dynamic>)>))
-      x212;
+  x212;
   void Function(void Function(FunuCyclicCoBound<Function(FutureOr<void>)>))
-      x213;
+  x213;
   void Function(void Function(FunuCyclicCoBound<Function(FutureOr<Object?>)>))
-      x214;
+  x214;
   void Function(void Function(FunuCyclicCoBound<Function(Function(dynamic))>))
-      x215;
+  x215;
   void Function(void Function(FunuCyclicCoBound<Function(Function(void))>))
-      x216;
+  x216;
   void Function(void Function(FunuCyclicCoBound<Function(Function(Object?))>))
-      x217;
+  x217;
   void Function(
-      void Function(
-          FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>)) x218;
+    void Function(FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>),
+  )
+  x218;
   void Function(
-          void Function(FunuCyclicCoBound<Function(Function(FutureOr<void>))>))
-      x219;
+    void Function(FunuCyclicCoBound<Function(Function(FutureOr<void>))>),
+  )
+  x219;
   void Function(
-      void Function(
-          FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>)) x220;
+    void Function(FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>),
+  )
+  x220;
   void Function(void Function(CFunu<Funu<dynamic>>)) x221;
   void Function(void Function(CFunu<Funu<void>>)) x222;
   void Function(void Function(CFunu<Funu<Object?>>)) x223;
@@ -2062,11 +2092,14 @@ void testVarianceLessSuperbound<N extends Never>() {
   void Function(FunuCyclicCoBound<Function(Function(void))>) Function() x324;
   void Function(FunuCyclicCoBound<Function(Function(Object?))>) Function() x325;
   void Function(FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>)
-      Function() x326;
+  Function()
+  x326;
   void Function(FunuCyclicCoBound<Function(Function(FutureOr<void>))>)
-      Function() x327;
+  Function()
+  x327;
   void Function(FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>)
-      Function() x328;
+  Function()
+  x328;
   void Function(CFunu<Funu<dynamic>>) Function() x329;
   void Function(CFunu<Funu<void>>) Function() x330;
   void Function(CFunu<Funu<Object?>>) Function() x331;
@@ -2113,23 +2146,24 @@ void testVarianceLessSuperbound<N extends Never>() {
   void Function<Y extends FunuCyclicCoBound<Function(void)>>() x372;
   void Function<Y extends FunuCyclicCoBound<Function(Object?)>>() x373;
   void Function<Y extends FunuCyclicCoBound<Function(FutureOr<dynamic>)>>()
-      x374;
+  x374;
   void Function<Y extends FunuCyclicCoBound<Function(FutureOr<void>)>>() x375;
   void Function<Y extends FunuCyclicCoBound<Function(FutureOr<Object?>)>>()
-      x376;
+  x376;
   void Function<Y extends FunuCyclicCoBound<Function(Function(dynamic))>>()
-      x377;
+  x377;
   void Function<Y extends FunuCyclicCoBound<Function(Function(void))>>() x378;
   void Function<Y extends FunuCyclicCoBound<Function(Function(Object?))>>()
-      x379;
-  void Function<
-          Y extends FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
-      x380;
-  void Function<
-      Y extends FunuCyclicCoBound<Function(Function(FutureOr<void>))>>() x381;
-  void Function<
-          Y extends FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
-      x382;
+  x379;
+  void
+  Function<Y extends FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>>()
+  x380;
+  void
+  Function<Y extends FunuCyclicCoBound<Function(Function(FutureOr<void>))>>()
+  x381;
+  void
+  Function<Y extends FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>>()
+  x382;
   void Function<Y extends CFunu<Funu<dynamic>>>() x383;
   void Function<Y extends CFunu<Funu<void>>>() x384;
   void Function<Y extends CFunu<Funu<Object?>>>() x385;
@@ -2176,26 +2210,28 @@ void testVarianceLessSuperbound<N extends Never>() {
   void Function<Y extends A<FunuCyclicCoBound<Function(void)>>>() x426;
   void Function<Y extends A<FunuCyclicCoBound<Function(Object?)>>>() x427;
   void Function<Y extends A<FunuCyclicCoBound<Function(FutureOr<dynamic>)>>>()
-      x428;
+  x428;
   void Function<Y extends A<FunuCyclicCoBound<Function(FutureOr<void>)>>>()
-      x429;
+  x429;
   void Function<Y extends A<FunuCyclicCoBound<Function(FutureOr<Object?>)>>>()
-      x430;
+  x430;
   void Function<Y extends A<FunuCyclicCoBound<Function(Function(dynamic))>>>()
-      x431;
+  x431;
   void Function<Y extends A<FunuCyclicCoBound<Function(Function(void))>>>()
-      x432;
+  x432;
   void Function<Y extends A<FunuCyclicCoBound<Function(Function(Object?))>>>()
-      x433;
+  x433;
   void Function<
-      Y extends A<
-          FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>>>() x434;
+    Y extends A<FunuCyclicCoBound<Function(Function(FutureOr<dynamic>))>>
+  >()
+  x434;
+  void
+  Function<Y extends A<FunuCyclicCoBound<Function(Function(FutureOr<void>))>>>()
+  x435;
   void Function<
-          Y extends A<FunuCyclicCoBound<Function(Function(FutureOr<void>))>>>()
-      x435;
-  void Function<
-      Y extends A<
-          FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>>>() x436;
+    Y extends A<FunuCyclicCoBound<Function(Function(FutureOr<Object?>))>>
+  >()
+  x436;
   void Function<Y extends A<CFunu<Funu<dynamic>>>>() x437;
   void Function<Y extends A<CFunu<Funu<void>>>>() x438;
   void Function<Y extends A<CFunu<Funu<Object?>>>>() x439;

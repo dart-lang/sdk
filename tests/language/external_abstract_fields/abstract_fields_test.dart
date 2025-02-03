@@ -23,8 +23,8 @@ class D {
   int u1, u2;
   covariant int v1, v2, v3;
   covariant var w;
-  D() :
-      x1 = 0,
+  D()
+    : x1 = 0,
       x2 = 0,
       y1 = 1,
       y2 = 1,
@@ -42,7 +42,8 @@ class D {
 class E extends D implements C {}
 
 // Valid declarations when superclass has implementation.
-class F extends D { // Class is not abstract.
+class F extends D {
+  // Class is not abstract.
   abstract int x1, x2;
   abstract var y1, y2, y3;
   abstract final z;
@@ -60,14 +61,17 @@ class Logger {
     lastName = #x;
     return _x;
   }
+
   set x(String value) {
     lastName = #x;
     _x = value;
   }
+
   int get y {
     lastName = #y;
     return _y;
   }
+
   set y(int value) {
     lastName = #y;
     _y = value;

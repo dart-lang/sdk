@@ -15,12 +15,10 @@ List<T> copyList<T>(MyList<T> list) {
   return copy;
 }
 
-
 Set<T> copySet<T>(MySet<T> set) {
   var copy = {...set};
   return copy;
 }
-
 
 Map<K, V> copyMap<K, V>(MyMap<K, V> map) {
   var copy = {...map};
@@ -29,11 +27,11 @@ Map<K, V> copyMap<K, V>(MyMap<K, V> map) {
 
 main() {
   MyList<int> list = MyList([1, 2, 3]);
-  Expect.deepEquals(list , copyList(list));
+  Expect.deepEquals(list, copyList(list));
 
   MySet<int> set = MySet({1, 2, 3});
-  Expect.deepEquals(set , copySet(set));
+  Expect.deepEquals(set, copySet(set));
 
   MyMap<int, bool> map = MyMap({1: true, 2: false, 3: true});
-  Expect.deepEquals(map , copyMap(map));
+  Expect.deepEquals(map, copyMap(map));
 }

@@ -41,9 +41,13 @@ void test2() {
   Expect.equals(15, x);
 }
 
-foo(x, y) => throw "foo" "$x";
+foo(x, y) =>
+    throw "foo"
+        "$x";
 
-bar(x, y) => throw "foo" "${throw x}";
+bar(x, y) =>
+    throw "foo"
+        "${throw x}";
 
 class Q {
   var qqq;

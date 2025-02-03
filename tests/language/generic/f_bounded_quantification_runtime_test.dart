@@ -20,7 +20,5 @@ class SubBaz<T> extends Baz<T> {}
 main() {
   FBound<Bar> fb = new FBound<Bar>();
 
-
   FBound<Baz<Bar>> fbb = new FBound<Baz<Bar>>();
-
 }

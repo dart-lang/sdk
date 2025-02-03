@@ -13,10 +13,10 @@ extension on C {
 
 test(C c) {
   c();
-//^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-// ^
-// [cfe] Cannot invoke an instance of 'C' because it declares 'call' to be something other than a method.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 4, length 1]
+  // [cfe] Cannot invoke an instance of 'C' because it declares 'call' to be something other than a method.
 }
 
 main() {}

@@ -15,10 +15,6 @@ void f2<Y2 extends String>() {}
 
 void foo() {
   F1 f11 = f1;
-
-
-
-
 }
 
 main() {}

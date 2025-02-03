@@ -9,10 +9,7 @@
 // how much stack is left and used by the compiler. It should never crash nor
 // produce a runtime exception.
 
-enum Fruit {
-  apple,
-  banana,
-}
+enum Fruit { apple, banana }
 
 getFruit() => Fruit.apple;
 

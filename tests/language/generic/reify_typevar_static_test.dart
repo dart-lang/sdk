@@ -8,22 +8,13 @@ class C<T> {
   final x;
   C([this.x]);
 
-  static staticFunction(bool b) =>
-    b ? T :
-    //  ^
-    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    // [cfe] Type variables can't be used in static members.
-      null;
-  factory C.factoryConstructor(bool b) => new C(
-    b ? T :
-      null);
-  C.redirectingConstructor(bool b) : this(
-    b ? T :
-            null);
-  C.ordinaryConstructor(bool b)
-      : x =
-    b ? T :
-            null;
+  static staticFunction(bool b) => b ? T : null;
+  //                                   ^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Type variables can't be used in static members.
+  factory C.factoryConstructor(bool b) => new C(b ? T : null);
+  C.redirectingConstructor(bool b) : this(b ? T : null);
+  C.ordinaryConstructor(bool b) : x = b ? T : null;
 }
 
 main() {

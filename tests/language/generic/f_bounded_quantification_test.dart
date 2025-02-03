@@ -17,8 +17,8 @@ class SubBaz<T> extends Baz<T> {}
 main() {
   FBound<Bar> fb = new FBound<Bar>();
   FBound<SubBar> fsb = new FBound<SubBar>();
-//^
-// [cfe] Type argument 'SubBar' doesn't conform to the bound 'FBound<F>' of the type variable 'F' on 'FBound'.
+  // [error column 3]
+  // [cfe] Type argument 'SubBar' doesn't conform to the bound 'FBound<F>' of the type variable 'F' on 'FBound'.
   //     ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                       ^
@@ -28,8 +28,8 @@ main() {
 
   FBound<Baz<Bar>> fbb = new FBound<Baz<Bar>>();
   FBound<SubBaz<Bar>> fsbb = new FBound<SubBaz<Bar>>();
-//^
-// [cfe] Type argument 'SubBaz<Bar>' doesn't conform to the bound 'FBound<F>' of the type variable 'F' on 'FBound'.
+  // [error column 3]
+  // [cfe] Type argument 'SubBaz<Bar>' doesn't conform to the bound 'FBound<F>' of the type variable 'F' on 'FBound'.
   //     ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                             ^

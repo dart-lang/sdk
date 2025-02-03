@@ -47,11 +47,12 @@ main() {
 
   // Cascades work.
   expectSet(
-      "E1.v4=E1.v4+[C.v1=C.v1-[C.v3=a]]",
-      c
-        ..v3 = Result("a")
-        ..v1 -= Result("[$lastSetter]")
-        ..v4 += Result("[$lastSetter]"));
+    "E1.v4=E1.v4+[C.v1=C.v1-[C.v3=a]]",
+    c
+      ..v3 = Result("a")
+      ..v1 -= Result("[$lastSetter]")
+      ..v4 += Result("[$lastSetter]"),
+  );
 }
 
 /// Expect the value of [result] to be the [expected] string
