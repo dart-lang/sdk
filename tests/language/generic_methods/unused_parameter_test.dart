@@ -23,14 +23,20 @@ typedef FunTypReqOpt = int Function<T>(int, [int?]);
 typedef FunTypNam = int Function<T>({int? p});
 typedef FunTypReqNam = int Function<T>(int, {int? p});
 
-int fun() { return -1; }
+int fun() {
+  return -1;
+}
+
 int funReq(int x) => x;
 int funOpt([int? y]) => y ?? 42;
 int funReqOpt(int x, [int? y]) => x;
 int funNam({int? p}) => p ?? 42;
 int funReqNam(int x, {int? p}) => x;
 
-int funTyp<T>() { return -1; }
+int funTyp<T>() {
+  return -1;
+}
+
 int funTypReq<T>(int x) => x;
 int funTypOpt<T>([int? y]) => y ?? 42;
 int funTypReqOpt<T>(int x, [int? y]) => x;

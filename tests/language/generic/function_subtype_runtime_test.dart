@@ -13,12 +13,6 @@ typedef F2 = void Function<X2 extends String>();
 void f1<Y1 extends num>() {}
 void f2<Y2 extends String>() {}
 
-void foo() {
-
-
-
-
-
-}
+void foo() {}
 
 main() {}

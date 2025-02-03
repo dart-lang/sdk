@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Check that metadata constructor invocations can have type arguments.
 
 @A<int>(0)
@@ -202,8 +201,8 @@ mixin M<@A<int>(0) T> {
 
 @A<int>(0)
 enum En {
- @A<int>(0)
- foo
+  @A<int>(0)
+  foo,
 }
 
 @A<int>(0)

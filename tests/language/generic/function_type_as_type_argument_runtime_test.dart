@@ -19,11 +19,7 @@ void main() {
 
   // Generic function types are not allowed as type arguments.
 
-
   // Type inference must also give an error.
 
-
   // No error if illegal type cannot be inferred.
-
-
 }

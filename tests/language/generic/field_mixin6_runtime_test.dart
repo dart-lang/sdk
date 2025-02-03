@@ -10,7 +10,6 @@
 import 'package:expect/expect.dart';
 
 mixin M<T> {
-
   T field2 = 0 as dynamic;
 }
 

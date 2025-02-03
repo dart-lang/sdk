@@ -76,23 +76,29 @@ main() {
 
   trace = [];
   x.b.d[x.c] *= '$x'.hashCode;
-  Expect.listEquals(
-      ['get b', 'get d', 'get c', 'index', 'toString', 'indexSet'], trace);
-
-  trace = [];
-  x.b.c = x.d.c = '$x';
   Expect.listEquals([
     'get b',
     'get d',
+    'get c',
+    'index',
     'toString',
-    'set c',
-    'set c',
+    'indexSet',
   ], trace);
 
   trace = [];
+  x.b.c = x.d.c = '$x';
+  Expect.listEquals(['get b', 'get d', 'toString', 'set c', 'set c'], trace);
+
+  trace = [];
   x.b.c = x.d[42] *= '$x'.hashCode;
-  Expect.listEquals(
-      ['get b', 'get d', 'index', 'toString', 'indexSet', 'set c'], trace);
+  Expect.listEquals([
+    'get b',
+    'get d',
+    'index',
+    'toString',
+    'indexSet',
+    'set c',
+  ], trace);
 
   trace = [];
   x.b.c = ++x.d.c;

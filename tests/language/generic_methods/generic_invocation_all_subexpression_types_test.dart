@@ -12,7 +12,7 @@ import '../syntax_helper.dart';
 
 class C extends SyntaxTracker {
   C([Object? x = absent, Object? y = absent])
-      : super('new C${SyntaxTracker.args(x, y)}');
+    : super('new C${SyntaxTracker.args(x, y)}');
 
   C.syntax(String s) : super(s);
 }

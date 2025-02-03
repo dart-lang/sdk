@@ -23,9 +23,9 @@ class C {}
 class T1 {
   late A getterField;
   A get field {
-  //    ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+    //  ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
+    // [cfe] The type 'A' of the getter 'T1.field' is not a subtype of the type 'B' of the setter 'T1.field'.
     return getterField;
   }
 
@@ -38,14 +38,16 @@ class T2 {
   late A getterField;
   late C setterField;
   A get field {
-  //    ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+    //  ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
+    // [cfe] The type 'A' of the getter 'T2.field' is not a subtype of the type 'C' of the setter 'T2.field'.
     return getterField;
   }
 
   // Type C is not assignable to A
-  void set field(C arg) { setterField = arg; }
+  void set field(C arg) {
+    setterField = arg;
+  }
 }
 
 class T3 {

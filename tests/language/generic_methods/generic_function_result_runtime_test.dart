@@ -10,16 +10,10 @@
 
 import "package:expect/expect.dart";
 
-int foo
+int foo(int i, int j) => i + j;
 
-          (int i, int j) => i + j;
-
-List<int Function
-
-                    (S, int)> bar<S extends int>() {
-  return <int Function
-
-                         (S, int)>[foo, foo];
+List<int Function(S, int)> bar<S extends int>() {
+  return <int Function(S, int)>[foo, foo];
 }
 
 void main() {

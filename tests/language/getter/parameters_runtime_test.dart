@@ -8,18 +8,10 @@
 // Test that a getter has no parameters.
 
 get f1 => null;
-get f2
-
-    => null;
-get f3
-
-    => null;
-get f4
-
-    => null;
-get f5
-
-    => null;
+get f2 => null;
+get f3 => null;
+get f4 => null;
+get f5 => null;
 
 main() {
   f1;

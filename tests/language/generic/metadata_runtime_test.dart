@@ -11,7 +11,4 @@ class C<T> {
   const C();
 }
 
-
-
-
 main() {}

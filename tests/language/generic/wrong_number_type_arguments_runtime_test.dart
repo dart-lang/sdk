@@ -8,17 +8,9 @@
 import "package:expect/expect.dart";
 
 // Map takes 2 type arguments.
-Map
-
-foo = {};
-Map
-
-baz = {};
+Map foo = {};
+Map baz = {};
 
 main() {
-
-  var bar = new Map
-
-    ();
-
+  var bar = new Map();
 }
