@@ -1080,10 +1080,12 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
-    return MethodElementImpl(name, 0)
+    var fragment = MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
+    MethodElementImpl2(Reference.root(), name, fragment);
+    return fragment;
   }
 
   ParameterElementImpl _namedParameter(String name, TypeImpl type,
