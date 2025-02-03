@@ -1608,7 +1608,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var newImport = elementLibrariesToImport[element] = _importLibrary(
         uriToImport,
         isExplicitImport: false,
-        shownName: element.name3,
+        showName: element.name3,
         useShow: useShow,
       );
 
@@ -1620,15 +1620,24 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  String importLibrary(Uri uri,
-      {String? prefix, String? showName, bool useShow = false}) {
+  String importLibrary(
+    Uri uri, {
+    String? prefix,
+    String? showName,
+    bool useShow = false,
+  }) {
     return _importLibrary(uri,
-            prefix: prefix, shownName: showName, useShow: useShow)
+            prefix: prefix, showName: showName, useShow: useShow)
         .uriText;
   }
 
   @override
-  ImportLibraryElementResult importLibraryElement(Uri uri) {
+  ImportLibraryElementResult importLibraryElement(
+    Uri uri, {
+    String? prefix,
+    String? showName,
+    bool useShow = false,
+  }) {
     if (resolvedUnit.libraryElement2.uri == uri) {
       return ImportLibraryElementResultImpl(null);
     }
@@ -1637,24 +1646,32 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
       var importedLibrary = import.importedLibrary2;
       if (importedLibrary != null && importedLibrary.uri == uri) {
-        return ImportLibraryElementResultImpl(import.prefix2?.element.name3);
+        var importPrefix = import.prefix2?.element.name3;
+        if (import.hasCombinator) {
+          if (importPrefix == null && showName != null) {
+            _handleCombinators(import, showName);
+            return ImportLibraryElementResultImpl(importPrefix);
+          }
+        } else {
+          return ImportLibraryElementResultImpl(importPrefix);
+        }
       }
     }
 
-    importLibrary(uri);
+    importLibrary(uri, prefix: prefix, showName: showName, useShow: useShow);
     return ImportLibraryElementResultImpl(null);
   }
 
   String importLibraryWithAbsoluteUri(
     Uri uri, {
     String? prefix,
-    String? shownName,
+    String? showName,
     bool useShow = false,
   }) {
     return _importLibrary(
       uri,
       prefix: prefix,
-      shownName: shownName,
+      showName: showName,
       useShow: useShow,
       forceAbsolute: true,
     ).uriText;
@@ -1663,13 +1680,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   String importLibraryWithRelativeUri(
     Uri uri, {
     String? prefix,
-    String? shownName,
+    String? showName,
     bool useShow = false,
   }) {
     return _importLibrary(
       uri,
       prefix: prefix,
-      shownName: shownName,
+      showName: showName,
       useShow: useShow,
       forceAbsolute: true,
       forceRelative: true,
@@ -2281,6 +2298,44 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return uri.toString();
   }
 
+  /// If the [import] already has combinators, update them to import [showName].
+  ///
+  /// If the combinator is a `show`, then [showName] will be added to the list
+  /// of shown names.
+  ///
+  /// If the combinator is a `hide`, then [showName] will be removed from the
+  /// list of hidden names.
+  void _handleCombinators(LibraryImport import, String showName) {
+    for (var show in import.showCombinators) {
+      var names = show.shownNames.toList();
+      if (!names.contains(showName)) {
+        names.add(showName);
+        names.sort();
+        addSimpleReplacement(
+          range.startOffsetEndOffset(show.offset, show.end),
+          'show ${names.join(', ')}',
+        );
+      }
+    }
+    for (var hide in import.hideCombinators) {
+      var names = hide.hiddenNames.toList();
+      if (names.contains(showName)) {
+        names.remove(showName);
+        if (names.isEmpty) {
+          addSimpleReplacement(
+            range.startOffsetEndOffset(hide.offset - 1, hide.end),
+            '',
+          );
+        } else {
+          addSimpleReplacement(
+            range.startOffsetEndOffset(hide.offset, hide.end),
+            'hide ${names.join(', ')}',
+          );
+        }
+      }
+    }
+  }
+
   /// Arranges to have an import added for the library with the given [uri].
   ///
   /// [uri] may be converted from an absolute URI to a relative URI depending on
@@ -2291,28 +2346,28 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
   /// reuse an existing prefix for this import.
   ///
-  /// If [shownName] is supplied then any new import will show only this
+  /// If [showName] is supplied then any new import will show only this
   /// element, or if an import already exists it will be added to 'show' or
   /// removed from 'hide' if appropriate.
   _LibraryImport _importLibrary(
     Uri uri, {
     String? prefix,
-    String? shownName,
+    String? showName,
     bool isExplicitImport = true,
     bool useShow = false,
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
     var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
-    var shownNames = <List<String>>[];
-    var hiddenNames = <List<String>>[];
+    var existingShownNames = <List<String>>[];
+    var existingHiddenNames = <List<String>>[];
 
     if (import != null) {
       if (prefix != null) {
         import.prefixes.add(prefix);
       }
-      if (shownName != null) {
-        import.ensureShown(shownName, useShow: useShow);
+      if (showName != null) {
+        import.ensureShown(showName, useShow: useShow);
       }
       // If this was an explicit import request, ensure the existing import
       // is marked as such so it cannot be removed by other optimizations.
@@ -2342,9 +2397,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         for (var combinator in element.combinators) {
           switch (combinator) {
             case ShowElementCombinator():
-              shownNames.add(combinator.shownNames.toList());
+              existingShownNames.add(combinator.shownNames.toList());
             case HideElementCombinator():
-              hiddenNames.add(combinator.hiddenNames.toList());
+              existingHiddenNames.add(combinator.hiddenNames.toList());
           }
         }
       }
@@ -2354,11 +2409,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         uriText: uriText,
         prefix: prefix ?? '',
         isExplicitlyImported: isExplicitImport,
-        shownNames: shownNames,
-        hiddenNames: hiddenNames,
+        shownNames: existingShownNames,
+        hiddenNames: existingHiddenNames,
       );
-      if (shownName != null) {
-        import.ensureShown(shownName, useShow: useShow);
+      if (showName != null) {
+        import.ensureShown(showName, useShow: useShow);
       }
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
@@ -2801,4 +2856,14 @@ extension on CompilationUnitMember {
       _ => null,
     };
   }
+}
+
+extension on LibraryImport {
+  bool get hasCombinator => combinators.isNotEmpty;
+
+  Iterable<HideElementCombinator> get hideCombinators =>
+      combinators.whereType<HideElementCombinator>();
+
+  Iterable<ShowElementCombinator> get showCombinators =>
+      combinators.whereType<ShowElementCombinator>();
 }
