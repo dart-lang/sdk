@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -14,7 +12,6 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class VarianceBuilder {
   final Linker _linker;
@@ -57,42 +54,46 @@ class VarianceBuilder {
     }
   }
 
-  Variance _compute(TypeParameterElement variable, DartType? type) {
+  Variance _compute(TypeParameterElement2 variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element == variable) {
+      if (type.element3 == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element3.asElement;
+      var element = type.element3;
       var arguments = type.arguments;
-      if (element is InterfaceElement) {
+      if (element is InterfaceElementImpl2) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
-          var parameters = element.typeParameters;
-          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
-            var parameter = parameters[i] as TypeParameterElementImpl;
+          var typeParameters = element.typeParameters2;
+          for (var i = 0;
+              i < arguments.length && i < typeParameters.length;
+              i++) {
+            var typeParameter = typeParameters[i];
             result = result.meet(
-              parameter.variance.combine(
+              typeParameter.variance.combine(
                 _compute(variable, arguments[i]),
               ),
             );
           }
         }
         return result;
-      } else if (element is TypeAliasElementImpl) {
+      } else if (element is TypeAliasElementImpl2) {
         _typeAliasElement(element);
 
         var result = Variance.unrelated;
 
         if (arguments.isNotEmpty) {
-          var parameters = element.typeParameters;
-          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
-            var parameter = parameters[i];
-            var parameterVariance = parameter.variance;
+          var typeParameters = element.typeParameters2;
+          for (var i = 0;
+              i < arguments.length && i < typeParameters.length;
+              i++) {
+            var typeParameter = typeParameters[i];
+            var typeParameterVariance = typeParameter.variance;
             result = result.meet(
-              parameterVariance.combine(
+              typeParameterVariance.combine(
                 _compute(variable, arguments[i]),
               ),
             );
@@ -104,8 +105,8 @@ class VarianceBuilder {
       return _computeFunctionType(
         variable,
         returnType: type.returnType,
-        typeFormals: type.typeParameters.map((e) => e.asElement).toList(),
-        parameters: type.formalParameters.map((e) => e.asElement).toList(),
+        typeParameters: type.typeParameters,
+        formalParameters: type.formalParameters,
       );
     } else if (type is RecordTypeBuilder) {
       var result = Variance.unrelated;
@@ -120,10 +121,10 @@ class VarianceBuilder {
   }
 
   Variance _computeFunctionType(
-    TypeParameterElement variable, {
+    TypeParameterElement2 variable, {
     required DartType? returnType,
-    required List<TypeParameterElement>? typeFormals,
-    required List<ParameterElement> parameters,
+    required List<TypeParameterElement2>? typeParameters,
+    required List<FormalParameterElement> formalParameters,
   }) {
     var result = Variance.unrelated;
 
@@ -133,19 +134,19 @@ class VarianceBuilder {
 
     // If [variable] is referenced in a bound at all, it makes the
     // variance of [variable] in the entire type invariant.
-    if (typeFormals != null) {
-      for (var parameter in typeFormals) {
-        var bound = parameter.bound;
+    if (typeParameters != null) {
+      for (var typeParameter in typeParameters) {
+        var bound = typeParameter.bound;
         if (bound != null && _compute(variable, bound) != Variance.unrelated) {
           result = Variance.invariant;
         }
       }
     }
 
-    for (var parameter in parameters) {
+    for (var typeParameter in formalParameters) {
       result = result.meet(
         Variance.contravariant.combine(
-          _compute(variable, parameter.type),
+          _compute(variable, typeParameter.type),
         ),
       );
     }
@@ -161,8 +162,8 @@ class VarianceBuilder {
 
     // Recursion detected, recover.
     if (_visit.contains(node)) {
-      for (var parameter in parameterList.typeParameters) {
-        _setVariance(parameter, Variance.covariant);
+      for (var typeParameter in parameterList.typeParameters) {
+        _setVariance(typeParameter, Variance.covariant);
       }
       return;
     }
@@ -174,16 +175,14 @@ class VarianceBuilder {
 
     _visit.add(node);
     try {
-      for (var parameter in parameterList.typeParameters) {
+      for (var typeParameter in parameterList.typeParameters) {
         var variance = _computeFunctionType(
-          parameter.declaredElement!,
+          typeParameter.declaredFragment!.element,
           returnType: node.returnType?.type,
-          typeFormals: null,
-          parameters: FunctionTypeBuilder.getParameters(node.parameters)
-              .map((e) => e.asElement)
-              .toList(),
+          typeParameters: null,
+          formalParameters: FunctionTypeBuilder.getParameters(node.parameters),
         );
-        _setVariance(parameter, variance);
+        _setVariance(typeParameter, variance);
       }
     } finally {
       _visit.remove(node);
@@ -198,8 +197,8 @@ class VarianceBuilder {
 
     // Recursion detected, recover.
     if (_visit.contains(node)) {
-      for (var parameter in parameterList.typeParameters) {
-        _setVariance(parameter, Variance.covariant);
+      for (var typeParameter in parameterList.typeParameters) {
+        _setVariance(typeParameter, Variance.covariant);
       }
       return;
     }
@@ -213,24 +212,24 @@ class VarianceBuilder {
 
     // Not a function type, recover.
     if (type == null) {
-      for (var parameter in parameterList.typeParameters) {
-        _setVariance(parameter, Variance.covariant);
+      for (var typeParameter in parameterList.typeParameters) {
+        _setVariance(typeParameter, Variance.covariant);
       }
     }
 
     _visit.add(node);
     try {
-      for (var parameter in parameterList.typeParameters) {
-        var variance = _compute(parameter.declaredElement!, type);
-        _setVariance(parameter, variance);
+      for (var typeParameter in parameterList.typeParameters) {
+        var variance = _compute(typeParameter.declaredFragment!.element, type);
+        _setVariance(typeParameter, variance);
       }
     } finally {
       _visit.remove(node);
     }
   }
 
-  void _typeAliasElement(TypeAliasElementImpl element) {
-    var node = _linker.getLinkingNode(element);
+  void _typeAliasElement(TypeAliasElementImpl2 element) {
+    var node = _linker.getLinkingNode2(element);
     if (node == null) {
       // Not linking.
     } else if (node is GenericTypeAliasImpl) {
@@ -242,23 +241,22 @@ class VarianceBuilder {
     }
   }
 
-  void _typeParameters(TypeParameterList? parameterList) {
+  void _typeParameters(TypeParameterListImpl? parameterList) {
     if (parameterList == null) {
       return;
     }
 
-    for (var parameter in parameterList.typeParameters) {
-      var parameterImpl = parameter as TypeParameterImpl;
-      var varianceKeyword = parameterImpl.varianceKeyword;
+    for (var typeParameter in parameterList.typeParameters) {
+      var varianceKeyword = typeParameter.varianceKeyword;
       if (varianceKeyword != null) {
         var variance = Variance.fromKeywordString(varianceKeyword.lexeme);
-        _setVariance(parameter, variance);
+        _setVariance(typeParameter, variance);
       }
     }
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredElement as TypeParameterElementImpl;
+    var element = node.declaredFragment!.element as TypeParameterElementImpl2;
     element.variance = variance;
   }
 }
