@@ -264,7 +264,7 @@ enum ConflictClassTypeParameter<ConflictClassTypeParameter> {
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
   // [cfe] A type variable can't have the same name as its enclosing declaration.
   e1;
-  //^
+  // [error column 3]
   // [cfe] Couldn't find constructor 'ConflictClassTypeParameter'.
 }
 
@@ -405,10 +405,10 @@ enum ConflictClassEnumValue {
 // Has conflict with implicitly inserted `values` member.
 enum values {
   // ^^^^^^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.ENUM_WITH_NAME_VALUES
   // [cfe] The name 'values' is not a valid name for an enum. Try using a different name.
   e1;
-  //^
+  // [error column 3]
   // [cfe] Couldn't find constructor 'values'.
 }
 
@@ -449,9 +449,8 @@ enum OverridesEquals {
   e1;
 
   bool operator==(Object other) => identical(e1, other);
-  //   ^^^^^^^^
-  // [analyzer] unspecified
-  //           ^
+  //           ^^
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] An enum can't declare a non-abstract member named '=='.
 }
 
@@ -460,7 +459,7 @@ enum OverridesHashCode {
 
   int get hashCode => 42;
   //      ^^^^^^^^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] An enum can't declare a non-abstract member named 'hashCode'.
 }
 
@@ -515,9 +514,9 @@ enum NoConstructorCalls {
   // [cfe] Final field 'x' is not initialized by this constructor.
   //                                       ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
-  // [cfe] Couldn't find constructor 'NoConstructorCalls.factory'.
   //                                            ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CONST_CONSTRUCTOR
+  // [cfe] Couldn't find constructor 'NoConstructorCalls.factory'.
 
   factory NoConstructorCalls.factory() => e1; // Valid.
 
@@ -614,7 +613,7 @@ enum DeclaresStaticIndex {
 
 enum InheritsIndex with IndexGetter {
   // ^^^^^^^^^^^^^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
   // [cfe] An enum can't inherit a member named 'index'.
   e1;
 }
@@ -643,8 +642,8 @@ enum ImplementsNeverIndex {
 }
 
 enum NSMImplementsNeverIndex implements NeverIndexGetter {
-  // ^^^^^^
-  // [analyzer] unspecified
+  // ^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
   // [cfe] The implementation of 'index' in the non-abstract class 'NSMImplementsNeverIndex' does not conform to its interface.
   e1;
 
@@ -670,11 +669,10 @@ enum CyclicReference {
 // Since `values` contains `e1`,
 // we can't have a reference in the other direction.
 enum CyclicReferenceValues {
-//   ^
-// [cfe] Constant evaluation error:
   e1(values);
 //^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
+// [cfe] Constant evaluation error:
   final List<CyclicReferenceValues> list;
   const CyclicReferenceValues(this.list);
 }

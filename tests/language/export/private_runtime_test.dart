@@ -6,8 +6,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that private dart:_ libraries cannot be imported.
 
-
-
 main() {
   print("Done.");
 }

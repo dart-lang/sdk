@@ -4,10 +4,7 @@
 
 library enum_duplicate_lib;
 
-enum Enum1 {
-  A,
-  B,
-}
+enum Enum1 { A, B }
 
 class Enum2 {
   static Iterable get values => ['Enum2.A', 'Enum2.B'];

@@ -22,9 +22,9 @@ class External2 {
 
     // Cannot assign to final field.
     a.x = 42;
-    //  ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] The setter 'x' isn't defined for the class 'External2'.
 
     String y = a.y;
     a.y = "ab";
@@ -32,8 +32,8 @@ class External2 {
     // Cannot assign something of wrong type, even if covariant.
     a.y = Object();
     //    ^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 }
 

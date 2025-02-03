@@ -22,38 +22,38 @@ extension E1 on A1 {
   void test() {
     // The instance getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
 
     // The instance getter shadows the global field setter
     topLevelField = topLevelField + 1;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
 
     // The instance getter shadows the global method
     topLevelMethod(4);
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                ^
-// [cfe] The method 'call' isn't defined for the class 'int'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //            ^
+    // [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -68,38 +68,38 @@ extension E2 on A2 {
   void test() {
     // The instance setter shadows the global getter
     topLevelGetter = topLevelGetter + 1;
-//                   ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    //               ^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter++;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter = 3;
 
     // The instance setter shadows the global field getter
     topLevelField = topLevelField + 1;
-//                  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    //              ^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
     topLevelField++;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
     topLevelField;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
 
     // The instance setter shadows the global method
     topLevelMethod(4);
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Getter not found: 'topLevelMethod'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Getter not found: 'topLevelMethod'.
   }
 }
 
@@ -114,38 +114,38 @@ extension E3 on A3 {
   void test() {
     // The static getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelSetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelSetter'.
 
     // The static getter shadows the global field setter
     topLevelField = topLevelField + 1;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'topLevelField'.
 
     // The static getter shadows the global method
     topLevelMethod(4);
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                   ^
-// [cfe] The method 'call' isn't defined for the class 'int'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //               ^
+    // [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -160,37 +160,37 @@ extension E4 on A4 {
   void test() {
     // The static setter shadows the global getter
     topLevelGetter = topLevelGetter + 1;
-//                   ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    //               ^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter++;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter;
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelGetter'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelGetter'.
 
     // The static setter shadows the global field getter
     topLevelField = topLevelField + 1;
-//                  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    //              ^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
     topLevelField++;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
     topLevelField;
-//  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'topLevelField'.
+    // [error column 5, length 13]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'topLevelField'.
 
     // The static setter shadows the global method
     topLevelMethod(4);
-//  ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Getter not found: 'topLevelMethod'.
+    // [error column 5, length 14]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Getter not found: 'topLevelMethod'.
   }
 }
 
@@ -210,24 +210,24 @@ extension E6 on A6 {
   void test() {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
 
     // The instance getter shadows the other extensions method
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                 ^
-// [cfe] The method 'call' isn't defined for the class 'int'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //             ^
+    // [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -241,24 +241,24 @@ class A7 extends A6 {
   void test() {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter = 0;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
 
     // The instance getter shadows the other extensions method
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                 ^
-// [cfe] 'extensionMethod' isn't a function or method and can't be invoked.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //             ^
+    // [cfe] 'extensionMethod' isn't a function or method and can't be invoked.
   }
 }
 
@@ -276,23 +276,23 @@ extension E8 on A8 {
   void test() {
     // The instance setter shadows the other extension's getter
     extensionGetter = extensionGetter + 1;
-//                    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    //                ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
 
     // The instance setter shadows the other extension's method.
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Getter not found: 'extensionMethod'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Getter not found: 'extensionMethod'.
   }
 }
 
@@ -306,23 +306,23 @@ class A9 extends A8 {
   void test() {
     // The instance setter shadows the other extension's getter
     extensionGetter = extensionGetter + 1;
-//                    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    //                ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
     extensionGetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
     extensionGetter;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
 
     // The instance setter shadows the other extension's method.
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] The method 'extensionMethod' isn't defined for the class 'A9'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'extensionMethod' isn't defined for the class 'A9'.
   }
 }
 
@@ -342,38 +342,38 @@ extension E10 on A10 {
   void test() {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter
     extensionFieldSetter = extensionFieldSetter + 1;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter++;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter = 0;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
 
     // The static getter shadows the other extensions method
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                     ^
-// [cfe] The method 'call' isn't defined for the class 'int'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //                 ^
+    // [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -388,38 +388,38 @@ class A11 extends A10 {
   void test() {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'extensionSetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter
     extensionFieldSetter = extensionFieldSetter + 1;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter++;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter = 0;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'extensionFieldSetter'.
+    // [error column 5, length 20]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'extensionFieldSetter'.
 
     // The static getter shadows the other extensions method
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//                 ^
-// [cfe] The method 'call' isn't defined for the class 'int'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+    //             ^
+    // [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -437,23 +437,23 @@ extension E12 on A12 {
   void test() {
     // The static setter shadows the other extension's getter
     extensionGetter = extensionGetter + 1;
-//                    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    //                ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
 
     // The static setter shadows the other extension's method.
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Getter not found: 'extensionMethod'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Getter not found: 'extensionMethod'.
   }
 }
 
@@ -467,23 +467,23 @@ class A13 extends A12 {
   void test() {
     // The static setter shadows the other extension's getter
     extensionGetter = extensionGetter + 1;
-//                    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    //                ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'extensionGetter'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Getter not found: 'extensionGetter'.
 
     // The static setter shadows the other extension's method.
     extensionMethod(4);
-//  ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Getter not found: 'extensionMethod'.
+    // [error column 5, length 15]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Getter not found: 'extensionMethod'.
   }
 }
 

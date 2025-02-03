@@ -29,12 +29,18 @@ void main() {
   Expect.identical(EnumPlainSemicolon.v3, EnumPlainSemicolon.values[2]);
 
   Expect.equals(3, EnumPlainTrailingCommaSemicolon.values.length);
-  Expect.identical(EnumPlainTrailingCommaSemicolon.v1,
-      EnumPlainTrailingCommaSemicolon.values[0]);
-  Expect.identical(EnumPlainTrailingCommaSemicolon.v2,
-      EnumPlainTrailingCommaSemicolon.values[1]);
-  Expect.identical(EnumPlainTrailingCommaSemicolon.v3,
-      EnumPlainTrailingCommaSemicolon.values[2]);
+  Expect.identical(
+    EnumPlainTrailingCommaSemicolon.v1,
+    EnumPlainTrailingCommaSemicolon.values[0],
+  );
+  Expect.identical(
+    EnumPlainTrailingCommaSemicolon.v2,
+    EnumPlainTrailingCommaSemicolon.values[1],
+  );
+  Expect.identical(
+    EnumPlainTrailingCommaSemicolon.v3,
+    EnumPlainTrailingCommaSemicolon.values[2],
+  );
 
   Expect.equals(6, EnumAll.values.length);
   Expect.identical(EnumAll.v1, EnumAll.values[0]);
@@ -105,7 +111,9 @@ void main() {
   Expect.identical(EnumAll.v4, EnumAll.v3 ^ EnumAll.v2);
 
   Expect.equals(
-      "EnumAll.v1:EnumMixin<num>:ObjectMixin:this", EnumAll.v1.thisAndSuper());
+    "EnumAll.v1:EnumMixin<num>:ObjectMixin:this",
+    EnumAll.v1.thisAndSuper(),
+  );
 
   // Which can reference type parameters.
   Expect.isTrue(EnumAll.v2.test(2)); // does `is T` with `T` being `int`.
@@ -148,35 +156,22 @@ void main() {
 enum EnumPlain { v1, v2, v3 }
 
 // Also with trailing comma.
-enum EnumPlainTrailingComma {
-  v1,
-  v2,
-  v3,
-}
+enum EnumPlainTrailingComma { v1, v2, v3 }
 
 // Also if using type parameters, mixins or interfaces.
 // It only matters whether there is something after the values.
 enum EnumNoSemicolon<T extends num> with ObjectMixin implements Interface {
   v1,
   v2,
-  v3
+  v3,
 }
 
 // Allows semicolon after values, even when not needed.
 // Without trailing comma.
-enum EnumPlainSemicolon {
-  v1,
-  v2,
-  v3;
-}
+enum EnumPlainSemicolon { v1, v2, v3 }
 
 // With trailing comma.
-enum EnumPlainTrailingCommaSemicolon {
-  v1,
-  v2,
-  v3,
-  ;
-}
+enum EnumPlainTrailingCommaSemicolon { v1, v2, v3 }
 
 // Full syntax, with every possible option.
 @EnumAll.v1
@@ -193,8 +188,7 @@ enum EnumAll<S extends num, T extends num>
   v3<int, int>(y: 2),
   v4.named(1, y: 2),
   v5<int, int>.renamed(1, y: 2),
-  v6.new(),
-  ;
+  v6.new();
 
   /// Static members.
   ///
@@ -216,16 +210,16 @@ enum EnumAll<S extends num, T extends num>
   // Constructors.
   // Generative, non-redirecting, unnamed.
   const EnumAll({T? y})
-      : constructor = "unnamed",
-        this.x = 0 as S,
-        y = y ?? (0 as T);
+    : constructor = "unnamed",
+      this.x = 0 as S,
+      y = y ?? (0 as T);
   // Generative, non-redirecting, named.
   const EnumAll.named(this.x, {T? y, String? constructor})
-      : constructor = constructor ?? "named",
-        y = y ?? (0 as T);
+    : constructor = constructor ?? "named",
+      y = y ?? (0 as T);
   // Generative, redirecting.
   const EnumAll.renamed(S x, {T? y})
-      : this.named(x, y: y, constructor: "renamed");
+    : this.named(x, y: y, constructor: "renamed");
   // Factory, non-redirecting.
   factory EnumAll.factory(int index) => values[index] as EnumAll<S, T>;
   // Factory, redirecting (only to other factory constructor).
