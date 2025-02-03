@@ -11,6 +11,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/unboxing_info.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -95,6 +96,11 @@ class Translator with KernelNodes {
   late final Map<TreeNode, UnboxingInfoMetadata> unboxingInfoMetadata =
       (component.metadata[UnboxingInfoMetadataRepository.repositoryTag]
               as UnboxingInfoMetadataRepository)
+          .mapping;
+  late final Map<TreeNode, ProcedureAttributesMetadata>
+      procedureAttributeMetadata =
+      (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
+              as ProcedureAttributesMetadataRepository)
           .mapping;
 
   // Other parts of the global compiler state.
@@ -785,9 +791,11 @@ class Translator with KernelNodes {
   ClosureImplementation getTearOffClosure(Procedure member) {
     return tearOffFunctionCache.putIfAbsent(member, () {
       assert(member.kind == ProcedureKind.Method);
-      w.BaseFunction target = functions.getFunction(member.reference);
+      final reference =
+          getFunctionEntry(member.reference, uncheckedEntry: false);
+      w.BaseFunction target = functions.getFunction(reference);
       return getClosure(member.function, target,
-          paramInfoForDirectCall(member.reference), "$member tear-off");
+          paramInfoForDirectCall(reference), "$member tear-off");
     });
   }
 
@@ -1025,13 +1033,160 @@ class Translator with KernelNodes {
     return dispatchTable.selectorForTarget(target).paramInfo;
   }
 
-  AstCallTarget directCallTarget(Reference target, bool useUncheckedEntry) {
+  Reference getFunctionEntry(Reference target, {required bool uncheckedEntry}) {
+    final Member member = target.asMember;
+    if (member.isAbstract || !member.isInstanceMember) return target;
+
+    // Getters and tear-offs never have to check any parameters, so we don't
+    // have checked/unchecked entries for them.
+    if (target.isGetter || target.isTearOffReference) return target;
+
+    // We only generate checked & unchecked entry points if there's any
+    // parameters that may need to be checked.
+    if (needToCheckTypesFor(member)) {
+      return uncheckedEntry
+          ? member.uncheckedEntryReference
+          : member.checkedEntryReference;
+    }
+
+    return target;
+  }
+
+  final Map<Member, bool> _needToCheck = {};
+  bool needToCheckTypesFor(Member member) {
+    if (options.omitImplicitTypeChecks) return false;
+
+    if (!member.isInstanceMember) return false;
+    if (member is Procedure && member.isGetter) return false;
+
+    return _needToCheck[member] ??= _needToCheckTypesFor(member);
+  }
+
+  bool _needToCheckTypesFor(Member member) {
+    // We may have global guarantee that all call sites can use the unchecked
+    // entrypoint.
+    final metadata = procedureAttributeMetadata[member]!;
+
+    // If there's only uses of the member via `this`, then we know that
+    // covariant parameters will type check correctly, except parameters that
+    // were marked explicitly with the `covariant` keyword.
+    final useUncheckedEntry =
+        !metadata.hasTearOffUses && !metadata.hasNonThisUses;
+
+    if (member is Field) {
+      return needToCheckImplicitSetterValue(member,
+          uncheckedEntry: useUncheckedEntry);
+    }
+
+    final (
+      :typeParameters,
+      :typeParametersToTypeCheck,
+      :positional,
+      :positionalToTypeCheck,
+      :named,
+      :namedToTypeCheck
+    ) = getParametersToCheck(member);
+
+    for (final typeParameter in typeParameters) {
+      if (needToCheckTypeParameter(typeParameter)) return true;
+    }
+    for (final parameter in positional) {
+      if (needToCheckParameter(parameter, uncheckedEntry: useUncheckedEntry)) {
+        return true;
+      }
+    }
+    for (final parameter in named) {
+      if (needToCheckParameter(parameter, uncheckedEntry: useUncheckedEntry)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool needToCheckImplicitSetterValue(Field field,
+      {required bool uncheckedEntry}) {
+    if (options.omitImplicitTypeChecks) return false;
+    if (field.isCovariantByDeclaration) return true;
+    if (!uncheckedEntry && field.isCovariantByClass) return true;
+    return false;
+  }
+
+  bool needToCheckTypeParameter(TypeParameter typeParameter) {
+    if (options.omitImplicitTypeChecks) return false;
+    return typeParameter.isCovariantByClass &&
+        typeParameter.bound != coreTypes.objectNullableRawType;
+  }
+
+  bool needToCheckParameter(VariableDeclaration parameter,
+      {required bool uncheckedEntry}) {
+    if (options.omitImplicitTypeChecks) return false;
+    if (canSkipImplicitCheck(parameter)) return false;
+    if (parameter.isCovariantByDeclaration) return true;
+    if (!uncheckedEntry && parameter.isCovariantByClass) return true;
+    return false;
+  }
+
+  ({
+    List<TypeParameter> typeParameters,
+    List<TypeParameter> typeParametersToTypeCheck,
+    List<VariableDeclaration> positional,
+    List<VariableDeclaration> positionalToTypeCheck,
+    List<VariableDeclaration> named,
+    List<VariableDeclaration> namedToTypeCheck
+  }) getParametersToCheck(Member member) {
+    final memberFunction = member.function!;
+    final List<TypeParameter> typeParameters = member is Constructor
+        ? member.enclosingClass.typeParameters
+        : member.function!.typeParameters;
+    final List<VariableDeclaration> positional =
+        memberFunction.positionalParameters;
+    final List<VariableDeclaration> named = memberFunction.namedParameters;
+
+    // If this is a CFE-inserted `forwarding-stub` then the types we have to
+    // check against are those from the forwarding target.
+    //
+    // This mirrors what the VM does in
+    //    - FlowGraphBuilder::BuildTypeArgumentTypeChecks
+    //    - FlowGraphBuilder::BuildArgumentTypeChecks
+    Procedure? forwardingTarget;
+    if (member is Procedure && member.isForwardingStub) {
+      forwardingTarget = member.concreteForwardingStubTarget as Procedure?;
+    }
+    final List<TypeParameter> typeParametersToTypeCheck =
+        forwardingTarget?.typeParameters ?? typeParameters;
+    final List<VariableDeclaration> positionalToTypeCheck =
+        forwardingTarget?.function.positionalParameters ?? positional;
+    final List<VariableDeclaration> namedToTypeCheck =
+        forwardingTarget?.function.namedParameters ?? named;
+    return (
+      typeParameters: typeParameters,
+      typeParametersToTypeCheck: typeParametersToTypeCheck,
+      positional: positional,
+      positionalToTypeCheck: positionalToTypeCheck,
+      named: named,
+      namedToTypeCheck: namedToTypeCheck,
+    );
+  }
+
+  AstCallTarget directCallTarget(Reference target) {
     final signature = signatureForDirectCall(target);
-    return AstCallTarget(signature, this, target, useUncheckedEntry);
+    return AstCallTarget(signature, this, target);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
+      if (target.isBodyReference) {
+        return makeFunctionTypeForBody(this, target.asMember);
+      }
+      if (target.isUncheckedEntryReference) {
+        // The unchecked entries use the same signature as normal entries.
+        final member = target.asMember;
+        return signatureForDirectCall(member is Field
+            ? member.setterReference!
+            : (member as Procedure).reference);
+      }
+
       final selector = dispatchTable.selectorForTarget(target);
       if (selector.targetSet.contains(target)) {
         return selector.signature;
@@ -1042,6 +1197,14 @@ class Translator with KernelNodes {
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
+      if (target.isUncheckedEntryReference) {
+        // The unchecked entries use the same signature as normal entries.
+        final member = target.asMember;
+        return paramInfoForDirectCall(member is Field
+            ? member.setterReference!
+            : (member as Procedure).reference);
+      }
+
       final selector = dispatchTable.selectorForTarget(target);
       if (selector.targetSet.contains(target)) {
         return selector.paramInfo;
@@ -1175,8 +1338,8 @@ class Translator with KernelNodes {
     return inferredArgTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  bool canUseUncheckedEntry(InstanceInvocationExpression node) {
-    if (node is ThisExpression) return true;
+  bool canUseUncheckedEntry(Expression receiver, Expression node) {
+    if (receiver is ThisExpression) return true;
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
@@ -1192,12 +1355,29 @@ class Translator with KernelNodes {
     final isCovariant =
         node.isCovariantByDeclaration || node.isCovariantByClass;
     if (isCovariant) {
+      // If [node] is a parameter of a `operator==` method, then the argument to
+      // it cannot be nullable.
+      final member = node.parent!.parent;
+      if (member is Procedure && member.name.text == '==') {
+        return coreTypes.objectNonNullableRawType;
+      }
       // The type argument of a static type is not required to conform
       // to the bounds of the type variable. Thus, any object can be
       // passed to a parameter that is covariant by class.
       return coreTypes.objectNullableRawType;
     }
 
+    return node.type;
+  }
+
+  // The type to use assuming the argument was already checked (in case a
+  // covariant check is needed).
+  DartType typeOfCheckedParameterVariable(VariableDeclaration node) {
+    // We have a guarantee that inferred types are correct.
+    final inferredType = _inferredTypeOfParameterVariable(node);
+    if (inferredType != null) {
+      return inferredType;
+    }
     return node.type;
   }
 
@@ -1284,8 +1464,7 @@ class Translator with KernelNodes {
     return InterfaceType(concreteClass, nullability, typeArguments);
   }
 
-  bool shouldInline(
-      Reference target, w.FunctionType signature, bool useUncheckedEntry) {
+  bool shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return false;
 
     final member = target.asMember;
@@ -1306,9 +1485,9 @@ class Translator with KernelNodes {
       return false;
     }
 
-    final nodeCount =
-        NodeCounter(options.omitImplicitTypeChecks || useUncheckedEntry)
-            .countNodes(member);
+    final nodeCount = NodeCounter(
+            options.omitImplicitTypeChecks || target.isUncheckedEntryReference)
+        .countNodes(member);
 
     // Special cases for iterator inlining:
     //   class ... implements Iterable<T> {

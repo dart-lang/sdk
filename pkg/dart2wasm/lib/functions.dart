@@ -157,6 +157,14 @@ class FunctionCollector {
 
   w.FunctionType _getFunctionType(Reference target) {
     final Member member = target.asMember;
+
+    if (target.isBodyReference) {
+      // This is the function body that is always called directly (never via
+      // dispatch table) and with checked arguments. That means we can make a
+      // precise function type signature based on that member's argument types.
+      return makeFunctionTypeForBody(translator, member);
+    }
+
     if (target.isTypeCheckerReference) {
       if (member is Field || (member is Procedure && member.isSetter)) {
         return translator.dynamicSetForwarderFunctionType;
@@ -181,6 +189,16 @@ class FunctionCollector {
       return "${target.asMember} tear-off";
     }
 
+    if (target.isCheckedEntryReference) {
+      return "${target.asMember} (checked entry)";
+    }
+    if (target.isUncheckedEntryReference) {
+      return "${target.asMember} (unchecked entry)";
+    }
+    if (target.isBodyReference) {
+      return "${target.asMember} (body)";
+    }
+
     final Member member = target.asMember;
     String memberName = member.toString();
     if (memberName.endsWith('.')) {
@@ -196,7 +214,10 @@ class FunctionCollector {
     }
 
     if (member is Field) {
-      return '$memberName initializer';
+      if (target.isImplicitSetter) {
+        return '$memberName= implicit setter';
+      }
+      return '$memberName implicit getter';
     }
 
     if (target.isInitializerReference) {
@@ -469,6 +490,39 @@ List<w.ValueType> _getInputTypes(
   return inputs;
 }
 
+// Functions that get checked & unchecked variants will run the actual body by
+// calling a body function. This builds the signature of such body functions.
+//
+// Implicit setters also support checked/unchecked entries, but those will not
+// call a shared body but have such body (which is trivial) in the checked &
+// unchecked functions directly.
+w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
+  assert(member.isInstanceMember);
+  assert(member is Procedure);
+  final function = member.function!;
+
+  final receiverType = member.enclosingClass!
+      .getThisType(translator.coreTypes, Nullability.nonNullable);
+
+  final inputs = <w.ValueType>[
+    translator.translateType(receiverType),
+    for (final _ in function.typeParameters)
+      translator.translateType(translator.types.typeType),
+    for (final p in function.positionalParameters)
+      translator.translateType(translator.typeOfCheckedParameterVariable(p)),
+    for (final p in function.namedParameters)
+      translator.translateType(translator.typeOfCheckedParameterVariable(p)),
+  ];
+
+  final isSetter = member is Procedure && member.isSetter;
+  final outputs = [
+    if (!isSetter)
+      translator.translateReturnType(translator.typeOfReturnValue(member)),
+  ];
+
+  return translator.typesBuilder.defineFunction(inputs, outputs);
+}
+
 w.FunctionType _makeFunctionType(
     Translator translator, Reference target, w.ValueType? receiverType,
     {bool isImportOrExport = false}) {
@@ -497,17 +551,14 @@ w.FunctionType _makeFunctionType(
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
 
-  // Setters don't have an output with the exception of static implicit setters.
-  final bool emptyOutputList =
-      (member is Field && member.setterReference == target) ||
-          (member is Procedure && member.isSetter);
-
   bool isVoidType(DartType t) =>
       (isImportOrExport && t is VoidType) ||
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  if (emptyOutputList) {
+  if (target.isSetter) {
+    // Setters are the only functions without any returned values. All other
+    // functions can either return values (even `void` returning functions)
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
