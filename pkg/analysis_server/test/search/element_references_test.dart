@@ -402,7 +402,7 @@ enum E {
   E(this.fff); // 02
   E.named() : fff = 0; // 03
   void foo() {
-    fff = 0; // 04 
+    fff = 0; // 04
     fff += 0; // 05
     fff; // 06
     fff(); // 07

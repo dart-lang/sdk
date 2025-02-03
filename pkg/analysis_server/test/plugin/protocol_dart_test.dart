@@ -133,9 +133,9 @@ class A {
   }
 
   void test_dynamic() {
-    var engineElement = engine.DynamicElementImpl.instance;
+    var engineElement = engine.DynamicElementImpl2.instance;
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.UNKNOWN);
     expect(element.name, 'dynamic');
     expect(element.location, isNull);
