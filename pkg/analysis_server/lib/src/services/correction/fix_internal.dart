@@ -470,6 +470,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.specify_nonobvious_local_variable_types: [
     AddTypeAnnotation.bulkFixable,
   ],
+  LinterLintCode.specify_nonobvious_property_types: [
+    AddTypeAnnotation.bulkFixable,
+  ],
   LinterLintCode.strict_top_level_inference_add_type: [AddReturnType.new],
   LinterLintCode.type_annotate_public_apis: [AddTypeAnnotation.bulkFixable],
   LinterLintCode.type_init_formals: [RemoveTypeAnnotation.other],
