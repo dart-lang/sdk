@@ -3640,6 +3640,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   const Class& owner = Class::Handle(Z, function.Owner());
   ASSERT(!owner.IsNull());
   auto& field_name = String::Handle(Z, function.name());
+  ASSERT(field_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   // If the field name has a dyn: tag, then remove it. We don't add dynamic
   // invocation forwarders for field getters used for invoking, we just use
   // the tag in the name of the invoke field dispatcher to detect dynamic calls.

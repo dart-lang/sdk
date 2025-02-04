@@ -1700,9 +1700,10 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   // We do this on the target_name, _not_ on the demangled name, so that
   // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher can detect dynamic
   // calls from the dyn: tag on the name of the dispatcher.
+  const String& dispatcher_name = Function::DropImplicitCallPrefix(target_name);
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
-          target_name, arguments_descriptor,
+          dispatcher_name, arguments_descriptor,
           UntaggedFunction::kInvokeFieldDispatcher, create_if_absent));
   ASSERT(!create_if_absent || !target_function.IsNull());
   if (FLAG_trace_ic) {
@@ -1728,13 +1729,15 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
         Function::DemangleDynamicInvocationForwarderName(target_name));
   }
   const bool is_getter = Field::IsGetterName(*demangled);
+  const bool is_dyn_implicit_call =
+      target_name.ptr() == Symbols::DynamicImplicitCall().ptr();
   Function& result = Function::Handle();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool create_if_absent = false;
 #else
   const bool create_if_absent = true;
 #endif
-  if (is_getter ||
+  if (is_getter || (is_dyn_implicit_call && !receiver_class.IsClosureClass()) ||
       !ResolveCallThroughGetter(receiver_class, target_name, *demangled,
                                 args_descriptor, &result)) {
     ArgumentsDescriptor desc(args_descriptor);
@@ -2915,6 +2918,8 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     const Array& orig_arguments_desc) {
   const bool is_dynamic_call =
       Function::IsDynamicInvocationForwarderName(target_name);
+  const bool is_dyn_implicit_call =
+      target_name.ptr() == Symbols::DynamicImplicitCall().ptr();
   String& demangled_target_name = String::Handle(zone, target_name.ptr());
   if (is_dynamic_call) {
     demangled_target_name =
@@ -2976,7 +2981,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     }
 
     // Dynamic call sites have to use the dynamic getter as well (if it was
-    // created).
+    // created), unless its a dynamic implicit call to 'call'.
     const auto& getter_name =
         String::Handle(zone, Field::GetterName(demangled_target_name));
     const auto& dyn_getter_name = String::Handle(
@@ -3003,31 +3008,34 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
         }
       }
 
-      // If there is a getter we need to call-through-getter.
-      if (is_dynamic_call) {
-        function = Resolver::ResolveDynamicFunction(zone, cls, dyn_getter_name);
-      }
-      if (function.IsNull()) {
-        function = Resolver::ResolveDynamicFunction(zone, cls, getter_name);
-      }
-      if (!function.IsNull()) {
-        const Array& getter_arguments = Array::Handle(Array::New(1));
-        getter_arguments.SetAt(0, receiver);
-        const Object& getter_result = Object::Handle(
-            zone, DartEntry::InvokeFunction(function, getter_arguments));
-        if (getter_result.IsError()) {
-          return getter_result.ptr();
+      if (!is_dyn_implicit_call) {
+        // If there is a getter we need to call-through-getter.
+        if (is_dynamic_call) {
+          function =
+              Resolver::ResolveDynamicFunction(zone, cls, dyn_getter_name);
         }
-        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+        if (function.IsNull()) {
+          function = Resolver::ResolveDynamicFunction(zone, cls, getter_name);
+        }
+        if (!function.IsNull()) {
+          const Array& getter_arguments = Array::Handle(Array::New(1));
+          getter_arguments.SetAt(0, receiver);
+          const Object& getter_result = Object::Handle(
+              zone, DartEntry::InvokeFunction(function, getter_arguments));
+          if (getter_result.IsError()) {
+            return getter_result.ptr();
+          }
+          ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
-        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
-        return DartEntry::InvokeClosure(thread, orig_arguments,
-                                        orig_arguments_desc);
+          orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
+          return DartEntry::InvokeClosure(thread, orig_arguments,
+                                          orig_arguments_desc);
+        }
       }
       cls = cls.SuperClass();
     }
 
-    if (receiver.IsRecord()) {
+    if (receiver.IsRecord() && !is_dyn_implicit_call) {
       const Record& record = Record::Cast(receiver);
       const intptr_t field_index =
           record.GetFieldIndexByName(thread, demangled_target_name);
