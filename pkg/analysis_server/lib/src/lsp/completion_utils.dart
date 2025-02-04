@@ -552,7 +552,7 @@ CompletionDetail _getCompletionDetail(
   }
   String? parameters;
   if (element != null) {
-    parameters = getParametersString2(element);
+    parameters = getParametersString(element);
     // Prefer the element return type (because it may be more specific
     // for overrides) and fall back to the parameter type or return type from
     // the suggestion (handles records).

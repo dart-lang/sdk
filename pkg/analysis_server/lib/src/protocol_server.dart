@@ -382,7 +382,7 @@ Location newLocation_fromUnit(
 
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
-  var element = convertElement2(member);
+  var element = convertElement(member);
   var className = member.enclosingElement2!.displayName;
   return OverriddenMember(element, className);
 }
@@ -444,7 +444,7 @@ List<Element> _computePath(engine.Element element) {
             convertLibraryFragment(fragment as CompilationUnitElementImpl),
           );
         }
-        path.add(convertElement2(e.asElement2!));
+        path.add(convertElement(e.asElement2!));
       }
     }
   }

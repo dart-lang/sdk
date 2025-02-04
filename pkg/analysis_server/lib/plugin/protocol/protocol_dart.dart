@@ -13,12 +13,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:path/path.dart' as path;
 
-Element convertElement2(engine.Element2 element) {
-  var kind = convertElementToElementKind2(element);
-  var name = getElementDisplayName2(element);
-  var elementTypeParameters = _getTypeParametersString2(element);
+Element convertElement(engine.Element2 element) {
+  var kind = convertElementToElementKind(element);
+  var name = getElementDisplayName(element);
+  var elementTypeParameters = _getTypeParametersString(element);
   var aliasedType = getAliasedTypeString2(element);
-  var elementParameters = getParametersString2(element);
+  var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString2(element);
   return Element(
     kind,
@@ -28,10 +28,10 @@ Element convertElement2(engine.Element2 element) {
       isDeprecated:
           (element is engine.Annotatable) &&
           (element as engine.Annotatable).metadata2.hasDeprecated,
-      isAbstract: _isAbstract2(element),
-      isConst: _isConst2(element),
-      isFinal: _isFinal2(element),
-      isStatic: _isStatic2(element),
+      isAbstract: _isAbstract(element),
+      isConst: _isConst(element),
+      isFinal: _isFinal(element),
+      isStatic: _isStatic(element),
     ),
     location: newLocation_fromElement2(element),
     typeParameters: elementTypeParameters,
@@ -46,7 +46,7 @@ Element convertElement2(engine.Element2 element) {
 ///
 /// This does not take into account that an instance of [engine.ClassElement]
 /// can be an enum and an instance of [engine.FieldElement] can be an enum
-/// constant. Use [convertElementToElementKind2] where possible.
+/// constant. Use [convertElementToElementKind] where possible.
 ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
@@ -121,7 +121,7 @@ ElementKind convertElementKind(engine.ElementKind kind) {
 }
 
 /// Return an [ElementKind] corresponding to the given [engine.Element2].
-ElementKind convertElementToElementKind2(engine.Element2 element) {
+ElementKind convertElementToElementKind(engine.Element2 element) {
   if (element is engine.EnumElement2) {
     return ElementKind.ENUM;
   } else if (element is engine.MixinElement2) {
@@ -134,11 +134,11 @@ ElementKind convertElementToElementKind2(engine.Element2 element) {
 }
 
 Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
-  var kind = convertElementToElementKind2(fragment);
-  var name = getElementDisplayName2(fragment);
-  var elementTypeParameters = _getTypeParametersString2(fragment);
+  var kind = convertElementToElementKind(fragment);
+  var name = getElementDisplayName(fragment);
+  var elementTypeParameters = _getTypeParametersString(fragment);
   var aliasedType = getAliasedTypeString2(fragment);
-  var elementParameters = getParametersString2(fragment);
+  var elementParameters = getParametersString(fragment);
   var elementReturnType = getReturnTypeString2(fragment);
   return Element(
     kind,
@@ -146,10 +146,10 @@ Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
       isDeprecated: fragment.hasDeprecated,
-      isAbstract: _isAbstract2(fragment),
-      isConst: _isConst2(fragment),
-      isFinal: _isFinal2(fragment),
-      isStatic: _isStatic2(fragment),
+      isAbstract: _isAbstract(fragment),
+      isConst: _isConst(fragment),
+      isFinal: _isFinal(fragment),
+      isStatic: _isStatic(fragment),
     ),
     location: newLocation_fromFragment(fragment),
     typeParameters: elementTypeParameters,
@@ -159,7 +159,7 @@ Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
   );
 }
 
-String getElementDisplayName2(engine.Element2 element) {
+String getElementDisplayName(engine.Element2 element) {
   if (element is engine.LibraryFragment) {
     return path.basename((element as engine.LibraryFragment).source.fullName);
   } else {
@@ -167,7 +167,7 @@ String getElementDisplayName2(engine.Element2 element) {
   }
 }
 
-String? getParametersString2(engine.Element2 element) {
+String? getParametersString(engine.Element2 element) {
   // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.FormalParameterElement> parameters;
   if (element is engine.ExecutableElement2) {
@@ -188,7 +188,7 @@ String? getParametersString2(engine.Element2 element) {
     return null;
   }
 
-  parameters.sort(_preferRequiredParams2);
+  parameters.sort(_preferRequiredParams);
 
   var sb = StringBuffer();
   var closeOptionalString = '';
@@ -216,7 +216,7 @@ String? getParametersString2(engine.Element2 element) {
   return '($sb)';
 }
 
-String? _getTypeParametersString2(engine.Element2 element) {
+String? _getTypeParametersString(engine.Element2 element) {
   List<engine.TypeParameterElement2>? typeParameters;
   if (element is engine.InterfaceElement2) {
     typeParameters = element.typeParameters2;
@@ -229,7 +229,7 @@ String? _getTypeParametersString2(engine.Element2 element) {
   return '<${typeParameters.join(', ')}>';
 }
 
-bool _isAbstract2(engine.Element2 element) {
+bool _isAbstract(engine.Element2 element) {
   if (element is engine.ClassElement2) {
     return element.isAbstract;
   }
@@ -242,7 +242,7 @@ bool _isAbstract2(engine.Element2 element) {
   return false;
 }
 
-bool _isConst2(engine.Element2 element) {
+bool _isConst(engine.Element2 element) {
   if (element is engine.ConstructorElement2) {
     return element.isConst;
   }
@@ -252,14 +252,14 @@ bool _isConst2(engine.Element2 element) {
   return false;
 }
 
-bool _isFinal2(engine.Element2 element) {
+bool _isFinal(engine.Element2 element) {
   if (element is engine.VariableElement2) {
     return element.isFinal;
   }
   return false;
 }
 
-bool _isStatic2(engine.Element2 element) {
+bool _isStatic(engine.Element2 element) {
   if (element is engine.ExecutableElement2) {
     return element.isStatic;
   }
@@ -270,7 +270,7 @@ bool _isStatic2(engine.Element2 element) {
 }
 
 /// Sort required named parameters before optional ones.
-int _preferRequiredParams2(
+int _preferRequiredParams(
   engine.FormalParameterElement e1,
   engine.FormalParameterElement e2,
 ) {
