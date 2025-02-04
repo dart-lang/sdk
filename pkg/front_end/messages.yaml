@@ -67,10 +67,9 @@
 # the `sharedName`.
 #
 # Errors with an `index` can also optionally contain user-facing documentation
-# for the problem (documentation), which will be extracted to
-# `pkg/analyzer/tool/diagnostics/diagnostics.md`, as well as internal
-# documentation (comment), which will be included in the code generated for the
-# analyzer.
+# for the problem (documentation), which dart.dev will extract,
+# as well as internal documentation (comment), which will be included in
+# the code generated for the analyzer.
 #
 # In some cases a message is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.

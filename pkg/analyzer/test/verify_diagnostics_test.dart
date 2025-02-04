@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../tool/diagnostics/generate.dart';
 import '../tool/messages/error_code_documentation_info.dart';
 import '../tool/messages/error_code_info.dart';
 import 'src/dart/resolution/context_collection_resolution.dart';
@@ -421,25 +419,6 @@ class VerifyDiagnosticsTest {
     //
     DocumentationValidator validator = DocumentationValidator();
     await validator.validate();
-    //
-    // Validate that the generator has been run.
-    //
-    String actualContent = PhysicalResourceProvider.INSTANCE
-        .getFile(computeOutputPath())
-        .readAsStringSync();
-    // Normalize Windows line endings to Unix line endings so that the
-    // comparison doesn't fail on Windows.
-    actualContent = actualContent.replaceAll('\r\n', '\n');
-
-    StringBuffer sink = StringBuffer();
-    DocumentationGenerator generator = DocumentationGenerator();
-    generator.writeDocumentation(sink);
-    String expectedContent = sink.toString();
-
-    if (actualContent != expectedContent) {
-      fail('The diagnostic documentation needs to be regenerated.\n'
-          'Please run tool/diagnostics/generate.dart.');
-    }
   }
 
   test_published() {

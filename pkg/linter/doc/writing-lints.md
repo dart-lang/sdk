@@ -266,15 +266,7 @@ control_flow_in_finally:
     ...
 ```
 
-If you do add or change a lint's diagnostic documentation,
-make sure to regenerate the resulting [`diagnostics.md` file][]:
-
-```
-dart run pkg/analyzer/tool/diagnostics/generate.dart
-```
-
 [documenting diagnostics]: ../../analyzer/doc/implementation/diagnostics.md#document-the-diagnostic
-[`diagnostics.md` file]: ../../analyzer/tool/diagnostics/diagnostics.md
 
 ## Mechanics
 
@@ -399,7 +391,6 @@ make sure all generated files are up to date.
 
 ```
 dart run pkg/linter/tool/generate_lints.dart
-dart run pkg/analyzer/tool/diagnostics/generate.dart
 ```
 
 ### Utilities

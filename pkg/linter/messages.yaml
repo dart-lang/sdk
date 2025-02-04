@@ -6,11 +6,6 @@
 # make sure to regenerate supporting classes by running:
 #
 #     dart run pkg/linter/tool/generate_lints.dart
-#
-# If you updated or added a `documentation` property,
-# make sure to regenerate the documentation by running:
-#
-#     dart run pkg/analyzer/tool/diagnostics/generate.dart
 
 # There is a fixed set of categories:
 #
