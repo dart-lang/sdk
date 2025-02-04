@@ -26,16 +26,16 @@ abstract class M extends self::A /*isMixinDeclaration*/  {
   constructor baz() → self::M
     ;
 }
-abstract class _MA&A&M = self::A with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_MA&A&M
-    : super self::A::•()
-    ;
-}
 class MA extends self::_MA&A&M {
   synthetic constructor •() → self::MA
     ;
   static method _#new#tearOff() → self::MA
     return new self::MA::•();
+}
+abstract class _MA&A&M = self::A with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MA&A&M
+    : super self::A::•()
+    ;
 }
 static method test() → dynamic
   ;

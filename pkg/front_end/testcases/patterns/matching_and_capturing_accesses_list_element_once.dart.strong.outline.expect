@@ -6,6 +6,19 @@ import "dart:math" as math;
 
 import "dart:collection";
 
+class A extends self::_A&Object&ListMixin {
+  field core::int count;
+  synthetic constructor •() → self::A
+    ;
+  operator [](core::int index) → core::int
+    ;
+  operator []=(core::int index, covariant-by-class core::int value) → void
+    ;
+  get length() → core::int
+    ;
+  set length(core::int value) → void
+    ;
+}
 abstract class _A&Object&ListMixin = core::Object with col::ListBase<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&ListMixin
     : super core::Object::•()
@@ -130,19 +143,6 @@ abstract class _A&Object&ListMixin = core::Object with col::ListBase<core::int> 
     return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
     return super.{col::ListBase::toString}();
-}
-class A extends self::_A&Object&ListMixin {
-  field core::int count;
-  synthetic constructor •() → self::A
-    ;
-  operator [](core::int index) → core::int
-    ;
-  operator []=(core::int index, covariant-by-class core::int value) → void
-    ;
-  get length() → core::int
-    ;
-  set length(core::int value) → void
-    ;
 }
 static method main() → dynamic
   ;

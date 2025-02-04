@@ -42,11 +42,6 @@ library from "org-dartlang-test:///main.dart" as main {
   import "package:flutter/object.dart";
   import "org-dartlang-test:///lib.dart";
 
-  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
-    synthetic constructor •() → main::_Adaptor&RenderFoo&LibMixin
-      : super obj::RenderFoo::•()
-      ;
-  }
   class Adaptor extends main::_Adaptor&RenderFoo&LibMixin {
     synthetic constructor •() → main::Adaptor
       : super main::_Adaptor&RenderFoo&LibMixin::•()
@@ -61,5 +56,10 @@ library from "org-dartlang-test:///main.dart" as main {
     method foo() → void {
       dart.core::print(this.{main::AdaptorElement::renderObject}{main::Adaptor}.{obj::RenderFoo::constraints}{obj::FooConstraints}.{obj::FooConstraints::axis}{dart.core::String});
     }
+  }
+  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+    synthetic constructor •() → main::_Adaptor&RenderFoo&LibMixin
+      : super obj::RenderFoo::•()
+      ;
   }
 }

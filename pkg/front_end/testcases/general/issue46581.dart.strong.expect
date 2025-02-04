@@ -1,10 +1,17 @@
 library;
 import self as self;
-import "issue46581_lib.dart" as iss;
 import "dart:core" as core;
+import "issue46581_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue46581_lib.dart";
 
+class TestClass extends self::_TestClass&MyClass&MyMixin {
+  constructor •() → self::TestClass
+    : super self::_TestClass&MyClass&MyMixin::named()
+    ;
+}
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
+}
 abstract class _TestClass&MyClass&MyMixin = iss::MyClass with self::MyMixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor _() → self::_TestClass&MyClass&MyMixin
     : super iss::MyClass::_()
@@ -12,13 +19,6 @@ abstract class _TestClass&MyClass&MyMixin = iss::MyClass with self::MyMixin /*is
   const synthetic constructor named() → self::_TestClass&MyClass&MyMixin
     : super iss::MyClass::named()
     ;
-}
-class TestClass extends self::_TestClass&MyClass&MyMixin {
-  constructor •() → self::TestClass
-    : super self::_TestClass&MyClass&MyMixin::named()
-    ;
-}
-abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 }
 static method main() → void {}
 

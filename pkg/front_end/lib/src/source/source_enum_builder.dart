@@ -42,7 +42,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import 'name_scheme.dart';
-import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_class_builder.dart' show ClassDeclaration, SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
@@ -77,7 +77,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
-      required TypeBuilder supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
       required LookupScope typeParameterScope,
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
@@ -88,7 +87,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required this.startOffset,
       required int nameOffset,
       required this.endOffset,
-      required IndexedClass? indexedClass})
+      required IndexedClass? indexedClass,
+      required ClassDeclaration classDeclaration})
       : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
         _enumElements = enumElements,
         super(
@@ -96,7 +96,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             modifiers: Modifiers.empty,
             name: name,
             typeParameters: typeParameters,
-            supertypeBuilder: supertypeBuilder,
             interfaceBuilders: interfaceBuilders,
             onTypes: null,
             typeParameterScope: typeParameterScope,
@@ -107,14 +106,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
             startOffset: startOffset,
             nameOffset: nameOffset,
             endOffset: endOffset,
-            indexedClass: indexedClass);
+            indexedClass: indexedClass,
+            classDeclaration: classDeclaration);
 
   factory SourceEnumBuilder(
       {required List<MetadataBuilder>? metadata,
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
-      required TypeBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
       required List<EnumElementFragment> enumElements,
       required SourceLibraryBuilder libraryBuilder,
@@ -125,14 +124,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required int endOffset,
       required IndexedClass? indexedClass,
       required LookupScope typeParameterScope,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder}) {
-    supertypeBuilder ??= underscoreEnumTypeBuilder;
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required ClassDeclaration classDeclaration}) {
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata: metadata,
         name: name,
         typeParameters: typeParameters,
         underscoreEnumTypeBuilder: underscoreEnumTypeBuilder,
-        supertypeBuilder: supertypeBuilder,
         interfaceBuilders: interfaceBuilders,
         typeParameterScope: typeParameterScope,
         nameSpaceBuilder: nameSpaceBuilder,
@@ -143,7 +141,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         startOffset: startOffset,
         nameOffset: nameOffset,
         endOffset: endOffset,
-        indexedClass: indexedClass);
+        indexedClass: indexedClass,
+        classDeclaration: classDeclaration);
     return enumBuilder;
   }
 

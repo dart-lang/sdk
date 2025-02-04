@@ -18,13 +18,6 @@ abstract class B extends core::Object implements core::Enum {
   method toString() → core::String
     ;
 }
-abstract class _E1&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub method toString() → core::String
-    return super.{self::M::toString}();
-}
 class E1 extends self::_E1&_Enum&M /*isEnum*/  {
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
   static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
@@ -33,13 +26,6 @@ class E1 extends self::_E1&_Enum&M /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E2&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub method toString() → core::String
-    return super.{self::M::toString}();
 }
 class E2 extends self::_E2&_Enum&M /*isEnum*/  {
   enum-element static const field self::E2 element = const self::E2::•(0, "element");
@@ -83,13 +69,6 @@ class E5 extends core::_Enum implements self::B /*isEnum*/  {
   method toString() → core::String
     ;
 }
-abstract class _E6&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub method toString() → core::String
-    return super.{self::A::toString}();
-}
 class E6 extends self::_E6&_Enum&A /*isEnum*/  {
   enum-element static const field self::E6 element = const self::E6::•(0, "element");
   static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
@@ -98,13 +77,6 @@ class E6 extends self::_E6&_Enum&A /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E7&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub method toString() → core::String
-    return super.{self::A::toString}();
 }
 class E7 extends self::_E7&_Enum&A /*isEnum*/  {
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
@@ -116,6 +88,34 @@ class E7 extends self::_E7&_Enum&A /*isEnum*/  {
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   method toString() → core::String
     ;
+}
+abstract class _E1&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method toString() → core::String
+    return super.{self::M::toString}();
+}
+abstract class _E2&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method toString() → core::String
+    return super.{self::M::toString}();
+}
+abstract class _E6&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method toString() → core::String
+    return super.{self::A::toString}();
+}
+abstract class _E7&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method toString() → core::String
+    return super.{self::A::toString}();
 }
 static method checkEqual(dynamic x, dynamic y) → dynamic
   ;

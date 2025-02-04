@@ -30,14 +30,14 @@ class E extends self::D {
     : super self::D::•()
     ;
 }
-abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::_F&C&M
-    : super self::C::•(a: a, b: b)
-    ;
-}
 class F extends self::_F&C&M {
   synthetic constructor •() → self::F
     : super self::_F&C&M::•()
+    ;
+}
+abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::_F&C&M
+    : super self::C::•(a: a, b: b)
     ;
 }
 static method main() → dynamic {

@@ -43,7 +43,6 @@ class NamedMixinApplicationFragment implements Fragment {
     return _builder!;
   }
 
-  // Coverage-ignore(suite): Not run.
   void set builder(SourceClassBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;

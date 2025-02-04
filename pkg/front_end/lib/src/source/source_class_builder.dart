@@ -7,7 +7,8 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
-import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/reference_from_index.dart'
+    show IndexedClass, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart'
@@ -19,6 +20,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
@@ -35,14 +37,16 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
+import 'builder_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
@@ -86,10 +90,10 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationMixin
+    with ClassDeclarationBuilderMixin
     implements
         Comparable<SourceClassBuilder>,
-        ClassDeclaration,
+        ClassDeclarationBuilder,
         SourceDeclarationBuilder {
   @override
   final SourceLibraryBuilder libraryBuilder;
@@ -122,8 +126,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   /// The scope in which the [typeParameters] are declared.
   final LookupScope typeParameterScope;
 
-  @override
-  TypeBuilder? supertypeBuilder;
+  TypeBuilder? _supertypeBuilder;
 
   @override
   List<TypeBuilder>? interfaceBuilders;
@@ -160,12 +163,13 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
+  ClassDeclaration _classDeclaration;
+
   SourceClassBuilder(
       {required this.metadata,
       required Modifiers modifiers,
       required this.name,
       required this.typeParameters,
-      required this.supertypeBuilder,
       required this.interfaceBuilders,
       required this.onTypes,
       required this.typeParameterScope,
@@ -178,8 +182,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       required int endOffset,
       this.indexedClass,
       this.mixedInTypeBuilder,
-      this.isMixinDeclaration = false})
+      this.isMixinDeclaration = false,
+      required ClassDeclaration classDeclaration})
       : _modifiers = modifiers,
+        _classDeclaration = classDeclaration,
         actualCls = initializeClass(typeParameters, name, fileUri, startOffset,
             nameOffset, endOffset, indexedClass,
             isAugmentation: modifiers.isAugment) {
@@ -267,6 +273,80 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   SourceClassBuilder? actualOrigin;
 
+  bool _hasComputedSupertype = false;
+
+  TypeBuilder? computeSupertypeBuilder({
+    required SourceLoader loader,
+    required ProblemReporting problemReporting,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+    required void Function(SourceClassBuilder) addAnonymousMixinClassBuilder,
+  }) {
+    assert(!_hasComputedSupertype, "Supertype has already been computed.");
+    _hasComputedSupertype = true;
+    return _supertypeBuilder = _applyMixins(
+        unboundNominalParameters: unboundNominalParameters,
+        compilationUnitScope: _classDeclaration.compilationUnitScope,
+        problemReporting: problemReporting,
+        objectTypeBuilder: loader.target.objectType,
+        enclosingLibraryBuilder: libraryBuilder,
+        fileUri: _classDeclaration.fileUri,
+        indexedLibrary: indexedLibrary,
+        supertype: _classDeclaration.supertype,
+        mixins: _classDeclaration.mixins,
+        mixinApplications: mixinApplications,
+        startOffset: _classDeclaration.startOffset,
+        nameOffset: _classDeclaration.nameOffset,
+        endOffset: _classDeclaration.endOffset,
+        subclassName: _classDeclaration.name,
+        isMixinDeclaration: _classDeclaration.isMixinDeclaration,
+        typeParameters: _classDeclaration.typeParameters,
+        modifiers: Modifiers.empty,
+        onAnonymousMixin: (SourceClassBuilder anonymousMixinBuilder) {
+          Reference? reference = anonymousMixinBuilder.indexedClass?.reference;
+          if (reference != null) {
+            loader.buildersCreatedWithReferences[reference] =
+                anonymousMixinBuilder;
+          }
+          addAnonymousMixinClassBuilder(anonymousMixinBuilder);
+          anonymousMixinBuilder.buildScopes(loader.coreLibrary);
+        });
+  }
+
+  void markAsCyclic(ClassBuilder objectClass) {
+    assert(
+        _hasComputedSupertype, "Supertype of $this has not been computed yet.");
+
+    // Ensure that the cycle is broken by removing superclass and
+    // implemented interfaces.
+    cls.implementedTypes.clear();
+    cls.supertype = null;
+    cls.mixedInType = null;
+    _supertypeBuilder = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        objectClass, const NullabilityBuilder.omitted(),
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
+    interfaceBuilders = null;
+    mixedInTypeBuilder = null;
+
+    // TODO(johnniwinther): Update the message for when a class depends on
+    // a cycle but does not depend on itself.
+    addProblem(templateCyclicClassHierarchy.withArguments(fullNameForErrors),
+        fileOffset, noLength);
+  }
+
+  @override
+  TypeBuilder? get supertypeBuilder {
+    assert(
+        _hasComputedSupertype, "Supertype of $this has not been computed yet.");
+    return _supertypeBuilder;
+  }
+
+  void set supertypeBuilder(TypeBuilder? value) {
+    _supertypeBuilder = value;
+  }
+
   @override
   SourceClassBuilder get origin => actualOrigin ?? this;
 
@@ -311,15 +391,15 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     nameSpace.unfilteredIterator.forEach(buildBuilders);
     nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
-    if (supertypeBuilder != null) {
-      supertypeBuilder = _checkSupertype(supertypeBuilder!);
+    if (_supertypeBuilder != null) {
+      _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
         isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
     if (supertype != null &&
         LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
       supertype = null;
-      supertypeBuilder = null;
+      _supertypeBuilder = null;
     }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
@@ -337,8 +417,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           fileUri);
       supertype = null;
     }
-    if (supertype == null && supertypeBuilder is! NamedTypeBuilder) {
-      supertypeBuilder = null;
+    if (supertype == null && _supertypeBuilder is! NamedTypeBuilder) {
+      _supertypeBuilder = null;
     }
     actualCls.supertype = supertype;
 
@@ -2054,4 +2134,409 @@ class _SourceClassBuilderAugmentationAccess
   Iterable<SourceClassBuilder>? getAugmentations(
           SourceClassBuilder classDeclaration) =>
       classDeclaration._augmentations;
+}
+
+abstract class ClassDeclaration {
+  String get name;
+  LookupScope get compilationUnitScope;
+  Uri get fileUri;
+  int get nameOffset;
+  int get startOffset;
+  int get endOffset;
+  List<NominalParameterBuilder>? get typeParameters;
+  bool get isMixinDeclaration;
+  TypeBuilder? get supertype;
+  List<TypeBuilder>? get mixins;
+}
+
+class RegularClassDeclaration implements ClassDeclaration {
+  final ClassFragment _fragment;
+
+  RegularClassDeclaration(this._fragment);
+
+  @override
+  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  int get endOffset => _fragment.endOffset;
+
+  @override
+  String get name => _fragment.name;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  int get startOffset => _fragment.startOffset;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+
+  @override
+  bool get isMixinDeclaration => false;
+
+  @override
+  TypeBuilder? get supertype => _fragment.supertype;
+
+  @override
+  List<TypeBuilder>? get mixins => _fragment.mixins;
+}
+
+class EnumDeclaration implements ClassDeclaration {
+  final EnumFragment _fragment;
+
+  @override
+  final TypeBuilder supertype;
+
+  EnumDeclaration(this._fragment, this.supertype);
+
+  @override
+  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  int get endOffset => _fragment.endOffset;
+
+  @override
+  String get name => _fragment.name;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  int get startOffset => _fragment.startOffset;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+
+  @override
+  bool get isMixinDeclaration => false;
+
+  @override
+  List<TypeBuilder>? get mixins => _fragment.mixins;
+}
+
+class NamedMixinApplication implements ClassDeclaration {
+  final NamedMixinApplicationFragment _fragment;
+
+  @override
+  final List<TypeBuilder> mixins;
+
+  NamedMixinApplication(this._fragment, this.mixins);
+
+  @override
+  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  int get endOffset => _fragment.endOffset;
+
+  @override
+  String get name => _fragment.name;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  int get startOffset => _fragment.startOffset;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+
+  @override
+  bool get isMixinDeclaration => false;
+
+  @override
+  TypeBuilder? get supertype => _fragment.supertype;
+}
+
+class AnonymousMixinApplication implements ClassDeclaration {
+  @override
+  final String name;
+
+  @override
+  final LookupScope compilationUnitScope;
+
+  @override
+  final int nameOffset;
+
+  @override
+  final int startOffset;
+
+  @override
+  final int endOffset;
+
+  @override
+  final Uri fileUri;
+
+  @override
+  final List<NominalParameterBuilder>? typeParameters;
+
+  @override
+  final TypeBuilder? supertype;
+
+  @override
+  bool get isMixinDeclaration => false;
+
+  @override
+  List<TypeBuilder>? get mixins => null;
+
+  AnonymousMixinApplication(
+      {required this.name,
+      required this.compilationUnitScope,
+      required this.fileUri,
+      required this.nameOffset,
+      required this.startOffset,
+      required this.endOffset,
+      required this.typeParameters,
+      required this.supertype});
+}
+
+class MixinDeclaration implements ClassDeclaration {
+  final MixinFragment _fragment;
+
+  MixinDeclaration(this._fragment);
+
+  @override
+  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  int get endOffset => _fragment.endOffset;
+
+  @override
+  String get name => _fragment.name;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  int get startOffset => _fragment.startOffset;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+
+  @override
+  bool get isMixinDeclaration => true;
+
+  @override
+  TypeBuilder? get supertype => _fragment.supertype;
+
+  @override
+  List<TypeBuilder>? get mixins => _fragment.mixins;
+}
+
+TypeBuilder? _applyMixins(
+    {required ProblemReporting problemReporting,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeBuilder? supertype,
+    required List<TypeBuilder>? mixins,
+    required int startOffset,
+    required int nameOffset,
+    required int endOffset,
+    required String subclassName,
+    required bool isMixinDeclaration,
+    required IndexedLibrary? indexedLibrary,
+    required LookupScope compilationUnitScope,
+    required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+    required Uri fileUri,
+    List<NominalParameterBuilder>? typeParameters,
+    required Modifiers modifiers,
+    required TypeBuilder objectTypeBuilder,
+    required void Function(SourceClassBuilder) onAnonymousMixin}) {
+  if (mixins == null) {
+    return supertype;
+  }
+  // Documentation below assumes the given mixin application is in one of
+  // these forms:
+  //
+  //     class C extends S with M1, M2, M3;
+  //     class Named = S with M1, M2, M3;
+  //
+  // When we refer to the subclass, we mean `C` or `Named`.
+
+  /// The current supertype.
+  ///
+  /// Starts out having the value `S` and on each iteration of the loop
+  /// below, it will take on the value corresponding to:
+  ///
+  /// 1. `S with M1`.
+  /// 2. `(S with M1) with M2`.
+  /// 3. `((S with M1) with M2) with M3`.
+  supertype ??= objectTypeBuilder;
+
+  /// The variable part of the mixin application's synthetic name. It
+  /// starts out as the name of the superclass, but is only used after it
+  /// has been combined with the name of the current mixin. In the examples
+  /// from above, it will take these values:
+  ///
+  /// 1. `S&M1`
+  /// 2. `S&M1&M2`
+  /// 3. `S&M1&M2&M3`.
+  ///
+  /// The full name of the mixin application is obtained by prepending the
+  /// name of the subclass (`C` or `Named` in the above examples) to the
+  /// running name. For the example `C`, that leads to these full names:
+  ///
+  /// 1. `_C&S&M1`
+  /// 2. `_C&S&M1&M2`
+  /// 3. `_C&S&M1&M2&M3`.
+  ///
+  /// For a named mixin application, the last name has been given by the
+  /// programmer, so for the example `Named` we see these full names:
+  ///
+  /// 1. `_Named&S&M1`
+  /// 2. `_Named&S&M1&M2`
+  /// 3. `Named`.
+  String runningName;
+  if (supertype.typeName == null) {
+    assert(supertype is FunctionTypeBuilder);
+
+    // Function types don't have names, and we can supply any string that
+    // doesn't have to be unique. The actual supertype of the mixin will
+    // not be built in that case.
+    runningName = "";
+  } else {
+    runningName = supertype.typeName!.name;
+  }
+
+  /// The names of the type parameters of the subclass.
+  Set<String>? typeParameterNames;
+  if (typeParameters != null) {
+    typeParameterNames = new Set<String>();
+    for (NominalParameterBuilder typeParameter in typeParameters) {
+      typeParameterNames.add(typeParameter.name);
+    }
+  }
+
+  /// Iterate over the mixins from left to right. At the end of each
+  /// iteration, a new [supertype] is computed that is the mixin
+  /// application of [supertype] with the current mixin.
+  for (int i = 0; i < mixins.length; i++) {
+    TypeBuilder mixin = mixins[i];
+    bool isGeneric = false;
+    if (typeParameterNames != null) {
+      if (supertype != null) {
+        isGeneric =
+            isGeneric || supertype.usesTypeParameters(typeParameterNames);
+      }
+      isGeneric = isGeneric || mixin.usesTypeParameters(typeParameterNames);
+    }
+    TypeName? typeName = mixin.typeName;
+    if (typeName != null) {
+      runningName += "&${typeName.name}";
+    }
+    String fullname = "_$subclassName&$runningName";
+    List<NominalParameterBuilder>? applicationTypeParameters;
+    List<TypeBuilder>? applicationTypeArguments;
+    ClassDeclaration classDeclaration;
+    final int computedStartOffset;
+    // Otherwise, we pass the fresh type parameters to the mixin
+    // application in the same order as they're declared on the subclass.
+    if (isGeneric) {
+      NominalParameterNameSpace nominalParameterNameSpace =
+          new NominalParameterNameSpace();
+
+      NominalParameterCopy nominalVariableCopy =
+          NominalParameterCopy.copyTypeParameters(
+              unboundNominalParameters, typeParameters,
+              kind: TypeParameterKind.extensionSynthesized,
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Allowed)!;
+
+      applicationTypeParameters = nominalVariableCopy.newParameterBuilders;
+      Map<NominalParameterBuilder, NominalParameterBuilder>
+          newToOldVariableMap = nominalVariableCopy.newToOldParameterMap;
+
+      Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
+          nominalVariableCopy.substitutionMap;
+
+      applicationTypeArguments = [];
+      for (NominalParameterBuilder typeParameter in typeParameters!) {
+        TypeBuilder applicationTypeArgument =
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                // The type parameter types passed as arguments to the
+                // generic class representing the anonymous mixin
+                // application should refer back to the type parameters of
+                // the class that extend the anonymous mixin application.
+                typeParameter,
+                const NullabilityBuilder.omitted(),
+                fileUri: fileUri,
+                charOffset: nameOffset,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+        applicationTypeArguments.add(applicationTypeArgument);
+      }
+      nominalParameterNameSpace.addTypeParameters(
+          problemReporting, applicationTypeParameters,
+          ownerName: fullname, allowNameConflict: true);
+      if (supertype != null) {
+        supertype = new SynthesizedTypeBuilder(
+            supertype, newToOldVariableMap, substitutionMap);
+      }
+      mixin = new SynthesizedTypeBuilder(
+          mixin, newToOldVariableMap, substitutionMap);
+    }
+    computedStartOffset = startOffset;
+    classDeclaration = new AnonymousMixinApplication(
+        name: fullname,
+        compilationUnitScope: compilationUnitScope,
+        supertype: isMixinDeclaration ? null : supertype,
+        typeParameters: applicationTypeParameters,
+        fileUri: fileUri,
+        startOffset: computedStartOffset,
+        nameOffset: nameOffset,
+        endOffset: endOffset);
+
+    IndexedClass? indexedClass;
+    if (indexedLibrary != null) {
+      indexedClass = indexedLibrary.lookupIndexedClass(fullname);
+    }
+
+    LookupScope typeParameterScope =
+        TypeParameterScope.fromList(compilationUnitScope, typeParameters);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        new DeclarationNameSpaceBuilder.empty();
+    SourceClassBuilder application = new SourceClassBuilder(
+        metadata: null,
+        modifiers: Modifiers.Abstract,
+        name: fullname,
+        typeParameters: applicationTypeParameters,
+        interfaceBuilders: isMixinDeclaration ? [supertype!, mixin] : null,
+        onTypes: null,
+        typeParameterScope: typeParameterScope,
+        nameSpaceBuilder: nameSpaceBuilder,
+        libraryBuilder: enclosingLibraryBuilder,
+        constructorReferences: [],
+        fileUri: fileUri,
+        startOffset: computedStartOffset,
+        nameOffset: nameOffset,
+        endOffset: endOffset,
+        indexedClass: indexedClass,
+        mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
+        classDeclaration: classDeclaration);
+    // TODO(ahe, kmillikin): Should always be true?
+    // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
+    // handle that :(
+    application.cls.isAnonymousMixin = true;
+    onAnonymousMixin(application);
+    supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        application, const NullabilityBuilder.omitted(),
+        arguments: applicationTypeArguments,
+        fileUri: fileUri,
+        charOffset: nameOffset,
+        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed);
+    mixinApplications[application] = mixin;
+  }
+  return supertype;
 }

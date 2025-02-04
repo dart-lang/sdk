@@ -4,18 +4,8 @@ import "dart:core" as core;
 
 abstract class Diagnosticable extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _SomeClass&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SomeClass&Object&Diagnosticable
-    : super core::Object::•()
-    ;
-}
 class SomeClass extends self::_SomeClass&Object&Diagnosticable {
   synthetic constructor •() → self::SomeClass
-    ;
-}
-abstract class _State&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_State&Object&Diagnosticable
-    : super core::Object::•()
     ;
 }
 class State<T extends core::Object? = dynamic> extends self::_State&Object&Diagnosticable {
@@ -28,6 +18,16 @@ class StateA extends self::State<dynamic> {
 }
 class StateB extends self::State<core::int> {
   synthetic constructor •() → self::StateB
+    ;
+}
+abstract class _SomeClass&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SomeClass&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+}
+abstract class _State&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_State&Object&Diagnosticable
+    : super core::Object::•()
     ;
 }
 static field self::StateA? a;

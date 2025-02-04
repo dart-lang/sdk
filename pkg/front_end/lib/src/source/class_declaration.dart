@@ -15,7 +15,10 @@ import 'source_library_builder.dart';
 /// as a regular class declaration and an extension type declaration.
 // TODO(johnniwinther): Should this be renamed now that inline classes are
 //  renamed to extension type declarations?
-abstract class ClassDeclaration
+// TODO(johnniwinther): Merge this with [IDeclarationBuilder]? Extensions are
+// the only declarations without constructors, this might come with the static
+// extension feature.
+abstract class ClassDeclarationBuilder
     implements IDeclarationBuilder, ClassMemberAccess {
   @override
   SourceLibraryBuilder get libraryBuilder;
@@ -79,7 +82,7 @@ abstract class ClassDeclaration
   Iterator<T> localConstructorIterator<T extends MemberBuilder>();
 }
 
-mixin ClassDeclarationMixin implements ClassDeclaration {
+mixin ClassDeclarationBuilderMixin implements ClassDeclarationBuilder {
   List<ConstructorReferenceBuilder>? get constructorReferences;
 
   @override
@@ -107,13 +110,14 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
   }
 }
 
-abstract class ClassDeclarationAugmentationAccess<D extends ClassDeclaration> {
+abstract class ClassDeclarationAugmentationAccess<
+    D extends ClassDeclarationBuilder> {
   D getOrigin(D classDeclaration);
 
   Iterable<D>? getAugmentations(D classDeclaration);
 }
 
-class ClassDeclarationMemberIterator<D extends ClassDeclaration,
+class ClassDeclarationMemberIterator<D extends ClassDeclarationBuilder,
     T extends Builder> implements Iterator<T> {
   Iterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -171,7 +175,7 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
 }
 
 // Coverage-ignore(suite): Not run.
-class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
+class ClassDeclarationMemberNameIterator<D extends ClassDeclarationBuilder,
     T extends Builder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -224,7 +228,7 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
   String get name => _iterator?.name ?? (throw new StateError('No element'));
 }
 
-class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
+class ClassDeclarationConstructorIterator<D extends ClassDeclarationBuilder,
     T extends MemberBuilder> implements Iterator<T> {
   Iterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -283,7 +287,7 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
       (throw new StateError('No element'));
 }
 
-class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
+class ClassDeclarationConstructorNameIterator<D extends ClassDeclarationBuilder,
     T extends MemberBuilder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;

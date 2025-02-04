@@ -34,6 +34,15 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
     core::String f3TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   }
 }
+class D extends self::_D&C&M {
+  synthetic constructor •() → self::D
+    : super self::_D&C&M::•()
+    ;
+  method method() → void {
+    (core::int) → core::int f4 = super.{self::C::inst}<core::int>;
+    core::String f4TypeName = (super.{self::C::inst}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+  }
+}
 abstract class _D&C&M extends self::C implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_D&C&M
     : super self::C::•()
@@ -47,15 +56,6 @@ abstract class _D&C&M extends self::C implements self::M /*isAnonymousMixin,isEl
     core::String f2TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f3TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
-  }
-}
-class D extends self::_D&C&M {
-  synthetic constructor •() → self::D
-    : super self::_D&C&M::•()
-    ;
-  method method() → void {
-    (core::int) → core::int f4 = super.{self::C::inst}<core::int>;
-    core::String f4TypeName = (super.{self::C::inst}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   }
 }
 extension Ext on self::C {

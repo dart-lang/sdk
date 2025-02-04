@@ -16,13 +16,6 @@ class C extends core::Object {
     ;
   method foo(core::num x) → dynamic {}
 }
-abstract class _D&C&B<T extends core::num> extends self::C implements self::B<self::_D&C&B::T> /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_D&C&B<self::_D&C&B::T>
-    : super self::C::•()
-    ;
-  forwarding-stub method foo(covariant-by-class core::num x) → dynamic
-    return super.{self::C::foo}(x);
-}
 class D<T extends core::num> extends self::_D&C&B<self::D::T> {
   synthetic constructor •() → self::D<self::D::T>
     : super self::_D&C&B::•()
@@ -30,6 +23,13 @@ class D<T extends core::num> extends self::_D&C&B<self::D::T> {
 }
 class E<T extends core::num> extends self::C implements self::B<self::E::T> /*isEliminatedMixin*/  {
   synthetic constructor •() → self::E<self::E::T>
+    : super self::C::•()
+    ;
+  forwarding-stub method foo(covariant-by-class core::num x) → dynamic
+    return super.{self::C::foo}(x);
+}
+abstract class _D&C&B<T extends core::num> extends self::C implements self::B<self::_D&C&B::T> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_D&C&B<self::_D&C&B::T>
     : super self::C::•()
     ;
   forwarding-stub method foo(covariant-by-class core::num x) → dynamic

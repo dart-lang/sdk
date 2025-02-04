@@ -40,18 +40,8 @@ class E4 extends core::Object implements mai::C4 {
   method method2() → void
     ;
 }
-abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F1&Object&M1
-    : super core::Object::•()
-    ;
-}
 class F1 extends self::_F1&Object&M1 {
   synthetic constructor •() → self::F1
-    ;
-}
-abstract class _F2&Object&M2 = core::Object with mai::M2 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F2&Object&M2
-    : super core::Object::•()
     ;
 }
 class F2 extends self::_F2&Object&M2 {
@@ -61,13 +51,6 @@ class F2 extends self::_F2&Object&M2 {
 class Impl1 extends mai::Base implements mai::Interface {
   synthetic constructor •() → self::Impl1
     ;
-}
-abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Impl2&Object&Mixin
-    : super core::Object::•()
-    ;
-  mixin-super-stub method foo() → void
-    return super.{mai::Mixin::foo}();
 }
 class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
   synthetic constructor •() → self::Impl2
@@ -80,6 +63,23 @@ class C6Ext extends mai::C6 {
 class C7Ext extends mai::C7 {
   constructor •({core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → self::C7Ext
     ;
+}
+abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F1&Object&M1
+    : super core::Object::•()
+    ;
+}
+abstract class _F2&Object&M2 = core::Object with mai::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F2&Object&M2
+    : super core::Object::•()
+    ;
+}
+abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Impl2&Object&Mixin
+    : super core::Object::•()
+    ;
+  mixin-super-stub method foo() → void
+    return super.{mai::Mixin::foo}();
 }
 static field dynamic x;
 static method test() → void

@@ -27,6 +27,11 @@ abstract class M extends self::A /*isMixinDeclaration*/  {
     self::console = "M";
   }
 }
+class MA extends self::_MA&C&M {
+  synthetic constructor •() → self::MA
+    : super self::_MA&C&M::•()
+    ;
+}
 abstract class _MA&C&M = self::C with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MA&C&M
     : super self::C::•()
@@ -35,11 +40,6 @@ abstract class _MA&C&M = self::C with self::M /*isAnonymousMixin*/  {
     return super.{self::M::noSuchMethod}(i);
   mixin-super-stub method test() → dynamic
     return super.{self::M::test}();
-}
-class MA extends self::_MA&C&M {
-  synthetic constructor •() → self::MA
-    : super self::_MA&C&M::•()
-    ;
 }
 static field core::String console = "";
 static method main() → dynamic {

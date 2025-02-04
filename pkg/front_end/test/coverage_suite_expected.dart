@@ -210,7 +210,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 632,
+    hitCount: 637,
     missCount: 0,
   ),
   // 100.0%.
@@ -405,7 +405,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
-    hitCount: 49,
+    hitCount: 48,
     missCount: 0,
   ),
   // 100.0%.
@@ -535,7 +535,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/named_mixin_application.dart": (
-    hitCount: 1,
+    hitCount: 4,
     missCount: 0,
   ),
   // 100.0%.
@@ -720,7 +720,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1063,
+    hitCount: 1068,
     missCount: 0,
   ),
   // 100.0%.
@@ -830,7 +830,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1163,
+    hitCount: 1112,
     missCount: 0,
   ),
   // 100.0%.
@@ -840,7 +840,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1266,
+    hitCount: 1485,
     missCount: 0,
   ),
   // 100.0%.
@@ -881,12 +881,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1243,
+    hitCount: 1270,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1842,
+    hitCount: 1833,
     missCount: 0,
   ),
   // 100.0%.
@@ -921,7 +921,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1437,
+    hitCount: 1399,
     missCount: 0,
   ),
   // 100.0%.

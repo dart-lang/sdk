@@ -58,15 +58,6 @@ abstract class A2 extends core::Object implements core::Record {
     : super core::Object::•()
     ;
 }
-abstract final class _A3&Object&Record extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A3&Object&Record
-    : super core::Object::•()
-    ;
-  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ runtimeType() → core::Type;
-  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ hashCode() → core::int;
-  abstract operator /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ ==(core::Object other) → core::bool;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ toString() → core::String;
-}
 abstract class A3 extends self::_A3&Object&Record {
   synthetic constructor •() → self::A3
     : super self::_A3&Object&Record::•()
@@ -79,11 +70,6 @@ abstract class A4 extends typ::A<core::Record> {
 }
 abstract class A5 extends core::Object implements typ::A<core::Record> {
   synthetic constructor •() → self::A5
-    : super core::Object::•()
-    ;
-}
-abstract class _A6&Object&A extends core::Object implements typ::A<core::Record> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A6&Object&A
     : super core::Object::•()
     ;
 }
@@ -105,6 +91,20 @@ abstract class A8 extends typ::A<core::Record> {
 abstract class A9 extends core::Record {
   synthetic constructor •() → self::A9
     : super core::Record::•()
+    ;
+}
+abstract final class _A3&Object&Record extends core::Object implements core::Record /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A3&Object&Record
+    : super core::Object::•()
+    ;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ runtimeType() → core::Type;
+  abstract get /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ hashCode() → core::int;
+  abstract operator /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ ==(core::Object other) → core::bool;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/record.dart */ toString() → core::String;
+}
+abstract class _A6&Object&A extends core::Object implements typ::A<core::Record> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A6&Object&A
+    : super core::Object::•()
     ;
 }
 static method foo1() → core::Record

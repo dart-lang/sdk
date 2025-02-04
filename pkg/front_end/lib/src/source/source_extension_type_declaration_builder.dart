@@ -42,10 +42,10 @@ import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
+    with SourceDeclarationBuilderMixin, ClassDeclarationBuilderMixin
     implements
         Comparable<SourceExtensionTypeDeclarationBuilder>,
-        ClassDeclaration {
+        ClassDeclarationBuilder {
   @override
   final SourceLibraryBuilder parent;
 

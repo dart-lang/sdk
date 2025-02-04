@@ -8,6 +8,20 @@ import "dart:math" as math;
 
 import "dart:collection";
 
+class A extends self::_A&Object&ListMixin {
+  field core::int count = 0;
+  synthetic constructor •() → self::A
+    : super self::_A&Object&ListMixin::•()
+    ;
+  operator [](core::int index) → core::int {
+    this.{self::A::count} = this.{self::A::count}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return 0;
+  }
+  operator []=(core::int index, covariant-by-class core::int value) → void {}
+  get length() → core::int
+    return 2;
+  set length(core::int value) → void {}
+}
 abstract class _A&Object&ListMixin extends core::Object implements col::ListBase<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&ListMixin
     : super core::Object::•()
@@ -507,20 +521,6 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     return new _in::ReversedListIterable::•<core::int>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
-}
-class A extends self::_A&Object&ListMixin {
-  field core::int count = 0;
-  synthetic constructor •() → self::A
-    : super self::_A&Object&ListMixin::•()
-    ;
-  operator [](core::int index) → core::int {
-    this.{self::A::count} = this.{self::A::count}{core::int}.{core::num::+}(1){(core::num) → core::int};
-    return 0;
-  }
-  operator []=(core::int index, covariant-by-class core::int value) → void {}
-  get length() → core::int
-    return 2;
-  set length(core::int value) → void {}
 }
 static method main() → dynamic {
   self::A a = new self::A::•();

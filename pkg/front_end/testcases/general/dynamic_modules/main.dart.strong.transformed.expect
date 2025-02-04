@@ -39,11 +39,6 @@
 //   void method1() {}
 //        ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:43:7: Error: Cannot extend, implement or mix-in class 'M1' in a dynamic module.
-// Try removing the reference to class 'M1' or update the dynamic interface to list class 'M1' as extendable.
-// class F1 with M1 {}
-//       ^
-//
 // pkg/front_end/testcases/general/dynamic_modules/main_lib1.dart:48:8: Error: Cannot override member 'Interface.foo' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'Interface.foo' as can-be-overridden.
 //   void foo() {}
@@ -59,6 +54,11 @@
 //
 // pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke member '_privateMethodForC6' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member '_privateMethodForC6' as callable.
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:43:7: Error: Cannot extend, implement or mix-in class 'M1' in a dynamic module.
+// Try removing the reference to class 'M1' or update the dynamic interface to list class 'M1' as extendable.
+// class F1 with M1 {}
+//       ^
 //
 // pkg/front_end/testcases/general/dynamic_modules/main.dart:68:15: Error: Dynamic calls are not allowed in a dynamic module.
 //   x.foo().bar.baz = 42;
@@ -211,19 +211,9 @@ class E4 extends core::Object implements mai::C4 {
   method method1() → void {}
   method method2() → void {}
 }
-abstract class _F1&Object&M1 extends core::Object implements mai::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F1&Object&M1
-    : super core::Object::•()
-    ;
-}
 class F1 extends self::_F1&Object&M1 {
   synthetic constructor •() → self::F1
     : super self::_F1&Object&M1::•()
-    ;
-}
-abstract class _F2&Object&M2 extends core::Object implements mai::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F2&Object&M2
-    : super core::Object::•()
     ;
 }
 class F2 extends self::_F2&Object&M2 {
@@ -235,12 +225,6 @@ class Impl1 extends mai::Base implements mai::Interface {
   synthetic constructor •() → self::Impl1
     : super mai::Base::•()
     ;
-}
-abstract class _Impl2&Object&Mixin extends core::Object implements mai::Mixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Impl2&Object&Mixin
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///main_lib1.dart */ foo() → void {}
 }
 class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
   synthetic constructor •() → self::Impl2
@@ -256,6 +240,22 @@ class C7Ext extends mai::C7 {
   constructor •({core::Object param = #C4}) → self::C7Ext
     : super mai::C7::•(param: param)
     ;
+}
+abstract class _F1&Object&M1 extends core::Object implements mai::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F1&Object&M1
+    : super core::Object::•()
+    ;
+}
+abstract class _F2&Object&M2 extends core::Object implements mai::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F2&Object&M2
+    : super core::Object::•()
+    ;
+}
+abstract class _Impl2&Object&Mixin extends core::Object implements mai::Mixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Impl2&Object&Mixin
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///main_lib1.dart */ foo() → void {}
 }
 static field dynamic x;
 static method test() → void {

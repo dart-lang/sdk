@@ -32,11 +32,15 @@ library;
 import self as self;
 import "dart:core" as core;
 
+abstract class A extends self::_A&C&D /*isMixinDeclaration*/  {
+}
+class B extends self::_B&C&D&A {
+  synthetic constructor •() → self::B
+    ;
+}
 abstract class _A&C&D extends core::Object /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&C&D
     ;
-}
-abstract class A extends self::_A&C&D /*isMixinDeclaration*/  {
 }
 abstract class _B&C&D extends core::Object /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B&C&D
@@ -45,9 +49,5 @@ abstract class _B&C&D extends core::Object /*isAnonymousMixin*/  {
 abstract class _B&C&D&A = self::_B&C&D with self::A /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B&C&D&A
     : super self::_B&C&D::•()
-    ;
-}
-class B extends self::_B&C&D&A {
-  synthetic constructor •() → self::B
     ;
 }

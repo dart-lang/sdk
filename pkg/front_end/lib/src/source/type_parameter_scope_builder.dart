@@ -21,7 +21,6 @@ import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
-import 'source_builder_factory.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -1239,33 +1238,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             modifiers: fragment.modifiers,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: fragment.supertype,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: false,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
             interfaceBuilders: fragment.interfaces,
             onTypes: null,
             typeParameterScope: fragment.typeParameterScope,
@@ -1277,7 +1249,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             nameOffset: fragment.nameOffset,
             endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: false);
+            isMixinDeclaration: false,
+            classDeclaration: new RegularClassDeclaration(fragment));
         fragment.builder = classBuilder;
         fragment.bodyScope.declarationBuilder = classBuilder;
         builders.add(new _AddBuilder(fragment.name, classBuilder,
@@ -1294,33 +1267,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             modifiers: fragment.modifiers,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: fragment.supertype,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: true,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
             interfaceBuilders: fragment.interfaces,
             // TODO(johnniwinther): Add the `on` clause types of a mixin
             //  declaration here.
@@ -1334,7 +1280,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             nameOffset: fragment.nameOffset,
             endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: true);
+            isMixinDeclaration: true,
+            classDeclaration: new MixinDeclaration(fragment));
         fragment.builder = mixinBuilder;
         fragment.bodyScope.declarationBuilder = mixinBuilder;
         builders.add(new _AddBuilder(fragment.name, mixinBuilder,
@@ -1344,37 +1291,50 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               mixinBuilder;
         }
       case NamedMixinApplicationFragment():
-        BuilderFactoryImpl.applyMixins(
-            unboundNominalParameters: unboundNominalParameters,
-            compilationUnitScope: fragment.compilationUnitScope,
-            problemReporting: problemReporting,
-            objectTypeBuilder: loader.target.objectType,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
+        List<TypeBuilder> mixins = fragment.mixins.toList();
+        TypeBuilder mixin = mixins.removeLast();
+        ClassDeclaration classDeclaration =
+            new NamedMixinApplication(fragment, mixins);
+
+        String name = fragment.name;
+        int computedStartOffset =
+            fragment.metadata?.first.atOffset ?? fragment.startOffset;
+
+        IndexedClass? referencesFromIndexedClass;
+        if (indexedLibrary != null) {
+          referencesFromIndexedClass = indexedLibrary.lookupIndexedClass(name);
+        }
+
+        LookupScope typeParameterScope = TypeParameterScope.fromList(
+            fragment.compilationUnitScope, fragment.typeParameters);
+        DeclarationNameSpaceBuilder nameSpaceBuilder =
+            new DeclarationNameSpaceBuilder.empty();
+        SourceClassBuilder classBuilder = new SourceClassBuilder(
+            metadata: fragment.metadata,
+            modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
+            name: name,
+            typeParameters: fragment.typeParameters,
+            interfaceBuilders: fragment.interfaces,
+            onTypes: null,
+            typeParameterScope: typeParameterScope,
+            nameSpaceBuilder: nameSpaceBuilder,
+            libraryBuilder: enclosingLibraryBuilder,
+            constructorReferences: [],
             fileUri: fragment.fileUri,
-            indexedLibrary: indexedLibrary,
-            supertype: fragment.supertype,
-            mixins: fragment.mixins,
-            mixinApplications: mixinApplications,
-            startOffset: fragment.startOffset,
+            startOffset: computedStartOffset,
             nameOffset: fragment.nameOffset,
             endOffset: fragment.endOffset,
-            subclassName: fragment.name,
-            isMixinDeclaration: false,
-            metadata: fragment.metadata,
-            name: fragment.name,
-            typeParameters: fragment.typeParameters,
-            modifiers: fragment.modifiers,
-            interfaces: fragment.interfaces,
-            addBuilder: (String name, Builder declaration, int charOffset,
-                {Reference? getterReference}) {
-              if (getterReference != null) {
-                loader.buildersCreatedWithReferences[getterReference] =
-                    declaration;
-              }
-              builders.add(new _AddBuilder(
-                  name, declaration, fragment.fileUri, charOffset));
-            });
-
+            indexedClass: referencesFromIndexedClass,
+            mixedInTypeBuilder: mixin,
+            classDeclaration: classDeclaration);
+        mixinApplications[classBuilder] = mixin;
+        fragment.builder = classBuilder;
+        builders.add(new _AddBuilder(fragment.name, classBuilder,
+            fragment.fileUri, fragment.nameOffset));
+        if (referencesFromIndexedClass != null) {
+          loader.buildersCreatedWithReferences[
+              referencesFromIndexedClass.reference] = classBuilder;
+        }
       case EnumFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
@@ -1383,33 +1343,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: loader.target.underscoreEnumType,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: false,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
             interfaceBuilders: fragment.interfaces,
             enumElements: fragment.enumElements,
             libraryBuilder: enclosingLibraryBuilder,
@@ -1420,7 +1353,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             endOffset: fragment.endOffset,
             indexedClass: indexedClass,
             typeParameterScope: fragment.typeParameterScope,
-            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder());
+            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+            classDeclaration: new EnumDeclaration(
+                fragment, loader.target.underscoreEnumType));
         fragment.builder = enumBuilder;
         fragment.bodyScope.declarationBuilder = enumBuilder;
         builders.add(new _AddBuilder(

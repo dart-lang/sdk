@@ -96,7 +96,8 @@ Uri computePlatformBinariesLocation({bool forceBuildDir = false}) {
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base
       .resolveUri(
-          new Uri.file(resolvedExecutable ?? Platform.resolvedExecutable))
+          new Uri.file(resolvedExecutable ?? // Coverage-ignore(suite): Not run.
+              Platform.resolvedExecutable))
       .resolve(".");
   if (vmDirectory.path.endsWith("/bin/")) {
     // Looks like the VM is in a `/bin/` directory, so this is running from a

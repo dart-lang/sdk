@@ -50,8 +50,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -1765,29 +1763,8 @@ severity: $severity
       classesWithCycles.sort();
       for (int i = 0; i < classesWithCycles.length; i++) {
         SourceClassBuilder classBuilder = classesWithCycles[i];
-
-        // Ensure that the cycle is broken by removing superclass and
-        // implemented interfaces.
-        Class cls = classBuilder.cls;
-        cls.implementedTypes.clear();
-        cls.supertype = null;
-        cls.mixedInType = null;
-        classBuilder.supertypeBuilder =
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                objectClass, const NullabilityBuilder.omitted(),
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Unexpected);
-        classBuilder.interfaceBuilders = null;
-        classBuilder.mixedInTypeBuilder = null;
-
+        classBuilder.markAsCyclic(objectClass);
         classes.add(classBuilder);
-        // TODO(johnniwinther): Update the message for when a class depends on
-        // a cycle but does not depend on itself.
-        classBuilder.addProblem(
-            templateCyclicClassHierarchy
-                .withArguments(classBuilder.fullNameForErrors),
-            classBuilder.fileOffset,
-            noLength);
       }
     }
 
@@ -2314,6 +2291,13 @@ severity: $severity
           }
         }
       }
+    }
+  }
+
+  /// Computes the direct super type for all source classes.
+  void computeSupertypes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      libraryBuilder.computeSupertypes();
     }
   }
 

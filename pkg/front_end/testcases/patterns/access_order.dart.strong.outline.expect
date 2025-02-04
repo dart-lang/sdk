@@ -6,6 +6,24 @@ import "dart:math" as math;
 
 import "dart:collection";
 
+class MyList<E extends core::Object? = dynamic> extends self::_MyList&Object&ListMixin<self::MyList::E%> {
+  final field core::List<self::MyList::E%> list;
+  field core::StringBuffer sb;
+  constructor •(core::List<self::MyList::E%> list) → self::MyList<self::MyList::E%>
+    ;
+  operator [](core::int index) → self::MyList::E%
+    ;
+  operator []=(core::int index, covariant-by-class self::MyList::E% value) → void
+    ;
+  get length() → core::int
+    ;
+  set length(core::int value) → void
+    ;
+  get log() → core::String
+    ;
+  method clearLog() → void
+    ;
+}
 abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<self::_MyList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MyList&Object&ListMixin<self::_MyList&Object&ListMixin::E%>
     : super core::Object::•()
@@ -130,24 +148,6 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = cor
     return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
     return super.{col::ListBase::toString}();
-}
-class MyList<E extends core::Object? = dynamic> extends self::_MyList&Object&ListMixin<self::MyList::E%> {
-  final field core::List<self::MyList::E%> list;
-  field core::StringBuffer sb;
-  constructor •(core::List<self::MyList::E%> list) → self::MyList<self::MyList::E%>
-    ;
-  operator [](core::int index) → self::MyList::E%
-    ;
-  operator []=(core::int index, covariant-by-class self::MyList::E% value) → void
-    ;
-  get length() → core::int
-    ;
-  set length(core::int value) → void
-    ;
-  get log() → core::String
-    ;
-  method clearLog() → void
-    ;
 }
 static method test1(core::Object o) → core::String
   ;

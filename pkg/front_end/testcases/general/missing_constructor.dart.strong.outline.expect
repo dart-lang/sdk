@@ -20,15 +20,15 @@ class Bad extends core::Object {
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _MixinApplication&Super&M = self::Super with self::M /*isAnonymousMixin*/  {
-  synthetic constructor _() → self::_MixinApplication&Super&M
-    : super self::Super::_()
-    ;
-}
 class MixinApplication extends self::_MixinApplication&Super&M {
   constructor •() → self::MixinApplication
     ;
   constructor foo() → self::MixinApplication
+    ;
+}
+abstract class _MixinApplication&Super&M = self::Super with self::M /*isAnonymousMixin*/  {
+  synthetic constructor _() → self::_MixinApplication&Super&M
+    : super self::Super::_()
     ;
 }
 static method main() → dynamic

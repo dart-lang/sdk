@@ -20,13 +20,6 @@ abstract class B extends core::Object implements core::Enum {
   method toString() → core::String
     return "B";
 }
-abstract class _E1&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  method toString() → core::String
-    return "M";
-}
 class E1 extends self::_E1&_Enum&M /*isEnum*/  {
   enum-element static const field self::E1 element = #C3;
   static const field core::List<self::E1> values = #C4;
@@ -35,13 +28,6 @@ class E1 extends self::_E1&_Enum&M /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E2&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  method toString() → core::String
-    return "M";
 }
 class E2 extends self::_E2&_Enum&M /*isEnum*/  {
   enum-element static const field self::E2 element = #C5;
@@ -85,13 +71,6 @@ class E5 extends core::_Enum implements self::B /*isEnum*/  {
   method toString() → core::String
     return "E5";
 }
-abstract class _E6&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  method toString() → core::String
-    return "A";
-}
 class E6 extends self::_E6&_Enum&A /*isEnum*/  {
   enum-element static const field self::E6 element = #C13;
   static const field core::List<self::E6> values = #C14;
@@ -100,13 +79,6 @@ class E6 extends self::_E6&_Enum&A /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E7&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  method toString() → core::String
-    return "A";
 }
 class E7 extends self::_E7&_Enum&A /*isEnum*/  {
   enum-element static const field self::E7 element = #C15;
@@ -118,6 +90,34 @@ class E7 extends self::_E7&_Enum&A /*isEnum*/  {
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   method toString() → core::String
     return "E7";
+}
+abstract class _E1&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "M";
+}
+abstract class _E2&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "M";
+}
+abstract class _E6&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "A";
+}
+abstract class _E7&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "A";
 }
 static method checkEqual(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

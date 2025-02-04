@@ -391,6 +391,7 @@ class KernelTarget {
       Iterable<SourceLibraryBuilder> libraryBuilders) {
     loader.computeLibraryScopes(libraryBuilders);
     loader.resolveTypes(libraryBuilders);
+    loader.computeSupertypes(libraryBuilders);
     loader.computeDefaultTypes(
         libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
   }
@@ -420,6 +421,11 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_resolveTypes);
       loader.resolveTypes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeSupertypes);
+      loader.computeSupertypes(loader.sourceLibraryBuilders);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -1381,7 +1387,7 @@ class KernelTarget {
     _finishConstructors(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(ClassDeclaration classDeclaration) {
+  void _finishConstructors(ClassDeclarationBuilder classDeclaration) {
     SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th

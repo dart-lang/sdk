@@ -14,17 +14,17 @@ class A extends core::Object {
 abstract class B<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
 }
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    : super self::_C&A&B::•()
+    ;
+}
 abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
   method foo(covariant-by-class core::num x) → core::num
     return super.{self::A::foo}(x);
-}
-class C extends self::_C&A&B {
-  synthetic constructor •() → self::C
-    : super self::_C&A&B::•()
-    ;
 }
 static method main() → void {
   self::B<core::Object> b = new self::C::•();

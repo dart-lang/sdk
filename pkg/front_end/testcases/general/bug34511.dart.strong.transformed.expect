@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 abstract class A<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _B&Object&A<Z extends core::Object? = dynamic> extends core::Object implements self::A<() → self::_B&Object&A::Z%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_B&Object&A<self::_B&Object&A::Z%>
-    : super core::Object::•()
-    ;
-}
 class B<Z extends core::Object? = dynamic> extends self::_B&Object&A<self::B::Z%> {
   synthetic constructor •() → self::B<self::B::Z%>
     : super self::_B&Object&A::•()
+    ;
+}
+abstract class _B&Object&A<Z extends core::Object? = dynamic> extends core::Object implements self::A<() → self::_B&Object&A::Z%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_B&Object&A<self::_B&Object&A::Z%>
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic {}

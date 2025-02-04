@@ -6,6 +6,30 @@ import "dart:math" as math;
 
 import "dart:collection";
 
+class MyList<E extends core::Object? = dynamic> extends self::_MyList&Object&ListMixin<self::MyList::E%> {
+  final field core::List<self::MyList::E%> list;
+  field core::StringBuffer sb = new core::StringBuffer::•();
+  constructor •(core::List<self::MyList::E%> list) → self::MyList<self::MyList::E%>
+    : self::MyList::list = list, super self::_MyList&Object&ListMixin::•()
+    ;
+  operator [](core::int index) → self::MyList::E% {
+    this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::write}("[${index}];"){(core::Object?) → void};
+    return this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::[]}(index){(core::int) → self::MyList::E%};
+  }
+  operator []=(core::int index, covariant-by-class self::MyList::E% value) → void {
+    this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::[]=}(index, value){(core::int, self::MyList::E%) → void};
+  }
+  get length() → core::int
+    return this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::length}{core::int};
+  set length(core::int value) → void {
+    this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::length} = value;
+  }
+  get log() → core::String
+    return this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::toString}(){() → core::String};
+  method clearLog() → void {
+    this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::clear}(){() → void};
+  }
+}
 abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<self::_MyList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MyList&Object&ListMixin<self::_MyList&Object&ListMixin::E%>
     : super core::Object::•()
@@ -130,30 +154,6 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = cor
     return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
     return super.{col::ListBase::toString}();
-}
-class MyList<E extends core::Object? = dynamic> extends self::_MyList&Object&ListMixin<self::MyList::E%> {
-  final field core::List<self::MyList::E%> list;
-  field core::StringBuffer sb = new core::StringBuffer::•();
-  constructor •(core::List<self::MyList::E%> list) → self::MyList<self::MyList::E%>
-    : self::MyList::list = list, super self::_MyList&Object&ListMixin::•()
-    ;
-  operator [](core::int index) → self::MyList::E% {
-    this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::write}("[${index}];"){(core::Object?) → void};
-    return this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::[]}(index){(core::int) → self::MyList::E%};
-  }
-  operator []=(core::int index, covariant-by-class self::MyList::E% value) → void {
-    this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::[]=}(index, value){(core::int, self::MyList::E%) → void};
-  }
-  get length() → core::int
-    return this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::length}{core::int};
-  set length(core::int value) → void {
-    this.{self::MyList::list}{core::List<self::MyList::E%>}.{core::List::length} = value;
-  }
-  get log() → core::String
-    return this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::toString}(){() → core::String};
-  method clearLog() → void {
-    this.{self::MyList::sb}{core::StringBuffer}.{core::StringBuffer::clear}(){() → void};
-  }
 }
 static method test1(core::Object o) → core::String
   return block {

@@ -7,6 +7,11 @@ import "dart:collection" as col;
 
 import "org-dartlang-testcase:///issue52302_lib.dart";
 
+abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
+  synthetic constructor •() → self::MixesInMixesInMixin
+    : super self::_MixesInMixesInMixin&Object&MixesInMixin::•()
+    ;
+}
 abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object implements iss::MixesInMixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixesInMixesInMixin&Object&MixesInMixin
     : super core::Object::•()
@@ -242,11 +247,6 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
   }
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toString() → core::String
     return core::Iterable::iterableToShortString(this, "(", ")");
-}
-abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
-  synthetic constructor •() → self::MixesInMixesInMixin
-    : super self::_MixesInMixesInMixin&Object&MixesInMixin::•()
-    ;
 }
 static method main() → void {}
 

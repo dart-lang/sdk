@@ -14,15 +14,23 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::print("Class A method b");
     }
   }
-  abstract class _C&A&B extends dart.core::Object implements main::A, main::B /*isAnonymousMixin*/  {
-    synthetic constructor •() → main::_C&A&B
-      : super dart.core::Object::•()
-      ;
-  }
   abstract class C extends main::_C&A&B /*isMixinDeclaration*/  {
     method c() → dynamic {
       dart.core::print("Class C method c");
     }
+  }
+  class D extends main::_D&A&B&C {
+    synthetic constructor •() → main::D
+      : super main::_D&A&B&C::•()
+      ;
+    method d() → dynamic {
+      dart.core::print("Class D method d");
+    }
+  }
+  abstract class _C&A&B extends dart.core::Object implements main::A, main::B /*isAnonymousMixin*/  {
+    synthetic constructor •() → main::_C&A&B
+      : super dart.core::Object::•()
+      ;
   }
   abstract class _D&A&B extends main::A implements main::B /*isAnonymousMixin,isEliminatedMixin*/  {
     synthetic constructor •() → main::_D&A&B
@@ -38,14 +46,6 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     method c() → dynamic {
       dart.core::print("Class C method c");
-    }
-  }
-  class D extends main::_D&A&B&C {
-    synthetic constructor •() → main::D
-      : super main::_D&A&B&C::•()
-      ;
-    method d() → dynamic {
-      dart.core::print("Class D method d");
     }
   }
   static method topLevelA() → dynamic {

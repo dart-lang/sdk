@@ -248,15 +248,6 @@ mixin class MixinConcrete extends core::Object {
     return null;
   }
 }
-abstract class _FromMixinConcrete&Object&MixinConcrete extends core::Object implements self::MixinConcrete /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_FromMixinConcrete&Object&MixinConcrete
-    : super core::Object::•()
-    ;
-  @#C1
-  method noSuchMethod(core::Invocation invocation) → dynamic {
-    return null;
-  }
-}
 class FromMixinConcrete extends self::_FromMixinConcrete&Object&MixinConcrete implements self::Interface {
   synthetic constructor •() → self::FromMixinConcrete
     : super self::_FromMixinConcrete&Object&MixinConcrete::•()
@@ -273,21 +264,6 @@ class FromMixinConcrete extends self::_FromMixinConcrete&Object&MixinConcrete im
     return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder set setter(core::int value) → void
     return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C5))){(core::Invocation) → dynamic};
-}
-abstract class _FromMixinConcreteAbstract&Object&MixinConcrete extends core::Object implements self::MixinConcrete /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete
-    : super core::Object::•()
-    ;
-  @#C1
-  method noSuchMethod(core::Invocation invocation) → dynamic {
-    return null;
-  }
-}
-abstract class _FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract extends self::_FromMixinConcreteAbstract&Object&MixinConcrete implements self::MixinAbstract /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract
-    : super self::_FromMixinConcreteAbstract&Object&MixinConcrete::•()
-    ;
-  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
 }
 class FromMixinConcreteAbstract extends self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract implements self::Interface {
   synthetic constructor •() → self::FromMixinConcreteAbstract
@@ -357,6 +333,30 @@ class DeclaredConcrete extends core::Object implements self::Interface {
     return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder set setter(core::int value) → void
     return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+abstract class _FromMixinConcrete&Object&MixinConcrete extends core::Object implements self::MixinConcrete /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcrete&Object&MixinConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+}
+abstract class _FromMixinConcreteAbstract&Object&MixinConcrete extends core::Object implements self::MixinConcrete /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+}
+abstract class _FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract extends self::_FromMixinConcreteAbstract&Object&MixinConcrete implements self::MixinAbstract /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract
+    : super self::_FromMixinConcreteAbstract&Object&MixinConcrete::•()
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
 }
 static method main() → dynamic {}
 

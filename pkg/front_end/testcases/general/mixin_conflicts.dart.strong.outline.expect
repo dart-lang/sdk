@@ -44,13 +44,6 @@ mixin class N = core::Object with self::M /*hasConstConstructor*/  {
   mixin-super-stub method foo() → dynamic
     return super.{self::M::foo}();
 }
-abstract class _C&Object&N = core::Object with self::N /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C&Object&N
-    : super core::Object::•()
-    ;
-  mixin-super-stub method foo() → dynamic
-    return super.{self::M::foo}();
-}
 class C extends self::_C&Object&N {
   synthetic constructor •() → self::C
     ;
@@ -73,6 +66,21 @@ abstract class N3 = core::Object with self::M2 /*hasConstConstructor*/  {
   mixin-super-stub method bar() → dynamic
     return super.{self::M2::bar}();
 }
+class C2 extends self::_C2&Object&M2 {
+  synthetic constructor •() → self::C2
+    ;
+}
+abstract class C3 extends self::_C3&Object&M2 {
+  synthetic constructor •() → self::C3
+    ;
+}
+abstract class _C&Object&N = core::Object with self::N /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&N
+    : super core::Object::•()
+    ;
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
+}
 abstract class _C2&Object&M2 = core::Object with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C2&Object&M2
     : super core::Object::•()
@@ -80,20 +88,12 @@ abstract class _C2&Object&M2 = core::Object with self::M2 /*isAnonymousMixin,has
   mixin-super-stub method bar() → dynamic
     return super.{self::M2::bar}();
 }
-class C2 extends self::_C2&Object&M2 {
-  synthetic constructor •() → self::C2
-    ;
-}
 abstract class _C3&Object&M2 = core::Object with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C3&Object&M2
     : super core::Object::•()
     ;
   mixin-super-stub method bar() → dynamic
     return super.{self::M2::bar}();
-}
-abstract class C3 extends self::_C3&Object&M2 {
-  synthetic constructor •() → self::C3
-    ;
 }
 static method main() → dynamic
   ;

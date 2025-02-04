@@ -5,19 +5,9 @@ import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class _AWith&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AWith&Object&A
-    : super core::Object::•()
-    ;
-}
 class AWith extends self::_AWith&Object&A {
   synthetic constructor •() → self::AWith
     : super self::_AWith&Object&A::•()
-    ;
-}
-abstract class _BWith&Object&B extends core::Object implements mai::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_BWith&Object&B
-    : super core::Object::•()
     ;
 }
 class BWith extends self::_BWith&Object&B {
@@ -25,14 +15,34 @@ class BWith extends self::_BWith&Object&B {
     : super self::_BWith&Object&B::•()
     ;
 }
-abstract class _CWith&Object&C extends core::Object implements mai::C /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_CWith&Object&C
-    : super core::Object::•()
-    ;
-}
 class CWith extends self::_CWith&Object&C {
   synthetic constructor •() → self::CWith
     : super self::_CWith&Object&C::•()
+    ;
+}
+class MultipleWithMixin extends self::_MultipleWithMixin&Object&A&M {
+  synthetic constructor •() → self::MultipleWithMixin
+    : super self::_MultipleWithMixin&Object&A&M::•()
+    ;
+}
+class MultipleWithAnotherClass extends self::_MultipleWithAnotherClass&Object&A&B {
+  synthetic constructor •() → self::MultipleWithAnotherClass
+    : super self::_MultipleWithAnotherClass&Object&A&B::•()
+    ;
+}
+abstract class _AWith&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AWith&Object&A
+    : super core::Object::•()
+    ;
+}
+abstract class _BWith&Object&B extends core::Object implements mai::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_BWith&Object&B
+    : super core::Object::•()
+    ;
+}
+abstract class _CWith&Object&C extends core::Object implements mai::C /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_CWith&Object&C
+    : super core::Object::•()
     ;
 }
 abstract class _MultipleWithMixin&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
@@ -45,11 +55,6 @@ abstract class _MultipleWithMixin&Object&A&M extends self::_MultipleWithMixin&Ob
     : super self::_MultipleWithMixin&Object&A::•()
     ;
 }
-class MultipleWithMixin extends self::_MultipleWithMixin&Object&A&M {
-  synthetic constructor •() → self::MultipleWithMixin
-    : super self::_MultipleWithMixin&Object&A&M::•()
-    ;
-}
 abstract class _MultipleWithAnotherClass&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A
     : super core::Object::•()
@@ -58,11 +63,6 @@ abstract class _MultipleWithAnotherClass&Object&A extends core::Object implement
 abstract class _MultipleWithAnotherClass&Object&A&B extends self::_MultipleWithAnotherClass&Object&A implements mai::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A&B
     : super self::_MultipleWithAnotherClass&Object&A::•()
-    ;
-}
-class MultipleWithAnotherClass extends self::_MultipleWithAnotherClass&Object&A&B {
-  synthetic constructor •() → self::MultipleWithAnotherClass
-    : super self::_MultipleWithAnotherClass&Object&A&B::•()
     ;
 }
 

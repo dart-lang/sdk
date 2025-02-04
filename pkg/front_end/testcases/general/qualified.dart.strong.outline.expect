@@ -37,13 +37,6 @@ class Bad extends core::Object {
   static factory WrongName() → self::Bad
     ;
 }
-abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
-    : super lib::Supertype::•()
-    ;
-  mixin-super-stub method foo() → dynamic
-    return super.{lib::Mixin::foo}();
-}
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → self::WithMixin
     ;
@@ -59,6 +52,13 @@ class C<T extends core::Object? = dynamic> extends core::Object { // from org-da
     ;
   static factory b<T extends core::Object? = dynamic>() → self::C<self::C::b::T%> /* redirection-target: lib::C::b<self::C::b::T%>*/
     return lib::C::b<self::C::b::T%>();
+}
+abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
+    : super lib::Supertype::•()
+    ;
+  mixin-super-stub method foo() → dynamic
+    return super.{lib::Mixin::foo}();
 }
 static method main() → dynamic
   ;

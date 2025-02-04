@@ -25,6 +25,11 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method method4(covariant-by-declaration core::int argument1, core::int argument2) → core::String
     return "Mixin";
 }
+class Class extends self::_Class&Superclass&Mixin {
+  synthetic constructor •() → self::Class
+    : super self::_Class&Superclass&Mixin::•()
+    ;
+}
 abstract class _Class&Superclass&Mixin extends self::Superclass implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Class&Superclass&Mixin
     : super self::Superclass::•()
@@ -37,11 +42,6 @@ abstract class _Class&Superclass&Mixin extends self::Superclass implements self:
     return "Mixin";
   method method4(covariant-by-declaration core::int argument1, covariant-by-declaration core::int argument2) → core::String
     return "Mixin";
-}
-class Class extends self::_Class&Superclass&Mixin {
-  synthetic constructor •() → self::Class
-    : super self::_Class&Superclass&Mixin::•()
-    ;
 }
 static method main() → dynamic {
   self::Class c = new self::Class::•();

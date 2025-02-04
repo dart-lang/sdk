@@ -20,11 +20,6 @@ abstract class A2 extends core::Object implements self::A<core::Record> {
   synthetic constructor •() → self::A2
     ;
 }
-abstract class _A3&Object&A = core::Object with self::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A3&Object&A
-    : super core::Object::•()
-    ;
-}
 abstract class A3 extends self::_A3&Object&A {
   synthetic constructor •() → self::A3
     ;
@@ -43,6 +38,11 @@ abstract class A6 extends self::A<core::Record> {
 }
 abstract class A7 extends self::A<self::A<core::Record>> {
   synthetic constructor •() → self::A7
+    ;
+}
+abstract class _A3&Object&A = core::Object with self::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A3&Object&A
+    : super core::Object::•()
     ;
 }
 static method foo1() → core::Record

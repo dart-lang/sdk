@@ -27,6 +27,19 @@ import "dart:math" as math;
 import "dart:collection";
 import "org-dartlang-testcase:///cache_lookups.dart";
 
+class CustomList<E extends core::Object? = dynamic> extends self2::_CustomList&Object&ListMixin<self2::CustomList::E%> {
+  final field core::List<self2::CustomList::E%> list;
+  constructor •(core::List<self2::CustomList::E%> list) → self2::CustomList<self2::CustomList::E%>
+    ;
+  get length() → core::int
+    ;
+  set length(core::int value) → void
+    ;
+  operator [](core::int index) → self2::CustomList::E%
+    ;
+  operator []=(core::int index, covariant-by-class self2::CustomList::E% value) → void
+    ;
+}
 abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<self2::_CustomList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self2::_CustomList&Object&ListMixin<self2::_CustomList&Object&ListMixin::E%>
     : super core::Object::•()
@@ -151,19 +164,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> =
     return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
     return super.{col::ListBase::toString}();
-}
-class CustomList<E extends core::Object? = dynamic> extends self2::_CustomList&Object&ListMixin<self2::CustomList::E%> {
-  final field core::List<self2::CustomList::E%> list;
-  constructor •(core::List<self2::CustomList::E%> list) → self2::CustomList<self2::CustomList::E%>
-    ;
-  get length() → core::int
-    ;
-  set length(core::int value) → void
-    ;
-  operator [](core::int index) → self2::CustomList::E%
-    ;
-  operator []=(core::int index, covariant-by-class self2::CustomList::E% value) → void
-    ;
 }
 
 constants  {

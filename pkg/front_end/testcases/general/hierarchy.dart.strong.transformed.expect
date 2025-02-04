@@ -107,13 +107,6 @@ abstract class A2 extends core::Object /*isMixinDeclaration*/  {
   method mixedInClassMember() → void {}
   abstract method mixedInInterfaceMember() → void;
 }
-abstract class _A3&A1&A2 extends self::A1 implements self::A2 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_A3&A1&A2
-    : super self::A1::•()
-    ;
-  method mixedInClassMember() → void {}
-  abstract method mixedInInterfaceMember() → void;
-}
 abstract class A3 extends self::_A3&A1&A2 {
   synthetic constructor •() → self::A3
     : super self::_A3&A1&A2::•()
@@ -183,13 +176,6 @@ class C2 extends core::Object {
   method mixedInAndImplementedClassMember() → void {}
   method mixedInAndImplementedInterfaceMember() → void {}
 }
-abstract class _C3&Object&C1 extends core::Object implements self::C1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C3&Object&C1
-    : super core::Object::•()
-    ;
-  method mixedInAndImplementedClassMember() → void {}
-  abstract method mixedInAndImplementedInterfaceMember() → void;
-}
 abstract class C3 extends self::_C3&Object&C1 implements self::C2 {
   synthetic constructor •() → self::C3
     : super self::_C3&Object&C1::•()
@@ -200,16 +186,30 @@ class C4 extends self::C3 {
     : super self::C3::•()
     ;
 }
+class C5 extends self::_C5&Object&C1 implements self::C2 {
+  synthetic constructor •() → self::C5
+    : super self::_C5&Object&C1::•()
+    ;
+}
+abstract class _A3&A1&A2 extends self::A1 implements self::A2 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_A3&A1&A2
+    : super self::A1::•()
+    ;
+  method mixedInClassMember() → void {}
+  abstract method mixedInInterfaceMember() → void;
+}
+abstract class _C3&Object&C1 extends core::Object implements self::C1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3&Object&C1
+    : super core::Object::•()
+    ;
+  method mixedInAndImplementedClassMember() → void {}
+  abstract method mixedInAndImplementedInterfaceMember() → void;
+}
 abstract class _C5&Object&C1 extends core::Object implements self::C1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C5&Object&C1
     : super core::Object::•()
     ;
   method mixedInAndImplementedClassMember() → void {}
   abstract method mixedInAndImplementedInterfaceMember() → void;
-}
-class C5 extends self::_C5&Object&C1 implements self::C2 {
-  synthetic constructor •() → self::C5
-    : super self::_C5&Object&C1::•()
-    ;
 }
 static method main() → dynamic {}

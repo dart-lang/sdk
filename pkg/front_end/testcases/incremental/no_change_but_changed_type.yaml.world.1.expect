@@ -12,6 +12,11 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///lib.dart";
 
+  class Class2 extends main::_Class2&Object&TestMixin {
+    synthetic constructor •() → main::Class2
+      : super main::_Class2&Object&TestMixin::•()
+      ;
+  }
   abstract class _Class2&Object&TestMixin extends dart.core::Object implements lib::TestMixin<dart.core::String> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
     const synthetic constructor •() → main::_Class2&Object&TestMixin
       : super dart.core::Object::•()
@@ -20,10 +25,5 @@ library from "org-dartlang-test:///main.dart" as main {
       final dart.core::String response = await fetch;
       return response as{Unchecked} dart.core::String;
     }
-  }
-  class Class2 extends main::_Class2&Object&TestMixin {
-    synthetic constructor •() → main::Class2
-      : super main::_Class2&Object&TestMixin::•()
-      ;
   }
 }
