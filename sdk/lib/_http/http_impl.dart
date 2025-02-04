@@ -3900,18 +3900,21 @@ class _AuthenticationScheme {
 
   static const UNKNOWN = _AuthenticationScheme(-1);
   static const BASIC = _AuthenticationScheme(0);
-  static const DIGEST = _AuthenticationScheme(1);
+  static const BEARER = _AuthenticationScheme(1);
+  static const DIGEST = _AuthenticationScheme(2);
 
   const _AuthenticationScheme(this._scheme);
 
   factory _AuthenticationScheme.fromString(String scheme) {
     if (scheme.toLowerCase() == "basic") return BASIC;
+    if (scheme.toLowerCase() == "bearer") return BEARER;
     if (scheme.toLowerCase() == "digest") return DIGEST;
     return UNKNOWN;
   }
 
   String toString() {
     if (this == BASIC) return "Basic";
+    if (this == BEARER) return "Bearer";
     if (this == DIGEST) return "Digest";
     return "Unknown";
   }
@@ -4027,6 +4030,31 @@ final class _HttpClientBasicCredentials extends _HttpClientCredentials
     // now always use UTF-8 encoding.
     String auth = base64Encode(utf8.encode("$username:$password"));
     return "Basic $auth";
+  }
+
+  void authorize(_Credentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.authorizationHeader, authorization());
+  }
+
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.proxyAuthorizationHeader, authorization());
+  }
+}
+
+final class _HttpClientBearerCredentials extends _HttpClientCredentials
+    implements HttpClientBearerCredentials {
+  String token;
+
+  _HttpClientBearerCredentials(this.token) {
+    if (RegExp(r'[^0-9A-Za-z\-._~+/=]').hasMatch(token)) {
+      throw ArgumentError.value(token, "token", "Invalid characters");
+    }
+  }
+
+  _AuthenticationScheme get scheme => _AuthenticationScheme.BEARER;
+
+  String authorization() {
+    return "Bearer $token";
   }
 
   void authorize(_Credentials _, HttpClientRequest request) {
