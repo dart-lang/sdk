@@ -824,21 +824,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Extract local variable',
   );
-  static const IGNORE_ERROR_LINE = FixKind(
-    'dart.fix.ignore.line',
-    DartFixKindPriority.ignore,
-    "Ignore '{0}' for this line",
-  );
-  static const IGNORE_ERROR_FILE = FixKind(
-    'dart.fix.ignore.file',
-    DartFixKindPriority.ignore - 1,
-    "Ignore '{0}' for the whole file",
-  );
-  static const IGNORE_ERROR_ANALYSIS_FILE = FixKind(
-    'dart.fix.ignore.analysis',
-    DartFixKindPriority.ignore - 2,
-    "Ignore '{0}' in `analysis_options.yaml`",
-  );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
     49,

@@ -1,9 +1,9 @@
-// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -16,17 +16,32 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
+const ignoreErrorAnalysisFileKind = FixKind(
+  'dart.fix.ignore.analysis',
+  DartFixKindPriority.ignore - 2,
+  "Ignore '{0}' in `analysis_options.yaml`",
+);
+const ignoreErrorFileKind = FixKind(
+  'dart.fix.ignore.file',
+  DartFixKindPriority.ignore - 1,
+  "Ignore '{0}' for the whole file",
+);
+const ignoreErrorLineKind = FixKind(
+  'dart.fix.ignore.line',
+  DartFixKindPriority.ignore,
+  "Ignore '{0}' for this line",
+);
+
 class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
   IgnoreDiagnosticInAnalysisOptionsFile({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
+  FixKind get fixKind => ignoreErrorAnalysisFileKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -112,7 +127,7 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
   String get commentPrefix => 'ignore_for_file';
 
   @override
-  FixKind get fixKind => DartFixKind.IGNORE_ERROR_FILE;
+  FixKind get fixKind => ignoreErrorFileKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -178,7 +193,7 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
   String get commentPrefix => 'ignore';
 
   @override
-  FixKind get fixKind => DartFixKind.IGNORE_ERROR_LINE;
+  FixKind get fixKind => ignoreErrorLineKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -216,9 +231,8 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   AnalysisError get error => diagnostic as AnalysisError;
 
@@ -231,7 +245,8 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   /// - `error.code` is present in the `cannot-ignore` list.
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
-    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl).unignorableNames
+    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
+        .unignorableNames
         .contains(error.errorCode.name);
 
     if (cannotIgnore) {

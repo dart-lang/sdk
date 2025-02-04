@@ -94,12 +94,9 @@ bool b = false;
 
     var result = await pluginServer.handleEditGetFixes(
         protocol.EditGetFixesParams(filePath, 'bool b = '.length));
-    var fixes = result.fixes;
-    // We expect 1 fix because neither `IgnoreDiagnosticOnLine` nor
-    // `IgnoreDiagnosticInFile` are registered by the plugin.
-    // TODO(srawlins): Investigate whether they should be.
-    expect(fixes, hasLength(1));
-    expect(fixes[0].fixes, hasLength(1));
+    var fixes = result.fixes.single;
+    // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
+    expect(fixes.fixes, hasLength(4));
   }
 
   Future<void> test_lintDiagnosticsAreDisabledByDefault() async {

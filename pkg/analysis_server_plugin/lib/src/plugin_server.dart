@@ -85,6 +85,7 @@ class PluginServer {
     for (var plugin in plugins) {
       plugin.register(_registry);
     }
+    _registry.registerIgnoreProducerGenerators();
   }
 
   /// Handles an 'analysis.setPriorityFiles' request.
