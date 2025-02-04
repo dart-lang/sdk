@@ -6,7 +6,7 @@
 // lowerings.
 
 @JS()
-library object_literal_constructor_with_library_annotation_test;
+library;
 
 import 'dart:js_interop';
 

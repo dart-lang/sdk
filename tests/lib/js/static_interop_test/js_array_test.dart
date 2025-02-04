@@ -4,9 +4,6 @@
 
 // Test that JS' Array type is interoperable using static interop.
 
-@JS()
-library js_array_test;
-
 import 'dart:js_interop';
 
 @JS()

@@ -9,8 +9,7 @@
 library js_default_test;
 
 import 'dart:js_interop';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 import 'js_default_with_namespaces.dart' as namespace;
 
@@ -56,110 +55,160 @@ external JSNumber oneOptional(JSNumber n1, [JSNumber n2]);
 
 void testCurrentLibrary() {
   // Test top level methods.
-  expect(0, twoOptional().toDartInt);
-  expect(1, twoOptional(4.0.toJS).toDartInt);
-  expect(2, twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(0, twoOptional().toDartInt);
+  Expect.equals(1, twoOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
-  expect(1, oneOptional(4.0.toJS).toDartInt);
-  expect(2, oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
   // Test factories.
-  expect(0, SimpleObject.twoOptional().initialArguments.toDartInt);
-  expect(1, SimpleObject.twoOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(2,
-      SimpleObject.twoOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt);
+  Expect.equals(0, SimpleObject.twoOptional().initialArguments.toDartInt);
+  Expect.equals(
+    1,
+    SimpleObject.twoOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    SimpleObject.twoOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt,
+  );
 
-  expect(1, SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(2,
-      SimpleObject.oneOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt);
+  Expect.equals(
+    1,
+    SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    SimpleObject.oneOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt,
+  );
 
   // Test static methods.
-  expect(0, SimpleObject.twoOptionalStatic().toDartInt);
-  expect(1, SimpleObject.twoOptionalStatic(4.0.toJS).toDartInt);
-  expect(2, SimpleObject.twoOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(0, SimpleObject.twoOptionalStatic().toDartInt);
+  Expect.equals(1, SimpleObject.twoOptionalStatic(4.0.toJS).toDartInt);
+  Expect.equals(
+    2,
+    SimpleObject.twoOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
-  expect(1, SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt);
-  expect(2, SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt);
+  Expect.equals(
+    2,
+    SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
   // Test extension methods.
   final s = SimpleObject();
-  expect(0, s.twoOptional().toDartInt);
-  expect(1, s.twoOptional(4.0.toJS).toDartInt);
-  expect(2, s.twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(0, s.twoOptional().toDartInt);
+  Expect.equals(1, s.twoOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s.twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
-  expect(1, s.oneOptional(4.0.toJS).toDartInt);
-  expect(2, s.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, s.oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
   // Test extension type factories.
-  expect(0, SimpleObject2.twoOptional().initialArguments.toDartInt);
-  expect(1, SimpleObject2.twoOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(2,
-      SimpleObject2.twoOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt);
+  Expect.equals(0, SimpleObject2.twoOptional().initialArguments.toDartInt);
+  Expect.equals(
+    1,
+    SimpleObject2.twoOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    SimpleObject2.twoOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt,
+  );
 
-  expect(1, SimpleObject2.oneOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(2,
-      SimpleObject2.oneOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt);
+  Expect.equals(
+    1,
+    SimpleObject2.oneOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    SimpleObject2.oneOptional(4.0.toJS, 5.0.toJS).initialArguments.toDartInt,
+  );
 
   // Test extension type static methods.
-  expect(0, SimpleObject2.twoOptionalStatic().toDartInt);
-  expect(1, SimpleObject2.twoOptionalStatic(4.0.toJS).toDartInt);
-  expect(2, SimpleObject2.twoOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(0, SimpleObject2.twoOptionalStatic().toDartInt);
+  Expect.equals(1, SimpleObject2.twoOptionalStatic(4.0.toJS).toDartInt);
+  Expect.equals(
+    2,
+    SimpleObject2.twoOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
-  expect(1, SimpleObject2.oneOptionalStatic(4.0.toJS).toDartInt);
-  expect(2, SimpleObject2.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, SimpleObject2.oneOptionalStatic(4.0.toJS).toDartInt);
+  Expect.equals(
+    2,
+    SimpleObject2.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
   // Test extension type methods.
   final s2 = SimpleObject2();
-  expect(0, s2.twoOptional().toDartInt);
-  expect(1, s2.twoOptional(4.0.toJS).toDartInt);
-  expect(2, s2.twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(0, s2.twoOptional().toDartInt);
+  Expect.equals(1, s2.twoOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s2.twoOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
-  expect(1, s2.oneOptional(4.0.toJS).toDartInt);
-  expect(2, s2.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, s2.oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s2.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 }
 
 void testOtherLibrary() {
   // Test top level methods.
-  expect(1, namespace.oneOptional(4.0.toJS).toDartInt);
-  expect(2, namespace.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, namespace.oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, namespace.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
   // Test factories.
-  expect(1,
-      namespace.SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(
-      2,
-      namespace.SimpleObject.oneOptional(4.0.toJS, 5.0.toJS)
-          .initialArguments
-          .toDartInt);
+  Expect.equals(
+    1,
+    namespace.SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    namespace.SimpleObject.oneOptional(
+      4.0.toJS,
+      5.0.toJS,
+    ).initialArguments.toDartInt,
+  );
 
   // Test static methods.
-  expect(1, namespace.SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt);
-  expect(2,
-      namespace.SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(
+    1,
+    namespace.SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt,
+  );
+  Expect.equals(
+    2,
+    namespace.SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
   // Test extension methods.
   final s = namespace.SimpleObject();
-  expect(1, s.oneOptional(4.0.toJS).toDartInt);
-  expect(2, s.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, s.oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 
   // Test extension type factories.
-  expect(1,
-      namespace.SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt);
-  expect(
-      2,
-      namespace.SimpleObject.oneOptional(4.0.toJS, 5.0.toJS)
-          .initialArguments
-          .toDartInt);
+  Expect.equals(
+    1,
+    namespace.SimpleObject.oneOptional(4.0.toJS).initialArguments.toDartInt,
+  );
+  Expect.equals(
+    2,
+    namespace.SimpleObject.oneOptional(
+      4.0.toJS,
+      5.0.toJS,
+    ).initialArguments.toDartInt,
+  );
 
   // Test extension type static methods.
-  expect(1, namespace.SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt);
-  expect(2,
-      namespace.SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(
+    1,
+    namespace.SimpleObject.oneOptionalStatic(4.0.toJS).toDartInt,
+  );
+  Expect.equals(
+    2,
+    namespace.SimpleObject.oneOptionalStatic(4.0.toJS, 5.0.toJS).toDartInt,
+  );
 
   // Test extension type methods.
   final s2 = namespace.SimpleObject();
-  expect(1, s2.oneOptional(4.0.toJS).toDartInt);
-  expect(2, s2.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
+  Expect.equals(1, s2.oneOptional(4.0.toJS).toDartInt);
+  Expect.equals(2, s2.oneOptional(4.0.toJS, 5.0.toJS).toDartInt);
 }
 
 void main() {

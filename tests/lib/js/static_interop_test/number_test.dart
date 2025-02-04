@@ -6,13 +6,9 @@
 
 // Test that external members returning numbers have correct semantics.
 
-@JS()
-library number_test;
-
 import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 extension type IntE(int _) {}
 
@@ -130,32 +126,32 @@ void main() {
     globalThis.nullVal = null;
   ''');
 
-  expect(integerAsInt, 0);
-  expect(integerAsIntE, 0);
-  expect(integerAsDouble, 0.0);
-  expect(integerAsNum, 0);
-  expect(integerAsJSNumber.toDartDouble, 0.0);
-  expect(integerAsJSNumber.toDartInt, 0);
+  Expect.equals(0, integerAsInt);
+  Expect.equals(0, integerAsIntE);
+  Expect.equals(0.0, integerAsDouble);
+  Expect.equals(0, integerAsNum);
+  Expect.equals(0.0, integerAsJSNumber.toDartDouble);
+  Expect.equals(0, integerAsJSNumber.toDartInt);
 
-  expect(integerAsNullInt, 0);
-  expect(integerAsNullableIntE, 0);
-  expect(integerAsNullDouble, 0.0);
-  expect(integerAsNullNum, 0);
-  expect(integerAsNullJSNumber!.toDartDouble, 0.0);
-  expect(integerAsNullJSNumber!.toDartInt, 0);
+  Expect.equals(0, integerAsNullInt);
+  Expect.equals(0, integerAsNullableIntE);
+  Expect.equals(0.0, integerAsNullDouble);
+  Expect.equals(0, integerAsNullNum);
+  Expect.equals(0.0, integerAsNullJSNumber!.toDartDouble);
+  Expect.equals(0, integerAsNullJSNumber!.toDartInt);
 
   Expect.throws(() => floatAsInt);
   Expect.throws(() => floatAsIntE);
-  expect(floatAsDouble, 0.5);
-  expect(floatAsNum, 0.5);
-  expect(floatAsJSNumber.toDartDouble, 0.5);
+  Expect.equals(0.5, floatAsDouble);
+  Expect.equals(0.5, floatAsNum);
+  Expect.equals(0.5, floatAsJSNumber.toDartDouble);
   Expect.throws(() => floatAsJSNumber.toDartInt);
 
   Expect.throws(() => floatAsNullInt);
   Expect.throws(() => floatAsNullableIntE);
-  expect(floatAsNullDouble, 0.5);
-  expect(floatAsNullNum, 0.5);
-  expect(floatAsNullJSNumber!.toDartDouble, 0.5);
+  Expect.equals(0.5, floatAsNullDouble);
+  Expect.equals(0.5, floatAsNullNum);
+  Expect.equals(0.5, floatAsNullJSNumber!.toDartDouble);
   Expect.throws(() => floatAsNullJSNumber!.toDartInt);
 
   Expect.throws(() => nullAsInt);
@@ -164,9 +160,9 @@ void main() {
   Expect.throws(() => nullAsNum);
   Expect.throws(() => nullAsJSNumber);
 
-  expect(nullAsNullInt, null);
-  expect(nullAsNullableIntE, null);
-  expect(nullAsNullDouble, null);
-  expect(nullAsNullNum, null);
-  expect(nullAsNullJSNumber, null);
+  Expect.isNull(nullAsNullInt);
+  Expect.isNull(nullAsNullableIntE);
+  Expect.isNull(nullAsNullDouble);
+  Expect.isNull(nullAsNullNum);
+  Expect.isNull(nullAsNullJSNumber);
 }

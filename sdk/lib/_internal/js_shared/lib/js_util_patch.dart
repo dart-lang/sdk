@@ -525,7 +525,7 @@ bool typeofEquals<T>(Object? o, String type) {
 @patch
 @pragma('dart2js:tryInline')
 T not<T>(Object? o) {
-  return JS<dynamic>('Object', '!#', o);
+  return JS<T>('bool', '!#', o);
 }
 
 @patch
@@ -537,13 +537,13 @@ bool isTruthy<T>(Object? o) {
 @patch
 @pragma('dart2js:tryInline')
 T or<T>(Object? first, Object? second) {
-  return JS<dynamic>('Object|bool', '# || #', first, second);
+  return JS<dynamic>('Object|Null|bool', '# || #', first, second);
 }
 
 @patch
 @pragma('dart2js:tryInline')
 T and<T>(Object? first, Object? second) {
-  return JS<dynamic>('Object|bool', '# && #', first, second);
+  return JS<dynamic>('Object|Null|bool', '# && #', first, second);
 }
 
 @patch

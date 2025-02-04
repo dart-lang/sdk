@@ -4,9 +4,6 @@
 
 // Test that instance members are disallowed from static interop classes.
 
-@JS()
-library member_test;
-
 import 'package:js/js.dart';
 
 @JS()

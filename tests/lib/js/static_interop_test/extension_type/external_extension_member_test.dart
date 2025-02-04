@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library external_extension_member_test;
-
 import 'dart:js_interop';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 @JS()
 external void eval(String code);
@@ -52,24 +48,24 @@ void main() {
   var extension = ExtensionType();
 
   // Fields.
-  expect(extension.field, 'field');
+  Expect.equals('field', extension.field);
   extension.field = 'modified';
-  expect(extension.field, 'modified');
-  expect(extension.renamedField, 'modified');
+  Expect.equals('modified', extension.field);
+  Expect.equals('modified', extension.renamedField);
   extension.renamedField = 'renamedField';
-  expect(extension.renamedField, 'renamedField');
-  expect(extension.finalField, 'finalField');
+  Expect.equals('renamedField', extension.renamedField);
+  Expect.equals('finalField', extension.finalField);
 
   // Getters and setters.
-  expect(extension.getSet, 'getSet');
+  Expect.equals('getSet', extension.getSet);
   extension.getSet = 'modified';
-  expect(extension.getSet, 'modified');
-  expect(extension.renamedGetSet, 'modified');
+  Expect.equals('modified', extension.getSet);
+  Expect.equals('modified', extension.renamedGetSet);
   extension.renamedGetSet = 'renamedGetSet';
-  expect(extension.renamedGetSet, 'renamedGetSet');
+  Expect.equals('renamedGetSet', extension.renamedGetSet);
 
   // Methods.
-  expect(extension.method(), 'method');
-  expect(extension.differentArgsMethod('method'), 'methodundefined');
-  expect(extension.renamedMethod(), 'method');
+  Expect.equals('method', extension.method());
+  Expect.equals('methodundefined', extension.differentArgsMethod('method'));
+  Expect.equals('method', extension.renamedMethod());
 }
