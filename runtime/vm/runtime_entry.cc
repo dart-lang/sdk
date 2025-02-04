@@ -4413,7 +4413,9 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     Isolate* current_isolate = nullptr;
     if (current_thread != nullptr) {
       current_isolate = current_thread->isolate();
-      ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+      if (current_thread->execution_state() != Thread::kThreadInNative) {
+        FATAL("Cannot invoke native callback from a leaf call.");
+      }
       current_thread->ExitSafepoint();
       current_thread->set_execution_state(Thread::kThreadInVM);
     }
@@ -4459,6 +4461,9 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   }
   if (current_thread->isolate() != target_isolate) {
     FATAL("Cannot invoke native callback from a different isolate.");
+  }
+  if (current_thread->execution_state() != Thread::kThreadInNative) {
+    FATAL("Cannot invoke native callback from a leaf call.");
   }
 
   // Set the execution state to VM while waiting for the safepoint to end.
