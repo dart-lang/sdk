@@ -54,8 +54,68 @@ We expect a proposal for this project to include:
 Write a test cases that tests the different kinds of errors and exceptions that can be thrown by `RsaPssPrivateKey.generateKey`, run the tests across desktop, Chrome and Firefox. Consider extending the tests to cover all members of `RsaPssPrivateKey`.
 Try to generalize these test cases to avoid repetitive code, see the existing [TestRunner](https://github.com/google/webcrypto.dart/blob/5e6d20f820531d2b7b05935c1d78f38a036035e8/lib/src/testing/utils/testrunner.dart#L227) for inspiration.
 
-
 **Expected outcome**: PRs that land in `package:webcrypto` and increases our confidence in correctness cross-platforms.
+
+
+## **Idea:** Pigeon generating FFI/JNI code
+
+ - **Possible Mentor(s)**:  `yousefi@google.com`
+ - **Difficulty**: Hard
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, FFI, Java
+
+**Description**: Modify the existing pigeon tool to use dart:ffi through ffigen, jnigen, and swiftgen instead of method channels.
+
+Pigeon should continue to generate interfaces for all languages which the user would have to implement. However, instead of generating method channels for the methods, it will use direct native interop using jnigen, ffigen, and swiftgen tools.
+
+The generation tools should also be slightly modified to generate pigeon compatible bindings, for example data structures and strings should be deeply serialized to Dart data structures and strings similar to how pigeon generates the binding code.
+
+The new version of pigeon can be used as a drop-in replacement without any major work to update all the plugins already using pigeon to use direct native interop.
+
+**Good Sample Project**:
+* Take the example from pigeon: https://github.com/flutter/packages/tree/main/packages/pigeon/example .
+* Convert one of its platforms to ffigen/jnigen, for example convert Android to use jnigen instead of the default method channels.
+
+**Expected outcome**: A new backend for Pigeon.
+
+
+## **Idea:** Use an LLM to translate Java/Kotlin tutorial snippets into Dart JNIgen code
+
+ - **Possible Mentor(s)**: `dacoharkes@google.com`, `yousefi@google.com`
+ - **Difficulty**: Hard
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, FFI, Java
+
+**Description**: This project will be very exploratory. We’ll explore how much is needed to make an LLM generate Dart snippets that call JNIgen-generated code. The snippets should be the equivalent of the original native code. How much will be needed? Is a single shot prompt enough? Or do we need to teach an AI how to run JNIgen and make it generate code that is subsequently analyzed with the Dart analyzer and the errors are fed back in to the AI to improve its answer.
+
+If we get this working, we’ll want to explore how to make such a tool useful to users. For example, we could make a browser extension that automatically adds the generated code snippets to documentation websites.
+
+Inspired by this issue: https://github.com/dart-lang/native/issues/1240
+
+**Good Sample Project**:
+* Get a Gemini API key https://ai.google.dev/gemini-api/docs/api-key
+* Follow https://developers.google.com/learn/pathways/solution-ai-gemini-getting-started-dart-flutter
+* Write a Dart script that invokes the API with a prompt containing a Java snippet (for example from https://developer.android.com/media/camera/camerax/take-photo#take_a_picture) and try to come up with a prompt that will make it generate code that would work on the Dart API generated with JNIgen for this Java/Kotlin API.
+
+**Expected outcome**: A tool for translating code samples usable by users.
+
+
+## **Idea:** package:coverage + LLM = test generation
+
+ - **Possible Mentor(s)**: `liama@google.com`
+ - **Difficulty**: Medium
+ - **Project size**: Medium (175 hours)
+ - **Skills**: Dart, LLMs
+
+**Description**: This is a very experimental project. The idea is to use `package:coverage` to identify uncovered code, use an LLM to decide if that code needs a test (not all code actually needs to be tested), then use an LLM to write tests that hit those cases, and then use `package:coverage` to verify that those lines are covered.
+
+**Good Sample Project**:
+* Get a Gemini API key https://ai.google.dev/gemini-api/docs/api-key
+* Follow https://developers.google.com/learn/pathways/solution-ai-gemini-getting-started-dart-flutter
+* Try generating tests for any old Dart API. Don't try to integrate `package:coverage` yet.
+
+**Expected outcome**: A package on pub.dev for increasing test coverage.
+
 
 ## TODO: More ideas as they come!
 
