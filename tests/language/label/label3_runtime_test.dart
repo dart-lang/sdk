@@ -6,9 +6,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  L: while (false) {
-
-  }
+  L:
+  while (false) {}
   // Illegal: L is out of scope.
-
 }

@@ -9,6 +9,5 @@ main() {
   var L = 33;
   while (false) {
     // Illegal: L is not a label.
-
   }
 }

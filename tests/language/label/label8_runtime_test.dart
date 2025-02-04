@@ -8,13 +8,9 @@
 main() {
   int i = 0;
   // Grammar doesn't allow label on block for switch statement.
-  switch(i)
-
-  {
+  switch (i) {
     case 111:
-      while (false) {
-
-      }
+      while (false) {}
       i++;
   }
 }

@@ -12,7 +12,6 @@ main() {
 
     void innerfunc() {
       // Illegal: jump target is outside of function
-
     }
 
     innerfunc();

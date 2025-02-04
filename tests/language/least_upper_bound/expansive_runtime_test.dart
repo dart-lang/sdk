@@ -53,7 +53,6 @@ void testC1(bool z, C1<int> a, N<C1<String>> b) {
     // Is least upper bound N<N<...>> ?
 
     // Is least upper bound N<C1<...>> ?
-
   }
 }
 
@@ -94,7 +93,6 @@ void testC2(bool z, C2<int> a, N<C2<String>> b) {
     // Is least upper bound N<N<...>> ?
 
     // Is least upper bound N<C2<...>> ?
-
   }
 }
 

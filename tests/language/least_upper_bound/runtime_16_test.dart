@@ -32,9 +32,7 @@ class E<T> {
 class F<T> extends E<T> {
   T f;
 
-  F(T f)
-      : this.f = f,
-        super(f);
+  F(T f) : this.f = f, super(f);
 }
 
 void main() {
@@ -46,53 +44,22 @@ void main() {
 }
 
 void testAB(A a, B b) {
-
-
-
-
   var c = new C();
-
-
 }
 
 void testBC(B b, C c) {
-
-
-
-
   var a = null;
-
-
-
-
 }
 
-void testCD(C c, D d) {
-
-
-
-
-
-
-}
+void testCD(C c, D d) {}
 
 void testEE(E<B> e, E<C> f) {
   // The least upper bound of E<B> and E<C> is E<B>.
   E<B> r1 = true ? e : f;
-
-
-
-
-
 }
 
 void testEF(E<B> e, F<C> f) {
   // The least upper bound of E<B> and F<C> is E<B>.
 
-
-
-
   var r5;
-
-
 }

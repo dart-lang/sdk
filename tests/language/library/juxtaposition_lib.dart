@@ -4,4 +4,6 @@
 
 library lib;
 
-part "" "juxtaposition_" "part.dart";
+part ""
+    "juxtaposition_"
+    "part.dart";
