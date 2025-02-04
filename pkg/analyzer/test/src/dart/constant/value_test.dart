@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -908,7 +906,7 @@ class DartObjectImplTest {
         [],
       ),
       _listValue(
-        _typeProvider.futureOrElement.instantiate(
+        _typeProvider.futureOrElement2.instantiate(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -961,7 +959,7 @@ class DartObjectImplTest {
       ),
       _mapValue(
         _typeProvider.intType,
-        _typeProvider.futureOrElement.instantiate(
+        _typeProvider.futureOrElement2.instantiate(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -1066,8 +1064,8 @@ class DartObjectImplTest {
   }
 
   void test_identical_Type_functionType() {
-    var toStringType = _typeProvider.intType.methods
-        .firstWhere((e) => e.name == 'toString')
+    var toStringType = _typeProvider.intType.methods2
+        .firstWhere((e) => e.name3 == 'toString')
         .type;
 
     _assertIdentical(

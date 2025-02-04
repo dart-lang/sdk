@@ -11535,6 +11535,10 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   shared.Variance get variance => firstFragment.variance;
 
+  set variance(shared.Variance value) {
+    firstFragment.variance = value;
+  }
+
   @override
   Element? get _enclosingFunction => firstFragment._enclosingElement3;
 

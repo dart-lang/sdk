@@ -18,6 +18,7 @@ linter:
     - prefer_single_quotes
     - unawaited_futures
     - unnecessary_breaks
+    - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main

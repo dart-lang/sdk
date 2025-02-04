@@ -320,8 +320,15 @@ Location? newLocation_fromElement2(engine.Element2? element) {
     return null;
   }
   var fragment = element.firstFragment;
-  var offset = fragment.nameOffset2 ?? 0;
-  var length = fragment.name2?.length ?? 0;
+  var (offset, length) = switch (fragment) {
+    // For unnamed constructors, treat the type name as the element location
+    // instead of using 0,0.
+    engine.ConstructorFragment(:var typeNameOffset, :var typeName) =>
+      fragment.nameOffset2 != null
+          ? (fragment.nameOffset2 ?? 0, fragment.name2.length)
+          : (typeNameOffset ?? 0, typeName?.length ?? 0),
+    _ => (fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0),
+  };
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
 }

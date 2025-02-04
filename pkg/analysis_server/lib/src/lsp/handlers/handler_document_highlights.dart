@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:collection/collection.dart';
 
 typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
 
@@ -45,8 +45,8 @@ class DocumentHighlightsHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
     return (unit, offset).mapResults((unit, requestedOffset) async {
-      var collector = OccurrencesCollectorImpl();
-      addDartOccurrences(collector, unit.unit);
+      var visitor = DartUnitOccurrencesComputerVisitor();
+      unit.unit.accept(visitor);
 
       /// Checks whether an Occurrence offset/length spans the requested
       /// offset.
@@ -54,23 +54,38 @@ class DocumentHighlightsHandler
       /// It's possible multiple occurrences might match because some nodes
       /// such as object destructuring might match multiple elements (for
       /// example the object getter and a declared variable).
-      bool spansRequestedPosition(int offset, int length) {
+      bool spansRequestedPosition((int, int) offsetLength) {
+        var (offset, length) = offsetLength;
         return offset <= requestedOffset && offset + length >= requestedOffset;
       }
 
-      // Find an occurrence that has an instance that spans the position.
-      var occurrences =
-          collector.allOccurrences
+      // Find the groups (elements) of offset/lengths that contains an
+      // offset/length that spans the requested range. There may be multiple
+      // matches here if the source element is in multiple groups.
+      var matchingSet =
+          visitor.elementsOffsetLengths.values
               .where(
-                (occurrence) => occurrence.offsets.any(
-                  (offset) => spansRequestedPosition(offset, occurrence.length),
+                (offsetLengths) => offsetLengths.any(spansRequestedPosition),
+              )
+              .flattened
+              .toSet();
+
+      // No matches will return an empty list (not null) because that prevents
+      // the editor falling back to a text search.
+      var highlights =
+          matchingSet
+              .map(
+                (offsetLength) => DocumentHighlight(
+                  range: toRange(
+                    unit.lineInfo,
+                    offsetLength.$1,
+                    offsetLength.$2,
+                  ),
                 ),
               )
               .toList();
 
-      // No matches will return an empty list (not null) because that prevents
-      // the editor falling back to a text search.
-      return success(toHighlights(unit.lineInfo, occurrences));
+      return success(highlights);
     });
   }
 }

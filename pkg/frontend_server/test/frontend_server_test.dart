@@ -1773,11 +1773,6 @@ extension type Foo(int value) {
         }
       }
 
-      Uri registerKernelBlob(Uint8List bytes) {
-        bytes = new Uint8List.fromList(bytes);
-        return (Isolate.current as dynamic).createUriForKernelBlob(bytes);
-      }
-
       Future<void> runWithServer(
         Future<void> Function(RequestChannel) f,
       ) async {
@@ -1941,11 +1936,6 @@ void main(List<String> arguments, SendPort sendPort) {
             );
 
             expect(kernelBytes, hasLength(greaterThan(200)));
-            final Uri kernelUri = registerKernelBlob(kernelBytes);
-
-            final ReceivePort receivePort = new ReceivePort();
-            await Isolate.spawnUri(kernelUri, [], receivePort.sendPort);
-            expect(await receivePort.first, 42);
           });
         });
       });

@@ -96,6 +96,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
+        // TODO(FMorschel): We should fix all combinators for the import, if
+        // we don't, we may not import at all.
         var combinators = import.combinators;
         if (combinators.length == 1) {
           var combinator = combinators[0];
@@ -624,7 +626,7 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithAbsoluteUri(
           _library,
           prefix: _prefix,
-          shownName: _show,
+          showName: _show,
           useShow: _show != null,
         );
       }
@@ -873,7 +875,7 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithRelativeUri(
           _library,
           prefix: _prefix,
-          shownName: _show,
+          showName: _show,
           useShow: _show != null,
         );
       }

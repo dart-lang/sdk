@@ -499,8 +499,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Isolate::SetShutdownCallback(params->shutdown_isolate);
   Isolate::SetCleanupCallback(params->cleanup_isolate);
   Isolate::SetGroupCleanupCallback(params->cleanup_group);
-  Isolate::SetRegisterKernelBlobCallback(params->register_kernel_blob);
-  Isolate::SetUnregisterKernelBlobCallback(params->unregister_kernel_blob);
 
   return nullptr;
 }

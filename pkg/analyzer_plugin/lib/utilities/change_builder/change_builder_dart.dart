@@ -445,11 +445,28 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
 
   /// Ensures that the library with the given [uri] is imported.
   ///
-  /// If there is already an import for the requested library, returns the
-  /// import prefix of the existing import directive.
-  ///
   /// If there is no existing import, a new import is added.
-  ImportLibraryElementResult importLibraryElement(Uri uri);
+  ///
+  /// If a [prefix] is provided new imports will use it in the import directive.
+  ///
+  /// If there is already an import for the requested library, returns the
+  /// import prefix of the existing import directive unless [showName] is
+  /// provided, in which case the rules below apply.
+  ///
+  /// If [showName] is provided, one of the following can occur:
+  /// - If the library is already imported with a prefix, a new import with no
+  /// prefix will be added.
+  /// - If the library is already imported without a prefix, the existing import
+  /// will be modified to show the given [showName] if it contains a combinator.
+  ///
+  /// If [useShow] is `true`, new imports will show only the given [showName],
+  /// instead of importing the library without a show clause.
+  ImportLibraryElementResult importLibraryElement(
+    Uri uri, {
+    String? prefix,
+    String? showName,
+    bool useShow = false,
+  });
 
   /// Returns whether the given library [uri] is already imported or will be
   /// imported by a scheduled edit.
