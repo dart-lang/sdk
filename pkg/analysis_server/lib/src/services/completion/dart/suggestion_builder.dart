@@ -723,7 +723,7 @@ class SuggestionBuilder {
       parameterName: name,
       parameterType: type,
       replacementLength: replacementLength,
-      element: convertElement2(parameter),
+      element: convertElement(parameter),
     );
 
     if (parameter is FieldFormalParameterElement2) {
@@ -847,7 +847,7 @@ class SuggestionBuilder {
       displayText: displayText,
       requiredImports: overrideImports.toList(),
     );
-    suggestion.element = protocol.convertElement2(element);
+    suggestion.element = protocol.convertElement(element);
     _addSuggestion(
       suggestion,
       textToMatchOverride: _textToMatchOverride(element),
@@ -1464,7 +1464,7 @@ class SuggestionBuilder {
   _ElementCompletionData _createElementCompletionData(Element2 element) {
     var documentation = _getDocumentation(element);
 
-    var suggestedElement = protocol.convertElement2(element);
+    var suggestedElement = protocol.convertElement(element);
 
     String? declaringType;
     if (element is! FormalParameterElement) {

@@ -618,7 +618,6 @@ bool Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
-  bool implicitly_use_dart_dev = false;
   bool run_script = false;
   // Get the script name.
   if (i < argc) {
@@ -632,8 +631,7 @@ bool Options::ParseArguments(int argc,
     bool is_potential_file_path = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     if (Options::disable_dart_dev() ||
-        (Options::snapshot_filename() != nullptr) ||
-        (is_potential_file_path && !enable_vm_service_)) {
+        (Options::snapshot_filename() != nullptr) || is_potential_file_path) {
       *script_name = Utils::StrDup(argv[i]);
       run_script = true;
       i++;
@@ -641,15 +639,6 @@ bool Options::ParseArguments(int argc,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     else {  // NOLINT
       DartDevIsolate::set_should_run_dart_dev(true);
-    }
-    if (!Options::disable_dart_dev() && enable_vm_service_) {
-      // Handle the special case where the user is running a Dart program
-      // without using a DartDev command and wants to use the VM service. Here
-      // we'll run the program using DartDev as it's used to spawn a DDS
-      // instance.
-      if (is_potential_file_path) {
-        implicitly_use_dart_dev = true;
-      }
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
@@ -714,13 +703,8 @@ bool Options::ParseArguments(int argc,
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).
   if (!run_script) {
-    int tmp_i = i;
-    // We only run the CLI implicitly if the service is enabled and the user
-    // didn't run with the 'run' command. If they did provide a command, we need
-    // to skip it here to continue parsing VM flags.
-    if (!implicitly_use_dart_dev) {
-      tmp_i++;
-    }
+    // Skip the command.
+    int tmp_i = i + 1;
     while (tmp_i < argc) {
       // Check if this flag is a potentially valid VM flag. If not, we've likely
       // hit a script name and are done parsing VM flags.
@@ -742,30 +726,19 @@ bool Options::ParseArguments(int argc,
   bool first_option = true;
   // Parse out options to be passed to dart main.
   while (i < argc) {
-    if (implicitly_use_dart_dev && first_option) {
-      // Special case where user enables VM service without using a dartdev
-      // run command. If 'run' is provided, it will be the first argument
-      // processed in this loop.
-      dart_options->AddArgument("run");
-    } else {
-      // dart run isn't able to parse these options properly. Since it doesn't
-      // need to use the values from these options, just strip them from the
-      // argument list passed to dart run.
-      if (!IsOption(argv[i], "observe") &&
-          !IsOption(argv[i], "enable-vm-service")) {
-        dart_options->AddArgument(argv[i]);
-      }
-      i++;
+    // dart run isn't able to parse these options properly. Since it doesn't
+    // need to use the values from these options, just strip them from the
+    // argument list passed to dart run.
+    if (!IsOption(argv[i], "observe") &&
+        !IsOption(argv[i], "enable-vm-service")) {
+      dart_options->AddArgument(argv[i]);
     }
+    i++;
     // Add DDS specific flags immediately after the dartdev command.
     if (first_option) {
       // DDS is only enabled for the run command. Make sure we don't pass DDS
       // specific flags along with other commands, otherwise argument parsing
       // will fail unexpectedly.
-      bool run_command = implicitly_use_dart_dev;
-      if (!run_command && strcmp(argv[i - 1], "run") == 0) {
-        run_command = true;
-      }
 #if !defined(DART_PRECOMPILED_RUNTIME)
       // Bring any --packages option into the dartdev command
       if (DartDevIsolate::should_run_dart_dev() &&

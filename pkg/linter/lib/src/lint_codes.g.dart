@@ -1641,6 +1641,7 @@ class LinterLintCode extends LintCode {
     "The diagnostic '{0}' isn't produced at this location so it doesn't need "
     "to be ignored.",
     correctionMessage: "Try removing the ignore comment.",
+    hasPublishedDocs: true,
     uniqueName: 'unnecessary_ignore',
   );
 

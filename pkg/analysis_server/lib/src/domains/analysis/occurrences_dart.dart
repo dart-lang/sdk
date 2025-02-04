@@ -18,7 +18,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
     // For legacy protocol, we only support occurrences with the same
     // length, so we must filter the offset to only those that match the length
     // from the element.
-    var serverElement = protocol.convertElement2(engineElement);
+    var serverElement = protocol.convertElement(engineElement);
     // Prefer the length from the mapped element over the element directly,
     // because 'name3' may contain 'new' for constructors which doesn't match
     // what is in the source.

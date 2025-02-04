@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show TypeHierarchyItem, convertElement2;
+    show TypeHierarchyItem, convertElement;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -70,10 +70,10 @@ class TypeHierarchyComputer {
       var subMemberElement = helper.findMemberElement(subElement);
       var subMemberElementDeclared = subMemberElement?.nonSynthetic2;
       subItem = TypeHierarchyItem(
-        convertElement2(subElement),
+        convertElement(subElement),
         memberElement:
             subMemberElementDeclared != null
-                ? convertElement2(subMemberElementDeclared)
+                ? convertElement(subMemberElementDeclared)
                 : null,
         superclass: itemId,
       );
@@ -122,11 +122,11 @@ class TypeHierarchyComputer {
       var memberElement = helper.findMemberElement(classElement);
       var memberElementDeclared = memberElement?.nonSynthetic2;
       item = TypeHierarchyItem(
-        convertElement2(classElement),
+        convertElement(classElement),
         displayName: displayName,
         memberElement:
             memberElementDeclared != null
-                ? convertElement2(memberElementDeclared)
+                ? convertElement(memberElementDeclared)
                 : null,
       );
       _elementItemMap[classElement] = item;

@@ -2,52 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Utilities for converting Dart entities into analysis server's protocol
 /// entities.
 library;
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/element2.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:path/path.dart' as path;
 
-/// Return a protocol [Element] corresponding to the given [engine.Element].
-Element convertElement(engine.Element element) {
+Element convertElement(engine.Element2 element) {
   var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
-  var aliasedType = getAliasedTypeString(element);
-  var elementParameters = getParametersString(element);
-  var elementReturnType = getReturnTypeString(element);
-  return Element(
-    kind,
-    name,
-    Element.makeFlags(
-      isPrivate: element.isPrivate,
-      isDeprecated: element.hasDeprecated,
-      isAbstract: _isAbstract(element),
-      isConst: _isConst(element),
-      isFinal: _isFinal(element),
-      isStatic: _isStatic(element),
-    ),
-    location: newLocation_fromElement(element),
-    typeParameters: elementTypeParameters,
-    aliasedType: aliasedType,
-    parameters: elementParameters,
-    returnType: elementReturnType,
-  );
-}
-
-Element convertElement2(engine.Element2 element) {
-  var kind = convertElementToElementKind2(element);
-  var name = getElementDisplayName2(element);
-  var elementTypeParameters = _getTypeParametersString2(element);
   var aliasedType = getAliasedTypeString2(element);
-  var elementParameters = getParametersString2(element);
+  var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString2(element);
   return Element(
     kind,
@@ -57,10 +28,10 @@ Element convertElement2(engine.Element2 element) {
       isDeprecated:
           (element is engine.Annotatable) &&
           (element as engine.Annotatable).metadata2.hasDeprecated,
-      isAbstract: _isAbstract2(element),
-      isConst: _isConst2(element),
-      isFinal: _isFinal2(element),
-      isStatic: _isStatic2(element),
+      isAbstract: _isAbstract(element),
+      isConst: _isConst(element),
+      isFinal: _isFinal(element),
+      isStatic: _isStatic(element),
     ),
     location: newLocation_fromElement2(element),
     typeParameters: elementTypeParameters,
@@ -149,21 +120,8 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-/// Return an [ElementKind] corresponding to the given [engine.Element].
-ElementKind convertElementToElementKind(engine.Element element) {
-  if (element is engine.EnumElement) {
-    return ElementKind.ENUM;
-  } else if (element is engine.MixinElement) {
-    return ElementKind.MIXIN;
-  }
-  if (element is engine.FieldElement && element.isEnumConstant) {
-    return ElementKind.ENUM_CONSTANT;
-  }
-  return convertElementKind(element.kind);
-}
-
 /// Return an [ElementKind] corresponding to the given [engine.Element2].
-ElementKind convertElementToElementKind2(engine.Element2 element) {
+ElementKind convertElementToElementKind(engine.Element2 element) {
   if (element is engine.EnumElement2) {
     return ElementKind.ENUM;
   } else if (element is engine.MixinElement2) {
@@ -175,15 +133,33 @@ ElementKind convertElementToElementKind2(engine.Element2 element) {
   return convertElementKind(element.kind);
 }
 
-String getElementDisplayName(engine.Element element) {
-  if (element is engine.CompilationUnitElement) {
-    return path.basename(element.source.fullName);
-  } else {
-    return element.displayName;
-  }
+Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
+  var kind = convertElementToElementKind(fragment);
+  var name = getElementDisplayName(fragment);
+  var elementTypeParameters = _getTypeParametersString(fragment);
+  var aliasedType = getAliasedTypeString2(fragment);
+  var elementParameters = getParametersString(fragment);
+  var elementReturnType = getReturnTypeString2(fragment);
+  return Element(
+    kind,
+    name,
+    Element.makeFlags(
+      isPrivate: fragment.isPrivate,
+      isDeprecated: fragment.hasDeprecated,
+      isAbstract: _isAbstract(fragment),
+      isConst: _isConst(fragment),
+      isFinal: _isFinal(fragment),
+      isStatic: _isStatic(fragment),
+    ),
+    location: newLocation_fromFragment(fragment),
+    typeParameters: elementTypeParameters,
+    aliasedType: aliasedType,
+    parameters: elementParameters,
+    returnType: elementReturnType,
+  );
 }
 
-String getElementDisplayName2(engine.Element2 element) {
+String getElementDisplayName(engine.Element2 element) {
   if (element is engine.LibraryFragment) {
     return path.basename((element as engine.LibraryFragment).source.fullName);
   } else {
@@ -191,56 +167,7 @@ String getElementDisplayName2(engine.Element2 element) {
   }
 }
 
-String? getParametersString(engine.Element element) {
-  // TODO(scheglov): expose the corresponding feature from ExecutableElement
-  List<engine.ParameterElement> parameters;
-  if (element is engine.ExecutableElement) {
-    // valid getters don't have parameters
-    if (element.kind == engine.ElementKind.GETTER &&
-        element.parameters.isEmpty) {
-      return null;
-    }
-    parameters = element.parameters.toList();
-  } else if (element is engine.TypeAliasElement) {
-    var aliasedType = element.aliasedType;
-    if (aliasedType is FunctionType) {
-      parameters = aliasedType.parameters.toList();
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-
-  parameters.sort(_preferRequiredParams);
-
-  var sb = StringBuffer();
-  var closeOptionalString = '';
-  for (var parameter in parameters) {
-    if (sb.isNotEmpty) {
-      sb.write(', ');
-    }
-    if (closeOptionalString.isEmpty) {
-      if (parameter.isNamed) {
-        sb.write('{');
-        closeOptionalString = '}';
-      } else if (parameter.isOptionalPositional) {
-        sb.write('[');
-        closeOptionalString = ']';
-      }
-    }
-    if (parameter.isRequiredNamed) {
-      sb.write('required ');
-    } else if (parameter.hasRequired) {
-      sb.write('@required ');
-    }
-    parameter.appendToWithoutDelimiters(sb);
-  }
-  sb.write(closeOptionalString);
-  return '($sb)';
-}
-
-String? getParametersString2(engine.Element2 element) {
+String? getParametersString(engine.Element2 element) {
   // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.FormalParameterElement> parameters;
   if (element is engine.ExecutableElement2) {
@@ -261,7 +188,7 @@ String? getParametersString2(engine.Element2 element) {
     return null;
   }
 
-  parameters.sort(_preferRequiredParams2);
+  parameters.sort(_preferRequiredParams);
 
   var sb = StringBuffer();
   var closeOptionalString = '';
@@ -289,20 +216,7 @@ String? getParametersString2(engine.Element2 element) {
   return '($sb)';
 }
 
-String? _getTypeParametersString(engine.Element element) {
-  List<engine.TypeParameterElement>? typeParameters;
-  if (element is engine.InterfaceElement) {
-    typeParameters = element.typeParameters;
-  } else if (element is engine.TypeAliasElement) {
-    typeParameters = element.typeParameters;
-  }
-  if (typeParameters == null || typeParameters.isEmpty) {
-    return null;
-  }
-  return '<${typeParameters.join(', ')}>';
-}
-
-String? _getTypeParametersString2(engine.Element2 element) {
+String? _getTypeParametersString(engine.Element2 element) {
   List<engine.TypeParameterElement2>? typeParameters;
   if (element is engine.InterfaceElement2) {
     typeParameters = element.typeParameters2;
@@ -315,23 +229,7 @@ String? _getTypeParametersString2(engine.Element2 element) {
   return '<${typeParameters.join(', ')}>';
 }
 
-bool _isAbstract(engine.Element element) {
-  if (element is engine.ClassElement) {
-    return element.isAbstract;
-  }
-  if (element is engine.MethodElement) {
-    return element.isAbstract;
-  }
-  if (element is engine.MixinElement) {
-    return true;
-  }
-  if (element is engine.PropertyAccessorElement) {
-    return element.isAbstract;
-  }
-  return false;
-}
-
-bool _isAbstract2(engine.Element2 element) {
+bool _isAbstract(engine.Element2 element) {
   if (element is engine.ClassElement2) {
     return element.isAbstract;
   }
@@ -344,17 +242,7 @@ bool _isAbstract2(engine.Element2 element) {
   return false;
 }
 
-bool _isConst(engine.Element element) {
-  if (element is engine.ConstructorElement) {
-    return element.isConst;
-  }
-  if (element is engine.VariableElement) {
-    return element.isConst;
-  }
-  return false;
-}
-
-bool _isConst2(engine.Element2 element) {
+bool _isConst(engine.Element2 element) {
   if (element is engine.ConstructorElement2) {
     return element.isConst;
   }
@@ -364,31 +252,14 @@ bool _isConst2(engine.Element2 element) {
   return false;
 }
 
-bool _isFinal(engine.Element element) {
-  if (element is engine.VariableElement) {
-    return element.isFinal;
-  }
-  return false;
-}
-
-bool _isFinal2(engine.Element2 element) {
+bool _isFinal(engine.Element2 element) {
   if (element is engine.VariableElement2) {
     return element.isFinal;
   }
   return false;
 }
 
-bool _isStatic(engine.Element element) {
-  if (element is engine.ExecutableElement) {
-    return element.isStatic;
-  }
-  if (element is engine.PropertyInducingElement) {
-    return element.isStatic;
-  }
-  return false;
-}
-
-bool _isStatic2(engine.Element2 element) {
+bool _isStatic(engine.Element2 element) {
   if (element is engine.ExecutableElement2) {
     return element.isStatic;
   }
@@ -400,26 +271,6 @@ bool _isStatic2(engine.Element2 element) {
 
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams(
-  engine.ParameterElement e1,
-  engine.ParameterElement e2,
-) {
-  var rank1 =
-      (e1.isRequiredNamed || e1.hasRequired)
-          ? 0
-          : !e1.isNamed
-          ? -1
-          : 1;
-  var rank2 =
-      (e2.isRequiredNamed || e2.hasRequired)
-          ? 0
-          : !e2.isNamed
-          ? -1
-          : 1;
-  return rank1 - rank2;
-}
-
-/// Sort required named parameters before optional ones.
-int _preferRequiredParams2(
   engine.FormalParameterElement e1,
   engine.FormalParameterElement e2,
 ) {

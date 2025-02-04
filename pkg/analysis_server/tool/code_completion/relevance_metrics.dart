@@ -7,7 +7,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind2, ElementKind;
+    show convertElementToElementKind, ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -1683,7 +1683,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind? _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind2(node.constructorName.element!);
+      return convertElementToElementKind(node.constructorName.element!);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1695,7 +1695,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         element = parent.element2!;
       }
     }
-    return convertElementToElementKind2(element);
+    return convertElementToElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].

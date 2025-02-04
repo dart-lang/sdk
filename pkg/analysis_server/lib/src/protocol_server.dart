@@ -21,6 +21,7 @@ import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/source/source_range.dart' as engine;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -333,6 +334,21 @@ Location? newLocation_fromElement2(engine.Element2? element) {
   return _locationForArgs2(fragment, range);
 }
 
+/// Creates a location based on the [fragment].
+Location? newLocation_fromFragment(engine.Fragment? fragment) {
+  if (fragment == null) {
+    return null;
+  }
+  if (fragment is engine.FormalParameterFragment &&
+      fragment.enclosingFragment == null) {
+    return null;
+  }
+  var offset = fragment.nameOffset2 ?? 0;
+  var length = fragment.name2?.length ?? 0;
+  var range = engine.SourceRange(offset, length);
+  return _locationForArgs2(fragment, range);
+}
+
 /// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
   var unitElement = _getUnitElement(match.element2.asElement!);
@@ -366,7 +382,7 @@ Location newLocation_fromUnit(
 
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
-  var element = convertElement2(member);
+  var element = convertElement(member);
   var className = member.enclosingElement2!.displayName;
   return OverriddenMember(element, className);
 }
@@ -423,10 +439,12 @@ List<Element> _computePath(engine.Element element) {
   if (element2 != null) {
     for (var fragment in element2.firstFragment.withAncestors) {
       if (fragment case engine.Element e) {
-        path.add(convertElement(e));
         if (fragment is engine.LibraryFragment) {
-          path.add(convertElement2(fragment.element));
+          path.add(
+            convertLibraryFragment(fragment as CompilationUnitElementImpl),
+          );
         }
+        path.add(convertElement(e.asElement2!));
       }
     }
   }

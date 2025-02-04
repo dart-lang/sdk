@@ -24346,7 +24346,7 @@ WarningCode:
       The analyzer produces this diagnostic when a comment that appears to be an
       attempt to specify a language version override doesn't conform to the
       requirements for such a comment. For more information, see
-      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+      [Per-library language version selection](https://dart.dev/resources/language/evolution#per-library-language-version-selection).
 
       #### Example
 
