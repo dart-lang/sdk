@@ -317,6 +317,12 @@ class ExperimentalFeature implements Feature {
   @override
   final Version? releaseVersion;
 
+  /// The channels on which this experiment is available.
+  ///
+  /// Valid channels are "stable", "beta", and "main". The "dev" channel in Dart
+  /// is implied by main.
+  final List<String> channels;
+
   ExperimentalFeature({
     required this.index,
     required this.enableString,
@@ -325,6 +331,7 @@ class ExperimentalFeature implements Feature {
     required this.documentation,
     required this.experimentalReleaseVersion,
     required this.releaseVersion,
+    this.channels = const [],
   }) : assert(isEnabledByDefault
             ? releaseVersion != null
             : releaseVersion == null);

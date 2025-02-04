@@ -240,7 +240,7 @@ class Runtime {
   /// The SDK's semantic versioning version (x.y.z-a.b.channel).
   final String version;
 
-  /// The SDK's release channel (`be`, `dev`, `beta`, `stable`).
+  /// The SDK's release channel (`main`, `dev`, `beta`, `stable`).
   ///
   /// May be null if [Platform.version] does not have the expected format.
   final String? channel;

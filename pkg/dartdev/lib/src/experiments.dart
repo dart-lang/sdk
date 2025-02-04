@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:dartdev/src/sdk.dart';
 
 const experimentFlagName = 'enable-experiment';
 
@@ -101,3 +102,28 @@ bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
 
 bool recordUseEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments.contains(ExperimentalFeatures.record_use.enableString);
+
+List<String> validateExperiments(List<String> vmEnabledExperiments) {
+  final errors = <String>[];
+  for (final enabledExperiment in vmEnabledExperiments) {
+    final experiment = experimentalFeatures.firstWhereOrNull(
+        (feature) => feature.enableString == enabledExperiment);
+    if (experiment == null) {
+      errors.add('Unknown experiment: $enabledExperiment');
+    } else if (!_availableOnCurrentChannel(experiment.channels)) {
+      final availableChannels = experiment.channels.join(', ');
+      final s = experiment.channels.length >= 2 ? 's' : '';
+      errors.add(
+        'Unavailable experiment: ${experiment.enableString} (this experiment '
+        'is only available on the $availableChannels channel$s, '
+        'this current channel is ${Runtime.runtime.channel})',
+      );
+    }
+  }
+  return errors;
+}
+
+bool _availableOnCurrentChannel(List<String> channels) {
+  final channel = Runtime.runtime.channel;
+  return channels.contains(channel);
+}

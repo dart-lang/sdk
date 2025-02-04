@@ -10,6 +10,30 @@ import '../utils.dart';
 import 'helpers.dart';
 
 void main(List<String> args) async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    test('dart run', timeout: longTimeout, () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'run',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+        expect(result.exitCode, 254);
+        expect(
+            result.stderr,
+            stringContainsInOrder(
+              ['Unavailable experiment: native-assets'],
+            ));
+      });
+    });
+
+    return;
+  }
+
   // No --source option, `dart run` from source does not output target program
   // stdout.
 

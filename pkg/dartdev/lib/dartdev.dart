@@ -223,6 +223,13 @@ class DartdevRunner extends CommandRunner<int> {
       log = Logger.verbose(ansi: ansi);
     }
 
+    late final List<String> experimentErrors =
+        validateExperiments(vmEnabledExperiments);
+    if (experimentErrors.isNotEmpty) {
+      experimentErrors.forEach(io.stderr.writeln);
+      return 254;
+    }
+
     var command = topLevelResults.command;
     final commandNames = [];
     while (command != null) {

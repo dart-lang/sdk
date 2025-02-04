@@ -125,9 +125,11 @@ features:
 
   native-assets:
     help: "Compile and bundle native assets."
+    channels: [ "main", "dev" ]
 
   record-use:
     help: "Output arguments used by static functions."
+    channels: [ "main", "dev" ]
 
   null-aware-elements:
     help: "Null-aware elements and map entries in collections."
