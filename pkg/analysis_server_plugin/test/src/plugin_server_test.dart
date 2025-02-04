@@ -48,6 +48,33 @@ class PluginServerTest extends PluginServerTestBase {
     await startPlugin();
   }
 
+  Future<void> test_diagnosticsCanBeIgnored() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: no_literals/no_bools
+bool b = false;
+''');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_diagnosticsCanBeIgnored_forFile() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+bool b = false;
+
+// ignore_for_file: no_literals/no_bools
+''');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
   Future<void> test_handleAnalysisSetContextRoots() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');

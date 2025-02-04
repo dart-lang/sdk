@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -217,7 +218,7 @@ class PluginServer {
   }) async {
     var file = _resourceProvider.getFile(path);
     var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var diagnostics = await _computeLints(
+    var diagnostics = await _computeDiagnostics(
       analysisContext,
       path,
       analysisOptions: analysisOptions as AnalysisOptionsImpl,
@@ -244,7 +245,7 @@ class PluginServer {
     }
   }
 
-  Future<List<protocol.AnalysisError>> _computeLints(
+  Future<List<protocol.AnalysisError>> _computeDiagnostics(
     AnalysisContext analysisContext,
     String path, {
     required AnalysisOptionsImpl analysisOptions,
@@ -252,11 +253,11 @@ class PluginServer {
     var libraryResult =
         await analysisContext.currentSession.getResolvedLibrary(path);
     if (libraryResult is! ResolvedLibraryResult) {
-      return [];
+      return const [];
     }
     var unitResult = await analysisContext.currentSession.getResolvedUnit(path);
     if (unitResult is! ResolvedUnitResult) {
-      return [];
+      return const [];
     }
     var listener = RecordingErrorListener();
     var errorReporter = ErrorReporter(
@@ -293,6 +294,9 @@ class PluginServer {
       null,
     );
 
+    // A mapping from each lint and warning code to its corresponding plugin.
+    var pluginCodeMapping = <String, String>{};
+
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
       // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
@@ -304,15 +308,33 @@ class PluginServer {
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
+      for (var code in rules.expand((r) => r.lintCodes)) {
+        var existingPlugin = pluginCodeMapping[code.name];
+        if (existingPlugin == null) {
+          pluginCodeMapping[code.name] = configuration.name;
+        }
+      }
     }
 
     context.currentUnit = currentUnit;
     currentUnit.unit.accept(
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
+
+    var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
+    var errors = listener.errors.where((e) {
+      var pluginName = pluginCodeMapping[e.errorCode.name];
+      if (pluginName == null) {
+        // If [e] is somehow not mapped, something is wrong; but don't mark it
+        // as ignored.
+        return true;
+      }
+      return !ignoreInfo.ignored(e, pluginName: pluginName);
+    });
+
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [
-      for (var e in listener.errors)
+      for (var e in errors)
         (
           error: e,
           protocolError: protocol.AnalysisError(
