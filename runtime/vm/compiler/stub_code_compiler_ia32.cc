@@ -214,7 +214,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/,
                                  /*enter_safepoint=*/true);
   __ call(EAX);
-  __ TransitionNativeToGenerated(ECX /*volatile*/, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(ECX /*volatile*/, /*exit_safepoint=*/true);
 
   __ jmp(EBX);
 }
@@ -2971,7 +2971,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true,
+  __ TransitionNativeToGenerated(ECX, /*exit_safepoint=*/true,
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 

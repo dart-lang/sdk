@@ -1550,7 +1550,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jalr(target);
 
       // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
+      __ TransitionNativeToGenerated(temp1, /*exit_safepoint=*/true);
     } else {
       // We cannot trust that this code will be executable within a safepoint.
       // Therefore we delegate the responsibility of entering/exiting the

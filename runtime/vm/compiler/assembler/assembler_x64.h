@@ -324,9 +324,11 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(bool leave_safepoint,
+  void TransitionNativeToGenerated(bool exit_safepoint,
                                    bool ignore_unwind_in_progress = false,
                                    bool set_tag = true);
+  void VerifyInGenerated(Register scratch);
+  void VerifyNotInGenerated(Register scratch);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \

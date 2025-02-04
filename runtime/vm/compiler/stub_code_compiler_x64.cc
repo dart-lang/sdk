@@ -348,6 +348,7 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
 
+  __ VerifyNotInGenerated(RAX);
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
@@ -390,7 +391,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ popq(R12);
   __ CallCFunction(RBX, /*restore_rsp=*/true);
 
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/true);
 
   // Faster than jmp because it doesn't confuse the branch predictor.
   __ pushq(R12);
@@ -3368,7 +3369,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true,
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/true,
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 

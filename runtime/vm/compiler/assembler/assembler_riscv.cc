@@ -4381,6 +4381,12 @@ void Assembler::TransitionGeneratedToNative(Register destination,
      Address(THR, target::Thread::exit_through_ffi_offset()));
   Register tmp = new_exit_through_ffi;
 
+#if defined(DEBUG)
+  ASSERT(T2 != TMP2);
+  mv(T2, TMP2);  // BranchIf in VerifyInGenerated clobbers TMP2.
+  VerifyInGenerated(tmp);
+  mv(TMP2, T2);
+#endif
   // Mark that the thread is executing native code.
   sx(destination, Address(THR, target::Thread::vm_tag_offset()));
   li(tmp, target::Thread::native_execution_state());
@@ -4413,6 +4419,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
 #endif
   }
 
+  VerifyNotInGenerated(state);
   // Mark that the thread is executing Dart code.
   if (set_tag) {
     li(state, target::Thread::vm_tag_dart_id());
@@ -4424,6 +4431,32 @@ void Assembler::TransitionNativeToGenerated(Register state,
   // Reset exit frame information in Isolate's mutator thread structure.
   sx(ZR, Address(THR, target::Thread::top_exit_frame_info_offset()));
   sx(ZR, Address(THR, target::Thread::exit_through_ffi_offset()));
+}
+
+void Assembler::VerifyInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in generated.
+  Comment("VerifyInGenerated");
+  lx(scratch, Address(THR, target::Thread::execution_state_offset()));
+  Label ok;
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  BranchIf(EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
+}
+
+void Assembler::VerifyNotInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in native or VM.
+  Comment("VerifyNotInGenerated");
+  lx(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(NOT_EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::EnterFullSafepoint(Register state) {

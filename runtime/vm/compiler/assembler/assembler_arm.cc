@@ -623,6 +623,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
                 target::Thread::exit_through_ffi_offset());
   Register tmp2 = exit_through_ffi;
 
+  VerifyInGenerated(tmp1);
   // Mark that the thread is executing native code.
   StoreToOffset(destination_address, THR, target::Thread::vm_tag_offset());
   LoadImmediate(tmp1, target::Thread::native_execution_state());
@@ -700,6 +701,7 @@ void Assembler::TransitionNativeToGenerated(Register addr,
 #endif
   }
 
+  VerifyNotInGenerated(TMP);
   // Mark that the thread is executing Dart code.
   if (set_tag) {
     LoadImmediate(state, target::Thread::vm_tag_dart_id());
@@ -712,6 +714,32 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   LoadImmediate(state, 0);
   StoreToOffset(state, THR, target::Thread::top_exit_frame_info_offset());
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
+}
+
+void Assembler::VerifyInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in generated.
+  Comment("VerifyInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  Label ok;
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  BranchIf(EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
+}
+
+void Assembler::VerifyNotInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in native or VM.
+  Comment("VerifyNotInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(NOT_EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::clrex() {

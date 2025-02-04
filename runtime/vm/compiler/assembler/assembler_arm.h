@@ -623,6 +623,8 @@ class Assembler : public AssemblerBase {
                                    bool exit_safepoint,
                                    bool ignore_unwind_in_progress = false,
                                    bool set_tag = true);
+  void VerifyInGenerated(Register scratch);
+  void VerifyNotInGenerated(Register scratch);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
   void ExitFullSafepoint(Register scratch0,
                          Register scratch1,
