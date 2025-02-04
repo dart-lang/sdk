@@ -49,7 +49,7 @@
 #    A version less than this version may be specified in a .packages file
 #    or in a library language version override (e.g. // @dart = 2.1)
 #    to disable this feature. For more on library language version override, see
-#    https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md
+#    https://dart.dev/to/language-version-override
 #
 # 3. expired: (optional boolean)
 #    If true, then the experiment can no longer be enabled by specifying the
