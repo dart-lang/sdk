@@ -111,6 +111,7 @@ DEFINE_FLAG(bool,
             verbose_stack_overflow,
             false,
             "Print additional details about stack overflow.");
+DEFINE_FLAG(bool, gc_at_throw, false, "Run evacuating GC at throw and rethrow");
 
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
@@ -1587,11 +1588,25 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 }
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
+  if (FLAG_gc_at_throw) {
+    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                             GCReason::kDebugging);
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                /*compact=*/true);
+  }
+
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::Throw(thread, exception);
 }
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 3) {
+  if (FLAG_gc_at_throw) {
+    isolate->group()->heap()->CollectGarbage(thread, GCType::kEvacuate,
+                                             GCReason::kDebugging);
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                                /*compact=*/true);
+  }
+
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& stacktrace =
       Instance::CheckedHandle(zone, arguments.ArgAt(1));
