@@ -7,9 +7,7 @@
 
 import 'dart:async';
 
-class A<T>
-
-{}
+class A<T> {}
 
 void main() {
   A a = new A();

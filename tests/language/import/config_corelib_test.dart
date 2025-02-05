@@ -6,7 +6,8 @@ import 'package:expect/expect.dart';
 
 import 'config_corelib_general.dart'
     if (dart.library.io) 'config_corelib_io.dart'
-    if (dart.library.http) 'config_corelib_http.dart' as lib;
+    if (dart.library.http) 'config_corelib_http.dart'
+    as lib;
 
 class SubClassy extends lib.Classy {
   String get superName => super.name;

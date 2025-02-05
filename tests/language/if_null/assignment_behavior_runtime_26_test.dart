@@ -122,8 +122,6 @@ class C {
   void instanceTest() {
     // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
 
-
-
     yGetValue = 1;
   }
 }
@@ -140,8 +138,6 @@ class D extends C {
   void derivedInstanceTest() {
     // super.v ??= e is equivalent to
     // ((x) => x == null ? super.v = e : x)(super.v)
-
-
   }
 }
 
@@ -156,55 +152,20 @@ main() {
 
   // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
 
-
-
-
-
-
-
-
-
-
-
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
-
-
-
-
 
   // e1.v ??= e2 is equivalent to
   // ((x) => ((y) => y == null ? x.v = e2 : y)(x.v))(e1)
 
-
-
-
-
-
-
-
-
   // e1[e2] ??= e3 is equivalent to
   // ((a, i) => ((x) => x == null ? a[i] = e3 : x)(a[i]))(e1, e2)
 
-
-
-
-
   // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
 
-
-
-
-
-
   // C?.v ??= e2 is equivalent to C.v ??= e2.
-
-
-
 
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
   //              ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-
 }

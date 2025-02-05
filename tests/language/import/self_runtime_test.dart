@@ -15,9 +15,6 @@ import "package:expect/expect.dart";
 // Eliminate the import of the unmodified file or else the analyzer
 // will generate the static error in the import_self_test_none case.
 
-
 var _x = "The quick brown fox jumps over the dazy log";
 
-main() {
-
-}
+main() {}

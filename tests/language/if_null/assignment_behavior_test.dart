@@ -123,11 +123,11 @@ class C {
     yGetValue = 1;
     check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
     finalOne ??= null;
-//  ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] The setter 'finalOne' isn't defined for the class 'C'.
-//               ^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+    // [error column 5, length 8]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
+    //           ^^^^
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     yGetValue = 1;
   }
 }
@@ -184,25 +184,25 @@ main() {
   {
     final l = 1;
     l ??= null;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Can't assign to the final variable 'l'.
-//        ^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Can't assign to the final variable 'l'.
+    //    ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }
   C ??= null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
-// [cfe] Can't assign to a type literal.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [cfe] Can't assign to a type literal.
   h ??= null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used as an expression.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used as an expression.
   h[0] ??= null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used as an expression.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used as an expression.
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
   C.xGetValue = 1;

@@ -15,5 +15,4 @@ main() {
   print(show);
 
   // Ugly is hidden.
-
 }

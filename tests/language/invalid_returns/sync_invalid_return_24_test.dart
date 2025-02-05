@@ -12,7 +12,7 @@ int v = 0;
 FutureOr<String> test() {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'int' can't be returned from a function with return type 'FutureOr<String>'.
 }
 

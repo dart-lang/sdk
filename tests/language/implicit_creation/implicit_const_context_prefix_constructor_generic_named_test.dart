@@ -22,7 +22,7 @@ class C<T> {
 const topConst = prefix.C<int>.named(42);
 
 main() {
-  const c0 = const prefix.C<int>.named(42);  // Explicit const.
+  const c0 = const prefix.C<int>.named(42); // Explicit const.
 
   // RHS of const local variable.
   const c1 = prefix.C<int>.named(42);
@@ -43,8 +43,10 @@ main() {
 
   // Switch case parenthesized const expression.
   switch (c0) {
-    case const (prefix.C<int>.named(42)): break;
-    default: Expect.fail("Didn't match constant");
+    case const (prefix.C<int>.named(42)):
+      break;
+    default:
+      Expect.fail("Didn't match constant");
   }
 
   // Annotation argument.

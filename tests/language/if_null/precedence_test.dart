@@ -41,11 +41,11 @@ main() {
   // type warning if b doesn't have type bool.  An incorrect parse of
   // "a || (b ?? c)" would allow b to have any type provided that c is bool.
   falsity || 1 ?? true;
-//           ^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
-//                ^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
+  //              ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 
   // An incorrect parse of "a || (b ?? c)" would result in no checked-mode
   // error.

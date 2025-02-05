@@ -14,7 +14,4 @@ import 'hidden_lib.dart' as prefix;
 import 'dart:async';
 import 'dart:async' as prefix;
 
-main() {
-
-
-}
+main() {}

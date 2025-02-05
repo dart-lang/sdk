@@ -44,8 +44,8 @@ class Indexable<ReadType, WriteType> {
 }
 
 Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
-        ReadType value) =>
-    Indexable<ReadType, WriteType>(value);
+  ReadType value,
+) => Indexable<ReadType, WriteType>(value);
 
 main() {
   // - An if-null assignment `e` of the form `e1 ??= e2` with context type K is
@@ -97,8 +97,10 @@ main() {
     // Therefore the type of `e` is T = num.
     // (Which becomes num? after null shorting completes.)
     var d = 2.0;
-    context<Object?>((maybeIndexable<int?, Object?>(null)?[0] ??= d)
-      ..expectStaticType<Exactly<num?>>());
+    context<Object?>(
+      (maybeIndexable<int?, Object?>(null)?[0] ??= d)
+        ..expectStaticType<Exactly<num?>>(),
+    );
 
     // This example has:
     // - K = Iterable<_>?
@@ -113,8 +115,9 @@ main() {
     // (Which becomes Iterable<num>? after null shorting completes.)
     var iterableDouble = <double>[] as Iterable<double>;
     contextIterableQuestion(
-        (maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= iterableDouble)
-          ..expectStaticType<Exactly<Iterable<num>?>>());
+      (maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= iterableDouble)
+        ..expectStaticType<Exactly<Iterable<num>?>>(),
+    );
 
     // This example has:
     // - K = Function?
@@ -129,9 +132,10 @@ main() {
     // Therefore the type of `e` is T = Function.
     // (Which becomes Function? after null shorting completes.)
     var callableClassInt = CallableClass<int>();
-    context<Function?>((maybeIndexable<Function?, Function?>(null)?[0] ??=
-        callableClassInt)
-      ..expectStaticType<Exactly<Function?>>());
+    context<Function?>(
+      (maybeIndexable<Function?, Function?>(null)?[0] ??= callableClassInt)
+        ..expectStaticType<Exactly<Function?>>(),
+    );
   }
 
   //   - Otherwise, if NonNull(T1) <: S and T2' <: S, then the type of `e` is S.
@@ -150,8 +154,10 @@ main() {
     // Therefore the type of `e` is S = B1<Object?>.
     // (Which becomes B1<Object?>? after null shorting completes.)
     var c2Double = C2<double>();
-    contextB1Question((maybeIndexable<C1<int>?, Object?>(null)?[0] ??= c2Double)
-      ..expectStaticType<Exactly<B1<Object?>?>>());
+    contextB1Question(
+      (maybeIndexable<C1<int>?, Object?>(null)?[0] ??= c2Double)
+        ..expectStaticType<Exactly<B1<Object?>?>>(),
+    );
 
     // This example has:
     // - K = B1<Object>?
@@ -166,9 +172,10 @@ main() {
     // - T2' <: S
     // Therefore the type of `e` is S = B1<Object>.
     // (Which becomes B1<Object>? after null shorting completes.)
-    contextB1Question<Object>((maybeIndexable<C1<int>?, Object?>(null)?[0] ??=
-        c2Double)
-      ..expectStaticType<Exactly<B1<Object>?>>());
+    contextB1Question<Object>(
+      (maybeIndexable<C1<int>?, Object?>(null)?[0] ??= c2Double)
+        ..expectStaticType<Exactly<B1<Object>?>>(),
+    );
 
     // This example has:
     // - K = Iterable<num>?
@@ -185,8 +192,9 @@ main() {
     // (Which becomes Iterable<num>? after null shorting completes.)
     var listNum = <num>[];
     context<Iterable<num>?>(
-        (maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= listNum)
-          ..expectStaticType<Exactly<Iterable<num>?>>());
+      (maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= listNum)
+        ..expectStaticType<Exactly<Iterable<num>?>>(),
+    );
 
     // This example has:
     // - K = B1<int> Function()?
@@ -204,9 +212,10 @@ main() {
     // (Which becomes B1<int> Function()? after null shorting completes.)
     var callableClassC2Int = CallableClass<C2<int>>();
     context<B1<int> Function()?>(
-        (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
+      (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
             callableClassC2Int)
-          ..expectStaticType<Exactly<B1<int> Function()?>>());
+        ..expectStaticType<Exactly<B1<int> Function()?>>(),
+    );
   }
 
   //   - Otherwise, the type of `e` is T.
@@ -231,8 +240,9 @@ main() {
       // Therefore the type of `e` is T = num.
       // (Which becomes num? after null shorting completes.)
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<int?, Object?>(null)?[0] ??= d)
-        ..expectStaticType<Exactly<num?>>();
+      o =
+          (maybeIndexable<int?, Object?>(null)?[0] ??= d)
+            ..expectStaticType<Exactly<num?>>();
     }
     o = 0 as Object?;
     if (o is int?) {
@@ -250,8 +260,9 @@ main() {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = num?.
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<double?, Object?>(null)?[0] ??= intQuestion)
-        ..expectStaticType<Exactly<num?>>();
+      o =
+          (maybeIndexable<double?, Object?>(null)?[0] ??= intQuestion)
+            ..expectStaticType<Exactly<num?>>();
     }
     o = '' as Object?;
     if (o is String?) {
@@ -271,8 +282,9 @@ main() {
       // Therefore the type of `e` is T = num.
       // (Which becomes num? after null shorting completes.)
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<int?, Object?>(null)?[0] ??= d)
-        ..expectStaticType<Exactly<num?>>();
+      o =
+          (maybeIndexable<int?, Object?>(null)?[0] ??= d)
+            ..expectStaticType<Exactly<num?>>();
     }
 
     var callableClassC2Int = CallableClass<C2<int>>();
@@ -294,9 +306,10 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // (Which becomes A Function()? after null shorting completes.)
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
-          callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()?>>();
+      o =
+          (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
+                callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()?>>();
     }
 
     o = (() => C2<int>()) as Object?;
@@ -317,9 +330,10 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // (Which becomes A Function()? after null shorting completes.)
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
-          callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()?>>();
+      o =
+          (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
+                callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()?>>();
     }
 
     o = 0 as Object?;
@@ -340,9 +354,10 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // (Which becomes A Function()? after null shorting completes.)
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
-          callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()?>>();
+      o =
+          (maybeIndexable<C1<int> Function()?, Function?>(null)?[0] ??=
+                callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()?>>();
     }
   }
 }

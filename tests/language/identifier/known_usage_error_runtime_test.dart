@@ -26,8 +26,6 @@ Future<void> f1() async {
   // Allowed:
   int async = 1;
 
-
-
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (int i in s) {
     return;
@@ -36,8 +34,6 @@ Future<void> f1() async {
 
 Stream<int> f2() async* {
   int async = 1;
-
-
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (var i in s) {
@@ -48,12 +44,7 @@ Stream<int> f2() async* {
 Iterable<int> f3() sync* {
   int async = 1;
 
-
-
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
-
-
-
 }
 
 void f4() {
@@ -62,10 +53,6 @@ void f4() {
   int yield = 1;
 
   Stream s = new Stream<int>.fromFuture(new Future<int>.value(1));
-
-
-
-
 }
 
 main() {

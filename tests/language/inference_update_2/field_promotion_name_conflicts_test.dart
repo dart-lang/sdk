@@ -27,20 +27,20 @@ class C {
   final int? _f14;
 
   C(int? i)
-      : _f1 = i,
-        _f2 = i,
-        _f3 = i,
-        _f4 = i,
-        _f5 = i,
-        _f6 = i,
-        _f7 = i,
-        _f8 = i,
-        _f9 = i,
-        _f10 = i,
-        _f11 = i,
-        _f12 = i,
-        _f13 = i,
-        _f14 = i;
+    : _f1 = i,
+      _f2 = i,
+      _f3 = i,
+      _f4 = i,
+      _f5 = i,
+      _f6 = i,
+      _f7 = i,
+      _f8 = i,
+      _f9 = i,
+      _f10 = i,
+      _f11 = i,
+      _f12 = i,
+      _f13 = i,
+      _f14 = i;
 }
 
 abstract class D {

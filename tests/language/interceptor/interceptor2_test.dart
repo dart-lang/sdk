@@ -15,7 +15,7 @@ class A {
 main() {
   var a = <dynamic>[
     new A(),
-    [1, 1]
+    [1, 1],
   ];
   Expect.equals(499, a[0].iterator());
   Expect.equals(499, (a[0].iterator)());

@@ -10,9 +10,7 @@ abstract class Ai {
   int foo();
 }
 
-abstract class Bi implements Ai {
-
-}
+abstract class Bi implements Ai {}
 
 abstract class Simple implements Ai {}
 
@@ -40,6 +38,4 @@ abstract class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   String beta2(double d); // Abstract.
 }
 
-main() {
-
-}
+main() {}

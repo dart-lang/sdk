@@ -10,7 +10,7 @@ void main() {
   B? b;
   var a = new B() as A?;
   b ??= a;
-//      ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-// [cfe] A value of type 'A?' can't be assigned to a variable of type 'B?'.
+  //    ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'A?' can't be assigned to a variable of type 'B?'.
 }

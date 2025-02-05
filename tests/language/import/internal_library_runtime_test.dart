@@ -11,10 +11,4 @@ library internal_library_test;
 
 import 'dart:core'; // This loads 'dart:_foreign_helper' and 'patch:core'.
 
-
-
-
-void main() {
-
-
-}
+void main() {}

@@ -5,18 +5,18 @@
 void main() {
   Object o = new Object();
   o || o;
-//^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
-//     ^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+  //   ^
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 
   o && o;
-//^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
-//     ^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+  //   ^
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }
