@@ -16,7 +16,6 @@ dependencies:
 dev_dependencies:
   checks: any
   collection: any
-  macros: any
   test: any
 
 dependency_overrides:

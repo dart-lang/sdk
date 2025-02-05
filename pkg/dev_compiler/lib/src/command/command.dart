@@ -8,8 +8,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_from_binary.dart' as kernel
     show BinaryBuilder;
@@ -1040,11 +1038,6 @@ Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
             .joinAll(p.split(p.relative(multiRootPath, from: sourceMapDir)));
         return multiRootPath;
       }
-      return sourcePath;
-    }
-
-    if (macros.isMacroLibraryUri(uri)) {
-      // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }
 

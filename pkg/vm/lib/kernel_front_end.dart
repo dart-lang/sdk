@@ -13,8 +13,6 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -551,9 +549,7 @@ Future<KernelCompilationResults> compileToKernel(
   }
   final Component? component = compilerResult?.component;
 
-  // TODO(https://dartbug.com/55246): track macro deps when available.
-  Iterable<Uri>? compiledSources = component?.uriToSource.keys
-      .where((uri) => !macros.isMacroLibraryUri(uri));
+  Iterable<Uri>? compiledSources = component?.uriToSource.keys;
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
