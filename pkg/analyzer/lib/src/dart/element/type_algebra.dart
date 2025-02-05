@@ -151,6 +151,25 @@ DartType substitute(
   return Substitution.fromMap(substitution).substituteType(type);
 }
 
+/// Returns a type where all occurrences of the given type parameters have been
+/// replaced with the corresponding types.
+///
+/// This will copy only the sub-terms of [type] that contain substituted
+/// variables; all other [DartType] objects will be reused.
+///
+/// In particular, if no type parameters were substituted, this is guaranteed
+/// to return the [type] instance (not a copy), so the caller may use
+/// [identical] to efficiently check if a distinct type was created.
+DartType substitute2(
+  DartType type,
+  Map<TypeParameterElement2, DartType> substitution,
+) {
+  if (substitution.isEmpty) {
+    return type;
+  }
+  return Substitution.fromMap2(substitution).substituteType(type);
+}
+
 ///  1. Substituting T=X! into T! yields X!
 ///  3. Substituting T=X? into T! yields X?
 ///  7. Substituting T=X! into T? yields X?
@@ -283,26 +302,6 @@ abstract class Substitution {
   ) {
     var fragments = parameters.map((e) => e.asElement).toList();
     return fromPairs(fragments, types);
-  }
-
-  /// Substitutes all occurrences of the given type parameters with the
-  /// corresponding upper or lower bound, depending on the variance of the
-  /// context where it occurs.
-  ///
-  /// For example the type `(T) => T` with the bounds `bottom <: T <: num`
-  /// becomes `(bottom) => num` (in this example, `num` is the upper bound,
-  /// and `bottom` is the lower bound).
-  ///
-  /// This is a way to obtain an upper bound for a type while eliminating all
-  /// references to certain type variables.
-  static Substitution fromUpperAndLowerBounds(
-    Map<TypeParameterElement, DartType> upper,
-    Map<TypeParameterElement, DartType> lower,
-  ) {
-    if (upper.isEmpty && lower.isEmpty) {
-      return _NullSubstitution.instance;
-    }
-    return _UpperLowerBoundsSubstitution(upper, lower);
   }
 }
 
@@ -695,19 +694,4 @@ abstract class _TypeSubstitutor
   List<DartType> _mapList(List<DartType> types) {
     return types.map((e) => e.accept(this)).toFixedList();
   }
-}
-
-class _UpperLowerBoundsSubstitution extends Substitution {
-  final Map<TypeParameterElement, DartType> upper;
-  final Map<TypeParameterElement, DartType> lower;
-
-  _UpperLowerBoundsSubstitution(this.upper, this.lower);
-
-  @override
-  DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
-    return upperBound ? upper[parameter] : lower[parameter];
-  }
-
-  @override
-  String toString() => '_UpperLowerBoundsSubstitution($upper, $lower)';
 }

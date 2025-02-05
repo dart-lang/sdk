@@ -686,8 +686,34 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
+  TypeAliasElementImpl2 typeAlias2({
+    required String name,
+    required List<TypeParameterElementImpl2> typeParameters,
+    required DartType aliasedType,
+  }) {
+    var fragment = TypeAliasElementImpl(name, 0);
+    fragment.name2 = name;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters
+        .map((e) => e.asElement as TypeParameterElementImpl)
+        .toList();
+    fragment.aliasedType = aliasedType;
+
+    return TypeAliasElementImpl2(Reference.root(), fragment);
+  }
+
   TypeImpl typeAliasTypeNone(
     TypeAliasElementImpl element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  TypeImpl typeAliasTypeNone2(
+    TypeAliasElementImpl2 element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -704,7 +730,7 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  TypeParameterElement2 typeParameter2(String name,
+  TypeParameterElementImpl2 typeParameter2(String name,
       {DartType? bound, Variance? variance}) {
     return typeParameter(name, bound: bound, variance: variance).asElement2;
   }

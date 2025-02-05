@@ -120,6 +120,10 @@ class MapExtensionTest {
     expect(<int, int>{}.firstKey, isNull);
   }
 
+  test_mapKey() {
+    expect({0: 1, 2: 3}.mapKey((k) => 'v$k'), {'v0': 1, 'v2': 3});
+  }
+
   test_mapValue() {
     expect({0: 1, 2: 3}.mapValue((v) => 'v$v'), {0: 'v1', 2: 'v3'});
   }

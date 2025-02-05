@@ -637,6 +637,12 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
 
 extension TypeParameterElementExtension on TypeParameterElement {
   TypeParameterElement2 get asElement2 {
-    return (this as TypeParameterElementImpl).element;
+    return (this as TypeParameterElementImpl).asElement2;
+  }
+}
+
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
+  TypeParameterElementImpl2 get asElement2 {
+    return element;
   }
 }
