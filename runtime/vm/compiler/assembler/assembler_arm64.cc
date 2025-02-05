@@ -807,7 +807,11 @@ void Assembler::AddImmediate(Register dest,
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    add(dest, rn, Operand(TMP2), sz);
+    if ((dest == CSP) || (rn == CSP)) {
+      add(dest, rn, Operand(TMP2, UXTX, 0), sz);
+    } else {
+      add(dest, rn, Operand(TMP2), sz);
+    }
   }
 }
 
