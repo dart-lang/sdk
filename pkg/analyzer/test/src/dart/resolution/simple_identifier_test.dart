@@ -37,7 +37,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-  element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
+  element: <testLibrary>::@function::foo
   staticType: void Function()
 ''');
   }
@@ -179,7 +179,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
-  element: dynamic@-1
+  element: dynamic
   staticType: Type
 ''');
   }
@@ -217,7 +217,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
-  element: dynamic@-1
+  element: dynamic
   staticType: Type
 ''');
   }
@@ -341,8 +341,13 @@ int Function() foo(A a) {
 ''');
 
     var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.parameter('a'));
-    assertType(identifier, 'A');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@function::foo::@parameter::a
+  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  staticType: A
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {
@@ -359,8 +364,13 @@ int Function() foo(A? a) {
     ]);
 
     var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.parameter('a'));
-    assertType(identifier, 'A?');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@function::foo::@parameter::a
+  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  staticType: A?
+''');
   }
 
   test_inClass_getterInherited_setterDeclaredLocally() async {
@@ -723,8 +733,13 @@ class C<T> {
 ''');
 
     var identifier = findNode.simple('f;');
-    assertElement(identifier, findElement.localFunction('f'));
-    assertType(identifier, 'void Function<U>(S, U)');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: f
+  staticElement: f@50
+  element: f@50
+  staticType: void Function<U>(S, U)
+''');
   }
 
   test_never_implicitCore() async {
@@ -739,7 +754,7 @@ main() {
 SimpleIdentifier
   token: Never
   staticElement: Never@-1
-  element: Never@-1
+  element: Never
   staticType: Type
 ''');
   }
@@ -754,8 +769,13 @@ main() {
 ''');
 
     var identifier = findNode.simple('foo;');
-    assertElement(identifier, findElement.topFunction('foo'));
-    assertType(identifier, 'void Function(int)');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@function::foo
+  element: <testLibrary>::@function::foo
+  staticType: void Function(int)
+''');
   }
 
   test_tearOff_method() async {
@@ -770,7 +790,12 @@ class A {
 ''');
 
     var identifier = findNode.simple('foo;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@class::A::@method::foo
+  element: <testLibraryFragment>::@class::A::@method::foo#element
+  staticType: void Function(int)
+''');
   }
 }

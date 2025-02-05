@@ -45,20 +45,18 @@ class AnalysisServerTest with ResourceProviderMixin {
 
     // Create an SDK in the mock file system.
     var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     errorNotifier = ErrorNotifier();
     server = LegacyAnalysisServer(
-        channel,
-        resourceProvider,
-        AnalysisServerOptions(),
-        DartSdkManager(sdkRoot.path),
-        AnalyticsManager(NoOpAnalytics()),
-        CrashReportingAttachmentsBuilder.empty,
-        errorNotifier);
+      channel,
+      resourceProvider,
+      AnalysisServerOptions(),
+      DartSdkManager(sdkRoot.path),
+      AnalyticsManager(NoOpAnalytics()),
+      CrashReportingAttachmentsBuilder.empty,
+      errorNotifier,
+    );
     errorNotifier.server = server;
   }
 
@@ -93,7 +91,7 @@ mixin M on A {
   }
 }
 class X extends A with M {}
-''')
+'''),
     });
     await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
@@ -115,19 +113,17 @@ class X extends A with M {}
     server.serverServices = {ServerService.STATUS};
     var projectRoot = convertPath('/foo');
     var projectTestFile = convertPath('/foo/lib/test.dart');
-    var projectPackageConfigFile =
-        convertPath('/foo/.dart_tool/package_config.json');
+    var projectPackageConfigFile = convertPath(
+      '/foo/.dart_tool/package_config.json',
+    );
 
     // Create a file that references two packages, which will we write to
     // package_config.json individually.
     newFolder(projectRoot);
-    newFile(
-      projectTestFile,
-      r'''
+    newFile(projectTestFile, r'''
       import "package:foo/foo.dart";'
       import "package:bar/bar.dart";'
-      ''',
-    );
+      ''');
 
     // Ensure the packages and package_config exist.
     var fooLibFolder = _addSimplePackage('foo', '');
@@ -140,10 +136,12 @@ class X extends A with M {}
     channel.notifications
         .where((notification) => notification.event == 'analysis.errors')
         .listen((notification) {
-      var params = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
-      errorsByFile[params.file] = params.errors;
-    });
+          var params = AnalysisErrorsParams.fromNotification(
+            notification,
+            clientUriConverter: server.uriConverter,
+          );
+          errorsByFile[params.file] = params.errors;
+        });
 
     /// Helper that waits for analysis then returns the relevant errors.
     Future<List<AnalysisError>> getUriNotExistErrors() async {
@@ -180,7 +178,8 @@ class X extends A with M {}
     errorNotifier.logException(Exception('dummy exception'));
 
     var errors = channel.notificationsReceived.where(
-        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+      (notification) => notification.event == SERVER_NOTIFICATION_ERROR,
+    );
     expect(
       errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
       contains('dummy exception'),
@@ -189,10 +188,14 @@ class X extends A with M {}
 
   Future<void> test_errorNotification_sendNotification() async {
     server.sendServerErrorNotification(
-        'message', Exception('dummy exception'), null);
+      'message',
+      Exception('dummy exception'),
+      null,
+    );
 
     var errors = channel.notificationsReceived.where(
-        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+      (notification) => notification.event == SERVER_NOTIFICATION_ERROR,
+    );
     expect(
       errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
       contains('dummy exception'),
@@ -214,22 +217,29 @@ class A {}
     expect(notifications, isNotEmpty);
 
     // At least one notification indicating analysis is in progress.
-    expect(notifications.any((Notification notification) {
-      if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification,
-            clientUriConverter: server.uriConverter);
-        var analysis = params.analysis;
-        if (analysis != null) {
-          return analysis.isAnalyzing;
+    expect(
+      notifications.any((Notification notification) {
+        if (notification.event == SERVER_NOTIFICATION_STATUS) {
+          var params = ServerStatusParams.fromNotification(
+            notification,
+            clientUriConverter: server.uriConverter,
+          );
+          var analysis = params.analysis;
+          if (analysis != null) {
+            return analysis.isAnalyzing;
+          }
         }
-      }
-      return false;
-    }), isTrue);
+        return false;
+      }),
+      isTrue,
+    );
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification,
-        clientUriConverter: server.uriConverter);
+    var params = ServerStatusParams.fromNotification(
+      notification,
+      clientUriConverter: server.uriConverter,
+    );
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
@@ -246,27 +256,34 @@ class A {}
     expect(notifications, isNotEmpty);
 
     // At least one notification indicating analysis is in progress.
-    expect(notifications.any((Notification notification) {
-      if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification,
-            clientUriConverter: server.uriConverter);
-        var analysis = params.analysis;
-        if (analysis != null) {
-          return analysis.isAnalyzing;
+    expect(
+      notifications.any((Notification notification) {
+        if (notification.event == SERVER_NOTIFICATION_STATUS) {
+          var params = ServerStatusParams.fromNotification(
+            notification,
+            clientUriConverter: server.uriConverter,
+          );
+          var analysis = params.analysis;
+          if (analysis != null) {
+            return analysis.isAnalyzing;
+          }
         }
-      }
-      return false;
-    }), isTrue);
+        return false;
+      }),
+      isTrue,
+    );
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification,
-        clientUriConverter: server.uriConverter);
+    var params = ServerStatusParams.fromNotification(
+      notification,
+      clientUriConverter: server.uriConverter,
+    );
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
   Future<void>
-      test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     var path = convertPath('/project/samples/sample.dart');
     newFile(path, '');
     newAnalysisOptionsYamlFile('/project', r'''
@@ -276,18 +293,21 @@ analyzer:
 ''');
     await server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: <String>{path}
+      AnalysisService.NAVIGATION: <String>{path},
     });
 
     // We respect subscriptions, even for excluded files.
     await pumpEventQueue(times: 5000);
-    expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
-    }), isTrue);
+    expect(
+      channel.notificationsReceived.any((notification) {
+        return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
+      }),
+      isTrue,
+    );
   }
 
   Future<void>
-      test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     var path = convertPath('/project/samples/sample.dart');
     newFile(path, '');
     newAnalysisOptionsYamlFile('/project', r'''
@@ -297,14 +317,17 @@ analyzer:
 ''');
     await server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: <String>{path}
+      AnalysisService.NAVIGATION: <String>{path},
     });
 
     // We respect subscriptions, even for excluded files.
     await pumpEventQueue(times: 5000);
-    expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
-    }), isTrue);
+    expect(
+      channel.notificationsReceived.any((notification) {
+        return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
+      }),
+      isTrue,
+    );
   }
 
   Future<void> test_shutdown() {

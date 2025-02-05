@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// org-dartlang-test:///main.dart:1:1: Error: The specified language version 2.9 is too low. The lowest supported language version is 2.12.
 // // @dart=2.9
 // ^^^^^^^^^^^^
 //

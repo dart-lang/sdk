@@ -20,7 +20,9 @@ dependencies:
   dds: any
   dds_service_extensions: any
   dtd_impl: any
+  file: any
   front_end: any
+  frontend_server: any
   http: any
   kernel: any
   logging: any
@@ -29,7 +31,6 @@ dependencies:
   native_assets_cli: any
   path: any
   pub: any
-  telemetry: any
   unified_analytics: any
   vm: any
   vm_service: any
@@ -38,7 +39,6 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
-  file: any
   lints: any
   pub_semver: any
   test: any

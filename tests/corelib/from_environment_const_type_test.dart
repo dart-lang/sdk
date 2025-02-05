@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=-Da=true -Db=false -Dc=3 -Dd=STRING
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class Foo {}

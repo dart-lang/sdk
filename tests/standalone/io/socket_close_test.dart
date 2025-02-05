@@ -14,7 +14,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 const SERVERSHUTDOWN = -1;

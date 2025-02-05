@@ -7,6 +7,7 @@
 //
 // VMOptions=--save-debugging-info=$TEST_COMPILATION_DIR/debug.so
 // VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/debug.so
+// VMOptions=--test_il_serialization --save-debugging-info=$TEST_COMPILATION_DIR/debug.so
 
 import 'awaiter_stacks/harness.dart' as harness;
 

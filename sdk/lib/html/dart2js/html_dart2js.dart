@@ -1,3 +1,11 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:html library.
+
 /// HTML elements and other resources for web-based applications that need to
 /// interact with the browser and the DOM (Document Object Model).
 ///
@@ -16,6 +24,7 @@
 ///
 /// {@category Web (Legacy)}
 /// {@canonicalFor dart:_internal.HttpStatus}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.html;
 
 import 'dart:async';
@@ -36,13 +45,6 @@ import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 import 'dart:js_util' as js_util;
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:html library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper'
@@ -127,7 +129,10 @@ class HtmlElement extends Element implements NoncedElement {
  * Today there is only one.
  */
 typedef void FontFaceSetForEachCallback(
-    FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+  FontFace fontFace,
+  FontFace fontFaceAgain,
+  FontFaceSet set,
+);
 
 WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -146,7 +151,11 @@ class AbortPaymentEvent extends ExtendableEvent {
     return AbortPaymentEvent._create_1(type, eventInitDict_1);
   }
   static AbortPaymentEvent _create_1(type, eventInitDict) => JS(
-      'AbortPaymentEvent', 'new AbortPaymentEvent(#,#)', type, eventInitDict);
+    'AbortPaymentEvent',
+    'new AbortPaymentEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   void respondWith(Future paymentAbortedResponse) native;
 }
@@ -169,9 +178,10 @@ class AbsoluteOrientationSensor extends OrientationSensor {
     return AbsoluteOrientationSensor._create_2();
   }
   static AbsoluteOrientationSensor _create_1(sensorOptions) => JS(
-      'AbsoluteOrientationSensor',
-      'new AbsoluteOrientationSensor(#)',
-      sensorOptions);
+    'AbsoluteOrientationSensor',
+    'new AbsoluteOrientationSensor(#)',
+    sensorOptions,
+  );
   static AbsoluteOrientationSensor _create_2() =>
       JS('AbsoluteOrientationSensor', 'new AbsoluteOrientationSensor()');
 }
@@ -539,10 +549,11 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   factory AnchorElement({String? href}) {
     AnchorElement e = JS<AnchorElement>(
-        'returns:AnchorElement;creates:AnchorElement;new:true',
-        '#.createElement(#)',
-        document,
-        "a");
+      'returns:AnchorElement;creates:AnchorElement;new:true',
+      '#.createElement(#)',
+      document,
+      "a",
+    );
     if (href != null) e.href = href;
     return e;
   }
@@ -640,8 +651,10 @@ class Animation extends EventTarget {
   static const EventStreamProvider<Event> finishEvent =
       const EventStreamProvider<Event>('finish');
 
-  factory Animation(
-      [AnimationEffectReadOnly? effect, AnimationTimeline? timeline]) {
+  factory Animation([
+    AnimationEffectReadOnly? effect,
+    AnimationTimeline? timeline,
+  ]) {
     if (timeline != null) {
       return Animation._create_1(effect, timeline);
     }
@@ -856,10 +869,11 @@ class AnimationPlaybackEvent extends Event {
     return AnimationPlaybackEvent._create_2(type);
   }
   static AnimationPlaybackEvent _create_1(type, eventInitDict) => JS(
-      'AnimationPlaybackEvent',
-      'new AnimationPlaybackEvent(#,#)',
-      type,
-      eventInitDict);
+    'AnimationPlaybackEvent',
+    'new AnimationPlaybackEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static AnimationPlaybackEvent _create_2(type) =>
       JS('AnimationPlaybackEvent', 'new AnimationPlaybackEvent(#)', type);
 
@@ -1051,12 +1065,16 @@ class ApplicationCacheErrorEvent extends Event {
     return ApplicationCacheErrorEvent._create_2(type);
   }
   static ApplicationCacheErrorEvent _create_1(type, eventInitDict) => JS(
-      'ApplicationCacheErrorEvent',
-      'new ApplicationCacheErrorEvent(#,#)',
-      type,
-      eventInitDict);
+    'ApplicationCacheErrorEvent',
+    'new ApplicationCacheErrorEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static ApplicationCacheErrorEvent _create_2(type) => JS(
-      'ApplicationCacheErrorEvent', 'new ApplicationCacheErrorEvent(#)', type);
+    'ApplicationCacheErrorEvent',
+    'new ApplicationCacheErrorEvent(#)',
+    type,
+  );
 
   String? get message native;
 
@@ -1088,10 +1106,11 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
   }
 
   factory AreaElement() => JS<AreaElement>(
-      'returns:AreaElement;creates:AreaElement;new:true',
-      '#.createElement(#)',
-      document,
-      "area");
+    'returns:AreaElement;creates:AreaElement;new:true',
+    '#.createElement(#)',
+    document,
+    "area",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1250,10 +1269,11 @@ class BRElement extends HtmlElement {
   }
 
   factory BRElement() => JS<BRElement>(
-      'returns:BRElement;creates:BRElement;new:true',
-      '#.createElement(#)',
-      document,
-      "br");
+    'returns:BRElement;creates:BRElement;new:true',
+    '#.createElement(#)',
+    document,
+    "br",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1277,10 +1297,11 @@ class BackgroundFetchClickEvent extends BackgroundFetchEvent {
     return BackgroundFetchClickEvent._create_1(type, init_1);
   }
   static BackgroundFetchClickEvent _create_1(type, init) => JS(
-      'BackgroundFetchClickEvent',
-      'new BackgroundFetchClickEvent(#,#)',
-      type,
-      init);
+    'BackgroundFetchClickEvent',
+    'new BackgroundFetchClickEvent(#,#)',
+    type,
+    init,
+  );
 
   String? get state native;
 }
@@ -1320,10 +1341,11 @@ class BackgroundFetchFailEvent extends BackgroundFetchEvent {
     return BackgroundFetchFailEvent._create_1(type, init_1);
   }
   static BackgroundFetchFailEvent _create_1(type, init) => JS(
-      'BackgroundFetchFailEvent',
-      'new BackgroundFetchFailEvent(#,#)',
-      type,
-      init);
+    'BackgroundFetchFailEvent',
+    'new BackgroundFetchFailEvent(#,#)',
+    type,
+    init,
+  );
 
   List<BackgroundFetchSettledFetch>? get fetches native;
 }
@@ -1351,24 +1373,31 @@ class BackgroundFetchManager extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<BackgroundFetchRegistration> fetch(String id, Object requests,
-      [Map? options]) {
+  Future<BackgroundFetchRegistration> fetch(
+    String id,
+    Object requests, [
+    Map? options,
+  ]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<BackgroundFetchRegistration>(JS(
+    return promiseToFuture<BackgroundFetchRegistration>(
+      JS(
         "creates:BackgroundFetchRegistration;",
         "#.fetch(#, #, #)",
         this,
         id,
         requests,
-        options_dict));
+        options_dict,
+      ),
+    );
   }
 
   Future<BackgroundFetchRegistration> get(String id) =>
       promiseToFuture<BackgroundFetchRegistration>(
-          JS("creates:BackgroundFetchRegistration;", "#.get(#)", this, id));
+        JS("creates:BackgroundFetchRegistration;", "#.get(#)", this, id),
+      );
 
   Future<List<dynamic>> getIds() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getIds()", this));
@@ -1415,10 +1444,11 @@ class BackgroundFetchSettledFetch extends BackgroundFetchFetch {
     return BackgroundFetchSettledFetch._create_1(request, response);
   }
   static BackgroundFetchSettledFetch _create_1(request, response) => JS(
-      'BackgroundFetchSettledFetch',
-      'new BackgroundFetchSettledFetch(#,#)',
-      request,
-      response);
+    'BackgroundFetchSettledFetch',
+    'new BackgroundFetchSettledFetch(#,#)',
+    request,
+    response,
+  );
 
   _Response? get response native;
 }
@@ -1438,7 +1468,11 @@ class BackgroundFetchedEvent extends BackgroundFetchEvent {
     return BackgroundFetchedEvent._create_1(type, init_1);
   }
   static BackgroundFetchedEvent _create_1(type, init) => JS(
-      'BackgroundFetchedEvent', 'new BackgroundFetchedEvent(#,#)', type, init);
+    'BackgroundFetchedEvent',
+    'new BackgroundFetchedEvent(#,#)',
+    type,
+    init,
+  );
 
   List<BackgroundFetchSettledFetch>? get fetches native;
 
@@ -1492,10 +1526,11 @@ class BaseElement extends HtmlElement {
   }
 
   factory BaseElement() => JS<BaseElement>(
-      'returns:BaseElement;creates:BaseElement;new:true',
-      '#.createElement(#)',
-      document,
-      "base");
+    'returns:BaseElement;creates:BaseElement;new:true',
+    '#.createElement(#)',
+    document,
+    "base",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1549,10 +1584,11 @@ class BeforeInstallPromptEvent extends Event {
     return BeforeInstallPromptEvent._create_2(type);
   }
   static BeforeInstallPromptEvent _create_1(type, eventInitDict) => JS(
-      'BeforeInstallPromptEvent',
-      'new BeforeInstallPromptEvent(#,#)',
-      type,
-      eventInitDict);
+    'BeforeInstallPromptEvent',
+    'new BeforeInstallPromptEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static BeforeInstallPromptEvent _create_2(type) =>
       JS('BeforeInstallPromptEvent', 'new BeforeInstallPromptEvent(#)', type);
 
@@ -1817,10 +1853,11 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
       const EventStreamProvider<Event>('unload');
 
   factory BodyElement() => JS<BodyElement>(
-      'returns:BodyElement;creates:BodyElement;new:true',
-      '#.createElement(#)',
-      document,
-      "body");
+    'returns:BodyElement;creates:BodyElement;new:true',
+    '#.createElement(#)',
+    document,
+    "body",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1921,10 +1958,11 @@ class ButtonElement extends HtmlElement {
   }
 
   factory ButtonElement() => JS<ButtonElement>(
-      'returns:ButtonElement;creates:ButtonElement;new:true',
-      '#.createElement(#)',
-      document,
-      "button");
+    'returns:ButtonElement;creates:ButtonElement;new:true',
+    '#.createElement(#)',
+    document,
+    "button",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2029,7 +2067,8 @@ class CacheStorage extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("creates:_Response;", "#.match(#, #)", this, request, options_dict));
+      JS("creates:_Response;", "#.match(#, #)", this, request, options_dict),
+    );
   }
 
   Future open(String cacheName) =>
@@ -2051,10 +2090,11 @@ class CanMakePaymentEvent extends ExtendableEvent {
     return CanMakePaymentEvent._create_1(type, eventInitDict_1);
   }
   static CanMakePaymentEvent _create_1(type, eventInitDict) => JS(
-      'CanMakePaymentEvent',
-      'new CanMakePaymentEvent(#,#)',
-      type,
-      eventInitDict);
+    'CanMakePaymentEvent',
+    'new CanMakePaymentEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   List? get methodData native;
 
@@ -2112,10 +2152,11 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   factory CanvasElement({int? width, int? height}) {
     CanvasElement e = JS<CanvasElement>(
-        'returns:CanvasElement;creates:CanvasElement;new:true',
-        '#.createElement(#)',
-        document,
-        "canvas");
+      'returns:CanvasElement;creates:CanvasElement;new:true',
+      '#.createElement(#)',
+      document,
+      "canvas",
+    );
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -2188,13 +2229,14 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext? getContext3d(
-      {alpha = true,
-      depth = true,
-      stencil = false,
-      antialias = true,
-      premultipliedAlpha = true,
-      preserveDrawingBuffer = false}) {
+  gl.RenderingContext? getContext3d({
+    alpha = true,
+    depth = true,
+    stencil = false,
+    antialias = true,
+    premultipliedAlpha = true,
+    preserveDrawingBuffer = false,
+  }) {
     var options = {
       'alpha': alpha,
       'depth': depth,
@@ -2259,9 +2301,13 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   Future<Blob> toBlob([String? type, Object? arguments]) {
     var completer = new Completer<Blob>();
-    _toBlob((value) {
-      completer.complete(value);
-    }, type, arguments);
+    _toBlob(
+      (value) {
+        completer.complete(value);
+      },
+      type,
+      arguments,
+    );
     return completer.future;
   }
 }
@@ -2498,10 +2544,12 @@ class CanvasRenderingContext2D extends JavaScriptObject
   void clip([path_OR_winding, String? winding]) native;
 
   @Creates('ImageData|=Object')
-  ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int? sh_OR_sw,
-      imageDataColorSettings_OR_sh,
-      Map? imageDataColorSettings]) {
+  ImageData createImageData(
+    data_OR_imagedata_OR_sw, [
+    int? sh_OR_sw,
+    imageDataColorSettings_OR_sh,
+    Map? imageDataColorSettings,
+  ]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -2514,35 +2562,51 @@ class CanvasRenderingContext2D extends JavaScriptObject
         imageDataColorSettings_OR_sh == null &&
         imageDataColorSettings == null) {
       return convertNativeToDart_ImageData(
-          _createImageData_2(data_OR_imagedata_OR_sw, sh_OR_sw));
+        _createImageData_2(data_OR_imagedata_OR_sw, sh_OR_sw),
+      );
     }
     if ((imageDataColorSettings_OR_sh is Map) &&
         sh_OR_sw != null &&
         (data_OR_imagedata_OR_sw is int) &&
         imageDataColorSettings == null) {
-      var imageDataColorSettings_1 =
-          convertDartToNative_Dictionary(imageDataColorSettings_OR_sh);
-      return convertNativeToDart_ImageData(_createImageData_3(
-          data_OR_imagedata_OR_sw, sh_OR_sw, imageDataColorSettings_1));
+      var imageDataColorSettings_1 = convertDartToNative_Dictionary(
+        imageDataColorSettings_OR_sh,
+      );
+      return convertNativeToDart_ImageData(
+        _createImageData_3(
+          data_OR_imagedata_OR_sw,
+          sh_OR_sw,
+          imageDataColorSettings_1,
+        ),
+      );
     }
     if ((imageDataColorSettings_OR_sh is int) &&
         sh_OR_sw != null &&
         data_OR_imagedata_OR_sw != null &&
         imageDataColorSettings == null) {
-      return convertNativeToDart_ImageData(_createImageData_4(
-          data_OR_imagedata_OR_sw, sh_OR_sw, imageDataColorSettings_OR_sh));
+      return convertNativeToDart_ImageData(
+        _createImageData_4(
+          data_OR_imagedata_OR_sw,
+          sh_OR_sw,
+          imageDataColorSettings_OR_sh,
+        ),
+      );
     }
     if (imageDataColorSettings != null &&
         (imageDataColorSettings_OR_sh is int) &&
         sh_OR_sw != null &&
         data_OR_imagedata_OR_sw != null) {
-      var imageDataColorSettings_1 =
-          convertDartToNative_Dictionary(imageDataColorSettings);
-      return convertNativeToDart_ImageData(_createImageData_5(
+      var imageDataColorSettings_1 = convertDartToNative_Dictionary(
+        imageDataColorSettings,
+      );
+      return convertNativeToDart_ImageData(
+        _createImageData_5(
           data_OR_imagedata_OR_sw,
           sh_OR_sw,
           imageDataColorSettings_OR_sh,
-          imageDataColorSettings_1));
+          imageDataColorSettings_1,
+        ),
+      );
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -2568,7 +2632,13 @@ class CanvasRenderingContext2D extends JavaScriptObject
   CanvasPattern? createPattern(Object image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
-      num x0, num y0, num r0, num x1, num y1, num r1) native;
+    num x0,
+    num y0,
+    num r0,
+    num x1,
+    num y1,
+    num r1,
+  ) native;
 
   void drawFocusIfNeeded(element_OR_path, [Element? element]) native;
 
@@ -2597,15 +2667,26 @@ class CanvasRenderingContext2D extends JavaScriptObject
 
   bool isContextLost() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
-      native;
+  bool isPointInPath(
+    path_OR_x,
+    num x_OR_y, [
+    winding_OR_y,
+    String? winding,
+  ]) native;
 
   bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
-  void putImageData(ImageData imagedata, int dx, int dy,
-      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
+  void putImageData(
+    ImageData imagedata,
+    int dx,
+    int dy, [
+    int? dirtyX,
+    int? dirtyY,
+    int? dirtyWidth,
+    int? dirtyHeight,
+  ]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -2620,7 +2701,14 @@ class CanvasRenderingContext2D extends JavaScriptObject
         dirtyX != null) {
       var imagedata_1 = convertDartToNative_ImageData(imagedata);
       _putImageData_2(
-          imagedata_1, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+        imagedata_1,
+        dx,
+        dy,
+        dirtyX,
+        dirtyY,
+        dirtyWidth,
+        dirtyHeight,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2630,7 +2718,14 @@ class CanvasRenderingContext2D extends JavaScriptObject
   void _putImageData_1(imagedata, dx, dy) native;
   @JSName('putImageData')
   void _putImageData_2(
-      imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+    imagedata,
+    dx,
+    dy,
+    dirtyX,
+    dirtyY,
+    dirtyWidth,
+    dirtyHeight,
+  ) native;
 
   void removeHitRegion(String id) native;
 
@@ -2661,18 +2756,38 @@ class CanvasRenderingContext2D extends JavaScriptObject
   // From CanvasPath
 
   @JSName('arc')
-  void _arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool? anticlockwise) native;
+  void _arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y)
-      native;
+  void bezierCurveTo(
+    num cp1x,
+    num cp1y,
+    num cp2x,
+    num cp2y,
+    num x,
+    num y,
+  ) native;
 
   void closePath() native;
 
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool? anticlockwise) native;
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void lineTo(num x, num y) native;
 
@@ -2721,15 +2836,32 @@ class CanvasRenderingContext2D extends JavaScriptObject
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-      [bool anticlockwise = false]) {
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle, [
+    bool anticlockwise = false,
+  ]) {
     // TODO(terry): This should not be needed: dartbug.com/20939.
-    JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
-        endAngle, anticlockwise);
+    JS(
+      'void',
+      '#.arc(#, #, #, #, #, #)',
+      this,
+      x,
+      y,
+      radius,
+      startAngle,
+      endAngle,
+      anticlockwise,
+    );
   }
 
   CanvasPattern createPatternFromImage(
-          ImageElement image, String repetitionType) =>
+    ImageElement image,
+    String repetitionType,
+  ) =>
       JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
 
   /**
@@ -2772,22 +2904,31 @@ class CanvasRenderingContext2D extends JavaScriptObject
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  void drawImageToRect(CanvasImageSource source, Rectangle destRect,
-      {Rectangle? sourceRect}) {
+  void drawImageToRect(
+    CanvasImageSource source,
+    Rectangle destRect, {
+    Rectangle? sourceRect,
+  }) {
     if (sourceRect == null) {
       drawImageScaled(
-          source, destRect.left, destRect.top, destRect.width, destRect.height);
+        source,
+        destRect.left,
+        destRect.top,
+        destRect.width,
+        destRect.height,
+      );
     } else {
       drawImageScaledFromSource(
-          source,
-          sourceRect.left,
-          sourceRect.top,
-          sourceRect.width,
-          sourceRect.height,
-          destRect.left,
-          destRect.top,
-          destRect.width,
-          destRect.height);
+        source,
+        sourceRect.left,
+        sourceRect.top,
+        sourceRect.width,
+        sourceRect.height,
+        destRect.left,
+        destRect.top,
+        destRect.width,
+        destRect.height,
+      );
     }
   }
 
@@ -2850,8 +2991,13 @@ class CanvasRenderingContext2D extends JavaScriptObject
    * from the WHATWG.
    */
   @JSName('drawImage')
-  void drawImageScaled(CanvasImageSource source, num destX, num destY,
-      num destWidth, num destHeight) native;
+  void drawImageScaled(
+    CanvasImageSource source,
+    num destX,
+    num destY,
+    num destWidth,
+    num destHeight,
+  ) native;
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
@@ -2884,15 +3030,16 @@ class CanvasRenderingContext2D extends JavaScriptObject
    */
   @JSName('drawImage')
   void drawImageScaledFromSource(
-      CanvasImageSource source,
-      num sourceX,
-      num sourceY,
-      num sourceWidth,
-      num sourceHeight,
-      num destX,
-      num destY,
-      num destWidth,
-      num destHeight) native;
+    CanvasImageSource source,
+    num sourceX,
+    num sourceY,
+    num sourceWidth,
+    num sourceHeight,
+    num destX,
+    num destY,
+    num destWidth,
+    num destHeight,
+  ) native;
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2911,14 +3058,15 @@ class CanvasRenderingContext2D extends JavaScriptObject
   // needs to be polyfilled.
   set lineDashOffset(num value) {
     JS(
-        'void',
-        'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-            '#.webkitLineDashOffset = #',
-        this,
-        this,
-        value,
-        this,
-        value);
+      'void',
+      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+          '#.webkitLineDashOffset = #',
+      this,
+      this,
+      value,
+      this,
+      value,
+    );
   }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -3074,11 +3222,13 @@ class Clients extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<List<dynamic>>(
-        JS("", "#.matchAll(#)", this, options_dict));
+      JS("", "#.matchAll(#)", this, options_dict),
+    );
   }
 
   Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
-      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
+    JS("creates:WindowClient;", "#.openWindow(#)", this, url),
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3141,8 +3291,12 @@ class CloseEvent extends Event {
 @Native("Comment")
 class Comment extends CharacterData {
   factory Comment([String? data]) {
-    return JS('returns:Comment;depends:none;effects:none;new:true',
-        '#.createComment(#)', document, data == null ? "" : data);
+    return JS(
+      'returns:Comment;depends:none;effects:none;new:true',
+      '#.createComment(#)',
+      document,
+      data == null ? "" : data,
+    );
   }
   // To suppress missing implicit constructor warnings.
   factory Comment._() {
@@ -3157,12 +3311,14 @@ class Comment extends CharacterData {
 
 @Native("CompositionEvent")
 class CompositionEvent extends UIEvent {
-  factory CompositionEvent(String type,
-      {bool canBubble = false,
-      bool cancelable = false,
-      Window? view,
-      String? data,
-      String? locale}) {
+  factory CompositionEvent(
+    String type, {
+    bool canBubble = false,
+    bool cancelable = false,
+    Window? view,
+    String? data,
+    String? locale,
+  }) {
     if (view == null) {
       view = window;
     }
@@ -3171,8 +3327,17 @@ class CompositionEvent extends UIEvent {
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
-      JS('void', '#.initCompositionEvent(#, #, #, #, #, #)', e, type, canBubble,
-          cancelable, view, data, locale);
+      JS(
+        'void',
+        '#.initCompositionEvent(#, #, #, #, #, #)',
+        e,
+        type,
+        canBubble,
+        cancelable,
+        view,
+        data,
+        locale,
+      );
     } else {
       e._initCompositionEvent(type, canBubble, cancelable, view, data);
     }
@@ -3195,8 +3360,13 @@ class CompositionEvent extends UIEvent {
   String? get data native;
 
   @JSName('initCompositionEvent')
-  void _initCompositionEvent(String? type, bool? bubbles, bool? cancelable,
-      Window? view, String? data) native;
+  void _initCompositionEvent(
+    String? type,
+    bool? bubbles,
+    bool? cancelable,
+    Window? view,
+    String? data,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3255,7 +3425,8 @@ class CookieStore extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.set(#, #, #)", this, name, value, options_dict));
+      JS("", "#.set(#, #, #)", this, name, value, options_dict),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3331,7 +3502,8 @@ class CredentialsContainer extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("creates:Credential;", "#.create(#)", this, options_dict));
+      JS("creates:Credential;", "#.create(#)", this, options_dict),
+    );
   }
 
   Future get([Map? options]) {
@@ -3340,7 +3512,8 @@ class CredentialsContainer extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("creates:Credential;", "#.get(#)", this, options_dict));
+      JS("creates:Credential;", "#.get(#)", this, options_dict),
+    );
   }
 
   Future preventSilentAccess() =>
@@ -3350,7 +3523,8 @@ class CredentialsContainer extends JavaScriptObject {
       promiseToFuture(JS("", "#.requireUserMediation()", this));
 
   Future store(Credential credential) => promiseToFuture(
-      JS("creates:Credential;", "#.store(#)", this, credential));
+    JS("creates:Credential;", "#.store(#)", this, credential),
+  );
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3811,8 +3985,12 @@ class CssRotation extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssRotation(angleValue_OR_x,
-      [num? y, num? z, CssNumericValue? angle]) {
+  factory CssRotation(
+    angleValue_OR_x, [
+    num? y,
+    num? z,
+    CssNumericValue? angle,
+  ]) {
     if ((angleValue_OR_x is CssNumericValue) &&
         y == null &&
         z == null &&
@@ -3830,7 +4008,13 @@ class CssRotation extends CssTransformComponent {
   static CssRotation _create_1(angleValue_OR_x) =>
       JS('CssRotation', 'new CSSRotation(#)', angleValue_OR_x);
   static CssRotation _create_2(angleValue_OR_x, y, z, angle) => JS(
-      'CssRotation', 'new CSSRotation(#,#,#,#)', angleValue_OR_x, y, z, angle);
+    'CssRotation',
+    'new CSSRotation(#,#,#,#)',
+    angleValue_OR_x,
+    y,
+    z,
+    angle,
+  );
 
   CssNumericValue? get angle native;
 
@@ -4005,7 +4189,10 @@ class CssStyleDeclaration extends JavaScriptObject
 
   void setProperty(String propertyName, String? value, [String? priority]) {
     return _setPropertyHelper(
-        _browserPropertyName(propertyName), value, priority);
+      _browserPropertyName(propertyName),
+      value,
+      priority,
+    );
   }
 
   String _browserPropertyName(String propertyName) {
@@ -4038,14 +4225,18 @@ class CssStyleDeclaration extends JavaScriptObject
   static String _camelCase(String hyphenated) {
     var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
     return JS(
-        'String',
-        r'#.replace(/-([\da-z])/ig,'
-            r'function(_, letter) { return letter.toUpperCase();})',
-        replacedMs);
+      'String',
+      r'#.replace(/-([\da-z])/ig,'
+          r'function(_, letter) { return letter.toUpperCase();})',
+      replacedMs,
+    );
   }
 
-  void _setPropertyHelper(String propertyName, String? value,
-      [String? priority]) {
+  void _setPropertyHelper(
+    String propertyName,
+    String? value, [
+    String? priority,
+  ]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -5440,16 +5631,19 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable)
-      : _elementCssStyleDeclarationSetIterable =
-            new List.of(_elementIterable).map((e) => e.style);
+    : _elementCssStyleDeclarationSetIterable = new List.of(
+        _elementIterable,
+      ).map((e) => e.style);
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first
-          .getPropertyValue(propertyName);
+      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+        propertyName,
+      );
 
   void setProperty(String propertyName, String? value, [String? priority]) {
-    _elementCssStyleDeclarationSetIterable
-        .forEach((e) => e.setProperty(propertyName, value, priority));
+    _elementCssStyleDeclarationSetIterable.forEach(
+      (e) => e.setProperty(propertyName, value, priority),
+    );
   }
 
   void _setAll(String propertyName, String? value) {
@@ -8484,15 +8678,15 @@ abstract mixin class CssStyleDeclarationBase {
     setProperty('transform-style', value, '');
   }
 
-  /** Gets the value of "transition" */ @SupportedBrowser(
-      SupportedBrowser.CHROME)
+  /** Gets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition => getPropertyValue('transition');
 
-  /** Sets the value of "transition" */ @SupportedBrowser(
-      SupportedBrowser.CHROME)
+  /** Sets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -8789,8 +8983,9 @@ class CssTransformValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssTransformValue(
-      [List<CssTransformComponent>? transformComponents]) {
+  factory CssTransformValue([
+    List<CssTransformComponent>? transformComponents,
+  ]) {
     if (transformComponents == null) {
       return CssTransformValue._create_1();
     }
@@ -8823,8 +9018,11 @@ class CssTranslation extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssTranslation(CssNumericValue x, CssNumericValue y,
-      [CssNumericValue? z]) {
+  factory CssTranslation(
+    CssNumericValue x,
+    CssNumericValue y, [
+    CssNumericValue? z,
+  ]) {
     if ((y is CssNumericValue) && (x is CssNumericValue) && z == null) {
       return CssTranslation._create_1(x, y);
     }
@@ -8992,8 +9190,12 @@ class CustomEvent extends Event {
   @Creates('Null') // Set from Dart code; does not instantiate a native type.
   var _dartDetail;
 
-  factory CustomEvent(String type,
-      {bool canBubble = true, bool cancelable = true, Object? detail}) {
+  factory CustomEvent(
+    String type, {
+    bool canBubble = true,
+    bool cancelable = true,
+    Object? detail,
+  }) {
     final CustomEvent e = document._createEvent('CustomEvent') as CustomEvent;
 
     e._dartDetail = detail;
@@ -9040,8 +9242,12 @@ class CustomEvent extends Event {
   dynamic get _get__detail native;
 
   @JSName('initCustomEvent')
-  void _initCustomEvent(String type,
-      [bool? bubbles, bool? cancelable, Object? detail]) native;
+  void _initCustomEvent(
+    String type, [
+    bool? bubbles,
+    bool? cancelable,
+    Object? detail,
+  ]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9055,10 +9261,11 @@ class DListElement extends HtmlElement {
   }
 
   factory DListElement() => JS<DListElement>(
-      'returns:DListElement;creates:DListElement;new:true',
-      '#.createElement(#)',
-      document,
-      "dl");
+    'returns:DListElement;creates:DListElement;new:true',
+    '#.createElement(#)',
+    document,
+    "dl",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9290,9 +9497,12 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback? successCallback,
-      _ErrorCallback? errorCallback]) native;
+  void _webkitRequestFileSystem(
+    int type,
+    int size, [
+    _FileSystemCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9308,8 +9518,10 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
-      String url, _EntryCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+    String url,
+    _EntryCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -9334,13 +9546,18 @@ class DeprecatedStorageInfo extends JavaScriptObject {
 
   static const int TEMPORARY = 0;
 
-  void queryUsageAndQuota(int storageType,
-      [StorageUsageCallback? usageCallback,
-      StorageErrorCallback? errorCallback]) native;
+  void queryUsageAndQuota(
+    int storageType, [
+    StorageUsageCallback? usageCallback,
+    StorageErrorCallback? errorCallback,
+  ]) native;
 
-  void requestQuota(int storageType, int newQuotaInBytes,
-      [StorageQuotaCallback? quotaCallback,
-      StorageErrorCallback? errorCallback]) native;
+  void requestQuota(
+    int storageType,
+    int newQuotaInBytes, [
+    StorageQuotaCallback? quotaCallback,
+    StorageErrorCallback? errorCallback,
+  ]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9353,12 +9570,16 @@ class DeprecatedStorageQuota extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
-  void queryUsageAndQuota(StorageUsageCallback usageCallback,
-      [StorageErrorCallback? errorCallback]) native;
+  void queryUsageAndQuota(
+    StorageUsageCallback usageCallback, [
+    StorageErrorCallback? errorCallback,
+  ]) native;
 
-  void requestQuota(int newQuotaInBytes,
-      [StorageQuotaCallback? quotaCallback,
-      StorageErrorCallback? errorCallback]) native;
+  void requestQuota(
+    int newQuotaInBytes, [
+    StorageQuotaCallback? quotaCallback,
+    StorageErrorCallback? errorCallback,
+  ]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9507,7 +9728,11 @@ class DeviceMotionEvent extends Event {
     return DeviceMotionEvent._create_2(type);
   }
   static DeviceMotionEvent _create_1(type, eventInitDict) => JS(
-      'DeviceMotionEvent', 'new DeviceMotionEvent(#,#)', type, eventInitDict);
+    'DeviceMotionEvent',
+    'new DeviceMotionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static DeviceMotionEvent _create_2(type) =>
       JS('DeviceMotionEvent', 'new DeviceMotionEvent(#)', type);
 
@@ -9538,10 +9763,11 @@ class DeviceOrientationEvent extends Event {
     return DeviceOrientationEvent._create_2(type);
   }
   static DeviceOrientationEvent _create_1(type, eventInitDict) => JS(
-      'DeviceOrientationEvent',
-      'new DeviceOrientationEvent(#,#)',
-      type,
-      eventInitDict);
+    'DeviceOrientationEvent',
+    'new DeviceOrientationEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static DeviceOrientationEvent _create_2(type) =>
       JS('DeviceOrientationEvent', 'new DeviceOrientationEvent(#)', type);
 
@@ -9607,7 +9833,8 @@ class DialogElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native(
-    "DirectoryEntry,webkitFileSystemDirectoryEntry,FileSystemDirectoryEntry")
+  "DirectoryEntry,webkitFileSystemDirectoryEntry,FileSystemDirectoryEntry",
+)
 class DirectoryEntry extends Entry {
   /**
    * Create a new directory with the specified `path`. If `exclusive` is true,
@@ -9615,8 +9842,10 @@ class DirectoryEntry extends Entry {
    * exists with the specified `path`.
    */
   Future<Entry> createDirectory(String path, {bool exclusive = false}) {
-    return _getDirectory(path,
-        options: {'create': true, 'exclusive': exclusive});
+    return _getDirectory(
+      path,
+      options: {'create': true, 'exclusive': exclusive},
+    );
   }
 
   DirectoryReader createReader() {
@@ -9663,10 +9892,12 @@ class DirectoryEntry extends Entry {
   @JSName('createReader')
   DirectoryReader _createReader() native;
 
-  void __getDirectory(String? path,
-      [Map? options,
-      _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback]) {
+  void __getDirectory(
+    String? path, [
+    Map? options,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9687,8 +9918,12 @@ class DirectoryEntry extends Entry {
   }
 
   @JSName('getDirectory')
-  void __getDirectory_1(path, options, _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback) native;
+  void __getDirectory_1(
+    path,
+    options,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ) native;
   @JSName('getDirectory')
   void __getDirectory_2(path, options, _EntryCallback? successCallback) native;
   @JSName('getDirectory')
@@ -9699,18 +9934,25 @@ class DirectoryEntry extends Entry {
   @JSName('getDirectory')
   Future<Entry> _getDirectory(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
-    __getDirectory(path, options, (value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    __getDirectory(
+      path,
+      options,
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
-  void __getFile(String? path,
-      [Map? options,
-      _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback]) {
+  void __getFile(
+    String? path, [
+    Map? options,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getFile_1(path, options_1, successCallback, errorCallback);
@@ -9731,8 +9973,12 @@ class DirectoryEntry extends Entry {
   }
 
   @JSName('getFile')
-  void __getFile_1(path, options, _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback) native;
+  void __getFile_1(
+    path,
+    options,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ) native;
   @JSName('getFile')
   void __getFile_2(path, options, _EntryCallback? successCallback) native;
   @JSName('getFile')
@@ -9743,29 +9989,39 @@ class DirectoryEntry extends Entry {
   @JSName('getFile')
   Future<Entry> _getFile(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
-    __getFile(path, options, (value) {
-      applyExtension('FileEntry', value);
-      applyExtension('webkitFileSystemFileEntry', value);
-      applyExtension('FileSystemFileEntry', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    __getFile(
+      path,
+      options,
+      (value) {
+        applyExtension('FileEntry', value);
+        applyExtension('webkitFileSystemFileEntry', value);
+        applyExtension('FileSystemFileEntry', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('removeRecursively')
-  void _removeRecursively(VoidCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+  void _removeRecursively(
+    VoidCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('removeRecursively')
   Future removeRecursively() {
     var completer = new Completer();
-    _removeRecursively(() {
-      completer.complete();
-    }, (error) {
-      completer.completeError(error);
-    });
+    _removeRecursively(
+      () {
+        completer.complete();
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 }
@@ -9774,7 +10030,8 @@ class DirectoryEntry extends Entry {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native(
-    "DirectoryReader,WebKitDirectoryReader,webkitFileSystemDirectoryReader,FileSystemDirectoryReader")
+  "DirectoryReader,WebKitDirectoryReader,webkitFileSystemDirectoryReader,FileSystemDirectoryReader",
+)
 class DirectoryReader extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() {
@@ -9782,31 +10039,36 @@ class DirectoryReader extends JavaScriptObject {
   }
 
   @JSName('readEntries')
-  void _readEntries(_EntriesCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+  void _readEntries(
+    _EntriesCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
-    _readEntries((values) {
-      values.forEach((value) {
-        applyExtension('Entry', value);
-        applyExtension('webkitFileSystemEntry', value);
-        applyExtension('FileSystemEntry', value);
-        Entry entry = value as Entry;
-        if (entry.isFile!) {
-          applyExtension('FileEntry', entry);
-          applyExtension('webkitFileSystemFileEntry', entry);
-          applyExtension('FileSystemFileEntry', entry);
-        } else if (entry.isDirectory!) {
-          applyExtension('DirectoryEntry', entry);
-          applyExtension('webkitFileSystemDirectoryEntry', entry);
-          applyExtension('FileSystemDirectoryEntry', entry);
-        }
-      });
-      completer.complete(new List<Entry>.from(values));
-    }, (error) {
-      completer.completeError(error);
-    });
+    _readEntries(
+      (values) {
+        values.forEach((value) {
+          applyExtension('Entry', value);
+          applyExtension('webkitFileSystemEntry', value);
+          applyExtension('FileSystemEntry', value);
+          Entry entry = value as Entry;
+          if (entry.isFile!) {
+            applyExtension('FileEntry', entry);
+            applyExtension('webkitFileSystemFileEntry', entry);
+            applyExtension('FileSystemFileEntry', entry);
+          } else if (entry.isDirectory!) {
+            applyExtension('DirectoryEntry', entry);
+            applyExtension('webkitFileSystemDirectoryEntry', entry);
+            applyExtension('FileSystemDirectoryEntry', entry);
+          }
+        });
+        completer.complete(new List<Entry>.from(values));
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
 
     return completer.future;
   }
@@ -9845,10 +10107,11 @@ class DivElement extends HtmlElement {
   }
 
   factory DivElement() => JS<DivElement>(
-      'returns:DivElement;creates:DivElement;new:true',
-      '#.createElement(#)',
-      document,
-      "div");
+    'returns:DivElement;creates:DivElement;new:true',
+    '#.createElement(#)',
+    document,
+    "div",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9898,9 +10161,10 @@ class Document extends Node {
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<SecurityPolicyViolationEvent>
-      securityPolicyViolationEvent =
+  securityPolicyViolationEvent =
       const EventStreamProvider<SecurityPolicyViolationEvent>(
-          'securitypolicyviolation');
+        'securitypolicyviolation',
+      );
 
   /**
    * Static factory designed to expose `selectionchange` events to event
@@ -10021,12 +10285,17 @@ class Document extends Node {
   DocumentFragment createDocumentFragment() native;
 
   @JSName('createElement')
-  Element _createElement(String localName_OR_tagName,
-      [options_OR_typeExtension]) native;
+  Element _createElement(
+    String localName_OR_tagName, [
+    options_OR_typeExtension,
+  ]) native;
 
   @JSName('createElementNS')
-  Element _createElementNS(String? namespaceURI, String qualifiedName,
-      [options_OR_typeExtension]) native;
+  Element _createElementNS(
+    String? namespaceURI,
+    String qualifiedName, [
+    options_OR_typeExtension,
+  ]) native;
 
   @JSName('createEvent')
   Event _createEvent(String eventType) native;
@@ -10036,49 +10305,149 @@ class Document extends Node {
   @JSName('createTextNode')
   Text _createTextNode(String data) native;
 
-  Touch _createTouch(Window view, EventTarget target, int identifier, num pageX,
-      num pageY, num screenX, num screenY,
-      [num? radiusX, num? radiusY, num? rotationAngle, num? force]) {
+  Touch _createTouch(
+    Window view,
+    EventTarget target,
+    int identifier,
+    num pageX,
+    num pageY,
+    num screenX,
+    num screenY, [
+    num? radiusX,
+    num? radiusY,
+    num? rotationAngle,
+    num? force,
+  ]) {
     if (force != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
-      return _createTouch_1(view, target_1, identifier, pageX, pageY, screenX,
-          screenY, radiusX, radiusY, rotationAngle, force);
+      return _createTouch_1(
+        view,
+        target_1,
+        identifier,
+        pageX,
+        pageY,
+        screenX,
+        screenY,
+        radiusX,
+        radiusY,
+        rotationAngle,
+        force,
+      );
     }
     if (rotationAngle != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
-      return _createTouch_2(view, target_1, identifier, pageX, pageY, screenX,
-          screenY, radiusX, radiusY, rotationAngle);
+      return _createTouch_2(
+        view,
+        target_1,
+        identifier,
+        pageX,
+        pageY,
+        screenX,
+        screenY,
+        radiusX,
+        radiusY,
+        rotationAngle,
+      );
     }
     if (radiusY != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
-      return _createTouch_3(view, target_1, identifier, pageX, pageY, screenX,
-          screenY, radiusX, radiusY);
+      return _createTouch_3(
+        view,
+        target_1,
+        identifier,
+        pageX,
+        pageY,
+        screenX,
+        screenY,
+        radiusX,
+        radiusY,
+      );
     }
     if (radiusX != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
       return _createTouch_4(
-          view, target_1, identifier, pageX, pageY, screenX, screenY, radiusX);
+        view,
+        target_1,
+        identifier,
+        pageX,
+        pageY,
+        screenX,
+        screenY,
+        radiusX,
+      );
     }
     var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_5(
-        view, target_1, identifier, pageX, pageY, screenX, screenY);
+      view,
+      target_1,
+      identifier,
+      pageX,
+      pageY,
+      screenX,
+      screenY,
+    );
   }
 
   @JSName('createTouch')
-  Touch _createTouch_1(Window view, target, identifier, pageX, pageY, screenX,
-      screenY, radiusX, radiusY, rotationAngle, force) native;
+  Touch _createTouch_1(
+    Window view,
+    target,
+    identifier,
+    pageX,
+    pageY,
+    screenX,
+    screenY,
+    radiusX,
+    radiusY,
+    rotationAngle,
+    force,
+  ) native;
   @JSName('createTouch')
-  Touch _createTouch_2(Window view, target, identifier, pageX, pageY, screenX,
-      screenY, radiusX, radiusY, rotationAngle) native;
+  Touch _createTouch_2(
+    Window view,
+    target,
+    identifier,
+    pageX,
+    pageY,
+    screenX,
+    screenY,
+    radiusX,
+    radiusY,
+    rotationAngle,
+  ) native;
   @JSName('createTouch')
-  Touch _createTouch_3(Window view, target, identifier, pageX, pageY, screenX,
-      screenY, radiusX, radiusY) native;
+  Touch _createTouch_3(
+    Window view,
+    target,
+    identifier,
+    pageX,
+    pageY,
+    screenX,
+    screenY,
+    radiusX,
+    radiusY,
+  ) native;
   @JSName('createTouch')
-  Touch _createTouch_4(Window view, target, identifier, pageX, pageY, screenX,
-      screenY, radiusX) native;
+  Touch _createTouch_4(
+    Window view,
+    target,
+    identifier,
+    pageX,
+    pageY,
+    screenX,
+    screenY,
+    radiusX,
+  ) native;
   @JSName('createTouch')
   Touch _createTouch_5(
-      Window view, target, identifier, pageX, pageY, screenX, screenY) native;
+    Window view,
+    target,
+    identifier,
+    pageX,
+    pageY,
+    screenX,
+    screenY,
+  ) native;
 
   @JSName('createTouchList')
   TouchList _createTouchList(Touch touches) native;
@@ -10426,36 +10795,61 @@ class Document extends Node {
   // The three-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   _createElementNS_2(String namespaceURI, String qualifiedName) => JS(
-      'Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
+    'Element',
+    '#.createElementNS(#, #)',
+    this,
+    namespaceURI,
+    qualifiedName,
+  );
 
-  Element createElementNS(String namespaceURI, String qualifiedName,
-      [String? typeExtension]) {
+  Element createElementNS(
+    String namespaceURI,
+    String qualifiedName, [
+    String? typeExtension,
+  ]) {
     return (typeExtension == null)
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
-  NodeIterator _createNodeIterator(Node root,
-          [int? whatToShow, NodeFilter? filter]) =>
-      JS('NodeIterator', '#.createNodeIterator(#, #, #, false)', this, root,
-          whatToShow, filter);
+  NodeIterator _createNodeIterator(
+    Node root, [
+    int? whatToShow,
+    NodeFilter? filter,
+  ]) => JS(
+    'NodeIterator',
+    '#.createNodeIterator(#, #, #, false)',
+    this,
+    root,
+    whatToShow,
+    filter,
+  );
 
-  TreeWalker _createTreeWalker(Node root,
-          [int? whatToShow, NodeFilter? filter]) =>
-      JS('TreeWalker', '#.createTreeWalker(#, #, #, false)', this, root,
-          whatToShow, filter);
+  TreeWalker _createTreeWalker(
+    Node root, [
+    int? whatToShow,
+    NodeFilter? filter,
+  ]) => JS(
+    'TreeWalker',
+    '#.createTreeWalker(#, #, #, false)',
+    this,
+    root,
+    whatToShow,
+    filter,
+  );
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   String get visibilityState => JS(
-      'String',
-      '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
-          '#.webkitVisibilityState)',
-      this,
-      this,
-      this,
-      this);
+    'String',
+    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
+        '#.webkitVisibilityState)',
+    this,
+    this,
+    this,
+    this,
+  );
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10466,16 +10860,28 @@ class DocumentFragment extends Node
     implements ParentNode, NonElementParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
-    return document.body!.createFragment(html,
-        validator: validator, treeSanitizer: treeSanitizer);
+  factory DocumentFragment.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
+    return document.body!.createFragment(
+      html,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
   }
 
-  factory DocumentFragment.svg(String? svgContent,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
-    return new svg.SvgSvgElement().createFragment(svgContent,
-        validator: validator, treeSanitizer: treeSanitizer);
+  factory DocumentFragment.svg(
+    String? svgContent, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
+    return new svg.SvgSvgElement().createFragment(
+      svgContent,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
   }
 
   HtmlCollection get _children =>
@@ -10528,11 +10934,19 @@ class DocumentFragment extends Node
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  void setInnerHtml(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     this.nodes.clear();
-    append(document.body!.createFragment(html,
-        validator: validator, treeSanitizer: treeSanitizer));
+    append(
+      document.body!.createFragment(
+        html,
+        validator: validator,
+        treeSanitizer: treeSanitizer,
+      ),
+    );
   }
 
   /**
@@ -10547,10 +10961,18 @@ class DocumentFragment extends Node
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
-    this.append(new DocumentFragment.html(text,
-        validator: validator, treeSanitizer: treeSanitizer));
+  void appendHtml(
+    String text, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
+    this.append(
+      new DocumentFragment.html(
+        text,
+        validator: validator,
+        treeSanitizer: treeSanitizer,
+      ),
+    );
   }
 
   // To suppress missing implicit constructor warnings.
@@ -10738,11 +11160,17 @@ class DomImplementation extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
-  XmlDocument createDocument(String? namespaceURI, String qualifiedName,
-      _DocumentType? doctype) native;
+  XmlDocument createDocument(
+    String? namespaceURI,
+    String qualifiedName,
+    _DocumentType? doctype,
+  ) native;
 
   _DocumentType createDocumentType(
-      String qualifiedName, String publicId, String systemId) native;
+    String qualifiedName,
+    String publicId,
+    String systemId,
+  ) native;
 
   @JSName('createHTMLDocument')
   HtmlDocument createHtmlDocument([String? title]) native;
@@ -10965,16 +11393,21 @@ class DomMatrix extends DomMatrixReadOnly {
 
   DomMatrix rotateSelf([num? rotX, num? rotY, num? rotZ]) native;
 
-  DomMatrix scale3dSelf([num? scale, num? originX, num? originY, num? originZ])
-      native;
+  DomMatrix scale3dSelf([
+    num? scale,
+    num? originX,
+    num? originY,
+    num? originZ,
+  ]) native;
 
-  DomMatrix scaleSelf(
-      [num? scaleX,
-      num? scaleY,
-      num? scaleZ,
-      num? originX,
-      num? originY,
-      num? originZ]) native;
+  DomMatrix scaleSelf([
+    num? scaleX,
+    num? scaleY,
+    num? scaleZ,
+    num? originX,
+    num? originY,
+    num? originZ,
+  ]) native;
 
   DomMatrix setMatrixValue(String transformList) native;
 
@@ -11096,16 +11529,21 @@ class DomMatrixReadOnly extends JavaScriptObject {
 
   DomMatrix rotateFromVector([num? x, num? y]) native;
 
-  DomMatrix scale(
-      [num? scaleX,
-      num? scaleY,
-      num? scaleZ,
-      num? originX,
-      num? originY,
-      num? originZ]) native;
+  DomMatrix scale([
+    num? scaleX,
+    num? scaleY,
+    num? scaleZ,
+    num? originX,
+    num? originY,
+    num? originZ,
+  ]) native;
 
-  DomMatrix scale3d([num? scale, num? originX, num? originY, num? originZ])
-      native;
+  DomMatrix scale3d([
+    num? scale,
+    num? originX,
+    num? originY,
+    num? originZ,
+  ]) native;
 
   DomMatrix skewX([num? sx]) native;
 
@@ -11401,7 +11839,7 @@ class DomRectList extends JavaScriptObject
   // -- start List<Rectangle> mixins.
   // Rectangle is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -11548,7 +11986,13 @@ class DomRectReadOnly extends JavaScriptObject implements Rectangle {
     return DomRectReadOnly._create_5();
   }
   static DomRectReadOnly _create_1(x, y, width, height) => JS(
-      'DomRectReadOnly', 'new DOMRectReadOnly(#,#,#,#)', x, y, width, height);
+    'DomRectReadOnly',
+    'new DOMRectReadOnly(#,#,#,#)',
+    x,
+    y,
+    width,
+    height,
+  );
   static DomRectReadOnly _create_2(x, y, width) =>
       JS('DomRectReadOnly', 'new DOMRectReadOnly(#,#,#)', x, y, width);
   static DomRectReadOnly _create_3(x, y) =>
@@ -11651,7 +12095,7 @@ class DomStringList extends JavaScriptObject
   // -- start List<String> mixins.
   // String is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -11743,8 +12187,8 @@ class _ChildrenElementList extends ListBase<Element>
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-      : _childElements = element._children as HtmlCollection,
-        _element = element;
+    : _childElements = element._children as HtmlCollection,
+      _element = element;
 
   bool contains(Object? element) => _childElements.contains(element);
 
@@ -11828,8 +12272,12 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Element> iterable, [
+    int skipCount = 0,
+  ]) {
     throw new UnimplementedError();
   }
 
@@ -12298,8 +12746,10 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList) {
-    assert(this._nodeList.every((element) => element is E),
-        "Query expects only HTML elements of type $E but found ${this._nodeList.firstWhere((e) => e is! E)}");
+    assert(
+      this._nodeList.every((element) => element is E),
+      "Query expects only HTML elements of type $E but found ${this._nodeList.firstWhere((e) => e is! E)}",
+    );
   }
 
   int get length => _nodeList.length;
@@ -12733,10 +13183,16 @@ class Element extends Node
    * * [NodeValidator]
    *
    */
-  factory Element.html(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
-    var fragment = document.body!.createFragment(html,
-        validator: validator, treeSanitizer: treeSanitizer);
+  factory Element.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
+    var fragment = document.body!.createFragment(
+      html,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
 
     return fragment.nodes.where((e) => e is Element).single as Element;
   }
@@ -13034,14 +13490,15 @@ class Element extends Node
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
   List<Node> get _children =>
-      // Element.children always returns the same list-like object which is a
-      // live view on the underlying DOM tree. So we can GVN it and remove it if
-      // unused.
-      JS(
-          'returns:HtmlCollection;creates:HtmlCollection;'
-              'depends:none;effects:none;gvn:true',
-          '#.children',
-          this);
+  // Element.children always returns the same list-like object which is a
+  // live view on the underlying DOM tree. So we can GVN it and remove it if
+  // unused.
+  JS(
+    'returns:HtmlCollection;creates:HtmlCollection;'
+        'depends:none;effects:none;gvn:true',
+    '#.children',
+    this,
+  );
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -13066,8 +13523,10 @@ class Element extends Node
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   @JSName('setApplyScroll')
-  void _setApplyScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
+  void _setApplyScroll(
+    ScrollStateCallback scrollStateCallback,
+    String nativeScrollBehavior,
+  ) native;
 
   Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
     var completer = new Completer<ScrollState>();
@@ -13078,8 +13537,10 @@ class Element extends Node
   }
 
   @JSName('setDistributeScroll')
-  void _setDistributeScroll(ScrollStateCallback scrollStateCallback,
-      String nativeScrollBehavior) native;
+  void _setDistributeScroll(
+    ScrollStateCallback scrollStateCallback,
+    String nativeScrollBehavior,
+  ) native;
 
   Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
     var completer = new Completer<ScrollState>();
@@ -13200,10 +13661,17 @@ class Element extends Node
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
-    this.insertAdjacentHtml('beforeend', text,
-        validator: validator, treeSanitizer: treeSanitizer);
+  void appendHtml(
+    String text, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
+    this.insertAdjacentHtml(
+      'beforeend',
+      text,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
   }
 
   /**
@@ -13286,8 +13754,10 @@ class Element extends Node
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
-      throw new ArgumentError("The frames parameter should be a List of Maps "
-          "with frame information");
+      throw new ArgumentError(
+        "The frames parameter should be a List of Maps "
+        "with frame information",
+      );
     }
     var convertedFrames;
     if (frames is Iterable) {
@@ -13353,8 +13823,11 @@ class Element extends Node
    */
   void scrollIntoView([ScrollAlignment? alignment]) {
     var hasScrollIntoViewIfNeeded = true;
-    hasScrollIntoViewIfNeeded =
-        JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
+    hasScrollIntoViewIfNeeded = JS(
+      'bool',
+      '!!(#.scrollIntoViewIfNeeded)',
+      this,
+    );
     if (alignment == ScrollAlignment.TOP) {
       this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {
@@ -13382,7 +13855,8 @@ class Element extends Node
    */
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
-          Element._determineMouseWheelEventType);
+        Element._determineMouseWheelEventType,
+      );
 
   static String _determineMouseWheelEventType(EventTarget e) => 'wheel';
 
@@ -13394,7 +13868,8 @@ class Element extends Node
    */
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(
-          Element._determineTransitionEventType);
+        Element._determineTransitionEventType,
+      );
 
   static String _determineTransitionEventType(EventTarget e) {
     // Unfortunately the normal 'ontransitionend' style checks don't work here.
@@ -13451,15 +13926,23 @@ class Element extends Node
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  void insertAdjacentHtml(
+    String where,
+    String html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _insertAdjacentHtml(where, html);
     } else {
       _insertAdjacentNode(
-          where,
-          createFragment(html,
-              validator: validator, treeSanitizer: treeSanitizer));
+        where,
+        createFragment(
+          html,
+          validator: validator,
+          treeSanitizer: treeSanitizer,
+        ),
+      );
     }
   }
 
@@ -13549,11 +14032,12 @@ class Element extends Node
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   ShadowRoot createShadowRoot() {
     return JS(
-        'ShadowRoot',
-        '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
-        this,
-        this,
-        this);
+      'ShadowRoot',
+      '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
+      this,
+      this,
+      this,
+    );
   }
 
   /**
@@ -13673,8 +14157,10 @@ class Element extends Node
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
-      throw new ArgumentError("Specified element is not a transitive offset "
-          "parent of this element.");
+      throw new ArgumentError(
+        "Specified element is not a transitive offset "
+        "parent of this element.",
+      );
     }
     Element? parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
@@ -13706,8 +14192,11 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (treeSanitizer == null) {
       if (validator == null) {
         if (_defaultValidator == null) {
@@ -13723,7 +14212,8 @@ class Element extends Node
       treeSanitizer = _defaultSanitizer;
     } else if (validator != null) {
       throw new ArgumentError(
-          'validator can only be passed if treeSanitizer is null');
+        'validator can only be passed if treeSanitizer is null',
+      );
     }
 
     if (_parseDocument == null) {
@@ -13810,7 +14300,7 @@ class Element extends Node
     'SOURCE',
     'STYLE',
     'TITLE',
-    'WBR'
+    'WBR',
   ];
 
   /**
@@ -13844,14 +14334,22 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  void setInnerHtml(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
     } else {
-      append(createFragment(html,
-          validator: validator, treeSanitizer: treeSanitizer));
+      append(
+        createFragment(
+          html,
+          validator: validator,
+          treeSanitizer: treeSanitizer,
+        ),
+      );
     }
   }
 
@@ -13874,9 +14372,7 @@ class Element extends Node
    * Those attributes are: attributes, lastChild, children, previousNode and tagName.
    */
   static bool _hasCorruptedAttributes(Element element) {
-    return JS(
-        'bool',
-        r'''
+    return JS('bool', r'''
        (function(element) {
          if (!(element.attributes instanceof NamedNodeMap)) {
 	   return true;
@@ -13920,8 +14416,7 @@ class Element extends Node
            }
          }
 	 return false;
-          })(#)''',
-        element);
+          })(#)''', element);
   }
 
   /// A secondary check for corruption, needed on IE
@@ -13981,19 +14476,21 @@ class Element extends Node
     var retValue;
     if (options != null) {
       retValue = JS(
-          '',
-          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
-          this,
-          this,
-          this,
-          convertDartToNative_Dictionary(options));
+        '',
+        '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
+        this,
+        this,
+        this,
+        convertDartToNative_Dictionary(options),
+      );
     } else {
       retValue = JS(
-          '',
-          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
-          this,
-          this,
-          this);
+        '',
+        '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
+        this,
+        this,
+        this,
+      );
     }
     if (retValue != null) return promiseToFuture(retValue);
     return Future<void>.value();
@@ -14717,8 +15214,9 @@ class Element extends Node
   String get tagName native;
 
   ShadowRoot attachShadow(Map shadowRootInitDict) {
-    var shadowRootInitDict_1 =
-        convertDartToNative_Dictionary(shadowRootInitDict);
+    var shadowRootInitDict_1 = convertDartToNative_Dictionary(
+      shadowRootInitDict,
+    );
     return _attachShadow_1(shadowRootInitDict_1);
   }
 
@@ -15272,8 +15770,12 @@ class _ElementFactoryProvider {
   static dynamic createElement_tag(String tag, String? typeExtension) {
     // Firefox may return a JS function for some types (Embed, Object).
     if (typeExtension != null) {
-      return JS('Element|=Object', 'document.createElement(#, #)', tag,
-          typeExtension);
+      return JS(
+        'Element|=Object',
+        'document.createElement(#, #)',
+        tag,
+        typeExtension,
+      );
     }
     // Should be able to eliminate this and just call the two-arg version above
     // with null typeExtension, but Chrome treats the tag as case-sensitive if
@@ -15379,85 +15881,114 @@ class Entry extends JavaScriptObject {
   String? get name native;
 
   @JSName('copyTo')
-  void _copyTo(DirectoryEntry parent,
-      [String? name,
-      _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback]) native;
+  void _copyTo(
+    DirectoryEntry parent, [
+    String? name,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('copyTo')
   Future<Entry> copyTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
-    _copyTo(parent, name, (value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _copyTo(
+      parent,
+      name,
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('getMetadata')
-  void _getMetadata(MetadataCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+  void _getMetadata(
+    MetadataCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('getMetadata')
   Future<Metadata> getMetadata() {
     var completer = new Completer<Metadata>();
-    _getMetadata((value) {
-      applyExtension('Metadata', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _getMetadata(
+      (value) {
+        applyExtension('Metadata', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('getParent')
-  void _getParent(
-      [_EntryCallback? successCallback, _ErrorCallback? errorCallback]) native;
+  void _getParent([
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('getParent')
   Future<Entry> getParent() {
     var completer = new Completer<Entry>();
-    _getParent((value) {
-      applyExtension('Entry', value);
-      applyExtension('webkitFileSystemEntry', value);
-      applyExtension('FileSystemEntry', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _getParent(
+      (value) {
+        applyExtension('Entry', value);
+        applyExtension('webkitFileSystemEntry', value);
+        applyExtension('FileSystemEntry', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('moveTo')
-  void _moveTo(DirectoryEntry parent,
-      [String? name,
-      _EntryCallback? successCallback,
-      _ErrorCallback? errorCallback]) native;
+  void _moveTo(
+    DirectoryEntry parent, [
+    String? name,
+    _EntryCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('moveTo')
   Future<Entry> moveTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
-    _moveTo(parent, name, (value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _moveTo(
+      parent,
+      name,
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('remove')
-  void _remove(VoidCallback successCallback, [_ErrorCallback? errorCallback])
-      native;
+  void _remove(
+    VoidCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('remove')
   Future remove() {
     var completer = new Completer();
-    _remove(() {
-      completer.complete();
-    }, (error) {
-      completer.completeError(error);
-    });
+    _remove(
+      () {
+        completer.complete();
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
@@ -15528,8 +16059,12 @@ class Event extends JavaScriptObject {
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory Event(String type, {bool canBubble = true, bool cancelable = true}) {
-    return new Event.eventType('Event', type,
-        canBubble: canBubble, cancelable: cancelable);
+    return new Event.eventType(
+      'Event',
+      type,
+      canBubble: canBubble,
+      cancelable: cancelable,
+    );
   }
 
   /**
@@ -15540,8 +16075,12 @@ class Event extends JavaScriptObject {
    *
    *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
-  factory Event.eventType(String type, String name,
-      {bool canBubble = true, bool cancelable = true}) {
+  factory Event.eventType(
+    String type,
+    String name, {
+    bool canBubble = true,
+    bool cancelable = true,
+  }) {
     final Event e = document._createEvent(type);
     e._initEvent(name, canBubble, cancelable);
     return e;
@@ -15558,8 +16097,10 @@ class Event extends JavaScriptObject {
    */
   Element get matchingTarget {
     if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
+      throw new UnsupportedError(
+        'Cannot call matchingTarget if this Event did'
+        ' not arise as a result of event delegation.',
+      );
     }
     Element? currentTarget = this.currentTarget as Element?;
     Element? target = this.target as Element?;
@@ -15663,9 +16204,7 @@ class Event extends JavaScriptObject {
 @Native("EventSource")
 class EventSource extends EventTarget {
   factory EventSource(String url, {withCredentials = false}) {
-    var parsedOptions = {
-      'withCredentials': withCredentials,
-    };
+    var parsedOptions = {'withCredentials': withCredentials};
     return EventSource._factoryEventSource(url, parsedOptions);
   }
   // To suppress missing implicit constructor warnings.
@@ -15700,11 +16239,14 @@ class EventSource extends EventTarget {
   static const EventStreamProvider<Event> openEvent =
       const EventStreamProvider<Event>('open');
 
-  static EventSource _factoryEventSource(String url,
-      [Map? eventSourceInitDict]) {
+  static EventSource _factoryEventSource(
+    String url, [
+    Map? eventSourceInitDict,
+  ]) {
     if (eventSourceInitDict != null) {
-      var eventSourceInitDict_1 =
-          convertDartToNative_Dictionary(eventSourceInitDict);
+      var eventSourceInitDict_1 = convertDartToNative_Dictionary(
+        eventSourceInitDict,
+      );
       return EventSource._create_1(url, eventSourceInitDict_1);
     }
     return EventSource._create_2(url);
@@ -15804,7 +16346,7 @@ class ElementEvents extends Events {
     'pointerlockerror': 'webkitpointerlockerror',
     'resourcetimingbufferfull': 'webkitresourcetimingbufferfull',
     'transitionend': 'webkitTransitionEnd',
-    'speechchange': 'webkitSpeechChange'
+    'speechchange': 'webkitSpeechChange',
   };
 
   ElementEvents(Element ptr) : super(ptr);
@@ -15813,7 +16355,10 @@ class ElementEvents extends Events {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
       if (Device.isWebKit) {
         return new _ElementEventStreamImpl(
-            _ptr, webkitEvents[type.toLowerCase()], false);
+          _ptr,
+          webkitEvents[type.toLowerCase()],
+          false,
+        );
       }
     }
     return new _ElementEventStreamImpl(_ptr, type, false);
@@ -15837,8 +16382,11 @@ class EventTarget extends JavaScriptObject {
    */
   Events get on => new Events(this);
 
-  void addEventListener(String type, EventListener? listener,
-      [bool? useCapture]) {
+  void addEventListener(
+    String type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -15847,8 +16395,11 @@ class EventTarget extends JavaScriptObject {
     }
   }
 
-  void removeEventListener(String type, EventListener? listener,
-      [bool? useCapture]) {
+  void removeEventListener(
+    String type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -15863,14 +16414,20 @@ class EventTarget extends JavaScriptObject {
   }
 
   @JSName('addEventListener')
-  void _addEventListener(String type, EventListener? listener, [bool? options])
-      native;
+  void _addEventListener(
+    String type,
+    EventListener? listener, [
+    bool? options,
+  ]) native;
 
   bool dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  void _removeEventListener(String type, EventListener? listener,
-      [bool? options]) native;
+  void _removeEventListener(
+    String type,
+    EventListener? listener, [
+    bool? options,
+  ]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15950,8 +16507,9 @@ class FaceDetector extends JavaScriptObject {
 
   factory FaceDetector([Map? faceDetectorOptions]) {
     if (faceDetectorOptions != null) {
-      var faceDetectorOptions_1 =
-          convertDartToNative_Dictionary(faceDetectorOptions);
+      var faceDetectorOptions_1 = convertDartToNative_Dictionary(
+        faceDetectorOptions,
+      );
       return FaceDetector._create_1(faceDetectorOptions_1);
     }
     return FaceDetector._create_2();
@@ -16034,10 +16592,11 @@ class FieldSetElement extends HtmlElement {
   }
 
   factory FieldSetElement() => JS<FieldSetElement>(
-      'returns:FieldSetElement;creates:FieldSetElement;new:true',
-      '#.createElement(#)',
-      document,
-      "fieldset");
+    'returns:FieldSetElement;creates:FieldSetElement;new:true',
+    '#.createElement(#)',
+    document,
+    "fieldset",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16130,34 +16689,44 @@ class FileEntry extends Entry {
   }
 
   @JSName('createWriter')
-  void _createWriter(_FileWriterCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+  void _createWriter(
+    _FileWriterCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('createWriter')
   Future<FileWriter> createWriter() {
     var completer = new Completer<FileWriter>();
-    _createWriter((value) {
-      applyExtension('FileWriter', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _createWriter(
+      (value) {
+        applyExtension('FileWriter', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('file')
-  void _file(_FileCallback successCallback, [_ErrorCallback? errorCallback])
-      native;
+  void _file(
+    _FileCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('file')
   Future<File> file() {
     var completer = new Completer<File>();
-    _file((value) {
-      applyExtension('File', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _file(
+      (value) {
+        applyExtension('File', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 }
@@ -16188,7 +16757,7 @@ class FileList extends JavaScriptObject
   // -- start List<File> mixins.
   // File is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -16627,10 +17196,11 @@ class FontFaceSetLoadEvent extends Event {
     return FontFaceSetLoadEvent._create_2(type);
   }
   static FontFaceSetLoadEvent _create_1(type, eventInitDict) => JS(
-      'FontFaceSetLoadEvent',
-      'new FontFaceSetLoadEvent(#,#)',
-      type,
-      eventInitDict);
+    'FontFaceSetLoadEvent',
+    'new FontFaceSetLoadEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static FontFaceSetLoadEvent _create_2(type) =>
       JS('FontFaceSetLoadEvent', 'new FontFaceSetLoadEvent(#)', type);
 
@@ -16665,7 +17235,11 @@ class ForeignFetchEvent extends ExtendableEvent {
     return ForeignFetchEvent._create_1(type, eventInitDict_1);
   }
   static ForeignFetchEvent _create_1(type, eventInitDict) => JS(
-      'ForeignFetchEvent', 'new ForeignFetchEvent(#,#)', type, eventInitDict);
+    'ForeignFetchEvent',
+    'new ForeignFetchEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   String? get origin native;
 
@@ -16727,10 +17301,11 @@ class FormElement extends HtmlElement {
   }
 
   factory FormElement() => JS<FormElement>(
-      'returns:FormElement;creates:FormElement;new:true',
-      '#.createElement(#)',
-      document,
-      "form");
+    'returns:FormElement;creates:FormElement;new:true',
+    '#.createElement(#)',
+    document,
+    "form",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16920,8 +17495,11 @@ class GamepadPose extends JavaScriptObject {
 @Unstable()
 @Native("Geolocation")
 class Geolocation extends JavaScriptObject {
-  Future<Geoposition> getCurrentPosition(
-      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
+  Future<Geoposition> getCurrentPosition({
+    bool? enableHighAccuracy,
+    Duration? timeout,
+    Duration? maximumAge,
+  }) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16934,19 +17512,26 @@ class Geolocation extends JavaScriptObject {
     }
     var completer = new Completer<Geoposition>();
     try {
-      _getCurrentPosition((position) {
-        completer.complete(_ensurePosition(position));
-      }, (error) {
-        completer.completeError(error);
-      }, options);
+      _getCurrentPosition(
+        (position) {
+          completer.complete(_ensurePosition(position));
+        },
+        (error) {
+          completer.completeError(error);
+        },
+        options,
+      );
     } catch (e, stacktrace) {
       completer.completeError(e, stacktrace);
     }
     return completer.future;
   }
 
-  Stream<Geoposition> watchPosition(
-      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
+  Stream<Geoposition> watchPosition({
+    bool? enableHighAccuracy,
+    Duration? timeout,
+    Duration? maximumAge,
+  }) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16961,18 +17546,23 @@ class Geolocation extends JavaScriptObject {
     int? watchId;
     StreamController<Geoposition> controller =
         new StreamController<Geoposition>(
-            sync: true,
-            onCancel: () {
-              final id = watchId;
-              if (id != null) _clearWatch(id);
-            });
+          sync: true,
+          onCancel: () {
+            final id = watchId;
+            if (id != null) _clearWatch(id);
+          },
+        );
     controller.onListen = () {
       assert(watchId == null);
-      watchId = _watchPosition((position) {
-        controller.add(_ensurePosition(position));
-      }, (error) {
-        controller.addError(error);
-      }, options);
+      watchId = _watchPosition(
+        (position) {
+          controller.add(_ensurePosition(position));
+        },
+        (error) {
+          controller.addError(error);
+        },
+        options,
+      );
     };
 
     return controller.stream;
@@ -16998,8 +17588,11 @@ class Geolocation extends JavaScriptObject {
 
   @Creates('Geoposition')
   @Creates('PositionError')
-  void _getCurrentPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback? errorCallback, Map? options]) {
+  void _getCurrentPosition(
+    _PositionCallback successCallback, [
+    _PositionErrorCallback? errorCallback,
+    Map? options,
+  ]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -17020,12 +17613,17 @@ class Geolocation extends JavaScriptObject {
   @Creates('Geoposition')
   @Creates('PositionError')
   void _getCurrentPosition_1(
-      successCallback, _PositionErrorCallback? errorCallback, options) native;
+    successCallback,
+    _PositionErrorCallback? errorCallback,
+    options,
+  ) native;
   @JSName('getCurrentPosition')
   @Creates('Geoposition')
   @Creates('PositionError')
   void _getCurrentPosition_2(
-      successCallback, _PositionErrorCallback? errorCallback) native;
+    successCallback,
+    _PositionErrorCallback? errorCallback,
+  ) native;
   @JSName('getCurrentPosition')
   @Creates('Geoposition')
   @Creates('PositionError')
@@ -17033,8 +17631,11 @@ class Geolocation extends JavaScriptObject {
 
   @Creates('Geoposition')
   @Creates('PositionError')
-  int _watchPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback? errorCallback, Map? options]) {
+  int _watchPosition(
+    _PositionCallback successCallback, [
+    _PositionErrorCallback? errorCallback,
+    Map? options,
+  ]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -17052,12 +17653,17 @@ class Geolocation extends JavaScriptObject {
   @Creates('Geoposition')
   @Creates('PositionError')
   int _watchPosition_1(
-      successCallback, _PositionErrorCallback? errorCallback, options) native;
+    successCallback,
+    _PositionErrorCallback? errorCallback,
+    options,
+  ) native;
   @JSName('watchPosition')
   @Creates('Geoposition')
   @Creates('PositionError')
-  int _watchPosition_2(successCallback, _PositionErrorCallback? errorCallback)
-      native;
+  int _watchPosition_2(
+    successCallback,
+    _PositionErrorCallback? errorCallback,
+  ) native;
   @JSName('watchPosition')
   @Creates('Geoposition')
   @Creates('PositionError')
@@ -17099,11 +17705,17 @@ class Geoposition extends JavaScriptObject {
 // convince the scripts to make our instance methods abstract, and the bodies that
 // get generated require `this` to be an EventTarget.
 abstract class GlobalEventHandlers implements EventTarget {
-  void addEventListener(String type, dynamic listener(Event event)?,
-      [bool? useCapture]);
+  void addEventListener(
+    String type,
+    dynamic listener(Event event)?, [
+    bool? useCapture,
+  ]);
   bool dispatchEvent(Event event);
-  void removeEventListener(String type, dynamic listener(Event event)?,
-      [bool? useCapture]);
+  void removeEventListener(
+    String type,
+    dynamic listener(Event event)?, [
+    bool? useCapture,
+  ]);
   Events get on;
 
   // To suppress missing implicit constructor warnings.
@@ -17441,10 +18053,11 @@ class HRElement extends HtmlElement {
   }
 
   factory HRElement() => JS<HRElement>(
-      'returns:HRElement;creates:HRElement;new:true',
-      '#.createElement(#)',
-      document,
-      "hr");
+    'returns:HRElement;creates:HRElement;new:true',
+    '#.createElement(#)',
+    document,
+    "hr",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17468,19 +18081,25 @@ class HRElement extends HtmlElement {
 @Unstable()
 @Native("HashChangeEvent")
 class HashChangeEvent extends Event {
-  factory HashChangeEvent(String type,
-      {bool canBubble = true,
-      bool cancelable = true,
-      String? oldUrl,
-      String? newUrl}) {
+  factory HashChangeEvent(
+    String type, {
+    bool canBubble = true,
+    bool cancelable = true,
+    String? oldUrl,
+    String? newUrl,
+  }) {
     var options = {
       'canBubble': canBubble,
       'cancelable': cancelable,
       'oldURL': oldUrl,
       'newURL': newUrl,
     };
-    return JS('HashChangeEvent', 'new HashChangeEvent(#, #)', type,
-        convertDartToNative_Dictionary(options));
+    return JS(
+      'HashChangeEvent',
+      'new HashChangeEvent(#, #)',
+      type,
+      convertDartToNative_Dictionary(options),
+    );
   }
 
   factory HashChangeEvent._(String type, [Map? eventInitDict]) {
@@ -17516,10 +18135,11 @@ class HeadElement extends HtmlElement {
   }
 
   factory HeadElement() => JS<HeadElement>(
-      'returns:HeadElement;creates:HeadElement;new:true',
-      '#.createElement(#)',
-      document,
-      "head");
+    'returns:HeadElement;creates:HeadElement;new:true',
+    '#.createElement(#)',
+    document,
+    "head",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17559,40 +18179,46 @@ class HeadingElement extends HtmlElement {
   }
 
   factory HeadingElement.h1() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h1");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h1",
+  );
 
   factory HeadingElement.h2() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h2");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h2",
+  );
 
   factory HeadingElement.h3() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h3");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h3",
+  );
 
   factory HeadingElement.h4() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h4");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h4",
+  );
 
   factory HeadingElement.h5() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h5");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h5",
+  );
 
   factory HeadingElement.h6() => JS<HeadingElement>(
-      'returns:HeadingElement;creates:HeadingElement;new:true',
-      '#.createElement(#)',
-      document,
-      "h6");
+    'returns:HeadingElement;creates:HeadingElement;new:true',
+    '#.createElement(#)',
+    document,
+    "h6",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17701,7 +18327,7 @@ class HtmlCollection extends JavaScriptObject
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17812,7 +18438,8 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   static const EventStreamProvider<Event> visibilityChangeEvent =
       const _CustomEventStreamProvider<Event>(
-          _determineVisibilityChangeEventType);
+        _determineVisibilityChangeEventType,
+      );
 
   static String _determineVisibilityChangeEventType(EventTarget e) {
     if (JS('bool', '(typeof #.hidden !== "undefined")', e)) {
@@ -17870,10 +18497,11 @@ class HtmlHtmlElement extends HtmlElement {
   }
 
   factory HtmlHtmlElement() => JS<HtmlHtmlElement>(
-      'returns:HtmlHtmlElement;creates:HtmlHtmlElement;new:true',
-      '#.createElement(#)',
-      document,
-      "html");
+    'returns:HtmlHtmlElement;creates:HtmlHtmlElement;new:true',
+    '#.createElement(#)',
+    document,
+    "html",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18026,11 +18654,16 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * * [request]
    */
-  static Future<String> getString(String url,
-      {bool? withCredentials, void onProgress(ProgressEvent e)?}) {
-    return request(url,
-            withCredentials: withCredentials, onProgress: onProgress)
-        .then((HttpRequest xhr) => xhr.responseText!);
+  static Future<String> getString(
+    String url, {
+    bool? withCredentials,
+    void onProgress(ProgressEvent e)?,
+  }) {
+    return request(
+      url,
+      withCredentials: withCredentials,
+      onProgress: onProgress,
+    ).then((HttpRequest xhr) => xhr.responseText!);
   }
 
   /**
@@ -18058,31 +18691,40 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * * [request]
    */
-  static Future<HttpRequest> postFormData(String url, Map<String, String> data,
-      {bool? withCredentials,
-      String? responseType,
-      Map<String, String>? requestHeaders,
-      void onProgress(ProgressEvent e)?}) {
+  static Future<HttpRequest> postFormData(
+    String url,
+    Map<String, String> data, {
+    bool? withCredentials,
+    String? responseType,
+    Map<String, String>? requestHeaders,
+    void onProgress(ProgressEvent e)?,
+  }) {
     var parts = [];
     data.forEach((key, value) {
-      parts.add('${Uri.encodeQueryComponent(key)}='
-          '${Uri.encodeQueryComponent(value)}');
+      parts.add(
+        '${Uri.encodeQueryComponent(key)}='
+        '${Uri.encodeQueryComponent(value)}',
+      );
     });
     var formData = parts.join('&');
 
     if (requestHeaders == null) {
       requestHeaders = <String, String>{};
     }
-    requestHeaders.putIfAbsent('Content-Type',
-        () => 'application/x-www-form-urlencoded; charset=UTF-8');
+    requestHeaders.putIfAbsent(
+      'Content-Type',
+      () => 'application/x-www-form-urlencoded; charset=UTF-8',
+    );
 
-    return request(url,
-        method: 'POST',
-        withCredentials: withCredentials,
-        responseType: responseType,
-        requestHeaders: requestHeaders,
-        sendData: formData,
-        onProgress: onProgress);
+    return request(
+      url,
+      method: 'POST',
+      withCredentials: withCredentials,
+      responseType: responseType,
+      requestHeaders: requestHeaders,
+      sendData: formData,
+      onProgress: onProgress,
+    );
   }
 
   /**
@@ -18139,14 +18781,16 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
-  static Future<HttpRequest> request(String url,
-      {String? method,
-      bool? withCredentials,
-      String? responseType,
-      String? mimeType,
-      Map<String, String>? requestHeaders,
-      sendData,
-      void onProgress(ProgressEvent e)?}) {
+  static Future<HttpRequest> request(
+    String url, {
+    String? method,
+    bool? withCredentials,
+    String? responseType,
+    String? mimeType,
+    Map<String, String>? requestHeaders,
+    sendData,
+    void onProgress(ProgressEvent e)?,
+  }) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -18250,8 +18894,11 @@ class HttpRequest extends HttpRequestEventTarget {
    * This API provides a subset of [request] which works on IE9. If IE9
    * cross-origin support is not required then [request] should be used instead.
    */
-  static Future<String> requestCrossOrigin(String url,
-      {String? method, String? sendData}) {
+  static Future<String> requestCrossOrigin(
+    String url, {
+    String? method,
+    String? sendData,
+  }) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
         return xhr.responseText!;
@@ -18264,20 +18911,22 @@ class HttpRequest extends HttpRequestEventTarget {
     var xhr = JS('var', 'new XDomainRequest()');
     JS('', '#.open(#, #)', xhr, method, url);
     JS(
-        '',
-        '#.onload = #',
-        xhr,
-        convertDartClosureToJS((e) {
-          var response = JS('String', '#.responseText', xhr);
-          completer.complete(response as FutureOr<String>?);
-        }, 1));
+      '',
+      '#.onload = #',
+      xhr,
+      convertDartClosureToJS((e) {
+        var response = JS('String', '#.responseText', xhr);
+        completer.complete(response as FutureOr<String>?);
+      }, 1),
+    );
     JS(
-        '',
-        '#.onerror = #',
-        xhr,
-        convertDartClosureToJS((e) {
-          completer.completeError(e);
-        }, 1));
+      '',
+      '#.onerror = #',
+      xhr,
+      convertDartClosureToJS((e) {
+        completer.completeError(e);
+      }, 1),
+    );
 
     // IE9 RTM - XDomainRequest issued requests may abort if all event handlers
     // not specified
@@ -18346,8 +18995,13 @@ class HttpRequest extends HttpRequestEventTarget {
    * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
-  void open(String method, String url,
-      {bool? async, String? user, String? password}) native;
+  void open(
+    String method,
+    String url, {
+    bool? async,
+    String? user,
+    String? password,
+  }) native;
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() {
@@ -18454,7 +19108,8 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates(
-      'NativeByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num')
+    'NativeByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num',
+  )
   dynamic get _get_response native;
 
   /**
@@ -18483,7 +19138,6 @@ class HttpRequest extends HttpRequestEventTarget {
   String? get responseUrl native;
 
   @JSName('responseXML')
-
   /**
    * The request response, or null on failure.
    *
@@ -18491,7 +19145,6 @@ class HttpRequest extends HttpRequestEventTarget {
    * `text/xml` stream, unless responseType = 'document' and the request is
    * synchronous.
    */
-
   Document? get responseXml native;
 
   /**
@@ -18626,7 +19279,7 @@ class HttpRequest extends HttpRequestEventTarget {
   void setRequestHeader(String name, String value) native;
 
   /// Stream of `readystatechange` events handled by this [HttpRequest].
-/**
+  /**
    * Event listeners to be notified every time the [HttpRequest]
    * object's `readyState` changes values.
    */
@@ -18758,10 +19411,11 @@ class IFrameElement extends HtmlElement {
   }
 
   factory IFrameElement() => JS<IFrameElement>(
-      'returns:IFrameElement;creates:IFrameElement;new:true',
-      '#.createElement(#)',
-      document,
-      "iframe");
+    'returns:IFrameElement;creates:IFrameElement;new:true',
+    '#.createElement(#)',
+    document,
+    "iframe",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18893,13 +19547,15 @@ class ImageCapture extends JavaScriptObject {
 
   Future<PhotoCapabilities> getPhotoCapabilities() =>
       promiseToFuture<PhotoCapabilities>(
-          JS("creates:PhotoCapabilities;", "#.getPhotoCapabilities()", this));
+        JS("creates:PhotoCapabilities;", "#.getPhotoCapabilities()", this),
+      );
 
   Future<Map<String, dynamic>?> getPhotoSettings() =>
       promiseToFutureAsMap(JS("", "#.getPhotoSettings()", this));
 
   Future<ImageBitmap> grabFrame() => promiseToFuture<ImageBitmap>(
-      JS("creates:ImageBitmap;", "#.grabFrame()", this));
+    JS("creates:ImageBitmap;", "#.grabFrame()", this),
+  );
 
   Future setOptions(Map photoSettings) {
     var photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
@@ -18912,7 +19568,8 @@ class ImageCapture extends JavaScriptObject {
       photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     }
     return promiseToFuture<Blob>(
-        JS("creates:Blob;", "#.takePhoto(#)", this, photoSettings_dict));
+      JS("creates:Blob;", "#.takePhoto(#)", this, photoSettings_dict),
+    );
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -18966,10 +19623,11 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   factory ImageElement({String? src, int? width, int? height}) {
     ImageElement e = JS<ImageElement>(
-        'returns:ImageElement;creates:ImageElement;new:true',
-        '#.createElement(#)',
-        document,
-        "img");
+      'returns:ImageElement;creates:ImageElement;new:true',
+      '#.createElement(#)',
+      document,
+      "img",
+    );
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -19055,9 +19713,10 @@ class InputDeviceCapabilities extends JavaScriptObject {
     return InputDeviceCapabilities._create_2();
   }
   static InputDeviceCapabilities _create_1(deviceInitDict) => JS(
-      'InputDeviceCapabilities',
-      'new InputDeviceCapabilities(#)',
-      deviceInitDict);
+    'InputDeviceCapabilities',
+    'new InputDeviceCapabilities(#)',
+    deviceInitDict,
+  );
   static InputDeviceCapabilities _create_2() =>
       JS('InputDeviceCapabilities', 'new InputDeviceCapabilities()');
 
@@ -19324,8 +19983,12 @@ class InputElement extends HtmlElement
 
   void setCustomValidity(String error) native;
 
-  void setRangeText(String replacement,
-      {int? start, int? end, String? selectionMode}) native;
+  void setRangeText(
+    String replacement, {
+    int? start,
+    int? end,
+    String? selectionMode,
+  }) native;
 
   void setSelectionRange(int start, int end, [String? direction]) native;
 
@@ -19903,8 +20566,10 @@ class IntersectionObserver extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
-  factory IntersectionObserver(IntersectionObserverCallback callback,
-      [Map? options]) {
+  factory IntersectionObserver(
+    IntersectionObserverCallback callback, [
+    Map? options,
+  ]) {
     if (options != null) {
       var callback_1 = convertDartClosureToJS(callback, 2);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -19914,10 +20579,11 @@ class IntersectionObserver extends JavaScriptObject {
     return IntersectionObserver._create_2(callback_1);
   }
   static IntersectionObserver _create_1(callback, options) => JS(
-      'IntersectionObserver',
-      'new IntersectionObserver(#,#)',
-      callback,
-      options);
+    'IntersectionObserver',
+    'new IntersectionObserver(#,#)',
+    callback,
+    options,
+  );
   static IntersectionObserver _create_2(callback) =>
       JS('IntersectionObserver', 'new IntersectionObserver(#)', callback);
 
@@ -19942,7 +20608,9 @@ class IntersectionObserver extends JavaScriptObject {
 // WARNING: Do not edit - generated code.
 
 typedef void IntersectionObserverCallback(
-    List entries, IntersectionObserver observer);
+  List entries,
+  IntersectionObserver observer,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20010,60 +20678,85 @@ class KeyboardEvent extends UIEvent {
    * creating keyboard events with specific key value contents, see the custom
    * Event [KeyEvent].
    */
-  factory KeyboardEvent(String type,
-      {Window? view,
-      bool canBubble = true,
-      bool cancelable = true,
-      int? location,
-      int? keyLocation, // Legacy alias for location
-      bool ctrlKey = false,
-      bool altKey = false,
-      bool shiftKey = false,
-      bool metaKey = false}) {
+  factory KeyboardEvent(
+    String type, {
+    Window? view,
+    bool canBubble = true,
+    bool cancelable = true,
+    int? location,
+    int? keyLocation, // Legacy alias for location
+    bool ctrlKey = false,
+    bool altKey = false,
+    bool shiftKey = false,
+    bool metaKey = false,
+  }) {
     if (view == null) {
       view = window;
     }
     location ??= keyLocation ?? 1;
     KeyboardEvent e = document._createEvent("KeyboardEvent") as KeyboardEvent;
-    e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
-        ctrlKey, altKey, shiftKey, metaKey);
+    e._initKeyboardEvent(
+      type,
+      canBubble,
+      cancelable,
+      view,
+      "",
+      location,
+      ctrlKey,
+      altKey,
+      shiftKey,
+      metaKey,
+    );
     return e;
   }
 
   void _initKeyboardEvent(
-      String type,
-      bool canBubble,
-      bool cancelable,
-      Window? view,
-      String keyIdentifier,
-      int? location,
-      bool ctrlKey,
-      bool altKey,
-      bool shiftKey,
-      bool metaKey) {
+    String type,
+    bool canBubble,
+    bool cancelable,
+    Window? view,
+    String keyIdentifier,
+    int? location,
+    bool ctrlKey,
+    bool altKey,
+    bool shiftKey,
+    bool metaKey,
+  ) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
       // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
       // a slightly different signature, and allows you to specify keyCode and
       // charCode as the last two arguments, but we just set them as the default
       // since they can't be specified in other browsers.
-      JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this, type,
-          canBubble, cancelable, view, ctrlKey, altKey, shiftKey, metaKey);
+      JS(
+        'void',
+        '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)',
+        this,
+        type,
+        canBubble,
+        cancelable,
+        view,
+        ctrlKey,
+        altKey,
+        shiftKey,
+        metaKey,
+      );
     } else {
       // initKeyboardEvent is for all other browsers.
       JS(
-          'void',
-          '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #)',
-          this,
-          type,
-          canBubble,
-          cancelable,
-          view,
-          keyIdentifier,
-          location,
-          ctrlKey,
-          altKey,
-          shiftKey,
-          metaKey);
+        'void',
+        '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #)',
+        this,
+        type,
+        canBubble,
+        cancelable,
+        view,
+        keyIdentifier,
+        location,
+        ctrlKey,
+        altKey,
+        shiftKey,
+        metaKey,
+      );
     }
   }
 
@@ -20137,7 +20830,12 @@ class KeyframeEffect extends KeyframeEffectReadOnly {
     return KeyframeEffect._create_2(target, effect);
   }
   static KeyframeEffect _create_1(target, effect, options) => JS(
-      'KeyframeEffect', 'new KeyframeEffect(#,#,#)', target, effect, options);
+    'KeyframeEffect',
+    'new KeyframeEffect(#,#,#)',
+    target,
+    effect,
+    options,
+  );
   static KeyframeEffect _create_2(target, effect) =>
       JS('KeyframeEffect', 'new KeyframeEffect(#,#)', target, effect);
 }
@@ -20152,24 +20850,29 @@ class KeyframeEffectReadOnly extends AnimationEffectReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory KeyframeEffectReadOnly(Element? target, Object? effect,
-      [Object? options]) {
+  factory KeyframeEffectReadOnly(
+    Element? target,
+    Object? effect, [
+    Object? options,
+  ]) {
     if (options != null) {
       return KeyframeEffectReadOnly._create_1(target, effect, options);
     }
     return KeyframeEffectReadOnly._create_2(target, effect);
   }
   static KeyframeEffectReadOnly _create_1(target, effect, options) => JS(
-      'KeyframeEffectReadOnly',
-      'new KeyframeEffectReadOnly(#,#,#)',
-      target,
-      effect,
-      options);
+    'KeyframeEffectReadOnly',
+    'new KeyframeEffectReadOnly(#,#,#)',
+    target,
+    effect,
+    options,
+  );
   static KeyframeEffectReadOnly _create_2(target, effect) => JS(
-      'KeyframeEffectReadOnly',
-      'new KeyframeEffectReadOnly(#,#)',
-      target,
-      effect);
+    'KeyframeEffectReadOnly',
+    'new KeyframeEffectReadOnly(#,#)',
+    target,
+    effect,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20183,10 +20886,11 @@ class LIElement extends HtmlElement {
   }
 
   factory LIElement() => JS<LIElement>(
-      'returns:LIElement;creates:LIElement;new:true',
-      '#.createElement(#)',
-      document,
-      "li");
+    'returns:LIElement;creates:LIElement;new:true',
+    '#.createElement(#)',
+    document,
+    "li",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20210,10 +20914,11 @@ class LabelElement extends HtmlElement {
   }
 
   factory LabelElement() => JS<LabelElement>(
-      'returns:LabelElement;creates:LabelElement;new:true',
-      '#.createElement(#)',
-      document,
-      "label");
+    'returns:LabelElement;creates:LabelElement;new:true',
+    '#.createElement(#)',
+    document,
+    "label",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20241,10 +20946,11 @@ class LegendElement extends HtmlElement {
   }
 
   factory LegendElement() => JS<LegendElement>(
-      'returns:LegendElement;creates:LegendElement;new:true',
-      '#.createElement(#)',
-      document,
-      "legend");
+    'returns:LegendElement;creates:LegendElement;new:true',
+    '#.createElement(#)',
+    document,
+    "legend",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20273,9 +20979,10 @@ class LinearAccelerationSensor extends Accelerometer {
     return LinearAccelerationSensor._create_2();
   }
   static LinearAccelerationSensor _create_1(sensorOptions) => JS(
-      'LinearAccelerationSensor',
-      'new LinearAccelerationSensor(#)',
-      sensorOptions);
+    'LinearAccelerationSensor',
+    'new LinearAccelerationSensor(#)',
+    sensorOptions,
+  );
   static LinearAccelerationSensor _create_2() =>
       JS('LinearAccelerationSensor', 'new LinearAccelerationSensor()');
 }
@@ -20291,10 +20998,11 @@ class LinkElement extends HtmlElement {
   }
 
   factory LinkElement() => JS<LinkElement>(
-      'returns:LinkElement;creates:LinkElement;new:true',
-      '#.createElement(#)',
-      document,
-      "link");
+    'returns:LinkElement;creates:LinkElement;new:true',
+    '#.createElement(#)',
+    document,
+    "link",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20465,10 +21173,11 @@ class MapElement extends HtmlElement {
   }
 
   factory MapElement() => JS<MapElement>(
-      'returns:MapElement;creates:MapElement;new:true',
-      '#.createElement(#)',
-      document,
-      "map");
+    'returns:MapElement;creates:MapElement;new:true',
+    '#.createElement(#)',
+    document,
+    "map",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20514,20 +21223,26 @@ class MediaCapabilities extends JavaScriptObject {
 
   Future<MediaCapabilitiesInfo> decodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+    return promiseToFuture<MediaCapabilitiesInfo>(
+      JS(
         "creates:MediaCapabilitiesInfo;",
         "#.decodingInfo(#)",
         this,
-        configuration_dict));
+        configuration_dict,
+      ),
+    );
   }
 
   Future<MediaCapabilitiesInfo> encodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+    return promiseToFuture<MediaCapabilitiesInfo>(
+      JS(
         "creates:MediaCapabilitiesInfo;",
         "#.encodingInfo(#)",
         this,
-        configuration_dict));
+        configuration_dict,
+      ),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20592,8 +21307,9 @@ class MediaDevices extends EventTarget {
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return promiseToFuture<MediaStream>(JS(
-        "creates:MediaStream;", "#.getUserMedia(#)", this, constraints_dict));
+    return promiseToFuture<MediaStream>(
+      JS("creates:MediaStream;", "#.getUserMedia(#)", this, constraints_dict),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20772,10 +21488,11 @@ class MediaEncryptedEvent extends Event {
     return MediaEncryptedEvent._create_2(type);
   }
   static MediaEncryptedEvent _create_1(type, eventInitDict) => JS(
-      'MediaEncryptedEvent',
-      'new MediaEncryptedEvent(#,#)',
-      type,
-      eventInitDict);
+    'MediaEncryptedEvent',
+    'new MediaEncryptedEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static MediaEncryptedEvent _create_2(type) =>
       JS('MediaEncryptedEvent', 'new MediaEncryptedEvent(#)', type);
 
@@ -20823,10 +21540,11 @@ class MediaKeyMessageEvent extends Event {
     return MediaKeyMessageEvent._create_1(type, eventInitDict_1);
   }
   static MediaKeyMessageEvent _create_1(type, eventInitDict) => JS(
-      'MediaKeyMessageEvent',
-      'new MediaKeyMessageEvent(#,#)',
-      type,
-      eventInitDict);
+    'MediaKeyMessageEvent',
+    'new MediaKeyMessageEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   ByteBuffer? get message native;
 
@@ -20858,7 +21576,8 @@ class MediaKeySession extends EventTarget {
 
   Future generateRequest(String initDataType, /*BufferSource*/ initData) =>
       promiseToFuture(
-          JS("", "#.generateRequest(#, #)", this, initDataType, initData));
+        JS("", "#.generateRequest(#, #)", this, initDataType, initData),
+      );
 
   Future load(String sessionId) =>
       promiseToFuture(JS("", "#.load(#)", this, sessionId));
@@ -20929,7 +21648,8 @@ class MediaKeys extends JavaScriptObject {
 
   Future setServerCertificate(/*BufferSource*/ serverCertificate) =>
       promiseToFuture(
-          JS("", "#.setServerCertificate(#)", this, serverCertificate));
+        JS("", "#.setServerCertificate(#)", this, serverCertificate),
+      );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21058,10 +21778,11 @@ class MediaQueryListEvent extends Event {
     return MediaQueryListEvent._create_2(type);
   }
   static MediaQueryListEvent _create_1(type, eventInitDict) => JS(
-      'MediaQueryListEvent',
-      'new MediaQueryListEvent(#,#)',
-      type,
-      eventInitDict);
+    'MediaQueryListEvent',
+    'new MediaQueryListEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static MediaQueryListEvent _create_2(type) =>
       JS('MediaQueryListEvent', 'new MediaQueryListEvent(#)', type);
 
@@ -21143,8 +21864,10 @@ class MediaSession extends JavaScriptObject {
 
   set playbackState(String? value) native;
 
-  void setActionHandler(String action, MediaSessionActionHandler? handler)
-      native;
+  void setActionHandler(
+    String action,
+    MediaSessionActionHandler? handler,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21297,13 +22020,14 @@ class MediaStream extends EventTarget {
    * * [Navigator.getUserMedia]
    */
   static bool get supported => JS(
-      'bool',
-      '''!!(#.getUserMedia || #.webkitGetUserMedia ||
+    'bool',
+    '''!!(#.getUserMedia || #.webkitGetUserMedia ||
         #.mozGetUserMedia || #.msGetUserMedia)''',
-      window.navigator,
-      window.navigator,
-      window.navigator,
-      window.navigator);
+    window.navigator,
+    window.navigator,
+    window.navigator,
+    window.navigator,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21397,7 +22121,8 @@ class MediaStreamTrack extends EventTarget {
       constraints_dict = convertDartToNative_Dictionary(constraints);
     }
     return promiseToFuture(
-        JS("", "#.applyConstraints(#)", this, constraints_dict));
+      JS("", "#.applyConstraints(#)", this, constraints_dict),
+    );
   }
 
   MediaStreamTrack clone() native;
@@ -21451,10 +22176,11 @@ class MediaStreamTrackEvent extends Event {
     return MediaStreamTrackEvent._create_1(type, eventInitDict_1);
   }
   static MediaStreamTrackEvent _create_1(type, eventInitDict) => JS(
-      'MediaStreamTrackEvent',
-      'new MediaStreamTrackEvent(#,#)',
-      type,
-      eventInitDict);
+    'MediaStreamTrackEvent',
+    'new MediaStreamTrackEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -21501,10 +22227,11 @@ class MenuElement extends HtmlElement {
   }
 
   factory MenuElement() => JS<MenuElement>(
-      'returns:MenuElement;creates:MenuElement;new:true',
-      '#.createElement(#)',
-      document,
-      "menu");
+    'returns:MenuElement;creates:MenuElement;new:true',
+    '#.createElement(#)',
+    document,
+    "menu",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21549,14 +22276,16 @@ class MessageChannel extends JavaScriptObject {
 
 @Native("MessageEvent")
 class MessageEvent extends Event {
-  factory MessageEvent(String type,
-      {bool canBubble = false,
-      bool cancelable = false,
-      Object? data,
-      String? origin,
-      String? lastEventId,
-      Window? source,
-      List<MessagePort> messagePorts = const []}) {
+  factory MessageEvent(
+    String type, {
+    bool canBubble = false,
+    bool cancelable = false,
+    Object? data,
+    String? origin,
+    String? lastEventId,
+    Window? source,
+    List<MessagePort> messagePorts = const [],
+  }) {
     if (source == null) {
       source = window;
     }
@@ -21564,20 +22293,29 @@ class MessageEvent extends Event {
       // TODO: This if check should be removed once IE
       // implements the constructor.
       return JS(
-          'MessageEvent',
-          'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
-          type,
-          canBubble,
-          cancelable,
-          data,
-          origin,
-          lastEventId,
-          source,
-          messagePorts);
+        'MessageEvent',
+        'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
+        type,
+        canBubble,
+        cancelable,
+        data,
+        origin,
+        lastEventId,
+        source,
+        messagePorts,
+      );
     }
     MessageEvent event = document._createEvent("MessageEvent") as MessageEvent;
-    event._initMessageEvent(type, canBubble, cancelable, data, origin,
-        lastEventId, source, messagePorts);
+    event._initMessageEvent(
+      type,
+      canBubble,
+      cancelable,
+      data,
+      origin,
+      lastEventId,
+      source,
+      messagePorts,
+    );
     return event;
   }
 
@@ -21621,23 +22359,40 @@ class MessageEvent extends Event {
   String? get suborigin native;
 
   void _initMessageEvent(
-      String? typeArg,
-      bool? canBubbleArg,
-      bool? cancelableArg,
-      Object? dataArg,
-      String? originArg,
-      String? lastEventIdArg,
-      EventTarget? sourceArg,
-      List<MessagePort>? portsArg) {
+    String? typeArg,
+    bool? canBubbleArg,
+    bool? cancelableArg,
+    Object? dataArg,
+    String? originArg,
+    String? lastEventIdArg,
+    EventTarget? sourceArg,
+    List<MessagePort>? portsArg,
+  ) {
     var sourceArg_1 = _convertDartToNative_EventTarget(sourceArg);
-    _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
-        originArg, lastEventIdArg, sourceArg_1, portsArg);
+    _initMessageEvent_1(
+      typeArg,
+      canBubbleArg,
+      cancelableArg,
+      dataArg,
+      originArg,
+      lastEventIdArg,
+      sourceArg_1,
+      portsArg,
+    );
     return;
   }
 
   @JSName('initMessageEvent')
-  void _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
-      originArg, lastEventIdArg, sourceArg, List<MessagePort>? portsArg) native;
+  void _initMessageEvent_1(
+    typeArg,
+    canBubbleArg,
+    cancelableArg,
+    dataArg,
+    originArg,
+    lastEventIdArg,
+    sourceArg,
+    List<MessagePort>? portsArg,
+  ) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21648,8 +22403,11 @@ class MessageEvent extends Event {
 @Unstable()
 @Native("MessagePort")
 class MessagePort extends EventTarget {
-  void addEventListener(String type, EventListener? listener,
-      [bool? useCapture]) {
+  void addEventListener(
+    String type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) {
     // Messages posted to ports are initially paused, allowing listeners to be
     // setup, start() needs to be explicitly invoked to begin handling messages.
     if (type == 'message') {
@@ -21710,10 +22468,11 @@ class MetaElement extends HtmlElement {
   }
 
   factory MetaElement() => JS<MetaElement>(
-      'returns:MetaElement;creates:MetaElement;new:true',
-      '#.createElement(#)',
-      document,
-      "meta");
+    'returns:MetaElement;creates:MetaElement;new:true',
+    '#.createElement(#)',
+    document,
+    "meta",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21850,10 +22609,11 @@ class MidiConnectionEvent extends Event {
     return MidiConnectionEvent._create_2(type);
   }
   static MidiConnectionEvent _create_1(type, eventInitDict) => JS(
-      'MidiConnectionEvent',
-      'new MIDIConnectionEvent(#,#)',
-      type,
-      eventInitDict);
+    'MidiConnectionEvent',
+    'new MIDIConnectionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static MidiConnectionEvent _create_2(type) =>
       JS('MidiConnectionEvent', 'new MIDIConnectionEvent(#)', type);
 
@@ -21912,8 +22672,10 @@ class MidiInputMap extends JavaScriptObject with MapMixin<String, dynamic> {
     while (true) {
       var entry = JS('', '#.next()', entries);
       if (JS('bool', '#.done', entry)) return;
-      f(JS('String', '#.value[0]', entry),
-          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+      f(
+        JS('String', '#.value[0]', entry),
+        convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)),
+      );
     }
   }
 
@@ -22018,8 +22780,10 @@ class MidiOutputMap extends JavaScriptObject with MapMixin<String, dynamic> {
     while (true) {
       var entry = JS('', '#.next()', entries);
       if (JS('bool', '#.done', entry)) return;
-      f(JS('String', '#.value[0]', entry),
-          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+      f(
+        JS('String', '#.value[0]', entry),
+        convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)),
+      );
     }
   }
 
@@ -22132,7 +22896,7 @@ class MimeTypeArray extends JavaScriptObject
   // -- start List<MimeType> mixins.
   // MimeType is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -22206,41 +22970,44 @@ typedef void MojoWatchCallback(int result);
 
 @Native("MouseEvent,DragEvent")
 class MouseEvent extends UIEvent {
-  factory MouseEvent(String type,
-      {Window? view,
-      int detail = 0,
-      int screenX = 0,
-      int screenY = 0,
-      int clientX = 0,
-      int clientY = 0,
-      int button = 0,
-      bool canBubble = true,
-      bool cancelable = true,
-      bool ctrlKey = false,
-      bool altKey = false,
-      bool shiftKey = false,
-      bool metaKey = false,
-      EventTarget? relatedTarget}) {
+  factory MouseEvent(
+    String type, {
+    Window? view,
+    int detail = 0,
+    int screenX = 0,
+    int screenY = 0,
+    int clientX = 0,
+    int clientY = 0,
+    int button = 0,
+    bool canBubble = true,
+    bool cancelable = true,
+    bool ctrlKey = false,
+    bool altKey = false,
+    bool shiftKey = false,
+    bool metaKey = false,
+    EventTarget? relatedTarget,
+  }) {
     if (view == null) {
       view = window;
     }
     MouseEvent event = document._createEvent('MouseEvent') as MouseEvent;
     event._initMouseEvent(
-        type,
-        canBubble,
-        cancelable,
-        view,
-        detail,
-        screenX,
-        screenY,
-        clientX,
-        clientY,
-        ctrlKey,
-        altKey,
-        shiftKey,
-        metaKey,
-        button,
-        relatedTarget);
+      type,
+      canBubble,
+      cancelable,
+      view,
+      detail,
+      screenX,
+      screenY,
+      clientX,
+      clientY,
+      ctrlKey,
+      altKey,
+      shiftKey,
+      metaKey,
+      button,
+      relatedTarget,
+    );
     return event;
   }
 
@@ -22330,47 +23097,28 @@ class MouseEvent extends UIEvent {
   bool getModifierState(String keyArg) native;
 
   void _initMouseEvent(
-      String? type,
-      bool? bubbles,
-      bool? cancelable,
-      Window? view,
-      int? detail,
-      int? screenX,
-      int? screenY,
-      int? clientX,
-      int? clientY,
-      bool? ctrlKey,
-      bool? altKey,
-      bool? shiftKey,
-      bool? metaKey,
-      int? button,
-      EventTarget? relatedTarget) {
+    String? type,
+    bool? bubbles,
+    bool? cancelable,
+    Window? view,
+    int? detail,
+    int? screenX,
+    int? screenY,
+    int? clientX,
+    int? clientY,
+    bool? ctrlKey,
+    bool? altKey,
+    bool? shiftKey,
+    bool? metaKey,
+    int? button,
+    EventTarget? relatedTarget,
+  ) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _initMouseEvent_1(
-        type,
-        bubbles,
-        cancelable,
-        view,
-        detail,
-        screenX,
-        screenY,
-        clientX,
-        clientY,
-        ctrlKey,
-        altKey,
-        shiftKey,
-        metaKey,
-        button,
-        relatedTarget_1);
-    return;
-  }
-
-  @JSName('initMouseEvent')
-  void _initMouseEvent_1(
       type,
       bubbles,
       cancelable,
-      Window? view,
+      view,
       detail,
       screenX,
       screenY,
@@ -22381,7 +23129,29 @@ class MouseEvent extends UIEvent {
       shiftKey,
       metaKey,
       button,
-      relatedTarget) native;
+      relatedTarget_1,
+    );
+    return;
+  }
+
+  @JSName('initMouseEvent')
+  void _initMouseEvent_1(
+    type,
+    bubbles,
+    cancelable,
+    Window? view,
+    detail,
+    screenX,
+    screenY,
+    clientX,
+    clientY,
+    ctrlKey,
+    altKey,
+    shiftKey,
+    metaKey,
+    button,
+    relatedTarget,
+  ) native;
 
   Point get client => new Point(_clientX, _clientY);
 
@@ -22458,14 +23228,15 @@ class MutationEvent extends Event {
   Node? get relatedNode native;
 
   void initMutationEvent(
-      String? type,
-      bool? bubbles,
-      bool? cancelable,
-      Node? relatedNode,
-      String? prevValue,
-      String? newValue,
-      String? attrName,
-      int? attrChange) native;
+    String? type,
+    bool? bubbles,
+    bool? cancelable,
+    Node? relatedNode,
+    String? prevValue,
+    String? newValue,
+    String? attrName,
+    int? attrChange,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22501,7 +23272,9 @@ class MutationObserver extends JavaScriptObject {
    */
   static bool get supported {
     return JS(
-        'bool', '!!(window.MutationObserver || window.WebKitMutationObserver)');
+      'bool',
+      '!!(window.MutationObserver || window.WebKitMutationObserver)',
+    );
   }
 
   /**
@@ -22514,14 +23287,16 @@ class MutationObserver extends JavaScriptObject {
    * * If attributeFilter is specified then attributes must be true.
    * * If characterDataOldValue is true then characterData must be true.
    */
-  void observe(Node target,
-      {bool? childList,
-      bool? attributes,
-      bool? characterData,
-      bool? subtree,
-      bool? attributeOldValue,
-      bool? characterDataOldValue,
-      List<String>? attributeFilter}) {
+  void observe(
+    Node target, {
+    bool? childList,
+    bool? attributes,
+    bool? characterData,
+    bool? subtree,
+    bool? attributeOldValue,
+    bool? characterDataOldValue,
+    List<String>? attributeFilter,
+  }) {
     // Parse options into map of known type.
     var parsedOptions = _createDict();
 
@@ -22550,7 +23325,7 @@ class MutationObserver extends JavaScriptObject {
     'characterData': true,
     'subtree': true,
     'attributeOldValue': true,
-    'characterDataOldValue': true
+    'characterDataOldValue': true,
   };
 
   static _createDict() => JS('var', '{}');
@@ -22569,10 +23344,11 @@ class MutationObserver extends JavaScriptObject {
     JS('MutationObserver|MutationRecord', '0');
 
     return JS(
-        'MutationObserver',
-        'new(window.MutationObserver||window.WebKitMutationObserver||'
-            'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(_wrapBinaryZone(callback), 2));
+      'MutationObserver',
+      'new(window.MutationObserver||window.WebKitMutationObserver||'
+          'window.MozMutationObserver)(#)',
+      convertDartClosureToJS(_wrapBinaryZone(callback), 2),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22694,33 +23470,40 @@ class Navigator extends NavigatorConcurrentHardware
     var completer = new Completer<MediaStream>();
     var options = {'audio': audio, 'video': video};
     _ensureGetUserMedia();
-    this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
-        (stream) {
-      completer.complete(stream);
-    }, (error) {
-      completer.completeError(error);
-    });
+    this._getUserMedia(
+      convertDartToNative_SerializedScriptValue(options),
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   _ensureGetUserMedia() {
     if (JS('bool', '!(#.getUserMedia)', this)) {
       JS(
-          'void',
-          '#.getUserMedia = '
-              '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
-              '#.msGetUserMedia)',
-          this,
-          this,
-          this,
-          this,
-          this);
+        'void',
+        '#.getUserMedia = '
+            '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+            '#.msGetUserMedia)',
+        this,
+        this,
+        this,
+        this,
+        this,
+      );
     }
   }
 
   @JSName('getUserMedia')
-  void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
-      _NavigatorUserMediaErrorCallback error) native;
+  void _getUserMedia(
+    options,
+    _NavigatorUserMediaSuccessCallback success,
+    _NavigatorUserMediaErrorCallback error,
+  ) native;
 
   // To suppress missing implicit constructor warnings.
   factory Navigator._() {
@@ -22793,8 +23576,9 @@ class Navigator extends NavigatorConcurrentHardware
   List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
-      promiseToFuture<RelatedApplication>(JS(
-          "creates:RelatedApplication;", "#.getInstalledRelatedApps()", this));
+      promiseToFuture<RelatedApplication>(
+        JS("creates:RelatedApplication;", "#.getInstalledRelatedApps()", this),
+      );
 
   Future getVRDisplays() =>
       promiseToFuture(JS("creates:VRDisplay;", "#.getVRDisplays()", this));
@@ -22824,17 +23608,22 @@ class Navigator extends NavigatorConcurrentHardware
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.requestMIDIAccess(#)", this, options_dict));
+      JS("", "#.requestMIDIAccess(#)", this, options_dict),
+    );
   }
 
   Future requestMediaKeySystemAccess(
-          String keySystem, List<Map> supportedConfigurations) =>
-      promiseToFuture(JS(
-          "creates:MediaKeySystemAccess;",
-          "#.requestMediaKeySystemAccess(#, #)",
-          this,
-          keySystem,
-          supportedConfigurations));
+    String keySystem,
+    List<Map> supportedConfigurations,
+  ) => promiseToFuture(
+    JS(
+      "creates:MediaKeySystemAccess;",
+      "#.requestMediaKeySystemAccess(#, #)",
+      this,
+      keySystem,
+      supportedConfigurations,
+    ),
+  );
 
   bool sendBeacon(String url, Object? data) native;
 
@@ -23173,8 +23962,12 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   }
 
   // FIXME: implement these.
-  void setRange(int start, int end, Iterable<Node> iterable,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Node> iterable, [
+    int skipCount = 0,
+  ]) {
     throw new UnsupportedError("Cannot setRange on Node list");
   }
 
@@ -23191,7 +23984,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot set length on immutable List.");
   }
 
@@ -23353,7 +24146,6 @@ class Node extends EventTarget {
   Node? get lastChild native;
 
   @JSName('nextSibling')
-
   /**
    * The next sibling node.
    *
@@ -23362,7 +24154,6 @@ class Node extends EventTarget {
    * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
    *   from MDN.
    */
-
   Node? get nextNode native;
 
   /**
@@ -23433,7 +24224,6 @@ class Node extends EventTarget {
   Document? get ownerDocument native;
 
   @JSName('parentElement')
-
   /**
    * The parent element of this node.
    *
@@ -23445,7 +24235,6 @@ class Node extends EventTarget {
    * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)
    *   from W3C.
    */
-
   Element? get parent native;
 
   /**
@@ -23460,7 +24249,6 @@ class Node extends EventTarget {
   Node? get parentNode native;
 
   @JSName('previousSibling')
-
   /**
    * The previous sibling node.
    *
@@ -23469,11 +24257,9 @@ class Node extends EventTarget {
    * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
    *   from MDN.
    */
-
   Node? get previousNode native;
 
   @JSName('textContent')
-
   /**
    * All text within this node and its descendants.
    *
@@ -23482,7 +24268,6 @@ class Node extends EventTarget {
    * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
    *   from MDN.
    */
-
   String? get text native;
 
   @JSName('textContent')
@@ -23655,7 +24440,7 @@ class NodeList extends JavaScriptObject
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -23738,8 +24523,14 @@ class NoncedElement extends JavaScriptObject {
 
 @Native("Notification")
 class Notification extends EventTarget {
-  factory Notification(String title,
-      {String? dir, String? body, String? lang, String? tag, String? icon}) {
+  factory Notification(
+    String title, {
+    String? dir,
+    String? body,
+    String? lang,
+    String? tag,
+    String? icon,
+  }) {
     var parsedOptions = {};
     if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
@@ -23844,8 +24635,9 @@ class Notification extends EventTarget {
   void close() native;
 
   @JSName('requestPermission')
-  static Future _requestPermission(
-      [_NotificationPermissionCallback? deprecatedCallback]) native;
+  static Future _requestPermission([
+    _NotificationPermissionCallback? deprecatedCallback,
+  ]) native;
 
   @JSName('requestPermission')
   static Future<String> requestPermission() {
@@ -23884,7 +24676,11 @@ class NotificationEvent extends ExtendableEvent {
     return NotificationEvent._create_1(type, eventInitDict_1);
   }
   static NotificationEvent _create_1(type, eventInitDict) => JS(
-      'NotificationEvent', 'new NotificationEvent(#,#)', type, eventInitDict);
+    'NotificationEvent',
+    'new NotificationEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   String? get action native;
 
@@ -23911,10 +24707,11 @@ class OListElement extends HtmlElement {
   }
 
   factory OListElement() => JS<OListElement>(
-      'returns:OListElement;creates:OListElement;new:true',
-      '#.createElement(#)',
-      document,
-      "ol");
+    'returns:OListElement;creates:OListElement;new:true',
+    '#.createElement(#)',
+    document,
+    "ol",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24040,7 +24837,8 @@ class OffscreenCanvas extends EventTarget {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<Blob>(
-        JS("creates:Blob;", "#.convertToBlob(#)", this, options_dict));
+      JS("creates:Blob;", "#.convertToBlob(#)", this, options_dict),
+    );
   }
 
   Object? getContext(String contextType, [Map? attributes]) {
@@ -24160,10 +24958,12 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
 
   Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
-  ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int? sh_OR_sw,
-      imageDataColorSettings_OR_sh,
-      Map? imageDataColorSettings]) {
+  ImageData createImageData(
+    data_OR_imagedata_OR_sw, [
+    int? sh_OR_sw,
+    imageDataColorSettings_OR_sh,
+    Map? imageDataColorSettings,
+  ]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -24176,28 +24976,39 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
         imageDataColorSettings_OR_sh == null &&
         imageDataColorSettings == null) {
       return convertNativeToDart_ImageData(
-          _createImageData_2(data_OR_imagedata_OR_sw, sh_OR_sw));
+        _createImageData_2(data_OR_imagedata_OR_sw, sh_OR_sw),
+      );
     }
     if ((imageDataColorSettings_OR_sh is Map) &&
         sh_OR_sw != null &&
         (data_OR_imagedata_OR_sw is int) &&
         imageDataColorSettings == null) {
-      var imageDataColorSettings_1 =
-          convertDartToNative_Dictionary(imageDataColorSettings_OR_sh);
-      return convertNativeToDart_ImageData(_createImageData_3(
-          data_OR_imagedata_OR_sw, sh_OR_sw, imageDataColorSettings_1));
+      var imageDataColorSettings_1 = convertDartToNative_Dictionary(
+        imageDataColorSettings_OR_sh,
+      );
+      return convertNativeToDart_ImageData(
+        _createImageData_3(
+          data_OR_imagedata_OR_sw,
+          sh_OR_sw,
+          imageDataColorSettings_1,
+        ),
+      );
     }
     if (imageDataColorSettings != null &&
         (imageDataColorSettings_OR_sh is int) &&
         sh_OR_sw != null &&
         data_OR_imagedata_OR_sw != null) {
-      var imageDataColorSettings_1 =
-          convertDartToNative_Dictionary(imageDataColorSettings);
-      return convertNativeToDart_ImageData(_createImageData_4(
+      var imageDataColorSettings_1 = convertDartToNative_Dictionary(
+        imageDataColorSettings,
+      );
+      return convertNativeToDart_ImageData(
+        _createImageData_4(
           data_OR_imagedata_OR_sw,
           sh_OR_sw,
           imageDataColorSettings_OR_sh,
-          imageDataColorSettings_1));
+          imageDataColorSettings_1,
+        ),
+      );
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -24214,18 +25025,30 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern? createPattern(
-      /*CanvasImageSource*/ image, String repetitionType) native;
+    /*CanvasImageSource*/ image,
+    String repetitionType,
+  ) native;
 
   CanvasGradient createRadialGradient(
-      num x0, num y0, num r0, num x1, num y1, num r1) native;
+    num x0,
+    num y0,
+    num r0,
+    num x1,
+    num y1,
+    num r1,
+  ) native;
 
-  void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num? sw_OR_width,
-      num? height_OR_sh,
-      num? dx,
-      num? dy,
-      num? dw,
-      num? dh]) native;
+  void drawImage(
+    /*CanvasImageSource*/ image,
+    num sx_OR_x,
+    num sy_OR_y, [
+    num? sw_OR_width,
+    num? height_OR_sh,
+    num? dx,
+    num? dy,
+    num? dw,
+    num? dh,
+  ]) native;
 
   void fill([path_OR_winding, String? winding]) native;
 
@@ -24242,15 +25065,26 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
-      native;
+  bool isPointInPath(
+    path_OR_x,
+    num x_OR_y, [
+    winding_OR_y,
+    String? winding,
+  ]) native;
 
   bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
-  void putImageData(ImageData imagedata, int dx, int dy,
-      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
+  void putImageData(
+    ImageData imagedata,
+    int dx,
+    int dy, [
+    int? dirtyX,
+    int? dirtyY,
+    int? dirtyWidth,
+    int? dirtyHeight,
+  ]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -24265,7 +25099,14 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
         dirtyX != null) {
       var imagedata_1 = convertDartToNative_ImageData(imagedata);
       _putImageData_2(
-          imagedata_1, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+        imagedata_1,
+        dx,
+        dy,
+        dirtyX,
+        dirtyY,
+        dirtyWidth,
+        dirtyHeight,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -24275,7 +25116,14 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
   void _putImageData_1(imagedata, dx, dy) native;
   @JSName('putImageData')
   void _putImageData_2(
-      imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+    imagedata,
+    dx,
+    dy,
+    dirtyX,
+    dirtyY,
+    dirtyWidth,
+    dirtyHeight,
+  ) native;
 
   void resetTransform() native;
 
@@ -24303,18 +25151,38 @@ class OffscreenCanvasRenderingContext2D extends JavaScriptObject
 
   // From CanvasPath
 
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool? anticlockwise) native;
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y)
-      native;
+  void bezierCurveTo(
+    num cp1x,
+    num cp1y,
+    num cp2x,
+    num cp2y,
+    num x,
+    num y,
+  ) native;
 
   void closePath() native;
 
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool? anticlockwise) native;
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void lineTo(num x, num y) native;
 
@@ -24336,10 +25204,11 @@ class OptGroupElement extends HtmlElement {
   }
 
   factory OptGroupElement() => JS<OptGroupElement>(
-      'returns:OptGroupElement;creates:OptGroupElement;new:true',
-      '#.createElement(#)',
-      document,
-      "optgroup");
+    'returns:OptGroupElement;creates:OptGroupElement;new:true',
+    '#.createElement(#)',
+    document,
+    "optgroup",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24361,13 +25230,20 @@ class OptGroupElement extends HtmlElement {
 
 @Native("HTMLOptionElement")
 class OptionElement extends HtmlElement {
-  factory OptionElement(
-      {String data = '', String value = '', bool selected = false}) {
+  factory OptionElement({
+    String data = '',
+    String value = '',
+    bool selected = false,
+  }) {
     return new OptionElement._(data, value, null, selected);
   }
 
-  factory OptionElement._(
-      [String? data, String? value, bool? defaultSelected, bool? selected]) {
+  factory OptionElement._([
+    String? data,
+    String? value,
+    bool? defaultSelected,
+    bool? selected,
+  ]) {
     if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
@@ -24383,12 +25259,13 @@ class OptionElement extends HtmlElement {
     return OptionElement._create_5();
   }
   static OptionElement _create_1(data, value, defaultSelected, selected) => JS(
-      'OptionElement',
-      'new Option(#,#,#,#)',
-      data,
-      value,
-      defaultSelected,
-      selected);
+    'OptionElement',
+    'new Option(#,#,#,#)',
+    data,
+    value,
+    defaultSelected,
+    selected,
+  );
   static OptionElement _create_2(data, value, defaultSelected) =>
       JS('OptionElement', 'new Option(#,#,#)', data, value, defaultSelected);
   static OptionElement _create_3(data, value) =>
@@ -24517,10 +25394,11 @@ class OverconstrainedError extends JavaScriptObject {
     return OverconstrainedError._create_1(constraint, message);
   }
   static OverconstrainedError _create_1(constraint, message) => JS(
-      'OverconstrainedError',
-      'new OverconstrainedError(#,#)',
-      constraint,
-      message);
+    'OverconstrainedError',
+    'new OverconstrainedError(#,#)',
+    constraint,
+    message,
+  );
 
   String? get constraint native;
 
@@ -24547,10 +25425,11 @@ class PageTransitionEvent extends Event {
     return PageTransitionEvent._create_2(type);
   }
   static PageTransitionEvent _create_1(type, eventInitDict) => JS(
-      'PageTransitionEvent',
-      'new PageTransitionEvent(#,#)',
-      type,
-      eventInitDict);
+    'PageTransitionEvent',
+    'new PageTransitionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static PageTransitionEvent _create_2(type) =>
       JS('PageTransitionEvent', 'new PageTransitionEvent(#)', type);
 
@@ -24644,18 +25523,30 @@ class PaintRenderingContext2D extends JavaScriptObject implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern? createPattern(
-      /*CanvasImageSource*/ image, String repetitionType) native;
+    /*CanvasImageSource*/ image,
+    String repetitionType,
+  ) native;
 
   CanvasGradient createRadialGradient(
-      num x0, num y0, num r0, num x1, num y1, num r1) native;
+    num x0,
+    num y0,
+    num r0,
+    num x1,
+    num y1,
+    num r1,
+  ) native;
 
-  void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num? sw_OR_width,
-      num? height_OR_sh,
-      num? dx,
-      num? dy,
-      num? dw,
-      num? dh]) native;
+  void drawImage(
+    /*CanvasImageSource*/ image,
+    num sx_OR_x,
+    num sy_OR_y, [
+    num? sw_OR_width,
+    num? height_OR_sh,
+    num? dx,
+    num? dy,
+    num? dw,
+    num? dh,
+  ]) native;
 
   void fill([path_OR_winding, String? winding]) native;
 
@@ -24663,8 +25554,12 @@ class PaintRenderingContext2D extends JavaScriptObject implements _CanvasPath {
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
-      native;
+  bool isPointInPath(
+    path_OR_x,
+    num x_OR_y, [
+    winding_OR_y,
+    String? winding,
+  ]) native;
 
   bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
@@ -24692,18 +25587,38 @@ class PaintRenderingContext2D extends JavaScriptObject implements _CanvasPath {
 
   // From CanvasPath
 
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool? anticlockwise) native;
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y)
-      native;
+  void bezierCurveTo(
+    num cp1x,
+    num cp1y,
+    num cp2x,
+    num cp2y,
+    num x,
+    num y,
+  ) native;
 
   void closePath() native;
 
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool? anticlockwise) native;
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void lineTo(num x, num y) native;
 
@@ -24755,10 +25670,11 @@ class ParagraphElement extends HtmlElement {
   }
 
   factory ParagraphElement() => JS<ParagraphElement>(
-      'returns:ParagraphElement;creates:ParagraphElement;new:true',
-      '#.createElement(#)',
-      document,
-      "p");
+    'returns:ParagraphElement;creates:ParagraphElement;new:true',
+    '#.createElement(#)',
+    document,
+    "p",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24779,10 +25695,11 @@ class ParamElement extends HtmlElement {
   }
 
   factory ParamElement() => JS<ParamElement>(
-      'returns:ParamElement;creates:ParamElement;new:true',
-      '#.createElement(#)',
-      document,
-      "param");
+    'returns:ParamElement;creates:ParamElement;new:true',
+    '#.createElement(#)',
+    document,
+    "param",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24900,18 +25817,38 @@ class Path2D extends JavaScriptObject implements _CanvasPath {
 
   // From CanvasPath
 
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool? anticlockwise) native;
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y)
-      native;
+  void bezierCurveTo(
+    num cp1x,
+    num cp1y,
+    num cp2x,
+    num cp2y,
+    num x,
+    num y,
+  ) native;
 
   void closePath() native;
 
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool? anticlockwise) native;
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle,
+    bool? anticlockwise,
+  ) native;
 
   void lineTo(num x, num y) native;
 
@@ -24982,7 +25919,8 @@ class PaymentInstruments extends JavaScriptObject {
   Future set(String instrumentKey, Map details) {
     var details_dict = convertDartToNative_Dictionary(details);
     return promiseToFuture(
-        JS("", "#.set(#, #)", this, instrumentKey, details_dict));
+      JS("", "#.set(#, #)", this, instrumentKey, details_dict),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25023,11 +25961,12 @@ class PaymentRequest extends EventTarget {
   }
 
   static PaymentRequest _create_1(methodData, details, options) => JS(
-      'PaymentRequest',
-      'new PaymentRequest(#,#,#)',
-      methodData,
-      details,
-      options);
+    'PaymentRequest',
+    'new PaymentRequest(#,#,#)',
+    methodData,
+    details,
+    options,
+  );
   static PaymentRequest _create_2(methodData, details) =>
       JS('PaymentRequest', 'new PaymentRequest(#,#)', methodData, details);
 
@@ -25050,7 +25989,8 @@ class PaymentRequest extends EventTarget {
       promiseToFuture<bool>(JS("", "#.canMakePayment()", this));
 
   Future<PaymentResponse> show() => promiseToFuture<PaymentResponse>(
-      JS("creates:PaymentResponse;", "#.show()", this));
+    JS("creates:PaymentResponse;", "#.show()", this),
+  );
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25069,10 +26009,11 @@ class PaymentRequestEvent extends ExtendableEvent {
     return PaymentRequestEvent._create_1(type, eventInitDict_1);
   }
   static PaymentRequestEvent _create_1(type, eventInitDict) => JS(
-      'PaymentRequestEvent',
-      'new PaymentRequestEvent(#,#)',
-      type,
-      eventInitDict);
+    'PaymentRequestEvent',
+    'new PaymentRequestEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   String? get instrumentKey native;
 
@@ -25089,7 +26030,8 @@ class PaymentRequestEvent extends ExtendableEvent {
   Object? get total native;
 
   Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
-      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
+    JS("creates:WindowClient;", "#.openWindow(#)", this, url),
+  );
 
   void respondWith(Future response) native;
 }
@@ -25112,10 +26054,11 @@ class PaymentRequestUpdateEvent extends Event {
     return PaymentRequestUpdateEvent._create_2(type);
   }
   static PaymentRequestUpdateEvent _create_1(type, eventInitDict) => JS(
-      'PaymentRequestUpdateEvent',
-      'new PaymentRequestUpdateEvent(#,#)',
-      type,
-      eventInitDict);
+    'PaymentRequestUpdateEvent',
+    'new PaymentRequestUpdateEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static PaymentRequestUpdateEvent _create_2(type) =>
       JS('PaymentRequestUpdateEvent', 'new PaymentRequestUpdateEvent(#)', type);
 
@@ -25184,8 +26127,10 @@ class Performance extends EventTarget {
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
-      native;
+  List<PerformanceEntry> getEntriesByName(
+    String name,
+    String? entryType,
+  ) native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
@@ -25202,8 +26147,11 @@ class Performance extends EventTarget {
   @JSName('mark')
   PerformanceEntry? _mark_2(markName) native;
 
-  PerformanceMeasure? measure(String measureName,
-      [measureOptions_OR_startMark, String? endMark]) {
+  PerformanceMeasure? measure(
+    String measureName, [
+    measureOptions_OR_startMark,
+    String? endMark,
+  ]) {
     if (measureOptions_OR_startMark == null && endMark == null) {
       return _measure_1(measureName);
     }
@@ -25217,8 +26165,9 @@ class Performance extends EventTarget {
       return _measure_3(measureName, measureOptions_OR_startMark, endMark);
     }
     if ((measureOptions_OR_startMark is Map) && endMark == null) {
-      var measureOptions_1 =
-          convertDartToNative_Dictionary(measureOptions_OR_startMark);
+      var measureOptions_1 = convertDartToNative_Dictionary(
+        measureOptions_OR_startMark,
+      );
       return _measure_4(measureName, measureOptions_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -25229,8 +26178,11 @@ class Performance extends EventTarget {
   @JSName('measure')
   PerformanceMeasure? _measure_2(measureName, String? startMark) native;
   @JSName('measure')
-  PerformanceMeasure? _measure_3(measureName, String? startMark, endMark)
-      native;
+  PerformanceMeasure? _measure_3(
+    measureName,
+    String? startMark,
+    endMark,
+  ) native;
   @JSName('measure')
   PerformanceMeasure? _measure_4(measureName, measureOptions) native;
 
@@ -25383,7 +26335,9 @@ class PerformanceObserver extends JavaScriptObject {
 // WARNING: Do not edit - generated code.
 
 typedef void PerformanceObserverCallback(
-    PerformanceObserverEntryList entries, PerformanceObserver observer);
+  PerformanceObserverEntryList entries,
+  PerformanceObserver observer,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25397,8 +26351,10 @@ class PerformanceObserverEntryList extends JavaScriptObject {
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
-      native;
+  List<PerformanceEntry> getEntriesByName(
+    String name,
+    String? entryType,
+  ) native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 }
@@ -25563,23 +26519,27 @@ class Permissions extends JavaScriptObject {
   Future<PermissionStatus> query(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("creates:PermissionStatus;", "#.query(#)", this, permission_dict));
+      JS("creates:PermissionStatus;", "#.query(#)", this, permission_dict),
+    );
   }
 
   Future<PermissionStatus> request(Map permissions) {
     var permissions_dict = convertDartToNative_Dictionary(permissions);
-    return promiseToFuture<PermissionStatus>(JS(
-        "creates:PermissionStatus;", "#.request(#)", this, permissions_dict));
+    return promiseToFuture<PermissionStatus>(
+      JS("creates:PermissionStatus;", "#.request(#)", this, permissions_dict),
+    );
   }
 
   Future<PermissionStatus> requestAll(List<Map> permissions) =>
-      promiseToFuture<PermissionStatus>(JS(
-          "creates:PermissionStatus;", "#.requestAll(#)", this, permissions));
+      promiseToFuture<PermissionStatus>(
+        JS("creates:PermissionStatus;", "#.requestAll(#)", this, permissions),
+      );
 
   Future<PermissionStatus> revoke(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("creates:PermissionStatus;", "#.revoke(#)", this, permission_dict));
+      JS("creates:PermissionStatus;", "#.revoke(#)", this, permission_dict),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25668,7 +26628,7 @@ class PluginArray extends JavaScriptObject
   // -- start List<Plugin> mixins.
   // Plugin is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -25847,10 +26807,11 @@ class PreElement extends HtmlElement {
   }
 
   factory PreElement() => JS<PreElement>(
-      'returns:PreElement;creates:PreElement;new:true',
-      '#.createElement(#)',
-      document,
-      "pre");
+    'returns:PreElement;creates:PreElement;new:true',
+    '#.createElement(#)',
+    document,
+    "pre",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25939,11 +26900,17 @@ class PresentationConnectionAvailableEvent extends Event {
   factory PresentationConnectionAvailableEvent(String type, Map eventInitDict) {
     var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
     return PresentationConnectionAvailableEvent._create_1(
-        type, eventInitDict_1);
+      type,
+      eventInitDict_1,
+    );
   }
   static PresentationConnectionAvailableEvent _create_1(type, eventInitDict) =>
-      JS('PresentationConnectionAvailableEvent',
-          'new PresentationConnectionAvailableEvent(#,#)', type, eventInitDict);
+      JS(
+        'PresentationConnectionAvailableEvent',
+        'new PresentationConnectionAvailableEvent(#,#)',
+        type,
+        eventInitDict,
+      );
 
   PresentationConnection? get connection native;
 }
@@ -25963,10 +26930,11 @@ class PresentationConnectionCloseEvent extends Event {
     return PresentationConnectionCloseEvent._create_1(type, eventInitDict_1);
   }
   static PresentationConnectionCloseEvent _create_1(type, eventInitDict) => JS(
-      'PresentationConnectionCloseEvent',
-      'new PresentationConnectionCloseEvent(#,#)',
-      type,
-      eventInitDict);
+    'PresentationConnectionCloseEvent',
+    'new PresentationConnectionCloseEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   String? get message native;
 
@@ -25998,7 +26966,8 @@ class PresentationReceiver extends JavaScriptObject {
 
   Future<PresentationConnectionList> get connectionList =>
       promiseToFuture<PresentationConnectionList>(
-          JS("creates:PresentationConnectionList;", "#.connectionList", this));
+        JS("creates:PresentationConnectionList;", "#.connectionList", this),
+      );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26028,15 +26997,18 @@ class PresentationRequest extends EventTarget {
 
   Future<PresentationAvailability> getAvailability() =>
       promiseToFuture<PresentationAvailability>(
-          JS("creates:PresentationAvailability;", "#.getAvailability()", this));
+        JS("creates:PresentationAvailability;", "#.getAvailability()", this),
+      );
 
   Future<PresentationConnection> reconnect(String id) =>
       promiseToFuture<PresentationConnection>(
-          JS("creates:PresentationConnection;", "#.reconnect(#)", this, id));
+        JS("creates:PresentationConnection;", "#.reconnect(#)", this, id),
+      );
 
   Future<PresentationConnection> start() =>
       promiseToFuture<PresentationConnection>(
-          JS("creates:PresentationConnection;", "#.start()", this));
+        JS("creates:PresentationConnection;", "#.start()", this),
+      );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26141,10 +27113,11 @@ class PromiseRejectionEvent extends Event {
     return PromiseRejectionEvent._create_1(type, eventInitDict_1);
   }
   static PromiseRejectionEvent _create_1(type, eventInitDict) => JS(
-      'PromiseRejectionEvent',
-      'new PromiseRejectionEvent(#,#)',
-      type,
-      eventInitDict);
+    'PromiseRejectionEvent',
+    'new PromiseRejectionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   Future get promise => promiseToFuture(JS("", "#.promise", this));
 
@@ -26204,7 +27177,8 @@ class PushManager extends JavaScriptObject {
 
   Future<PushSubscription> getSubscription() =>
       promiseToFuture<PushSubscription>(
-          JS("creates:PushSubscription;", "#.getSubscription()", this));
+        JS("creates:PushSubscription;", "#.getSubscription()", this),
+      );
 
   Future permissionState([Map? options]) {
     var options_dict = null;
@@ -26220,7 +27194,8 @@ class PushManager extends JavaScriptObject {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<PushSubscription>(
-        JS("creates:PushSubscription;", "#.subscribe(#)", this, options_dict));
+      JS("creates:PushSubscription;", "#.subscribe(#)", this, options_dict),
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26291,10 +27266,11 @@ class QuoteElement extends HtmlElement {
   }
 
   factory QuoteElement() => JS<QuoteElement>(
-      'returns:QuoteElement;creates:QuoteElement;new:true',
-      '#.createElement(#)',
-      document,
-      "q");
+    'returns:QuoteElement;creates:QuoteElement;new:true',
+    '#.createElement(#)',
+    document,
+    "q",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26474,9 +27450,10 @@ class RelativeOrientationSensor extends OrientationSensor {
     return RelativeOrientationSensor._create_2();
   }
   static RelativeOrientationSensor _create_1(sensorOptions) => JS(
-      'RelativeOrientationSensor',
-      'new RelativeOrientationSensor(#)',
-      sensorOptions);
+    'RelativeOrientationSensor',
+    'new RelativeOrientationSensor(#)',
+    sensorOptions,
+  );
   static RelativeOrientationSensor _create_2() =>
       JS('RelativeOrientationSensor', 'new RelativeOrientationSensor()');
 }
@@ -26548,7 +27525,9 @@ class ReportingObserver extends JavaScriptObject {
 // WARNING: Do not edit - generated code.
 
 typedef void ReportingObserverCallback(
-    List reports, ReportingObserver observer);
+  List reports,
+  ReportingObserver observer,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26736,10 +27715,11 @@ class RtcDataChannelEvent extends Event {
     return RtcDataChannelEvent._create_1(type, eventInitDict_1);
   }
   static RtcDataChannelEvent _create_1(type, eventInitDict) => JS(
-      'RtcDataChannelEvent',
-      'new RTCDataChannelEvent(#,#)',
-      type,
-      eventInitDict);
+    'RtcDataChannelEvent',
+    'new RTCDataChannelEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   RtcDataChannel? get channel native;
 }
@@ -26797,10 +27777,11 @@ class RtcDtmfToneChangeEvent extends Event {
     return RtcDtmfToneChangeEvent._create_1(type, eventInitDict_1);
   }
   static RtcDtmfToneChangeEvent _create_1(type, eventInitDict) => JS(
-      'RtcDtmfToneChangeEvent',
-      'new RTCDTMFToneChangeEvent(#,#)',
-      type,
-      eventInitDict);
+    'RtcDtmfToneChangeEvent',
+    'new RTCDTMFToneChangeEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   String? get tone native;
 }
@@ -26813,8 +27794,12 @@ class RtcDtmfToneChangeEvent extends Event {
 class RtcIceCandidate extends JavaScriptObject {
   factory RtcIceCandidate(Map dictionary) {
     var constructorName = JS('', 'window[#]', 'RTCIceCandidate');
-    return JS('RtcIceCandidate', 'new #(#)', constructorName,
-        convertDartToNative_SerializedScriptValue(dictionary));
+    return JS(
+      'RtcIceCandidate',
+      'new #(#)',
+      constructorName,
+      convertDartToNative_SerializedScriptValue(dictionary),
+    );
   }
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidate._() {
@@ -26864,18 +27849,26 @@ class RtcLegacyStatsReport extends JavaScriptObject {
 @Native("RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection")
 class RtcPeerConnection extends EventTarget {
   factory RtcPeerConnection(Map rtcIceServers, [Map? mediaConstraints]) {
-    var constructorName =
-        JS('RtcPeerConnection', 'window[#]', 'RTCPeerConnection');
+    var constructorName = JS(
+      'RtcPeerConnection',
+      'window[#]',
+      'RTCPeerConnection',
+    );
     if (mediaConstraints != null) {
       return JS(
-          'RtcPeerConnection',
-          'new #(#,#)',
-          constructorName,
-          convertDartToNative_SerializedScriptValue(rtcIceServers),
-          convertDartToNative_SerializedScriptValue(mediaConstraints));
+        'RtcPeerConnection',
+        'new #(#,#)',
+        constructorName,
+        convertDartToNative_SerializedScriptValue(rtcIceServers),
+        convertDartToNative_SerializedScriptValue(mediaConstraints),
+      );
     } else {
-      return JS('RtcPeerConnection', 'new #(#)', constructorName,
-          convertDartToNative_SerializedScriptValue(rtcIceServers));
+      return JS(
+        'RtcPeerConnection',
+        'new #(#)',
+        constructorName,
+        convertDartToNative_SerializedScriptValue(rtcIceServers),
+      );
     }
   }
 
@@ -26891,8 +27884,8 @@ class RtcPeerConnection extends EventTarget {
     try {
       new RtcPeerConnection({
         "iceServers": [
-          {"url": "stun:localhost"}
-        ]
+          {"url": "stun:localhost"},
+        ],
       });
       return true;
     } catch (_) {
@@ -26914,8 +27907,10 @@ class RtcPeerConnection extends EventTarget {
   }
 
   @JSName('getStats')
-  Future _getStats(
-      [RtcStatsCallback? successCallback, MediaStreamTrack? selector]) native;
+  Future _getStats([
+    RtcStatsCallback? successCallback,
+    MediaStreamTrack? selector,
+  ]) native;
 
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
@@ -26959,8 +27954,9 @@ class RtcPeerConnection extends EventTarget {
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<RtcPeerConnectionIceEvent>
-      iceCandidateEvent =
-      const EventStreamProvider<RtcPeerConnectionIceEvent>('icecandidate');
+  iceCandidateEvent = const EventStreamProvider<RtcPeerConnectionIceEvent>(
+    'icecandidate',
+  );
 
   /**
    * Static factory designed to expose `iceconnectionstatechange` events to event
@@ -27019,11 +28015,20 @@ class RtcPeerConnection extends EventTarget {
 
   String? get signalingState native;
 
-  Future addIceCandidate(Object candidate,
-          [VoidCallback? successCallback,
-          RtcPeerConnectionErrorCallback? failureCallback]) =>
-      promiseToFuture(JS("", "#.addIceCandidate(#, #, #)", this, candidate,
-          successCallback, failureCallback));
+  Future addIceCandidate(
+    Object candidate, [
+    VoidCallback? successCallback,
+    RtcPeerConnectionErrorCallback? failureCallback,
+  ]) => promiseToFuture(
+    JS(
+      "",
+      "#.addIceCandidate(#, #, #)",
+      this,
+      candidate,
+      successCallback,
+      failureCallback,
+    ),
+  );
 
   void addStream(MediaStream? stream, [Map? mediaConstraints]) {
     if (mediaConstraints != null) {
@@ -27049,11 +28054,14 @@ class RtcPeerConnection extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(JS(
+    return promiseToFuture<RtcSessionDescription>(
+      JS(
         "creates:RtcSessionDescription;",
         "#.createAnswer(#)",
         this,
-        options_dict));
+        options_dict,
+      ),
+    );
   }
 
   @JSName('createDTMFSender')
@@ -27077,11 +28085,14 @@ class RtcPeerConnection extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(JS(
+    return promiseToFuture<RtcSessionDescription>(
+      JS(
         "creates:RtcSessionDescription;",
         "#.createOffer(#)",
         this,
-        options_dict));
+        options_dict,
+      ),
+    );
   }
 
   List<MediaStream> getLocalStreams() native;
@@ -27093,7 +28104,8 @@ class RtcPeerConnection extends EventTarget {
   List<RtcRtpSender> getSenders() native;
 
   Future<RtcStatsReport> getStats() => promiseToFuture<RtcStatsReport>(
-      JS("creates:RtcStatsReport;", "#.getStats()", this));
+    JS("creates:RtcStatsReport;", "#.getStats()", this),
+  );
 
   void removeStream(MediaStream? stream) native;
 
@@ -27111,13 +28123,15 @@ class RtcPeerConnection extends EventTarget {
   Future setLocalDescription(Map description) {
     var description_dict = convertDartToNative_Dictionary(description);
     return promiseToFuture(
-        JS("", "#.setLocalDescription(#)", this, description_dict));
+      JS("", "#.setLocalDescription(#)", this, description_dict),
+    );
   }
 
   Future setRemoteDescription(Map description) {
     var description_dict = convertDartToNative_Dictionary(description);
     return promiseToFuture(
-        JS("", "#.setRemoteDescription(#)", this, description_dict));
+      JS("", "#.setRemoteDescription(#)", this, description_dict),
+    );
   }
 
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
@@ -27173,10 +28187,11 @@ class RtcPeerConnectionIceEvent extends Event {
     return RtcPeerConnectionIceEvent._create_2(type);
   }
   static RtcPeerConnectionIceEvent _create_1(type, eventInitDict) => JS(
-      'RtcPeerConnectionIceEvent',
-      'new RTCPeerConnectionIceEvent(#,#)',
-      type,
-      eventInitDict);
+    'RtcPeerConnectionIceEvent',
+    'new RTCPeerConnectionIceEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static RtcPeerConnectionIceEvent _create_2(type) =>
       JS('RtcPeerConnectionIceEvent', 'new RTCPeerConnectionIceEvent(#)', type);
 
@@ -27234,8 +28249,12 @@ class RtcRtpSender extends JavaScriptObject {
 class RtcSessionDescription extends JavaScriptObject {
   factory RtcSessionDescription(Map dictionary) {
     var constructorName = JS('', 'window[#]', 'RTCSessionDescription');
-    return JS('RtcSessionDescription', 'new #(#)', constructorName,
-        convertDartToNative_SerializedScriptValue(dictionary));
+    return JS(
+      'RtcSessionDescription',
+      'new #(#)',
+      constructorName,
+      convertDartToNative_SerializedScriptValue(dictionary),
+    );
   }
   // To suppress missing implicit constructor warnings.
   factory RtcSessionDescription._() {
@@ -27279,8 +28298,10 @@ class RtcStatsReport extends JavaScriptObject with MapMixin<String, dynamic> {
     while (true) {
       var entry = JS('', '#.next()', entries);
       if (JS('bool', '#.done', entry)) return;
-      f(JS('String', '#.value[0]', entry),
-          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+      f(
+        JS('String', '#.value[0]', entry),
+        convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)),
+      );
     }
   }
 
@@ -27433,10 +28454,11 @@ class ScriptElement extends HtmlElement {
   }
 
   factory ScriptElement() => JS<ScriptElement>(
-      'returns:ScriptElement;creates:ScriptElement;new:true',
-      '#.createElement(#)',
-      document,
-      "script");
+    'returns:ScriptElement;creates:ScriptElement;new:true',
+    '#.createElement(#)',
+    document,
+    "script",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27581,14 +28603,16 @@ class SecurityPolicyViolationEvent extends Event {
     return SecurityPolicyViolationEvent._create_2(type);
   }
   static SecurityPolicyViolationEvent _create_1(type, eventInitDict) => JS(
-      'SecurityPolicyViolationEvent',
-      'new SecurityPolicyViolationEvent(#,#)',
-      type,
-      eventInitDict);
+    'SecurityPolicyViolationEvent',
+    'new SecurityPolicyViolationEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static SecurityPolicyViolationEvent _create_2(type) => JS(
-      'SecurityPolicyViolationEvent',
-      'new SecurityPolicyViolationEvent(#)',
-      type);
+    'SecurityPolicyViolationEvent',
+    'new SecurityPolicyViolationEvent(#)',
+    type,
+  );
 
   @JSName('blockedURI')
   String? get blockedUri native;
@@ -27628,10 +28652,11 @@ class SelectElement extends HtmlElement {
   }
 
   factory SelectElement() => JS<SelectElement>(
-      'returns:SelectElement;creates:SelectElement;new:true',
-      '#.createElement(#)',
-      document,
-      "select");
+    'returns:SelectElement;creates:SelectElement;new:true',
+    '#.createElement(#)',
+    document,
+    "select",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27781,8 +28806,12 @@ class Selection extends JavaScriptObject {
 
   void selectAllChildren(Node node) native;
 
-  void setBaseAndExtent(Node? baseNode, int baseOffset, Node? extentNode,
-      int extentOffset) native;
+  void setBaseAndExtent(
+    Node? baseNode,
+    int baseOffset,
+    Node? extentNode,
+    int extentOffset,
+  ) native;
 
   void setPosition(Node? node, [int? offset]) native;
 }
@@ -27887,14 +28916,18 @@ class ServiceWorkerContainer extends EventTarget {
 
   Future<ServiceWorkerRegistration> get ready =>
       promiseToFuture<ServiceWorkerRegistration>(
-          JS("creates:ServiceWorkerRegistration;", "#.ready", this));
+        JS("creates:ServiceWorkerRegistration;", "#.ready", this),
+      );
 
   Future<ServiceWorkerRegistration> getRegistration([String? documentURL]) =>
-      promiseToFuture<ServiceWorkerRegistration>(JS(
+      promiseToFuture<ServiceWorkerRegistration>(
+        JS(
           "creates:ServiceWorkerRegistration;",
           "#.getRegistration(#)",
           this,
-          documentURL));
+          documentURL,
+        ),
+      );
 
   Future<List<dynamic>> getRegistrations() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getRegistrations()", this));
@@ -27904,12 +28937,15 @@ class ServiceWorkerContainer extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<ServiceWorkerRegistration>(JS(
+    return promiseToFuture<ServiceWorkerRegistration>(
+      JS(
         "creates:ServiceWorkerRegistration;",
         "#.register(#, #)",
         this,
         url,
-        options_dict));
+        options_dict,
+      ),
+    );
   }
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -27997,7 +29033,8 @@ class ServiceWorkerRegistration extends EventTarget {
       filter_dict = convertDartToNative_Dictionary(filter);
     }
     return promiseToFuture<List<dynamic>>(
-        JS("", "#.getNotifications(#)", this, filter_dict));
+      JS("", "#.getNotifications(#)", this, filter_dict),
+    );
   }
 
   Future showNotification(String title, [Map? options]) {
@@ -28006,7 +29043,8 @@ class ServiceWorkerRegistration extends EventTarget {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.showNotification(#, #)", this, title, options_dict));
+      JS("", "#.showNotification(#, #)", this, title, options_dict),
+    );
   }
 
   Future<bool> unregister() =>
@@ -28088,9 +29126,10 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   Selection? getSelection() native;
 
   static bool get supported => JS(
-      'bool',
-      '!!(Element.prototype.createShadowRoot||'
-          'Element.prototype.webkitCreateShadowRoot)');
+    'bool',
+    '!!(Element.prototype.createShadowRoot||'
+        'Element.prototype.webkitCreateShadowRoot)',
+  );
 
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {
@@ -28213,9 +29252,12 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback? successCallback,
-      _ErrorCallback? errorCallback]) native;
+  void _webkitRequestFileSystem(
+    int type,
+    int size, [
+    _FileSystemCallback? successCallback,
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -28231,8 +29273,10 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
-      String url, _EntryCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+    String url,
+    _EntryCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   Stream<Event> get onConnect => connectEvent.forTarget(this);
@@ -28361,7 +29405,7 @@ class SourceBufferList extends EventTarget
   // -- start List<SourceBuffer> mixins.
   // SourceBuffer is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -28406,10 +29450,11 @@ class SourceElement extends HtmlElement {
   }
 
   factory SourceElement() => JS<SourceElement>(
-      'returns:SourceElement;creates:SourceElement;new:true',
-      '#.createElement(#)',
-      document,
-      "source");
+    'returns:SourceElement;creates:SourceElement;new:true',
+    '#.createElement(#)',
+    document,
+    "source",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28449,10 +29494,11 @@ class SpanElement extends HtmlElement {
   }
 
   factory SpanElement() => JS<SpanElement>(
-      'returns:SpanElement;creates:SpanElement;new:true',
-      '#.createElement(#)',
-      document,
-      "span");
+    'returns:SpanElement;creates:SpanElement;new:true',
+    '#.createElement(#)',
+    document,
+    "span",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28518,7 +29564,7 @@ class SpeechGrammarList extends JavaScriptObject
   // -- start List<SpeechGrammar> mixins.
   // SpeechGrammar is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -28668,7 +29714,9 @@ class SpeechRecognition extends EventTarget {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS(
-      'bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
+    'bool',
+    '!!(window.SpeechRecognition || window.webkitSpeechRecognition)',
+  );
 
   MediaStreamTrack? get audioTrack native;
 
@@ -28734,8 +29782,10 @@ class SpeechRecognition extends EventTarget {
   Stream<Event> get onStart => startEvent.forTarget(this);
 
   factory SpeechRecognition() {
-    return JS('SpeechRecognition',
-        'new (window.SpeechRecognition || window.webkitSpeechRecognition)()');
+    return JS(
+      'SpeechRecognition',
+      'new (window.SpeechRecognition || window.webkitSpeechRecognition)()',
+    );
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28774,10 +29824,11 @@ class SpeechRecognitionError extends Event {
     return SpeechRecognitionError._create_2(type);
   }
   static SpeechRecognitionError _create_1(type, initDict) => JS(
-      'SpeechRecognitionError',
-      'new SpeechRecognitionError(#,#)',
-      type,
-      initDict);
+    'SpeechRecognitionError',
+    'new SpeechRecognitionError(#,#)',
+    type,
+    initDict,
+  );
   static SpeechRecognitionError _create_2(type) =>
       JS('SpeechRecognitionError', 'new SpeechRecognitionError(#)', type);
 
@@ -28805,10 +29856,11 @@ class SpeechRecognitionEvent extends Event {
     return SpeechRecognitionEvent._create_2(type);
   }
   static SpeechRecognitionEvent _create_1(type, initDict) => JS(
-      'SpeechRecognitionEvent',
-      'new SpeechRecognitionEvent(#,#)',
-      type,
-      initDict);
+    'SpeechRecognitionEvent',
+    'new SpeechRecognitionEvent(#,#)',
+    type,
+    initDict,
+  );
   static SpeechRecognitionEvent _create_2(type) =>
       JS('SpeechRecognitionEvent', 'new SpeechRecognitionEvent(#)', type);
 
@@ -29083,7 +30135,7 @@ class StaticRange extends JavaScriptObject {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
+ * You can use [Map](https://api.dart.dev/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
@@ -29189,17 +30241,27 @@ typedef void StorageErrorCallback(DomError error);
 @Unstable()
 @Native("StorageEvent")
 class StorageEvent extends Event {
-  factory StorageEvent(String type,
-      {bool canBubble = false,
-      bool cancelable = false,
-      String? key,
-      String? oldValue,
-      String? newValue,
-      String? url,
-      Storage? storageArea}) {
+  factory StorageEvent(
+    String type, {
+    bool canBubble = false,
+    bool cancelable = false,
+    String? key,
+    String? oldValue,
+    String? newValue,
+    String? url,
+    Storage? storageArea,
+  }) {
     StorageEvent e = document._createEvent("StorageEvent") as StorageEvent;
     e._initStorageEvent(
-        type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
+      type,
+      canBubble,
+      cancelable,
+      key,
+      oldValue,
+      newValue,
+      url,
+      storageArea,
+    );
     return e;
   }
 
@@ -29227,14 +30289,15 @@ class StorageEvent extends Event {
 
   @JSName('initStorageEvent')
   void _initStorageEvent(
-      String? typeArg,
-      bool? canBubbleArg,
-      bool? cancelableArg,
-      String? keyArg,
-      String? oldValueArg,
-      String? newValueArg,
-      String? urlArg,
-      Storage? storageAreaArg) native;
+    String? typeArg,
+    bool? canBubbleArg,
+    bool? cancelableArg,
+    String? keyArg,
+    String? oldValueArg,
+    String? newValueArg,
+    String? urlArg,
+    Storage? storageAreaArg,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29269,7 +30332,9 @@ typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 typedef void StorageUsageCallback(
-    int currentUsageInBytes, int currentQuotaInBytes);
+  int currentUsageInBytes,
+  int currentQuotaInBytes,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29282,10 +30347,11 @@ class StyleElement extends HtmlElement {
   }
 
   factory StyleElement() => JS<StyleElement>(
-      'returns:StyleElement;creates:StyleElement;new:true',
-      '#.createElement(#)',
-      document,
-      "style");
+    'returns:StyleElement;creates:StyleElement;new:true',
+    '#.createElement(#)',
+    document,
+    "style",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29436,10 +30502,11 @@ class TableCaptionElement extends HtmlElement {
   }
 
   factory TableCaptionElement() => JS<TableCaptionElement>(
-      'returns:TableCaptionElement;creates:TableCaptionElement;new:true',
-      '#.createElement(#)',
-      document,
-      "caption");
+    'returns:TableCaptionElement;creates:TableCaptionElement;new:true',
+    '#.createElement(#)',
+    document,
+    "caption",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29452,7 +30519,8 @@ class TableCaptionElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native(
-    "HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement")
+  "HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement",
+)
 class TableCellElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TableCellElement._() {
@@ -29460,10 +30528,11 @@ class TableCellElement extends HtmlElement {
   }
 
   factory TableCellElement() => JS<TableCellElement>(
-      'returns:TableCellElement;creates:TableCellElement;new:true',
-      '#.createElement(#)',
-      document,
-      "td");
+    'returns:TableCellElement;creates:TableCellElement;new:true',
+    '#.createElement(#)',
+    document,
+    "td",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29497,10 +30566,11 @@ class TableColElement extends HtmlElement {
   }
 
   factory TableColElement() => JS<TableColElement>(
-      'returns:TableColElement;creates:TableColElement;new:true',
-      '#.createElement(#)',
-      document,
-      "col");
+    'returns:TableColElement;creates:TableColElement;new:true',
+    '#.createElement(#)',
+    document,
+    "col",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29545,16 +30615,25 @@ class TableElement extends HtmlElement {
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (Range.supportsCreateContextualFragment) {
-      return super.createFragment(html,
-          validator: validator, treeSanitizer: treeSanitizer);
+      return super.createFragment(
+        html,
+        validator: validator,
+        treeSanitizer: treeSanitizer,
+      );
     }
     // IE9 workaround which does not support innerHTML on Table elements.
     var contextualHtml = '<table>$html</table>';
-    var table = new Element.html(contextualHtml,
-        validator: validator, treeSanitizer: treeSanitizer);
+    var table = new Element.html(
+      contextualHtml,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
     var fragment = new DocumentFragment();
     fragment.nodes.addAll(table.nodes);
 
@@ -29567,10 +30646,11 @@ class TableElement extends HtmlElement {
   }
 
   factory TableElement() => JS<TableElement>(
-      'returns:TableElement;creates:TableElement;new:true',
-      '#.createElement(#)',
-      document,
-      "table");
+    'returns:TableElement;creates:TableElement;new:true',
+    '#.createElement(#)',
+    document,
+    "table",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29636,19 +30716,29 @@ class TableRowElement extends HtmlElement {
   TableCellElement insertCell(int index) =>
       _insertCell(index) as TableCellElement;
 
-  DocumentFragment createFragment(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (Range.supportsCreateContextualFragment) {
-      return super.createFragment(html,
-          validator: validator, treeSanitizer: treeSanitizer);
+      return super.createFragment(
+        html,
+        validator: validator,
+        treeSanitizer: treeSanitizer,
+      );
     }
     // IE9 workaround which does not support innerHTML on Table elements.
     var fragment = new DocumentFragment();
-    var section = new TableElement()
-        .createFragment(html,
-            validator: validator, treeSanitizer: treeSanitizer)
-        .nodes
-        .single;
+    var section =
+        new TableElement()
+            .createFragment(
+              html,
+              validator: validator,
+              treeSanitizer: treeSanitizer,
+            )
+            .nodes
+            .single;
     var row = section.nodes.single;
     fragment.nodes.addAll(row.nodes);
     return fragment;
@@ -29660,10 +30750,11 @@ class TableRowElement extends HtmlElement {
   }
 
   factory TableRowElement() => JS<TableRowElement>(
-      'returns:TableRowElement;creates:TableRowElement;new:true',
-      '#.createElement(#)',
-      document,
-      "tr");
+    'returns:TableRowElement;creates:TableRowElement;new:true',
+    '#.createElement(#)',
+    document,
+    "tr",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29699,19 +30790,29 @@ class TableSectionElement extends HtmlElement {
 
   TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
-  DocumentFragment createFragment(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (Range.supportsCreateContextualFragment) {
-      return super.createFragment(html,
-          validator: validator, treeSanitizer: treeSanitizer);
+      return super.createFragment(
+        html,
+        validator: validator,
+        treeSanitizer: treeSanitizer,
+      );
     }
     // IE9 workaround which does not support innerHTML on Table elements.
     var fragment = new DocumentFragment();
-    var section = new TableElement()
-        .createFragment(html,
-            validator: validator, treeSanitizer: treeSanitizer)
-        .nodes
-        .single;
+    var section =
+        new TableElement()
+            .createFragment(
+              html,
+              validator: validator,
+              treeSanitizer: treeSanitizer,
+            )
+            .nodes
+            .single;
     fragment.nodes.addAll(section.nodes);
     return fragment;
   }
@@ -29794,12 +30895,18 @@ class TemplateElement extends HtmlElement {
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String? html,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  void setInnerHtml(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     text = null;
     content!.nodes.clear();
-    var fragment = createFragment(html,
-        validator: validator, treeSanitizer: treeSanitizer);
+    var fragment = createFragment(
+      html,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
 
     content!.append(fragment);
   }
@@ -29813,10 +30920,11 @@ class TemplateElement extends HtmlElement {
 @Native("Text")
 class Text extends CharacterData {
   factory Text(String data) => JS(
-      'returns:Text;depends:none;effects:none;new:true',
-      '#.createTextNode(#)',
-      document,
-      data);
+    'returns:Text;depends:none;effects:none;new:true',
+    '#.createTextNode(#)',
+    document,
+    data,
+  );
   // To suppress missing implicit constructor warnings.
   factory Text._() {
     throw new UnsupportedError("Not supported");
@@ -29844,10 +30952,11 @@ class TextAreaElement extends HtmlElement {
   }
 
   factory TextAreaElement() => JS<TextAreaElement>(
-      'returns:TextAreaElement;creates:TextAreaElement;new:true',
-      '#.createElement(#)',
-      document,
-      "textarea");
+    'returns:TextAreaElement;creates:TextAreaElement;new:true',
+    '#.createElement(#)',
+    document,
+    "textarea",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29952,8 +31061,12 @@ class TextAreaElement extends HtmlElement {
 
   void setCustomValidity(String error) native;
 
-  void setRangeText(String replacement,
-      {int? start, int? end, String? selectionMode}) native;
+  void setRangeText(
+    String replacement, {
+    int? start,
+    int? end,
+    String? selectionMode,
+  }) native;
 
   void setSelectionRange(int start, int end, [String? direction]) native;
 }
@@ -29985,11 +31098,13 @@ class TextDetector extends JavaScriptObject {
 @Unstable()
 @Native("TextEvent")
 class TextEvent extends UIEvent {
-  factory TextEvent(String type,
-      {bool canBubble = false,
-      bool cancelable = false,
-      Window? view,
-      String? data}) {
+  factory TextEvent(
+    String type, {
+    bool canBubble = false,
+    bool cancelable = false,
+    Window? view,
+    String? data,
+  }) {
     if (view == null) {
       view = window;
     }
@@ -30005,8 +31120,13 @@ class TextEvent extends UIEvent {
   String? get data native;
 
   @JSName('initTextEvent')
-  void _initTextEvent(String? type, bool? bubbles, bool? cancelable,
-      Window? view, String? data) native;
+  void _initTextEvent(
+    String? type,
+    bool? bubbles,
+    bool? cancelable,
+    Window? view,
+    String? data,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30166,7 +31286,7 @@ class TextTrackCueList extends JavaScriptObject
   // -- start List<TextTrackCue> mixins.
   // TextTrackCue is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30240,7 +31360,7 @@ class TextTrackList extends EventTarget
   // -- start List<TextTrack> mixins.
   // TextTrack is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30338,10 +31458,11 @@ class TitleElement extends HtmlElement {
   }
 
   factory TitleElement() => JS<TitleElement>(
-      'returns:TitleElement;creates:TitleElement;new:true',
-      '#.createElement(#)',
-      document,
-      "title");
+    'returns:TitleElement;creates:TitleElement;new:true',
+    '#.createElement(#)',
+    document,
+    "title",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30404,8 +31525,8 @@ class Touch extends JavaScriptObject {
   @Returns('Element|Document')
   dynamic get _get_target native;
 
-// As of Chrome 37, these all changed from long to double.  This code
-// preserves backwards compatibility for the time being.
+  // As of Chrome 37, these all changed from long to double.  This code
+  // preserves backwards compatibility for the time being.
   int get __clientX => JS<num>('num', '#.clientX', this).round();
   int get __clientY => JS<num>('num', '#.clientY', this).round();
   int get __screenX => JS<num>('num', '#.screenX', this).round();
@@ -30509,7 +31630,7 @@ class TouchList extends JavaScriptObject
   // -- start List<Touch> mixins.
   // Touch is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30554,27 +31675,48 @@ class TrackDefault extends JavaScriptObject {
   }
 
   factory TrackDefault(
-      String type, String language, String label, List<String> kinds,
-      [String? byteStreamTrackID]) {
+    String type,
+    String language,
+    String label,
+    List<String> kinds, [
+    String? byteStreamTrackID,
+  ]) {
     if (byteStreamTrackID != null) {
       List kinds_1 = convertDartToNative_StringArray(kinds);
       return TrackDefault._create_1(
-          type, language, label, kinds_1, byteStreamTrackID);
+        type,
+        language,
+        label,
+        kinds_1,
+        byteStreamTrackID,
+      );
     }
     List kinds_1 = convertDartToNative_StringArray(kinds);
     return TrackDefault._create_2(type, language, label, kinds_1);
   }
   static TrackDefault _create_1(
-          type, language, label, kinds, byteStreamTrackID) =>
-      JS('TrackDefault', 'new TrackDefault(#,#,#,#,#)', type, language, label,
-          kinds, byteStreamTrackID);
+    type,
+    language,
+    label,
+    kinds,
+    byteStreamTrackID,
+  ) => JS(
+    'TrackDefault',
+    'new TrackDefault(#,#,#,#,#)',
+    type,
+    language,
+    label,
+    kinds,
+    byteStreamTrackID,
+  );
   static TrackDefault _create_2(type, language, label, kinds) => JS(
-      'TrackDefault',
-      'new TrackDefault(#,#,#,#)',
-      type,
-      language,
-      label,
-      kinds);
+    'TrackDefault',
+    'new TrackDefault(#,#,#,#)',
+    type,
+    language,
+    label,
+    kinds,
+  );
 
   String? get byteStreamTrackID native;
 
@@ -30823,11 +31965,13 @@ class UIEvent extends Event {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory UIEvent(String type,
-      {Window? view,
-      int detail = 0,
-      bool canBubble = true,
-      bool cancelable = true}) {
+  factory UIEvent(
+    String type, {
+    Window? view,
+    int detail = 0,
+    bool canBubble = true,
+    bool cancelable = true,
+  }) {
     if (view == null) {
       view = window;
     }
@@ -30862,8 +32006,13 @@ class UIEvent extends Event {
   int? get _which native;
 
   @JSName('initUIEvent')
-  void _initUIEvent(String type, bool bubbles, bool cancelable, Window? view,
-      int detail) native;
+  void _initUIEvent(
+    String type,
+    bool bubbles,
+    bool cancelable,
+    Window? view,
+    int detail,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30877,10 +32026,11 @@ class UListElement extends HtmlElement {
   }
 
   factory UListElement() => JS<UListElement>(
-      'returns:UListElement;creates:UListElement;new:true',
-      '#.createElement(#)',
-      document,
-      "ul");
+    'returns:UListElement;creates:UListElement;new:true',
+    '#.createElement(#)',
+    document,
+    "ul",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30935,9 +32085,10 @@ class UnknownElement extends HtmlElement {
 @Native("URL")
 class Url extends JavaScriptObject {
   static String createObjectUrl(blob_OR_source_OR_stream) => JS(
-      'String',
-      '(self.URL || self.webkitURL).createObjectURL(#)',
-      blob_OR_source_OR_stream);
+    'String',
+    '(self.URL || self.webkitURL).createObjectURL(#)',
+    blob_OR_source_OR_stream,
+  );
 
   static String createObjectUrlFromSource(MediaSource source) =>
       JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', source);
@@ -31352,8 +32503,15 @@ class VRSession extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(JS("creates:VRFrameOfReference;",
-        "#.requestFrameOfReference(#, #)", this, type, options_dict));
+    return promiseToFuture(
+      JS(
+        "creates:VRFrameOfReference;",
+        "#.requestFrameOfReference(#, #)",
+        this,
+        type,
+        options_dict,
+      ),
+    );
   }
 
   Stream<Event> get onBlur => blurEvent.forTarget(this);
@@ -31470,10 +32628,11 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   }
 
   factory VideoElement() => JS<VideoElement>(
-      'returns:VideoElement;creates:VideoElement;new:true',
-      '#.createElement(#)',
-      document,
-      "video");
+    'returns:VideoElement;creates:VideoElement;new:true',
+    '#.createElement(#)',
+    document,
+    "video",
+  );
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31924,25 +33083,27 @@ class WebSocket extends EventTarget {
 
 @Native("WheelEvent")
 class WheelEvent extends MouseEvent {
-  factory WheelEvent(String type,
-      {Window? view,
-      num deltaX = 0,
-      num deltaY = 0,
-      num deltaZ = 0,
-      int deltaMode = 0,
-      int detail = 0,
-      int screenX = 0,
-      int screenY = 0,
-      int clientX = 0,
-      int clientY = 0,
-      int button = 0,
-      bool canBubble = true,
-      bool cancelable = true,
-      bool ctrlKey = false,
-      bool altKey = false,
-      bool shiftKey = false,
-      bool metaKey = false,
-      EventTarget? relatedTarget}) {
+  factory WheelEvent(
+    String type, {
+    Window? view,
+    num deltaX = 0,
+    num deltaY = 0,
+    num deltaZ = 0,
+    int deltaMode = 0,
+    int detail = 0,
+    int screenX = 0,
+    int screenY = 0,
+    int clientX = 0,
+    int clientY = 0,
+    int button = 0,
+    bool canBubble = true,
+    bool cancelable = true,
+    bool ctrlKey = false,
+    bool altKey = false,
+    bool shiftKey = false,
+    bool metaKey = false,
+    EventTarget? relatedTarget,
+  }) {
     var options = {
       'view': view,
       'deltaMode': deltaMode,
@@ -31968,8 +33129,12 @@ class WheelEvent extends MouseEvent {
       view = window;
     }
 
-    return JS('WheelEvent', 'new WheelEvent(#, #)', type,
-        convertDartToNative_Dictionary(options));
+    return JS(
+      'WheelEvent',
+      'new WheelEvent(#, #)',
+      type,
+      convertDartToNative_Dictionary(options),
+    );
   }
 
   factory WheelEvent._(String type, [Map? eventInitDict]) {
@@ -32045,42 +33210,44 @@ class WheelEvent extends MouseEvent {
 
   @JSName('initMouseScrollEvent')
   void _initMouseScrollEvent(
-      String type,
-      bool canBubble,
-      bool cancelable,
-      Window view,
-      int detail,
-      int screenX,
-      int screenY,
-      int clientX,
-      int clientY,
-      bool ctrlKey,
-      bool altKey,
-      bool shiftKey,
-      bool metaKey,
-      int button,
-      EventTarget relatedTarget,
-      int axis) native;
+    String type,
+    bool canBubble,
+    bool cancelable,
+    Window view,
+    int detail,
+    int screenX,
+    int screenY,
+    int clientX,
+    int clientY,
+    bool ctrlKey,
+    bool altKey,
+    bool shiftKey,
+    bool metaKey,
+    int button,
+    EventTarget relatedTarget,
+    int axis,
+  ) native;
 
   bool get _hasInitWheelEvent => JS('bool', '!!(#.initWheelEvent)', this);
   @JSName('initWheelEvent')
   void _initWheelEvent(
-      String eventType,
-      bool canBubble,
-      bool cancelable,
-      Window view,
-      int detail,
-      int screenX,
-      int screenY,
-      int clientX,
-      int clientY,
-      int button,
-      EventTarget relatedTarget,
-      String modifiersList,
-      int deltaX,
-      int deltaY,
-      int deltaZ,
-      int deltaMode) native;
+    String eventType,
+    bool canBubble,
+    bool cancelable,
+    Window view,
+    int detail,
+    int screenX,
+    int screenY,
+    int clientX,
+    int clientY,
+    int button,
+    EventTarget relatedTarget,
+    String modifiersList,
+    int deltaX,
+    int deltaY,
+    int deltaZ,
+    int deltaMode,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32248,14 +33415,14 @@ class Window extends EventTarget
 
   _ensureRequestAnimationFrame() {
     if (JS<bool>(
-        'bool',
-        '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
-        this,
-        this)) return;
+      'bool',
+      '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
+      this,
+      this,
+    ))
+      return;
 
-    JS(
-        'void',
-        r"""
+    JS('void', r"""
   (function($this) {
    var vendors = ['ms', 'moz', 'webkit', 'o'];
    for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
@@ -32271,8 +33438,7 @@ class Window extends EventTarget
       }, 16 /* 16ms ~= 60fps */);
    };
    $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
-  })(#)""",
-        this);
+  })(#)""", this);
   }
 
   /**
@@ -32285,11 +33451,12 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   IdbFactory? get indexedDB => JS(
-      'IdbFactory|Null', // If not supported, returns null.
-      '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
-      this,
-      this,
-      this);
+    'IdbFactory|Null', // If not supported, returns null.
+    '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+    this,
+    this,
+    this,
+  );
 
   /// The debugging console for this window.
   Console get console => Console._safeConsole;
@@ -32342,8 +33509,9 @@ class Window extends EventTarget
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<DeviceOrientationEvent>
-      deviceOrientationEvent =
-      const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
+  deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>(
+    'deviceorientation',
+  );
 
   /**
    * Static factory designed to expose `hashchange` events to event
@@ -32700,7 +33868,6 @@ class Window extends EventTarget
   int get outerWidth native;
 
   @JSName('pageXOffset')
-
   /**
    * The distance this window has been scrolled horizontally.
    *
@@ -32714,11 +33881,9 @@ class Window extends EventTarget
    *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-
   num get _pageXOffset native;
 
   @JSName('pageYOffset')
-
   /**
    * The distance this window has been scrolled vertically.
    *
@@ -32732,7 +33897,6 @@ class Window extends EventTarget
    *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-
   num get _pageYOffset native;
 
   WindowBase? get parent => _convertNativeToDart_Window(this._get_parent);
@@ -32998,7 +34162,8 @@ class Window extends EventTarget
       init_dict = convertDartToNative_Dictionary(init);
     }
     return promiseToFuture(
-        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
+      JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict),
+    );
   }
 
   /**
@@ -33009,15 +34174,26 @@ class Window extends EventTarget
    * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
    *   from MDN.
    */
-  bool find(String? string, bool? caseSensitive, bool? backwards, bool? wrap,
-      bool? wholeWord, bool? searchInFrames, bool? showDialog) native;
+  bool find(
+    String? string,
+    bool? caseSensitive,
+    bool? backwards,
+    bool? wrap,
+    bool? wholeWord,
+    bool? searchInFrames,
+    bool? showDialog,
+  ) native;
 
   @JSName('getComputedStyle')
-  CssStyleDeclaration _getComputedStyle(Element elt, [String? pseudoElt])
-      native;
+  CssStyleDeclaration _getComputedStyle(
+    Element elt, [
+    String? pseudoElt,
+  ]) native;
 
   StylePropertyMapReadonly getComputedStyleMap(
-      Element element, String? pseudoElement) native;
+    Element element,
+    String? pseudoElement,
+  ) native;
 
   @JSName('getMatchedCSSRules')
   /**
@@ -33025,8 +34201,10 @@ class Window extends EventTarget
    */
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> getMatchedCssRules(Element? element, String? pseudoElement)
-      native;
+  List<CssRule> getMatchedCssRules(
+    Element? element,
+    String? pseudoElement,
+  ) native;
 
   /**
    * Returns the currently selected text.
@@ -33067,8 +34245,11 @@ class Window extends EventTarget
   @JSName('moveTo')
   void _moveTo(int x, int y) native;
 
-  void postMessage(/*any*/ message, String targetOrigin,
-      [List<Object>? transfer]) {
+  void postMessage(
+    /*any*/ message,
+    String targetOrigin, [
+    List<Object>? transfer,
+  ]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin, transfer);
@@ -33422,25 +34603,33 @@ class Window extends EventTarget
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   void __requestFileSystem(
-      int type, int size, _FileSystemCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+    int type,
+    int size,
+    _FileSystemCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    __requestFileSystem(type, size, (value) {
-      applyExtension('DOMFileSystem', value);
-      applyExtension('WebKitFileSystem', value);
-      applyExtension('webkitFileSystem', value);
-      applyExtension('FileSystem', value);
-      applyExtension('DirectoryEntry', value.root);
-      applyExtension('webkitFileSystemDirectoryEntry', value.root);
-      applyExtension('FileSystemDirectoryEntry', value.root);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    __requestFileSystem(
+      type,
+      size,
+      (value) {
+        applyExtension('DOMFileSystem', value);
+        applyExtension('WebKitFileSystem', value);
+        applyExtension('webkitFileSystem', value);
+        applyExtension('FileSystem', value);
+        applyExtension('DirectoryEntry', value.root);
+        applyExtension('webkitFileSystemDirectoryEntry', value.root);
+        applyExtension('FileSystemDirectoryEntry', value.root);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
@@ -33455,8 +34644,11 @@ class Window extends EventTarget
    * from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback,
-      [_ErrorCallback? errorCallback]) native;
+  void _resolveLocalFileSystemUrl(
+    String url,
+    _EntryCallback successCallback, [
+    _ErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   /**
@@ -33471,11 +34663,15 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   Future<Entry> resolveLocalFileSystemUrl(String url) {
     var completer = new Completer<Entry>();
-    _resolveLocalFileSystemUrl(url, (value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _resolveLocalFileSystemUrl(
+      url,
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
@@ -33488,12 +34684,18 @@ class Window extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int? timeout, Object? arguments])
-      native;
+  int _setInterval_String(
+    String handler, [
+    int? timeout,
+    Object? arguments,
+  ]) native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
-      native;
+  int _setTimeout_String(
+    String handler, [
+    int? timeout,
+    Object? arguments,
+  ]) native;
 
   @JSName('clearInterval')
   void _clearInterval([int? handle]) native;
@@ -33773,9 +34975,10 @@ class Window extends EventTarget
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
-      ? JS<num>('num', '#.scrollX', this).round()
-      : document.documentElement!.scrollLeft;
+  int get scrollX =>
+      JS<bool>('bool', '("scrollX" in #)', this)
+          ? JS<num>('num', '#.scrollX', this).round()
+          : document.documentElement!.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -33787,9 +34990,10 @@ class Window extends EventTarget
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
-      ? JS<num>('num', '#.scrollY', this).round()
-      : document.documentElement!.scrollTop;
+  int get scrollY =>
+      JS<bool>('bool', '("scrollY" in #)', this)
+          ? JS<num>('num', '#.scrollY', this).round()
+          : document.documentElement!.scrollTop;
 }
 
 class NullWindowException implements Exception {
@@ -33828,10 +35032,12 @@ class WindowClient extends Client {
   String? get visibilityState native;
 
   Future<WindowClient> focus() => promiseToFuture<WindowClient>(
-      JS("creates:WindowClient;", "#.focus()", this));
+    JS("creates:WindowClient;", "#.focus()", this),
+  );
 
   Future<WindowClient> navigate(String url) => promiseToFuture<WindowClient>(
-      JS("creates:WindowClient;", "#.navigate(#)", this, url));
+    JS("creates:WindowClient;", "#.navigate(#)", this, url),
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33992,7 +35198,8 @@ class WorkerGlobalScope extends EventTarget
       init_dict = convertDartToNative_Dictionary(init);
     }
     return promiseToFuture(
-        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
+      JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict),
+    );
   }
 
   void importScripts(String urls) native;
@@ -34006,12 +35213,18 @@ class WorkerGlobalScope extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int? timeout, Object? arguments])
-      native;
+  int _setInterval_String(
+    String handler, [
+    int? timeout,
+    Object? arguments,
+  ]) native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
-      native;
+  int _setTimeout_String(
+    String handler, [
+    int? timeout,
+    Object? arguments,
+  ]) native;
 
   @JSName('clearInterval')
   void _clearInterval([int? handle]) native;
@@ -34054,8 +35267,10 @@ class WorkerPerformance extends EventTarget {
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
-      native;
+  List<PerformanceEntry> getEntriesByName(
+    String name,
+    String? entryType,
+  ) native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
@@ -34079,18 +35294,32 @@ class WorkletAnimation extends JavaScriptObject {
   }
 
   factory WorkletAnimation(
-      String animatorName,
-      List<KeyframeEffectReadOnly> effects,
-      List<Object> timelines,
-      /*SerializedScriptValue*/ options) {
+    String animatorName,
+    List<KeyframeEffectReadOnly> effects,
+    List<Object> timelines,
+    /*SerializedScriptValue*/ options,
+  ) {
     var options_1 = convertDartToNative_SerializedScriptValue(options);
     return WorkletAnimation._create_1(
-        animatorName, effects, timelines, options_1);
+      animatorName,
+      effects,
+      timelines,
+      options_1,
+    );
   }
   static WorkletAnimation _create_1(
-          animatorName, effects, timelines, options) =>
-      JS('WorkletAnimation', 'new WorkletAnimation(#,#,#,#)', animatorName,
-          effects, timelines, options);
+    animatorName,
+    effects,
+    timelines,
+    options,
+  ) => JS(
+    'WorkletAnimation',
+    'new WorkletAnimation(#,#,#,#)',
+    animatorName,
+    effects,
+    timelines,
+    options,
+  );
 
   String? get playState native;
 
@@ -34126,14 +35355,20 @@ class XPathEvaluator extends JavaScriptObject {
   static XPathEvaluator _create_1() =>
       JS('XPathEvaluator', 'new XPathEvaluator()');
 
-  XPathExpression createExpression(String expression, XPathNSResolver? resolver)
-      native;
+  XPathExpression createExpression(
+    String expression,
+    XPathNSResolver? resolver,
+  ) native;
 
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
   XPathResult evaluate(
-      String expression, Node contextNode, XPathNSResolver? resolver,
-      [int? type, Object? inResult]) native;
+    String expression,
+    Node contextNode,
+    XPathNSResolver? resolver, [
+    int? type,
+    Object? inResult,
+  ]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34277,8 +35512,11 @@ class XsltProcessor extends JavaScriptObject {
 
   void reset() native;
 
-  void setParameter(String? namespaceURI, String localName, String value)
-      native;
+  void setParameter(
+    String? namespaceURI,
+    String localName,
+    String value,
+  ) native;
 
   Document? transformToDocument(Node source) native;
 
@@ -34396,7 +35634,8 @@ class _BudgetService extends JavaScriptObject {
   }
 
   Future<BudgetState> getBudget() => promiseToFuture<BudgetState>(
-      JS("creates:BudgetState;", "#.getBudget()", this));
+    JS("creates:BudgetState;", "#.getBudget()", this),
+  );
 
   Future<double> getCost(String operation) =>
       promiseToFuture<double>(JS("", "#.getCost(#)", this, operation));
@@ -34437,7 +35676,8 @@ class _Clipboard extends EventTarget {
   }
 
   Future<DataTransfer> read() => promiseToFuture<DataTransfer>(
-      JS("creates:DataTransfer;", "#.read()", this));
+    JS("creates:DataTransfer;", "#.read()", this),
+  );
 
   Future<String> readText() =>
       promiseToFuture<String>(JS("", "#.readText()", this));
@@ -34475,7 +35715,7 @@ class _CssRuleList extends JavaScriptObject
   // -- start List<CssRule> mixins.
   // CssRule is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34792,7 +36032,7 @@ class _GamepadList extends JavaScriptObject
   // -- start List<Gamepad?> mixins.
   // Gamepad? is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34978,14 +36218,16 @@ abstract class _MojoInterfaceInterceptor extends EventTarget {
     return _MojoInterfaceInterceptor._create_2(interfaceName);
   }
   static _MojoInterfaceInterceptor _create_1(interfaceName, scope) => JS(
-      '_MojoInterfaceInterceptor',
-      'new MojoInterfaceInterceptor(#,#)',
-      interfaceName,
-      scope);
+    '_MojoInterfaceInterceptor',
+    'new MojoInterfaceInterceptor(#,#)',
+    interfaceName,
+    scope,
+  );
   static _MojoInterfaceInterceptor _create_2(interfaceName) => JS(
-      '_MojoInterfaceInterceptor',
-      'new MojoInterfaceInterceptor(#)',
-      interfaceName);
+    '_MojoInterfaceInterceptor',
+    'new MojoInterfaceInterceptor(#)',
+    interfaceName,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35006,12 +36248,16 @@ abstract class _MojoInterfaceRequestEvent extends Event {
     return _MojoInterfaceRequestEvent._create_2(type);
   }
   static _MojoInterfaceRequestEvent _create_1(type, eventInitDict) => JS(
-      '_MojoInterfaceRequestEvent',
-      'new MojoInterfaceRequestEvent(#,#)',
-      type,
-      eventInitDict);
+    '_MojoInterfaceRequestEvent',
+    'new MojoInterfaceRequestEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static _MojoInterfaceRequestEvent _create_2(type) => JS(
-      '_MojoInterfaceRequestEvent', 'new MojoInterfaceRequestEvent(#)', type);
+    '_MojoInterfaceRequestEvent',
+    'new MojoInterfaceRequestEvent(#)',
+    type,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35064,7 +36310,7 @@ class _NamedNodeMap extends JavaScriptObject
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35258,7 +36504,7 @@ class _SpeechRecognitionResultList extends JavaScriptObject
   // -- start List<SpeechRecognitionResult> mixins.
   // SpeechRecognitionResult is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35318,7 +36564,7 @@ class _StyleSheetList extends JavaScriptObject
   // -- start List<StyleSheet> mixins.
   // StyleSheet is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35387,12 +36633,18 @@ abstract class _USBAlternateInterface extends JavaScriptObject {
   }
 
   factory _USBAlternateInterface(
-      _USBInterface deviceInterface, int alternateSetting) {
+    _USBInterface deviceInterface,
+    int alternateSetting,
+  ) {
     return _USBAlternateInterface._create_1(deviceInterface, alternateSetting);
   }
   static _USBAlternateInterface _create_1(deviceInterface, alternateSetting) =>
-      JS('_USBAlternateInterface', 'new USBAlternateInterface(#,#)',
-          deviceInterface, alternateSetting);
+      JS(
+        '_USBAlternateInterface',
+        'new USBAlternateInterface(#,#)',
+        deviceInterface,
+        alternateSetting,
+      );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35409,10 +36661,11 @@ abstract class _USBConfiguration extends JavaScriptObject {
     return _USBConfiguration._create_1(device, configurationValue);
   }
   static _USBConfiguration _create_1(device, configurationValue) => JS(
-      '_USBConfiguration',
-      'new USBConfiguration(#,#)',
-      device,
-      configurationValue);
+    '_USBConfiguration',
+    'new USBConfiguration(#,#)',
+    device,
+    configurationValue,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35430,10 +36683,11 @@ abstract class _USBConnectionEvent extends Event {
     return _USBConnectionEvent._create_1(type, eventInitDict_1);
   }
   static _USBConnectionEvent _create_1(type, eventInitDict) => JS(
-      '_USBConnectionEvent',
-      'new USBConnectionEvent(#,#)',
-      type,
-      eventInitDict);
+    '_USBConnectionEvent',
+    'new USBConnectionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35458,15 +36712,19 @@ abstract class _USBEndpoint extends JavaScriptObject {
   }
 
   factory _USBEndpoint(
-      _USBAlternateInterface alternate, int endpointNumber, String direction) {
+    _USBAlternateInterface alternate,
+    int endpointNumber,
+    String direction,
+  ) {
     return _USBEndpoint._create_1(alternate, endpointNumber, direction);
   }
   static _USBEndpoint _create_1(alternate, endpointNumber, direction) => JS(
-      '_USBEndpoint',
-      'new USBEndpoint(#,#,#)',
-      alternate,
-      endpointNumber,
-      direction);
+    '_USBEndpoint',
+    'new USBEndpoint(#,#,#)',
+    alternate,
+    endpointNumber,
+    direction,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35505,7 +36763,11 @@ abstract class _USBInterface extends JavaScriptObject {
     return _USBInterface._create_1(configuration, interfaceNumber);
   }
   static _USBInterface _create_1(configuration, interfaceNumber) => JS(
-      '_USBInterface', 'new USBInterface(#,#)', configuration, interfaceNumber);
+    '_USBInterface',
+    'new USBInterface(#,#)',
+    configuration,
+    interfaceNumber,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35525,14 +36787,16 @@ abstract class _USBIsochronousInTransferPacket extends JavaScriptObject {
     return _USBIsochronousInTransferPacket._create_2(status);
   }
   static _USBIsochronousInTransferPacket _create_1(status, data) => JS(
-      '_USBIsochronousInTransferPacket',
-      'new USBIsochronousInTransferPacket(#,#)',
-      status,
-      data);
+    '_USBIsochronousInTransferPacket',
+    'new USBIsochronousInTransferPacket(#,#)',
+    status,
+    data,
+  );
   static _USBIsochronousInTransferPacket _create_2(status) => JS(
-      '_USBIsochronousInTransferPacket',
-      'new USBIsochronousInTransferPacket(#)',
-      status);
+    '_USBIsochronousInTransferPacket',
+    'new USBIsochronousInTransferPacket(#)',
+    status,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35546,22 +36810,25 @@ abstract class _USBIsochronousInTransferResult extends JavaScriptObject {
   }
 
   factory _USBIsochronousInTransferResult(
-      List<_USBIsochronousInTransferPacket> packets,
-      [ByteData? data]) {
+    List<_USBIsochronousInTransferPacket> packets, [
+    ByteData? data,
+  ]) {
     if (data != null) {
       return _USBIsochronousInTransferResult._create_1(packets, data);
     }
     return _USBIsochronousInTransferResult._create_2(packets);
   }
   static _USBIsochronousInTransferResult _create_1(packets, data) => JS(
-      '_USBIsochronousInTransferResult',
-      'new USBIsochronousInTransferResult(#,#)',
-      packets,
-      data);
+    '_USBIsochronousInTransferResult',
+    'new USBIsochronousInTransferResult(#,#)',
+    packets,
+    data,
+  );
   static _USBIsochronousInTransferResult _create_2(packets) => JS(
-      '_USBIsochronousInTransferResult',
-      'new USBIsochronousInTransferResult(#)',
-      packets);
+    '_USBIsochronousInTransferResult',
+    'new USBIsochronousInTransferResult(#)',
+    packets,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35581,14 +36848,16 @@ abstract class _USBIsochronousOutTransferPacket extends JavaScriptObject {
     return _USBIsochronousOutTransferPacket._create_2(status);
   }
   static _USBIsochronousOutTransferPacket _create_1(status, bytesWritten) => JS(
-      '_USBIsochronousOutTransferPacket',
-      'new USBIsochronousOutTransferPacket(#,#)',
-      status,
-      bytesWritten);
+    '_USBIsochronousOutTransferPacket',
+    'new USBIsochronousOutTransferPacket(#,#)',
+    status,
+    bytesWritten,
+  );
   static _USBIsochronousOutTransferPacket _create_2(status) => JS(
-      '_USBIsochronousOutTransferPacket',
-      'new USBIsochronousOutTransferPacket(#)',
-      status);
+    '_USBIsochronousOutTransferPacket',
+    'new USBIsochronousOutTransferPacket(#)',
+    status,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35602,13 +36871,15 @@ abstract class _USBIsochronousOutTransferResult extends JavaScriptObject {
   }
 
   factory _USBIsochronousOutTransferResult(
-      List<_USBIsochronousOutTransferPacket> packets) {
+    List<_USBIsochronousOutTransferPacket> packets,
+  ) {
     return _USBIsochronousOutTransferResult._create_1(packets);
   }
   static _USBIsochronousOutTransferResult _create_1(packets) => JS(
-      '_USBIsochronousOutTransferResult',
-      'new USBIsochronousOutTransferResult(#)',
-      packets);
+    '_USBIsochronousOutTransferResult',
+    'new USBIsochronousOutTransferResult(#)',
+    packets,
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35628,10 +36899,11 @@ abstract class _USBOutTransferResult extends JavaScriptObject {
     return _USBOutTransferResult._create_2(status);
   }
   static _USBOutTransferResult _create_1(status, bytesWritten) => JS(
-      '_USBOutTransferResult',
-      'new USBOutTransferResult(#,#)',
-      status,
-      bytesWritten);
+    '_USBOutTransferResult',
+    'new USBOutTransferResult(#,#)',
+    status,
+    bytesWritten,
+  );
   static _USBOutTransferResult _create_2(status) =>
       JS('_USBOutTransferResult', 'new USBOutTransferResult(#)', status);
 }
@@ -35824,12 +37096,13 @@ class _ElementAttributeMap extends _AttributeMap {
   @pragma('dart2js:tryInline')
   static String? _remove(Element element, String key) {
     String? value = JS(
-        // throws:null(1) is not accurate since [key] could be malformed, but
-        // [key] is checked again by `removeAttributeNS`.
-        'returns:String|Null;depends:all;effects:none;throws:null(1)',
-        '#.getAttribute(#)',
-        element,
-        key);
+      // throws:null(1) is not accurate since [key] could be malformed, but
+      // [key] is checked again by `removeAttributeNS`.
+      'returns:String|Null;depends:all;effects:none;throws:null(1)',
+      '#.getAttribute(#)',
+      element,
+      key,
+    );
     JS('', '#.removeAttribute(#)', element, key);
     return value;
   }
@@ -35874,13 +37147,14 @@ class _NamespacedAttributeMap extends _AttributeMap {
   @pragma('dart2js:tryInline')
   static String? _remove(String? namespace, Element element, String key) {
     String? value = JS(
-        // throws:null(1) is not accurate since [key] could be malformed, but
-        // [key] is checked again by `removeAttributeNS`.
-        'returns:String|Null;depends:all;effects:none;throws:null(1)',
-        '#.getAttributeNS(#, #)',
-        element,
-        namespace,
-        key);
+      // throws:null(1) is not accurate since [key] could be malformed, but
+      // [key] is checked again by `removeAttributeNS`.
+      'returns:String|Null;depends:all;effects:none;throws:null(1)',
+      '#.getAttributeNS(#, #)',
+      element,
+      namespace,
+      key,
+    );
     JS('', '#.removeAttributeNS(#, #)', element, namespace, key);
     return value;
   }
@@ -36181,8 +37455,11 @@ abstract class WindowBase implements EventTarget {
    * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
    *   from WHATWG.
    */
-  void postMessage(var message, String targetOrigin,
-      [List<MessagePort>? messagePorts]);
+  void postMessage(
+    var message,
+    String targetOrigin, [
+    List<MessagePort>? messagePorts,
+  ]);
 }
 
 abstract class LocationBase {
@@ -36381,8 +37658,8 @@ class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
   _ContentCssListRect(List<Element> elementList)
-      : _elementList = elementList,
-        super(elementList.first);
+    : _elementList = elementList,
+      super(elementList.first);
 
   /**
    * Set the height to `newHeight`.
@@ -36538,7 +37815,9 @@ abstract class CssRect implements Rectangle<num> {
    * or border values, depending on the measurement we're trying to obtain.
    */
   num _addOrSubtractToBoxModel(
-      List<String> dimensions, String augmentingMeasurement) {
+    List<String> dimensions,
+    String augmentingMeasurement,
+  ) {
     // getComputedStyle always returns pixel values (hence, computed), so we're
     // always dealing with pixels in this method.
     var styles = _element.getComputedStyle();
@@ -36549,25 +37828,28 @@ abstract class CssRect implements Rectangle<num> {
       // The border-box and default box model both exclude margin in the regular
       // height/width calculation, so add it if we want it for this measurement.
       if (augmentingMeasurement == _MARGIN) {
-        val += new Dimension.css(
-                styles.getPropertyValue('$augmentingMeasurement-$measurement'))
-            .value;
+        val +=
+            new Dimension.css(
+              styles.getPropertyValue('$augmentingMeasurement-$measurement'),
+            ).value;
       }
 
       // The border-box includes padding and border, so remove it if we want
       // just the content itself.
       if (augmentingMeasurement == _CONTENT) {
-        val -= new Dimension.css(
-                styles.getPropertyValue('${_PADDING}-$measurement'))
-            .value;
+        val -=
+            new Dimension.css(
+              styles.getPropertyValue('${_PADDING}-$measurement'),
+            ).value;
       }
 
       // At this point, we don't wan't to augment with border or margin,
       // so remove border.
       if (augmentingMeasurement != _MARGIN) {
-        val -= new Dimension.css(
-                styles.getPropertyValue('border-${measurement}-width'))
-            .value;
+        val -=
+            new Dimension.css(
+              styles.getPropertyValue('border-${measurement}-width'),
+            ).value;
       }
     }
     return val;
@@ -36689,8 +37971,10 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   final List<CssClassSetImpl> _sets;
 
   factory _MultiElementCssClassSet(Iterable<Element> elements) {
-    return new _MultiElementCssClassSet._(elements,
-        new List<CssClassSetImpl>.from(elements.map((Element e) => e.classes)));
+    return new _MultiElementCssClassSet._(
+      elements,
+      new List<CssClassSetImpl>.from(elements.map((Element e) => e.classes)),
+    );
   }
 
   _MultiElementCssClassSet._(this._elementIterable, this._sets);
@@ -36729,9 +38013,9 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * underlying toggle returns an 'is set' flag.
    */
   bool toggle(String value, [bool? shouldAdd]) => _sets.fold(
-      false,
-      (bool changed, CssClassSetImpl e) =>
-          e.toggle(value, shouldAdd) || changed);
+    false,
+    (bool changed, CssClassSetImpl e) => e.toggle(value, shouldAdd) || changed,
+  );
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -36741,7 +38025,9 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * [removeClass](http://api.jquery.com/removeClass/).
    */
   bool remove(Object? value) => _sets.fold(
-      false, (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
+    false,
+    (bool changed, CssClassSetImpl e) => e.remove(value) || changed,
+  );
 }
 
 class _ElementCssClassSet extends CssClassSetImpl {
@@ -36875,7 +38161,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static void _removeWhere(
-      Element _element, bool test(String name), bool doRemove) {
+    Element _element,
+    bool test(String name),
+    bool doRemove,
+  ) {
     DomTokenList list = _classListOf(_element);
     int i = 0;
     while (i < _classListLength(list)) {
@@ -36893,9 +38182,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
   // the DomTokenList methods.
 
   static DomTokenList _classListOf(Element e) => JS(
-      'returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
-      '#.classList',
-      e);
+    'returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
+    '#.classList',
+    e,
+  );
 
   static int _classListLength(DomTokenList list) =>
       JS('returns:JSUInt31;effects:none;depends:all;', '#.length', list);
@@ -36904,14 +38194,20 @@ class _ElementCssClassSet extends CssClassSetImpl {
       JS('returns:bool;effects:none;depends:all', '#.contains(#)', list, value);
 
   static bool _classListContainsBeforeAddOrRemove(
-          DomTokenList list, String value) =>
-      // 'throws:never' is a lie, since 'contains' will throw on an illegal
-      // token.  However, we always call this function immediately prior to
-      // add/remove/toggle with the same token.  Often the result of 'contains'
-      // is unused and the lie makes it possible for the 'contains' instruction
-      // to be removed.
-      JS('returns:bool;effects:none;depends:all;throws:null(1)',
-          '#.contains(#)', list, value);
+    DomTokenList list,
+    String value,
+  ) =>
+  // 'throws:never' is a lie, since 'contains' will throw on an illegal
+  // token.  However, we always call this function immediately prior to
+  // add/remove/toggle with the same token.  Often the result of 'contains'
+  // is unused and the lie makes it possible for the 'contains' instruction
+  // to be removed.
+  JS(
+    'returns:bool;effects:none;depends:all;throws:null(1)',
+    '#.contains(#)',
+    list,
+    value,
+  );
 
   static void _classListAdd(DomTokenList list, String value) {
     // list.add(value);
@@ -36928,7 +38224,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static bool _classListToggle2(
-      DomTokenList list, String value, bool? shouldAdd) {
+    DomTokenList list,
+    String value,
+    bool? shouldAdd,
+  ) {
     return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
   }
 }
@@ -36990,9 +38289,7 @@ class Dimension {
    * `inherit` or invalid CSS will cause this constructor to throw a
    * FormatError.
    */
-  Dimension.css(String cssValue)
-      : _unit = '',
-        _value = 0 {
+  Dimension.css(String cssValue) : _unit = '', _value = 0 {
     if (cssValue == '') cssValue = '0px';
     if (cssValue.endsWith('%')) {
       _unit = '%';
@@ -37000,8 +38297,9 @@ class Dimension {
       _unit = cssValue.substring(cssValue.length - 2);
     }
     if (cssValue.contains('.')) {
-      _value =
-          double.parse(cssValue.substring(0, cssValue.length - _unit.length));
+      _value = double.parse(
+        cssValue.substring(0, cssValue.length - _unit.length),
+      );
     } else {
       _value = int.parse(cssValue.substring(0, cssValue.length - _unit.length));
     }
@@ -37098,8 +38396,10 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture = false}) {
+  ElementStream<T> _forElementList(
+    ElementList<Element> e, {
+    bool useCapture = false,
+  }) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -37153,19 +38453,27 @@ class _EventStream<T extends Event> extends Stream<T> {
   _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
-  Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
-      this;
+  Stream<T> asBroadcastStream({
+    void onListen(StreamSubscription<T> subscription)?,
+    void onCancel(StreamSubscription<T> subscription)?,
+  }) => this;
   bool get isBroadcast => true;
 
   // TODO(9757): Inlining should be smart and inline only when inlining would
   // enable scalar replacement of an immediately allocated receiver.
   @pragma('dart2js:tryInline')
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     return new _EventStreamSubscription<T>(
-        this._target, this._eventType, onData, this._useCapture);
+      this._target,
+      this._eventType,
+      onData,
+      this._useCapture,
+    );
   }
 }
 
@@ -37181,7 +38489,7 @@ bool _matchesWithAncestors(Event event, String selector) {
 class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
     implements ElementStream<T> {
   _ElementEventStreamImpl(target, eventType, useCapture)
-      : super(target, eventType, useCapture);
+    : super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) =>
       this.where((event) => _matchesWithAncestors(event, selector)).map((e) {
@@ -37191,7 +38499,11 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
 
   StreamSubscription<T> capture(void onData(T event)) =>
       new _EventStreamSubscription<T>(
-          this._target, this._eventType, onData, true);
+        this._target,
+        this._eventType,
+        onData,
+        true,
+      );
 }
 
 /**
@@ -37205,7 +38517,10 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   final String _eventType;
 
   _ElementListEventStreamImpl(
-      this._targetList, this._eventType, this._useCapture);
+    this._targetList,
+    this._eventType,
+    this._useCapture,
+  );
 
   Stream<T> matches(String selector) =>
       this.where((event) => _matchesWithAncestors(event, selector)).map((e) {
@@ -37214,14 +38529,22 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       });
 
   // Delegate all regular Stream behavior to a wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, _useCapture));
     }
-    return pool.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return pool.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   StreamSubscription<T> capture(void onData(T event)) {
@@ -37232,10 +38555,10 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     return pool.stream.listen(onData);
   }
 
-  Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
-      this;
+  Stream<T> asBroadcastStream({
+    void onListen(StreamSubscription<T> subscription)?,
+    void onCancel(StreamSubscription<T> subscription)?,
+  }) => this;
   bool get isBroadcast => true;
 }
 
@@ -37248,13 +38571,17 @@ class _EventStreamSubscription<T extends Event>
   final bool _useCapture;
 
   _EventStreamSubscription(
-      this._target, this._eventType, void onData(T event)?, this._useCapture)
-      : _onData = onData == null
-            ? null
-            // If removed, we would need an `is` check on a function type which
-            // is ultimately more expensive.
-            // ignore: avoid_dynamic_calls
-            : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
+    this._target,
+    this._eventType,
+    void onData(T event)?,
+    this._useCapture,
+  ) : _onData =
+          onData == null
+              ? null
+              // If removed, we would need an `is` check on a function type which
+              // is ultimately more expensive.
+              // ignore: avoid_dynamic_calls
+              : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 
@@ -37276,12 +38603,13 @@ class _EventStreamSubscription<T extends Event>
     }
     // Remove current event listener.
     _unlisten();
-    _onData = handleData == null
-        ? null
-        // If removed, we would need an `is` check on a function type which is
-        // ultimately more expensive.
-        // ignore: avoid_dynamic_calls
-        : _wrapZone<Event>((e) => (handleData as dynamic)(e));
+    _onData =
+        handleData == null
+            ? null
+            // If removed, we would need an `is` check on a function type which is
+            // ultimately more expensive.
+            // ignore: avoid_dynamic_calls
+            : _wrapZone<Event>((e) => (handleData as dynamic)(e));
     _tryResume();
   }
 
@@ -37347,20 +38675,28 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   String _type;
 
   _CustomEventStreamImpl(String type)
-      : _type = type,
-        _streamController = new StreamController.broadcast(sync: true);
+    : _type = type,
+      _streamController = new StreamController.broadcast(sync: true);
 
   // Delegate all regular Stream behavior to our wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
-    return _streamController.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
+    return _streamController.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
-  Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
-      _streamController.stream;
+  Stream<T> asBroadcastStream({
+    void onListen(StreamSubscription<T> subscription)?,
+    void onCancel(StreamSubscription<T> subscription)?,
+  }) => _streamController.stream;
 
   bool get isBroadcast => true;
 
@@ -37400,8 +38736,10 @@ class _StreamPool<T> {
    * regardless of whether [stream] has any subscribers.
    */
   _StreamPool.broadcast() {
-    _controller =
-        new StreamController<T>.broadcast(sync: true, onCancel: close);
+    _controller = new StreamController<T>.broadcast(
+      sync: true,
+      onCancel: close,
+    );
   }
 
   /**
@@ -37418,8 +38756,11 @@ class _StreamPool<T> {
    */
   void add(Stream<T> stream) {
     if (_subscriptions.containsKey(stream)) return;
-    _subscriptions[stream] = stream.listen(_controller!.add,
-        onError: _controller!.addError, onDone: () => remove(stream));
+    _subscriptions[stream] = stream.listen(
+      _controller!.add,
+      onError: _controller!.addError,
+      onDone: () => remove(stream),
+    );
   }
 
   /** Removes [stream] as a member of this pool. */
@@ -37455,10 +38796,15 @@ class _CustomEventStreamProvider<T extends Event>
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture = false}) {
+  ElementStream<T> _forElementList(
+    ElementList<Element> e, {
+    bool useCapture = false,
+  }) {
     return new _ElementListEventStreamImpl<T>(
-        e, _eventTypeGetter(e), useCapture);
+      e,
+      _eventTypeGetter(e),
+      useCapture,
+    );
   }
 
   String getEventType(EventTarget target) {
@@ -37877,7 +39223,7 @@ class _Html5NodeValidator implements NodeValidator {
    * [uriPolicy] is null then a default UriPolicy will be used.
    */
   _Html5NodeValidator({UriPolicy? uriPolicy})
-      : uriPolicy = uriPolicy ?? UriPolicy() {
+    : uriPolicy = uriPolicy ?? UriPolicy() {
     if (_attributeValidators.isEmpty) {
       for (var attr in _standardAttributes) {
         _attributeValidators[attr] = _standardAttributeValidator;
@@ -37905,13 +39251,21 @@ class _Html5NodeValidator implements NodeValidator {
     return validator(element, attributeName, value, this);
   }
 
-  static bool _standardAttributeValidator(Element element, String attributeName,
-      String value, _Html5NodeValidator context) {
+  static bool _standardAttributeValidator(
+    Element element,
+    String attributeName,
+    String value,
+    _Html5NodeValidator context,
+  ) {
     return true;
   }
 
-  static bool _uriAttributeValidator(Element element, String attributeName,
-      String value, _Html5NodeValidator context) {
+  static bool _uriAttributeValidator(
+    Element element,
+    String attributeName,
+    String value,
+    _Html5NodeValidator context,
+  ) {
     return context.uriPolicy.allowsUri(value);
   }
 }
@@ -38919,14 +40273,16 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     'End': KeyCode.END,
     'PageUp': KeyCode.PAGE_UP,
     'PageDown': KeyCode.PAGE_DOWN,
-    'Insert': KeyCode.INSERT
+    'Insert': KeyCode.INSERT,
   };
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
   CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture = false}) {
-    var handler =
-        new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
+    var handler = new _KeyboardEventHandler.initializeAllEventListeners(
+      _type,
+      e,
+    );
     return handler._stream;
   }
 
@@ -38935,17 +40291,17 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(this._type)
-      : _stream = new _CustomKeyEventStreamImpl('event'),
-        _target = null,
-        super(_EVENT_TYPE);
+    : _stream = new _CustomKeyEventStreamImpl('event'),
+      _target = null,
+      super(_EVENT_TYPE);
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target)
-      : _stream = new _CustomKeyEventStreamImpl(_type),
-        super(_EVENT_TYPE) {
+    : _stream = new _CustomKeyEventStreamImpl(_type),
+      super(_EVENT_TYPE) {
     Element.keyDownEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyDown);
@@ -39399,21 +40755,33 @@ class NodeValidatorBuilder implements NodeValidator {
    * but will not allow tag extensions. Use [allowTagExtension] to allow
    * tag extensions.
    */
-  void allowCustomElement(String tagName,
-      {UriPolicy? uriPolicy,
-      Iterable<String>? attributes,
-      Iterable<String>? uriAttributes}) {
+  void allowCustomElement(
+    String tagName, {
+    UriPolicy? uriPolicy,
+    Iterable<String>? attributes,
+    Iterable<String>? uriAttributes,
+  }) {
     var tagNameUpper = tagName.toUpperCase();
-    var attrs = attributes
-        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
-    var uriAttrs = uriAttributes
-        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
+    var attrs = attributes?.map<String>(
+      (name) => '$tagNameUpper::${name.toLowerCase()}',
+    );
+    var uriAttrs = uriAttributes?.map<String>(
+      (name) => '$tagNameUpper::${name.toLowerCase()}',
+    );
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
 
-    add(new _CustomElementNodeValidator(
-        uriPolicy, [tagNameUpper], attrs, uriAttrs, false, true));
+    add(
+      new _CustomElementNodeValidator(
+        uriPolicy,
+        [tagNameUpper],
+        attrs,
+        uriAttrs,
+        false,
+        true,
+      ),
+    );
   }
 
   /**
@@ -39424,32 +40792,49 @@ class NodeValidatorBuilder implements NodeValidator {
    * but will not allow custom tags. Use [allowCustomElement] to allow
    * custom tags.
    */
-  void allowTagExtension(String tagName, String baseName,
-      {UriPolicy? uriPolicy,
-      Iterable<String>? attributes,
-      Iterable<String>? uriAttributes}) {
+  void allowTagExtension(
+    String tagName,
+    String baseName, {
+    UriPolicy? uriPolicy,
+    Iterable<String>? attributes,
+    Iterable<String>? uriAttributes,
+  }) {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
-    var attrs = attributes
-        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
-    var uriAttrs = uriAttributes
-        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
+    var attrs = attributes?.map<String>(
+      (name) => '$baseNameUpper::${name.toLowerCase()}',
+    );
+    var uriAttrs = uriAttributes?.map<String>(
+      (name) => '$baseNameUpper::${name.toLowerCase()}',
+    );
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
 
-    add(new _CustomElementNodeValidator(uriPolicy,
-        [tagNameUpper, baseNameUpper], attrs, uriAttrs, true, false));
+    add(
+      new _CustomElementNodeValidator(
+        uriPolicy,
+        [tagNameUpper, baseNameUpper],
+        attrs,
+        uriAttrs,
+        true,
+        false,
+      ),
+    );
   }
 
-  void allowElement(String tagName,
-      {UriPolicy? uriPolicy,
-      Iterable<String>? attributes,
-      Iterable<String>? uriAttributes}) {
-    allowCustomElement(tagName,
-        uriPolicy: uriPolicy,
-        attributes: attributes,
-        uriAttributes: uriAttributes);
+  void allowElement(
+    String tagName, {
+    UriPolicy? uriPolicy,
+    Iterable<String>? attributes,
+    Iterable<String>? uriAttributes,
+  }) {
+    allowCustomElement(
+      tagName,
+      uriPolicy: uriPolicy,
+      attributes: attributes,
+      uriAttributes: uriAttributes,
+    );
   }
 
   /**
@@ -39478,8 +40863,9 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    return _validators
-        .any((v) => v.allowsAttribute(element, attributeName, value));
+    return _validators.any(
+      (v) => v.allowsAttribute(element, attributeName, value),
+    );
   }
 }
 
@@ -39490,70 +40876,73 @@ class _SimpleNodeValidator implements NodeValidator {
   final UriPolicy? uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
-    return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
-      'A',
-      'FORM'
-    ], allowedAttributes: const [
-      'A::accesskey',
-      'A::coords',
-      'A::hreflang',
-      'A::name',
-      'A::shape',
-      'A::tabindex',
-      'A::target',
-      'A::type',
-      'FORM::accept',
-      'FORM::autocomplete',
-      'FORM::enctype',
-      'FORM::method',
-      'FORM::name',
-      'FORM::novalidate',
-      'FORM::target',
-    ], allowedUriAttributes: const [
-      'A::href',
-      'FORM::action',
-    ]);
+    return new _SimpleNodeValidator(
+      uriPolicy,
+      allowedElements: const ['A', 'FORM'],
+      allowedAttributes: const [
+        'A::accesskey',
+        'A::coords',
+        'A::hreflang',
+        'A::name',
+        'A::shape',
+        'A::tabindex',
+        'A::target',
+        'A::type',
+        'FORM::accept',
+        'FORM::autocomplete',
+        'FORM::enctype',
+        'FORM::method',
+        'FORM::name',
+        'FORM::novalidate',
+        'FORM::target',
+      ],
+      allowedUriAttributes: const ['A::href', 'FORM::action'],
+    );
   }
 
   factory _SimpleNodeValidator.allowImages(UriPolicy uriPolicy) {
-    return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
-      'IMG'
-    ], allowedAttributes: const [
-      'IMG::align',
-      'IMG::alt',
-      'IMG::border',
-      'IMG::height',
-      'IMG::hspace',
-      'IMG::ismap',
-      'IMG::name',
-      'IMG::usemap',
-      'IMG::vspace',
-      'IMG::width',
-    ], allowedUriAttributes: const [
-      'IMG::src',
-    ]);
+    return new _SimpleNodeValidator(
+      uriPolicy,
+      allowedElements: const ['IMG'],
+      allowedAttributes: const [
+        'IMG::align',
+        'IMG::alt',
+        'IMG::border',
+        'IMG::height',
+        'IMG::hspace',
+        'IMG::ismap',
+        'IMG::name',
+        'IMG::usemap',
+        'IMG::vspace',
+        'IMG::width',
+      ],
+      allowedUriAttributes: const ['IMG::src'],
+    );
   }
 
   factory _SimpleNodeValidator.allowTextElements() {
-    return new _SimpleNodeValidator(null, allowedElements: const [
-      'B',
-      'BLOCKQUOTE',
-      'BR',
-      'EM',
-      'H1',
-      'H2',
-      'H3',
-      'H4',
-      'H5',
-      'H6',
-      'HR',
-      'I',
-      'LI',
-      'OL',
-      'P',
-      'SPAN',
-      'UL',
-    ]);
+    return new _SimpleNodeValidator(
+      null,
+      allowedElements: const [
+        'B',
+        'BLOCKQUOTE',
+        'BR',
+        'EM',
+        'H1',
+        'H2',
+        'H3',
+        'H4',
+        'H5',
+        'H6',
+        'HR',
+        'I',
+        'LI',
+        'OL',
+        'P',
+        'SPAN',
+        'UL',
+      ],
+    );
   }
 
   /**
@@ -39561,17 +40950,21 @@ class _SimpleNodeValidator implements NodeValidator {
    * Attributes must be uppercased tag name followed by :: followed by
    * lowercase attribute name. For example `'IMG:src'`.
    */
-  _SimpleNodeValidator(this.uriPolicy,
-      {Iterable<String>? allowedElements,
-      Iterable<String>? allowedAttributes,
-      Iterable<String>? allowedUriAttributes}) {
+  _SimpleNodeValidator(
+    this.uriPolicy, {
+    Iterable<String>? allowedElements,
+    Iterable<String>? allowedAttributes,
+    Iterable<String>? allowedUriAttributes,
+  }) {
     this.allowedElements.addAll(allowedElements ?? const []);
     allowedAttributes = allowedAttributes ?? const [];
     allowedUriAttributes = allowedUriAttributes ?? const [];
-    var legalAttributes = allowedAttributes
-        .where((x) => !_Html5NodeValidator._uriAttributes.contains(x));
-    var extraUriAttributes = allowedAttributes
-        .where((x) => _Html5NodeValidator._uriAttributes.contains(x));
+    var legalAttributes = allowedAttributes.where(
+      (x) => !_Html5NodeValidator._uriAttributes.contains(x),
+    );
+    var extraUriAttributes = allowedAttributes.where(
+      (x) => _Html5NodeValidator._uriAttributes.contains(x),
+    );
     this.allowedAttributes.addAll(legalAttributes);
     this.allowedUriAttributes.addAll(allowedUriAttributes);
     this.allowedUriAttributes.addAll(extraUriAttributes);
@@ -39605,18 +40998,20 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
   final bool allowCustomTag;
 
   _CustomElementNodeValidator(
-      UriPolicy uriPolicy,
-      Iterable<String> allowedElements,
-      Iterable<String>? allowedAttributes,
-      Iterable<String>? allowedUriAttributes,
-      bool allowTypeExtension,
-      bool allowCustomTag)
-      : this.allowTypeExtension = allowTypeExtension == true,
-        this.allowCustomTag = allowCustomTag == true,
-        super(uriPolicy,
-            allowedElements: allowedElements,
-            allowedAttributes: allowedAttributes,
-            allowedUriAttributes: allowedUriAttributes);
+    UriPolicy uriPolicy,
+    Iterable<String> allowedElements,
+    Iterable<String>? allowedAttributes,
+    Iterable<String>? allowedUriAttributes,
+    bool allowTypeExtension,
+    bool allowCustomTag,
+  ) : this.allowTypeExtension = allowTypeExtension == true,
+      this.allowCustomTag = allowCustomTag == true,
+      super(
+        uriPolicy,
+        allowedElements: allowedElements,
+        allowedAttributes: allowedAttributes,
+        allowedUriAttributes: allowedUriAttributes,
+      );
 
   bool allowsElement(Element element) {
     if (allowTypeExtension) {
@@ -39649,17 +41044,18 @@ class _TemplatingNodeValidator extends _SimpleNodeValidator {
     'if',
     'ref',
     'repeat',
-    'syntax'
+    'syntax',
   ];
 
   final Set<String> _templateAttrs;
 
   _TemplatingNodeValidator()
-      : _templateAttrs = new Set<String>.from(_TEMPLATE_ATTRS),
-        super(null,
-            allowedElements: ['TEMPLATE'],
-            allowedAttributes:
-                _TEMPLATE_ATTRS.map((attr) => 'TEMPLATE::$attr')) {}
+    : _templateAttrs = new Set<String>.from(_TEMPLATE_ATTRS),
+      super(
+        null,
+        allowedElements: ['TEMPLATE'],
+        allowedAttributes: _TEMPLATE_ATTRS.map((attr) => 'TEMPLATE::$attr'),
+      ) {}
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (super.allowsAttribute(element, attributeName, value)) {
@@ -39829,7 +41225,10 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
 class _HttpRequestUtils {
   // Helper for factory HttpRequest.get
   static HttpRequest get(
-      String url, onComplete(HttpRequest request), bool withCredentials) {
+    String url,
+    onComplete(HttpRequest request),
+    bool withCredentials,
+  ) {
     final request = new HttpRequest();
     request.open('GET', url, async: true);
 
@@ -39858,9 +41257,9 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   T? _current;
 
   FixedSizeListIterator(List<T> array)
-      : _array = array,
-        _position = -1,
-        _length = array.length;
+    : _array = array,
+      _position = -1,
+      _length = array.length;
 
   bool moveNext() {
     int nextPosition = _position + 1;
@@ -39883,9 +41282,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
   int _position;
   T? _current;
 
-  _VariableSizeListIterator(List<T> array)
-      : _array = array,
-        _position = -1;
+  _VariableSizeListIterator(List<T> array) : _array = array, _position = -1;
 
   bool moveNext() {
     int nextPosition = _position + 1;
@@ -39920,9 +41317,10 @@ class Console {
   // allow for more.
 
   // We rename assert to assertCondition here.
-  void assertCondition([bool? condition, Object? arg]) => _isConsoleDefined
-      ? JS('void', 'window.console.assert(#, #)', condition, arg)
-      : null;
+  void assertCondition([bool? condition, Object? arg]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.assert(#, #)', condition, arg)
+          : null;
 
   // clear no longer takes in an argument, but we keep this as optional to
   // maintain backwards compatibility.
@@ -39934,16 +41332,18 @@ class Console {
   void count([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.count(#)', arg) : null;
 
-  void countReset([String? arg]) => _isConsoleDefined
-      ? JS('void', 'window.console.countReset(#)', arg)
-      : null;
+  void countReset([String? arg]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.countReset(#)', arg)
+          : null;
 
   void debug(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.debug(#)', arg) : null;
 
-  void dir([Object? item, Object? options]) => _isConsoleDefined
-      ? JS('void', 'window.console.dir(#, #)', item, options)
-      : null;
+  void dir([Object? item, Object? options]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.dir(#, #)', item, options)
+          : null;
 
   void dirxml(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.dirxml(#)', arg) : null;
@@ -39954,9 +41354,10 @@ class Console {
   void group(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.group(#)', arg) : null;
 
-  void groupCollapsed(Object? arg) => _isConsoleDefined
-      ? JS('void', 'window.console.groupCollapsed(#)', arg)
-      : null;
+  void groupCollapsed(Object? arg) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.groupCollapsed(#)', arg)
+          : null;
 
   void groupEnd() =>
       _isConsoleDefined ? JS('void', 'window.console.groupEnd()') : null;
@@ -39978,9 +41379,10 @@ class Console {
   void timeEnd([String? label]) =>
       _isConsoleDefined ? JS('void', 'window.console.timeEnd(#)', label) : null;
 
-  void timeLog([String? label, Object? arg]) => _isConsoleDefined
-      ? JS('void', 'window.console.timeLog(#, #)', label, arg)
-      : null;
+  void timeLog([String? label, Object? arg]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.timeLog(#, #)', label, arg)
+          : null;
 
   void trace(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.trace(#)', arg) : null;
@@ -39992,18 +41394,20 @@ class Console {
   void profile([String? title]) =>
       _isConsoleDefined ? JS('void', 'window.console.profile(#)', title) : null;
 
-  void profileEnd([String? title]) => _isConsoleDefined
-      ? JS('void', 'window.console.profileEnd(#)', title)
-      : null;
+  void profileEnd([String? title]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.profileEnd(#)', title)
+          : null;
 
   void timeStamp([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.timeStamp(#)', arg) : null;
 
   // The following is deprecated and should be removed once we drop support for
   // older Safari browsers.
-  void markTimeline(Object? arg) => _isConsoleDefined
-      ? JS('void', 'window.console.markTimeline(#)', arg)
-      : null;
+  void markTimeline(Object? arg) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.markTimeline(#)', arg)
+          : null;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40063,11 +41467,17 @@ _convertNativeToDart_XHR_Response(o) {
 /// of template elements (used heavily in Polymer 1.0) on IE11 when using the
 /// webcomponents-lite.js polyfill.
 void _checkExtendsNativeClassOrTemplate(
-    Element element, String extendsTag, String baseClassName) {
+  Element element,
+  String extendsTag,
+  String baseClassName,
+) {
   if (!JS('bool', '(# instanceof window[#])', element, baseClassName) &&
       !((extendsTag == 'template' &&
-          JS('bool', '(# instanceof window["HTMLUnknownElement"])',
-              element)))) {
+          JS(
+            'bool',
+            '(# instanceof window["HTMLUnknownElement"])',
+            element,
+          )))) {
     throw new UnsupportedError('extendsTag does not match base native class');
   }
 }
@@ -40100,8 +41510,10 @@ class _JSElementUpgrader implements ElementUpgrader {
 
     if (extendsTag == null) {
       if (baseClassName != 'HTMLElement') {
-        throw new UnsupportedError('Class must provide extendsTag if base '
-            'native class is not HtmlElement');
+        throw new UnsupportedError(
+          'Class must provide extendsTag if base '
+          'native class is not HtmlElement',
+        );
       }
       _nativeType = HtmlElement;
     } else {
@@ -40155,7 +41567,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   HistoryBase get history =>
       _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
   LocationBase get location => _LocationCrossFrame._createSafe(
-      JS('LocationBase', '#.location', _window));
+    JS('LocationBase', '#.location', _window),
+  );
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
@@ -40172,16 +41585,22 @@ class _DOMWindowCrossFrame implements WindowBase {
 
   void postMessage(var message, String targetOrigin, [List? messagePorts]) {
     if (messagePorts == null) {
-      JS('void', '#.postMessage(#,#)', _window,
-          convertDartToNative_SerializedScriptValue(message), targetOrigin);
+      JS(
+        'void',
+        '#.postMessage(#,#)',
+        _window,
+        convertDartToNative_SerializedScriptValue(message),
+        targetOrigin,
+      );
     } else {
       JS(
-          'void',
-          '#.postMessage(#,#,#)',
-          _window,
-          convertDartToNative_SerializedScriptValue(message),
-          targetOrigin,
-          messagePorts);
+        'void',
+        '#.postMessage(#,#,#)',
+        _window,
+        convertDartToNative_SerializedScriptValue(message),
+        targetOrigin,
+        messagePorts,
+      );
     }
   }
 
@@ -40199,31 +41618,51 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  Events get on => throw new UnsupportedError(
-      'You can only attach EventListeners to your own window.');
-  // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener(String? type, EventListener? listener,
-          [bool? useCapture]) =>
+  Events get on =>
       throw new UnsupportedError(
-          'You can only attach EventListeners to your own window.');
+        'You can only attach EventListeners to your own window.',
+      );
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener? listener,
-          [bool? useCapture]) =>
+  void _addEventListener(
+    String? type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) =>
       throw new UnsupportedError(
-          'You can only attach EventListeners to your own window.');
+        'You can only attach EventListeners to your own window.',
+      );
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  bool dispatchEvent(Event event) => throw new UnsupportedError(
-      'You can only attach EventListeners to your own window.');
-  // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _removeEventListener(String? type, EventListener? listener,
-          [bool? useCapture]) =>
+  void addEventListener(
+    String type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) =>
       throw new UnsupportedError(
-          'You can only attach EventListeners to your own window.');
+        'You can only attach EventListeners to your own window.',
+      );
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void removeEventListener(String type, EventListener? listener,
-          [bool? useCapture]) =>
+  bool dispatchEvent(Event event) =>
       throw new UnsupportedError(
-          'You can only attach EventListeners to your own window.');
+        'You can only attach EventListeners to your own window.',
+      );
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void _removeEventListener(
+    String? type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) =>
+      throw new UnsupportedError(
+        'You can only attach EventListeners to your own window.',
+      );
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void removeEventListener(
+    String type,
+    EventListener? listener, [
+    bool? useCapture,
+  ]) =>
+      throw new UnsupportedError(
+        'You can only attach EventListeners to your own window.',
+      );
 }
 
 class _LocationCrossFrame implements LocationBase {
@@ -40356,11 +41795,11 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent.wrap(KeyboardEvent parent)
-      : _parent = parent,
-        _shadowAltKey = false,
-        _shadowCharCode = 0,
-        _shadowKeyCode = 0,
-        super(parent) {
+    : _parent = parent,
+      _shadowAltKey = false,
+      _shadowCharCode = 0,
+      _shadowKeyCode = 0,
+      super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -40369,18 +41808,20 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
-  factory KeyEvent(String type,
-      {Window? view,
-      bool canBubble = true,
-      bool cancelable = true,
-      int keyCode = 0,
-      int charCode = 0,
-      int location = 1,
-      bool ctrlKey = false,
-      bool altKey = false,
-      bool shiftKey = false,
-      bool metaKey = false,
-      EventTarget? currentTarget}) {
+  factory KeyEvent(
+    String type, {
+    Window? view,
+    bool canBubble = true,
+    bool cancelable = true,
+    int keyCode = 0,
+    int charCode = 0,
+    int location = 1,
+    bool ctrlKey = false,
+    bool altKey = false,
+    bool shiftKey = false,
+    bool metaKey = false,
+    EventTarget? currentTarget,
+  }) {
     if (view == null) {
       view = window;
     }
@@ -40395,29 +41836,48 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // _initKeyboardEvent to also take charCode and keyCode values to
     // initialize initKeyEvent.
 
-    eventObj = new Event.eventType('KeyboardEvent', type,
-        canBubble: canBubble, cancelable: cancelable) as KeyboardEvent;
+    eventObj =
+        new Event.eventType(
+              'KeyboardEvent',
+              type,
+              canBubble: canBubble,
+              cancelable: cancelable,
+            )
+            as KeyboardEvent;
 
     // Chromium Hack
     JS(
-        'void',
-        "Object.defineProperty(#, 'keyCode', {"
-            "  get : function() { return this.keyCodeVal; } })",
-        eventObj);
+      'void',
+      "Object.defineProperty(#, 'keyCode', {"
+          "  get : function() { return this.keyCodeVal; } })",
+      eventObj,
+    );
     JS(
-        'void',
-        "Object.defineProperty(#, 'which', {"
-            "  get : function() { return this.keyCodeVal; } })",
-        eventObj);
+      'void',
+      "Object.defineProperty(#, 'which', {"
+          "  get : function() { return this.keyCodeVal; } })",
+      eventObj,
+    );
     JS(
-        'void',
-        "Object.defineProperty(#, 'charCode', {"
-            "  get : function() { return this.charCodeVal; } })",
-        eventObj);
+      'void',
+      "Object.defineProperty(#, 'charCode', {"
+          "  get : function() { return this.charCodeVal; } })",
+      eventObj,
+    );
 
     var keyIdentifier = _convertToHexString(charCode, keyCode);
-    eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
-        keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
+    eventObj._initKeyboardEvent(
+      type,
+      canBubble,
+      cancelable,
+      view,
+      keyIdentifier,
+      location,
+      ctrlKey,
+      altKey,
+      shiftKey,
+      metaKey,
+    );
     JS('void', '#.keyCodeVal = #', eventObj, keyCode);
     JS('void', '#.charCodeVal = #', eventObj, charCode);
 
@@ -40433,9 +41893,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   // Currently known to work on all browsers but IE.
   static bool get canUseDispatchEvent => JS(
-      'bool',
-      '(typeof document.body.dispatchEvent == "function")'
-          '&& document.body.dispatchEvent.length > 0');
+    'bool',
+    '(typeof document.body.dispatchEvent == "function")'
+        '&& document.body.dispatchEvent.length > 0',
+  );
 
   /** The currently registered target for this event. */
   EventTarget? get currentTarget => _currentTarget;
@@ -40456,11 +41917,13 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   // TODO(efortuna): If KeyEvent is sufficiently successful that we want to make
   // it the default keyboard event handling, move these methods over to Element.
   /** Accessor to provide a stream of KeyEvents on the desired target. */
-  static EventStreamProvider<KeyEvent> keyDownEvent =
-      new _KeyboardEventHandler('keydown');
+  static EventStreamProvider<KeyEvent> keyDownEvent = new _KeyboardEventHandler(
+    'keydown',
+  );
   /** Accessor to provide a stream of KeyEvents on the desired target. */
-  static EventStreamProvider<KeyEvent> keyUpEvent =
-      new _KeyboardEventHandler('keyup');
+  static EventStreamProvider<KeyEvent> keyUpEvent = new _KeyboardEventHandler(
+    'keyup',
+  );
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
@@ -40483,7 +41946,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get shiftKey => _parent.shiftKey;
   WindowBase? get view => _parent.view;
   void _initUIEvent(
-      String type, bool canBubble, bool cancelable, Window? view, int detail) {
+    String type,
+    bool canBubble,
+    bool cancelable,
+    Window? view,
+    int detail,
+  ) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
 
@@ -40498,18 +41966,20 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   void _initKeyboardEvent(
-      String type,
-      bool canBubble,
-      bool cancelable,
-      Window? view,
-      String keyIdentifier,
-      int? location,
-      bool ctrlKey,
-      bool altKey,
-      bool shiftKey,
-      bool metaKey) {
+    String type,
+    bool canBubble,
+    bool cancelable,
+    Window? view,
+    String keyIdentifier,
+    int? location,
+    bool ctrlKey,
+    bool altKey,
+    bool shiftKey,
+    bool metaKey,
+  ) {
     throw new UnsupportedError(
-        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+      "Cannot initialize a KeyboardEvent from a KeyEvent.",
+    );
   }
 
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
@@ -40597,8 +42067,10 @@ class _WrappedEvent implements Event {
    */
   Element get matchingTarget {
     if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
+      throw new UnsupportedError(
+        'Cannot call matchingTarget if this Event did'
+        ' not arise as a result of event delegation.',
+      );
     }
     Element? currentTarget = this.currentTarget as Element?;
     Element? target = this.target as Element?;
@@ -40635,7 +42107,8 @@ void Function(T)? _wrapZone<T>(void Function(T)? callback) {
 }
 
 void Function(T1, T2)? _wrapBinaryZone<T1, T2>(
-    void Function(T1, T2)? callback) {
+  void Function(T1, T2)? callback,
+) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
@@ -40833,7 +42306,8 @@ class _ThrowsNodeValidator implements NodeValidator {
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
       throw new ArgumentError(
-          '${Element._safeTagName(element)}[$attributeName="$value"]');
+        '${Element._safeTagName(element)}[$attributeName="$value"]',
+      );
     }
     return true;
   }
@@ -40928,9 +42402,10 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // On IE, erratically, the hasCorruptedAttributes test can return false,
       // even though it clearly is corrupted. A separate copy of the test
       // inlining just the basic check seems to help.
-      corrupted = corruptedTest1
-          ? true
-          : Element._hasCorruptedAttributesAdditionalCheck(element);
+      corrupted =
+          corruptedTest1
+              ? true
+              : Element._hasCorruptedAttributesAdditionalCheck(element);
     } catch (e) {}
     var elementText = 'element unprintable';
     try {
@@ -40938,8 +42413,15 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     } catch (e) {}
     try {
       var elementTagName = Element._safeTagName(element);
-      _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
-          attrs, isAttr);
+      _sanitizeElement(
+        element,
+        parent,
+        corrupted,
+        elementText,
+        elementTagName,
+        attrs,
+        isAttr,
+      );
     } on ArgumentError {
       // Thrown by _ThrowsNodeValidator
       rethrow;
@@ -40953,12 +42435,20 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// Having done basic sanity checking on the element, and computed the
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
-  void _sanitizeElement(Element element, Node? parent, bool corrupted,
-      String text, String tag, Map attrs, String? isAttr) {
+  void _sanitizeElement(
+    Element element,
+    Node? parent,
+    bool corrupted,
+    String text,
+    String tag,
+    Map attrs,
+    String? isAttr,
+  ) {
     if (false != corrupted) {
       _removeNode(element, parent);
-      window.console
-          .warn('Removing element due to corrupted attributes on <$text>');
+      window.console.warn(
+        'Removing element due to corrupted attributes on <$text>',
+      );
       return;
     }
     if (!validator.allowsElement(element)) {
@@ -40970,8 +42460,10 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     if (isAttr != null) {
       if (!validator.allowsAttribute(element, 'is', isAttr)) {
         _removeNode(element, parent);
-        window.console.warn('Removing disallowed type extension '
-            '<$tag is="$isAttr">');
+        window.console.warn(
+          'Removing disallowed type extension '
+          '<$tag is="$isAttr">',
+        );
         return;
       }
     }
@@ -40982,13 +42474,16 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     for (var i = attrs.length - 1; i >= 0; --i) {
       var name = keys[i];
       if (!validator.allowsAttribute(
-          element,
-          // Don't remove dynamic calls in sanitizing code.
-          // ignore: avoid_dynamic_calls
-          name.toLowerCase(),
-          attrs[name])) {
-        window.console.warn('Removing disallowed attribute '
-            '<$tag $name="${attrs[name]}">');
+        element,
+        // Don't remove dynamic calls in sanitizing code.
+        // ignore: avoid_dynamic_calls
+        name.toLowerCase(),
+        attrs[name],
+      )) {
+        window.console.warn(
+          'Removing disallowed attribute '
+          '<$tag $name="${attrs[name]}">',
+        );
         attrs.remove(name);
       }
     }

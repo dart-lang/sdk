@@ -71,8 +71,9 @@ void doClosureCallback(Object callback) {
   callback_as_function();
 }
 
-final closureCallbackPointer =
-    Pointer.fromFunction<Void Function(Handle)>(doClosureCallback);
+final closureCallbackPointer = Pointer.fromFunction<Void Function(Handle)>(
+  doClosureCallback,
+);
 
 void testClosureCallback() {
   print("testClosureCallback $closureCallbackPointer");
@@ -90,8 +91,9 @@ Object returnHandleCallback() {
   return someObject;
 }
 
-final returnHandleCallbackPointer =
-    Pointer.fromFunction<Handle Function()>(returnHandleCallback);
+final returnHandleCallbackPointer = Pointer.fromFunction<Handle Function()>(
+  returnHandleCallback,
+);
 
 void testReturnHandleInCallback() {
   print("testReturnHandleInCallback");
@@ -123,8 +125,9 @@ Object exceptionHandleCallback() {
   throw someException;
 }
 
-final exceptionHandleCallbackPointer =
-    Pointer.fromFunction<Handle Function()>(exceptionHandleCallback);
+final exceptionHandleCallbackPointer = Pointer.fromFunction<Handle Function()>(
+  exceptionHandleCallback,
+);
 
 void testCallbackReturnException() {
   print("testCallbackReturnException");
@@ -147,8 +150,9 @@ Object callCAgainFromCallback() {
   return someObject;
 }
 
-final callCAgainFromCallbackPointer =
-    Pointer.fromFunction<Handle Function()>(callCAgainFromCallback);
+final callCAgainFromCallbackPointer = Pointer.fromFunction<Handle Function()>(
+  callCAgainFromCallback,
+);
 
 void testDeepException() {
   print("testDeepException");
@@ -163,8 +167,9 @@ Object callCAgainFromCallback2() {
   return someObject;
 }
 
-final callCAgainFromCallbackPointer2 =
-    Pointer.fromFunction<Handle Function()>(callCAgainFromCallback2);
+final callCAgainFromCallbackPointer2 = Pointer.fromFunction<Handle Function()>(
+  callCAgainFromCallback2,
+);
 
 void testDeepException2() {
   print("testDeepException2");
@@ -176,8 +181,9 @@ Object? returnNullHandleCallback() {
   return null;
 }
 
-final returnNullHandleCallbackPointer =
-    Pointer.fromFunction<Handle Function()>(returnNullHandleCallback);
+final returnNullHandleCallbackPointer = Pointer.fromFunction<Handle Function()>(
+  returnNullHandleCallback,
+);
 
 void testNull() {
   print("testNull");
@@ -198,14 +204,18 @@ Object recurseAbove0(int i) {
     print("returning");
     return someObject;
   }
-  final result =
-      handleRecursion(SomeClassWithMethod(), recurseAbove0Pointer, i - 1);
+  final result = handleRecursion(
+    SomeClassWithMethod(),
+    recurseAbove0Pointer,
+    i - 1,
+  );
   print("return $i");
   return result;
 }
 
-final recurseAbove0Pointer =
-    Pointer.fromFunction<Handle Function(Int64)>(recurseAbove0);
+final recurseAbove0Pointer = Pointer.fromFunction<Handle Function(Int64)>(
+  recurseAbove0,
+);
 
 class SomeClassWithMethod {
   // We use this method in the native api, don't tree shake it.
@@ -261,38 +271,44 @@ void testThrowOnReturnOfError() {
 
 final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
-final passObjectToC = testLibrary.lookupFunction<Handle Function(Handle),
-    Object? Function(Object?)>("PassObjectToC");
+final passObjectToC = testLibrary
+    .lookupFunction<Handle Function(Handle), Object? Function(Object?)>(
+      "PassObjectToC",
+    );
 
-final handleReadFieldValue =
-    testLibrary.lookupFunction<Int64 Function(Handle), int Function(Object)>(
-        "HandleReadFieldValue");
+final handleReadFieldValue = testLibrary
+    .lookupFunction<Int64 Function(Handle), int Function(Object)>(
+      "HandleReadFieldValue",
+    );
 
 final trueHandle = testLibrary
     .lookupFunction<Handle Function(), Object Function()>("TrueHandle");
 
 final closureCallbackThroughHandle = testLibrary.lookupFunction<
-    Void Function(Pointer<NativeFunction<Void Function(Handle)>>, Handle),
-    void Function(Pointer<NativeFunction<Void Function(Handle)>>,
-        Object)>("ClosureCallbackThroughHandle");
+  Void Function(Pointer<NativeFunction<Void Function(Handle)>>, Handle),
+  void Function(Pointer<NativeFunction<Void Function(Handle)>>, Object)
+>("ClosureCallbackThroughHandle");
 
 final returnHandleInCallback = testLibrary.lookupFunction<
-    Handle Function(Pointer<NativeFunction<Handle Function()>>),
-    Object Function(
-        Pointer<NativeFunction<Handle Function()>>)>("ReturnHandleInCallback");
+  Handle Function(Pointer<NativeFunction<Handle Function()>>),
+  Object Function(Pointer<NativeFunction<Handle Function()>>)
+>("ReturnHandleInCallback");
 
 final handleRecursion = testLibrary.lookupFunction<
-    Handle Function(
-        Handle, Pointer<NativeFunction<Handle Function(Int64)>>, Int64),
-    Object Function(Object, Pointer<NativeFunction<Handle Function(Int64)>>,
-        int)>("HandleRecursion");
+  Handle Function(
+    Handle,
+    Pointer<NativeFunction<Handle Function(Int64)>>,
+    Int64,
+  ),
+  Object Function(Object, Pointer<NativeFunction<Handle Function(Int64)>>, int)
+>("HandleRecursion");
 
 final propagateErrorWithoutHandle = testLibrary.lookupFunction<
-        Int64 Function(Pointer<NativeFunction<Handle Function()>>),
-        int Function(Pointer<NativeFunction<Handle Function()>>)>(
-    "PropagateErrorWithoutHandle");
+  Int64 Function(Pointer<NativeFunction<Handle Function()>>),
+  int Function(Pointer<NativeFunction<Handle Function()>>)
+>("PropagateErrorWithoutHandle");
 
 final autoPropagateErrorInHandle = testLibrary.lookupFunction<
-    Handle Function(Pointer<NativeFunction<Handle Function()>>),
-    Object Function(
-        Pointer<NativeFunction<Handle Function()>>)>("ThrowOnReturnOfError");
+  Handle Function(Pointer<NativeFunction<Handle Function()>>),
+  Object Function(Pointer<NativeFunction<Handle Function()>>)
+>("ThrowOnReturnOfError");

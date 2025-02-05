@@ -29,9 +29,10 @@ class Utf8Decode extends BenchmarkBase {
 
   static String _makeName(String language, int size, bool allowMalformed) {
     String name = 'Utf8Decode.$language.';
-    name += size >= 1000000
-        ? '${size ~/ 1000000}M'
-        : size >= 1000
+    name +=
+        size >= 1000000
+            ? '${size ~/ 1000000}M'
+            : size >= 1000
             ? '${size ~/ 1000}k'
             : '$size';
     if (allowMalformed) name += '.malformed';
@@ -39,7 +40,7 @@ class Utf8Decode extends BenchmarkBase {
   }
 
   Utf8Decode(this.language, this.text, this.size, this.allowMalformed)
-      : super(_makeName(language, size, allowMalformed));
+    : super(_makeName(language, size, allowMalformed));
 
   @override
   void setup() {
@@ -112,14 +113,7 @@ class Utf8Decode extends BenchmarkBase {
 }
 
 void main(List<String> args) {
-  const texts = {
-    'en': en,
-    'da': da,
-    'sk': sk,
-    'ru': ru,
-    'ne': ne,
-    'zh': zh,
-  };
+  const texts = {'en': en, 'da': da, 'sk': sk, 'ru': ru, 'ne': ne, 'zh': zh};
   final bool testMalformed =
       args != null && args.isNotEmpty && args.first == 'malformed';
   final benchmarks = [
@@ -127,7 +121,7 @@ void main(List<String> args) {
     for (bool allowMalformed in [false, if (testMalformed) true])
       for (int size in [10, 10000, 10000000])
         for (String language in texts.keys)
-          () => Utf8Decode(language, texts[language], size, allowMalformed)
+          () => Utf8Decode(language, texts[language], size, allowMalformed),
   ];
 
   for (var bm in benchmarks) {

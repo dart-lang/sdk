@@ -30,7 +30,11 @@ FlowGraphSerializer::FlowGraphSerializer(NonStreamingWriteStream* stream)
       zone_(Thread::Current()->zone()),
       thread_(Thread::Current()),
       isolate_group_(IsolateGroup::Current()),
-      heap_(IsolateGroup::Current()->heap()) {}
+      heap_(IsolateGroup::Current()->heap()) {
+  // We want to preserve the identity of these, even though they are not const.
+  AddBaseObject(Object::uninitialized_index());
+  AddBaseObject(Object::uninitialized_data());
+}
 
 FlowGraphSerializer::~FlowGraphSerializer() {
   heap_->ResetObjectIdTable();
@@ -43,7 +47,11 @@ FlowGraphDeserializer::FlowGraphDeserializer(
       stream_(stream),
       zone_(Thread::Current()->zone()),
       thread_(Thread::Current()),
-      isolate_group_(IsolateGroup::Current()) {}
+      isolate_group_(IsolateGroup::Current()) {
+  // We want to preserve the identity of these, even though they are not const.
+  AddBaseObject(Object::uninitialized_index());
+  AddBaseObject(Object::uninitialized_data());
+}
 
 ClassPtr FlowGraphDeserializer::GetClassById(classid_t id) const {
   return isolate_group()->class_table()->At(id);
@@ -157,7 +165,8 @@ BlockEntryInstr* FlowGraphDeserializer::ReadRefTrait<BlockEntryInstr*>::ReadRef(
   V(IndirectEntry, IndirectEntryInstr)                                         \
   V(JoinEntry, JoinEntryInstr)                                                 \
   V(OsrEntry, OsrEntryInstr)                                                   \
-  V(TargetEntry, TargetEntryInstr)
+  V(TargetEntry, TargetEntryInstr)                                             \
+  V(TryEntry, TryEntryInstr)
 
 #define SERIALIZABLE_AS_BLOCK_ENTRY(name, type)                                \
   template <>                                                                  \
@@ -219,11 +228,11 @@ bool FlowGraphDeserializer::ReadTrait<bool>::Read(FlowGraphDeserializer* d) {
 }
 
 void BranchInstr::WriteExtra(FlowGraphSerializer* s) {
-  // Branch reuses inputs from its embedded Comparison.
+  // Branch reuses inputs from its embedded Condition.
   // Instruction::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
   s->WriteRef<TargetEntryInstr*>(true_successor_);
   s->WriteRef<TargetEntryInstr*>(false_successor_);
   s->WriteRef<TargetEntryInstr*>(constant_target_);
@@ -231,9 +240,9 @@ void BranchInstr::WriteExtra(FlowGraphSerializer* s) {
 
 void BranchInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
   true_successor_ = d->ReadRef<TargetEntryInstr*>();
   false_successor_ = d->ReadRef<TargetEntryInstr*>();
@@ -318,6 +327,18 @@ CallTargets::CallTargets(FlowGraphDeserializer* d) : Cids(d->zone()) {
   }
 }
 
+void TryEntryInstr::WriteExtra(FlowGraphSerializer* s) {
+  JoinEntryInstr::WriteExtra(s);
+  s->WriteRef<JoinEntryInstr*>(try_body_);
+  s->WriteRef<CatchBlockEntryInstr*>(catch_target_);
+}
+
+void TryEntryInstr::ReadExtra(FlowGraphDeserializer* d) {
+  JoinEntryInstr::ReadExtra(d);
+  try_body_ = d->ReadRef<JoinEntryInstr*>();
+  catch_target_ = d->ReadRef<CatchBlockEntryInstr*>();
+}
+
 void CatchBlockEntryInstr::WriteTo(FlowGraphSerializer* s) {
   BlockEntryWithInitialDefs::WriteTo(s);
   s->Write<const Array&>(catch_handler_types_);
@@ -328,7 +349,6 @@ void CatchBlockEntryInstr::WriteTo(FlowGraphSerializer* s) {
 
 CatchBlockEntryInstr::CatchBlockEntryInstr(FlowGraphDeserializer* d)
     : BlockEntryWithInitialDefs(d),
-      graph_entry_(d->graph_entry()),
       predecessor_(nullptr),
       catch_handler_types_(d->Read<const Array&>()),
       catch_try_index_(d->Read<intptr_t>()),
@@ -359,18 +379,18 @@ const char* FlowGraphDeserializer::ReadTrait<const char*>::Read(
 }
 
 void CheckConditionInstr::WriteExtra(FlowGraphSerializer* s) {
-  // CheckCondition reuses inputs from its embedded Comparison.
+  // CheckCondition reuses inputs from its embedded Condition.
   // Instruction::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
 }
 
 void CheckConditionInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
 }
 
@@ -658,7 +678,6 @@ void FlowGraphSerializer::WriteFlowGraph(
 
   Write<intptr_t>(flow_graph.current_ssa_temp_index());
   Write<intptr_t>(flow_graph.max_block_id());
-  Write<intptr_t>(flow_graph.inlining_id());
   Write<const Array&>(flow_graph.coverage_array());
 
   PrologueInfo prologue_info = flow_graph.prologue_info();
@@ -694,27 +713,26 @@ void FlowGraphSerializer::WriteFlowGraph(
     WriteRef<BlockEntryInstr*>(optimized_block_order[i]);
   }
 
-  const auto* captured_parameters = flow_graph.captured_parameters();
-  if (captured_parameters->IsEmpty()) {
-    Write<bool>(false);
-  } else {
-    Write<bool>(true);
-    // Captured parameters are rare so write their bit numbers
-    // instead of writing BitVector.
-    GrowableArray<intptr_t> indices(Z, 0);
-    for (intptr_t i = 0, n = captured_parameters->length(); i < n; ++i) {
-      if (captured_parameters->Contains(i)) {
-        indices.Add(i);
-      }
-    }
-    Write<GrowableArray<intptr_t>>(indices);
+  Write<intptr_t>(flow_graph.inlining_id());
+
+  const InliningInfo& inlining_info = flow_graph.inlining_info();
+  Write<intptr_t>(inlining_info.inline_id_to_function.length());
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.caller_inline_id.length());
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.inline_id_to_token_pos.length() + 1);
+
+  for (intptr_t i = 1, n = inlining_info.inline_id_to_function.length(); i < n;
+       ++i) {
+    Write<const Function&>(*(inlining_info.inline_id_to_function[i]));
+    Write<intptr_t>(inlining_info.caller_inline_id[i]);
+    Write<TokenPosition>(inlining_info.inline_id_to_token_pos[i - 1]);
   }
 }
 
 FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   const intptr_t current_ssa_temp_index = Read<intptr_t>();
   const intptr_t max_block_id = Read<intptr_t>();
-  const intptr_t inlining_id = Read<intptr_t>();
   const Array& coverage_array = Read<const Array&>();
   const PrologueInfo prologue_info(Read<intptr_t>(), Read<intptr_t>());
 
@@ -750,7 +768,6 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   flow_graph->set_current_ssa_temp_index(current_ssa_temp_index);
   flow_graph->CreateCommonConstants();
   flow_graph->disallow_licm();
-  flow_graph->set_inlining_id(inlining_id);
   flow_graph->set_coverage_array(coverage_array);
 
   {
@@ -764,11 +781,17 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
     }
   }
 
-  if (Read<bool>()) {
-    GrowableArray<intptr_t> indices = Read<GrowableArray<intptr_t>>();
-    for (intptr_t i : indices) {
-      flow_graph->captured_parameters()->Add(i);
-    }
+  flow_graph->set_inlining_id(Read<intptr_t>());
+
+  auto& inlining_info = flow_graph->inlining_info();
+  const intptr_t inlining_info_len = Read<intptr_t>();
+  ASSERT(inlining_info.inline_id_to_function.length() == 1);
+  ASSERT(inlining_info.caller_inline_id.length() == 1);
+  ASSERT(inlining_info.inline_id_to_token_pos.length() == 0);
+  for (intptr_t i = 1; i < inlining_info_len; ++i) {
+    inlining_info.inline_id_to_function.Add(&Read<const Function&>());
+    inlining_info.caller_inline_id.Add(Read<intptr_t>());
+    inlining_info.inline_id_to_token_pos.Add(Read<TokenPosition>());
   }
 
   return flow_graph;
@@ -965,7 +988,6 @@ void GraphEntryInstr::WriteExtra(FlowGraphSerializer* s) {
   s->WriteRef<FunctionEntryInstr*>(normal_entry_);
   s->WriteRef<FunctionEntryInstr*>(unchecked_entry_);
   s->WriteRef<OsrEntryInstr*>(osr_entry_);
-  s->WriteGrowableArrayOfRefs<CatchBlockEntryInstr*>(catch_entries_);
   s->WriteGrowableArrayOfRefs<IndirectEntryInstr*>(indirect_entries_);
 }
 
@@ -974,7 +996,6 @@ void GraphEntryInstr::ReadExtra(FlowGraphDeserializer* d) {
   normal_entry_ = d->ReadRef<FunctionEntryInstr*>();
   unchecked_entry_ = d->ReadRef<FunctionEntryInstr*>();
   osr_entry_ = d->ReadRef<OsrEntryInstr*>();
-  catch_entries_ = d->ReadGrowableArrayOfRefs<CatchBlockEntryInstr*>();
   indirect_entries_ = d->ReadGrowableArrayOfRefs<IndirectEntryInstr*>();
 }
 
@@ -1017,18 +1038,18 @@ const ICData* FlowGraphDeserializer::ReadTrait<const ICData*>::Read(
 }
 
 void IfThenElseInstr::WriteExtra(FlowGraphSerializer* s) {
-  // IfThenElse reuses inputs from its embedded Comparison.
+  // IfThenElse reuses inputs from its embedded Condition.
   // Definition::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
 }
 
 void IfThenElseInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
 }
 
@@ -1121,7 +1142,7 @@ void Instruction::ReadExtraWithoutInputs(FlowGraphDeserializer* d) {
 }
 
 #define INSTRUCTIONS_SERIALIZABLE_AS_INSTRUCTION(V)                            \
-  V(Comparison, ComparisonInstr)                                               \
+  V(Condition, ConditionInstr)                                                 \
   V(Constant, ConstantInstr)                                                   \
   V(Definition, Definition)                                                    \
   V(ParallelMove, ParallelMoveInstr)                                           \
@@ -1377,6 +1398,11 @@ void MoveOperands::Write(FlowGraphSerializer* s) const {
 MoveOperands::MoveOperands(FlowGraphDeserializer* d)
     : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
+void FlowGraphSerializer::AddBaseObject(const Object& x) {
+  const intptr_t object_index = object_counter_++;
+  heap()->SetObjectId(x.ptr(), object_index + 1);
+}
+
 template <>
 void FlowGraphSerializer::WriteTrait<const Object&>::Write(
     FlowGraphSerializer* s,
@@ -1395,6 +1421,12 @@ void FlowGraphSerializer::WriteTrait<const Object&>::Write(
   s->heap()->SetObjectId(x.ptr(), object_index + 1);
   s->Write<intptr_t>(cid);
   s->WriteObjectImpl(x, cid, object_index);
+}
+
+void FlowGraphDeserializer::AddBaseObject(const Object& x) {
+  const intptr_t object_index = object_counter_;
+  object_counter_++;
+  SetObjectAt(object_index, x);
 }
 
 template <>
@@ -1567,6 +1599,18 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kDoubleCid:
       ASSERT(x.IsCanonical());
       Write<double>(Double::Cast(x).value());
+      break;
+    case kFloat32x4Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Float32x4::Cast(x).value());
+      break;
+    case kFloat64x2Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Float64x2::Cast(x).value());
+      break;
+    case kInt32x4Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Int32x4::Cast(x).value());
       break;
     case kFieldCid: {
       const auto& field = Field::Cast(x);
@@ -1845,6 +1889,24 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
     }
     case kDoubleCid:
       return Double::ZoneHandle(Z, Double::NewCanonical(Read<double>()));
+    case kFloat32x4Cid: {
+      auto& simd_value =
+          Float32x4::ZoneHandle(Z, Float32x4::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
+    case kFloat64x2Cid: {
+      auto& simd_value =
+          Float64x2::ZoneHandle(Z, Float64x2::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
+    case kInt32x4Cid: {
+      auto& simd_value =
+          Int32x4::ZoneHandle(Z, Int32x4::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
     case kFieldCid: {
       const classid_t owner_class_id = Read<classid_t>();
       const intptr_t field_index = Read<intptr_t>();
@@ -2259,6 +2321,21 @@ Representation FlowGraphDeserializer::ReadTrait<Representation>::Read(
 }
 
 template <>
+void FlowGraphSerializer::WriteTrait<simd128_value_t>::Write(
+    FlowGraphSerializer* s,
+    simd128_value_t x) {
+  s->stream()->WriteBytes(&x, sizeof(simd128_value_t));
+}
+
+template <>
+simd128_value_t FlowGraphDeserializer::ReadTrait<simd128_value_t>::Read(
+    FlowGraphDeserializer* d) {
+  simd128_value_t value;
+  d->stream()->ReadBytes(&value, sizeof(simd128_value_t));
+  return value;
+}
+
+template <>
 void FlowGraphSerializer::WriteTrait<const Slot&>::Write(FlowGraphSerializer* s,
                                                          const Slot& x) {
   x.Write(s);
@@ -2557,22 +2634,6 @@ template <>
 uint64_t FlowGraphDeserializer::ReadTrait<uint64_t>::Read(
     FlowGraphDeserializer* d) {
   return static_cast<uint64_t>(d->stream()->Read<int64_t>());
-}
-
-void UnboxedConstantInstr::WriteTo(FlowGraphSerializer* s) {
-  ConstantInstr::WriteTo(s);
-  s->Write<Representation>(representation_);
-  // constant_address_ is not written - it is restored when reading.
-}
-
-UnboxedConstantInstr::UnboxedConstantInstr(FlowGraphDeserializer* d)
-    : ConstantInstr(d),
-      representation_(d->Read<Representation>()),
-      constant_address_(0) {
-  if (representation_ == kUnboxedDouble) {
-    ASSERT(value().IsDouble());
-    constant_address_ = FindDoubleConstant(Double::Cast(value()).value());
-  }
 }
 
 template <>

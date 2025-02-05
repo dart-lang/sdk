@@ -29,8 +29,10 @@ test:
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Label name must not be empty.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'Label name must not be empty.',
+    );
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());

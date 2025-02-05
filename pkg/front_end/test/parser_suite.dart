@@ -29,8 +29,8 @@ import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'fasta/suite_utils.dart';
-import 'fasta/testing/environment_keys.dart';
+import 'utils/suite_utils.dart';
+import 'testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
 import 'testing_utils.dart' show checkEnvironment;
@@ -54,8 +54,7 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     displayName: "parser suite",
     configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
     EnvironmentKeys.updateExpectations,
     EnvironmentKeys.trace,
@@ -68,34 +67,20 @@ Future<Context> createContext(
   bool trace = environment[EnvironmentKeys.trace] == "true";
   bool annotateLines = environment[EnvironmentKeys.annotateLines] == "true";
 
-  return new Context(suite.name, updateExpectations, trace, annotateLines);
+  return new Future.value(
+      new Context(suite.name, updateExpectations, trace, annotateLines));
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-    enableExtensionMethods: true,
-    enableNonNullable: true,
-    forAugmentationLibrary: false);
-
-ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
-    enableTripleShift: true,
-    enableExtensionMethods: true,
-    enableNonNullable: false,
-    forAugmentationLibrary: false);
+    enableTripleShift: true, forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationNonTripleShift =
     new ScannerConfiguration(
-        enableTripleShift: false,
-        enableExtensionMethods: true,
-        enableNonNullable: true,
-        forAugmentationLibrary: false);
+        enableTripleShift: false, forAugmentationLibrary: false);
 
 ScannerConfiguration scannerConfigurationAugmentation =
     new ScannerConfiguration(
-        enableTripleShift: true,
-        enableExtensionMethods: true,
-        enableNonNullable: true,
-        forAugmentationLibrary: true);
+        enableTripleShift: true, forAugmentationLibrary: true);
 
 class Context extends ChainContext with MatchContext {
   @override
@@ -405,8 +390,8 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   ScannerConfiguration config;
 
   String firstDir = shortName.split("/")[0];
-  if (firstDir == "non-nnbd") {
-    config = scannerConfigurationNonNNBD;
+  if (firstDir == "also-nnbd") {
+    config = scannerConfigurationNonTripleShift;
   } else if (firstDir == "no-triple-shift") {
     config = scannerConfigurationNonTripleShift;
   } else if (firstDir == "augmentation") {

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -45,23 +45,26 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
   @override
   List<CommandParameter> get parameters => [
-        SaveUriCommandParameter(
-          parameterLabel: 'Move to:',
-          parameterTitle: 'Select a file to move to',
-          actionLabel: 'Move',
-          // defaultValue is a String URI.
-          defaultValue: refactoringContext.server.pathContext
+    SaveUriCommandParameter(
+      parameterLabel: 'Move to:',
+      parameterTitle: 'Select a file to move to',
+      actionLabel: 'Move',
+      // defaultValue is a String URI.
+      defaultValue:
+          refactoringContext.server.pathContext
               .toUri(defaultFilePath)
               .toString(),
-          filters: {
-            'Dart': ['dart']
-          },
-        ),
-      ];
+      filters: {
+        'Dart': ['dart'],
+      },
+    ),
+  ];
 
   @override
   Future<ComputeStatus> compute(
-      List<Object?> commandArguments, ChangeBuilder builder) async {
+    List<Object?> commandArguments,
+    ChangeBuilder builder,
+  ) async {
     var members = _membersToMove();
     if (members == null) {
       return ComputeStatusFailure();
@@ -74,13 +77,15 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var destinationUri = Uri.parse(commandArguments[0] as String);
     var destinationFilePath = pathContext.fromUri(destinationUri);
 
-    var destinationImportUri =
-        unitResult.session.uriConverter.pathToUri(destinationFilePath);
+    var destinationImportUri = unitResult.session.uriConverter.pathToUri(
+      destinationFilePath,
+    );
     if (destinationImportUri == null) {
       return ComputeStatusFailure();
     }
-    var destinationFile =
-        unitResult.session.resourceProvider.getFile(destinationFilePath);
+    var destinationFile = unitResult.session.resourceProvider.getFile(
+      destinationFilePath,
+    );
     var destinationExists = destinationFile.exists;
     var insertOffset = 0;
     var insertLeadingNewline = false;
@@ -100,10 +105,13 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
 
     var lineInfo = unitResult.lineInfo;
-    var ranges = members.groups
-        .map((group) =>
-            group.sourceRange(lineInfo, includePreceedingLine: false))
-        .toList();
+    var ranges =
+        members.groups
+            .map(
+              (group) =>
+                  group.sourceRange(lineInfo, includePreceedingLine: false),
+            )
+            .toList();
     var analyzer = ImportAnalyzer(libraryResult, sourcePath, ranges);
 
     await builder.addDartFileEdit(destinationFilePath, (builder) {
@@ -118,8 +126,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
         }
         for (var i = 0; i < members.groups.length; i++) {
           var group = members.groups[i];
-          var sourceRange =
-              group.sourceRange(lineInfo, includePreceedingLine: i > 0);
+          var sourceRange = group.sourceRange(
+            lineInfo,
+            includePreceedingLine: i > 0,
+          );
           builder.write(utils.getRangeText(sourceRange));
         }
       });
@@ -133,33 +143,40 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.importLibrary(destinationImportUri);
       }
       for (var group in members.groups) {
-        var sourceRange =
-            group.sourceRange(lineInfo, includePreceedingLine: true);
+        var sourceRange = group.sourceRange(
+          lineInfo,
+          includePreceedingLine: true,
+        );
         builder.addDeletion(sourceRange);
       }
     });
-    var libraries = <LibraryElement, Set<Element>>{};
-    for (var element in analyzer.movingDeclarations) {
+    var libraries = <LibraryElement2, Set<Element2>>{};
+    for (var element2 in analyzer.movingDeclarations) {
+      var element = element2;
       var matches = await searchEngine.searchReferences(element);
       for (var match in matches) {
         if (match.isResolved) {
-          libraries.putIfAbsent(match.libraryElement, () => {}).add(element);
+          libraries.putIfAbsent(match.libraryElement2, () => {}).add(element2);
         }
       }
     }
 
     /// Don't update the library from which the code is being moved because
     /// that's already been done.
-    libraries.remove(libraryResult.element);
+    libraries.remove(libraryResult.element2);
     for (var entry in libraries.entries) {
       var library = entry.key;
       var prefixes = <String>{};
       for (var element in entry.value) {
-        var prefixList =
-            await searchEngine.searchPrefixesUsedInLibrary(library, element);
+        var prefixList = await searchEngine.searchPrefixesUsedInLibrary(
+          library,
+          element,
+        );
         prefixes.addAll(prefixList);
       }
-      await builder.addDartFileEdit(library.source.fullName, (builder) {
+      await builder.addDartFileEdit(library.firstFragment.source.fullName, (
+        builder,
+      ) {
         for (var prefix in prefixes) {
           builder.importLibrary(destinationImportUri, prefix: prefix);
         }
@@ -185,21 +202,23 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// to which the code is being moved based on the information in the import
   /// [analyzer].
   void _addImportsForMovingDeclarations(
-      DartFileEditBuilder builder, ImportAnalyzer analyzer) {
+    DartFileEditBuilder builder,
+    ImportAnalyzer analyzer,
+  ) {
     for (var entry in analyzer.movingReferences.entries) {
       var element = entry.key;
       var imports = entry.value;
       for (var import in imports) {
-        var library = import.importedLibrary;
+        var library = import.importedLibrary2;
         if (library == null || library.isDartCore) {
           continue;
         }
         var hasShowCombinator =
             import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
         builder.importLibrary(
-          library.source.uri,
-          prefix: import.prefix?.element.name,
-          showName: element.name,
+          library.uri,
+          prefix: import.prefix2?.element.name3,
+          showName: element.name3,
           useShow: hasShowCombinator,
         );
       }
@@ -212,8 +231,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
     title = members.title;
     var sourcePath = members.containingFile;
     var context = unitResult.session.resourceProvider.pathContext;
-    defaultFilePath =
-        context.join(context.dirname(sourcePath), members.defaultFileName);
+    defaultFilePath = context.join(
+      context.dirname(sourcePath),
+      members.defaultFileName,
+    );
   }
 
   /// Return a description of the member to be moved.
@@ -262,10 +283,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
     var index = _SealedSubclassIndex(
       unitResult.unit,
-      candidateElements: candidateMembers.keys
-          .map((member) => member.declaredElement)
-          .nonNulls
-          .toSet(),
+      candidateElements:
+          candidateMembers.keys
+              .map((member) => member.declaredFragment?.element)
+              .nonNulls
+              .toSet(),
     );
 
     if (index.hasInvalidCandidateSet) {
@@ -273,8 +295,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
 
     // Include any direct subclasses of any sealed candidate.
-    for (var sub in index
-        .findSubclassesOfSealedRecursively(candidateMembers.keys.toSet())) {
+    for (var sub in index.findSubclassesOfSealedRecursively(
+      candidateMembers.keys.toSet(),
+    )) {
       candidateMembers[sub] ??=
           sub is NamedCompilationUnitMember ? sub.name.lexeme : null;
     }
@@ -285,14 +308,17 @@ class MoveTopLevelToFile extends RefactoringProducer {
     // Technically we could allow this is moving to another part of the same
     // library but at this point we don't know the destination.
     if (_otherPartsContainDirectSubclassesOfSealedCandidates(
-        candidateMembers.keys)) {
+      candidateMembers.keys,
+    )) {
       return null;
     }
 
     return _MembersToMove(unitPath, [
-      _MemberGroup(candidateMembers.entries
-          .map((entry) => _Member(entry.key, entry.value))
-          .toList())
+      _MemberGroup(
+        candidateMembers.entries
+            .map((entry) => _Member(entry.key, entry.value))
+            .toList(),
+      ),
     ]);
   }
 
@@ -308,8 +334,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         .expand((unit) => unit.unit.declarations)
         .expand((declaration) => declaration.sealedSuperclassElements)
         // Check if any of them are in the source file.
-        .map((element) => element.enclosingElement3)
-        .contains(unitResult.unit.declaredElement);
+        .map((element) => element.enclosingElement2)
+        .contains(unitResult.unit.declaredFragment?.element);
   }
 
   /// Return a list containing the top-level declarations that are selected, or
@@ -375,8 +401,10 @@ class _MemberGroup {
   }
 
   /// Return the source range that includes all of the members in this group.
-  SourceRange sourceRange(LineInfo lineInfo,
-      {required bool includePreceedingLine}) {
+  SourceRange sourceRange(
+    LineInfo lineInfo, {
+    required bool includePreceedingLine,
+  }) {
     var firstMember = members.first.member;
     var start = firstMember.offset;
     if (includePreceedingLine) {
@@ -414,8 +442,7 @@ class _MembersToMove {
   /// The members to be moved, in groups of contiguous members.
   final List<_MemberGroup> groups;
 
-  /// Initialize a newly created instance representing the [member] with the
-  /// given [name].
+  /// Initialize a newly created instance representing [groups].
   _MembersToMove(this.containingFile, this.groups);
 
   /// Return the name that should be used for the file to which the members will
@@ -459,10 +486,10 @@ class _SealedSubclassIndex {
   final CompilationUnit unit;
 
   /// The set of initial candidate elements.
-  final Set<Element> candidateElements;
+  final Set<Element2> candidateElements;
 
   /// A map of sealed named classes/mixin elements to a set of their subclasses.
-  final Map<Element, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
+  final Map<Element2, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
 
   /// Whether or not the candidate set is invalid.
   ///
@@ -476,10 +503,7 @@ class _SealedSubclassIndex {
   /// may be incomplete.
   bool hasInvalidCandidateSet = false;
 
-  _SealedSubclassIndex(
-    this.unit, {
-    required this.candidateElements,
-  }) {
+  _SealedSubclassIndex(this.unit, {required this.candidateElements}) {
     var isCandidate = candidateElements.contains;
 
     // Index the declaration against each of its direct superclasses.
@@ -491,7 +515,7 @@ class _SealedSubclassIndex {
 
         // If this declaration is a candidate but it's sealed super is not,
         // we have an invalid selection.
-        if (isCandidate(declaration.declaredElement) &&
+        if (isCandidate(declaration.declaredFragment?.element) &&
             !isCandidate(superElement)) {
           hasInvalidCandidateSet = true;
           return;
@@ -506,22 +530,25 @@ class _SealedSubclassIndex {
   /// If any subclass is itself sealed, recursively includes it's direct
   /// subclasses.
   Set<CompilationUnitMember> findSubclassesOfSealedRecursively(
-      Set<CompilationUnitMember> members) {
+    Set<CompilationUnitMember> members,
+  ) {
     return {
       ...members,
-      ...members.whereType<NamedCompilationUnitMember>().expand((member) =>
-          findSubclassesOfSealedRecursively(
-              sealedTypeSubclasses[member.declaredElement] ?? const {})),
+      ...members.whereType<NamedCompilationUnitMember>().expand(
+        (member) => findSubclassesOfSealedRecursively(
+          sealedTypeSubclasses[member.declaredFragment?.element] ?? const {},
+        ),
+      ),
     };
   }
 }
 
 extension on CompilationUnitMember {
-  /// Gets all sealed [ClassElement]s that are superclasses of this member.
-  Iterable<ClassElement> get sealedSuperclassElements {
+  /// Gets all sealed [ClassElement2]s that are superclasses of this member.
+  Iterable<ClassElement2> get sealedSuperclassElements {
     return superclasses
-        .map((type) => type?.element)
-        .whereType<ClassElement>()
+        .map((type) => type?.element2)
+        .whereType<ClassElement2>()
         .where((element) => element.isSealed);
   }
 
@@ -543,10 +570,7 @@ extension on CompilationUnitMember {
       var interfaceTypes = declaration.implementsClause?.interfaces;
       var constraintTypes = declaration.onClause?.superclassConstraints;
 
-      return [
-        ...?interfaceTypes,
-        ...?constraintTypes,
-      ];
+      return [...?interfaceTypes, ...?constraintTypes];
     }
 
     return const [];

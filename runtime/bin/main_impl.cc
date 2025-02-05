@@ -568,7 +568,11 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
           wait_for_dds_to_advertise_service, serve_devtools,
-          Options::enable_observatory(), Options::print_dtd())) {
+          Options::enable_observatory(), Options::print_dtd(),
+          Options::resident(),
+          Options::resident_compiler_info_file_path() != nullptr
+              ? Options::resident_compiler_info_file_path()
+              : Options::resident_server_info_file_path())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return nullptr;
   }
@@ -1292,10 +1296,22 @@ void main(int argc, char** argv) {
             script_name);
         Platform::Exit(kErrorExitCode);
       }
+      if (app_snapshot->IsJIT() && Dart_IsPrecompiledRuntime()) {
+        Syslog::PrintErr(
+            "%s is a JIT snapshot, it cannot be run with 'dartaotruntime'\n",
+            script_name);
+        Platform::Exit(kErrorExitCode);
+      }
       vm_run_app_snapshot = true;
       app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
                                &app_isolate_snapshot_data,
                                &app_isolate_snapshot_instructions);
+    } else if (app_snapshot == nullptr && Dart_IsPrecompiledRuntime()) {
+      Syslog::PrintErr(
+          "%s is not an AOT snapshot,"
+          " it cannot be run with 'dartaotruntime'\n",
+          script_name);
+      Platform::Exit(kErrorExitCode);
     }
   };
 
@@ -1430,6 +1446,16 @@ void main(int argc, char** argv) {
     Syslog::PrintErr(
         "Snapshot generation should be done using the 'dart compile' "
         "command.\n");
+    Platform::Exit(kErrorExitCode);
+  }
+
+  if (!ran_dart_dev &&
+      (Options::resident() ||
+       Options::resident_compiler_info_file_path() != nullptr ||
+       Options::resident_server_info_file_path() != nullptr)) {
+    Syslog::PrintErr(
+        "Passing the `--resident` flag to `dart` is invalid. It must be passed "
+        "to `dart run`.\n");
     Platform::Exit(kErrorExitCode);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

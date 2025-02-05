@@ -55,26 +55,56 @@ main() {
 
     expectInvocation("$name:", invocation, new Invocation.method(#name, null));
     expectInvocation(
-        "$name:", invocation, new Invocation.method(#name, [], null));
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [], null),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.method(#name, [], {}));
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [], {}),
+    );
 
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, [], []));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], []),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, [], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [], [], null));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], null),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, [], [], {}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [], null),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, null, []));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [], {}),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, null, null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [], {}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, []),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [], {}),
+    );
   }
   {
     var name = ".name(a)";
@@ -93,18 +123,36 @@ main() {
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
     expectInvocation(
-        "$name:", invocation, new Invocation.method(#name, [argument], null));
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [argument], null),
+    );
     expectInvocation(
-        "$name:", invocation, new Invocation.method(#name, [argument], {}));
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [argument], {}),
+    );
 
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [], [argument], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [], [argument], {}));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [argument], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [argument], {}));
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [argument], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [argument], {}),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [argument], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [argument], {}),
+    );
   }
   {
     var name = ".name(a,b)";
@@ -118,32 +166,56 @@ main() {
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals([], invocation.typeArguments, "$name:types");
     Expect.listEquals(
-        [argument, argument2], invocation.positionalArguments, "$name:pos");
+      [argument, argument2],
+      invocation.positionalArguments,
+      "$name:pos",
+    );
     Expect.mapEquals({}, invocation.namedArguments, "$name: named");
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
-    expectInvocation("$name:", invocation,
-        new Invocation.method(#name, [argument, argument2], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.method(#name, [argument, argument2], {}));
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [argument, argument2], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.method(#name, [argument, argument2], {}),
+    );
 
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [], [argument, argument2], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [], [argument, argument2], {}));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [argument, argument2], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, null, [argument, argument2], {}));
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [argument, argument2], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [], [argument, argument2], {}),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [argument, argument2], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [argument, argument2], {}),
+    );
   }
   {
     var name = ".name(a,b:)";
     var argument = new Object();
     var argument2 = new Object();
-    var invocation =
-        new Invocation.method(#name, [argument], {#arg: argument2});
+    var invocation = new Invocation.method(
+      #name,
+      [argument],
+      {#arg: argument2},
+    );
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
@@ -152,23 +224,28 @@ main() {
     Expect.listEquals([], invocation.typeArguments, "$name:types");
     Expect.listEquals([argument], invocation.positionalArguments, "$name:pos");
     Expect.mapEquals(
-        {#arg: argument2}, invocation.namedArguments, "$name: named");
+      {#arg: argument2},
+      invocation.namedArguments,
+      "$name: named",
+    );
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
     expectInvocation(
-        "$name:",
-        invocation,
-        new Invocation.genericMethod(
-            #name, null, [argument], {#arg: argument2}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [argument], {#arg: argument2}),
+    );
   }
   {
     var name = ".name(a:,b:)";
     var argument = new Object();
     var argument2 = new Object();
-    var invocation =
-        new Invocation.method(#name, [], {#arg: argument, #arg2: argument2});
+    var invocation = new Invocation.method(#name, [], {
+      #arg: argument,
+      #arg2: argument2,
+    });
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
@@ -176,24 +253,36 @@ main() {
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals([], invocation.typeArguments, "$name:types");
     Expect.listEquals([], invocation.positionalArguments, "$name:pos");
-    Expect.mapEquals({#arg: argument, #arg2: argument2},
-        invocation.namedArguments, "$name: named");
+    Expect.mapEquals(
+      {#arg: argument, #arg2: argument2},
+      invocation.namedArguments,
+      "$name: named",
+    );
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
-    expectInvocation("$name:", invocation,
-        new Invocation.method(#name, null, {#arg: argument, #arg2: argument2}));
     expectInvocation(
-        "$name:",
-        invocation,
-        new Invocation.genericMethod(
-            #name, null, [], {#arg: argument, #arg2: argument2}));
+      "$name:",
+      invocation,
+      new Invocation.method(#name, null, {#arg: argument, #arg2: argument2}),
+    );
     expectInvocation(
-        "$name:",
-        invocation,
-        new Invocation.genericMethod(
-            #name, null, null, {#arg: argument, #arg2: argument2}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, [], {
+        #arg: argument,
+        #arg2: argument2,
+      }),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, null, null, {
+        #arg: argument,
+        #arg2: argument2,
+      }),
+    );
   }
   {
     var name = ".name<i>()";
@@ -211,15 +300,30 @@ main() {
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
     expectInvocation(
-        "$name:", invocation, new Invocation.genericMethod(#name, [int], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], [], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], null, null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], [], {}));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], null, {}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], null, null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [], {}),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], null, {}),
+    );
   }
   {
     var name = ".name<i>(a)";
@@ -237,17 +341,26 @@ main() {
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], [argument], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], [argument], {}));
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [argument], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [argument], {}),
+    );
   }
   {
     var name = ".name<i>(a,b)";
     var argument = new Object();
     var argument2 = new Object();
-    var invocation =
-        new Invocation.genericMethod(#name, [int], [argument, argument2]);
+    var invocation = new Invocation.genericMethod(
+      #name,
+      [int],
+      [argument, argument2],
+    );
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
@@ -255,26 +368,33 @@ main() {
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals([int], invocation.typeArguments, "$name:types");
     Expect.listEquals(
-        [argument, argument2], invocation.positionalArguments, "$name:pos");
+      [argument, argument2],
+      invocation.positionalArguments,
+      "$name:pos",
+    );
     Expect.mapEquals({}, invocation.namedArguments, "$name: named");
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
     expectInvocation(
-        "$name:",
-        invocation,
-        new Invocation.genericMethod(
-            #name, [int], [argument, argument2], null));
-    expectInvocation("$name:", invocation,
-        new Invocation.genericMethod(#name, [int], [argument, argument2], {}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [argument, argument2], null),
+    );
+    expectInvocation(
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(#name, [int], [argument, argument2], {}),
+    );
   }
   {
     var name = ".name<i>(a,b:)";
     var argument = new Object();
     var argument2 = new Object();
-    var invocation = new Invocation.genericMethod(
-        #name, [int], [argument], {#arg: argument2});
+    var invocation = new Invocation.genericMethod(#name, [int], [argument], {
+      #arg: argument2,
+    });
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
@@ -283,7 +403,10 @@ main() {
     Expect.listEquals([int], invocation.typeArguments, "$name:types");
     Expect.listEquals([argument], invocation.positionalArguments, "$name:pos");
     Expect.mapEquals(
-        {#arg: argument2}, invocation.namedArguments, "$name: named");
+      {#arg: argument2},
+      invocation.namedArguments,
+      "$name: named",
+    );
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
@@ -293,7 +416,11 @@ main() {
     var argument = new Object();
     var argument2 = new Object();
     var invocation = new Invocation.genericMethod(
-        #name, [int], [], {#arg: argument, #arg2: argument2});
+      #name,
+      [int],
+      [],
+      {#arg: argument, #arg2: argument2},
+    );
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
@@ -301,17 +428,25 @@ main() {
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals([int], invocation.typeArguments, "$name:types");
     Expect.listEquals([], invocation.positionalArguments, "$name:pos");
-    Expect.mapEquals({#arg: argument, #arg2: argument2},
-        invocation.namedArguments, "$name: named");
+    Expect.mapEquals(
+      {#arg: argument, #arg2: argument2},
+      invocation.namedArguments,
+      "$name: named",
+    );
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
 
     expectInvocation(
-        "$name:",
-        invocation,
-        new Invocation.genericMethod(
-            #name, [int], null, {#arg: argument, #arg2: argument2}));
+      "$name:",
+      invocation,
+      new Invocation.genericMethod(
+        #name,
+        [int],
+        null,
+        {#arg: argument, #arg2: argument2},
+      ),
+    );
   }
   {
     // Many arguments.
@@ -320,22 +455,32 @@ main() {
     var argument2 = new Object();
     Type intList = new TypeHelper<List<int>>().type;
     var invocation = new Invocation.genericMethod(
-        #name,
-        [int, double, intList],
-        [argument, argument2, null, argument],
-        {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument});
+      #name,
+      [int, double, intList],
+      [argument, argument2, null, argument],
+      {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument},
+    );
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
     Expect.isTrue(invocation.isMethod, "$name:isMethod");
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals(
-        [int, double, intList], invocation.typeArguments, "$name:types");
-    Expect.listEquals([argument, argument2, null, argument],
-        invocation.positionalArguments, "$name:pos");
-    Expect.mapEquals(
-        {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument},
-        invocation.namedArguments);
+      [int, double, intList],
+      invocation.typeArguments,
+      "$name:types",
+    );
+    Expect.listEquals(
+      [argument, argument2, null, argument],
+      invocation.positionalArguments,
+      "$name:pos",
+    );
+    Expect.mapEquals({
+      #arg: argument,
+      #arg2: argument2,
+      #arg3: null,
+      #arg4: argument,
+    }, invocation.namedArguments);
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
@@ -347,22 +492,32 @@ main() {
     var argument2 = new Object();
     Type intList = new TypeHelper<List<int>>().type;
     var invocation = new Invocation.genericMethod(
-        #name,
-        [int, double, intList].where(kTrue),
-        [argument, argument2, null, argument].where(kTrue),
-        {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument});
+      #name,
+      [int, double, intList].where(kTrue),
+      [argument, argument2, null, argument].where(kTrue),
+      {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument},
+    );
     Expect.isFalse(invocation.isGetter, "$name:isGetter");
     Expect.isFalse(invocation.isSetter, "$name:isSetter");
     Expect.isFalse(invocation.isAccessor, "$name:isAccessor");
     Expect.isTrue(invocation.isMethod, "$name:isMethod");
     Expect.equals(#name, invocation.memberName, "$name:name");
     Expect.listEquals(
-        [int, double, intList], invocation.typeArguments, "$name:types");
-    Expect.listEquals([argument, argument2, null, argument],
-        invocation.positionalArguments, "$name:pos");
-    Expect.mapEquals(
-        {#arg: argument, #arg2: argument2, #arg3: null, #arg4: argument},
-        invocation.namedArguments);
+      [int, double, intList],
+      invocation.typeArguments,
+      "$name:types",
+    );
+    Expect.listEquals(
+      [argument, argument2, null, argument],
+      invocation.positionalArguments,
+      "$name:pos",
+    );
+    Expect.mapEquals({
+      #arg: argument,
+      #arg2: argument2,
+      #arg3: null,
+      #arg4: argument,
+    }, invocation.namedArguments);
     checkUnmodifiableList("$name types", invocation.typeArguments);
     checkUnmodifiableList("$name positional", invocation.positionalArguments);
     checkUnmodifiableMap("$name named", invocation.namedArguments);
@@ -371,19 +526,31 @@ main() {
 
 void checkUnmodifiableList(String name, List<Object?> list) {
   if (list.isNotEmpty) {
-    Expect.throws(() {
-      list[0] = null;
-    }, (_) => true, "$name: list not unmodifiable");
+    Expect.throws(
+      () {
+        list[0] = null;
+      },
+      (_) => true,
+      "$name: list not unmodifiable",
+    );
   }
-  Expect.throws(() {
-    list.add(null);
-  }, (_) => true, "$name: list not unmodifiable");
+  Expect.throws(
+    () {
+      list.add(null);
+    },
+    (_) => true,
+    "$name: list not unmodifiable",
+  );
 }
 
 void checkUnmodifiableMap(String name, Map<Symbol, Object?> map) {
-  Expect.throws(() {
-    map[#key] = null;
-  }, (_) => true, "$name: map not unmodifiable");
+  Expect.throws(
+    () {
+      map[#key] = null;
+    },
+    (_) => true,
+    "$name: map not unmodifiable",
+  );
 }
 
 class TypeHelper<T> {
@@ -403,7 +570,10 @@ expectInvocation(String name, Invocation expect, Invocation actual) {
   Expect.equals(expect.memberName, actual.memberName, "$name:memberName");
   Expect.listEquals(expect.typeArguments, actual.typeArguments, "$name:types");
   Expect.listEquals(
-      expect.positionalArguments, actual.positionalArguments, "$name:pos");
+    expect.positionalArguments,
+    actual.positionalArguments,
+    "$name:pos",
+  );
   Expect.mapEquals(expect.namedArguments, actual.namedArguments, "$name:named");
   checkUnmodifiableList(name, actual.typeArguments);
   checkUnmodifiableList(name, actual.positionalArguments);

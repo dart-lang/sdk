@@ -1,0 +1,52 @@
+# Converts a single toolchain definition into multple toolchains with
+# different toolchain args.
+
+# Even though these imports aren't used directly, they are required so
+# that the template works when it is called.
+import("//build/toolchain/android/android_toolchain.gni")
+import("//build/toolchain/gcc_toolchain.gni")
+if (host_os == "mac") {
+  import("//build/toolchain/mac/mac_toolchain.gni")
+}
+if (is_win) {
+  import("//build/toolchain/win/msvc_toolchain.gni")
+}
+if (is_fuchsia) {
+  import("//build/toolchain/fuchsia/fuchsia_toolchain.gni")
+}
+
+_all_toolchains = [
+  # default toolchain.
+  {
+    suffix = ""
+    toolchain_args = {
+      is_shared_library = false
+    }
+  },
+
+  # toolchain for building shared libraries.
+  {
+    suffix = "_shared"
+    toolchain_args = {
+      is_shared_library = true
+    }
+  },
+]
+
+template("toolchain_suite") {
+  assert(defined(invoker.toolchain_template),
+         "tolchain_suite() must specify a \"toolchain_template\" value")
+  _target_type = invoker.toolchain_template
+  foreach(conf, _all_toolchains) {
+    target(_target_type, "${target_name}${conf.suffix}") {
+      forward_variables_from(invoker, "*", [ "toolchain_args" ])
+
+      toolchain_args = {
+        forward_variables_from(conf.toolchain_args, "*")
+        if (defined(invoker.toolchain_args)) {
+          forward_variables_from(invoker.toolchain_args, "*")
+        }
+      }
+    }
+  }
+}

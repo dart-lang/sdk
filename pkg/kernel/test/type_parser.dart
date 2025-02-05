@@ -185,9 +185,7 @@ class DartTypeParser {
               break;
           }
           TypeParameterType typeParameterType = new TypeParameterType(
-              target,
-              nullability ??
-                  TypeParameterType.computeNullabilityFromBound(target));
+              target, nullability ?? target.computeNullabilityFromBound());
           return promotedBound == null
               ? typeParameterType
               : new IntersectionType(typeParameterType, promotedBound);
@@ -201,10 +199,7 @@ class DartTypeParser {
           }
           StructuralParameterType typeParameterType =
               new StructuralParameterType(
-                  target,
-                  nullability ??
-                      StructuralParameterType.computeNullabilityFromBound(
-                          target));
+                  target, nullability ?? target.computeNullabilityFromBound());
           return typeParameterType;
         }
         return fail("Unexpected lookup result for $name: $target");

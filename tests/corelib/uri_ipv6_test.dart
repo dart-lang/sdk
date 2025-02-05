@@ -29,8 +29,10 @@ void testValidIpv6Uri() {
   Expect.equals('fedc:ba98:7654:3210:fedc:ba98:7654:3210', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('http://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
-      uri.toString());
+  Expect.equals(
+    'http://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
+    uri.toString(),
+  );
 
   path = 'https://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:443/index.html';
   uri = Uri.parse(path);
@@ -38,8 +40,10 @@ void testValidIpv6Uri() {
   Expect.equals('fedc:ba98:7654:3210:fedc:ba98:7654:3210', uri.host);
   Expect.equals(443, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('https://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
-      uri.toString());
+  Expect.equals(
+    'https://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
+    uri.toString(),
+  );
 
   path = 'http://[1080:0:0:0:8:800:200C:417A]/index.html';
   uri = Uri.parse(path);
@@ -166,8 +170,10 @@ void testValidIpv6Uri() {
   Expect.equals('https', uri.scheme);
   Expect.equals('fe80::8eae:4c4d:fee9:8434%25rename3', uri.host);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('https://[fe80::8eae:4c4d:fee9:8434%25rename3]/index.html',
-      uri.toString());
+  Expect.equals(
+    'https://[fe80::8eae:4c4d:fee9:8434%25rename3]/index.html',
+    uri.toString(),
+  );
 
   // Test constructors with host name
   uri = Uri(scheme: 'https', host: '[ff02::5678%pvc1.3]');
@@ -201,14 +207,46 @@ void testParseIPv6Address() {
   fail('0::127.0.0.1:0');
   fail('0::127.0.0');
   pass('0::1111', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 17]);
-  pass('2010:836B:4179::836B:4179',
-      [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 131, 107, 65, 121]);
+  pass('2010:836B:4179::836B:4179', [
+    32,
+    16,
+    131,
+    107,
+    65,
+    121,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    131,
+    107,
+    65,
+    121,
+  ]);
   fail('2010:836B:4179:0000:127.0.0.1');
   fail('2010:836B:4179:0000:0000:127.0.0.1');
   fail('2010:836B:4179:0000:0000:0000::127.0.0.1');
   fail('2010:836B:4179:0000:0000:0000:0000:127.0.0.1');
-  pass('2010:836B:4179:0000:0000:0000:127.0.0.1',
-      [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
+  pass('2010:836B:4179:0000:0000:0000:127.0.0.1', [
+    32,
+    16,
+    131,
+    107,
+    65,
+    121,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    127,
+    0,
+    0,
+    1,
+  ]);
 }
 
 void testPropagateIPv6() {
@@ -223,7 +261,10 @@ void testPropagateIPv6() {
   void expectSame(Uri expected, Uri actual) {
     Expect.equals(expected, actual, "URI equality");
     Expect.equals(
-        expected.toString(), actual.toString(), "URI.toString() equality");
+      expected.toString(),
+      actual.toString(),
+      "URI.toString() equality",
+    );
   }
 
   Expect.equals("s://u:p@[::127.0.0.1]:1/p1/p2?q#f", ipv6Uri.toString());
@@ -233,50 +274,88 @@ void testPropagateIPv6() {
 
   // Using resolve to change parts of an IPv6 URI.
   expectSame(
-      Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"), ipv6Uri.resolve("#f2"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f2"),
-      ipv6Uri.resolve("?q2#f2"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p3?q2#f2"),
-      ipv6Uri.resolve("p3?q2#f2"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
-      ipv6Uri.resolve("/p3/p4?q2#f2"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
-      ipv6Uri.resolve("/p3/p4?q2#f2"));
-  expectSame(Uri.parse("s://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
-      ipv6Uri.resolve("//u2:p2@192.168.0.1:2/p3/p4?q2#f2"));
-  expectSame(Uri.parse("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
-      ipv6Uri.resolve("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"));
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"),
+    ipv6Uri.resolve("#f2"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f2"),
+    ipv6Uri.resolve("?q2#f2"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p3?q2#f2"),
+    ipv6Uri.resolve("p3?q2#f2"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
+    ipv6Uri.resolve("/p3/p4?q2#f2"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
+    ipv6Uri.resolve("/p3/p4?q2#f2"),
+  );
+  expectSame(
+    Uri.parse("s://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+    ipv6Uri.resolve("//u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+  );
+  expectSame(
+    Uri.parse("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+    ipv6Uri.resolve("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+  );
 
   // Using resolve to change parts to an IPv6 URI.
-  expectSame(Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
-      plainUri.resolve("//u:p@[::127.0.0.1]:1/p1/p2?q#f"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
-      plainUri.resolveUri(ipv6Uri));
+  expectSame(
+    Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+    plainUri.resolve("//u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+    plainUri.resolveUri(ipv6Uri),
+  );
 
   // Using replace to change non-host parts of an IPv6 URI.
-  expectSame(Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
-      ipv6Uri.replace(scheme: "s2"));
   expectSame(
-      Uri.parse("s://u:p@[::127.0.0.1]:2/p1/p2?q#f"), ipv6Uri.replace(port: 2));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q#f"),
-      ipv6Uri.replace(path: "p3/p4"));
+    Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+    ipv6Uri.replace(scheme: "s2"),
+  );
   expectSame(
-      Uri.parse("s://u:p@[::127.0.0.1]:1?q#f"), ipv6Uri.replace(path: ""));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f"),
-      ipv6Uri.replace(query: "q2"));
-  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"),
-      ipv6Uri.replace(fragment: "f2"));
+    Uri.parse("s://u:p@[::127.0.0.1]:2/p1/p2?q#f"),
+    ipv6Uri.replace(port: 2),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q#f"),
+    ipv6Uri.replace(path: "p3/p4"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1?q#f"),
+    ipv6Uri.replace(path: ""),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f"),
+    ipv6Uri.replace(query: "q2"),
+  );
+  expectSame(
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"),
+    ipv6Uri.replace(fragment: "f2"),
+  );
   // Replacing the host to or from an IPv6 address.
   expectSame(
-      Uri.parse("s://u:p@host:1/p1/p2?q#f"), ipv6Uri.replace(host: "host"));
-  expectSame(Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
-      plainUri.replace(host: "[::127.0.0.1]"));
-  expectSame(Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
-      plainUri.replace(host: "::127.0.0.1"));
+    Uri.parse("s://u:p@host:1/p1/p2?q#f"),
+    ipv6Uri.replace(host: "host"),
+  );
+  expectSame(
+    Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
+    plainUri.replace(host: "[::127.0.0.1]"),
+  );
+  expectSame(
+    Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
+    plainUri.replace(host: "::127.0.0.1"),
+  );
 
   // Removing fragment.
   expectSame(
-      Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q"), ipv6Uri.removeFragment());
+    Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q"),
+    ipv6Uri.removeFragment(),
+  );
 }
 
 void main() {

@@ -185,14 +185,22 @@ class ExhaustivenessCache<
     }
 
     StaticType staticType;
-    Type nonNullable = typeOperations.getNonNullable(type);
-    if (typeOperations.isBoolType(nonNullable)) {
+    bool extractNull = typeOperations.isNullable(type);
+    Type typeWithoutNull = type;
+    if (extractNull) {
+      // If [type] is nullable, we model the static type by creating the
+      // non-nullable equivalent and then add `Null` afterwards.
+      //
+      // For instance we model `int?` as `int|Null`.
+      typeWithoutNull = typeOperations.getNonNullable(type);
+    }
+    if (typeOperations.isBoolType(typeWithoutNull)) {
       staticType = _boolStaticType;
-    } else if (typeOperations.isRecordType(nonNullable)) {
-      staticType = new RecordStaticType(typeOperations, this, nonNullable);
+    } else if (typeOperations.isRecordType(typeWithoutNull)) {
+      staticType = new RecordStaticType(typeOperations, this, typeWithoutNull);
     } else {
       Type? futureOrTypeArgument =
-          typeOperations.getFutureOrTypeArgument(nonNullable);
+          typeOperations.getFutureOrTypeArgument(typeWithoutNull);
       if (futureOrTypeArgument != null) {
         StaticType typeArgument = getStaticType(futureOrTypeArgument);
         StaticType futureType = getStaticType(
@@ -200,34 +208,34 @@ class ExhaustivenessCache<
         bool isImplicitlyNullable =
             typeOperations.isNullable(futureOrTypeArgument);
         staticType = new FutureOrStaticType(
-            typeOperations, this, nonNullable, typeArgument, futureType,
+            typeOperations, this, typeWithoutNull, typeArgument, futureType,
             isImplicitlyNullable: isImplicitlyNullable);
       } else {
-        EnumClass? enumClass = enumOperations.getEnumClass(nonNullable);
+        EnumClass? enumClass = enumOperations.getEnumClass(typeWithoutNull);
         if (enumClass != null) {
           staticType = new EnumStaticType(
-              typeOperations, this, nonNullable, _getEnumInfo(enumClass));
+              typeOperations, this, typeWithoutNull, _getEnumInfo(enumClass));
         } else {
           Class? sealedClass =
-              _sealedClassOperations.getSealedClass(nonNullable);
+              _sealedClassOperations.getSealedClass(typeWithoutNull);
           if (sealedClass != null) {
             staticType = new SealedClassStaticType(
                 typeOperations,
                 this,
-                nonNullable,
+                typeWithoutNull,
                 this,
                 _sealedClassOperations,
                 _getSealedClassInfo(sealedClass));
           } else {
-            Type? listType = typeOperations.getListType(nonNullable);
+            Type? listType = typeOperations.getListType(typeWithoutNull);
             if (listType != null) {
               staticType =
-                  new ListTypeStaticType(typeOperations, this, nonNullable);
+                  new ListTypeStaticType(typeOperations, this, typeWithoutNull);
             } else {
               bool isImplicitlyNullable =
-                  typeOperations.isNullable(nonNullable);
+                  typeOperations.isNullable(typeWithoutNull);
               staticType = new TypeBasedStaticType(
-                  typeOperations, this, nonNullable,
+                  typeOperations, this, typeWithoutNull,
                   isImplicitlyNullable: isImplicitlyNullable);
               Type? bound = typeOperations.getTypeVariableBound(type);
               if (bound != null) {
@@ -239,7 +247,8 @@ class ExhaustivenessCache<
         }
       }
     }
-    if (typeOperations.isNullable(type)) {
+    if (extractNull) {
+      // Include the `Null` which extracted from [type] into [typeWithoutNull`.
       staticType = staticType.nullable;
     }
     return staticType;

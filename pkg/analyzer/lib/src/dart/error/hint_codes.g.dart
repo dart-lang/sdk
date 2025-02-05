@@ -7,10 +7,6 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -18,10 +14,13 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+library;
 
-class HintCode extends AnalyzerErrorCode {
+import "package:analyzer/error/error.dart";
+
+class HintCode extends ErrorCode {
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not

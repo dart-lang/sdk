@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -14,21 +15,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/constant/compute.dart';
-import 'package:analyzer/src/dart/constant/constant_verifier.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
-import 'package:analyzer/src/dart/constant/potentially_constant.dart';
-import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -38,16 +27,9 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-/// The result of attempting to evaluate an expression as a constant.
-final class LinterConstantEvaluationResult {
-  /// The value of the expression, or `null` if has [errors].
-  final DartObject? value;
-
-  /// The errors reported during the evaluation.
-  final List<AnalysisError> errors;
-
-  LinterConstantEvaluationResult._(this.value, this.errors);
-}
+/// Describes a static analysis rule, either a lint rule (which must be enabled
+/// via analysis options) or a warning rule (which is enabled by default).
+typedef AnalysisRule = LintRule;
 
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
@@ -55,6 +37,12 @@ abstract class LinterContext {
   /// The list of all compilation units that make up the library under analysis,
   /// including the defining compilation unit, all parts, and all augmentations.
   List<LintRuleUnitContext> get allUnits;
+
+  /// The compilation unit being linted.
+  ///
+  /// `null` when a unit is not currently being linted (for example when node
+  /// processors are being registered).
+  LintRuleUnitContext? get currentUnit;
 
   /// The defining compilation unit of the library under analysis.
   LintRuleUnitContext get definingUnit;
@@ -101,6 +89,9 @@ final class LinterContextWithParsedResults implements LinterContext {
   final LintRuleUnitContext definingUnit;
 
   @override
+  LintRuleUnitContext? currentUnit;
+
+  @override
   final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextWithParsedResults(this.allUnits, this.definingUnit);
@@ -142,13 +133,16 @@ final class LinterContextWithResolvedResults implements LinterContext {
   final LintRuleUnitContext definingUnit;
 
   @override
+  LintRuleUnitContext? currentUnit;
+
+  @override
   final WorkspacePackage? package;
 
   @override
   final TypeProvider typeProvider;
 
   @override
-  final TypeSystemImpl typeSystem;
+  final TypeSystem typeSystem;
 
   @override
   final InheritanceManager3 inheritanceManager;
@@ -184,37 +178,12 @@ final class LinterContextWithResolvedResults implements LinterContext {
   LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
 }
 
-class LinterOptions extends DriverOptions {
-  final Iterable<LintRule> enabledRules;
-  final String? analysisOptions;
-  LintFilter? filter;
-
-  LinterOptions({
-    Iterable<LintRule>? enabledRules,
-    this.analysisOptions,
-    this.filter,
-  }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
-}
-
-/// Filtered lints are omitted from linter output.
-abstract class LintFilter {
-  bool filter(AnalysisError lint);
-}
-
 /// Describes a lint rule.
 abstract class LintRule {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
   late ErrorReporter _reporter;
-
-  /// Description (in markdown format) suitable for display in a detailed lint
-  /// description.
-  ///
-  /// This property is deprecated and will be removed in a future release.
-  @Deprecated('Use .description for a short description and consider placing '
-      'long-form documentation on an external website.')
-  final String details;
 
   /// Short description suitable for display in console output.
   final String description;
@@ -234,11 +203,8 @@ abstract class LintRule {
     @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
-    @Deprecated("Specify 'details' for a short description and consider "
-        'placing long-form documentation on an external website.')
-    this.details = '',
-    State? state,
-  }) : state = state ?? State.stable();
+    this.state = const State.stable(),
+  });
 
   /// Indicates whether the lint rule can work with just the parsed information
   /// or if it requires a resolved unit.
@@ -271,9 +237,10 @@ abstract class LintRule {
 
   set reporter(ErrorReporter value) => _reporter = value;
 
-  /// Return a visitor to be passed to pubspecs to perform lint
+  /// Returns a visitor to be passed to pubspecs to perform lint
   /// analysis.
-  /// Lint errors are reported via this [Linter]'s error [reporter].
+  ///
+  /// Lint errors are reported via this [LintRule]'s error [reporter].
   PubspecVisitor? getPubspecVisitor() => null;
 
   /// Registers node processors in the given [registry].
@@ -360,194 +327,5 @@ class LintRuleUnitContext {
 
   /// The library fragment representing the compilation unit.
   @experimental
-  LibraryFragment get libraryFragment => unit as LibraryFragment;
-}
-
-/// An error listener that only records whether any constant related errors have
-/// been reported.
-class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
-  /// A flag indicating whether any constant related errors have been reported
-  /// to this listener.
-  bool hasConstError = false;
-
-  @override
-  void onError(AnalysisError error) {
-    ErrorCode errorCode = error.errorCode;
-    if (errorCode is CompileTimeErrorCode) {
-      switch (errorCode) {
-        case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
-        case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
-        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
-        case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
-        case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
-        case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-        case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-        case CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
-        case CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
-        case CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
-        case CompileTimeErrorCode.CONST_TYPE_PARAMETER:
-        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
-        case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-        case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
-        case CompileTimeErrorCode
-              .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
-        case CompileTimeErrorCode.INVALID_CONSTANT:
-        case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
-        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
-        case CompileTimeErrorCode.NON_BOOL_CONDITION:
-        case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
-        case CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
-        case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
-        case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
-        case CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
-        case CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
-          hasConstError = true;
-      }
-    }
-  }
-}
-
-extension on AstNode {
-  /// Whether [ConstantVerifier] reports an error when computing the value of
-  /// `this` as a constant.
-  bool get hasConstantVerifierError {
-    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return false;
-    var libraryElement = unitElement.library as LibraryElementImpl;
-
-    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    accept(dependenciesFinder);
-    computeConstants(
-      declaredVariables: unitElement.session.declaredVariables,
-      constants: dependenciesFinder.dependencies.toList(),
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var listener = _ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(listener, unitElement.source);
-
-    accept(
-      ConstantVerifier(
-        errorReporter,
-        libraryElement,
-        unitElement.session.declaredVariables,
-      ),
-    );
-    return listener.hasConstError;
-  }
-}
-
-extension ConstructorDeclarationExtension on ConstructorDeclaration {
-  bool get canBeConst {
-    var element = declaredElement!;
-
-    var classElement = element.enclosingElement3;
-    if (classElement is ClassElement && classElement.hasNonFinalField) {
-      return false;
-    }
-
-    var oldKeyword = constKeyword;
-    var self = this as ConstructorDeclarationImpl;
-    try {
-      temporaryConstConstructorElements[element] = true;
-      self.constKeyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      temporaryConstConstructorElements[element] = null;
-      self.constKeyword = oldKeyword;
-    }
-  }
-}
-
-extension ExpressionExtension on Expression {
-  /// Whether it would be valid for this expression to have a `const` keyword.
-  ///
-  /// Note that this method can cause constant evaluation to occur, which can be
-  /// computationally expensive.
-  bool get canBeConst {
-    var self = this;
-    return switch (self) {
-      InstanceCreationExpressionImpl() => _canBeConstInstanceCreation(self),
-      TypedLiteralImpl() => _canBeConstTypedLiteral(self),
-      _ => false,
-    };
-  }
-
-  /// Computes the constant value of `this`, if it has one.
-  ///
-  /// Returns a [LinterConstantEvaluationResult], containing both the computed
-  /// constant value, and a list of errors that occurred during the computation.
-  LinterConstantEvaluationResult computeConstantValue() {
-    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return LinterConstantEvaluationResult._(null, []);
-    var libraryElement = unitElement.library as LibraryElementImpl;
-
-    var errorListener = RecordingErrorListener();
-
-    var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: unitElement.session.declaredVariables,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var dependencies = <ConstantEvaluationTarget>[];
-    accept(ReferenceFinder(dependencies.add));
-
-    computeConstants(
-      declaredVariables: unitElement.session.declaredVariables,
-      constants: dependencies,
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var visitor = ConstantVisitor(
-      evaluationEngine,
-      libraryElement,
-      ErrorReporter(errorListener, unitElement.source),
-    );
-
-    var constant = visitor.evaluateAndReportInvalidConstant(this);
-    var dartObject = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult._(dartObject, errorListener.errors);
-  }
-
-  bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
-    var element = node.constructorName.staticElement;
-    if (element == null || !element.isConst) return false;
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    var implElement = element.declaration as ConstructorElementImpl;
-    implElement.computeConstantDependencies();
-
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    var oldKeyword = node.keyword;
-    try {
-      node.keyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      node.keyword = oldKeyword;
-    }
-  }
-
-  bool _canBeConstTypedLiteral(TypedLiteralImpl node) {
-    var oldKeyword = node.constKeyword;
-    try {
-      node.constKeyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      node.constKeyword = oldKeyword;
-    }
-  }
+  LibraryFragment get libraryFragment => unit.declaredFragment!;
 }

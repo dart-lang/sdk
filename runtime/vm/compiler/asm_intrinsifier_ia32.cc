@@ -1602,7 +1602,7 @@ static void TryAllocateString(Assembler* assembler,
     const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
+    __ InitializeHeader(EDI, EAX);
   }
 
   // Set the length field.

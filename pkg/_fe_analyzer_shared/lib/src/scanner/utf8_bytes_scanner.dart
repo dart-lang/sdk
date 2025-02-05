@@ -118,7 +118,7 @@ class Utf8BytesScanner extends AbstractScanner {
   bool containsBomAt(int offset) {
     const List<int> BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
 
-    return offset + 3 < _bytes.length &&
+    return offset + 2 < _bytes.length &&
         _bytes[offset] == BOM_UTF8[0] &&
         _bytes[offset + 1] == BOM_UTF8[1] &&
         _bytes[offset + 2] == BOM_UTF8[2];
@@ -251,7 +251,7 @@ class Utf8BytesScanner extends AbstractScanner {
       bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromUtf8Bytes(
         type, _bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
-        precedingComments: comments, allowLazyFoo: allowLazy);
+        precedingComments: comments, allowLazy: allowLazy);
   }
 
   @override

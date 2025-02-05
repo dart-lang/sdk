@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
@@ -11,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope defined by a block.
 class BlockScope {
@@ -179,13 +182,13 @@ class NamespaceBuilder {
 
   /// Create a namespace representing the export namespace of the given
   /// [library].
-  Namespace createExportNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> exportedNames = _getExportMapping(library);
+  Namespace createExportNamespaceForLibrary(LibraryElement2 library) {
+    Map<String, Element> exportedNames = _getExportMapping(library.asElement);
     return Namespace(exportedNames);
   }
 
   /// Create a namespace representing the import namespace of the given
-  /// [element].
+  /// [importedLibrary].
   Namespace createImportNamespaceForDirective({
     required LibraryElement importedLibrary,
     required List<NamespaceCombinator> combinators,

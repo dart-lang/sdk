@@ -17,6 +17,7 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
+    - analyzer_use_new_elements
     - flutter_style_todos
     - library_annotations
     - omit_local_variable_types

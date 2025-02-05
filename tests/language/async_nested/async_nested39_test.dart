@@ -9,18 +9,20 @@ import 'dart:async';
 
 void main() async {
   String expected = "1 2 3 4 5 6 7 8 9";
-  Node node = await new Future.value(new Node('1', [
-    new Node('2', []),
-    await new Future.value(new Node('3', [
-      new Node('4', []),
-      new Node('5', []),
-      await new Future.value(new Node('6', [
-        new Node('7', []),
-      ])),
-    ])),
-    new Node('8', []),
-    await new Future.value(new Node('9', [])),
-  ]));
+  Node node = await new Future.value(
+    new Node('1', [
+      new Node('2', []),
+      await new Future.value(
+        new Node('3', [
+          new Node('4', []),
+          new Node('5', []),
+          await new Future.value(new Node('6', [new Node('7', [])])),
+        ]),
+      ),
+      new Node('8', []),
+      await new Future.value(new Node('9', [])),
+    ]),
+  );
   String actual = node.toSimpleString();
   print(actual);
   if (actual != expected) {

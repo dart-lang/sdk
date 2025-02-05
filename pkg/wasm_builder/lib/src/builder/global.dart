@@ -10,7 +10,8 @@ class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
 
   GlobalBuilder(super.enclosingModule, super.index, super.type,
       [super.globalName])
-      : initializer = InstructionsBuilder(enclosingModule, [], [type.type]);
+      : initializer = InstructionsBuilder(enclosingModule, [], [type.type],
+            constantExpression: true);
 
   @override
   ir.DefinedGlobal forceBuild() => ir.DefinedGlobal(

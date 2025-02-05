@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*error: errors=LanguageVersionTooHigh*/
+/*error: errors=LanguageVersionTooHighExplicit*/
 // @dart = %TOO_HIGH_VERSION_MARKER%
 
 // @dart = %VERSION_MARKER1%

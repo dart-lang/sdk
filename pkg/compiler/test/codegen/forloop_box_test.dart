@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
 
 String SHOULD_NOT_BE_BOXED_TEST = r'''
@@ -42,18 +42,26 @@ main() {
 main() {
   runTests() async {
     String generated1 = await compileAll(SHOULD_NOT_BE_BOXED_TEST);
-    Expect.isTrue(generated1.contains('main_closure(i)'),
-        'for-loop variable should not have been boxed');
+    Expect.isTrue(
+      generated1.contains('main_closure(i)'),
+      'for-loop variable should not have been boxed',
+    );
 
     String generated2 = await compileAll(SHOULD_BE_BOXED_TEST);
-    Expect.isFalse(generated2.contains('main_closure(i)'),
-        'for-loop variable should have been boxed');
+    Expect.isFalse(
+      generated2.contains('main_closure(i)'),
+      'for-loop variable should have been boxed',
+    );
 
     String generated3 = await compileAll(ONLY_UPDATE_LOOP_VAR_TEST);
-    Expect.isFalse(generated3.contains('main_closure(i)'),
-        'for-loop variable should have been boxed');
-    Expect.isFalse(generated3.contains(', _box_0.b = 3,'),
-        'non for-loop captured variable should not be updated in loop');
+    Expect.isFalse(
+      generated3.contains('main_closure(i)'),
+      'for-loop variable should have been boxed',
+    );
+    Expect.isFalse(
+      generated3.contains(', _box_0.b = 3,'),
+      'non for-loop captured variable should not be updated in loop',
+    );
   }
 
   asyncTest(() async {

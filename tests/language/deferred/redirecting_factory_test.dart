@@ -4,8 +4,8 @@
 library main;
 
 import "redirecting_factory_lib1.dart" deferred as lib1;
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class C {
   String get foo => "main";
@@ -38,7 +38,7 @@ test3() async {
   Expect.equals("lib2", new C.b().foo);
 }
 
-test() async {
+Future test() async {
   await test1();
   await test2();
   await test3();

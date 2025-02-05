@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Information about an analysis context.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ContextData {
 
-  public static final ContextData[] EMPTY_ARRAY = new ContextData[0];
-
-  public static final List<ContextData> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ContextData> EMPTY_LIST = List.of();
 
   /**
    * The name of the context.
@@ -73,14 +68,13 @@ public class ContextData {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ContextData) {
-      ContextData other = (ContextData) obj;
+    if (obj instanceof ContextData other) {
       return
-        ObjectUtilities.equals(other.name, name) &&
+        Objects.equals(other.name, name) &&
         other.explicitFileCount == explicitFileCount &&
         other.implicitFileCount == implicitFileCount &&
         other.workItemQueueLength == workItemQueueLength &&
-        ObjectUtilities.equals(other.cacheEntryExceptions, cacheEntryExceptions);
+        Objects.equals(other.cacheEntryExceptions, cacheEntryExceptions);
     }
     return false;
   }
@@ -98,10 +92,9 @@ public class ContextData {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ContextData> list = new ArrayList<ContextData>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ContextData> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -143,13 +136,13 @@ public class ContextData {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(name);
-    builder.append(explicitFileCount);
-    builder.append(implicitFileCount);
-    builder.append(workItemQueueLength);
-    builder.append(cacheEntryExceptions);
-    return builder.toHashCode();
+    return Objects.hash(
+      name,
+      explicitFileCount,
+      implicitFileCount,
+      workItemQueueLength,
+      cacheEntryExceptions
+    );
   }
 
   public JsonObject toJson() {
@@ -171,15 +164,19 @@ public class ContextData {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("explicitFileCount=");
-    builder.append(explicitFileCount + ", ");
+    builder.append(explicitFileCount);
+    builder.append(", ");
     builder.append("implicitFileCount=");
-    builder.append(implicitFileCount + ", ");
+    builder.append(implicitFileCount);
+    builder.append(", ");
     builder.append("workItemQueueLength=");
-    builder.append(workItemQueueLength + ", ");
+    builder.append(workItemQueueLength);
+    builder.append(", ");
     builder.append("cacheEntryExceptions=");
-    builder.append(StringUtils.join(cacheEntryExceptions, ", "));
+    builder.append(cacheEntryExceptions.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

@@ -12,46 +12,49 @@ class FixDataGenerator extends YamlCompletionGenerator {
   /// The producer representing the known valid structure of a fix data file.
   static const MapProducer fixDataProducer = MapProducer({
     'version': EmptyProducer(),
-    'transforms': ListProducer(MapProducer({
-      'title': EmptyProducer(),
-      'date': EmptyProducer(),
-      'bulkApply': BooleanProducer(),
-      'element': _elementProducer,
-      'changes': _changesProducer,
-      'oneOf': ListProducer(MapProducer({
-        'if': EmptyProducer(),
+    'transforms': ListProducer(
+      MapProducer({
+        'title': EmptyProducer(),
+        'date': EmptyProducer(),
+        'bulkApply': BooleanProducer(),
+        'element': _elementProducer,
         'changes': _changesProducer,
-      })),
-      'variables': EmptyProducer(),
-    })),
+        'oneOf': ListProducer(
+          MapProducer({'if': EmptyProducer(), 'changes': _changesProducer}),
+        ),
+        'variables': EmptyProducer(),
+      }),
+    ),
   });
 
   /// The producer representing the known valid structure of a list of changes.
-  static const ListProducer _changesProducer = ListProducer(MapProducer({
-    // TODO(brianwilkerson): Create a way to tailor the list of additional
-    //  keys based on the kind when a kind has already been provided.
-    'kind': EnumProducer([
-      'addParameter',
-      'addTypeParameter',
-      'removeParameter',
-      'rename',
-      'renameParameter',
-      'replacedBy',
-    ]),
-    'index': EmptyProducer(),
-    'name': EmptyProducer(),
-    'style': EmptyProducer(),
-    'argumentValue': MapProducer({
-      'expression': EmptyProducer(),
-      'requiredIf': EmptyProducer(),
-      // TODO(brianwilkerson): Figure out how to support 'variables'.
-      'variables': EmptyProducer(),
+  static const ListProducer _changesProducer = ListProducer(
+    MapProducer({
+      // TODO(brianwilkerson): Create a way to tailor the list of additional
+      //  keys based on the kind when a kind has already been provided.
+      'kind': EnumProducer([
+        'addParameter',
+        'addTypeParameter',
+        'removeParameter',
+        'rename',
+        'renameParameter',
+        'replacedBy',
+      ]),
+      'index': EmptyProducer(),
+      'name': EmptyProducer(),
+      'style': EmptyProducer(),
+      'argumentValue': MapProducer({
+        'expression': EmptyProducer(),
+        'requiredIf': EmptyProducer(),
+        // TODO(brianwilkerson): Figure out how to support 'variables'.
+        'variables': EmptyProducer(),
+      }),
+      'extends': EmptyProducer(),
+      'oldName': EmptyProducer(),
+      'newName': EmptyProducer(),
+      'newElement': _elementProducer,
     }),
-    'extends': EmptyProducer(),
-    'oldName': EmptyProducer(),
-    'newName': EmptyProducer(),
-    'newElement': _elementProducer,
-  }));
+  );
 
   /// The producer representing the known valid structure of an element.
   static const MapProducer _elementProducer = MapProducer({
@@ -78,7 +81,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
 
   /// Initialize a newly created suggestion generator for fix data files.
   FixDataGenerator(ResourceProvider resourceProvider)
-      : super(resourceProvider, null);
+    : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => fixDataProducer;

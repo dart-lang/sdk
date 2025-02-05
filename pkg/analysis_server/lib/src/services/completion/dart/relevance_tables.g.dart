@@ -14,8 +14,10 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 const defaultElementKindRelevance = {
   'Annotation_name': {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.041),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.041, upper: 1.000),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.041,
+      upper: 1.000,
+    ),
   },
   'ArgumentList_annotation_named': {
     ElementKind.METHOD: ProbabilityRange(lower: 0.000, upper: 0.026),
@@ -46,8 +48,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.000, upper: 0.002),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.007, upper: 0.011),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.042, upper: 0.059),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.042,
+      upper: 0.059,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.059, upper: 0.082),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.082, upper: 0.135),
     ElementKind.FIELD: ProbabilityRange(lower: 0.135, upper: 0.192),
@@ -59,8 +63,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.001, upper: 0.004),
     ElementKind.METHOD: ProbabilityRange(lower: 0.020, upper: 0.031),
     ElementKind.ENUM: ProbabilityRange(lower: 0.049, upper: 0.070),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.070, upper: 0.095),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.070,
+      upper: 0.095,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.124, upper: 0.162),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.162, upper: 0.255),
     ElementKind.FIELD: ProbabilityRange(lower: 0.255, upper: 0.351),
@@ -75,8 +81,10 @@ const defaultElementKindRelevance = {
     ElementKind.FIELD: ProbabilityRange(lower: 0.500, upper: 1.000),
   },
   'ArgumentList_function_unnamed': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.003, upper: 0.005),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.003,
+      upper: 0.005,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.010, upper: 0.016),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.024, upper: 0.032),
     ElementKind.ENUM: ProbabilityRange(lower: 0.041, upper: 0.052),
@@ -90,8 +98,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.005),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.005, upper: 0.011),
     ElementKind.METHOD: ProbabilityRange(lower: 0.011, upper: 0.017),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.017, upper: 0.033),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.017,
+      upper: 0.033,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.033, upper: 0.055),
     ElementKind.CLASS: ProbabilityRange(lower: 0.114, upper: 0.209),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.209, upper: 0.306),
@@ -107,8 +117,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.035, upper: 0.047),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.060, upper: 0.096),
     ElementKind.CLASS: ProbabilityRange(lower: 0.096, upper: 0.138),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.138, upper: 0.188),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.138,
+      upper: 0.188,
+    ),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.188, upper: 0.279),
     ElementKind.FIELD: ProbabilityRange(lower: 0.279, upper: 0.422),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.422, upper: 0.601),
@@ -117,8 +129,10 @@ const defaultElementKindRelevance = {
   'ArgumentList_widgetConstructor_named': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.006, upper: 0.009),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.019, upper: 0.031),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.019,
+      upper: 0.031,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.047, upper: 0.066),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.066, upper: 0.093),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.138, upper: 0.187),
@@ -132,8 +146,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.008, upper: 0.012),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.018, upper: 0.029),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.029, upper: 0.040),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.040, upper: 0.057),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.040,
+      upper: 0.057,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.057, upper: 0.087),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.087, upper: 0.179),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.179, upper: 0.307),
@@ -141,8 +157,10 @@ const defaultElementKindRelevance = {
     ElementKind.CLASS: ProbabilityRange(lower: 0.555, upper: 1.000),
   },
   'AsExpression_type': {
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.000),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.000,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.001, upper: 0.002),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.002, upper: 0.012),
@@ -156,8 +174,10 @@ const defaultElementKindRelevance = {
   },
   'AssertStatement_condition': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.004),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.009, upper: 0.015),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.009,
+      upper: 0.015,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.015, upper: 0.054),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.054, upper: 0.110),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.166, upper: 0.292),
@@ -169,8 +189,10 @@ const defaultElementKindRelevance = {
   },
   'AssignmentExpression_rightHandSide': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.002),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.005, upper: 0.016),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.005,
+      upper: 0.016,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.016, upper: 0.029),
     ElementKind.METHOD: ProbabilityRange(lower: 0.029, upper: 0.043),
     ElementKind.ENUM: ProbabilityRange(lower: 0.066, upper: 0.090),
@@ -183,8 +205,10 @@ const defaultElementKindRelevance = {
   'AwaitExpression_expression': {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.009, upper: 0.019),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.019, upper: 0.046),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.046, upper: 0.083),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.046,
+      upper: 0.083,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.083, upper: 0.178),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.178, upper: 0.327),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.327, upper: 0.485),
@@ -196,8 +220,10 @@ const defaultElementKindRelevance = {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.METHOD: ProbabilityRange(lower: 0.001, upper: 0.001),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.007, upper: 0.010),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.007,
+      upper: 0.010,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.010, upper: 0.022),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.022, upper: 0.040),
     ElementKind.ENUM: ProbabilityRange(lower: 0.040, upper: 0.059),
@@ -207,8 +233,10 @@ const defaultElementKindRelevance = {
   'BinaryExpression_%_rightOperand': {
     ElementKind.ENUM: ProbabilityRange(lower: 0.000, upper: 0.012),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.012, upper: 0.035),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.035, upper: 0.094),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.035,
+      upper: 0.094,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.094, upper: 0.188),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.188, upper: 0.306),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.306, upper: 0.529),
@@ -217,8 +245,10 @@ const defaultElementKindRelevance = {
   'BinaryExpression_&&_rightOperand': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.METHOD: ProbabilityRange(lower: 0.005, upper: 0.010),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.010, upper: 0.018),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.010,
+      upper: 0.018,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.018, upper: 0.029),
     ElementKind.CLASS: ProbabilityRange(lower: 0.029, upper: 0.045),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.045, upper: 0.181),
@@ -239,8 +269,10 @@ const defaultElementKindRelevance = {
     ElementKind.CLASS: ProbabilityRange(lower: 0.018, upper: 0.041),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.041, upper: 0.081),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.081, upper: 0.136),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.136, upper: 0.214),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.136,
+      upper: 0.214,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.214, upper: 0.344),
     ElementKind.FIELD: ProbabilityRange(lower: 0.344, upper: 0.658),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.658, upper: 1.000),
@@ -251,8 +283,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.012, upper: 0.025),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.025, upper: 0.056),
     ElementKind.CLASS: ProbabilityRange(lower: 0.056, upper: 0.104),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.104, upper: 0.156),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.104,
+      upper: 0.156,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.156, upper: 0.396),
     ElementKind.FIELD: ProbabilityRange(lower: 0.396, upper: 0.655),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.655, upper: 1.000),
@@ -263,8 +297,10 @@ const defaultElementKindRelevance = {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.010, upper: 0.014),
     ElementKind.METHOD: ProbabilityRange(lower: 0.021, upper: 0.038),
     ElementKind.CLASS: ProbabilityRange(lower: 0.038, upper: 0.068),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.068, upper: 0.120),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.068,
+      upper: 0.120,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.120, upper: 0.295),
     ElementKind.FIELD: ProbabilityRange(lower: 0.295, upper: 0.619),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.619, upper: 1.000),
@@ -274,8 +310,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.006, upper: 0.017),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.017, upper: 0.042),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.042, upper: 0.075),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.042,
+      upper: 0.075,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.075, upper: 0.112),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.112, upper: 0.268),
     ElementKind.FIELD: ProbabilityRange(lower: 0.268, upper: 0.624),
@@ -288,8 +326,10 @@ const defaultElementKindRelevance = {
   },
   'BinaryExpression_<=_rightOperand': {
     ElementKind.CLASS: ProbabilityRange(lower: 0.000, upper: 0.015),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.037, upper: 0.067),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.037,
+      upper: 0.067,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.067, upper: 0.343),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.343, upper: 0.657),
     ElementKind.FIELD: ProbabilityRange(lower: 0.657, upper: 1.000),
@@ -299,8 +339,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.002, upper: 0.005),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.005, upper: 0.007),
     ElementKind.CLASS: ProbabilityRange(lower: 0.023, upper: 0.042),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.042, upper: 0.083),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.042,
+      upper: 0.083,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.083, upper: 0.284),
     ElementKind.FIELD: ProbabilityRange(lower: 0.284, upper: 0.635),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.635, upper: 1.000),
@@ -311,8 +353,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.001, upper: 0.002),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.008, upper: 0.018),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.008,
+      upper: 0.018,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.055, upper: 0.085),
     ElementKind.CLASS: ProbabilityRange(lower: 0.085, upper: 0.133),
     ElementKind.FIELD: ProbabilityRange(lower: 0.133, upper: 0.183),
@@ -322,8 +366,10 @@ const defaultElementKindRelevance = {
   'BinaryExpression_>=_rightOperand': {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.006),
     ElementKind.CLASS: ProbabilityRange(lower: 0.018, upper: 0.077),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.077, upper: 0.179),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.077,
+      upper: 0.179,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.179, upper: 0.387),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.387, upper: 0.601),
     ElementKind.FIELD: ProbabilityRange(lower: 0.601, upper: 1.000),
@@ -337,8 +383,10 @@ const defaultElementKindRelevance = {
     ElementKind.ENUM: ProbabilityRange(lower: 0.007, upper: 0.014),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.014, upper: 0.029),
     ElementKind.CLASS: ProbabilityRange(lower: 0.068, upper: 0.112),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.112, upper: 0.227),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.112,
+      upper: 0.227,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.227, upper: 0.432),
     ElementKind.FIELD: ProbabilityRange(lower: 0.432, upper: 0.687),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.687, upper: 1.000),
@@ -347,8 +395,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.METHOD: ProbabilityRange(lower: 0.002, upper: 0.009),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.017, upper: 0.027),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.027, upper: 0.042),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.027,
+      upper: 0.042,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.058, upper: 0.083),
     ElementKind.FIELD: ProbabilityRange(lower: 0.108, upper: 0.183),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.183, upper: 0.269),
@@ -368,16 +418,20 @@ const defaultElementKindRelevance = {
   'BinaryExpression_||_rightOperand': {
     ElementKind.METHOD: ProbabilityRange(lower: 0.004, upper: 0.008),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.008, upper: 0.013),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.018, upper: 0.027),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.018,
+      upper: 0.027,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.027, upper: 0.050),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.050, upper: 0.294),
     ElementKind.FIELD: ProbabilityRange(lower: 0.294, upper: 0.618),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.618, upper: 1.000),
   },
   'BinaryExpression_~/_rightOperand': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.000, upper: 0.017),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.017,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.017, upper: 0.050),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.050, upper: 0.083),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.083, upper: 0.183),
@@ -386,14 +440,18 @@ const defaultElementKindRelevance = {
   },
   'Block_statement': {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.000),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.000,
+    ),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.ENUM: ProbabilityRange(lower: 0.001, upper: 0.001),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.002, upper: 0.003),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.005, upper: 0.006),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.062, upper: 0.077),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.062,
+      upper: 0.077,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.093, upper: 0.116),
     ElementKind.METHOD: ProbabilityRange(lower: 0.171, upper: 0.221),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.221, upper: 0.282),
@@ -409,8 +467,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.001, upper: 0.002),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.002, upper: 0.004),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.002,
+      upper: 0.004,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.010, upper: 0.015),
     ElementKind.CLASS: ProbabilityRange(lower: 0.442, upper: 1.000),
   },
@@ -419,12 +479,16 @@ const defaultElementKindRelevance = {
   },
   'CommentReference_identifier': {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.002),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.002,
+    ),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.004, upper: 0.008),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.008, upper: 0.012),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.008,
+      upper: 0.012,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.012, upper: 0.025),
     ElementKind.METHOD: ProbabilityRange(lower: 0.025, upper: 0.060),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.060, upper: 0.118),
@@ -437,15 +501,19 @@ const defaultElementKindRelevance = {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.ENUM: ProbabilityRange(lower: 0.001, upper: 0.003),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.024, upper: 0.036),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.024,
+      upper: 0.036,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.205, upper: 0.342),
   },
   'ConditionalExpression_elseExpression': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.005),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.030, upper: 0.041),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.041, upper: 0.055),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.041,
+      upper: 0.055,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.071, upper: 0.096),
     ElementKind.ENUM: ProbabilityRange(lower: 0.096, upper: 0.128),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.128, upper: 0.201),
@@ -457,8 +525,10 @@ const defaultElementKindRelevance = {
   'ConditionalExpression_thenExpression': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.001, upper: 0.004),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.024, upper: 0.034),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.034, upper: 0.048),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.034,
+      upper: 0.048,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.069, upper: 0.097),
     ElementKind.ENUM: ProbabilityRange(lower: 0.097, upper: 0.132),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.132, upper: 0.198),
@@ -474,8 +544,10 @@ const defaultElementKindRelevance = {
     ElementKind.CLASS: ProbabilityRange(lower: 0.000, upper: 1.000),
   },
   'ConstructorFieldInitializer_expression': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.000, upper: 0.002),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.002,
+    ),
     ElementKind.FIELD: ProbabilityRange(lower: 0.002, upper: 0.003),
     ElementKind.METHOD: ProbabilityRange(lower: 0.005, upper: 0.010),
     ElementKind.ENUM: ProbabilityRange(lower: 0.017, upper: 0.026),
@@ -489,8 +561,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.002, upper: 0.002),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.FIELD: ProbabilityRange(lower: 0.004, upper: 0.014),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.014, upper: 0.031),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.014,
+      upper: 0.031,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.031, upper: 0.107),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.199, upper: 0.307),
     ElementKind.CLASS: ProbabilityRange(lower: 0.719, upper: 1.000),
@@ -501,16 +575,20 @@ const defaultElementKindRelevance = {
   },
   'Expression': {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.000),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.000,
+    ),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.003),
     ElementKind.ENUM: ProbabilityRange(lower: 0.003, upper: 0.029),
     ElementKind.METHOD: ProbabilityRange(lower: 0.029, upper: 0.055),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.055, upper: 0.083),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.083, upper: 0.137),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.083,
+      upper: 0.137,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.137, upper: 0.255),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.255, upper: 0.391),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.391, upper: 0.547),
@@ -522,8 +600,10 @@ const defaultElementKindRelevance = {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.ENUM: ProbabilityRange(lower: 0.004, upper: 0.005),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.027, upper: 0.034),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.045, upper: 0.061),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.045,
+      upper: 0.061,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.061, upper: 0.092),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.092, upper: 0.130),
     ElementKind.CLASS: ProbabilityRange(lower: 0.130, upper: 0.179),
@@ -537,8 +617,10 @@ const defaultElementKindRelevance = {
     ElementKind.MIXIN: ProbabilityRange(lower: 0.000, upper: 0.002),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.006, upper: 0.009),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.054, upper: 0.084),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.054,
+      upper: 0.084,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.117, upper: 0.168),
     ElementKind.CLASS: ProbabilityRange(lower: 0.218, upper: 0.284),
     ElementKind.METHOD: ProbabilityRange(lower: 0.284, upper: 0.389),
@@ -563,8 +645,10 @@ const defaultElementKindRelevance = {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.001, upper: 0.002),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.002, upper: 0.003),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.003, upper: 0.004),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.003,
+      upper: 0.004,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.004, upper: 0.011),
     ElementKind.CLASS: ProbabilityRange(lower: 0.119, upper: 0.491),
   },
@@ -574,16 +658,20 @@ const defaultElementKindRelevance = {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.005, upper: 0.009),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.009, upper: 0.016),
     ElementKind.CLASS: ProbabilityRange(lower: 0.016, upper: 0.023),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.031, upper: 0.072),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.031,
+      upper: 0.072,
+    ),
     ElementKind.FIELD: ProbabilityRange(lower: 0.072, upper: 0.283),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.283, upper: 0.602),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.602, upper: 1.000),
   },
   'ForEachPartsWithDeclaration_loopVariable': {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.001),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.001, upper: 0.003),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.001,
+      upper: 0.003,
+    ),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.003, upper: 0.004),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.004, upper: 0.006),
     ElementKind.ENUM: ProbabilityRange(lower: 0.006, upper: 0.010),
@@ -602,13 +690,17 @@ const defaultElementKindRelevance = {
   },
   'ForParts_condition': {
     ElementKind.FIELD: ProbabilityRange(lower: 0.000, upper: 0.001),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.004, upper: 0.023),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.004,
+      upper: 0.023,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.023, upper: 1.000),
   },
   'ForParts_updater': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.000, upper: 0.020),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.020,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.020, upper: 1.000),
   },
   'ForStatement_body': {
@@ -618,22 +710,28 @@ const defaultElementKindRelevance = {
   },
   'ForStatement_forLoopParts': {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.001),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.001, upper: 0.001),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.001,
+      upper: 0.001,
+    ),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.001, upper: 0.002),
     ElementKind.ENUM: ProbabilityRange(lower: 0.002, upper: 0.004),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.004, upper: 0.005),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.005, upper: 0.015),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.015, upper: 0.025),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.015,
+      upper: 0.025,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.561, upper: 1.000),
   },
   'FormalParameterList_parameter': {
     ElementKind.MIXIN: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.001, upper: 0.003),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.003, upper: 0.005),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.005, upper: 0.013),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.005,
+      upper: 0.013,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.013, upper: 0.024),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.038, upper: 0.054),
     ElementKind.CLASS: ProbabilityRange(lower: 0.360, upper: 1.000),
@@ -643,13 +741,17 @@ const defaultElementKindRelevance = {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.002),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.002, upper: 0.006),
     ElementKind.ENUM: ProbabilityRange(lower: 0.006, upper: 0.017),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.017, upper: 0.070),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.017,
+      upper: 0.070,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.354, upper: 1.000),
   },
   'GenericTypeAlias_type': {
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.020),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.020,
+    ),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.020, upper: 0.040),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.040, upper: 0.090),
     ElementKind.CLASS: ProbabilityRange(lower: 0.140, upper: 0.480),
@@ -659,8 +761,10 @@ const defaultElementKindRelevance = {
     ElementKind.CLASS: ProbabilityRange(lower: 0.059, upper: 1.000),
   },
   'IfElement_condition': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.000, upper: 0.005),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.005,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.011, upper: 0.016),
     ElementKind.CLASS: ProbabilityRange(lower: 0.016, upper: 0.035),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.035, upper: 0.223),
@@ -686,8 +790,10 @@ const defaultElementKindRelevance = {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.ENUM: ProbabilityRange(lower: 0.001, upper: 0.001),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.002, upper: 0.002),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.002, upper: 0.013),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.002,
+      upper: 0.013,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.013, upper: 0.023),
     ElementKind.CLASS: ProbabilityRange(lower: 0.023, upper: 0.041),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.084, upper: 0.107),
@@ -696,8 +802,10 @@ const defaultElementKindRelevance = {
     ElementKind.FIELD: ProbabilityRange(lower: 0.672, upper: 1.000),
   },
   'IfStatement_elseStatement': {
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.004, upper: 0.007),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.004,
+      upper: 0.007,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.007, upper: 0.009),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.009, upper: 0.012),
     ElementKind.CLASS: ProbabilityRange(lower: 0.012, upper: 0.021),
@@ -707,8 +815,10 @@ const defaultElementKindRelevance = {
   },
   'IfStatement_thenStatement': {
     ElementKind.MIXIN: ProbabilityRange(lower: 0.002, upper: 0.003),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.013, upper: 0.019),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.013,
+      upper: 0.019,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.019, upper: 0.025),
     ElementKind.CLASS: ProbabilityRange(lower: 0.058, upper: 0.069),
     ElementKind.METHOD: ProbabilityRange(lower: 0.069, upper: 0.134),
@@ -728,8 +838,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.006, upper: 0.008),
     ElementKind.ENUM: ProbabilityRange(lower: 0.008, upper: 0.015),
     ElementKind.CLASS: ProbabilityRange(lower: 0.015, upper: 0.029),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.029, upper: 0.046),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.029,
+      upper: 0.046,
+    ),
     ElementKind.FIELD: ProbabilityRange(lower: 0.046, upper: 0.307),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.307, upper: 0.605),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.605, upper: 1.000),
@@ -745,8 +857,10 @@ const defaultElementKindRelevance = {
     ElementKind.ENUM: ProbabilityRange(lower: 0.002, upper: 0.002),
     ElementKind.METHOD: ProbabilityRange(lower: 0.002, upper: 0.010),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.032, upper: 0.062),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.062, upper: 0.121),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.062,
+      upper: 0.121,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.121, upper: 0.247),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.247, upper: 0.440),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.440, upper: 0.689),
@@ -757,15 +871,19 @@ const defaultElementKindRelevance = {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.001, upper: 0.003),
     ElementKind.ENUM: ProbabilityRange(lower: 0.003, upper: 0.006),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.006, upper: 0.009),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.009, upper: 0.013),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.009,
+      upper: 0.013,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.013, upper: 1.000),
   },
   'ListLiteral_element': {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.004, upper: 0.008),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.008, upper: 0.011),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.008,
+      upper: 0.011,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.017, upper: 0.023),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.023, upper: 0.033),
     ElementKind.FIELD: ProbabilityRange(lower: 0.033, upper: 0.047),
@@ -779,8 +897,10 @@ const defaultElementKindRelevance = {
     ElementKind.METHOD: ProbabilityRange(lower: 0.008, upper: 0.011),
     ElementKind.ENUM: ProbabilityRange(lower: 0.019, upper: 0.028),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.038, upper: 0.049),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.049, upper: 0.073),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.049,
+      upper: 0.073,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.073, upper: 0.099),
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.099, upper: 0.128),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.128, upper: 0.234),
@@ -792,8 +912,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.002),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.002, upper: 0.004),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.004, upper: 0.006),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.004,
+      upper: 0.006,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.006, upper: 0.010),
     ElementKind.CLASS: ProbabilityRange(lower: 0.179, upper: 1.000),
   },
@@ -815,8 +937,10 @@ const defaultElementKindRelevance = {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.008, upper: 0.013),
     ElementKind.CLASS: ProbabilityRange(lower: 0.051, upper: 0.107),
     ElementKind.METHOD: ProbabilityRange(lower: 0.107, upper: 0.177),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.177, upper: 0.267),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.177,
+      upper: 0.267,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.267, upper: 0.491),
     ElementKind.FIELD: ProbabilityRange(lower: 0.491, upper: 0.737),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.737, upper: 1.000),
@@ -824,8 +948,10 @@ const defaultElementKindRelevance = {
   'PrefixExpression_!_operand': {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.015, upper: 0.028),
     ElementKind.METHOD: ProbabilityRange(lower: 0.028, upper: 0.057),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.057, upper: 0.093),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.057,
+      upper: 0.093,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.093, upper: 0.144),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.144, upper: 0.338),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.338, upper: 0.603),
@@ -846,8 +972,10 @@ const defaultElementKindRelevance = {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.006, upper: 0.022),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.022, upper: 0.061),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.061, upper: 0.166),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.166, upper: 0.282),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.166,
+      upper: 0.282,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.282, upper: 0.431),
     ElementKind.FIELD: ProbabilityRange(lower: 0.431, upper: 0.591),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.591, upper: 1.000),
@@ -863,8 +991,10 @@ const defaultElementKindRelevance = {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.003, upper: 0.008),
     ElementKind.ENUM: ProbabilityRange(lower: 0.020, upper: 0.029),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.029, upper: 0.038),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.029,
+      upper: 0.038,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.070, upper: 0.090),
     ElementKind.METHOD: ProbabilityRange(lower: 0.142, upper: 0.171),
     ElementKind.FIELD: ProbabilityRange(lower: 0.171, upper: 0.229),
@@ -879,20 +1009,26 @@ const defaultElementKindRelevance = {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.005, upper: 0.009),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.015, upper: 0.022),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.040, upper: 0.051),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.051, upper: 0.107),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.051,
+      upper: 0.107,
+    ),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.107, upper: 0.231),
     ElementKind.ENUM: ProbabilityRange(lower: 0.231, upper: 0.423),
     ElementKind.FIELD: ProbabilityRange(lower: 0.423, upper: 0.653),
     ElementKind.CLASS: ProbabilityRange(lower: 0.653, upper: 1.000),
   },
   'ShowCombinator_shownName': {
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.005),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.005,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.005, upper: 0.032),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.032, upper: 0.216),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.216, upper: 0.568),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.216,
+      upper: 0.568,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.568, upper: 1.000),
   },
   'SpreadElement_expression': {
@@ -900,8 +1036,10 @@ const defaultElementKindRelevance = {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.022, upper: 0.044),
     ElementKind.CLASS: ProbabilityRange(lower: 0.044, upper: 0.087),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.087, upper: 0.186),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.186, upper: 0.295),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.186,
+      upper: 0.295,
+    ),
     ElementKind.METHOD: ProbabilityRange(lower: 0.295, upper: 0.426),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.426, upper: 0.574),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.574, upper: 0.727),
@@ -909,14 +1047,18 @@ const defaultElementKindRelevance = {
   },
   'Statement': {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.000),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.000,
+    ),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.ENUM: ProbabilityRange(lower: 0.001, upper: 0.002),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.002, upper: 0.003),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.003, upper: 0.006),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.006, upper: 0.037),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.006,
+      upper: 0.037,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.037, upper: 0.088),
     ElementKind.METHOD: ProbabilityRange(lower: 0.088, upper: 0.195),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.195, upper: 0.319),
@@ -926,16 +1068,20 @@ const defaultElementKindRelevance = {
   },
   'SwitchCase_expression': {
     ElementKind.FIELD: ProbabilityRange(lower: 0.009, upper: 0.016),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.016, upper: 0.049),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.016,
+      upper: 0.049,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.049, upper: 0.336),
     ElementKind.ENUM: ProbabilityRange(lower: 0.336, upper: 1.000),
   },
   'SwitchMember_statement': {
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.000, upper: 0.000),
     ElementKind.MIXIN: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.013, upper: 0.017),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.013,
+      upper: 0.017,
+    ),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.027, upper: 0.033),
     ElementKind.CLASS: ProbabilityRange(lower: 0.045, upper: 0.056),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.056, upper: 0.069),
@@ -947,8 +1093,10 @@ const defaultElementKindRelevance = {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.001),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.001, upper: 0.003),
     ElementKind.METHOD: ProbabilityRange(lower: 0.006, upper: 0.010),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.016, upper: 0.023),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.016,
+      upper: 0.023,
+    ),
     ElementKind.CLASS: ProbabilityRange(lower: 0.023, upper: 0.039),
     ElementKind.FIELD: ProbabilityRange(lower: 0.039, upper: 0.211),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.211, upper: 0.517),
@@ -962,8 +1110,10 @@ const defaultElementKindRelevance = {
   },
   'TypeArgumentList_argument': {
     ElementKind.MIXIN: ProbabilityRange(lower: 0.000, upper: 0.000),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.000, upper: 0.003),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.000,
+      upper: 0.003,
+    ),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.003, upper: 0.010),
     ElementKind.ENUM: ProbabilityRange(lower: 0.010, upper: 0.018),
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.018, upper: 0.032),
@@ -980,8 +1130,10 @@ const defaultElementKindRelevance = {
     ElementKind.TYPE_PARAMETER: ProbabilityRange(lower: 0.002, upper: 0.003),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.003, upper: 0.007),
     ElementKind.UNKNOWN: ProbabilityRange(lower: 0.007, upper: 0.015),
-    ElementKind.FUNCTION_TYPE_ALIAS:
-        ProbabilityRange(lower: 0.015, upper: 0.031),
+    ElementKind.FUNCTION_TYPE_ALIAS: ProbabilityRange(
+      lower: 0.015,
+      upper: 0.031,
+    ),
     ElementKind.ENUM: ProbabilityRange(lower: 0.031, upper: 0.047),
     ElementKind.CLASS: ProbabilityRange(lower: 0.047, upper: 1.000),
   },
@@ -991,8 +1143,10 @@ const defaultElementKindRelevance = {
     ElementKind.PREFIX: ProbabilityRange(lower: 0.004, upper: 0.010),
     ElementKind.ENUM: ProbabilityRange(lower: 0.010, upper: 0.016),
     ElementKind.METHOD: ProbabilityRange(lower: 0.023, upper: 0.041),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.041, upper: 0.069),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.041,
+      upper: 0.069,
+    ),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.128, upper: 0.167),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.167, upper: 0.261),
     ElementKind.FIELD: ProbabilityRange(lower: 0.261, upper: 0.357),
@@ -1006,8 +1160,10 @@ const defaultElementKindRelevance = {
   },
   'WhileStatement_condition': {
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.000, upper: 0.008),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.008, upper: 0.023),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.008,
+      upper: 0.023,
+    ),
     ElementKind.FIELD: ProbabilityRange(lower: 0.023, upper: 0.050),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.085, upper: 1.000),
   },
@@ -1017,8 +1173,10 @@ const defaultElementKindRelevance = {
   },
   'YieldStatement_expression': {
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.000, upper: 0.003),
-    ElementKind.TOP_LEVEL_VARIABLE:
-        ProbabilityRange(lower: 0.003, upper: 0.006),
+    ElementKind.TOP_LEVEL_VARIABLE: ProbabilityRange(
+      lower: 0.003,
+      upper: 0.006,
+    ),
     ElementKind.FIELD: ProbabilityRange(lower: 0.009, upper: 0.028),
     ElementKind.PARAMETER: ProbabilityRange(lower: 0.073, upper: 0.110),
     ElementKind.LOCAL_VARIABLE: ProbabilityRange(lower: 0.110, upper: 0.150),
@@ -1337,9 +1495,7 @@ const defaultKeywordRelevance = {
     'var': ProbabilityRange(lower: 0.007, upper: 0.274),
     'final': ProbabilityRange(lower: 0.274, upper: 0.630),
   },
-  'ForParts_condition': {
-    'true': ProbabilityRange(lower: 0.001, upper: 0.004),
-  },
+  'ForParts_condition': {'true': ProbabilityRange(lower: 0.001, upper: 0.004)},
   'ForStatement_body': {
     'for': ProbabilityRange(lower: 0.000, upper: 0.032),
     'if': ProbabilityRange(lower: 0.032, upper: 0.065),
@@ -1362,9 +1518,7 @@ const defaultKeywordRelevance = {
     'Function': ProbabilityRange(lower: 0.090, upper: 0.140),
     'void': ProbabilityRange(lower: 0.480, upper: 1.000),
   },
-  'IfElement_condition': {
-    'this': ProbabilityRange(lower: 0.005, upper: 0.011),
-  },
+  'IfElement_condition': {'this': ProbabilityRange(lower: 0.005, upper: 0.011)},
   'IfElement_elseElement': {
     'for': ProbabilityRange(lower: 0.000, upper: 0.043),
     'if': ProbabilityRange(lower: 0.087, upper: 0.261),

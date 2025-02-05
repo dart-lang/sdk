@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -859,8 +861,11 @@ class DartObjectImplTest {
   }
 
   void test_identical_list_false_differentValues() {
-    _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
-        _listValue(_typeProvider.intType, [_intValue(3)]));
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, [_intValue(3)]),
+    );
   }
 
   void test_identical_list_false_equalTypes_differentValues() {
@@ -1928,6 +1933,25 @@ class DartObjectImplTest {
     _assertTimes(_intValue(null), _intValue(null), _intValue(3));
   }
 
+  void test_toRecordValue_notARecord() {
+    expect(
+      _listValue(_typeProvider.boolType, [_boolValue(true), _boolValue(false)])
+          .toRecordValue(),
+      isNull,
+    );
+  }
+
+  void test_toRecordValue_null() {
+    expect(_nullValue().toRecordValue(), isNull);
+  }
+
+  void test_toRecordValue_record() {
+    var constant = _recordValue([_intValue(1)], {'bool': _boolValue(true)});
+    var (:positional, :named) = constant.toRecordValue()!;
+    expect(positional, [_intValue(1)]);
+    expect(named, {'bool': _boolValue(true)});
+  }
+
   /// Assert that the result of executing [fn] is the [expected] value, or, if
   /// [expected] is `null`, that the operation throws an exception .
   void _assert(DartObjectImpl? expected, DartObjectImpl? Function() fn) {
@@ -2402,7 +2426,7 @@ class DartObjectImplTest {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.mapType(keyType, valueType),
-      MapState(map),
+      MapState(keyType: keyType, valueType: valueType, entries: map),
     );
   }
 
@@ -2426,11 +2450,14 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(
-      ParameterizedType type, Set<DartObjectImpl>? elements) {
+      ParameterizedType elementType, Set<DartObjectImpl>? elements) {
     return DartObjectImpl(
       _typeSystem,
-      type,
-      SetState(elements ?? <DartObjectImpl>{}),
+      _typeProvider.setType(elementType),
+      SetState(
+        elementType: elementType,
+        elements: elements ?? <DartObjectImpl>{},
+      ),
     );
   }
 

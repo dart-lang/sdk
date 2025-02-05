@@ -42,7 +42,7 @@ ClassTypeAlias
   superclass: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   withClause: WithClause
     withKeyword: with
@@ -50,7 +50,7 @@ ClassTypeAlias
       NamedType
         name: B
         element: <testLibraryFragment>::@class::B
-        element2: <testLibraryFragment>::@class::B#element
+        element2: <testLibrary>::@class::B
         type: B
   implementsClause: ImplementsClause
     implementsKeyword: implements
@@ -58,7 +58,7 @@ ClassTypeAlias
       NamedType
         name: C
         element: <testLibraryFragment>::@class::C
-        element2: <testLibraryFragment>::@class::C#element
+        element2: <testLibrary>::@class::C
         type: C
   semicolon: ;
   declaredElement: <testLibraryFragment>::@class::X
@@ -73,7 +73,7 @@ class X = Function with A;
       error(
           CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 27, 8),
     ]);
-    var x = findElement.class_('X');
+    var x = findElement2.class_('X');
     assertType(x.supertype, 'Object');
   }
 
@@ -86,7 +86,7 @@ class X = Object with A implements A, Function, B;
       error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
           8),
     ]);
-    var x = findElement.class_('X');
+    var x = findElement2.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
@@ -98,7 +98,7 @@ class X = Object with A, Function, B;
 ''', [
       error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 59, 8),
     ]);
-    var x = findElement.class_('X');
+    var x = findElement2.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
   }
 

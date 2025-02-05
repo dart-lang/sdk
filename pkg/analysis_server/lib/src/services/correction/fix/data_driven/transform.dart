@@ -26,12 +26,13 @@ class Transform {
 
   /// Initialize a newly created transform to describe a transformation of the
   /// [element].
-  Transform(
-      {required this.title,
-      required this.date,
-      required this.bulkApply,
-      required this.element,
-      required this.changesSelector});
+  Transform({
+    required this.title,
+    required this.date,
+    required this.bulkApply,
+    required this.element,
+    required this.changesSelector,
+  });
 
   /// Return `true` if this transform can be applied to fix an issue related to
   /// an element that matches the given [matcher]. The flag [applyingBulkFixes]

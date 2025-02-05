@@ -51,7 +51,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   /// response was not successful or returned an error.
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(
-      RequestMessage request, T Function(R) fromJson) async {
+    RequestMessage request,
+    T Function(R) fromJson,
+  ) async {
     var resp = await sendRequestToServer(request);
     var error = resp.error;
     if (error != null) {
@@ -104,8 +106,10 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
     var completer = Completer<ResponseMessage>();
-    var id = request.id.map((number) => number,
-        (string) => throw 'String IDs not supported in tests');
+    var id = request.id.map(
+      (number) => number,
+      (string) => throw 'String IDs not supported in tests',
+    );
     _completers[id] = completer;
 
     channel.sendRequest(request);
@@ -120,9 +124,10 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   @mustCallSuper
   Future<void> setUp() async {
     // Set up temporary folder for the test.
-    projectFolderPath = Directory.systemTemp
-        .createTempSync('analysisServer')
-        .resolveSymbolicLinksSync();
+    projectFolderPath =
+        Directory.systemTemp
+            .createTempSync('analysisServer')
+            .resolveSymbolicLinksSync();
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
@@ -133,8 +138,10 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     await client.start(dartSdkPath: dartSdkPath, vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        var id = message.id!.map((number) => number,
-            (string) => throw 'String IDs not supported in tests');
+        var id = message.id!.map(
+          (number) => number,
+          (string) => throw 'String IDs not supported in tests',
+        );
 
         var completer = _completers[id];
         if (completer == null) {
@@ -212,31 +219,30 @@ class LspServerClient {
     String serverPath;
 
     if (useSnapshot) {
-      serverPath = normalize(join(
-          dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      serverPath = normalize(
+        join(dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'),
+      );
     } else {
-      var rootDir =
-          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      var rootDir = findRoot(
+        Platform.script.toFilePath(windows: Platform.isWindows),
+      );
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 
-    var arguments = [
-      ...?vmArgs,
-      serverPath,
-      '--lsp',
-      '--suppress-analytics',
-    ];
+    var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
     var process = await Process.start(
       dartBinary,
       arguments,
       environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
     );
     _process = process;
-    unawaited(process.exitCode.then((int code) {
-      if (code != 0) {
-        // TODO(dantup): Log/fail tests...
-      }
-    }));
+    unawaited(
+      process.exitCode.then((int code) {
+        if (code != 0) {
+          // TODO(dantup): Log/fail tests...
+        }
+      }),
+    );
 
     // If the server writes to stderr, fail tests with a more useful message
     // (rather than having the test just hang waiting for a response).
@@ -247,9 +253,11 @@ class LspServerClient {
 
     var inputStream = _extractDevToolsLine(process.stdout);
 
-    channel = LspByteStreamServerChannel(inputStream, process.stdin,
-        instrumentationService ?? InstrumentationService.NULL_SERVICE)
-      ..listen(_serverToClient.add);
+    channel = LspByteStreamServerChannel(
+      inputStream,
+      process.stdin,
+      instrumentationService ?? InstrumentationService.NULL_SERVICE,
+    )..listen(_serverToClient.add);
   }
 
   /// Checks the first line in the [input], and if it is the DevTools URI

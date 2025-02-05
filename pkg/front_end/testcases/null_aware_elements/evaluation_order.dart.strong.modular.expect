@@ -1,0 +1,159 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static field core::String log = "";
+static method sideEffect<T extends core::Object? = dynamic>(self::sideEffect::T% t) → self::sideEffect::T% {
+  self::log = "${self::log}:${t}";
+  return t;
+}
+static method main() → dynamic {
+  self::log = "";
+  core::Map<core::String, core::String> map1 = block {
+    final core::Map<core::String, core::String> #t1 = <core::String, core::String>{};
+    final core::String #t2 = self::sideEffect<core::String>("one");
+    final core::String? #t3 = self::sideEffect<core::String?>("two");
+    if(!(#t3 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t2, #t3{core::String}){(core::String, core::String) → void};
+  } =>#t1;
+  self::expectEquals(self::log, ":one:two");
+  self::log = "";
+  core::Map<core::int, core::int> map2 = block {
+    final core::Map<core::int, core::int> #t4 = <core::int, core::int>{};
+    #t4.{core::Map::[]=}{Invariant}(self::sideEffect<core::int>(0), self::sideEffect<core::int>(1)){(core::int, core::int) → void};
+    final core::int #t5 = self::sideEffect<core::int>(2);
+    final core::int? #t6 = self::sideEffect<core::int?>(3);
+    if(!(#t6 == null))
+      #t4.{core::Map::[]=}{Invariant}(#t5, #t6{core::int}){(core::int, core::int) → void};
+    final core::int? #t7 = self::sideEffect<core::int?>(4);
+    if(!(#t7 == null))
+      #t4.{core::Map::[]=}{Invariant}(#t7{core::int}, self::sideEffect<core::int>(5)){(core::int, core::int) → void};
+    final core::int? #t8 = self::sideEffect<core::int?>(6);
+    if(!(#t8 == null)) {
+      final core::int? #t9 = self::sideEffect<core::int?>(7);
+      if(!(#t9 == null))
+        #t4.{core::Map::[]=}{Invariant}(#t8{core::int}, #t9{core::int}){(core::int, core::int) → void};
+    }
+  } =>#t4;
+  self::expectEquals(self::log, ":0:1:2:3:4:5:6:7");
+  self::log = "";
+  core::Map<core::int, core::int> map3 = block {
+    final core::Map<core::int, core::int> #t10 = <core::int, core::int>{};
+    #t10.{core::Map::[]=}{Invariant}(self::sideEffect<core::int>(0), self::sideEffect<core::int>(1)){(core::int, core::int) → void};
+    final core::int #t11 = self::sideEffect<core::int>(2);
+    final core::int? #t12 = self::sideEffect<core::int?>(3);
+    if(!(#t12 == null))
+      #t10.{core::Map::[]=}{Invariant}(#t11, #t12{core::int}){(core::int, core::int) → void};
+    final core::int? #t13 = self::sideEffect<core::int?>(null);
+    if(!(#t13 == null))
+      #t10.{core::Map::[]=}{Invariant}(#t13{core::int}, self::sideEffect<core::int>(5)){(core::int, core::int) → void};
+    final core::int? #t14 = self::sideEffect<core::int?>(null);
+    if(!(#t14 == null)) {
+      final core::int? #t15 = self::sideEffect<core::int?>(7);
+      if(!(#t15 == null))
+        #t10.{core::Map::[]=}{Invariant}(#t14{core::int}, #t15{core::int}){(core::int, core::int) → void};
+    }
+  } =>#t10;
+  self::expectEquals(self::log, ":0:1:2:3:null:null");
+  self::log = "";
+  core::List<core::String> list1 = block {
+    final core::List<core::String> #t16 = <core::String>[self::sideEffect<core::String>("one")];
+    final core::String? #t17 = self::sideEffect<core::String?>("two");
+    if(!(#t17 == null))
+      #t16.{core::List::add}{Invariant}(#t17{core::String}){(core::String) → void};
+  } =>#t16;
+  self::expectEquals(self::log, ":one:two");
+  self::log = "";
+  core::List<core::int> list2 = block {
+    final core::List<core::int> #t18 = <core::int>[self::sideEffect<core::int>(0), self::sideEffect<core::int>(1), self::sideEffect<core::int>(2)];
+    final core::int? #t19 = self::sideEffect<core::int?>(3);
+    if(!(#t19 == null))
+      #t18.{core::List::add}{Invariant}(#t19{core::int}){(core::int) → void};
+    final core::int? #t20 = self::sideEffect<core::int?>(4);
+    if(!(#t20 == null))
+      #t18.{core::List::add}{Invariant}(#t20{core::int}){(core::int) → void};
+    #t18.{core::List::add}{Invariant}(self::sideEffect<core::int>(5)){(core::int) → void};
+    final core::int? #t21 = self::sideEffect<core::int?>(6);
+    if(!(#t21 == null))
+      #t18.{core::List::add}{Invariant}(#t21{core::int}){(core::int) → void};
+    final core::int? #t22 = self::sideEffect<core::int?>(7);
+    if(!(#t22 == null))
+      #t18.{core::List::add}{Invariant}(#t22{core::int}){(core::int) → void};
+  } =>#t18;
+  self::expectEquals(self::log, ":0:1:2:3:4:5:6:7");
+  self::log = "";
+  core::List<core::int> list3 = block {
+    final core::List<core::int> #t23 = <core::int>[self::sideEffect<core::int>(0), self::sideEffect<core::int>(1), self::sideEffect<core::int>(2)];
+    final core::int? #t24 = self::sideEffect<core::int?>(3);
+    if(!(#t24 == null))
+      #t23.{core::List::add}{Invariant}(#t24{core::int}){(core::int) → void};
+    final core::int? #t25 = self::sideEffect<core::int?>(null);
+    if(!(#t25 == null))
+      #t23.{core::List::add}{Invariant}(#t25{core::int}){(core::int) → void};
+    #t23.{core::List::add}{Invariant}(self::sideEffect<core::int>(5)){(core::int) → void};
+    final core::int? #t26 = self::sideEffect<core::int?>(null);
+    if(!(#t26 == null))
+      #t23.{core::List::add}{Invariant}(#t26{core::int}){(core::int) → void};
+    final core::int? #t27 = self::sideEffect<core::int?>(7);
+    if(!(#t27 == null))
+      #t23.{core::List::add}{Invariant}(#t27{core::int}){(core::int) → void};
+  } =>#t23;
+  self::expectEquals(self::log, ":0:1:2:3:null:5:null:7");
+  self::log = "";
+  core::Set<core::String> set1 = block {
+    final core::Set<core::String> #t28 = col::LinkedHashSet::•<core::String>();
+    #t28.{core::Set::add}{Invariant}(self::sideEffect<core::String>("one")){(core::String) → core::bool};
+    final core::String? #t29 = self::sideEffect<core::String?>("two");
+    if(!(#t29 == null))
+      #t28.{core::Set::add}{Invariant}(#t29{core::String}){(core::String) → core::bool};
+  } =>#t28;
+  self::expectEquals(self::log, ":one:two");
+  self::log = "";
+  core::Set<core::int> set2 = block {
+    final core::Set<core::int> #t30 = col::LinkedHashSet::•<core::int>();
+    #t30.{core::Set::add}{Invariant}(self::sideEffect<core::int>(0)){(core::int) → core::bool};
+    #t30.{core::Set::add}{Invariant}(self::sideEffect<core::int>(1)){(core::int) → core::bool};
+    #t30.{core::Set::add}{Invariant}(self::sideEffect<core::int>(2)){(core::int) → core::bool};
+    final core::int? #t31 = self::sideEffect<core::int?>(3);
+    if(!(#t31 == null))
+      #t30.{core::Set::add}{Invariant}(#t31{core::int}){(core::int) → core::bool};
+    final core::int? #t32 = self::sideEffect<core::int?>(4);
+    if(!(#t32 == null))
+      #t30.{core::Set::add}{Invariant}(#t32{core::int}){(core::int) → core::bool};
+    #t30.{core::Set::add}{Invariant}(self::sideEffect<core::int>(5)){(core::int) → core::bool};
+    final core::int? #t33 = self::sideEffect<core::int?>(6);
+    if(!(#t33 == null))
+      #t30.{core::Set::add}{Invariant}(#t33{core::int}){(core::int) → core::bool};
+    final core::int? #t34 = self::sideEffect<core::int?>(7);
+    if(!(#t34 == null))
+      #t30.{core::Set::add}{Invariant}(#t34{core::int}){(core::int) → core::bool};
+  } =>#t30;
+  self::expectEquals(self::log, ":0:1:2:3:4:5:6:7");
+  self::log = "";
+  core::Set<core::int> set3 = block {
+    final core::Set<core::int> #t35 = col::LinkedHashSet::•<core::int>();
+    #t35.{core::Set::add}{Invariant}(self::sideEffect<core::int>(0)){(core::int) → core::bool};
+    #t35.{core::Set::add}{Invariant}(self::sideEffect<core::int>(1)){(core::int) → core::bool};
+    #t35.{core::Set::add}{Invariant}(self::sideEffect<core::int>(2)){(core::int) → core::bool};
+    final core::int? #t36 = self::sideEffect<core::int?>(3);
+    if(!(#t36 == null))
+      #t35.{core::Set::add}{Invariant}(#t36{core::int}){(core::int) → core::bool};
+    final core::int? #t37 = self::sideEffect<core::int?>(null);
+    if(!(#t37 == null))
+      #t35.{core::Set::add}{Invariant}(#t37{core::int}){(core::int) → core::bool};
+    #t35.{core::Set::add}{Invariant}(self::sideEffect<core::int>(5)){(core::int) → core::bool};
+    final core::int? #t38 = self::sideEffect<core::int?>(null);
+    if(!(#t38 == null))
+      #t35.{core::Set::add}{Invariant}(#t38{core::int}){(core::int) → core::bool};
+    final core::int? #t39 = self::sideEffect<core::int?>(7);
+    if(!(#t39 == null))
+      #t35.{core::Set::add}{Invariant}(#t39{core::int}){(core::int) → core::bool};
+  } =>#t35;
+  self::expectEquals(self::log, ":0:1:2:3:null:5:null:7");
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected the two given values to be equal: x=${x}, y=${y}.";
+  }
+}

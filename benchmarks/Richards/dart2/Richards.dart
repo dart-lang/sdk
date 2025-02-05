@@ -73,8 +73,10 @@ class Richards extends BenchmarkBase {
 
     if (scheduler.queueCount != EXPECTED_QUEUE_COUNT ||
         scheduler.holdCount != EXPECTED_HOLD_COUNT) {
-      print('Error during execution: queueCount = ${scheduler.queueCount}'
-          ', holdCount = ${scheduler.holdCount}.');
+      print(
+        'Error during execution: queueCount = ${scheduler.queueCount}'
+        ', holdCount = ${scheduler.holdCount}.',
+      );
     }
     if (EXPECTED_QUEUE_COUNT != scheduler.queueCount) {
       throw 'bad scheduler queue-count';
@@ -116,8 +118,10 @@ class Scheduler {
   TaskControlBlock currentTcb;
   int currentId;
   TaskControlBlock list;
-  List<TaskControlBlock> blocks =
-      List<TaskControlBlock>.filled(Richards.NUMBER_OF_IDS, null);
+  List<TaskControlBlock> blocks = List<TaskControlBlock>.filled(
+    Richards.NUMBER_OF_IDS,
+    null,
+  );
 
   /// Add an idle task to this scheduler.
   void addIdleTask(int id, int priority, Packet queue, int count) {

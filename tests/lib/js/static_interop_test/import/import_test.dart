@@ -4,7 +4,7 @@
 
 import 'dart:js_interop';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 extension type Module(JSObject _) implements JSObject {

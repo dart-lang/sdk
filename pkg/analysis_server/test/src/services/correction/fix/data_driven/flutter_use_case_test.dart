@@ -16,7 +16,7 @@ void main() {
 class FlutterUseCaseTest extends DataDrivenFixProcessorTest {
   @failingTest
   Future<void>
-      test_cupertino_CupertinoDialog_toCupertinoAlertDialog_deprecated() async {
+  test_cupertino_CupertinoDialog_toCupertinoAlertDialog_deprecated() async {
     // This test fails because we don't rename the parameter to the constructor.
     setPackageContent('''
 @deprecated
@@ -60,7 +60,7 @@ void f() {
   }
 
   Future<void>
-      test_cupertino_CupertinoDialog_toCupertinoAlertDialog_removed() async {
+  test_cupertino_CupertinoDialog_toCupertinoAlertDialog_removed() async {
     setPackageContent('''
 class CupertinoAlertDialog {
   CupertinoAlertDialog({String content}) {}
@@ -99,7 +99,7 @@ void f() {
   }
 
   Future<void>
-      test_cupertino_CupertinoDialog_toCupertinoPopupSurface_deprecated() async {
+  test_cupertino_CupertinoDialog_toCupertinoPopupSurface_deprecated() async {
     setPackageContent('''
 @deprecated
 class CupertinoDialog {
@@ -139,7 +139,7 @@ void f() {
   }
 
   Future<void>
-      test_cupertino_CupertinoDialog_toCupertinoPopupSurface_removed() async {
+  test_cupertino_CupertinoDialog_toCupertinoPopupSurface_removed() async {
     setPackageContent('''
 class CupertinoPopupSurface {
   CupertinoPopupSurface({String content}) {}
@@ -175,7 +175,7 @@ void f() {
   }
 
   Future<void>
-      test_cupertino_CupertinoTextThemeData_copyWith_deprecated() async {
+  test_cupertino_CupertinoTextThemeData_copyWith_deprecated() async {
     setPackageContent('''
 class CupertinoTextThemeData {
   copyWith({Color color, @deprecated Brightness brightness}) {}
@@ -260,7 +260,7 @@ void f(CupertinoTextThemeData data) {
   }
 
   Future<void>
-      test_cupertino_CupertinoTextThemeData_defaultConstructor_deprecated() async {
+  test_cupertino_CupertinoTextThemeData_defaultConstructor_deprecated() async {
     setPackageContent('''
 class CupertinoTextThemeData {
   CupertinoTextThemeData({Color color, @deprecated Brightness brightness}) {}
@@ -303,7 +303,7 @@ void f() {
   }
 
   Future<void>
-      test_cupertino_CupertinoTextThemeData_defaultConstructor_removed() async {
+  test_cupertino_CupertinoTextThemeData_defaultConstructor_removed() async {
     setPackageContent('''
 class CupertinoTextThemeData {
   CupertinoTextThemeData({Color color}) {}
@@ -346,7 +346,7 @@ void f() {
   }
 
   Future<void>
-      test_gestures_PointerEnterEvent_fromHoverEvent_deprecated() async {
+  test_gestures_PointerEnterEvent_fromHoverEvent_deprecated() async {
     setPackageContent('''
 class PointerEnterEvent {
   @deprecated
@@ -423,7 +423,7 @@ void f(PointerHoverEvent event) {
   }
 
   Future<void>
-      test_gestures_PointerExitEvent_fromHoverEvent_deprecated() async {
+  test_gestures_PointerExitEvent_fromHoverEvent_deprecated() async {
     setPackageContent('''
 class PointerExitEvent {
   @deprecated
@@ -500,7 +500,7 @@ void f(PointerHoverEvent event) {
   }
 
   Future<void>
-      test_gestures_VelocityTracker_unnamedConstructor_withArg_deprecated() async {
+  test_gestures_VelocityTracker_unnamedConstructor_withArg_deprecated() async {
     setPackageContent('''
 class VelocityTracker {
   @deprecated
@@ -554,7 +554,7 @@ VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
   }
 
   Future<void>
-      test_gestures_VelocityTracker_unnamedConstructor_withoutArg_deprecated() async {
+  test_gestures_VelocityTracker_unnamedConstructor_withoutArg_deprecated() async {
     setPackageContent('''
 class VelocityTracker {
   @deprecated
@@ -607,7 +607,7 @@ VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.touch);
   }
 
   Future<void>
-      test_material_BottomNavigationBarItem_unnamedConstructor_deprecated() async {
+  test_material_BottomNavigationBarItem_unnamedConstructor_deprecated() async {
     setPackageContent('''
 class BottomNavigationBarItem {
   BottomNavigationBarItem({String label, @deprecated Text title});
@@ -656,7 +656,7 @@ void f() {
   }
 
   Future<void>
-      test_material_BottomNavigationBarItem_unnamedConstructor_removed() async {
+  test_material_BottomNavigationBarItem_unnamedConstructor_removed() async {
     setPackageContent('''
 class BottomNavigationBarItem {
   BottomNavigationBarItem({String label});
@@ -864,7 +864,7 @@ void f() {
   }
 
   Future<void>
-      test_material_InputDecoration_defaultConstructor_matchFirstCase_deprecated() async {
+  test_material_InputDecoration_defaultConstructor_matchFirstCase_deprecated() async {
     setPackageContent('''
 class InputDecoration {
   InputDecoration({
@@ -950,7 +950,7 @@ InputDecoration f(bool b) => InputDecoration(floatingLabelBehavior: FloatingLabe
   }
 
   Future<void>
-      test_material_InputDecoration_defaultConstructor_matchSecondCase_deprecated() async {
+  test_material_InputDecoration_defaultConstructor_matchSecondCase_deprecated() async {
     setPackageContent('''
 class InputDecoration {
   InputDecoration({
@@ -1036,7 +1036,7 @@ InputDecoration f(bool b) => InputDecoration(floatingLabelBehavior: FloatingLabe
   }
 
   Future<void>
-      test_material_InputDecoration_defaultConstructor_matchThirdCase_deprecated() async {
+  test_material_InputDecoration_defaultConstructor_matchThirdCase_deprecated() async {
     setPackageContent('''
 class InputDecoration {
   InputDecoration({
@@ -1353,7 +1353,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
+  test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
     setPackageContent('''
 class Scaffold {
   @deprecated
@@ -1391,7 +1391,7 @@ void f(Scaffold scaffold) {
   }
 
   Future<void>
-      test_material_Scaffold_resizeToAvoidBottomPadding_removed() async {
+  test_material_Scaffold_resizeToAvoidBottomPadding_removed() async {
     setPackageContent('''
 class Scaffold {
   bool resizeToAvoidBottomInset;
@@ -1913,7 +1913,7 @@ class A {
   }
 
   Future<void>
-      test_material_ThemeData_colorSchemeBackground_deprecated() async {
+  test_material_ThemeData_colorSchemeBackground_deprecated() async {
     setPackageContent('''
 
 class ThemeData {
@@ -1974,7 +1974,7 @@ void f() {
   }
 
   Future<void>
-      test_material_ThemeData_colorSchemeBackground_deprecated_noFix() async {
+  test_material_ThemeData_colorSchemeBackground_deprecated_noFix() async {
     setPackageContent('''
 
 class ThemeData {
@@ -2036,7 +2036,7 @@ void f() {
   }
 
   Future<void>
-      test_material_ThemeData_colorSchemeBackground_deprecated_noFix2() async {
+  test_material_ThemeData_colorSchemeBackground_deprecated_noFix2() async {
     setPackageContent('''
 
 class ThemeData {
@@ -2222,7 +2222,7 @@ class T extends ThemeData {
   }
 
   Future<void>
-      test_material_ThemeData_toggleableActiveColor_deprecated_1() async {
+  test_material_ThemeData_toggleableActiveColor_deprecated_1() async {
     setPackageContent('''
 
 class ThemeData {
@@ -2312,7 +2312,7 @@ void f() {
   }
 
   Future<void>
-      test_material_ThemeData_toggleableActiveColor_deprecated_2() async {
+  test_material_ThemeData_toggleableActiveColor_deprecated_2() async {
     setPackageContent('''
 
 class ThemeData {
@@ -2714,7 +2714,7 @@ void f() {
   }
 
   Future<void>
-      test_services_ClipboardData_changeParameterNonNullAbsent() async {
+  test_services_ClipboardData_changeParameterNonNullAbsent() async {
     setPackageContent('''
 class ClipboardData {
   const ClipboardData({required String this.text});
@@ -2759,7 +2759,7 @@ void f() {
   }
 
   Future<void>
-      test_services_ClipboardData_changeParameterNonNullAdditional() async {
+  test_services_ClipboardData_changeParameterNonNullAdditional() async {
     setPackageContent('''
 class ClipboardData {
   const ClipboardData({required String this.text, String? this.p});
@@ -2850,7 +2850,7 @@ void f() {
   }
 
   Future<void>
-      test_widgets_BuildContext_ancestorInheritedElementForWidgetOfExactType_deprecated() async {
+  test_widgets_BuildContext_ancestorInheritedElementForWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class BuildContext {
   @deprecated
@@ -2899,7 +2899,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_ancestorInheritedElementForWidgetOfExactType_removed() async {
+  test_widgets_BuildContext_ancestorInheritedElementForWidgetOfExactType_removed() async {
     setPackageContent('''
 class BuildContext {
   void getElementForInheritedWidgetOfExactType<T>() {}
@@ -2946,7 +2946,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_ancestorStateOfType_deprecated() async {
+  test_widgets_BuildContext_ancestorStateOfType_deprecated() async {
     setPackageContent('''
 class BuildContext {
   @deprecated
@@ -2996,7 +2996,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_ancestorWidgetOfExactType_deprecated() async {
+  test_widgets_BuildContext_ancestorWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class BuildContext {
   @deprecated
@@ -3045,7 +3045,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_ancestorWidgetOfExactType_removed() async {
+  test_widgets_BuildContext_ancestorWidgetOfExactType_removed() async {
     setPackageContent('''
 class BuildContext {
   void findAncestorWidgetOfExactType<T>() {}
@@ -3164,7 +3164,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_inheritFromWidgetOfExactType_deprecated() async {
+  test_widgets_BuildContext_inheritFromWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class BuildContext {
   @deprecated
@@ -3213,7 +3213,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_BuildContext_inheritFromWidgetOfExactType_removed() async {
+  test_widgets_BuildContext_inheritFromWidgetOfExactType_removed() async {
     setPackageContent('''
 class BuildContext {
   void dependOnInheritedWidgetOfExactType<T>() {}
@@ -3260,7 +3260,7 @@ void f(BuildContext context) {
   }
 
   Future<void>
-      test_widgets_Element_ancestorInheritedElementForWidgetOfExactType_deprecated() async {
+  test_widgets_Element_ancestorInheritedElementForWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class Element {
   @deprecated
@@ -3309,7 +3309,7 @@ void f(Element element) {
   }
 
   Future<void>
-      test_widgets_Element_ancestorInheritedElementForWidgetOfExactType_removed() async {
+  test_widgets_Element_ancestorInheritedElementForWidgetOfExactType_removed() async {
     setPackageContent('''
 class Element {
   void getElementForInheritedWidgetOfExactType<T>() {}
@@ -3356,7 +3356,7 @@ void f(Element element) {
   }
 
   Future<void>
-      test_widgets_Element_ancestorWidgetOfExactType_deprecated() async {
+  test_widgets_Element_ancestorWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class Element {
   @deprecated
@@ -3523,7 +3523,7 @@ void f(Element element) {
   }
 
   Future<void>
-      test_widgets_Element_inheritFromWidgetOfExactType_deprecated() async {
+  test_widgets_Element_inheritFromWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class Element {
   @deprecated
@@ -3572,7 +3572,7 @@ void f(Element element) {
   }
 
   Future<void>
-      test_widgets_Element_inheritFromWidgetOfExactType_removed() async {
+  test_widgets_Element_inheritFromWidgetOfExactType_removed() async {
     setPackageContent('''
 class Element {
   void dependOnInheritedWidgetOfExactType<T>() {}
@@ -3619,7 +3619,7 @@ void f(Element element) {
   }
 
   Future<void>
-      test_widgets_ScrollPosition_jumpToWithoutSettling_deprecated() async {
+  test_widgets_ScrollPosition_jumpToWithoutSettling_deprecated() async {
     setPackageContent('''
 class ScrollPosition {
   @deprecated
@@ -3657,7 +3657,7 @@ void f(ScrollPosition position) {
   }
 
   Future<void>
-      test_widgets_ScrollPosition_jumpToWithoutSettling_removed() async {
+  test_widgets_ScrollPosition_jumpToWithoutSettling_removed() async {
     setPackageContent('''
 class ScrollPosition {
   void jumpTo(double d);
@@ -3839,7 +3839,7 @@ void f() {
   }
 
   Future<void>
-      test_widgets_StatefulElement_inheritFromElement_deprecated() async {
+  test_widgets_StatefulElement_inheritFromElement_deprecated() async {
     setPackageContent('''
 class StatefulElement {
   @deprecated
@@ -3912,7 +3912,7 @@ void f(StatefulElement element) {
   }
 
   Future<void>
-      test_widgets_WidgetInspectorService_enum_value_deprecated() async {
+  test_widgets_WidgetInspectorService_enum_value_deprecated() async {
     setPackageContent('''
 enum WidgetInspectorServiceExtensions {
   @Deprecated(use add instead)
@@ -3950,7 +3950,7 @@ void f() {
   }
 
   Future<void>
-      test_widgets_WidgetsApp_debugShowWidgetInspectorOverride_replace() async {
+  test_widgets_WidgetsApp_debugShowWidgetInspectorOverride_replace() async {
     setPackageContent('''
 class WidgetsApp {
   @deprecated
@@ -4001,7 +4001,7 @@ void f() {
   }
 
   Future<void>
-      test_widgets_WidgetsBinding_allowFirstFrameReport_deprecated() async {
+  test_widgets_WidgetsBinding_allowFirstFrameReport_deprecated() async {
     setPackageContent('''
 class WidgetsBinding {
   @deprecated
@@ -4039,7 +4039,7 @@ void f(WidgetsBinding binding) {
   }
 
   Future<void>
-      test_widgets_WidgetsBinding_allowFirstFrameReport_removed() async {
+  test_widgets_WidgetsBinding_allowFirstFrameReport_removed() async {
     setPackageContent('''
 class WidgetsBinding {
   void allowFirstFrame() {}
@@ -4075,7 +4075,7 @@ void f(WidgetsBinding binding) {
   }
 
   Future<void>
-      test_widgets_WidgetsBinding_deferFirstFrameReport_deprecated() async {
+  test_widgets_WidgetsBinding_deferFirstFrameReport_deprecated() async {
     setPackageContent('''
 class WidgetsBinding {
   @deprecated
@@ -4113,7 +4113,7 @@ void f(WidgetsBinding binding) {
   }
 
   Future<void>
-      test_widgets_WidgetsBinding_deferFirstFrameReport_removed() async {
+  test_widgets_WidgetsBinding_deferFirstFrameReport_removed() async {
     setPackageContent('''
 class WidgetsBinding {
   void deferFirstFrame() {}

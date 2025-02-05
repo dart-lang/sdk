@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -16,10 +16,14 @@ const String TEST_ONE = r"""
 main() {
   runTest() async {
     // Check that almost-constant interceptor is used.
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      String re = r'a && [\w\.]*_methods';
-      Expect.isTrue(generated.contains(new RegExp(re)), 'contains /$re/');
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        String re = r'a && [\w\.]*_methods';
+        Expect.isTrue(generated.contains(new RegExp(re)), 'contains /$re/');
+      },
+    );
   }
 
   asyncTest(() async {

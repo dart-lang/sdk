@@ -25,7 +25,9 @@ void main() {
 abstract class AbstractCodeFragmentParserTest {
   // ignore:unreachable_from_main
   List<Accessor>? assertErrors(
-      String content, List<ExpectedError> expectedErrors) {
+    String content,
+    List<ExpectedError> expectedErrors,
+  ) {
     var errorListener = GatheringErrorListener();
     var accessors = _parser(errorListener).parseAccessors(content, 0);
     errorListener.assertErrors(expectedErrors);
@@ -39,32 +41,43 @@ abstract class AbstractCodeFragmentParserTest {
     return accessors;
   }
 
-  Expression assertNoErrorsInCondition(String content,
-      {List<String>? variables}) {
+  Expression assertNoErrorsInCondition(
+    String content, {
+    List<String>? variables,
+  }) {
     var errorListener = GatheringErrorListener();
-    var expression = _parser(errorListener, variables: variables)
-        .parseCondition(content, 0)!;
+    var expression =
+        _parser(
+          errorListener,
+          variables: variables,
+        ).parseCondition(content, 0)!;
     errorListener.assertNoErrors();
     return expression;
   }
 
   // ignore:unreachable_from_main
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {String? message,
-          Pattern? messageContains,
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          message: message,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    ErrorCode code,
+    int offset,
+    int length, {
+    String? message,
+    Pattern? messageContains,
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    message: message,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
-  CodeFragmentParser _parser(GatheringErrorListener listener,
-      {List<String>? variables}) {
-    var errorReporter = ErrorReporter(
-      listener,
-      MockSource(),
-    );
+  CodeFragmentParser _parser(
+    GatheringErrorListener listener, {
+    List<String>? variables,
+  }) {
+    var errorReporter = ErrorReporter(listener, MockSource());
     var map = <String, ValueGenerator>{};
     if (variables != null) {
       for (var variableName in variables) {
@@ -115,24 +128,27 @@ class AccessorsTest extends AbstractCodeFragmentParserTest {
 @reflectiveTest
 class ConditionTest extends AbstractCodeFragmentParserTest {
   void test_and() {
-    var expression = assertNoErrorsInCondition("'a' != 'b' && 'c' != 'd'")
-        as BinaryExpression;
+    var expression =
+        assertNoErrorsInCondition("'a' != 'b' && 'c' != 'd'")
+            as BinaryExpression;
     expect(expression.leftOperand, isA<BinaryExpression>());
     expect(expression.operator, Operator.and);
     expect(expression.rightOperand, isA<BinaryExpression>());
   }
 
   void test_equal() {
-    var expression = assertNoErrorsInCondition('a == b', variables: ['a', 'b'])
-        as BinaryExpression;
+    var expression =
+        assertNoErrorsInCondition('a == b', variables: ['a', 'b'])
+            as BinaryExpression;
     expect(expression.leftOperand, isA<VariableReference>());
     expect(expression.operator, Operator.equal);
     expect(expression.rightOperand, isA<VariableReference>());
   }
 
   void test_notEqual() {
-    var expression = assertNoErrorsInCondition("a != 'b'", variables: ['a'])
-        as BinaryExpression;
+    var expression =
+        assertNoErrorsInCondition("a != 'b'", variables: ['a'])
+            as BinaryExpression;
     expect(expression.leftOperand, isA<VariableReference>());
     expect(expression.operator, Operator.notEqual);
     expect(expression.rightOperand, isA<LiteralString>());

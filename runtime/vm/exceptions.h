@@ -216,9 +216,7 @@ class CatchEntryMove {
 
   static CatchEntryMove ReadFrom(ReadStream* stream);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   void WriteTo(BaseWriteStream* stream);
-#endif
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   const char* ToCString() const;

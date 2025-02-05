@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:test/test.dart';
@@ -1267,22 +1270,24 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     List<String> expected,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeSystem: typeSystem,
-      typeParameters: typeParameters,
+      typeParameters: typeParameters
+          .map((e) => (e as TypeParameterElementImpl).element)
+          .toList(),
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
-    var isMatch =
-        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
+    var isMatch = gatherer.performSubtypeConstraintGenerationInternal(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: null);
     expect(isMatch, isTrue);
 
     var constraints = gatherer.computeConstraints();
     var constraintsStr = constraints.entries.map((e) {
       var lowerStr = e.value.lower.getDisplayString();
       var upperStr = e.value.upper.getDisplayString();
-      return '$lowerStr <: ${e.key.name} <: $upperStr';
+      return '$lowerStr <: ${e.key.name3} <: $upperStr';
     }).toList();
 
     expect(constraintsStr, unorderedEquals(expected));
@@ -1295,15 +1300,17 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     bool leftSchema,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeSystem: typeSystem,
-      typeParameters: typeParameters,
+      typeParameters: typeParameters
+          .map((e) => (e as TypeParameterElementImpl).element)
+          .toList(),
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
-    var isMatch =
-        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
+    var isMatch = gatherer.performSubtypeConstraintGenerationInternal(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: null);
     expect(isMatch, isFalse);
     expect(gatherer.isConstraintSetEmpty, isTrue);
   }

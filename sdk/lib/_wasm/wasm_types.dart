@@ -29,6 +29,7 @@ class WasmAnyRef extends _WasmBase {
   const WasmAnyRef._();
 
   /// Upcast Dart object to `anyref`.
+  @pragma("wasm:intrinsic")
   external factory WasmAnyRef.fromObject(Object o);
 
   /// Whether this reference is a Dart object.
@@ -53,6 +54,7 @@ extension ExternalizeNullable on WasmAnyRef? {
 class WasmExternRef extends _WasmBase {
   // To avoid conflating the null externref with Dart's null, we provide a
   // special getter for the null externref.
+  @pragma("wasm:intrinsic")
   external static WasmExternRef? get nullRef;
 }
 
@@ -65,16 +67,22 @@ extension InternalizeNullable on WasmExternRef? {
   WasmAnyRef? internalize() => _internalizeNullable(this);
 }
 
+@pragma("wasm:intrinsic")
 external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
+@pragma("wasm:intrinsic")
 external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
+@pragma("wasm:intrinsic")
 external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
+@pragma("wasm:intrinsic")
 external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
+@pragma("wasm:intrinsic")
 external bool _wasmExternRefIsNull(WasmExternRef? ref);
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")
 class WasmFuncRef extends _WasmBase {
   /// Upcast typed function reference to `funcref`
+  @pragma("wasm:intrinsic")
   external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
 }
 
@@ -85,6 +93,7 @@ class WasmEqRef extends WasmAnyRef {
   const WasmEqRef._() : super._();
 
   /// Upcast Dart object to `eqref`.
+  @pragma("wasm:intrinsic")
   external factory WasmEqRef.fromObject(Object o);
 }
 
@@ -92,6 +101,7 @@ class WasmEqRef extends WasmAnyRef {
 @pragma("wasm:entry-point")
 class WasmStructRef extends WasmEqRef {
   /// Upcast Dart object to `structref`.
+  @pragma("wasm:intrinsic")
   external factory WasmStructRef.fromObject(Object o);
 }
 
@@ -122,11 +132,17 @@ class WasmI32 extends _WasmBase {
   /// Constructor for constant instances.
   const WasmI32(this._value);
 
+  @pragma("wasm:intrinsic")
   external factory WasmI32.fromInt(int value);
+  @pragma("wasm:intrinsic")
   external factory WasmI32.int8FromInt(int value);
+  @pragma("wasm:intrinsic")
   external factory WasmI32.uint8FromInt(int value);
+  @pragma("wasm:intrinsic")
   external factory WasmI32.int16FromInt(int value);
+  @pragma("wasm:intrinsic")
   external factory WasmI32.uint16FromInt(int value);
+  @pragma("wasm:intrinsic")
   external factory WasmI32.fromBool(bool value);
   external int toIntSigned();
   external int toIntUnsigned();
@@ -163,6 +179,7 @@ class WasmI64 extends _WasmBase {
   /// Constructor for constant instances.
   const WasmI64(this._value);
 
+  @pragma("wasm:intrinsic")
   external factory WasmI64.fromInt(int value);
 
   external int toInt();
@@ -201,6 +218,7 @@ class WasmF32 extends _WasmBase {
   /// Constructor for constant instances.
   const WasmF32(this._value);
 
+  @pragma("wasm:intrinsic")
   external factory WasmF32.fromDouble(double value);
   external double toDouble();
 }
@@ -214,6 +232,7 @@ class WasmF64 extends _WasmBase {
   /// Constructor for constant instances.
   const WasmF64(this._value);
 
+  @pragma("wasm:intrinsic")
   external factory WasmF64.fromDouble(double value);
 
   external double toDouble();
@@ -221,63 +240,152 @@ class WasmF64 extends _WasmBase {
   /// Wasm `i64.trunc_sat_f64_s` instruction.
   external WasmI64 truncSatS();
 
+  /// Wasm `f64.sqrt` instruction.
+  external WasmF64 sqrt();
+
   /// Wasm `f64.copysign` instruction.
   external WasmF64 copysign(WasmF64 other);
 }
 
 /// A Wasm array.
+///
+/// NOTE: `T` is invariant.
 @pragma("wasm:entry-point")
 class WasmArray<T> extends WasmArrayRef {
   /// Dummy value field to contain the value for constant instances.
   @pragma("wasm:entry-point")
   final List<Object?> _value;
 
+  @pragma("wasm:intrinsic")
   external factory WasmArray(int length);
+  @pragma("wasm:intrinsic")
   external factory WasmArray.filled(int length, T value);
 
   const WasmArray.literal(this._value) : super._();
 }
 
 extension WasmArrayExt<T> on WasmArray<T> {
+  @pragma("wasm:intrinsic")
   external T operator [](int index);
+  @pragma("wasm:intrinsic")
   external void operator []=(int index, T value);
+  @pragma("wasm:intrinsic")
   external void copy(
-      int offset, WasmArray<T> source, int sourceOffset, int size);
+    int offset,
+    WasmArray<T> source,
+    int sourceOffset,
+    int size,
+  );
+  @pragma("wasm:intrinsic")
   external void fill(int offset, T value, int size);
+  @pragma("wasm:intrinsic")
   external WasmArray<T> clone();
 }
 
 extension I8ArrayExt on WasmArray<WasmI8> {
+  @pragma("wasm:intrinsic")
   external int readSigned(int index);
+  @pragma("wasm:intrinsic")
   external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, int value);
 }
 
 extension I16ArrayExt on WasmArray<WasmI16> {
+  @pragma("wasm:intrinsic")
   external int readSigned(int index);
+  @pragma("wasm:intrinsic")
   external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, int value);
 }
 
 extension I32ArrayExt on WasmArray<WasmI32> {
+  @pragma("wasm:intrinsic")
   external int readSigned(int index);
+  @pragma("wasm:intrinsic")
   external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, int value);
 }
 
 extension I64ArrayExt on WasmArray<WasmI64> {
+  @pragma("wasm:intrinsic")
   external int read(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, int value);
 }
 
 extension F32ArrayExt on WasmArray<WasmF32> {
+  @pragma("wasm:intrinsic")
   external double read(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, double value);
 }
 
 extension F64ArrayExt on WasmArray<WasmF64> {
+  @pragma("wasm:intrinsic")
   external double read(int index);
+  @pragma("wasm:intrinsic")
   external void write(int index, double value);
+}
+
+/// A immutable Wasm array.
+///
+/// NOTE: `T` is covariant.
+@pragma("wasm:entry-point")
+class ImmutableWasmArray<T> extends WasmArrayRef {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<Object?> _value;
+
+  @pragma("wasm:intrinsic")
+  external factory ImmutableWasmArray(int length);
+  @pragma("wasm:intrinsic")
+  external factory ImmutableWasmArray.filled(int length, T value);
+
+  const ImmutableWasmArray.literal(this._value) : super._();
+}
+
+extension ImmutableWasmArrayExt<T> on ImmutableWasmArray<T> {
+  @pragma("wasm:intrinsic")
+  external T operator [](int index);
+}
+
+extension ImmutableI8ArrayExt on ImmutableWasmArray<WasmI8> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI16ArrayExt on ImmutableWasmArray<WasmI16> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI32ArrayExt on ImmutableWasmArray<WasmI32> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI64ArrayExt on ImmutableWasmArray<WasmI64> {
+  @pragma("wasm:intrinsic")
+  external int read(int index);
+}
+
+extension ImmutableF32ArrayExt on ImmutableWasmArray<WasmF32> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
+}
+
+extension ImmutableF64ArrayExt on ImmutableWasmArray<WasmF64> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
 }
 
 /// Wasm typed function reference.
@@ -287,11 +395,13 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   ///
   /// The argument must directly name a static function with no optional
   /// parameters and no type parameters.
+  @pragma("wasm:intrinsic")
   external factory WasmFunction.fromFunction(F f);
 
   /// Downcast `funcref` to a typed function reference.
   ///
   /// Will throw if the reference is not a function with the expected signature.
+  @pragma("wasm:intrinsic")
   external factory WasmFunction.fromFuncRef(WasmFuncRef ref);
 
   /// Call the function referred to by this typed function reference.
@@ -385,6 +495,10 @@ extension DoubleWasmInstructions on double {
   @pragma("wasm:prefer-inline")
   double copysign(double other) =>
       this.toWasmF64().copysign(other.toWasmF64()).toDouble();
+
+  /// Wasm `f64.sqrt` instruction.
+  @pragma("wasm:prefer-inline")
+  double sqrt() => this.toWasmF64().sqrt().toDouble();
 }
 
 extension WasmExternRefToJSAny on WasmExternRef {
@@ -400,4 +514,5 @@ external WasmExternRef? externRefForJSAny(JSAny object);
 //
 // NOTICE: If the object's class is a subtype of T but not a subclass this will
 // return `false`.
+@pragma("wasm:intrinsic")
 external bool isSubClassOf<T>(Object object);

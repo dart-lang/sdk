@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 
@@ -31,7 +31,7 @@ test(check) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -46,7 +46,7 @@ test(value) {
   return sum;
 }
 """,
-    _Result.aboveZero
+    _Result.aboveZero,
   ),
   (
     """
@@ -63,7 +63,7 @@ test(check) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -72,7 +72,7 @@ test() {
   return a[0];
 }
 """,
-    _Result.kept
+    _Result.kept,
   ),
   (
     """
@@ -81,7 +81,7 @@ test() {
   return a.removeLast();
 }
 """,
-    _Result.kept
+    _Result.kept,
   ),
   (
     """
@@ -90,7 +90,7 @@ test() {
   return a[0];
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -99,7 +99,7 @@ test() {
   return a.removeLast();
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -110,7 +110,7 @@ test(value) {
   return a[value];
 }
 """,
-    _Result.kept
+    _Result.kept,
   ),
   (
     """
@@ -121,7 +121,7 @@ test(value) {
   return a[1023 & value];
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -132,7 +132,7 @@ test(value) {
   return a[1024 & value];
 }
 """,
-    _Result.aboveZero
+    _Result.aboveZero,
   ),
   (
     """
@@ -141,7 +141,7 @@ test() {
   return a[1];
 }
 """,
-    _Result.aboveZero
+    _Result.aboveZero,
   ),
   (
     """
@@ -153,7 +153,7 @@ test(value, call) {
   return a[value] + call() + a[value];
 }
 """,
-    _Result.oneZeroCheck
+    _Result.oneZeroCheck,
   ),
   (
     """
@@ -164,7 +164,7 @@ test(value) {
   return a[1] + a[0];
 }
 """,
-    _Result.oneCheck
+    _Result.oneCheck,
   ),
   (
     """
@@ -179,7 +179,7 @@ test(n) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -194,7 +194,7 @@ test(n) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -209,7 +209,7 @@ test(dynamic value) {
   return a[value];
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -226,7 +226,7 @@ test(value) {
   }
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -241,7 +241,7 @@ test(value) {
   return a[value];
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -257,7 +257,7 @@ test(value) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -273,7 +273,7 @@ test(value) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -289,7 +289,7 @@ test(value) {
   return sum;
 }
 """,
-    _Result.removed
+    _Result.removed,
   ),
   (
     """
@@ -305,7 +305,7 @@ test(value) {
   return sum;
 }
 """,
-    _Result.belowZeroCheck
+    _Result.belowZeroCheck,
   ),
   (
     """
@@ -320,52 +320,60 @@ test(value) {
   return sum;
 }
 """,
-    _Result.belowZeroCheck
+    _Result.belowZeroCheck,
   ),
 ];
 
 Future expect(String code, _Result kind) {
-  return compile(code, entry: 'test', disableTypeInference: false,
-      check: (String generated) {
-    switch (kind) {
-      case _Result.removed:
-        Expect.isFalse(generated.contains('ioore'));
-        break;
+  return compile(
+    code,
+    entry: 'test',
+    disableTypeInference: false,
+    check: (String generated) {
+      switch (kind) {
+        case _Result.removed:
+          Expect.isFalse(generated.contains('ioore'));
+          break;
 
-      case _Result.aboveZero:
-        Expect.isFalse(generated.contains('< 0') || generated.contains('>= 0'));
-        Expect.isTrue(generated.contains('ioore'));
-        break;
+        case _Result.aboveZero:
+          Expect.isFalse(
+            generated.contains('< 0') || generated.contains('>= 0'),
+          );
+          Expect.isTrue(generated.contains('ioore'));
+          break;
 
-      case _Result.belowZeroCheck:
-        // May generate `!(ix < 0)` or `ix >= 0` depending if `ix` can be NaN
-        Expect.isTrue(generated.contains('< 0') || generated.contains('>= 0'));
-        Expect.isFalse(generated.contains('||') || generated.contains('&&'));
-        Expect.isTrue(generated.contains('ioore'));
-        break;
+        case _Result.belowZeroCheck:
+          // May generate `!(ix < 0)` or `ix >= 0` depending if `ix` can be NaN
+          Expect.isTrue(
+            generated.contains('< 0') || generated.contains('>= 0'),
+          );
+          Expect.isFalse(generated.contains('||') || generated.contains('&&'));
+          Expect.isTrue(generated.contains('ioore'));
+          break;
 
-      case _Result.belowLength:
-        Expect.isFalse(generated.contains('||') || generated.contains('&&'));
-        Expect.isTrue(generated.contains('ioore'));
-        break;
+        case _Result.belowLength:
+          Expect.isFalse(generated.contains('||') || generated.contains('&&'));
+          Expect.isTrue(generated.contains('ioore'));
+          break;
 
-      case _Result.kept:
-        Expect.isTrue(generated.contains('ioore'));
-        break;
+        case _Result.kept:
+          Expect.isTrue(generated.contains('ioore'));
+          break;
 
-      case _Result.oneCheck:
-        RegExp regexp = RegExp('ioore');
-        Iterator matches = regexp.allMatches(generated).iterator;
-        checkNumberOfMatches(matches, 1);
-        break;
+        case _Result.oneCheck:
+          RegExp regexp = RegExp('ioore');
+          Iterator matches = regexp.allMatches(generated).iterator;
+          checkNumberOfMatches(matches, 1);
+          break;
 
-      case _Result.oneZeroCheck:
-        RegExp regexp = RegExp('< 0|>>> 0 !==');
-        Iterator matches = regexp.allMatches(generated).iterator;
-        checkNumberOfMatches(matches, 1);
-        break;
-    }
-  });
+        case _Result.oneZeroCheck:
+          RegExp regexp = RegExp('< 0|>>> 0 !==');
+          Iterator matches = regexp.allMatches(generated).iterator;
+          checkNumberOfMatches(matches, 1);
+          break;
+      }
+    },
+  );
 }
 
 runTests() async {

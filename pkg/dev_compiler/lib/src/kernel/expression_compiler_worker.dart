@@ -218,7 +218,7 @@ class ExpressionCompilerWorker {
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
     bool trackWidgetCreation = false,
-    bool soundNullSafety = false,
+    bool soundNullSafety = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
@@ -287,11 +287,9 @@ class ExpressionCompilerWorker {
           case 'UpdateDeps':
             sendResponse(await _updateDependencies(
                 UpdateDependenciesRequest.fromJson(request)));
-            break;
           case 'CompileExpression':
             sendResponse(await _compileExpression(
                 CompileExpressionRequest.fromJson(request)));
-            break;
           default:
             throw ArgumentError(
                 'Unrecognized command `$command`, full request was `$request`');
@@ -506,7 +504,9 @@ class ExpressionCompilerWorker {
 
     expressionCompiler = ExpressionCompiler(
       _compilerOptions,
-      _moduleFormat,
+      _moduleFormat == ModuleFormat.ddc && _canaryFeatures
+          ? ModuleFormat.ddcLibraryBundle
+          : _moduleFormat,
       errors,
       incrementalCompiler,
       kernel2jsCompiler,
@@ -787,13 +787,10 @@ void Function(DiagnosticMessage) _onDiagnosticHandler(
         case Severity.error:
         case Severity.internalProblem:
           errors.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.warning:
           warnings.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.info:
           infos.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.context:
         case Severity.ignored:
           throw 'Unexpected severity: ${message.severity}';

@@ -17,7 +17,8 @@ class DateTime {
 
   @pragma("vm:external-name", "DateTime_timeZoneOffsetInSeconds")
   external static int _timeZoneOffsetInSecondsForClampedSeconds(
-      int secondsSinceEpoch);
+    int secondsSinceEpoch,
+  );
 
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;
@@ -45,52 +46,73 @@ class DateTime {
   }
 
   @patch
-  DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc = false})
-      : this._withValue(
-            _validateMilliseconds(millisecondsSinceEpoch) *
-                Duration.microsecondsPerMillisecond,
-            isUtc: isUtc);
+  DateTime.fromMillisecondsSinceEpoch(
+    int millisecondsSinceEpoch, {
+    bool isUtc = false,
+  }) : this._withValue(
+         _validateMilliseconds(millisecondsSinceEpoch) *
+             Duration.microsecondsPerMillisecond,
+         isUtc: isUtc,
+       );
 
   @patch
-  DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc = false})
-      : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
+  DateTime.fromMicrosecondsSinceEpoch(
+    int microsecondsSinceEpoch, {
+    bool isUtc = false,
+  }) : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
   static const _sentinel = -_maxMicrosecondsSinceEpoch - 1;
-  static const _sentinelConstraint = _sentinel < -_maxMicrosecondsSinceEpoch ||
+  static const _sentinelConstraint =
+      _sentinel < -_maxMicrosecondsSinceEpoch ||
       _sentinel > _maxMicrosecondsSinceEpoch;
   static const _sentinelAssertion = 1 ~/ (_sentinelConstraint ? 1 : 0);
 
   @patch
-  DateTime._internal(int year, int month, int day, int hour, int minute,
-      int second, int millisecond, int microsecond, bool isUtc)
-      : this.isUtc = checkNotNullable(isUtc, "isUtc"),
-        this._value = _brokenDownDateToValue(year, month, day, hour, minute,
-                second, millisecond, microsecond, isUtc) ??
-            _sentinel {
+  DateTime._internal(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  ) : this.isUtc = checkNotNullable(isUtc, "isUtc"),
+      this._value =
+          _brokenDownDateToValue(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            millisecond,
+            microsecond,
+            isUtc,
+          ) ??
+          _sentinel {
     if (_value == _sentinel) {
-      throw ArgumentError('($year, $month, $day,'
-          ' $hour, $minute, $second, $millisecond, $microsecond)');
+      throw ArgumentError(
+        '($year, $month, $day,'
+        ' $hour, $minute, $second, $millisecond, $microsecond)',
+      );
     }
   }
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
       RangeError.checkValueInInterval(
-          millisecondsSinceEpoch,
-          -_maxMillisecondsSinceEpoch,
-          _maxMillisecondsSinceEpoch,
-          "millisecondsSinceEpoch");
+        millisecondsSinceEpoch,
+        -_maxMillisecondsSinceEpoch,
+        _maxMillisecondsSinceEpoch,
+        "millisecondsSinceEpoch",
+      );
 
   @patch
-  DateTime._now()
-      : isUtc = false,
-        _value = _getCurrentMicros();
+  DateTime._now() : isUtc = false, _value = _getCurrentMicros();
 
   @patch
-  DateTime._nowUtc()
-      : isUtc = true,
-        _value = _getCurrentMicros();
+  DateTime._nowUtc() : isUtc = true, _value = _getCurrentMicros();
 
   @patch
   DateTime _withUtc({required bool isUtc}) {
@@ -137,7 +159,7 @@ class DateTime {
   /// second list contains the days in leap years.
   static const List<List<int>> _DAYS_UNTIL_MONTH = [
     [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-    [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
   ];
 
   static List<int> _computeUpperPart(int localMicros) {
@@ -154,8 +176,10 @@ class DateTime {
     int resultDay = 0;
 
     // Always round down.
-    final int daysSince1970 =
-        _flooredDivision(localMicros, Duration.microsecondsPerDay);
+    final int daysSince1970 = _flooredDivision(
+      localMicros,
+      Duration.microsecondsPerDay,
+    );
     int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
@@ -177,9 +201,11 @@ class DateTime {
     if (isLeap) days++;
 
     List<int> daysUntilMonth = _DAYS_UNTIL_MONTH[isLeap ? 1 : 0];
-    for (resultMonth = 12;
-        daysUntilMonth[resultMonth - 1] > days;
-        resultMonth--) {
+    for (
+      resultMonth = 12;
+      daysUntilMonth[resultMonth - 1] > days;
+      resultMonth--
+    ) {
       // Do nothing.
     }
     resultDay = days - daysUntilMonth[resultMonth - 1] + 1;
@@ -187,23 +213,28 @@ class DateTime {
     int resultMicrosecond = localMicros % Duration.microsecondsPerMillisecond;
     int resultMillisecond =
         _flooredDivision(localMicros, Duration.microsecondsPerMillisecond) %
-            Duration.millisecondsPerSecond;
+        Duration.millisecondsPerSecond;
     int resultSecond =
         _flooredDivision(localMicros, Duration.microsecondsPerSecond) %
-            Duration.secondsPerMinute;
+        Duration.secondsPerMinute;
 
-    int resultMinute =
-        _flooredDivision(localMicros, Duration.microsecondsPerMinute);
+    int resultMinute = _flooredDivision(
+      localMicros,
+      Duration.microsecondsPerMinute,
+    );
     resultMinute %= Duration.minutesPerHour;
 
-    int resultHour =
-        _flooredDivision(localMicros, Duration.microsecondsPerHour);
+    int resultHour = _flooredDivision(
+      localMicros,
+      Duration.microsecondsPerHour,
+    );
     resultHour %= Duration.hoursPerDay;
 
     // In accordance with ISO 8601 a week
     // starts with Monday. Monday has the value 1 up to Sunday with 7.
     // 1970-1-1 was a Thursday.
-    int resultWeekday = ((daysSince1970 + DateTime.thursday - DateTime.monday) %
+    int resultWeekday =
+        ((daysSince1970 + DateTime.thursday - DateTime.monday) %
             DateTime.daysPerWeek) +
         DateTime.monday;
 
@@ -313,8 +344,17 @@ class DateTime {
   }
 
   /// Converts the given broken down date to microseconds.
-  static int? _brokenDownDateToValue(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc) {
+  static int? _brokenDownDateToValue(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  ) {
     // Simplify calculations by working with zero-based month.
     --month;
     // Deal with under and overflow.
@@ -332,7 +372,8 @@ class DateTime {
     int days = day - 1;
     days += _DAYS_UNTIL_MONTH[_isLeapYear(year) ? 1 : 0][month];
     days += _dayFromYear(year);
-    int microsecondsSinceEpoch = days * Duration.microsecondsPerDay +
+    int microsecondsSinceEpoch =
+        days * Duration.microsecondsPerDay +
         hour * Duration.microsecondsPerHour +
         minute * Duration.microsecondsPerMinute +
         second * Duration.microsecondsPerSecond +
@@ -361,10 +402,28 @@ class DateTime {
   }
 
   @patch
-  static DateTime? _finishParse(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc) {
-    final value = _brokenDownDateToValue(year, month, day, hour, minute, second,
-        millisecond, microsecond, isUtc);
+  static DateTime? _finishParse(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  ) {
+    final value = _brokenDownDateToValue(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      second,
+      millisecond,
+      microsecond,
+      isUtc,
+    );
     if (value == null) return null;
     return DateTime._withValue(value, isUtc: isUtc);
   }
@@ -431,7 +490,9 @@ class DateTime {
     const int CUT_OFF_SECONDS = 0x7FFFFFFF;
 
     int secondsSinceEpoch = _flooredDivision(
-        microsecondsSinceEpoch, Duration.microsecondsPerSecond);
+      microsecondsSinceEpoch,
+      Duration.microsecondsPerSecond,
+    );
 
     if (secondsSinceEpoch.abs() > CUT_OFF_SECONDS) {
       int year = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
@@ -503,7 +564,8 @@ class DateTime {
     // Start with the time zone at the current microseconds since
     // epoch. It's within one day of the real time we're looking for.
 
-    int offset = _timeZoneOffsetInSeconds(microsecondsSinceEpoch) *
+    int offset =
+        _timeZoneOffsetInSeconds(microsecondsSinceEpoch) *
         Duration.microsecondsPerSecond;
 
     // If offset is 0 (we're right around the UTC+0, and)
@@ -511,7 +573,8 @@ class DateTime {
     if (offset != 0) {
       // If not, try to find an actual solution in the time zone
       // we just discovered.
-      int offset2 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset) *
+      int offset2 =
+          _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset) *
           Duration.microsecondsPerSecond;
       if (offset2 != offset) {
         // Also not a solution. We have found a second time zone
@@ -519,7 +582,7 @@ class DateTime {
         // Try again with the new time zone.
         int offset3 =
             _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset2) *
-                Duration.microsecondsPerSecond;
+            Duration.microsecondsPerSecond;
         // Either offset3 is a solution (equal to offset2),
         // or we have found two different time zones and no solution.
         // In the latter case we choose the lower offset (latter time).
@@ -532,9 +595,10 @@ class DateTime {
     // has a solution.
     // Pretends time zone changes are always at most two hours.
     // (Double daylight saving happened, fx, in part of Canada in 1988).
-    int offset4 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch -
-            offset -
-            2 * Duration.microsecondsPerHour) *
+    int offset4 =
+        _timeZoneOffsetInSeconds(
+          microsecondsSinceEpoch - offset - 2 * Duration.microsecondsPerHour,
+        ) *
         Duration.microsecondsPerSecond;
     if (offset4 > offset) {
       // The time zone at the earlier time had a greater
@@ -546,7 +610,8 @@ class DateTime {
       }
       // The time zone differs one hour earlier, but not by one
       // hour, so check again in that time zone.
-      int offset5 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset4) *
+      int offset5 =
+          _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset4) *
           Duration.microsecondsPerSecond;
       if (offset5 == offset4) {
         // Found a second solution earlier than the first solution, so use that.

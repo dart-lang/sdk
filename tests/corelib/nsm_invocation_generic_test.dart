@@ -11,25 +11,35 @@ main() {
   var argument2 = new Object();
   // Method invocation.
   expectInvocation(
-      new Invocation.genericMethod(#name, [int], []), nsm.name<int>());
-  expectInvocation(new Invocation.genericMethod(#name, [int], [argument]),
-      nsm.name<int>(argument));
+    new Invocation.genericMethod(#name, [int], []),
+    nsm.name<int>(),
+  );
   expectInvocation(
-      new Invocation.genericMethod(#name, [int], [], {#arg: argument}),
-      nsm.name<int>(arg: argument));
+    new Invocation.genericMethod(#name, [int], [argument]),
+    nsm.name<int>(argument),
+  );
   expectInvocation(
-      new Invocation.genericMethod(#name, [int], [argument], {#arg: argument2}),
-      nsm.name<int>(argument, arg: argument2));
+    new Invocation.genericMethod(#name, [int], [], {#arg: argument}),
+    nsm.name<int>(arg: argument),
+  );
+  expectInvocation(
+    new Invocation.genericMethod(#name, [int], [argument], {#arg: argument2}),
+    nsm.name<int>(argument, arg: argument2),
+  );
   // Call invocation.
   expectInvocation(new Invocation.genericMethod(#call, [int], []), nsm<int>());
-  expectInvocation(new Invocation.genericMethod(#call, [int], [argument]),
-      nsm<int>(argument));
   expectInvocation(
-      new Invocation.genericMethod(#call, [int], [], {#arg: argument}),
-      nsm<int>(arg: argument));
+    new Invocation.genericMethod(#call, [int], [argument]),
+    nsm<int>(argument),
+  );
   expectInvocation(
-      new Invocation.genericMethod(#call, [int], [argument], {#arg: argument2}),
-      nsm<int>(argument, arg: argument2));
+    new Invocation.genericMethod(#call, [int], [], {#arg: argument}),
+    nsm<int>(arg: argument),
+  );
+  expectInvocation(
+    new Invocation.genericMethod(#call, [int], [argument], {#arg: argument2}),
+    nsm<int>(argument, arg: argument2),
+  );
 }
 
 dynamic nsm = new Recorder();
@@ -70,7 +80,10 @@ expectInvocation(Invocation expect, Invocation actual) {
   Expect.equals(expect.memberName, actual.memberName, "memberName");
   Expect.listEquals(expect.typeArguments, actual.typeArguments, "types");
   Expect.listEquals(
-      expect.positionalArguments, actual.positionalArguments, "positional");
+    expect.positionalArguments,
+    actual.positionalArguments,
+    "positional",
+  );
   Expect.mapEquals(expect.namedArguments, actual.namedArguments, "named");
   checkUnmodifiableList(actual.typeArguments);
   checkUnmodifiableList(actual.positionalArguments);

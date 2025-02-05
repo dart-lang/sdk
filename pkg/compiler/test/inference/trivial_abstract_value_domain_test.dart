@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 
 import '../helpers/args_helper.dart';
@@ -14,15 +14,17 @@ main(List<String> args) {
 
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
-    Uri entryPoint = getEntryPoint(argResults) ??
+    Uri entryPoint =
+        getEntryPoint(argResults) ??
         Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
     Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri? packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
     await runCompiler(
-        entryPoint: entryPoint,
-        packageConfig: packageConfig,
-        librariesSpecificationUri: librariesSpecificationUri,
-        options: [Flags.useTrivialAbstractValueDomain]..addAll(options));
+      entryPoint: entryPoint,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      options: [Flags.useTrivialAbstractValueDomain]..addAll(options),
+    );
   });
 }

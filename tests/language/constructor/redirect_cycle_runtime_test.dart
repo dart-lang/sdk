@@ -8,9 +8,7 @@
 
 class A {
   var x;
-  A(x)
-
-      ;
+  A(x);
 }
 
 main() {

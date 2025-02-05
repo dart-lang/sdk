@@ -1,0 +1,93 @@
+//
+// Problems in component:
+//
+// sdk/lib/core/core.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/async/async.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm_shared/lib/compact_hash.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/concurrent/concurrent.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/ffi/ffi.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/internal/internal.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/isolate/isolate.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/math/math.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/mirrors/mirrors.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/typed_data/typed_data.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/vmservice_io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/vmservice/vmservice.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/builtin.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/html/dartium/nativewrappers.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/io/io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/cli/cli.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+library;
+import self as self;
+import "dart:core" as core;
+
+static method isInt(core::bool b) → dynamic {
+  final core::num x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = 0.1;
+  }
+  if(x is core::int) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method isInt_late(core::bool b) → dynamic {
+  late final core::num x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = 0.1;
+  }
+  if(x is core::int) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method notEqNull(core::bool b) → dynamic {
+  final core::int? x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = null;
+  }
+  if(!(x == null)) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method notEqNull_late(core::bool b) → dynamic {
+  late final core::int? x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = null;
+  }
+  if(!(x == null)) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}

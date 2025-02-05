@@ -17,8 +17,11 @@ Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
 
 Matcher isResponseError(ErrorCodes code, {Object? message}) {
   assert(message is String? || message is Matcher);
-  var matcher = const TypeMatcher<ResponseError>()
-      .having((e) => e.code, 'code', equals(code));
+  var matcher = const TypeMatcher<ResponseError>().having(
+    (e) => e.code,
+    'code',
+    equals(code),
+  );
   return message != null
       ? matcher.having((e) => e.message, 'message', message)
       : matcher;
@@ -35,11 +38,19 @@ class ArrayTypeMatcher extends Matcher {
       description.add('an array of ').addDescriptionOf(_elementTypeMatcher);
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map<dynamic, dynamic> matchState, bool verbose) {
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) {
     if (item is ArrayType) {
       return _elementTypeMatcher.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     } else {
       return mismatchDescription.add('is not an ArrayType');
     }
@@ -99,8 +110,12 @@ class SimpleTypeMatcher extends Matcher {
       description.add('a type with the name $_expectedName');
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map<dynamic, dynamic> matchState, bool verbose) {
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) {
     if (item is TypeReference) {
       return mismatchDescription
           .add('has the name ')

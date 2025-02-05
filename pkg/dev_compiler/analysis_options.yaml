@@ -27,3 +27,4 @@ linter:
     - prefer_single_quotes
     - prefer_relative_imports
     - unawaited_futures
+    - unnecessary_breaks

@@ -20,8 +20,16 @@ void main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
+  /// Some sample code that is over 50 characters and will be wrapped if the
+  /// page width is set to 40.
+  static const codeThatWrapsAt40 =
+      "var a = '        10        20        30        40';";
+
   Future<List<TextEdit>> expectFormattedContents(
-      Uri uri, String original, String expected) async {
+    Uri uri,
+    String original,
+    String expected,
+  ) async {
     var formatEdits = (await formatDocument(uri))!;
     var formattedContents = applyTextEdits(original, formatEdits);
     expect(formattedContents, equals(expected));
@@ -29,11 +37,19 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<List<TextEdit>> expectRangeFormattedContents(
-      Uri uri, TestCode code, String expected) async {
+    Uri uri,
+    TestCode code,
+    String expected,
+  ) async {
     var formatEdits = (await formatRange(uri, code.range.range))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
+  }
+
+  Future<String> formatContents(Uri uri, String original) async {
+    var formatEdits = (await formatDocument(uri))!;
+    return applyTextEdits(original, formatEdits);
   }
 
   Future<void> test_alreadyFormatted() async {
@@ -90,11 +106,7 @@ ErrorOr<Pair<A, List<B>>> c(
 
     ''';
     var expected = '''
-ErrorOr<Pair<A, List<B>>> c(
-  String d,
-  List<Either2<E, F>> g, {
-  h = false,
-}) {}
+ErrorOr<Pair<A, List<B>>> c(String d, List<Either2<E, F>> g, {h = false}) {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -111,10 +123,7 @@ ErrorOr<Pair<A, List<B>>> c(
     // Provide empty config and collect dynamic registrations during
     // initialization.
     await provideConfig(
-      () => monitorDynamicRegistrations(
-        registrations,
-        initialize,
-      ),
+      () => monitorDynamicRegistrations(registrations, initialize),
       {},
     );
 
@@ -151,10 +160,7 @@ ErrorOr<Pair<A, List<B>>> c(
     // Provide empty config and collect dynamic registrations during
     // initialization.
     await provideConfig(
-      () => monitorDynamicRegistrations(
-        registrations,
-        initialize,
-      ),
+      () => monitorDynamicRegistrations(registrations, initialize),
       {},
     );
 
@@ -270,11 +276,14 @@ void f()
     var formatRangeRequest = formatRange(
       mainFileUri,
       Range(
-          start: Position(line: 0, character: 0),
-          end: Position(line: 10000, character: 0)),
+        start: Position(line: 0, character: 0),
+        end: Position(line: 10000, character: 0),
+      ),
     );
-    await expectLater(formatRangeRequest,
-        throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)));
+    await expectLater(
+      formatRangeRequest,
+      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+    );
   }
 
   Future<void> test_formatRange_simple() async {
@@ -365,7 +374,8 @@ print(
     ''';
     var expectedDefault = '''
 void f() => print(
-    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
+  '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789',
+);
 ''';
     var expectedLongLines = '''
 void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
@@ -383,6 +393,88 @@ void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 1
     await expectFormattedContents(mainFileUri, contents, expectedLongLines);
   }
 
+  Future<void> test_lineLength_analysisOptions() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
+  }
+
+  Future<void> test_lineLength_analysisOptions_nestedEmpty() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+    var nestedAnalysisOptionsPath = join(
+      projectFolderPath,
+      'lib',
+      'analysis_options.yaml',
+    );
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(
+      nestedAnalysisOptionsPath,
+      '# empty',
+    ); // suppress the parent options.
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), isNot(contains('\n')));
+  }
+
+  Future<void> test_lineLength_analysisOptions_nestedIncludes() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+    var nestedAnalysisOptionsPath = join(
+      projectFolderPath,
+      'lib',
+      'analysis_options.yaml',
+    );
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(nestedAnalysisOptionsPath, 'include: ../analysis_options.yaml');
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
+  }
+
+  Future<void> test_lineLength_analysisOptions_overridesConfig() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, codeContent);
+    await provideConfig(initialize, {
+      // This won't apply because analysis_options wins.
+      'lineLength': 100,
+    });
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
+  }
+
   Future<void> test_lineLength_outsideWorkspaceFolders() async {
     const contents = '''
 void f() {
@@ -392,9 +484,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 
@@ -420,9 +513,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 
@@ -448,9 +542,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 
@@ -479,8 +574,11 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, ' ');
     expect(formatEdits[0].range.start, equals(Position(line: 0, character: 8)));
@@ -499,8 +597,11 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, '');
     expect(formatEdits[0].range.start, equals(Position(line: 0, character: 0)));
@@ -521,8 +622,11 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, '');
     expect(formatEdits[0].range.start, equals(Position(line: 1, character: 0)));
@@ -540,17 +644,24 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(1));
     expect(
-        formatEdits[0],
-        equals(TextEdit(
+      formatEdits[0],
+      equals(
+        TextEdit(
           range: Range(
-              start: Position(line: 0, character: 9),
-              end: Position(line: 0, character: 15)),
+            start: Position(line: 0, character: 9),
+            end: Position(line: 0, character: 15),
+          ),
           newText: '',
-        )));
+        ),
+      ),
+    );
   }
 
   Future<void> test_minimalEdits_removePartialWhitespaceBefore() async {
@@ -567,17 +678,24 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(1));
     expect(
-        formatEdits[0],
-        equals(TextEdit(
+      formatEdits[0],
+      equals(
+        TextEdit(
           range: Range(
-              start: Position(line: 0, character: 8),
-              end: Position(line: 3, character: 0)),
+            start: Position(line: 0, character: 8),
+            end: Position(line: 3, character: 0),
+          ),
           newText: '',
-        )));
+        ),
+      ),
+    );
   }
 
   Future<void> test_minimalEdits_removeWhitespace() async {
@@ -591,14 +709,19 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(2));
     expect(formatEdits[0].newText, isEmpty);
     expect(formatEdits[0].range.start, equals(Position(line: 0, character: 7)));
     expect(formatEdits[1].newText, isEmpty);
     expect(
-        formatEdits[1].range.start, equals(Position(line: 0, character: 11)));
+      formatEdits[1].range.start,
+      equals(Position(line: 0, character: 11)),
+    );
   }
 
   Future<void> test_minimalEdits_withComments() async {
@@ -620,33 +743,48 @@ void f() {
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    var formatEdits =
-        await expectFormattedContents(mainFileUri, contents, expected);
+    var formatEdits = await expectFormattedContents(
+      mainFileUri,
+      contents,
+      expected,
+    );
     expect(formatEdits, hasLength(3));
     expect(
-        formatEdits[0],
-        equals(TextEdit(
+      formatEdits[0],
+      equals(
+        TextEdit(
           range: Range(
-              start: Position(line: 1, character: 2),
-              end: Position(line: 1, character: 8)),
+            start: Position(line: 1, character: 2),
+            end: Position(line: 1, character: 8),
+          ),
           newText: '',
-        )));
+        ),
+      ),
+    );
     expect(
-        formatEdits[1],
-        equals(TextEdit(
+      formatEdits[1],
+      equals(
+        TextEdit(
           range: Range(
-              start: Position(line: 2, character: 2),
-              end: Position(line: 2, character: 8)),
+            start: Position(line: 2, character: 2),
+            end: Position(line: 2, character: 8),
+          ),
           newText: '',
-        )));
+        ),
+      ),
+    );
     expect(
-        formatEdits[2],
-        equals(TextEdit(
+      formatEdits[2],
+      equals(
+        TextEdit(
           range: Range(
-              start: Position(line: 3, character: 2),
-              end: Position(line: 3, character: 8)),
+            start: Position(line: 3, character: 2),
+            end: Position(line: 3, character: 8),
+          ),
           newText: '',
-        )));
+        ),
+      ),
+    );
   }
 
   Future<void> test_nonDartFile() async {
@@ -662,8 +800,12 @@ void f() {
 
     await expectLater(
       formatDocument(toUri(join(projectFolderPath, 'missing.dart'))),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File does not exist')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist',
+        ),
+      ),
     );
   }
 
@@ -675,8 +817,12 @@ void f() {
         // Add some invalid path characters to the end of a valid file:// URI.
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI does not contain a valid file path')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'URI does not contain a valid file path',
+        ),
+      ),
     );
   }
 
@@ -685,9 +831,13 @@ void f() {
 
     await expectLater(
       formatDocument(Uri.parse('a:/a.dart')),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
           message:
-              "URI scheme 'a' is not supported. Allowed schemes are 'file'.")),
+              "URI scheme 'a' is not supported. Allowed schemes are 'file'.",
+        ),
+      ),
     );
   }
 

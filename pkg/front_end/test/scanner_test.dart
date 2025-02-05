@@ -106,7 +106,7 @@ abstract class ScannerTestBase {
     var greaterThan = identifier.next!;
     expect(greaterThan.next!.type, TokenType.EOF);
     // Analyzer's token streams don't consider "<" to be an opener
-    // but fasta does.
+    // but the scanner does.
     if (lessThan is BeginToken) {
       expect(lessThan.endToken, greaterThan);
     }
@@ -413,7 +413,7 @@ abstract class ScannerTestBase {
     var expectedErrors = [
       new TestError(9, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
-    // fasta inserts synthetic closers
+    // The scanner inserts synthetic closers
     expectedTokens.addAll([
       new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
       new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
@@ -528,13 +528,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_extension() {
-    _assertKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: true));
-  }
-
-  void test_keyword_extension_old() {
-    _assertNotKeywordToken("extension",
-        configuration: ScannerConfiguration(enableExtensionMethods: false));
+    _assertKeywordToken("extension", configuration: ScannerConfiguration());
   }
 
   void test_keyword_factory() {
@@ -594,13 +588,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_late() {
-    _assertKeywordToken("late",
-        configuration: ScannerConfiguration(enableNonNullable: true));
-  }
-
-  void test_keyword_late_old() {
-    _assertNotKeywordToken("late",
-        configuration: ScannerConfiguration(enableNonNullable: false));
+    _assertKeywordToken("late", configuration: ScannerConfiguration());
   }
 
   void test_keyword_library() {
@@ -648,13 +636,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_required() {
-    _assertKeywordToken("required",
-        configuration: ScannerConfiguration(enableNonNullable: true));
-  }
-
-  void test_keyword_required_disabled() {
-    _assertNotKeywordToken("required",
-        configuration: ScannerConfiguration(enableNonNullable: false));
+    _assertKeywordToken("required", configuration: ScannerConfiguration());
   }
 
   void test_keyword_rethrow() {
@@ -803,9 +785,9 @@ abstract class ScannerTestBase {
 
   void test_mismatched_closer() {
     // Normally when openers and closers are mismatched
-    // fasta favors considering the opener to be mismatched,
+    // the scanner favors considering the opener to be mismatched,
     // and inserts synthetic closers as needed.
-    // In this particular case, fasta cannot find an opener for ']'
+    // In this particular case, the scanner cannot find an opener for ']'
     // and thus marks ']' as an error and moves on.
     ErrorListener listener = new ErrorListener();
     BeginToken openParen = scanWithListener('(])', listener) as BeginToken;
@@ -855,7 +837,7 @@ abstract class ScannerTestBase {
     BeginToken openParen = scanWithListener('([)', listener) as BeginToken;
     BeginToken openBracket = openParen.next as BeginToken;
     // When openers and closers are mismatched,
-    // fasta favors considering the opener to be mismatched
+    // the scanner favors considering the opener to be mismatched
     // and inserts synthetic closers as needed.
     // `([)` is scanned as `([])` where `]` is synthetic.
     var closeBracket = openBracket.next!;
@@ -1446,27 +1428,6 @@ abstract class ScannerTestBase {
     value = token.value();
     expect(value is Keyword, isTrue);
     expect((value as Keyword).lexeme, source);
-    expect(token.next!.type, TokenType.EOF);
-  }
-
-  /**
-   * Assert that when scanned the given [source] contains a single identifier
-   * token with the same lexeme as the original source.
-   */
-  void _assertNotKeywordToken(String source,
-      {ScannerConfiguration? configuration}) {
-    Token token = _scan(source, configuration: configuration);
-    expect(token, isNotNull);
-    expect(token.type.isKeyword, false);
-    expect(token.offset, 0);
-    expect(token.length, source.length);
-    expect(token.lexeme, source);
-    token = _scan(" $source ", configuration: configuration);
-    expect(token, isNotNull);
-    expect(token.type.isKeyword, false);
-    expect(token.offset, 1);
-    expect(token.length, source.length);
-    expect(token.lexeme, source);
     expect(token.next!.type, TokenType.EOF);
   }
 

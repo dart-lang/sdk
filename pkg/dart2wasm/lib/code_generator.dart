@@ -187,7 +187,8 @@ abstract class AstCodeGenerator
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(fileUri, location.line - 1, location.column - 1, null);
+    b.startSourceMapping(fileUri, location.line - 1, location.column - 1,
+        enclosingMember.name.text);
     return old;
   }
 
@@ -210,15 +211,6 @@ abstract class AstCodeGenerator
     translator.membersBeingGenerated.add(enclosingMember);
     generateInternal();
     translator.membersBeingGenerated.remove(enclosingMember);
-  }
-
-  void addNestedClosuresToCompilationQueue() {
-    for (Lambda lambda in closures.lambdas.values) {
-      translator.compilationQueue.add(CompilationTask(
-          lambda.function,
-          getLambdaCodeGenerator(
-              translator, lambda, enclosingMember, closures)));
-    }
   }
 
   // Generate the body.
@@ -419,10 +411,6 @@ abstract class AstCodeGenerator
     setupParameters(member.reference,
         canSafelyOmitImplicitChecks: canSafelyOmitImplicitChecks);
 
-    closures.findCaptures(member);
-    closures.collectContexts(member);
-    closures.buildContexts();
-
     allocateContext(member.function!);
     captureParameters();
   }
@@ -600,23 +588,23 @@ abstract class AstCodeGenerator
 
   void allocateContext(TreeNode node) {
     Context? context = closures.contexts[node];
-    if (context != null && !context.isEmpty) {
-      w.Local contextLocal =
-          addLocal(w.RefType.def(context.struct, nullable: true));
-      context.currentLocal = contextLocal;
-      b.struct_new_default(context.struct);
-      b.local_set(contextLocal);
-      if (context.containsThis) {
-        b.local_get(contextLocal);
-        b.local_get(preciseThisLocal!);
-        b.struct_set(context.struct, context.thisFieldIndex);
-      }
-      if (context.parent != null) {
-        w.Local parentLocal = context.parent!.currentLocal;
-        b.local_get(contextLocal);
-        b.local_get(parentLocal);
-        b.struct_set(context.struct, context.parentFieldIndex);
-      }
+    if (context == null || context.isEmpty) return;
+
+    w.Local contextLocal =
+        addLocal(w.RefType.def(context.struct, nullable: true));
+    context.currentLocal = contextLocal;
+    b.struct_new_default(context.struct);
+    b.local_set(contextLocal);
+    if (context.containsThis) {
+      b.local_get(contextLocal);
+      b.local_get(preciseThisLocal!);
+      b.struct_set(context.struct, context.thisFieldIndex);
+    }
+    if (context.parent != null) {
+      w.Local parentLocal = context.parent!.currentLocal;
+      b.local_get(contextLocal);
+      b.local_get(parentLocal);
+      b.struct_set(context.struct, context.parentFieldIndex);
     }
   }
 
@@ -1411,6 +1399,14 @@ abstract class AstCodeGenerator
       b.local_set(switchValueNonNullableLocal);
     }
 
+    final dynamicTypeGuard = switchInfo.dynamicTypeGuard;
+    if (dynamicTypeGuard != null) {
+      final success = b.block(const [], [translator.topInfo.nonNullableType]);
+      dynamicTypeGuard(switchValueNonNullableLocal, success);
+      b.br(switchLabels[defaultCase] ?? doneLabel);
+      b.end();
+    }
+
     // Compare against all case values
     for (SwitchCase c in node.cases) {
       for (Expression exp in c.expressions) {
@@ -1889,6 +1885,8 @@ abstract class AstCodeGenerator
     pushReceiver(selector.signature);
 
     if (selector.targetRanges.length == 1) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       assert(selector.staticDispatchRanges.length == 1);
       final target = selector.targetRanges[0].target;
       final signature = translator.signatureForDirectCall(target);
@@ -1899,6 +1897,8 @@ abstract class AstCodeGenerator
     }
 
     if (selector.targetRanges.isEmpty) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       // Unreachable call
       b.comment("Virtual call of ${selector.name} with no targets"
           " at ${node.location}");
@@ -1919,22 +1919,15 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (selector.staticDispatchRanges.isNotEmpty) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector));
     } else {
-      final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      if (offset != 0) {
-        b.i32_const(offset);
-        b.i32_add();
-      }
-      b.call_indirect(
-          selector.signature, translator.dispatchTable.getWasmTable(b.module));
-
-      translator.functions.recordSelectorUse(selector);
+      translator.callDispatchTable(b, selector);
     }
 
     return translator.outputOrVoid(selector.signature.outputs);
@@ -2016,9 +2009,10 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticSet(StaticSet node, w.ValueType expectedType) {
     bool preserved = expectedType != voidMarker;
     Member target = node.target;
-    w.ValueType paramType = target is Field
-        ? translator.globals.getGlobalForStaticField(target).type.type
-        : translator.signatureForDirectCall(target.reference).inputs.single;
+    final reference =
+        target is Field ? target.setterReference! : target.reference;
+    w.ValueType paramType =
+        translator.signatureForDirectCall(reference).inputs.single;
     translateExpression(node.value, paramType);
     if (!preserved) {
       call(node.targetReference);
@@ -2027,7 +2021,7 @@ abstract class AstCodeGenerator
     w.Local temp = addLocal(paramType);
     b.local_tee(temp);
 
-    call(node.targetReference);
+    call(reference);
     b.local_get(temp);
     return temp.type;
   }
@@ -2349,8 +2343,7 @@ abstract class AstCodeGenerator
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
     pushContext();
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
@@ -2391,14 +2384,11 @@ abstract class AstCodeGenerator
           expectedType);
     }
 
-    final Expression receiver = node.receiver;
-    final Arguments arguments = node.arguments;
-
-    int typeCount = arguments.types.length;
-    int posArgCount = arguments.positional.length;
-    List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
+    List<String> argNames = node.arguments.named.map((a) => a.name).toList()
+      ..sort();
     ClosureRepresentation? representation = translator.closureLayouter
-        .getClosureRepresentation(typeCount, posArgCount, argNames);
+        .getClosureRepresentation(node.arguments.types.length,
+            node.arguments.positional.length, argNames);
     if (representation == null) {
       // This is a dynamic function call with a signature that matches no
       // functions in the program.
@@ -2406,26 +2396,75 @@ abstract class AstCodeGenerator
       return translator.topInfo.nullableType;
     }
 
+    final SingleClosureTarget? directClosureCall =
+        translator.singleClosureTarget(node, representation, typeContext);
+
+    if (directClosureCall != null) {
+      return _generateDirectClosureCall(
+          node, representation, directClosureCall);
+    }
+
+    return _generateClosureInvocation(node, representation);
+  }
+
+  w.ValueType _generateDirectClosureCall(FunctionInvocation node,
+      ClosureRepresentation representation, SingleClosureTarget closureTarget) {
+    final closureStruct = representation.closureStruct;
+    final closureStructRef = w.RefType.def(closureStruct, nullable: false);
+    final signature = closureTarget.signature;
+    final paramInfo = closureTarget.paramInfo;
+    final member = closureTarget.member;
+    final lambdaFunction = closureTarget.lambdaFunction;
+
+    if (lambdaFunction == null) {
+      if (paramInfo.takesContextOrReceiver) {
+        translateExpression(node.receiver, closureStructRef);
+        b.struct_get(closureStruct, FieldIndex.closureContext);
+        translator.convertType(
+            b,
+            closureStruct.fields[FieldIndex.closureContext].type.unpacked,
+            signature.inputs[0]);
+        _visitArguments(node.arguments, signature, paramInfo, 1);
+      } else {
+        _visitArguments(node.arguments, signature, paramInfo, 0);
+      }
+      return translator.outputOrVoid(call(member.reference));
+    } else {
+      assert(paramInfo.takesContextOrReceiver);
+      translateExpression(node.receiver, closureStructRef);
+      b.struct_get(closureStruct, FieldIndex.closureContext);
+      _visitArguments(node.arguments, signature, paramInfo, 1);
+      return translator
+          .outputOrVoid(translator.callFunction(lambdaFunction, b));
+    }
+  }
+
+  w.ValueType _generateClosureInvocation(
+      FunctionInvocation node, ClosureRepresentation representation) {
+    final closureStruct = representation.closureStruct;
+
     // Evaluate receiver
-    w.StructType struct = representation.closureStruct;
-    w.Local temp = addLocal(w.RefType.def(struct, nullable: false));
-    translateExpression(receiver, temp.type);
-    b.local_tee(temp);
-    b.struct_get(struct, FieldIndex.closureContext);
+    w.Local closureLocal =
+        addLocal(w.RefType.def(closureStruct, nullable: false));
+    translateExpression(node.receiver, closureLocal.type);
+    b.local_tee(closureLocal);
+    b.struct_get(closureStruct, FieldIndex.closureContext);
 
     // Type arguments
-    for (DartType typeArg in arguments.types) {
+    for (DartType typeArg in node.arguments.types) {
       types.makeType(this, typeArg);
     }
 
     // Positional arguments
-    for (Expression arg in arguments.positional) {
+    for (Expression arg in node.arguments.positional) {
       translateExpression(arg, translator.topInfo.nullableType);
     }
 
     // Named arguments
+    final List<String> argNames =
+        node.arguments.named.map((a) => a.name).toList()..sort();
     final Map<String, w.Local> namedLocals = {};
-    for (final namedArg in arguments.named) {
+    for (final namedArg in node.arguments.named) {
       final w.Local namedLocal = addLocal(translator.topInfo.nullableType);
       namedLocals[namedArg.name] = namedLocal;
       translateExpression(namedArg.value, namedLocal.type);
@@ -2435,15 +2474,17 @@ abstract class AstCodeGenerator
       b.local_get(namedLocals[name]!);
     }
 
-    // Call entry point in vtable
-    int vtableFieldIndex =
-        representation.fieldIndexForSignature(posArgCount, argNames);
-    w.FunctionType functionType =
+    final int vtableFieldIndex = representation.fieldIndexForSignature(
+        node.arguments.positional.length, argNames);
+    final w.FunctionType functionType =
         representation.getVtableFieldType(vtableFieldIndex);
-    b.local_get(temp);
-    b.struct_get(struct, FieldIndex.closureVtable);
+
+    // Call entry point in vtable
+    b.local_get(closureLocal);
+    b.struct_get(closureStruct, FieldIndex.closureVtable);
     b.struct_get(representation.vtableStruct, vtableFieldIndex);
     b.call_ref(functionType);
+
     return translator.topInfo.nullableType;
   }
 
@@ -2454,9 +2495,8 @@ abstract class AstCodeGenerator
     Lambda lambda = closures.lambdas[decl.function]!;
     _pushContext(decl.function);
     Arguments arguments = node.arguments;
-    visitArgumentsLists(arguments.positional, lambda.function.type,
-        ParameterInfo.fromLocalFunction(decl.function), 1,
-        typeArguments: arguments.types, named: arguments.named);
+    _visitArguments(arguments, lambda.function.type,
+        ParameterInfo.fromLocalFunction(decl.function), 1);
     b.comment("Local call of ${decl.variable.name}");
     translator.callFunction(lambda.function, b);
     return translator.outputOrVoid(lambda.function.type.outputs);
@@ -2529,45 +2569,54 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    return _nullCheck(node.operand, translator.throwNullCheckError);
-  }
-
-  w.ValueType _nullCheck(Expression operand, Procedure errorProcedure) {
-    w.ValueType operandType = translator.translateType(dartTypeOf(operand));
+    w.ValueType operandType =
+        translator.translateType(dartTypeOf(node.operand));
     w.ValueType nonNullOperandType = operandType.withNullability(false);
-    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
-    translateExpression(operand, operandType);
 
-    // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
-    // null case.
+    // In rare cases the operand is non-nullable but TFA doesn't optimize away
+    // the null check. If the operand is an unboxed type, the br_on_non_null
+    // would fail to compile.
+    if (!operandType.nullable) {
+      translateExpression(node.operand, operandType);
+      return nonNullOperandType;
+    }
+    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
+    translateExpression(node.operand, operandType);
+
+    // We lower a null check to a br_on_non_null, throwing a [TypeError] in
+    // the null case.
     b.br_on_non_null(nullCheckBlock);
     call(translator.stackTraceCurrent.reference);
-    call(errorProcedure.reference);
+    call(translator.throwNullCheckError.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
   }
 
-  void visitArgumentsLists(List<Expression> positional,
-      w.FunctionType signature, ParameterInfo paramInfo, int signatureOffset,
-      {List<DartType> typeArguments = const [],
-      List<NamedExpression> named = const []}) {
-    for (int i = 0; i < typeArguments.length; i++) {
-      types.makeType(this, typeArguments[i]);
+  void _visitArguments(Arguments node, w.FunctionType signature,
+      ParameterInfo paramInfo, int signatureOffset) {
+    // Type arguments
+    for (int i = 0; i < node.types.length; i++) {
+      types.makeType(this, node.types[i]);
     }
-    signatureOffset += typeArguments.length;
-    for (int i = 0; i < positional.length; i++) {
-      translateExpression(positional[i], signature.inputs[signatureOffset + i]);
+    signatureOffset += node.types.length;
+
+    // Positional arguments
+    for (int i = 0; i < node.positional.length; i++) {
+      translateExpression(
+          node.positional[i], signature.inputs[signatureOffset + i]);
     }
-    // Default values for positional parameters
-    for (int i = positional.length; i < paramInfo.positional.length; i++) {
+    // Push default values for optional positional parameters.
+    for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
       translator.constants
           .instantiateConstant(b, paramInfo.positional[i]!, type);
     }
-    // Named arguments
+
+    // Named arguments. Store evaluated arguments in locals to be able to
+    // re-order them based on the `ParameterInfo`.
     final Map<String, w.Local> namedLocals = {};
-    for (var namedArg in named) {
+    for (var namedArg in node.named) {
       final w.ValueType type = signature
           .inputs[signatureOffset + paramInfo.nameIndex[namedArg.name]!];
       final w.Local namedLocal = addLocal(type);
@@ -2575,6 +2624,8 @@ abstract class AstCodeGenerator
       translateExpression(namedArg.value, namedLocal.type);
       b.local_set(namedLocal);
     }
+    // Re-order named arguments and push default values for optional named
+    // parameters.
     for (String name in paramInfo.names) {
       w.Local? namedLocal = namedLocals[name];
       final w.ValueType type =
@@ -2586,12 +2637,6 @@ abstract class AstCodeGenerator
             .instantiateConstant(b, paramInfo.named[name]!, type);
       }
     }
-  }
-
-  void _visitArguments(Arguments node, w.FunctionType signature,
-      ParameterInfo paramInfo, int signatureOffset) {
-    visitArgumentsLists(node.positional, signature, paramInfo, signatureOffset,
-        typeArguments: node.types, named: node.named);
   }
 
   @override
@@ -2741,8 +2786,8 @@ abstract class AstCodeGenerator
   w.ValueType makeArrayFromExpressions(
       List<Expression> expressions, InterfaceType elementType) {
     return makeArray(
-        translator.arrayTypeForDartType(elementType), expressions.length,
-        (w.ValueType type, int i) {
+        translator.arrayTypeForDartType(elementType, mutable: true),
+        expressions.length, (w.ValueType type, int i) {
       translateExpression(expressions[i], type);
     });
   }
@@ -2908,8 +2953,7 @@ abstract class AstCodeGenerator
         translator.getRecordClassInfo(node.recordType);
     translator.functions.recordClassAllocation(recordClassInfo.classId);
 
-    b.i32_const(recordClassInfo.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(recordClassInfo);
     for (Expression positional in node.positional) {
       translateExpression(positional, translator.topInfo.nullableType);
     }
@@ -3185,7 +3229,7 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
       return;
     }
 
-    closures = Closures(translator, member);
+    closures = translator.getClosures(member);
 
     setupParametersAndContexts(member, useUncheckedEntry: useUncheckedEntry);
 
@@ -3196,7 +3240,6 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
 
     _implicitReturn();
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 }
 
@@ -3209,12 +3252,14 @@ class TearOffCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    closures = Closures(translator, member);
-    generateTearOffGetter(member as Procedure);
-  }
+    // Initialize [Closures] without [Closures.captures]: [Closures.captures] is
+    // used by `makeType` below, when generating runtime types of type
+    // parameters of the function type, but the type parameters are not
+    // captured, always loaded from the `this` struct.
+    closures = translator.getClosures(member, findCaptures: false);
 
-  void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member.reference);
+    Procedure procedure = member as Procedure;
     DartType functionType = translator.getTearOffType(procedure);
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
@@ -3222,9 +3267,11 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
     b.local_get(paramLocals[0]); // `this` as context
+    // The closure requires a struct value so box `this` if necessary.
+    translator.convertType(b, paramLocals[0].type,
+        struct.fields[FieldIndex.closureContext].type.unpacked);
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
@@ -3241,7 +3288,10 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    closures = Closures(translator, member);
+    // Initialize [Closures] without [Closures.captures]: Similar to
+    // [TearOffCodeGenerator], type parameters will be loaded from the `this`
+    // struct.
+    closures = translator.getClosures(member, findCaptures: false);
     if (member is Field ||
         (member is Procedure && (member as Procedure).isSetter)) {
       _generateFieldSetterTypeCheckerMethod();
@@ -3481,7 +3531,6 @@ class InitializerListCodeGenerator extends AstCodeGenerator {
       generateInitializerList();
     }
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 
   // Generates a constructor's initializer list method, and returns:
@@ -3695,8 +3744,7 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     }
 
     // Set field values
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
 
     for (w.Local local in orderedFieldLocals.reversed) {
       b.local_get(local);
@@ -3847,10 +3895,7 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
     // Static field initializer function
-    closures = Closures(translator, field);
-    closures.findCaptures(field);
-    closures.collectContexts(field);
-    closures.buildContexts();
+    closures = translator.getClosures(field);
 
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
@@ -3863,7 +3908,6 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     b.global_get(global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 }
 
@@ -3946,7 +3990,7 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
     // that instantiates types uses closure information to see whether a type
     // parameter was captured (and loads it from context chain) or not (and
     // loads it directly from `this`).
-    closures = Closures(translator, field);
+    closures = translator.getClosures(field, findCaptures: false);
 
     final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
@@ -4078,6 +4122,12 @@ class SwitchInfo {
   /// expression is nullable.
   late final w.ValueType nonNullableType;
 
+  /// Generates code that will br on [successLabel] if [switchExprLocal] has the
+  /// correct type for the case checks on this switch. Only set for switches
+  /// where the switch expression is dynamic.
+  void Function(w.Local switchExprLocal, w.Label successLabel)?
+      dynamicTypeGuard;
+
   /// Generates code that compares value of a `case` expression with the
   /// `switch` expression's value. Calls [pushCaseExpr] once.
   late final void Function(
@@ -4142,6 +4192,16 @@ class SwitchInfo {
       // named arguments. So we don't have to check `ParamInfo` for it and
       // add missing optional parameters.
       assert(equalsMemberSignature.inputs.length == 2);
+
+      dynamicTypeGuard = (switchExprLocal, successLabel) {
+        codeGen.b.local_get(switchExprLocal);
+        codeGen.b.br_on_cast(
+            successLabel,
+            switchExprLocal.type as w.RefType,
+            equalsMemberSignature.inputs[0]
+                .withNullability(switchExprLocal.type.nullable) as w.RefType);
+        codeGen.b.drop();
+      };
 
       compare = (switchExprLocal, pushCaseExpr) {
         final caseExprType = pushCaseExpr();
@@ -4562,6 +4622,13 @@ extension MacroAssembler on w.InstructionsBuilder {
     }
 
     return target.signature.outputs;
+  }
+
+  /// Pushes fields common to all Dart objects (class id, id hash).
+  void pushObjectHeaderFields(ClassInfo classInfo) {
+    // TODO(natebiggs): Adjust class ID for dynamic module if appropriate.
+    i32_const(classInfo.classId);
+    i32_const(initialIdentityHash);
   }
 }
 

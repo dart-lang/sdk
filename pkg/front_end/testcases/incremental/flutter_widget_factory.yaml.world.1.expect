@@ -108,7 +108,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
   static extension-member method FooExtension|get#getterFoo(lowered final dart.core::Object? #this, {wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   @#C2
-  static extension-member method FooExtension|set#setterFoo(lowered final dart.core::Object? #this, dynamic _, {wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → void
+  static extension-member method FooExtension|set#setterFoo(lowered final dart.core::Object? #this, wildcard dynamic _#wc0#formal, {wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → void
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   @#C2
   static extension-member method FooExtension|unary-(lowered final dart.core::Object? #this, {wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo

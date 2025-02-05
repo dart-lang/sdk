@@ -7,15 +7,10 @@ part of "core_patch.dart";
 @patch
 class double {
   @patch
-  static double parse(String source,
-      [@deprecated double onError(String source)?]) {
+  static double parse(String source) {
     double? result = tryParse(source);
     if (result == null) {
-      if (onError == null) {
-        throw FormatException('Invalid double $source');
-      } else {
-        return onError(source);
-      }
+      throw FormatException('Invalid double $source');
     }
     return result;
   }

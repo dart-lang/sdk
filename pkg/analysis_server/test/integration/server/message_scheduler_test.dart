@@ -3,117 +3,339 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/protocol/protocol.dart' as legacy;
-import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_utilities/testing/tree_string_sink.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../analysis_server_base.dart';
+import '../../lsp/code_actions_refactor_test.dart';
+import '../../utils/test_code_extensions.dart';
+
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MessageSchedulerTest);
+    defineReflectiveTests(LspServerMessageSchedulerTest);
+    defineReflectiveTests(LegacyServerMessageSchedulerTest);
   });
 }
 
+void _assertLogContents(MessageScheduler messageScheduler, String expected) {
+  var actual = _getLogContents(messageScheduler.testView!.messageLog);
+  if (actual != expected) {
+    print('-------- Actual --------');
+    print('$actual------------------------');
+  }
+  expect(actual, expected);
+}
+
+String _getLogContents(List<String> log) {
+  var buffer = StringBuffer();
+  for (var event in log) {
+    buffer.writeln(event);
+  }
+  return buffer.toString();
+}
+
 @reflectiveTest
-class MessageSchedulerTest {
+class LegacyServerMessageSchedulerTest extends PubPackageAnalysisServerTest {
   late MessageScheduler messageScheduler;
 
-  DtdMessage get dtdMessage {
-    return DtdMessage(
-        message: lspRquest,
-        performance: OperationPerformanceImpl('<root>'),
-        completer: Completer());
+  @override
+  bool get retainDataForTesting => true;
+
+  @override
+  Future<void> setUp() async {
+    super.setUp();
+    messageScheduler = server.messageScheduler;
   }
 
-  legacy.Request get legacyRequest {
-    var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
-    return legacy.Request('1', ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        params.toJson(clientUriConverter: null));
+  Future<void> test_initialize() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    _assertLogContents(messageScheduler, r'''
+Incoming LegacyMessage: analysis.setAnalysisRoots
+Entering process messages loop
+  Start LegacyMessage: analysis.setAnalysisRoots
+  Complete LegacyMessage: analysis.setAnalysisRoots
+Exit process messages loop
+''');
   }
 
-  lsp.RequestMessage get lspRquest {
-    var params = {'processId': 'invalid'};
-    return lsp.RequestMessage(
-      id: lsp.Either2<int, String>.t1(1),
-      method: lsp.Method.initialize,
-      params: params,
-      jsonrpc: lsp.jsonRpcVersion,
-    );
+  Future<void> test_multipleRequests() async {
+    var futures = <Future<void>>[];
+    futures.add(setRoots(included: [workspaceRootPath], excluded: []));
+    var request = ExecutionCreateContextParams(
+      '/a/b.dart',
+    ).toRequest('0', clientUriConverter: server.uriConverter);
+    futures.add(handleSuccessfulRequest(request));
+    await Future.wait(futures);
+    _assertLogContents(messageScheduler, r'''
+Incoming LegacyMessage: analysis.setAnalysisRoots
+Entering process messages loop
+  Start LegacyMessage: analysis.setAnalysisRoots
+Incoming LegacyMessage: execution.createContext
+  Complete LegacyMessage: analysis.setAnalysisRoots
+  Start LegacyMessage: execution.createContext
+  Complete LegacyMessage: execution.createContext
+Exit process messages loop
+''');
   }
+}
 
+@reflectiveTest
+class LspServerMessageSchedulerTest extends RefactorCodeActionsTest {
+  late MessageScheduler messageScheduler;
+
+  final extractMethodTitle = 'Extract Method';
+
+  @override
+  bool get retainDataForTesting => true;
+
+  @override
   void setUp() {
-    messageScheduler = MessageScheduler();
+    super.setUp();
+    messageScheduler = server.messageScheduler;
   }
 
-  void test_addMultipleToQueue() {
-    messageScheduler.add(LegacyMessage(request: legacyRequest));
-    messageScheduler.add(LspMessage(message: lspRquest));
-    messageScheduler.add(dtdMessage);
-    _assertQueueContents(r'''
-incomingMessages
-  LegacyMessage
-    method: analysis.setAnalysisRoots
-  LspMessage
-    method: initialize
-  DtdMessage
-    method: initialize
-''');
-  }
+  Future<void> test_documentChange() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
 
-  void test_addSingleToQueue() {
-    messageScheduler.add(LspMessage(message: lspRquest));
-    _assertQueueContents(r'''
-incomingMessages
-  LspMessage
-    method: initialize
-''');
-  }
-
-  void _assertQueueContents(String expected) {
-    var actual = _getQueueContents(messageScheduler.incomingMessages);
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
+    newFile(mainFilePath, content);
+    // await initialize();
+    // var code = TestCode.parse(content);
+    // await openFile(mainFileUri, code.code);
+    var codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+      openTargetFile: true,
+    );
+    // Use a Completer to control when the refactor handler starts computing.
+    var completer = Completer<void>();
+    PerformRefactorCommandHandler.delayAfterResolveForTests = completer.future;
+    try {
+      // Send an edit request immediately after the refactor request.
+      var futures = <Future<void>>[];
+      var request = makeRequest(
+        Method.workspace_executeCommand,
+        ExecuteCommandParams(
+          command: codeAction.command!.command,
+          arguments: codeAction.command!.arguments,
+        ),
+      );
+      futures.add(sendRequestToServer(request));
+      futures.add(replaceFile(100, mainFileUri, 'new test content'));
+      completer.complete();
+      await Future.wait(futures);
+    } finally {
+      // Ensure we never leave an incomplete future if anything above throws.
+      PerformRefactorCommandHandler.delayAfterResolveForTests = null;
     }
-    expect(actual, expected);
+
+    _assertLogContents(messageScheduler, r'''
+Incoming RequestMessage: initialize
+Entering process messages loop
+  Start LspMessage: initialize
+  Complete LspMessage: initialize
+Exit process messages loop
+Incoming NotificationMessage: initialized
+Entering process messages loop
+  Start LspMessage: initialized
+  Complete LspMessage: initialized
+Exit process messages loop
+Incoming NotificationMessage: textDocument/didOpen
+Entering process messages loop
+  Start LspMessage: textDocument/didOpen
+  Complete LspMessage: textDocument/didOpen
+Exit process messages loop
+Incoming RequestMessage: textDocument/codeAction
+Entering process messages loop
+  Start LspMessage: textDocument/codeAction
+  Complete LspMessage: textDocument/codeAction
+Exit process messages loop
+Incoming RequestMessage: workspace/executeCommand
+Entering process messages loop
+  Start LspMessage: workspace/executeCommand
+Incoming NotificationMessage: textDocument/didChange
+Canceled in progress request workspace/executeCommand
+  Complete LspMessage: workspace/executeCommand
+  Start LspMessage: textDocument/didChange
+  Complete LspMessage: textDocument/didChange
+Exit process messages loop
+''');
   }
 
-  String _getQueueContents(ListQueue<MessageObject> queue) {
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(sink: buffer, indent: '  ');
-    sink.writeln('incomingMessages');
-    while (queue.isNotEmpty) {
-      var message = queue.removeFirst();
-      switch (message) {
-        case DtdMessage():
-          sink.writelnWithIndent('DtdMessage');
-          sink.withIndent(() {
-            sink.writelnWithIndent(
-                'method: ${message.message.method.toString()}');
-          });
-        case LegacyMessage():
-          sink.writelnWithIndent('LegacyMessage');
-          sink.withIndent(() {
-            sink.writelnWithIndent(
-                'method: ${message.request.method.toString()}');
-          });
-        case LspMessage():
-          sink.writelnWithIndent('LspMessage');
-          var msg = message.message;
-          if (msg case lsp.RequestMessage()) {
-            sink.withIndent(() {
-              sink.writelnWithIndent('method: ${msg.method.toString()}');
-            });
-          }
+  Future<void> test_duplicateRequests() async {
+    const content = '''
+class B {
+  @^
+}
+''';
+
+    newFile(mainFilePath, content);
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var request = makeRequest(
+      Method.textDocument_completion,
+      CompletionParams(
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
+        position: code.position.position,
+      ),
+    );
+    var futures = <Future<void>>[];
+    futures.add(sendRequestToServer(request));
+    futures.add(sendRequestToServer(request));
+    futures.add(sendRequestToServer(request));
+    await Future.wait(futures);
+    await pumpEventQueue(times: 5000);
+
+    _assertLogContents(messageScheduler, r'''
+Incoming RequestMessage: initialize
+Entering process messages loop
+  Start LspMessage: initialize
+  Complete LspMessage: initialize
+Exit process messages loop
+Incoming NotificationMessage: initialized
+Entering process messages loop
+  Start LspMessage: initialized
+  Complete LspMessage: initialized
+Exit process messages loop
+Incoming NotificationMessage: textDocument/didOpen
+Entering process messages loop
+  Start LspMessage: textDocument/didOpen
+  Complete LspMessage: textDocument/didOpen
+Exit process messages loop
+Incoming RequestMessage: textDocument/completion
+Entering process messages loop
+  Start LspMessage: textDocument/completion
+Incoming RequestMessage: textDocument/completion
+Canceled in progress request textDocument/completion
+Incoming RequestMessage: textDocument/completion
+Canceled in progress request textDocument/completion
+Canceled request on queue textDocument/completion
+  Complete LspMessage: textDocument/completion
+  Start LspMessage: textDocument/completion
+  Complete LspMessage: textDocument/completion
+  Start LspMessage: textDocument/completion
+  Complete LspMessage: textDocument/completion
+Exit process messages loop
+''');
+  }
+
+  Future<void> test_initialize() async {
+    await initialize();
+    await initialAnalysis;
+    await pumpEventQueue(times: 5000);
+    _assertLogContents(messageScheduler, r'''
+Incoming RequestMessage: initialize
+Entering process messages loop
+  Start LspMessage: initialize
+  Complete LspMessage: initialize
+Exit process messages loop
+Incoming NotificationMessage: initialized
+Entering process messages loop
+  Start LspMessage: initialized
+  Complete LspMessage: initialized
+Exit process messages loop
+''');
+  }
+
+  Future<void> test_multipleRequests() async {
+    const content = '''
+void main() {
+  print('Hello world!!');
+}
+''';
+    newFile(mainFilePath, content);
+    await initialize();
+    var futures = <Future<void>>[];
+    futures.add(getDocumentSymbols(mainFileUri));
+    futures.add(getDocumentLinks(mainFileUri));
+    await Future.wait(futures);
+    await pumpEventQueue(times: 5000);
+
+    _assertLogContents(messageScheduler, r'''
+Incoming RequestMessage: initialize
+Entering process messages loop
+  Start LspMessage: initialize
+  Complete LspMessage: initialize
+Exit process messages loop
+Incoming NotificationMessage: initialized
+Entering process messages loop
+  Start LspMessage: initialized
+  Complete LspMessage: initialized
+Exit process messages loop
+Incoming RequestMessage: textDocument/documentSymbol
+Entering process messages loop
+  Start LspMessage: textDocument/documentSymbol
+Incoming RequestMessage: textDocument/documentLink
+  Complete LspMessage: textDocument/documentSymbol
+  Start LspMessage: textDocument/documentLink
+  Complete LspMessage: textDocument/documentLink
+Exit process messages loop
+''');
+  }
+
+  Future<void> test_response() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+
+    var codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
+
+    // Respond to any applyEdit requests from the server with successful responses
+    // and capturing the last edit.
+    requestsFromServer.listen((request) {
+      if (request.method == Method.workspace_applyEdit) {
+        ApplyWorkspaceEditParams.fromJson(
+          request.params as Map<String, Object?>,
+        );
+        respondTo(request, ApplyWorkspaceEditResult(applied: true));
       }
-    }
-    return buffer.toString();
+    });
+    await executeCommand(codeAction.command!);
+    await pumpEventQueue(times: 5000);
+
+    _assertLogContents(messageScheduler, r'''
+Incoming RequestMessage: initialize
+Entering process messages loop
+  Start LspMessage: initialize
+  Complete LspMessage: initialize
+Exit process messages loop
+Incoming NotificationMessage: initialized
+Entering process messages loop
+  Start LspMessage: initialized
+  Complete LspMessage: initialized
+Exit process messages loop
+Incoming RequestMessage: textDocument/codeAction
+Entering process messages loop
+  Start LspMessage: textDocument/codeAction
+  Complete LspMessage: textDocument/codeAction
+Exit process messages loop
+Incoming RequestMessage: workspace/executeCommand
+Entering process messages loop
+  Start LspMessage: workspace/executeCommand
+Incoming ResponseMessage: ResponseMessage
+  Complete LspMessage: workspace/executeCommand
+Exit process messages loop
+''');
   }
 }

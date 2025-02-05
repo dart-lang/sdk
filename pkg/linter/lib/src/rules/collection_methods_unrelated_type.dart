@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = 'Invocation of various collection methods with arguments of '
@@ -95,8 +94,8 @@ class _MethodDefinitionForName extends _MethodDefinition {
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
       var element = supertype.element3;
-      if (element.name == interfaceName &&
-          element.library2.name == libraryName) {
+      if (element.name3 == interfaceName &&
+          element.library2.name3 == libraryName) {
         return targetType.asInstanceOf2(element);
       }
     }
@@ -260,7 +259,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
         var iterableType =
-            collectionType.asInstanceOf(typeProvider.iterableElement);
+            collectionType.asInstanceOf2(typeProvider.iterableElement2);
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
           rule.reportLint(argument, arguments: [

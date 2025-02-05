@@ -343,7 +343,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         .add(_httpHandler());
   }
 
-  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
+  // Note: the WebSocketChannel type below is needed for compatibility with
+  // package:shelf_web_socket v2.
+  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws, _) {
         final client = DartDevelopmentServiceClient.fromWebSocket(
           this,
           ws,

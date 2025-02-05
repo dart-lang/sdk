@@ -12,9 +12,15 @@ main() {
 
   // Verify that `defaultValue` is used when passed, not the default values.
   Expect.equals(
-      true, const bool.fromEnvironment('UNDEFINED_NAME', defaultValue: true));
+    true,
+    const bool.fromEnvironment('UNDEFINED_NAME', defaultValue: true),
+  );
   Expect.equals(
-      1, const int.fromEnvironment('UNDEFINED_NAME', defaultValue: 1));
-  Expect.equals('qux',
-      const String.fromEnvironment('UNDEFINED_NAME', defaultValue: 'qux'));
+    1,
+    const int.fromEnvironment('UNDEFINED_NAME', defaultValue: 1),
+  );
+  Expect.equals(
+    'qux',
+    const String.fromEnvironment('UNDEFINED_NAME', defaultValue: 'qux'),
+  );
 }

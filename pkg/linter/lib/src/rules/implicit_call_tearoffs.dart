@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Explicitly tear-off `call` methods when using an object as a Function.';

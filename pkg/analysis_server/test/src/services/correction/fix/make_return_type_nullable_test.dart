@@ -98,9 +98,10 @@ int f() {
 }
 ''');
     await assertNoFix(
-      errorFilter: (e) =>
-          e.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+      errorFilter:
+          (e) =>
+              e.errorCode ==
+              CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
     );
   }
 

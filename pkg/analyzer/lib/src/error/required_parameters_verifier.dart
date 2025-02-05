@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -20,13 +20,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element;
+    var element = node.element2;
     var argumentList = node.arguments;
-    if (element is ConstructorElement && argumentList != null) {
+    if (element is ConstructorElement2 && argumentList != null) {
       var errorNode = node.constructorIdentifier ?? node.classIdentifier;
       if (errorNode != null) {
         _check(
-          parameters: element.parameters,
+          parameters: element.formalParameters,
           arguments: argumentList.arguments,
           errorEntity: errorNode,
         );
@@ -37,7 +37,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
-      parameters: node.constructorElement?.parameters,
+      parameters: node.constructorElement2?.formalParameters,
       arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
       errorEntity: node.name,
     );
@@ -48,7 +48,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     var type = node.staticInvokeType;
     if (type is FunctionType) {
       _check(
-        parameters: type.parameters,
+        parameters: type.formalParameters,
         arguments: node.argumentList.arguments,
         errorEntity: node,
       );
@@ -58,7 +58,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _check(
-      parameters: node.constructorName.staticElement?.parameters,
+      parameters: node.constructorName.element?.formalParameters,
       arguments: node.argumentList.arguments,
       errorEntity: node.constructorName,
     );
@@ -66,11 +66,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name == FunctionElement.CALL_METHOD_NAME) {
+    if (node.methodName.name == MethodElement2.CALL_METHOD_NAME) {
       var targetType = node.realTarget?.staticType;
       if (targetType is FunctionType) {
         _check(
-          parameters: targetType.parameters,
+          parameters: targetType.formalParameters,
           arguments: node.argumentList.arguments,
           errorEntity: node.argumentList,
         );
@@ -79,7 +79,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
 
     _check(
-      parameters: _executableElement(node.methodName.staticElement)?.parameters,
+      parameters: _executableElement(node.methodName.element)?.formalParameters,
       arguments: node.argumentList.arguments,
       errorEntity: node.methodName,
     );
@@ -89,7 +89,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _check(
-      parameters: _executableElement(node.staticElement)?.parameters,
+      parameters: _executableElement(node.element)?.formalParameters,
       arguments: node.argumentList.arguments,
       errorEntity: node,
     );
@@ -98,10 +98,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(
     SuperConstructorInvocation node, {
-    ConstructorElement? enclosingConstructor,
+    ConstructorElement2? enclosingConstructor,
   }) {
     _check(
-      parameters: _executableElement(node.staticElement)?.parameters,
+      parameters: _executableElement(node.element)?.formalParameters,
       enclosingConstructor: enclosingConstructor,
       arguments: node.argumentList.arguments,
       errorEntity: node,
@@ -109,8 +109,8 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   }
 
   void _check({
-    required List<ParameterElement>? parameters,
-    ConstructorElement? enclosingConstructor,
+    required List<FormalParameterElement>? parameters,
+    ConstructorElement2? enclosingConstructor,
     required List<Expression> arguments,
     required SyntacticEntity errorEntity,
   }) {
@@ -118,11 +118,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       return;
     }
 
-    for (ParameterElement parameter in parameters) {
+    for (FormalParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
-        String parameterName = parameter.name;
+        String parameterName = parameter.name3!;
         if (!_containsNamedExpression(
             enclosingConstructor, arguments, parameterName)) {
+          _containsNamedExpression(
+              enclosingConstructor, arguments, parameterName);
           _errorReporter.atEntity(
             errorEntity,
             CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
@@ -133,7 +135,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       if (parameter.isOptionalNamed) {
         var annotation = _requiredAnnotation(parameter);
         if (annotation != null) {
-          String parameterName = parameter.name;
+          String parameterName = parameter.name3!;
           if (!_containsNamedExpression(
               enclosingConstructor, arguments, parameterName)) {
             var reason = annotation.getReason(strictCasts: true);
@@ -157,7 +159,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   }
 
   static bool _containsNamedExpression(
-    ConstructorElement? enclosingConstructor,
+    ConstructorElement2? enclosingConstructor,
     List<Expression> arguments,
     String name,
   ) {
@@ -171,29 +173,30 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
 
     if (enclosingConstructor != null) {
-      return enclosingConstructor.parameters.any((e) =>
-          e is SuperFormalParameterElement && e.isNamed && e.name == name);
+      return enclosingConstructor.formalParameters.any((e) =>
+          e is SuperFormalParameterElement2 && e.isNamed && e.name3 == name);
     }
 
     return false;
   }
 
-  static ExecutableElement? _executableElement(Element? element) {
-    if (element is ExecutableElement) {
+  static ExecutableElement2? _executableElement(Element2? element) {
+    if (element is ExecutableElement2) {
       return element;
     } else {
       return null;
     }
   }
 
-  static _RequiredAnnotation? _requiredAnnotation(ParameterElement element) {
-    var annotation = element.metadata.firstWhereOrNull((e) => e.isRequired)
-        as ElementAnnotationImpl?;
+  static _RequiredAnnotation? _requiredAnnotation(
+      FormalParameterElement element) {
+    var annotation = element.metadata2.annotations
+        .firstWhereOrNull((e) => e.isRequired) as ElementAnnotationImpl?;
     if (annotation != null) {
       return _RequiredAnnotation(annotation);
     }
 
-    if (element.declaration.isRequiredNamed) {
+    if (element.baseElement.isRequiredNamed) {
       return _RequiredAnnotation(annotation);
     }
 
@@ -256,10 +259,10 @@ extension _InstantiatedAnnotation on Annotation {
   }
 
   static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.staticElement is InterfaceElement ? node : null;
+    return node?.element is InterfaceElement2 ? node : null;
   }
 
   static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {
-    return node?.staticElement is ConstructorElement ? node : null;
+    return node?.element is ConstructorElement2 ? node : null;
   }
 }

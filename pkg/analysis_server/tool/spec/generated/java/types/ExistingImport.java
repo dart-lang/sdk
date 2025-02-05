@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Information about an existing import, with elements that it provides.
@@ -31,18 +28,16 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ExistingImport {
 
-  public static final ExistingImport[] EMPTY_ARRAY = new ExistingImport[0];
-
-  public static final List<ExistingImport> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExistingImport> EMPTY_LIST = List.of();
 
   /**
-   * The URI of the imported library. It is an index in the strings field, in the enclosing
-   * ExistingImports and its ImportedElementSet object.
+   * The URI of the imported library. It is an index in the <code>strings</code> field, in the
+   * enclosing <code>ExistingImports</code> and its <code>ImportedElementSet</code> object.
    */
   private final int uri;
 
   /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
+   * The list of indexes of elements, in the enclosing <code>ExistingImports</code> object.
    */
   private final int[] elements;
 
@@ -56,8 +51,7 @@ public class ExistingImport {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExistingImport) {
-      ExistingImport other = (ExistingImport) obj;
+    if (obj instanceof ExistingImport other) {
       return
         other.uri == uri &&
         Arrays.equals(other.elements, elements);
@@ -75,24 +69,23 @@ public class ExistingImport {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExistingImport> list = new ArrayList<ExistingImport>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExistingImport> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
 
   /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
+   * The list of indexes of elements, in the enclosing <code>ExistingImports</code> object.
    */
   public int[] getElements() {
     return elements;
   }
 
   /**
-   * The URI of the imported library. It is an index in the strings field, in the enclosing
-   * ExistingImports and its ImportedElementSet object.
+   * The URI of the imported library. It is an index in the <code>strings</code> field, in the
+   * enclosing <code>ExistingImports</code> and its <code>ImportedElementSet</code> object.
    */
   public int getUri() {
     return uri;
@@ -100,10 +93,10 @@ public class ExistingImport {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(uri);
-    builder.append(elements);
-    return builder.toHashCode();
+    return Objects.hash(
+      uri,
+      Arrays.hashCode(elements)
+    );
   }
 
   public JsonObject toJson() {
@@ -122,9 +115,10 @@ public class ExistingImport {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("uri=");
-    builder.append(uri + ", ");
+    builder.append(uri);
+    builder.append(", ");
     builder.append("elements=");
-    builder.append(StringUtils.join(elements, ", "));
+    builder.append(Arrays.stream(elements).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

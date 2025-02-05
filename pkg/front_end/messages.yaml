@@ -4,7 +4,7 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run pkg/front_end/tool/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
@@ -41,7 +41,7 @@
 # and should be allowed to change the kind of diagnostic without affecting the
 # message. For example, an error might be turned into a warning by the tool.
 #
-# See the file [lib/src/fasta/diagnostics.md] for more details on how to write
+# See the file [lib/src/base/diagnostics.md] for more details on how to write
 # good diagnostic messages.
 #
 # A message used for internal errors should have key that starts with
@@ -61,7 +61,7 @@
 # name of the corresponding public Analyzer error const
 # (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
 # which will be used when generating code in Analyzer for translating
-# fasta error codes to Analyzer error codes.
+# cfe error codes to Analyzer error codes.
 # If `sharedName` is defined, the generated analyzer code will use this as the
 # user-facing analyzer code instead of `analyzerCode`. Multiple messages can share
 # the `sharedName`.
@@ -100,7 +100,7 @@
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
 #    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
 #    do not use them for composing error messages, see [diagnostics.md](
-#    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+#    lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 #    Note that asserts check if these are empty. If they can be empty use an
 #    available `OKEmpty` version (or add the missing needed one(s)) to avoid
 #    triggering an assert.
@@ -297,6 +297,29 @@ MissingExplicitConst:
       final x;
       const A(): x = [];
     }
+
+DynamicCallsAreNotAllowedInDynamicModule:
+  problemMessage: "Dynamic calls are not allowed in a dynamic module."
+
+ConstructorShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot invoke constructor '#name' from a dynamic module."
+  correctionMessage: "Try removing the call or update the dynamic interface to list constructor '#name' as callable."
+
+MemberShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot invoke member '#name' from a dynamic module."
+  correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
+
+ClassShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot use class '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable."
+
+ClassShouldBeListedAsExtendableInDynamicInterface:
+  problemMessage: "Cannot extend, implement or mix-in class '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as extendable."
+
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface:
+  problemMessage: "Cannot override member '#name.#name2' in a dynamic module."
+  correctionMessage: "Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden."
 
 NonAsciiIdentifier:
   problemMessage: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
@@ -1759,7 +1782,6 @@ UnexpectedSeparatorInNumber:
   problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
   correctionMessage: "Try removing the '_'."
   analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
-  experiments: digit-separators
   expression:
     - '123_'
     - '1.23_'
@@ -1899,7 +1921,7 @@ UnterminatedToken:
 
 # Note: avoid using this template, it should only be used for debugging and
 # prototyping, see [diagnostics.md](
-# lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+# lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
   problemMessage: "#string"
 
@@ -2795,30 +2817,135 @@ ExtensionTypeDeclaresInstanceField:
       int? field;
     }
 
-ConflictsWithConstructor:
-  problemMessage: "Conflicts with constructor '#name'."
-  analyzerCode: CONFLICTS_WITH_CONSTRUCTOR
-
-ConflictsWithFactory:
-  problemMessage: "Conflicts with factory '#name'."
-
-ConflictsWithMember:
-  problemMessage: "Conflicts with member '#name'."
+StaticConflictsWithInstance:
+  problemMessage: "Static property '#name' conflicts with instance property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
+  script: |
+    class A {
+      void set foo(_) {}
+      static int get foo => 42;
+    }
+
+StaticConflictsWithInstanceCause:
+  problemMessage: "Conflicting instance property '#name'."
+  severity: CONTEXT
+
+InstanceConflictsWithStatic:
+  problemMessage: "Instance property '#name' conflicts with static property of the same name."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
+  script: |
+    class A {
+      static void set foo(_) {}
+      int get foo => 42;
+    }
+
+InstanceConflictsWithStaticCause:
+  problemMessage: "Conflicting static property '#name'."
+  severity: CONTEXT
+
+SetterConflictsWithDeclaration:
+  problemMessage: "The setter conflicts with declaration '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class Foo {}
+    set Foo(_) {}
+
+SetterConflictsWithDeclarationCause:
+  problemMessage: "Conflicting declaration '#name'."
+  severity: CONTEXT
+
+ConstructorConflictsWithMember:
+  problemMessage: "The constructor conflicts with member '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      static int get foo => 42;
+      A.foo();
+    }
+
+ConstructorConflictsWithMemberCause:
+  problemMessage: "Conflicting member '#name'."
+  severity: CONTEXT
+
+FactoryConflictsWithMember:
+  problemMessage: "The factory conflicts with member '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      static int get foo => 42;
+      factory A.foo() => throw '';
+    }
+
+FactoryConflictsWithMemberCause:
+  problemMessage: "Conflicting member '#name'."
+  severity: CONTEXT
+
+MemberConflictsWithConstructor:
+  problemMessage: "The member conflicts with constructor '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      A.foo();
+      static void foo() {}
+    }
+
+MemberConflictsWithConstructorCause:
+  problemMessage: "Conflicting constructor '#name'."
+  severity: CONTEXT
+
+MemberConflictsWithFactory:
+  problemMessage: "The member conflicts with factory '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      factory A.foo() => throw '';
+      static void foo() {}
+    }
+
+MemberConflictsWithFactoryCause:
+  problemMessage: "Conflicting factory '#name'."
+  severity: CONTEXT
+
+DeclarationConflictsWithSetter:
+  problemMessage: "The declaration conflicts with setter '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    void set foo(_) {}
+    void foo() {}
+
+DeclarationConflictsWithSetterCause:
+  problemMessage: "Conflicting setter '#name'."
+  severity: CONTEXT
 
 ConflictsWithImplicitSetter:
   problemMessage: "Conflicts with the implicit setter of the field '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    int? foo;
+    void set foo(_) {}
+
+ConflictsWithImplicitSetterCause:
+  problemMessage: "Field '#name' with the implicit setter."
+  severity: CONTEXT
 
 ConflictsWithSetter:
   problemMessage: "Conflicts with setter '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    void set foo(_) {}
+    int? foo;
 
-ConflictsWithTypeVariable:
+ConflictsWithSetterCause:
+  problemMessage: "Conflicting setter '#name'."
+  severity: CONTEXT
+
+ConflictsWithTypeParameter:
   problemMessage: "Conflicts with type variable '#name'."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
 
-ConflictsWithTypeVariableCause:
+ConflictsWithTypeParameterCause:
   problemMessage: "This is the type variable."
   severity: CONTEXT
 
@@ -2915,11 +3042,11 @@ IllegalMixin:
   problemMessage: "The type '#name' can't be mixed in."
   analyzerCode: ILLEGAL_MIXIN
 
-OverrideTypeVariablesMismatch:
+OverrideTypeParametersMismatch:
   problemMessage: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
-OverrideTypeVariablesBoundMismatch:
+OverrideTypeParametersBoundMismatch:
   problemMessage: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
 
 OverriddenMethodCause:
@@ -3057,15 +3184,15 @@ PartOfSelf:
   script:
     main.dart: "part 'main.dart';"
 
-TypeVariableDuplicatedName:
+TypeParameterDuplicatedName:
   problemMessage: "A type variable can't have the same name as another."
   analyzerCode: DUPLICATE_DEFINITION
 
-TypeVariableDuplicatedNameCause:
+TypeParameterDuplicatedNameCause:
   problemMessage: "The other type variable named '#name'."
   severity: CONTEXT
 
-TypeVariableSameNameAsEnclosing:
+TypeParameterSameNameAsEnclosing:
   problemMessage: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
 
@@ -3076,7 +3203,7 @@ AnnotationOnTypeArgument:
   script:
     - "class A<E> {} class C { m() => new A<@Object() C>(); }"
 
-AnnotationOnFunctionTypeTypeVariable:
+AnnotationOnFunctionTypeTypeParameter:
   problemMessage: "A type variable on a function type can't have annotations."
   script: |
      // @dart=2.13
@@ -3163,10 +3290,10 @@ TypedefNotType:
   problemMessage: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
 
-TypedefTypeVariableNotConstructor:
+TypedefTypeParameterNotConstructor:
   problemMessage: "Can't use a typedef denoting a type variable as a constructor, nor for a static member access."
 
-TypedefTypeVariableNotConstructorCause:
+TypedefTypeParameterNotConstructorCause:
   problemMessage: "This is the type variable ultimately denoted."
   severity: CONTEXT
 
@@ -3559,7 +3686,7 @@ SupertypeIsNullableAliased:
     typedef B = A?;
     class C extends B {}
 
-SupertypeIsTypeVariable:
+SupertypeIsTypeParameter:
   problemMessage: "The type variable '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
@@ -3583,7 +3710,7 @@ SuperExtensionTypeIsNullableAliased:
     typedef B = A?;
     extension type E(B it) implements B {}
 
-SuperExtensionTypeIsTypeVariable:
+SuperExtensionTypeIsTypeParameter:
   problemMessage: "The type variable '#name' can't be implemented by an extension type."
   script: |
     extension type E<T>(T it) implements T {}
@@ -4057,7 +4184,7 @@ InvalidAssignmentErrorNullabilityNullType:
       i = n;
     }
 
-PatchClassTypeVariablesMismatch:
+PatchClassTypeParametersMismatch:
   problemMessage: "A patch class must have the same number of type variables as its origin class."
 
 PatchClassOrigin:
@@ -4486,14 +4613,14 @@ NonSimpleBoundViaReference:
   problemMessage: "Bound of this variable references raw type '#name'."
   severity: CONTEXT
 
-CycleInTypeVariables:
+CycleInTypeParameters:
   problemMessage: "Type '#name' is a bound of itself via '#string'."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends B, B extends A>() {}"
 
-DirectCycleInTypeVariables:
+DirectCycleInTypeParameters:
   problemMessage: "Type '#name' can't use itself as a bound."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
@@ -4775,16 +4902,16 @@ IncorrectTypeArgumentInferred:
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
-    void foo<T extends num>(T t) {}
-    main() { foo("bar"); }
+    foo<T extends List<S>, S extends num>(T t) {}
+    main() { foo(<String>[""]); }
 
 IncorrectTypeArgumentQualifiedInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
-    class C<T> { foo<U extends num>(U u) {} }
-    main() { new C<String>().foo(""); }
+    class A { foo<T extends List<S>, S extends num>(T t) {} }
+    main() { new A().foo(<String>[""]); }
 
 IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
@@ -4801,9 +4928,9 @@ IncorrectTypeArgumentInstantiationInferred:
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: |
-    X bounded<X extends num>(X x) => x;
+    X bounded<X extends List<Y>, Y extends num>(X x) => x;
     main() {
-      String Function(String) c = bounded;
+      List<String> Function(List<String>) c = bounded;
     }
 
 IncorrectTypeArgumentVariable:
@@ -4872,20 +4999,21 @@ TypeOriginWithFileUri:
 ObjectExtends:
   problemMessage: "The class 'Object' can't have a superclass."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 ObjectImplements:
   problemMessage: "The class 'Object' can't implement anything."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 ObjectMixesIn:
   problemMessage: "The class 'Object' can't use mixins."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 StaticAndInstanceConflict:
   problemMessage: "This static member conflicts with an instance member."
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script:
     - |
       class C {
@@ -5148,6 +5276,12 @@ FfiNativeFieldType:
   analyzerCode: NATIVE_FIELD_INVALID_TYPE
   external: test/ffi_test.dart
 
+FfiNativeFunctionMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this function couldn't be inferred so it must be specified in the annotation."
+  analyzerCode: NATIVE_FUNCTION_MISSING_TYPE
+  external: test/ffi_test.dart
+
 FfiAddressOfMustBeNative:
   # Used by dart:ffi
   problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native."
@@ -5303,31 +5437,36 @@ NonNullAwareSpreadIsNull:
       <int>[...null];
     }
 
+NegativeVariableDimension:
+  # Used by dart:ffi
+  problemMessage: "The variable dimension of a variable-length array must be non-negative."
+  external: test/ffi_test.dart
+
 NonPositiveArrayDimensions:
   # Used by dart:ffi
   problemMessage: "Array dimensions must be positive numbers."
   external: test/ffi_test.dart
 
-InvalidTypeVariableInSupertype:
+InvalidTypeParameterInSupertype:
   problemMessage: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
 
-InvalidTypeVariableInSupertypeWithVariance:
+InvalidTypeParameterInSupertypeWithVariance:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<out X> {}
     class B<out Y> extends A<Function(Y)> {}
 
-InvalidTypeVariableVariancePosition:
+InvalidTypeParameterVariancePosition:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position."
   script: >
     class A<out T> {
       void method(T x) {}
     }
 
-InvalidTypeVariableVariancePositionInReturnType:
+InvalidTypeParameterVariancePositionInReturnType:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
   script: >
     class A<in T> {
@@ -5369,15 +5508,21 @@ ExtensionTypeCombinedMemberSignatureFailed:
       }
       extension type C(I3 i) implements I2, I1 {}
 
-LanguageVersionTooHigh:
-  problemMessage: "The specified language version is too high. The highest supported language version is #count.#count2."
+LanguageVersionTooHighExplicit:
+  problemMessage: "The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4."
   script: >
     // @dart = 100.200
 
-LanguageVersionTooLow:
-  problemMessage: "The specified language version is too low. The lowest supported language version is #count.#count2."
+LanguageVersionTooHighPackage:
+  problemMessage: "The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4."
+
+LanguageVersionTooLowExplicit:
+  problemMessage: "The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4."
   script: >
     // @dart = 2.9
+
+LanguageVersionTooLowPackage:
+  problemMessage: "The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4."
 
 LanguageVersionInvalidInDotPackages:
   problemMessage: "The language version is not specified correctly in the packages file."

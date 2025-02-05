@@ -5,24 +5,24 @@
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show TypeHierarchyItem, convertElement;
+    show TypeHierarchyItem, convertElement2;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/// A computer for a type hierarchy of an [Element].
+/// A computer for a type hierarchy of an [Element2].
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
   final TypeHierarchyComputerHelper helper;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
-  final List<InterfaceElement> _itemClassElements = [];
-  final Map<Element, TypeHierarchyItem> _elementItemMap =
-      HashMap<Element, TypeHierarchyItem>();
+  final List<InterfaceElement2> _itemClassElements = [];
+  final Map<Element2, TypeHierarchyItem> _elementItemMap =
+      HashMap<Element2, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, Element pivotElement)
-      : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
+  TypeHierarchyComputer(this._searchEngine, Element2 pivotElement)
+    : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
   /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>?> compute() async {
@@ -47,12 +47,16 @@ class TypeHierarchyComputer {
   }
 
   Future<void> _createSubclasses(
-      TypeHierarchyItem item,
-      int itemId,
-      InterfaceElement classElement,
-      SearchEngineCache searchEngineCache) async {
+    TypeHierarchyItem item,
+    int itemId,
+    InterfaceElement2 classElement,
+    SearchEngineCache searchEngineCache,
+  ) async {
     var subElements = await getDirectSubClasses(
-        _searchEngine, classElement, searchEngineCache);
+      _searchEngine,
+      classElement,
+      searchEngineCache,
+    );
     var subItemIds = <int>[];
     for (var subElement in subElements) {
       // check for recursion
@@ -64,12 +68,15 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = helper.findMemberElement(subElement);
-      var subMemberElementDeclared = subMemberElement?.nonSynthetic;
-      subItem = TypeHierarchyItem(convertElement(subElement),
-          memberElement: subMemberElementDeclared != null
-              ? convertElement(subMemberElementDeclared)
-              : null,
-          superclass: itemId);
+      var subMemberElementDeclared = subMemberElement?.nonSynthetic2;
+      subItem = TypeHierarchyItem(
+        convertElement2(subElement),
+        memberElement:
+            subMemberElementDeclared != null
+                ? convertElement2(subMemberElementDeclared)
+                : null,
+        superclass: itemId,
+      );
       var subItemId = _items.length;
       // remember
       _elementItemMap[subElement] = subItem;
@@ -84,12 +91,18 @@ class TypeHierarchyComputer {
       var subItem = _items[subItemId];
       var subItemElement = _itemClassElements[subItemId];
       await _createSubclasses(
-          subItem, subItemId, subItemElement, searchEngineCache);
+        subItem,
+        subItemId,
+        subItemElement,
+        searchEngineCache,
+      );
     }
   }
 
   int _createSuperItem(
-      InterfaceElement classElement, List<DartType>? typeArguments) {
+    InterfaceElement2 classElement,
+    List<DartType>? typeArguments,
+  ) {
     // check for recursion
     var cachedItem = _elementItemMap[classElement];
     if (cachedItem != null) {
@@ -101,17 +114,21 @@ class TypeHierarchyComputer {
     {
       String? displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
-        var typeArgumentsStr =
-            typeArguments.map((type) => type.getDisplayString()).join(', ');
+        var typeArgumentsStr = typeArguments
+            .map((type) => type.getDisplayString())
+            .join(', ');
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = helper.findMemberElement(classElement);
-      var memberElementDeclared = memberElement?.nonSynthetic;
-      item = TypeHierarchyItem(convertElement(classElement),
-          displayName: displayName,
-          memberElement: memberElementDeclared != null
-              ? convertElement(memberElementDeclared)
-              : null);
+      var memberElementDeclared = memberElement?.nonSynthetic2;
+      item = TypeHierarchyItem(
+        convertElement2(classElement),
+        displayName: displayName,
+        memberElement:
+            memberElementDeclared != null
+                ? convertElement2(memberElementDeclared)
+                : null,
+      );
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
@@ -122,19 +139,19 @@ class TypeHierarchyComputer {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(
-          superType.element,
+          superType.element3,
           superType.typeArguments,
         );
       }
     }
     // mixins
     for (var type in classElement.mixins) {
-      var id = _createSuperItem(type.element, type.typeArguments);
+      var id = _createSuperItem(type.element3, type.typeArguments);
       item.mixins.add(id);
     }
     // interfaces
     for (var type in classElement.interfaces) {
-      var id = _createSuperItem(type.element, type.typeArguments);
+      var id = _createSuperItem(type.element3, type.typeArguments);
       item.interfaces.add(id);
     }
     // done
@@ -143,40 +160,52 @@ class TypeHierarchyComputer {
 }
 
 class TypeHierarchyComputerHelper {
-  final Element pivotElement;
-  final LibraryElement pivotLibrary;
+  final Element2 pivotElement;
+  final LibraryElement2 pivotLibrary;
   final ElementKind pivotKind;
   final String? pivotName;
   final bool pivotFieldFinal;
-  final InterfaceElement? pivotClass;
+  final InterfaceElement2? pivotClass;
 
-  TypeHierarchyComputerHelper(this.pivotElement, this.pivotLibrary,
-      this.pivotKind, this.pivotName, this.pivotFieldFinal, this.pivotClass);
+  TypeHierarchyComputerHelper(
+    this.pivotElement,
+    this.pivotLibrary,
+    this.pivotKind,
+    this.pivotName,
+    this.pivotFieldFinal,
+    this.pivotClass,
+  );
 
-  factory TypeHierarchyComputerHelper.fromElement(Element pivotElement) {
+  factory TypeHierarchyComputerHelper.fromElement(Element2 pivotElement) {
     // try to find enclosing ClassElement
-    Element? element = pivotElement;
+    Element2? element = pivotElement;
     bool pivotFieldFinal = false;
-    if (pivotElement is FieldElement) {
+    if (pivotElement is FieldElement2) {
       pivotFieldFinal = pivotElement.isFinal;
-      element = pivotElement.enclosingElement3;
+      element = pivotElement.enclosingElement2;
     }
-    if (pivotElement is ExecutableElement) {
-      element = pivotElement.enclosingElement3;
+    if (pivotElement is ExecutableElement2) {
+      element = pivotElement.enclosingElement2;
     }
-    InterfaceElement? pivotClass;
-    if (element is InterfaceElement) {
+    InterfaceElement2? pivotClass;
+    if (element is InterfaceElement2) {
       pivotClass = element;
     }
 
-    return TypeHierarchyComputerHelper(pivotElement, pivotElement.library!,
-        pivotElement.kind, pivotElement.name, pivotFieldFinal, pivotClass);
+    return TypeHierarchyComputerHelper(
+      pivotElement,
+      pivotElement.library2!,
+      pivotElement.kind,
+      pivotElement.name3,
+      pivotFieldFinal,
+      pivotClass,
+    );
   }
 
-  ExecutableElement? findMemberElement(InterfaceElement clazz) {
+  ExecutableElement2? findMemberElement(InterfaceElement2 clazz) {
     // Members of extension types don't override anything.
     // They redeclare, and resolved statically.
-    if (pivotClass is ExtensionTypeElement || clazz is ExtensionTypeElement) {
+    if (pivotClass is ExtensionTypeElement2 || clazz is ExtensionTypeElement2) {
       return null;
     }
 
@@ -184,41 +213,51 @@ class TypeHierarchyComputerHelper {
     if (pivotName == null) {
       return null;
     }
-    ExecutableElement? result;
+    ExecutableElement2? result;
     // try to find in the class itself
     if (pivotKind == ElementKind.METHOD) {
-      result = clazz.getMethod(pivotName);
+      result = clazz.getMethod2(pivotName);
     } else if (pivotKind == ElementKind.GETTER) {
-      result = clazz.getGetter(pivotName);
+      result = clazz.getGetter2(pivotName);
     } else if (pivotKind == ElementKind.SETTER) {
-      result = clazz.getSetter(pivotName);
+      result = clazz.getSetter2(pivotName);
     } else if (pivotKind == ElementKind.FIELD) {
-      result = clazz.getGetter(pivotName);
+      result = clazz.getGetter2(pivotName);
       if (result == null && !pivotFieldFinal) {
-        result = clazz.getSetter(pivotName);
+        result = clazz.getSetter2(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn(pivotLibrary)) {
+    if (result != null && result.isAccessibleIn2(pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
-      var mixinElement = mixin.element;
+      var mixinElement = mixin.element3;
       if (pivotKind == ElementKind.METHOD) {
-        result = mixinElement.augmented
-            .lookUpMethod(name: pivotName, library: pivotLibrary);
+        result = mixinElement.lookUpMethod2(
+          name: pivotName,
+          library: pivotLibrary,
+        );
       } else if (pivotKind == ElementKind.GETTER) {
-        result = mixinElement.augmented
-            .lookUpGetter(name: pivotName, library: pivotLibrary);
+        result = mixinElement.lookUpGetter2(
+          name: pivotName,
+          library: pivotLibrary,
+        );
       } else if (pivotKind == ElementKind.SETTER) {
-        result = mixinElement.augmented
-            .lookUpSetter(name: pivotName, library: pivotLibrary);
+        result = mixinElement.lookUpSetter2(
+          name: pivotName,
+          library: pivotLibrary,
+        );
       } else if (pivotKind == ElementKind.FIELD) {
-        result = mixinElement.augmented
-            .lookUpGetter(name: pivotName, library: pivotLibrary);
+        result = mixinElement.lookUpGetter2(
+          name: pivotName,
+          library: pivotLibrary,
+        );
         if (result == null && !pivotFieldFinal) {
-          result = mixinElement.augmented
-              .lookUpSetter(name: pivotName, library: pivotLibrary);
+          result = mixinElement.lookUpSetter2(
+            name: pivotName,
+            library: pivotLibrary,
+          );
         }
       }
       if (result == pivotElement) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -1890,6 +1892,20 @@ class B extends A {
     ]);
   }
 
+  test_instantiateGenericFunctionWithNamedParameterAsGenericArg() async {
+    // This test case reproduces the problem encountered in
+    // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+    await assertNoErrorsInCode(r'''
+abstract class C<T> {
+  S f<S>(S Function(C<T>) g);
+}
+
+T h<T>(C<T> c, {bool b = false}) => throw '';
+
+T test<T>(C<T> c) => c.f(h);
+''');
+  }
+
   test_integerLiteralOutOfRange_negative_leadingZeros() async {
     await assertNoErrorsInCode('''
 int x = -000923372036854775809;
@@ -3079,6 +3095,16 @@ import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib;
 import 'lib3.dart' as lib;
 main() { lib1.f1(); lib.f2(); lib.f3(); }
+''');
+  }
+
+  test_type_parameter_extends_futureOr_of_extension_type() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+extension type E(int i) {}
+
+void f<T extends FutureOr<E>>() {}
 ''');
   }
 

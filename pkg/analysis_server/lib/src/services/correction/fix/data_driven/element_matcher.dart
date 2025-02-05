@@ -5,13 +5,14 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart'
+import 'package:analyzer/dart/element/element2.dart'
     show
-        CompilationUnitElement,
-        ExtensionElement,
-        InterfaceElement,
-        PrefixElement,
-        PropertyAccessorElement;
+        ExtensionElement2,
+        InterfaceElement2,
+        LibraryElement2,
+        LibraryFragment,
+        PrefixElement2,
+        PropertyAccessorElement2;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -39,15 +40,15 @@ class ElementMatcher {
   /// Initialize a newly created matcher representing a reference to an element
   /// whose name matches the given [components] and element [kinds] in a library
   /// that imports the [importedUris].
-  ElementMatcher(
-      {required this.importedUris,
-      required this.components,
-      required List<ElementKind> kinds,
-      this.node})
-      : assert(components.isNotEmpty),
-        validKinds = kinds;
+  ElementMatcher({
+    required this.importedUris,
+    required this.components,
+    required List<ElementKind> kinds,
+    this.node,
+  }) : assert(components.isNotEmpty),
+       validKinds = kinds;
 
-  /// Return `true` if this matcher matches the given [element].
+  /// Returns `true` if this matcher matches the given [element].
   bool matches(ElementDescriptor element) {
     //
     // Check that the components in the element's name match the node.
@@ -90,11 +91,12 @@ class ElementMatcher {
           while (parent != null && parent.parent is! CompilationUnit) {
             parent = parent.parent;
           }
-          var element = (parent as CompilationUnitMember).declaredElement;
-          if (element is! InterfaceElement) {
+          var element =
+              (parent as CompilationUnitMember).declaredFragment?.element;
+          if (element is! InterfaceElement2) {
             return false;
           }
-          var types = element.allSupertypes.map((e) => e.element.name);
+          var types = element.allSupertypes.map((e) => e.element3.name3);
           for (var t in types) {
             if (elementComponents.contains(t)) {
               return true;
@@ -134,9 +136,11 @@ class ElementMatcher {
     return false;
   }
 
-  /// Return a list of element matchers that will match the element that is, or
-  /// should be, associated with the given [node]. The list will be empty if
-  /// there are no appropriate matchers for the [node].
+  /// Returns a list of element matchers that will match the element that is, or
+  /// should be, associated with the given [node].
+  ///
+  /// The list will be empty if there are no appropriate matchers for the
+  /// [node].
   static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
       return const [];
@@ -150,26 +154,30 @@ class ElementMatcher {
     return builder.matchers.toList();
   }
 
-  /// Return the URIs of the imports in the library containing the [node], or
-  /// `null` if the imports can't be determined.
+  /// Returns the URIs of the imports in the library containing the [node].
+  ///
+  /// Returns `null` if the imports can't be determined.
   static List<Uri>? _importElementsForNode(AstNode node) {
     var root = node.root;
     if (root is! CompilationUnit) {
       return null;
     }
     var importedUris = <Uri>[];
-    var library = root.declaredElement?.library;
-    if (library == null) {
+    LibraryFragment? part = root.declaredFragment;
+    if (part == null) {
       return null;
     }
-    for (var importElement in library.definingCompilationUnit.libraryImports) {
-      // TODO(brianwilkerson): Filter based on combinators to help avoid making
-      //  invalid suggestions.
-      var uri = importElement.importedLibrary?.source.uri;
-      if (uri != null) {
-        // The [uri] is `null` if the literal string is not a valid URI.
-        importedUris.add(uri);
+    while (part != null) {
+      for (var libraryImport in part.libraryImports2) {
+        // TODO(brianwilkerson): Filter based on combinators to help avoid making
+        //  invalid suggestions.
+        var uri = libraryImport.importedLibrary2?.uri;
+        if (uri != null) {
+          // The [uri] is `null` if the literal string is not a valid URI.
+          importedUris.add(uri);
+        }
       }
+      part = part.enclosingFragment;
     }
     return importedUris;
   }
@@ -217,15 +225,19 @@ class _MatcherBuilder {
     }
   }
 
-  void _addMatcher(
-      {required List<String> components,
-      required List<ElementKind> kinds,
-      AstNode? node}) {
-    matchers.add(ElementMatcher(
+  void _addMatcher({
+    required List<String> components,
+    required List<ElementKind> kinds,
+    AstNode? node,
+  }) {
+    matchers.add(
+      ElementMatcher(
         importedUris: importedUris,
         components: components,
         kinds: kinds,
-        node: node));
+        node: node,
+      ),
+    );
   }
 
   /// Build a matcher for the element being invoked.
@@ -251,13 +263,13 @@ class _MatcherBuilder {
         _addMatcher(
           components: [
             parent.constructorName?.name ?? '',
-            grandparent.returnType.name
+            grandparent.returnType.name,
           ],
           kinds: [ElementKind.constructorKind],
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.staticElement?.enclosingElement3.name;
+      var superclassName = parent.element?.enclosingElement2.name3;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -269,8 +281,8 @@ class _MatcherBuilder {
 
   /// Build a matcher for the operator being invoked.
   void _buildFromBinaryExpression(BinaryExpression node) {
-    // TODO(brianwilkerson): Implement this method in order to support changes to
-    //  operators.
+    // TODO(brianwilkerson): Implement this method in order to support changes
+    //  to operators.
   }
 
   /// Build a matcher for the constructor being referenced.
@@ -284,10 +296,7 @@ class _MatcherBuilder {
       components: [constructorName, className],
       kinds: const [ElementKind.constructorKind],
     );
-    _addMatcher(
-      components: [className],
-      kinds: const [ElementKind.classKind],
-    );
+    _addMatcher(components: [className], kinds: const [ElementKind.classKind]);
   }
 
   /// Build a matcher for the extension.
@@ -300,7 +309,8 @@ class _MatcherBuilder {
 
   /// Build a matcher for the function being invoked.
   void _buildFromFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation node,
+  ) {
     // TODO(brianwilkerson): This case was missed in the original implementation
     //  and there are no tests for it at this point, but it ought to be supported.
   }
@@ -333,10 +343,7 @@ class _MatcherBuilder {
       // that a method is being invoked.
       _addMatcher(
         components: [methodName.name, targetName],
-        kinds: [
-          ElementKind.constructorKind,
-          ElementKind.methodKind,
-        ],
+        kinds: [ElementKind.constructorKind, ElementKind.methodKind],
       );
     } else if (node.realTarget != null) {
       // If there is a target, but we don't know the type of the target, then
@@ -385,7 +392,7 @@ class _MatcherBuilder {
         ElementKind.classKind,
         ElementKind.enumKind,
         ElementKind.mixinKind,
-        ElementKind.typedefKind
+        ElementKind.typedefKind,
       ],
     );
     // TODO(brianwilkerson): Determine whether we can ever get here as a result
@@ -405,64 +412,66 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var prefix = node.prefix;
-    if (prefix.staticElement is PrefixElement) {
+    if (prefix.element is PrefixElement2) {
       var parent = node.parent;
       if ((parent is NamedType && parent.parent is! ConstructorName) ||
           (parent is PropertyAccess && parent.target == node)) {
-        _addMatcher(components: [
-          node.identifier.name
-        ], kinds: const [
-          ElementKind.classKind,
-          ElementKind.enumKind,
-          ElementKind.extensionKind,
-          ElementKind.mixinKind,
-          ElementKind.typedefKind
-        ]);
+        _addMatcher(
+          components: [node.identifier.name],
+          kinds: const [
+            ElementKind.classKind,
+            ElementKind.enumKind,
+            ElementKind.extensionKind,
+            ElementKind.mixinKind,
+            ElementKind.typedefKind,
+          ],
+        );
       }
-      _addMatcher(components: [
-        node.identifier.name
-      ], kinds: const [
-        // If the old class has been removed then this might have been a
-        // constructor invocation.
-        ElementKind.constructorKind,
-        ElementKind.functionKind, // tear-off
-        ElementKind.getterKind,
-        ElementKind.setterKind,
-        ElementKind.variableKind
-      ]);
+      _addMatcher(
+        components: [node.identifier.name],
+        kinds: const [
+          // If the old class has been removed then this might have been a
+          // constructor invocation.
+          ElementKind.constructorKind,
+          ElementKind.functionKind, // tear-off
+          ElementKind.getterKind,
+          ElementKind.setterKind,
+          ElementKind.variableKind,
+        ],
+      );
     }
     // It looks like we're accessing a member, so try to figure out the
     // name of the type defining the member.
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
       _addMatcher(
-        components: [node.identifier.name, targetType.element.name],
+        components: [node.identifier.name, targetType.element3.name3!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
     }
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
-    var container = node.prefix.staticElement;
-    if (container is InterfaceElement) {
+    var container = node.prefix.element;
+    if (container is InterfaceElement2) {
       _addMatcher(
-        components: [node.identifier.name, container.name],
+        components: [node.identifier.name, container.name3!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
-    } else if (container is ExtensionElement) {
+    } else if (container is ExtensionElement2) {
       _addMatcher(
         components: [node.identifier.name, container.displayName],
         kinds: const [
@@ -471,7 +480,7 @@ class _MatcherBuilder {
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
     }
@@ -497,7 +506,7 @@ class _MatcherBuilder {
         ElementKind.functionKind, // tear-off, prefixed
         ElementKind.getterKind,
         ElementKind.methodKind, // tear-off, prefixed
-        ElementKind.setterKind
+        ElementKind.setterKind,
       ],
     );
   }
@@ -533,15 +542,16 @@ class _MatcherBuilder {
       if (node.staticType is InvalidType) {
         _addMatcher(components: [node.name], kinds: [], node: node);
       } else {
-        var staticElement = node.staticElement;
+        var element = node.element;
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
-        if (staticElement is PropertyAccessorElement) {
-          var enclosingElement = staticElement.enclosingElement3;
-          if (enclosingElement is! CompilationUnitElement) {
+        if (element is PropertyAccessorElement2) {
+          var enclosingElement = element.enclosingElement2;
+          if (enclosingElement is! LibraryElement2) {
             _addMatcher(
-                components: [node.name, enclosingElement.displayName],
-                kinds: []);
+              components: [node.name, (enclosingElement?.displayName)!],
+              kinds: [],
+            );
             return;
           }
         }
@@ -565,22 +575,22 @@ class _MatcherBuilder {
     }
   }
 
-  /// Return the components associated with the [identifier] when there is no
+  /// Returns the components associated with the [identifier] when there is no
   /// contextual information.
   static List<String> _componentsFromIdentifier(SimpleIdentifier identifier) {
-    var element = identifier.staticElement;
+    var element = identifier.element;
     if (element == null) {
       var parent = identifier.parent;
       if (parent is AssignmentExpression && identifier == parent.leftHandSide) {
-        element = parent.writeElement;
+        element = parent.writeElement2;
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is InterfaceElement) {
-        return [identifier.name, enclosingElement.name];
-      } else if (enclosingElement is ExtensionElement) {
-        var name = enclosingElement.name;
+      var enclosingElement = element.enclosingElement2;
+      if (enclosingElement is InterfaceElement2) {
+        return [identifier.name, enclosingElement.name3!];
+      } else if (enclosingElement is ExtensionElement2) {
+        var name = enclosingElement.name3;
         if (name != null) {
           return [identifier.name, name];
         }
@@ -589,18 +599,18 @@ class _MatcherBuilder {
     return [identifier.name];
   }
 
-  /// Return `true` if the [node] is a prefix
+  /// Returns `true` if the [node] is a prefix.
   static bool _isPrefix(AstNode? node) {
-    return node is SimpleIdentifier && node.staticElement is PrefixElement;
+    return node is SimpleIdentifier && node.element is PrefixElement2;
   }
 
-  /// Return the name of the class associated with the given [target].
+  /// Returns the name of the class associated with the given [target].
   static String? _nameOfTarget(Expression? target) {
     if (target is SimpleIdentifier) {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
-          return type.element.name;
+          return type.element3.name3;
         } else if (type is DynamicType) {
           // The name is likely to be undefined.
           return target.name;
@@ -611,7 +621,7 @@ class _MatcherBuilder {
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {
-        return type.element.name;
+        return type.element3.name3;
       }
       return null;
     }

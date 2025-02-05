@@ -1,0 +1,4 @@
+--dynamic-interface=pkg/front_end/testcases/general/dynamic_modules/dynamic_interface.yaml
+main_lib1.dart
+main_lib2.dart
+main_lib3.dart

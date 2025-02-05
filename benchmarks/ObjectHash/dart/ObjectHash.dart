@@ -37,8 +37,14 @@ class Node5Manual extends Node5 {
   // `hashCode` calls and a 0 seed (instead of loading a unique random seed from
   // global late-final variable).
   @override
-  int get hashCode => _SystemHash.hash5(item1.hashCode, item2.hashCode,
-      item3.hashCode, item4.hashCode, item5.hashCode, 0);
+  int get hashCode => _SystemHash.hash5(
+    item1.hashCode,
+    item2.hashCode,
+    item3.hashCode,
+    item4.hashCode,
+    item5.hashCode,
+    0,
+  );
 }
 
 class Node5List extends Node5 {
@@ -62,7 +68,7 @@ List generateData(Object Function(int) makeValue) {
     true,
     false,
     123,
-    Object()
+    Object(),
   ];
   data.setRange(1, 1 + exceptions.length, exceptions);
   return data;
@@ -196,7 +202,9 @@ void generalUses() {
   check(_SystemHash.hash3(1, 2, 3, 0), _SystemHash.hash3(1, 2, 3, 0));
   check(_SystemHash.hash4(1, 2, 3, 4, 0), _SystemHash.hash4(1, 2, 3, 4, 0));
   check(
-      _SystemHash.hash5(1, 2, 3, 4, 5, 0), _SystemHash.hash5(1, 2, 3, 4, 5, 0));
+    _SystemHash.hash5(1, 2, 3, 4, 5, 0),
+    _SystemHash.hash5(1, 2, 3, 4, 5, 0),
+  );
 
   // Pollute hashAll argument type.
   check(Object.hashAll({}), Object.hashAll([]));

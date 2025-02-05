@@ -196,6 +196,21 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 
   if (enter_safepoint) {
     EnterFullSafepoint();
+
+    if (FLAG_target_memory_sanitizer) {
+      // If we hit the slow path to enter the safepoint, the call into
+      // MSAN-instrumented runtime code may have clobbered an earlier
+      // MsanUnpoisonParam from FfiCall.
+      RegisterSet kVolatileRegisterSet(
+          CallingConventions::kVolatileCpuRegisters,
+          CallingConventions::kVolatileXmmRegisters);
+      PushRegisters(kVolatileRegisterSet);
+      LoadImmediate(CallingConventions::ArgumentRegisters[0],
+                    CallingConventions::kNumArgRegs);
+      CallCFunction(compiler::Address(
+          THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
+      PopRegisters(kVolatileRegisterSet);
+    }
   }
 }
 
@@ -2419,8 +2434,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    MoveImmediate(FieldAddress(instance_reg, target::Object::tags_offset()),
-                  Immediate(tags));
+    InitializeHeader(Immediate(tags), instance_reg);
   } else {
     jmp(failure);
   }
@@ -2461,8 +2475,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    movq(FieldAddress(instance, target::Object::tags_offset()),
-         Immediate(tags));
+    InitializeHeader(Immediate(tags), instance);
   } else {
     jmp(failure);
   }

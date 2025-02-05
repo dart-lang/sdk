@@ -16,7 +16,7 @@ enum ElementKind {
   mixinKind,
   setterKind,
   typedefKind,
-  variableKind
+  variableKind,
 }
 
 extension ElementKindUtilities on ElementKind {
@@ -35,7 +35,7 @@ extension ElementKindUtilities on ElementKind {
       ElementKind.mixinKind => 'mixin',
       ElementKind.setterKind => 'setter',
       ElementKind.typedefKind => 'typedef',
-      ElementKind.variableKind => 'variable'
+      ElementKind.variableKind => 'variable',
     };
   }
 

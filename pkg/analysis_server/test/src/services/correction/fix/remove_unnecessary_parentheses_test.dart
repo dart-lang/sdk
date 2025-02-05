@@ -53,13 +53,15 @@ void f() {
   ((42));
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f() {
   (42);
 }
 ''',
-        errorFilter: (e) => e.offset == testCode.indexOf('(42'),
-        allowFixAllFixes: true);
+      errorFilter: (e) => e.offset == testCode.indexOf('(42'),
+      allowFixAllFixes: true,
+    );
   }
 
   Future<void> test_double_atOuter() async {
@@ -68,9 +70,7 @@ void f() {
   ((42));
 }
 ''');
-    await assertNoFix(
-      errorFilter: (e) => e.offset == testCode.indexOf('((42'),
-    );
+    await assertNoFix(errorFilter: (e) => e.offset == testCode.indexOf('((42'));
   }
 
   Future<void> test_previous_notKeyword() async {

@@ -35,6 +35,32 @@ import 'package:language_server_protocol/protocol_generated.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
+bool _canParseArgumentEdit(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ArgumentEdit.canParse(value, reporter)) {
+      reporter.reportError('must be of type ArgumentEdit');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseBool(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -232,6 +258,33 @@ bool _canParseListClosingLabel(
         (value is! List<Object?> ||
             value.any((item) => !ClosingLabel.canParse(item, reporter)))) {
       reporter.reportError('must be of type List<ClosingLabel>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListEditableArgument(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !EditableArgument.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<EditableArgument>');
       return false;
     }
   } finally {
@@ -482,6 +535,31 @@ bool _canParseOutline(
   return true;
 }
 
+bool _canParsePosition(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
+      reporter.reportError('must be of type Position');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseRange(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -550,6 +628,32 @@ bool _canParseString(
     }
     if ((!nullCheck || value != null) && value is! String) {
       reporter.reportError('must be of type String');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseTextDocumentIdentifier(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !TextDocumentIdentifier.canParse(value, reporter)) {
+      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -676,6 +780,67 @@ class AnalyzerStatusParams implements ToJsonable {
     final isAnalyzing = isAnalyzingJson as bool;
     return AnalyzerStatusParams(
       isAnalyzing: isAnalyzing,
+    );
+  }
+}
+
+class ArgumentEdit implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ArgumentEdit.canParse,
+    ArgumentEdit.fromJson,
+  );
+
+  final String name;
+
+  final Object? newValue;
+
+  ArgumentEdit({
+    required this.name,
+    this.newValue,
+  });
+  @override
+  int get hashCode => Object.hash(
+        name,
+        newValue,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is ArgumentEdit &&
+        other.runtimeType == ArgumentEdit &&
+        name == other.name &&
+        newValue == other.newValue;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['name'] = name;
+    result['newValue'] = newValue;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ArgumentEdit');
+      return false;
+    }
+  }
+
+  static ArgumentEdit fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final newValueJson = json['newValue'];
+    final newValue = newValueJson;
+    return ArgumentEdit(
+      name: name,
+      newValue: newValue,
     );
   }
 }
@@ -860,25 +1025,37 @@ class ConnectToDtdParams implements ToJsonable {
     ConnectToDtdParams.fromJson,
   );
 
+  /// Whether to register experimental LSP handlers with DTD. This should not be
+  /// set by clients automatically but opt-in for users that are
+  /// developing/testing incomplete functionality.
+  final bool? registerExperimentalHandlers;
+
   final Uri uri;
 
   ConnectToDtdParams({
+    this.registerExperimentalHandlers,
     required this.uri,
   });
-
   @override
-  int get hashCode => uri.hashCode;
+  int get hashCode => Object.hash(
+        registerExperimentalHandlers,
+        uri,
+      );
 
   @override
   bool operator ==(Object other) {
     return other is ConnectToDtdParams &&
         other.runtimeType == ConnectToDtdParams &&
+        registerExperimentalHandlers == other.registerExperimentalHandlers &&
         uri == other.uri;
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (registerExperimentalHandlers != null) {
+      result['registerExperimentalHandlers'] = registerExperimentalHandlers;
+    }
     result['uri'] = uri.toString();
     return result;
   }
@@ -888,6 +1065,10 @@ class ConnectToDtdParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseBool(obj, reporter, 'registerExperimentalHandlers',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -897,9 +1078,14 @@ class ConnectToDtdParams implements ToJsonable {
   }
 
   static ConnectToDtdParams fromJson(Map<String, Object?> json) {
+    final registerExperimentalHandlersJson =
+        json['registerExperimentalHandlers'];
+    final registerExperimentalHandlers =
+        registerExperimentalHandlersJson as bool?;
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
     return ConnectToDtdParams(
+      registerExperimentalHandlers: registerExperimentalHandlers,
       uri: uri,
     );
   }
@@ -920,7 +1106,7 @@ class DartCompletionResolutionInfo
   /// The URIs to be imported if this completion is selected.
   final List<String> importUris;
 
-  /// The ElementLocation of the item being completed.
+  /// The encoded ElementLocation2 of the item being completed.
   ///
   /// This is used to provide documentation in the resolved response.
   final String? ref;
@@ -1253,6 +1439,361 @@ class DartTextDocumentContentProviderRegistrationOptions implements ToJsonable {
         (schemesJson as List<Object?>).map((item) => item as String).toList();
     return DartTextDocumentContentProviderRegistrationOptions(
       schemes: schemes,
+    );
+  }
+}
+
+class EditableArgument implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    EditableArgument.canParse,
+    EditableArgument.fromJson,
+  );
+
+  /// A string that can be displayed to indicate the value for this argument.
+  /// This will be populated in cases where the source code is not literally the
+  /// same as the value field, for example an expression or named constant.
+  final String? displayValue;
+
+  /// Whether an explicit argument exists for this parameter in the code. This
+  /// will be true even if the explicit argument is the same value as the
+  /// parameter default.
+  final bool hasArgument;
+
+  /// Whether the value is the default for this parameter, either because there
+  /// is no argument or because it is explicitly provided as the same value.
+  final bool isDefault;
+
+  /// Whether this argument can be add/edited. If not, notEditableReason will
+  /// contain an explanation for why.
+  final bool isEditable;
+
+  /// Whether this argument can be `null`. It is possible for an argument to be
+  /// required, but still allow an explicit `null`.
+  final bool isNullable;
+
+  /// Whether an argument is required for this parameter.
+  final bool isRequired;
+
+  /// The name of the corresponding parameter.
+  final String name;
+
+  /// If isEditable is false, contains a human-readable description of why.
+  final String? notEditableReason;
+
+  /// The set of values allowed for this argument if it is an enum. Values are
+  /// qualified in the form `EnumName.valueName`.
+  final List<String>? options;
+
+  /// The kind of parameter. This is not necessarily the Dart type, it is from a
+  /// defined set of values that clients may understand how to edit.
+  final String type;
+
+  /// The current value for this argument. This is only included if an explicit
+  /// value is given in the code and is a valid literal for the kind of
+  /// parameter. For expressions or named constants, this will not be included
+  /// and displayValue can be shown as the current value instead.
+  final Object? value;
+  EditableArgument({
+    this.displayValue,
+    required this.hasArgument,
+    required this.isDefault,
+    required this.isEditable,
+    required this.isNullable,
+    required this.isRequired,
+    required this.name,
+    this.notEditableReason,
+    this.options,
+    required this.type,
+    this.value,
+  });
+  @override
+  int get hashCode => Object.hash(
+        displayValue,
+        hasArgument,
+        isDefault,
+        isEditable,
+        isNullable,
+        isRequired,
+        name,
+        notEditableReason,
+        lspHashCode(options),
+        type,
+        value,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is EditableArgument &&
+        other.runtimeType == EditableArgument &&
+        displayValue == other.displayValue &&
+        hasArgument == other.hasArgument &&
+        isDefault == other.isDefault &&
+        isEditable == other.isEditable &&
+        isNullable == other.isNullable &&
+        isRequired == other.isRequired &&
+        name == other.name &&
+        notEditableReason == other.notEditableReason &&
+        const DeepCollectionEquality().equals(options, other.options) &&
+        type == other.type &&
+        value == other.value;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (displayValue != null) {
+      result['displayValue'] = displayValue;
+    }
+    result['hasArgument'] = hasArgument;
+    result['isDefault'] = isDefault;
+    result['isEditable'] = isEditable;
+    result['isNullable'] = isNullable;
+    result['isRequired'] = isRequired;
+    result['name'] = name;
+    if (notEditableReason != null) {
+      result['notEditableReason'] = notEditableReason;
+    }
+    if (options != null) {
+      result['options'] = options;
+    }
+    result['type'] = type;
+    if (value != null) {
+      result['value'] = value;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'displayValue',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'hasArgument',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isDefault',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isEditable',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isNullable',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isRequired',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'notEditableReason',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListString(obj, reporter, 'options',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'type',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type EditableArgument');
+      return false;
+    }
+  }
+
+  static EditableArgument fromJson(Map<String, Object?> json) {
+    final displayValueJson = json['displayValue'];
+    final displayValue = displayValueJson as String?;
+    final hasArgumentJson = json['hasArgument'];
+    final hasArgument = hasArgumentJson as bool;
+    final isDefaultJson = json['isDefault'];
+    final isDefault = isDefaultJson as bool;
+    final isEditableJson = json['isEditable'];
+    final isEditable = isEditableJson as bool;
+    final isNullableJson = json['isNullable'];
+    final isNullable = isNullableJson as bool;
+    final isRequiredJson = json['isRequired'];
+    final isRequired = isRequiredJson as bool;
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final notEditableReasonJson = json['notEditableReason'];
+    final notEditableReason = notEditableReasonJson as String?;
+    final optionsJson = json['options'];
+    final options =
+        (optionsJson as List<Object?>?)?.map((item) => item as String).toList();
+    final typeJson = json['type'];
+    final type = typeJson as String;
+    final valueJson = json['value'];
+    final value = valueJson;
+    return EditableArgument(
+      displayValue: displayValue,
+      hasArgument: hasArgument,
+      isDefault: isDefault,
+      isEditable: isEditable,
+      isNullable: isNullable,
+      isRequired: isRequired,
+      name: name,
+      notEditableReason: notEditableReason,
+      options: options,
+      type: type,
+      value: value,
+    );
+  }
+}
+
+class EditableArguments implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    EditableArguments.canParse,
+    EditableArguments.fromJson,
+  );
+
+  final List<EditableArgument> arguments;
+
+  final TextDocumentIdentifier textDocument;
+
+  EditableArguments({
+    required this.arguments,
+    required this.textDocument,
+  });
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(arguments),
+        textDocument,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is EditableArguments &&
+        other.runtimeType == EditableArguments &&
+        const DeepCollectionEquality().equals(arguments, other.arguments) &&
+        textDocument == other.textDocument;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['arguments'] = arguments.map((item) => item.toJson()).toList();
+    result['textDocument'] = textDocument.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListEditableArgument(obj, reporter, 'arguments',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type EditableArguments');
+      return false;
+    }
+  }
+
+  static EditableArguments fromJson(Map<String, Object?> json) {
+    final argumentsJson = json['arguments'];
+    final arguments = (argumentsJson as List<Object?>)
+        .map((item) => EditableArgument.fromJson(item as Map<String, Object?>))
+        .toList();
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    return EditableArguments(
+      arguments: arguments,
+      textDocument: textDocument,
+    );
+  }
+}
+
+class EditArgumentParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    EditArgumentParams.canParse,
+    EditArgumentParams.fromJson,
+  );
+
+  final ArgumentEdit edit;
+
+  final Position position;
+
+  final TextDocumentIdentifier textDocument;
+  EditArgumentParams({
+    required this.edit,
+    required this.position,
+    required this.textDocument,
+  });
+  @override
+  int get hashCode => Object.hash(
+        edit,
+        position,
+        textDocument,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is EditArgumentParams &&
+        other.runtimeType == EditArgumentParams &&
+        edit == other.edit &&
+        position == other.position &&
+        textDocument == other.textDocument;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['edit'] = edit.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseArgumentEdit(obj, reporter, 'edit',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParsePosition(obj, reporter, 'position',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type EditArgumentParams');
+      return false;
+    }
+  }
+
+  static EditArgumentParams fromJson(Map<String, Object?> json) {
+    final editJson = json['edit'];
+    final edit = ArgumentEdit.fromJson(editJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    return EditArgumentParams(
+      edit: edit,
+      position: position,
+      textDocument: textDocument,
     );
   }
 }

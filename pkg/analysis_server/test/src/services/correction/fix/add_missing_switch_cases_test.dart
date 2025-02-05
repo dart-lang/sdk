@@ -134,11 +134,7 @@ import 'a.dart';
 var value = E.first;
 ''');
 
-    createAnalysisOptionsFile(
-      lints: [
-        LintNames.prefer_relative_imports,
-      ],
-    );
+    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
 
     await resolveTestCode('''
 import 'b.dart';
@@ -253,8 +249,10 @@ int f(E x) {
   };
 }
 ''',
-      errorFilter: (e) =>
-          e.errorCode == CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
+      errorFilter:
+          (e) =>
+              e.errorCode ==
+              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
     );
   }
 
@@ -521,8 +519,10 @@ void f(E e) {
   }
 }
 ''',
-      errorFilter: (e) =>
-          e.errorCode == CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+      errorFilter:
+          (e) =>
+              e.errorCode ==
+              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
     );
   }
 
@@ -689,7 +689,8 @@ void f(my.E e) {
 
   @FailingTest(
     issue: 'https://github.com/dart-lang/sdk/issues/49759',
-    reason: 'Expects no fix but produces a fix that adds the cases '
+    reason:
+        'Expects no fix but produces a fix that adds the cases '
         '(but does not fix the incomplete code)',
   )
   Future<void> test_incomplete_switchStatement() async {

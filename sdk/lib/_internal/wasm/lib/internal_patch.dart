@@ -40,9 +40,11 @@ class Lists {
 
     // TODO(askesc): Intrinsify for efficient copying
     if (srcStart < dstStart) {
-      for (int i = srcStart + count - 1, j = dstStart + count - 1;
-          i >= srcStart;
-          i--, j--) {
+      for (
+        int i = srcStart + count - 1, j = dstStart + count - 1;
+        i >= srcStart;
+        i--, j--
+      ) {
         dst[j] = src[i];
       }
     } else {
@@ -65,6 +67,7 @@ abstract class WasmStringBase implements String {}
 //
 // Important: this is unsafe and must be used with care.
 @patch
+@pragma("wasm:intrinsic")
 external T unsafeCast<T>(Object? v);
 
 // A version of [unsafeCast] that is opaque to the TFA. The TFA knows about the
@@ -73,12 +76,14 @@ external T unsafeCast<T>(Object? v);
 // used. One such situation is when either the source or destination type is not
 // an ordinary Dart type, for instance if it is one of the special Wasm types
 // from wasm_types.dart.
+@pragma("wasm:intrinsic")
 external T unsafeCastOpaque<T>(Object? v);
 
 // This function can be used to keep an object alive till that point.
 void reachabilityFence(Object? object) {}
 
 // This function can be used to encode native side effects.
+@pragma("wasm:intrinsic")
 external void _nativeEffect(Object object);
 
 // Thomas Wang 64-bit mix.
@@ -94,9 +99,13 @@ int mix64(int n) {
   return n;
 }
 
+@pragma("wasm:intrinsic")
 external int floatToIntBits(double value);
+@pragma("wasm:intrinsic")
 external double intBitsToFloat(int value);
+@pragma("wasm:intrinsic")
 external int doubleToIntBits(double value);
+@pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
 
 /// Used to invoke a Dart closure from JS (for microtasks and other callbacks),
@@ -163,9 +172,14 @@ void _invokeMain(WasmExternRef jsArrayRef) {
 @pragma("wasm:export", "\$listAdd")
 void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
-String jsonEncode(String object) =>
-    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
-        "s => JSON.stringify(s)", jsStringFromDartString(object).toExternRef)));
+String jsonEncode(String object) => jsStringToDartString(
+  JSStringImpl(
+    JS<WasmExternRef>(
+      "s => JSON.stringify(s)",
+      jsStringFromDartString(object).toExternRef,
+    ),
+  ),
+);
 
 /// Whether to check bounds in [indexCheck] and [indexCheckWithName], which are
 /// used in list and typed data implementations.
@@ -212,7 +226,15 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
 /// `nextCapacity` is the capacity to be used when growing the array. It can
 /// have any shape, and it will be evaluated only when the array is full.
 external void pushWasmArray<T>(
-    WasmArray<T> array, int length, T elem, int nextCapacity);
+  WasmArray<T> array,
+  int length,
+  T elem,
+  int nextCapacity,
+);
 
 /// Similar to `pushWasmArray`, but for popping.
-external T? popWasmArray<T>(WasmArray<T?> array, int length);
+///
+/// Note that when [T] is not nullable, this does not clear the popped element
+/// slot in the array, which may cause memory leaks. Callers should manually
+/// clear non-nullable reference element slots in the array when popping.
+external T popWasmArray<T>(WasmArray<T> array, int length);

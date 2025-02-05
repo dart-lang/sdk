@@ -56,7 +56,7 @@ part of foo;
     writeFile(pathname2, text2);
     await standardAnalysisSetup();
     await sendAnalysisSetSubscriptions({
-      AnalysisService.NAVIGATION: [pathname1]
+      AnalysisService.NAVIGATION: [pathname1],
     });
 
     // There should be a single error, due to the fact that 'dart:async' is not
@@ -83,7 +83,10 @@ part of foo;
     }
 
     void checkLocal(
-        String source, String expectedTarget, ElementKind expectedKind) {
+      String source,
+      String expectedTarget,
+      ElementKind expectedKind,
+    ) {
       var sourceIndex = text1.indexOf(source);
       var targetIndex = text1.indexOf(expectedTarget);
       var element = findTargetElement(sourceIndex);
@@ -93,7 +96,10 @@ part of foo;
     }
 
     void checkRemote(
-        String source, String expectedTargetRegexp, ElementKind expectedKind) {
+      String source,
+      String expectedTargetRegexp,
+      ElementKind expectedKind,
+    ) {
       var sourceIndex = text1.indexOf(source);
       var element = findTargetElement(sourceIndex);
       expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
@@ -105,26 +111,45 @@ part of foo;
     checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
     checkRemote("'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
     checkLocal(
-        'Class<int>.constructor', 'Class<TypeParameter>', ElementKind.CLASS);
+      'Class<int>.constructor',
+      'Class<TypeParameter>',
+      ElementKind.CLASS,
+    );
     checkLocal(
-        'constructor(); // usage',
-        'constructor(); /* constructor declaration */',
-        ElementKind.CONSTRUCTOR);
+      'constructor(); // usage',
+      'constructor(); /* constructor declaration */',
+      ElementKind.CONSTRUCTOR,
+    );
     checkLocal('field = (', 'field = (', ElementKind.FIELD);
-    checkLocal('function(() => localVariable.field)',
-        'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
-    checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
-        ElementKind.TYPE_ALIAS);
+    checkLocal(
+      'function(() => localVariable.field)',
+      'function(FunctionTypeAlias parameter)',
+      ElementKind.FUNCTION,
+    );
+    checkLocal(
+      'FunctionTypeAlias parameter',
+      'FunctionTypeAlias();',
+      ElementKind.TYPE_ALIAS,
+    );
     checkLocal('field)', 'field = (', ElementKind.FIELD);
     checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
     checkLocal(
-        'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
+      'localVariable.field',
+      'localVariable =',
+      ElementKind.LOCAL_VARIABLE,
+    );
     checkLocal('method();', 'method() {', ElementKind.METHOD);
     checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
     checkLocal('field = 1', 'field = (', ElementKind.FIELD);
-    checkLocal('topLevelVariable = 0;', 'topLevelVariable = 0;',
-        ElementKind.TOP_LEVEL_VARIABLE);
-    checkLocal('TypeParameter field = (', 'TypeParameter>',
-        ElementKind.TYPE_PARAMETER);
+    checkLocal(
+      'topLevelVariable = 0;',
+      'topLevelVariable = 0;',
+      ElementKind.TOP_LEVEL_VARIABLE,
+    );
+    checkLocal(
+      'TypeParameter field = (',
+      'TypeParameter>',
+      ElementKind.TYPE_PARAMETER,
+    );
   }
 }

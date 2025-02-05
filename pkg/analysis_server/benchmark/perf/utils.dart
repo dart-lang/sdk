@@ -19,10 +19,9 @@ Future<int> runProcess(
 
   var process = await Process.start(command, args, workingDirectory: cwd);
 
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
+  process.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
+    line,
+  ) {
     if (verbose) {
       print('  $line');
     }
@@ -30,10 +29,9 @@ Future<int> runProcess(
       stdout.add(line);
     }
   });
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
+  process.stderr.transform(utf8.decoder).transform(LineSplitter()).listen((
+    line,
+  ) {
     if (verbose) {
       print('  $line');
     }

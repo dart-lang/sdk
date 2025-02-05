@@ -1,9 +1,23 @@
-# 3.6.0-wip
+# 3.7.0-wip
+
+- new lint: `unnecessary_underscores`
+- new lint: `strict_top_level_inference`
+- new _(experimental)_ lint: `omit_obvious_property_types`
+- new _(experimental)_ lint: `specify_nonobvious_property_types`
+- new _(experimental)_ lint: `unnecessary_async`
+- new _(experimental)_ lint: `unsafe_variance`
+- removed lint: `package_api_docs`
+- removed lint: `unsafe_html`
+- _(soon to be)_ deprecated lint: `avoid_null_checks_in_equality_operators`
+
+# 3.6.0
 
 - new lint: `use_truncating_division`
 - new _(experimental)_ lint: `omit_obvious_local_variable_types`
 - new _(experimental)_ lint: `specify_nonobvious_local_variable_types`
 - new _(experimental)_ lint: `avoid_futureor_void`
+- update `avoid_dynamic_calls` to allow method invocations on a cast to
+  dynamic.
 
 # 3.5.0
 

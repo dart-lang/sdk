@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';

@@ -157,12 +157,14 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
     import 'dart:ffi';
 
+    @pragma("vm:entry-point", "call")
     void copyConst() {
       final pointer = Pointer<Uint8>.fromAddress(%s%p);
       final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
       noop();
     }
 
+    @pragma("vm:entry-point", "call")
     void callNonConstCopy() {
       final pointer = Pointer<Uint8>.fromAddress(%s%p);
       final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
@@ -209,8 +211,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
 
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveDebugStepCheck,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer},
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer2},
           kMatchAndMoveRecordCoverage,
@@ -246,8 +251,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
       ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveDebugStepCheck,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveDebugStepCheck,
           kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
           kMatchAndMoveRecordCoverage,
@@ -335,19 +343,19 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
     if (unboxed_inputs) {
       // Manually add the unbox instruction ourselves instead of leaving it
       // up to the SelectDefinitions pass.
-      length_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_length),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      length_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_length), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(return_instr, length_def, nullptr,
                                FlowGraph::kValue);
-      dest_start_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_dest_start),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      dest_start_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_dest_start), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(length_def, dest_start_def, nullptr,
                                FlowGraph::kValue);
-      src_start_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_src_start),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      src_start_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_src_start), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(dest_start_def, src_start_def, nullptr,
                                FlowGraph::kValue);
     }

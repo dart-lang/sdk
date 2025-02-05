@@ -10,14 +10,22 @@ import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
 ClassEntity findClass(JClosedWorld closedWorld, String name) {
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  ClassEntity? cls =
-      elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, name);
+  ClassEntity? cls = elementEnvironment.lookupClass(
+    elementEnvironment.mainLibrary!,
+    name,
+  );
   cls ??= elementEnvironment.lookupClass(
-      closedWorld.commonElements.coreLibrary, name);
+    closedWorld.commonElements.coreLibrary,
+    name,
+  );
   cls ??= elementEnvironment.lookupClass(
-      closedWorld.commonElements.interceptorsLibrary!, name);
+    closedWorld.commonElements.interceptorsLibrary!,
+    name,
+  );
   cls ??= elementEnvironment.lookupClass(
-      closedWorld.commonElements.jsHelperLibrary!, name);
+    closedWorld.commonElements.jsHelperLibrary!,
+    name,
+  );
   if (cls == null) {
     for (LibraryEntity library in elementEnvironment.libraries) {
       if (!library.canonicalUri.isScheme('dart') &&
@@ -33,12 +41,18 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
 }
 
 MemberEntity findClassMember(
-    JClosedWorld closedWorld, String className, String memberName) {
+  JClosedWorld closedWorld,
+  String className,
+  String memberName,
+) {
   return findClassMemberOrNull(closedWorld, className, memberName)!;
 }
 
 MemberEntity? findClassMemberOrNull(
-    JClosedWorld closedWorld, String className, String memberName) {
+  JClosedWorld closedWorld,
+  String className,
+  String memberName,
+) {
   bool isSetter = false;
   if (memberName.endsWith('=')) {
     memberName = memberName.substring(0, memberName.length - 1);
@@ -47,7 +61,9 @@ MemberEntity? findClassMemberOrNull(
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   MemberEntity? member = elementEnvironment.lookupClassMember(
-      cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
+    cls,
+    Name(memberName, cls.library.canonicalUri, isSetter: isSetter),
+  );
   if (member == null && !isSetter) {
     member = elementEnvironment.lookupConstructor(cls, memberName);
   }
@@ -62,17 +78,24 @@ MemberEntity findMember(JClosedWorld closedWorld, String name) {
   }
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   MemberEntity? member = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary!, name,
-      setter: isSetter);
+    elementEnvironment.mainLibrary!,
+    name,
+    setter: isSetter,
+  );
   member ??= elementEnvironment.lookupLibraryMember(
-      closedWorld.commonElements.coreLibrary, name,
-      setter: isSetter);
+    closedWorld.commonElements.coreLibrary,
+    name,
+    setter: isSetter,
+  );
   if (member == null) {
     for (LibraryEntity library in elementEnvironment.libraries) {
       if (!library.canonicalUri.isScheme('dart') &&
           !library.canonicalUri.isScheme('package')) {
-        member = elementEnvironment.lookupLibraryMember(library, name,
-            setter: isSetter);
+        member = elementEnvironment.lookupLibraryMember(
+          library,
+          name,
+          setter: isSetter,
+        );
         if (member != null) {
           break;
         }

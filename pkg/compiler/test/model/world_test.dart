@@ -5,8 +5,8 @@
 library world_test;
 
 import 'package:compiler/src/elements/names.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -69,83 +69,128 @@ testClassSets() async {
   final G = env.getElement("G") as ClassEntity;
   final X = env.getElement("X") as ClassEntity;
 
-  void checkClasses(String property, ClassEntity cls,
-      Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact = true}) {
+  void checkClasses(
+    String property,
+    ClassEntity cls,
+    Iterable<ClassEntity> foundClasses,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+  }) {
     for (ClassEntity expectedClass in expectedClasses) {
       Expect.isTrue(
-          foundClasses.contains(expectedClass),
-          "Expect $expectedClass in '$property' on $cls. "
-          "Found:\n ${foundClasses.join('\n ')}\n"
-          "${closedWorld.classHierarchy.dump(cls)}");
+        foundClasses.contains(expectedClass),
+        "Expect $expectedClass in '$property' on $cls. "
+        "Found:\n ${foundClasses.join('\n ')}\n"
+        "${closedWorld.classHierarchy.dump(cls)}",
+      );
     }
     if (exact) {
       Expect.equals(
-          expectedClasses.length,
-          foundClasses.length,
-          "Unexpected classes "
-          "${foundClasses.where((c) => !expectedClasses.contains(c))} "
-          "in '$property' on $cls.\n"
-          "${closedWorld.classHierarchy.dump(cls)}");
+        expectedClasses.length,
+        foundClasses.length,
+        "Unexpected classes "
+        "${foundClasses.where((c) => !expectedClasses.contains(c))} "
+        "in '$property' on $cls.\n"
+        "${closedWorld.classHierarchy.dump(cls)}",
+      );
     }
   }
 
-  void check(String property, ClassEntity cls,
-      Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact = true,
-      void forEach(ClassEntity cls, ForEachFunction f)?,
-      int getCount(ClassEntity cls)?}) {
+  void check(
+    String property,
+    ClassEntity cls,
+    Iterable<ClassEntity> foundClasses,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+    void forEach(ClassEntity cls, ForEachFunction f)?,
+    int getCount(ClassEntity cls)?,
+  }) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
 
     if (forEach != null) {
       List<ClassEntity> visited = <ClassEntity>[];
       forEach(cls, (ClassEntity c) {
         visited.add(c);
-        return IterationStep.CONTINUE;
+        return IterationStep.continue_;
       });
-      checkClasses('forEach($property)', cls, visited, expectedClasses,
-          exact: exact);
+      checkClasses(
+        'forEach($property)',
+        cls,
+        visited,
+        expectedClasses,
+        exact: exact,
+      );
     }
 
     if (getCount != null && exact) {
       int count = getCount(cls);
       Expect.equals(
-          expectedClasses.length,
-          count,
-          "Unexpected class count in '$property' on $cls.\n"
-          "${closedWorld.classHierarchy.dump(cls)}");
+        expectedClasses.length,
+        count,
+        "Unexpected class count in '$property' on $cls.\n"
+        "${closedWorld.classHierarchy.dump(cls)}",
+      );
     }
   }
 
-  void testSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact = true}) {
-    check('subclassesOf', cls, closedWorld.classHierarchy.subclassesOf(cls),
-        expectedClasses,
-        exact: exact);
+  void testSubclasses(
+    ClassEntity cls,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+  }) {
+    check(
+      'subclassesOf',
+      cls,
+      closedWorld.classHierarchy.subclassesOf(cls),
+      expectedClasses,
+      exact: exact,
+    );
   }
 
-  void testStrictSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact = true}) {
-    check('strictSubclassesOf', cls,
-        closedWorld.classHierarchy.strictSubclassesOf(cls), expectedClasses,
-        exact: exact,
-        forEach: closedWorld.classHierarchy.forEachStrictSubclassOf,
-        getCount: closedWorld.classHierarchy.strictSubclassCount);
+  void testStrictSubclasses(
+    ClassEntity cls,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+  }) {
+    check(
+      'strictSubclassesOf',
+      cls,
+      closedWorld.classHierarchy.strictSubclassesOf(cls),
+      expectedClasses,
+      exact: exact,
+      forEach: closedWorld.classHierarchy.forEachStrictSubclassOf,
+      getCount: closedWorld.classHierarchy.strictSubclassCount,
+    );
   }
 
-  void testStrictSubtypes(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact = true}) {
-    check('strictSubtypesOf', cls,
-        closedWorld.classHierarchy.strictSubtypesOf(cls), expectedClasses,
-        exact: exact,
-        forEach: closedWorld.classHierarchy.forEachStrictSubtypeOf,
-        getCount: closedWorld.classHierarchy.strictSubtypeCount);
+  void testStrictSubtypes(
+    ClassEntity cls,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+  }) {
+    check(
+      'strictSubtypesOf',
+      cls,
+      closedWorld.classHierarchy.strictSubtypesOf(cls),
+      expectedClasses,
+      exact: exact,
+      forEach: closedWorld.classHierarchy.forEachStrictSubtypeOf,
+      getCount: closedWorld.classHierarchy.strictSubtypeCount,
+    );
   }
 
-  void testMixinUses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact = true}) {
-    check('mixinUsesOf', cls, closedWorld.mixinUsesOf(cls), expectedClasses,
-        exact: exact);
+  void testMixinUses(
+    ClassEntity cls,
+    List<ClassEntity> expectedClasses, {
+    bool exact = true,
+  }) {
+    check(
+      'mixinUsesOf',
+      cls,
+      closedWorld.mixinUsesOf(cls),
+      expectedClasses,
+      exact: exact,
+    );
   }
 
   testSubclasses(Object_, [A, B, C, D, E, F, G], exact: false);
@@ -181,10 +226,10 @@ testClassSets() async {
   testMixinUses(Object_, []);
   testMixinUses(A, [
     elementEnvironment.getSuperClass(F)!,
-    elementEnvironment.getSuperClass(G)!
+    elementEnvironment.getSuperClass(G)!,
   ]);
   testMixinUses(B, [
-    elementEnvironment.getSuperClass(elementEnvironment.getSuperClass(G)!)!
+    elementEnvironment.getSuperClass(elementEnvironment.getSuperClass(G)!)!,
   ]);
   testMixinUses(C, []);
   testMixinUses(D, []);
@@ -255,13 +300,15 @@ testProperties() async {
   check(String name, {bool? hasStrictSubtype, bool? hasOnlySubclasses}) {
     final cls = env.getElement(name) as ClassEntity;
     Expect.equals(
-        hasStrictSubtype,
-        closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
-        "Unexpected hasAnyStrictSubtype property on $cls.");
+      hasStrictSubtype,
+      closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
+      "Unexpected hasAnyStrictSubtype property on $cls.",
+    );
     Expect.equals(
-        hasOnlySubclasses,
-        closedWorld.classHierarchy.hasOnlySubclasses(cls),
-        "Unexpected hasOnlySubclasses property on $cls.");
+      hasOnlySubclasses,
+      closedWorld.classHierarchy.hasOnlySubclasses(cls),
+      "Unexpected hasOnlySubclasses property on $cls.",
+    );
   }
 
   check("Object", hasStrictSubtype: true, hasOnlySubclasses: true);
@@ -331,7 +378,7 @@ testNativeClasses() async {
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html)!;
+  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dartHtml)!;
 
   ClassEntity clsEventTarget =
       elementEnvironment.lookupClass(dart_html, 'EventTarget')!;
@@ -353,185 +400,223 @@ testNativeClasses() async {
     clsWorker,
     clsCanvasElement,
     clsCanvasRenderingContext,
-    clsCanvasRenderingContext2D
+    clsCanvasRenderingContext2D,
   ];
 
-  check(ClassEntity cls,
-      {required bool isDirectlyInstantiated,
-      required bool isAbstractlyInstantiated,
-      required bool isIndirectlyInstantiated,
-      required bool hasStrictSubtype,
-      required bool hasOnlySubclasses,
-      ClassEntity? lubOfInstantiatedSubclasses,
-      ClassEntity? lubOfInstantiatedSubtypes,
-      int? instantiatedSubclassCount,
-      int? instantiatedSubtypeCount,
-      List<ClassEntity> subclasses = const <ClassEntity>[],
-      List<ClassEntity> subtypes = const <ClassEntity>[]}) {
+  check(
+    ClassEntity cls, {
+    required bool isDirectlyInstantiated,
+    required bool isAbstractlyInstantiated,
+    required bool isIndirectlyInstantiated,
+    required bool hasStrictSubtype,
+    required bool hasOnlySubclasses,
+    ClassEntity? lubOfInstantiatedSubclasses,
+    ClassEntity? lubOfInstantiatedSubtypes,
+    int? instantiatedSubclassCount,
+    int? instantiatedSubtypeCount,
+    List<ClassEntity> subclasses = const <ClassEntity>[],
+    List<ClassEntity> subtypes = const <ClassEntity>[],
+  }) {
     ClassSet classSet = closedWorld.classHierarchy.getClassSet(cls);
     ClassHierarchyNode node = classSet.node;
 
     String dumpText = '\n${closedWorld.classHierarchy.dump(cls)}';
 
     Expect.equals(
-        isDirectlyInstantiated,
-        closedWorld.classHierarchy.isDirectlyInstantiated(cls),
-        "Unexpected isDirectlyInstantiated property on $cls.$dumpText");
+      isDirectlyInstantiated,
+      closedWorld.classHierarchy.isDirectlyInstantiated(cls),
+      "Unexpected isDirectlyInstantiated property on $cls.$dumpText",
+    );
     Expect.equals(
-        isAbstractlyInstantiated,
-        closedWorld.classHierarchy.isAbstractlyInstantiated(cls),
-        "Unexpected isAbstractlyInstantiated property on $cls.$dumpText");
+      isAbstractlyInstantiated,
+      closedWorld.classHierarchy.isAbstractlyInstantiated(cls),
+      "Unexpected isAbstractlyInstantiated property on $cls.$dumpText",
+    );
     Expect.equals(
-        isIndirectlyInstantiated,
-        closedWorld.classHierarchy.isIndirectlyInstantiated(cls),
-        "Unexpected isIndirectlyInstantiated property on $cls.$dumpText");
+      isIndirectlyInstantiated,
+      closedWorld.classHierarchy.isIndirectlyInstantiated(cls),
+      "Unexpected isIndirectlyInstantiated property on $cls.$dumpText",
+    );
     Expect.equals(
-        hasStrictSubtype,
-        closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
-        "Unexpected hasAnyStrictSubtype property on $cls.$dumpText");
+      hasStrictSubtype,
+      closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
+      "Unexpected hasAnyStrictSubtype property on $cls.$dumpText",
+    );
     Expect.equals(
-        hasOnlySubclasses,
-        closedWorld.classHierarchy.hasOnlySubclasses(cls),
-        "Unexpected hasOnlySubclasses property on $cls.$dumpText");
+      hasOnlySubclasses,
+      closedWorld.classHierarchy.hasOnlySubclasses(cls),
+      "Unexpected hasOnlySubclasses property on $cls.$dumpText",
+    );
     Expect.equals(
-        lubOfInstantiatedSubclasses,
-        node.getLubOfInstantiatedSubclasses(),
-        "Unexpected getLubOfInstantiatedSubclasses() result on $cls.$dumpText");
+      lubOfInstantiatedSubclasses,
+      node.getLubOfInstantiatedSubclasses(),
+      "Unexpected getLubOfInstantiatedSubclasses() result on $cls.$dumpText",
+    );
     Expect.equals(
-        lubOfInstantiatedSubtypes,
-        classSet.getLubOfInstantiatedSubtypes(),
-        "Unexpected getLubOfInstantiatedSubtypes() result on $cls.$dumpText");
+      lubOfInstantiatedSubtypes,
+      classSet.getLubOfInstantiatedSubtypes(),
+      "Unexpected getLubOfInstantiatedSubtypes() result on $cls.$dumpText",
+    );
     if (instantiatedSubclassCount != null) {
-      Expect.equals(instantiatedSubclassCount, node.instantiatedSubclassCount,
-          "Unexpected instantiatedSubclassCount property on $cls.$dumpText");
+      Expect.equals(
+        instantiatedSubclassCount,
+        node.instantiatedSubclassCount,
+        "Unexpected instantiatedSubclassCount property on $cls.$dumpText",
+      );
     }
     if (instantiatedSubtypeCount != null) {
-      Expect.equals(instantiatedSubtypeCount, classSet.instantiatedSubtypeCount,
-          "Unexpected instantiatedSubtypeCount property on $cls.$dumpText");
+      Expect.equals(
+        instantiatedSubtypeCount,
+        classSet.instantiatedSubtypeCount,
+        "Unexpected instantiatedSubtypeCount property on $cls.$dumpText",
+      );
     }
     for (ClassEntity other in allClasses) {
       if (other == cls) continue;
       if (!closedWorld.classHierarchy.isExplicitlyInstantiated(other)) continue;
       Expect.equals(
-          subclasses.contains(other),
-          closedWorld.classHierarchy.isSubclassOf(other, cls),
-          "Unexpected subclass relation between $other and $cls.");
+        subclasses.contains(other),
+        closedWorld.classHierarchy.isSubclassOf(other, cls),
+        "Unexpected subclass relation between $other and $cls.",
+      );
       Expect.equals(
-          subtypes.contains(other),
-          closedWorld.classHierarchy.isSubtypeOf(other, cls),
-          "Unexpected subtype relation between $other and $cls.");
+        subtypes.contains(other),
+        closedWorld.classHierarchy.isSubtypeOf(other, cls),
+        "Unexpected subtype relation between $other and $cls.",
+      );
     }
 
     Set<ClassEntity> strictSubclasses = Set<ClassEntity>();
-    closedWorld.classHierarchy.forEachStrictSubclassOf(cls,
-        (ClassEntity other) {
+    closedWorld.classHierarchy.forEachStrictSubclassOf(cls, (
+      ClassEntity other,
+    ) {
       if (allClasses.contains(other)) {
         strictSubclasses.add(other);
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     });
-    Expect.setEquals(subclasses, strictSubclasses,
-        "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
+    Expect.setEquals(
+      subclasses,
+      strictSubclasses,
+      "Unexpected strict subclasses of $cls: ${strictSubclasses}.",
+    );
 
     Set<ClassEntity> strictSubtypes = Set<ClassEntity>();
     closedWorld.classHierarchy.forEachStrictSubtypeOf(cls, (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     });
-    Expect.setEquals(subtypes, strictSubtypes,
-        "Unexpected strict subtypes of $cls: $strictSubtypes.");
+    Expect.setEquals(
+      subtypes,
+      strictSubtypes,
+      "Unexpected strict subtypes of $cls: $strictSubtypes.",
+    );
   }
 
   // Extended by Window.
-  check(clsEventTarget,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: false,
-      isIndirectlyInstantiated: true,
-      hasStrictSubtype: true,
-      hasOnlySubclasses: true,
-      lubOfInstantiatedSubclasses: clsEventTarget,
-      lubOfInstantiatedSubtypes: clsEventTarget,
-      // May vary with implementation, do no test.
-      instantiatedSubclassCount: null,
-      instantiatedSubtypeCount: null,
-      subclasses: [clsWindow, clsCanvasElement, clsWorker],
-      subtypes: [clsWindow, clsCanvasElement, clsWorker]);
+  check(
+    clsEventTarget,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: false,
+    isIndirectlyInstantiated: true,
+    hasStrictSubtype: true,
+    hasOnlySubclasses: true,
+    lubOfInstantiatedSubclasses: clsEventTarget,
+    lubOfInstantiatedSubtypes: clsEventTarget,
+    // May vary with implementation, do no test.
+    instantiatedSubclassCount: null,
+    instantiatedSubtypeCount: null,
+    subclasses: [clsWindow, clsCanvasElement, clsWorker],
+    subtypes: [clsWindow, clsCanvasElement, clsWorker],
+  );
 
   // Created by 'html.window'.
-  check(clsWindow,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: true,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: false,
-      hasOnlySubclasses: true,
-      lubOfInstantiatedSubclasses: clsWindow,
-      lubOfInstantiatedSubtypes: clsWindow,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 0);
+  check(
+    clsWindow,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: true,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: false,
+    hasOnlySubclasses: true,
+    lubOfInstantiatedSubclasses: clsWindow,
+    lubOfInstantiatedSubtypes: clsWindow,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 0,
+  );
 
   // Implemented by 'Worker'.
-  check(clsAbstractWorker,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: false,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: true,
-      hasOnlySubclasses: false,
-      lubOfInstantiatedSubclasses: null,
-      lubOfInstantiatedSubtypes: clsWorker,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 1,
-      subtypes: [clsWorker]);
+  check(
+    clsAbstractWorker,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: false,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: true,
+    hasOnlySubclasses: false,
+    lubOfInstantiatedSubclasses: null,
+    lubOfInstantiatedSubtypes: clsWorker,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 1,
+    subtypes: [clsWorker],
+  );
 
   // Created by 'new html.Worker'.
-  check(clsWorker,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: true,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: false,
-      hasOnlySubclasses: true,
-      lubOfInstantiatedSubclasses: clsWorker,
-      lubOfInstantiatedSubtypes: clsWorker,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 0);
+  check(
+    clsWorker,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: true,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: false,
+    hasOnlySubclasses: true,
+    lubOfInstantiatedSubclasses: clsWorker,
+    lubOfInstantiatedSubtypes: clsWorker,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 0,
+  );
 
   // Created by 'new html.CanvasElement'.
-  check(clsCanvasElement,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: true,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: false,
-      hasOnlySubclasses: true,
-      lubOfInstantiatedSubclasses: clsCanvasElement,
-      lubOfInstantiatedSubtypes: clsCanvasElement,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 0);
+  check(
+    clsCanvasElement,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: true,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: false,
+    hasOnlySubclasses: true,
+    lubOfInstantiatedSubclasses: clsCanvasElement,
+    lubOfInstantiatedSubtypes: clsCanvasElement,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 0,
+  );
 
   // Implemented by CanvasRenderingContext2D and RenderingContext.
-  check(clsCanvasRenderingContext,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: false,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: true,
-      hasOnlySubclasses: false,
-      lubOfInstantiatedSubclasses: null,
-      lubOfInstantiatedSubtypes: clsCanvasRenderingContext,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 2,
-      subtypes: [clsCanvasRenderingContext2D]);
+  check(
+    clsCanvasRenderingContext,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: false,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: true,
+    hasOnlySubclasses: false,
+    lubOfInstantiatedSubclasses: null,
+    lubOfInstantiatedSubtypes: clsCanvasRenderingContext,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 2,
+    subtypes: [clsCanvasRenderingContext2D],
+  );
 
   // Created by 'html.CanvasElement.getContext'.
-  check(clsCanvasRenderingContext2D,
-      isDirectlyInstantiated: false,
-      isAbstractlyInstantiated: true,
-      isIndirectlyInstantiated: false,
-      hasStrictSubtype: false,
-      hasOnlySubclasses: true,
-      lubOfInstantiatedSubclasses: clsCanvasRenderingContext2D,
-      lubOfInstantiatedSubtypes: clsCanvasRenderingContext2D,
-      instantiatedSubclassCount: 0,
-      instantiatedSubtypeCount: 0);
+  check(
+    clsCanvasRenderingContext2D,
+    isDirectlyInstantiated: false,
+    isAbstractlyInstantiated: true,
+    isIndirectlyInstantiated: false,
+    hasStrictSubtype: false,
+    hasOnlySubclasses: true,
+    lubOfInstantiatedSubclasses: clsCanvasRenderingContext2D,
+    lubOfInstantiatedSubtypes: clsCanvasRenderingContext2D,
+    instantiatedSubclassCount: 0,
+    instantiatedSubtypeCount: 0,
+  );
 }
 
 testCommonSubclasses() async {
@@ -569,30 +654,40 @@ testCommonSubclasses() async {
   final I = env.getElement("I") as ClassEntity;
   final J = env.getElement("J") as ClassEntity;
 
-  ClassQuery? toClassQuery(SubclassResult result, ClassEntity cls1,
-      ClassQuery query1, ClassEntity cls2, ClassQuery query2) {
+  ClassQuery? toClassQuery(
+    SubclassResult result,
+    ClassEntity cls1,
+    ClassQuery query1,
+    ClassEntity cls2,
+    ClassQuery query2,
+  ) {
     switch (result) {
       case SimpleSubclassResult.empty:
         return null;
       case SimpleSubclassResult.exact1:
-        return ClassQuery.EXACT;
+        return ClassQuery.exact;
       case SimpleSubclassResult.exact2:
-        return ClassQuery.EXACT;
+        return ClassQuery.exact;
       case SimpleSubclassResult.subclass1:
-        return ClassQuery.SUBCLASS;
+        return ClassQuery.subclass;
       case SimpleSubclassResult.subclass2:
-        return ClassQuery.SUBCLASS;
+        return ClassQuery.subclass;
       case SimpleSubclassResult.subtype1:
-        return ClassQuery.SUBTYPE;
+        return ClassQuery.subtype;
       case SimpleSubclassResult.subtype2:
-        return ClassQuery.SUBTYPE;
+        return ClassQuery.subtype;
       case SetSubclassResult():
         return null;
     }
   }
 
-  ClassEntity? toClassEntity(SubclassResult result, ClassEntity cls1,
-      ClassQuery query1, ClassEntity cls2, ClassQuery query2) {
+  ClassEntity? toClassEntity(
+    SubclassResult result,
+    ClassEntity cls1,
+    ClassQuery query1,
+    ClassEntity cls2,
+    ClassQuery query2,
+  ) {
     switch (result) {
       case SimpleSubclassResult.empty:
         return null;
@@ -613,102 +708,215 @@ testCommonSubclasses() async {
     }
   }
 
-  void check(ClassEntity cls1, ClassQuery query1, ClassEntity cls2,
-      ClassQuery query2, SubclassResult expectedResult) {
-    SubclassResult result1 =
-        closedWorld.classHierarchy.commonSubclasses(cls1, query1, cls2, query2);
-    SubclassResult result2 =
-        closedWorld.classHierarchy.commonSubclasses(cls2, query2, cls1, query1);
+  void check(
+    ClassEntity cls1,
+    ClassQuery query1,
+    ClassEntity cls2,
+    ClassQuery query2,
+    SubclassResult expectedResult,
+  ) {
+    SubclassResult result1 = closedWorld.classHierarchy.commonSubclasses(
+      cls1,
+      query1,
+      cls2,
+      query2,
+    );
+    SubclassResult result2 = closedWorld.classHierarchy.commonSubclasses(
+      cls2,
+      query2,
+      cls1,
+      query1,
+    );
     Expect.equals(
-        toClassQuery(result1, cls1, query1, cls2, query2),
-        toClassQuery(result2, cls2, query2, cls1, query1),
-        "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
-        "\n a vs b: $result1\n b vs a: $result2");
+      toClassQuery(result1, cls1, query1, cls2, query2),
+      toClassQuery(result2, cls2, query2, cls1, query1),
+      "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
+      "\n a vs b: $result1\n b vs a: $result2",
+    );
     Expect.equals(
-        toClassEntity(result1, cls1, query1, cls2, query2),
-        toClassEntity(result2, cls2, query2, cls1, query1),
-        "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
-        "\n a vs b: $result1\n b vs a: $result2");
+      toClassEntity(result1, cls1, query1, cls2, query2),
+      toClassEntity(result2, cls2, query2, cls1, query1),
+      "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
+      "\n a vs b: $result1\n b vs a: $result2",
+    );
     switch (expectedResult) {
       case SimpleSubclassResult():
         Expect.equals(
-            expectedResult,
-            result1,
-            "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
-            "\n expected: $expectedResult\n actual: $result1");
+          expectedResult,
+          result1,
+          "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
+          "\n expected: $expectedResult\n actual: $result1",
+        );
       case SetSubclassResult():
         Expect.type<SetSubclassResult>(result1);
         Expect.type<SetSubclassResult>(result2);
         result1 as SetSubclassResult;
         result2 as SetSubclassResult;
         Expect.setEquals(
-            result1.classes,
-            result2.classes,
-            "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
-            "\n a vs b: $result1\n b vs a: $result2");
+          result1.classes,
+          result2.classes,
+          "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
+          "\n a vs b: $result1\n b vs a: $result2",
+        );
         Expect.setEquals(
-            expectedResult.classes,
-            result1.classes,
-            "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
-            "\n expected: $expectedResult\n actual: $result1");
+          expectedResult.classes,
+          result1.classes,
+          "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
+          "\n expected: $expectedResult\n actual: $result1",
+        );
     }
   }
 
-  check(A, ClassQuery.EXACT, A, ClassQuery.EXACT, SimpleSubclassResult.exact1);
+  check(A, ClassQuery.exact, A, ClassQuery.exact, SimpleSubclassResult.exact1);
   check(
-      A, ClassQuery.EXACT, A, ClassQuery.SUBCLASS, SimpleSubclassResult.exact1);
+    A,
+    ClassQuery.exact,
+    A,
+    ClassQuery.subclass,
+    SimpleSubclassResult.exact1,
+  );
   check(
-      A, ClassQuery.EXACT, A, ClassQuery.SUBTYPE, SimpleSubclassResult.exact1);
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBCLASS,
-      SimpleSubclassResult.subclass1);
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBTYPE,
-      SimpleSubclassResult.subclass1);
-  check(A, ClassQuery.SUBTYPE, A, ClassQuery.SUBTYPE,
-      SimpleSubclassResult.subtype1);
+    A,
+    ClassQuery.exact,
+    A,
+    ClassQuery.subtype,
+    SimpleSubclassResult.exact1,
+  );
+  check(
+    A,
+    ClassQuery.subclass,
+    A,
+    ClassQuery.subclass,
+    SimpleSubclassResult.subclass1,
+  );
+  check(
+    A,
+    ClassQuery.subclass,
+    A,
+    ClassQuery.subtype,
+    SimpleSubclassResult.subclass1,
+  );
+  check(
+    A,
+    ClassQuery.subtype,
+    A,
+    ClassQuery.subtype,
+    SimpleSubclassResult.subtype1,
+  );
 
-  check(A, ClassQuery.EXACT, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(A, ClassQuery.exact, B, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.EXACT, B, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+    A,
+    ClassQuery.exact,
+    B,
+    ClassQuery.subclass,
+    SimpleSubclassResult.empty,
+  );
   check(
-      A, ClassQuery.SUBCLASS, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS,
-      SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, SetSubclassResult([G]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, SetSubclassResult([J]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE,
-      SetSubclassResult([F, G, I, J]));
+    A,
+    ClassQuery.subclass,
+    B,
+    ClassQuery.exact,
+    SimpleSubclassResult.empty,
+  );
+  check(A, ClassQuery.exact, B, ClassQuery.subtype, SimpleSubclassResult.empty);
+  check(A, ClassQuery.subtype, B, ClassQuery.exact, SimpleSubclassResult.empty);
+  check(
+    A,
+    ClassQuery.subclass,
+    B,
+    ClassQuery.subclass,
+    SimpleSubclassResult.empty,
+  );
+  check(A, ClassQuery.subclass, B, ClassQuery.subtype, SetSubclassResult([G]));
+  check(A, ClassQuery.subtype, B, ClassQuery.subclass, SetSubclassResult([J]));
+  check(
+    A,
+    ClassQuery.subtype,
+    B,
+    ClassQuery.subtype,
+    SetSubclassResult([F, G, I, J]),
+  );
 
-  check(A, ClassQuery.EXACT, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(A, ClassQuery.exact, C, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+    A,
+    ClassQuery.exact,
+    C,
+    ClassQuery.subclass,
+    SimpleSubclassResult.empty,
+  );
   check(
-      A, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, SimpleSubclassResult.exact2);
-  check(A, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
+    A,
+    ClassQuery.subclass,
+    C,
+    ClassQuery.exact,
+    SimpleSubclassResult.exact2,
+  );
+  check(A, ClassQuery.exact, C, ClassQuery.subtype, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SimpleSubclassResult.exact2);
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
-      SimpleSubclassResult.subclass2);
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SetSubclassResult([C]));
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS,
-      SimpleSubclassResult.subclass2);
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE,
-      SimpleSubclassResult.subtype2);
+    A,
+    ClassQuery.subtype,
+    C,
+    ClassQuery.exact,
+    SimpleSubclassResult.exact2,
+  );
+  check(
+    A,
+    ClassQuery.subclass,
+    C,
+    ClassQuery.subclass,
+    SimpleSubclassResult.subclass2,
+  );
+  check(A, ClassQuery.subclass, C, ClassQuery.subtype, SetSubclassResult([C]));
+  check(
+    A,
+    ClassQuery.subtype,
+    C,
+    ClassQuery.subclass,
+    SimpleSubclassResult.subclass2,
+  );
+  check(
+    A,
+    ClassQuery.subtype,
+    C,
+    ClassQuery.subtype,
+    SimpleSubclassResult.subtype2,
+  );
 
-  check(B, ClassQuery.EXACT, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(B, ClassQuery.exact, C, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      B, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+    B,
+    ClassQuery.exact,
+    C,
+    ClassQuery.subclass,
+    SimpleSubclassResult.empty,
+  );
   check(
-      B, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
-      SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SetSubclassResult([]));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, SetSubclassResult([G]));
+    B,
+    ClassQuery.subclass,
+    C,
+    ClassQuery.exact,
+    SimpleSubclassResult.empty,
+  );
+  check(B, ClassQuery.exact, C, ClassQuery.subtype, SimpleSubclassResult.empty);
+  check(B, ClassQuery.subtype, C, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, SetSubclassResult([F, G]));
+    B,
+    ClassQuery.subclass,
+    C,
+    ClassQuery.subclass,
+    SimpleSubclassResult.empty,
+  );
+  check(B, ClassQuery.subclass, C, ClassQuery.subtype, SetSubclassResult([]));
+  check(B, ClassQuery.subtype, C, ClassQuery.subclass, SetSubclassResult([G]));
+  check(
+    B,
+    ClassQuery.subtype,
+    C,
+    ClassQuery.subtype,
+    SetSubclassResult([F, G]),
+  );
 }
 
 testLiveMembers() async {
@@ -746,35 +954,53 @@ testLiveMembers() async {
 
   JClosedWorld closedWorld = env.jClosedWorld;
 
-  void check(String clsName, String memberName,
-      {bool expectExists = true,
-      bool expectAbstract = false,
-      bool expectConcrete = false}) {
+  void check(
+    String clsName,
+    String memberName, {
+    bool expectExists = true,
+    bool expectAbstract = false,
+    bool expectConcrete = false,
+  }) {
     final cls = env.getClass(clsName);
-    final member = closedWorld.elementEnvironment
-        .lookupLocalClassMember(cls, Name(memberName, Uri()));
+    final member = closedWorld.elementEnvironment.lookupLocalClassMember(
+      cls,
+      Name(memberName, Uri()),
+    );
     if (expectExists) {
       Expect.isNotNull(
-          member, "Expected $clsName to contain member $memberName.");
+        member,
+        "Expected $clsName to contain member $memberName.",
+      );
     } else {
       Expect.isNull(
-          member, "Expected $clsName not to contain member $memberName.");
+        member,
+        "Expected $clsName not to contain member $memberName.",
+      );
       return;
     }
     Expect.isTrue(
-        expectAbstract ^ expectConcrete,
-        "Can only expect to be in one of liveAbstractInstanceMembers and "
-        "liveInstanceMembers.");
+      expectAbstract ^ expectConcrete,
+      "Can only expect to be in one of liveAbstractInstanceMembers and "
+      "liveInstanceMembers.",
+    );
     if (expectAbstract) {
-      Expect.isTrue(closedWorld.liveAbstractInstanceMembers.contains(member),
-          "Expected $member to exist in liveAbstractInstanceMembers.");
-      Expect.isFalse(closedWorld.liveInstanceMembers.contains(member),
-          "Expected $member to not exist in liveInstanceMembers.");
+      Expect.isTrue(
+        closedWorld.liveAbstractInstanceMembers.contains(member),
+        "Expected $member to exist in liveAbstractInstanceMembers.",
+      );
+      Expect.isFalse(
+        closedWorld.liveInstanceMembers.contains(member),
+        "Expected $member to not exist in liveInstanceMembers.",
+      );
     } else {
-      Expect.isTrue(closedWorld.liveInstanceMembers.contains(member),
-          "Expected $member to exist in liveInstanceMembers.");
-      Expect.isFalse(closedWorld.liveAbstractInstanceMembers.contains(member),
-          "Expected $member to not exist in liveAbstractInstanceMembers.");
+      Expect.isTrue(
+        closedWorld.liveInstanceMembers.contains(member),
+        "Expected $member to exist in liveInstanceMembers.",
+      );
+      Expect.isFalse(
+        closedWorld.liveAbstractInstanceMembers.contains(member),
+        "Expected $member to not exist in liveAbstractInstanceMembers.",
+      );
     }
   }
 

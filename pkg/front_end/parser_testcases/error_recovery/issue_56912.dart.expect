@@ -1,0 +1,20 @@
+Problems reported:
+
+parser/error_recovery/issue_56912:1:9: Expected an identifier, but got '='.
+typedef = int;
+        ^
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(typedef)
+    beginTypedef(typedef)
+      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '='., Try inserting an identifier before '='., {lexeme: =}], =, =)
+      handleIdentifier(, typedefDeclaration)
+      handleNoTypeVariables(=)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(;)
+      handleType(int, null)
+    endTypedef(null, typedef, =, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

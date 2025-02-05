@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 testBindShared(String host, bool v6Only) async {

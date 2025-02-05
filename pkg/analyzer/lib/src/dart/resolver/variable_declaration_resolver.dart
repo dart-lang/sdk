@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -43,7 +45,7 @@ class VariableDeclarationResolver {
         element is FieldElement || element is TopLevelVariableElement;
 
     if (isTopLevel) {
-      _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
+      _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
@@ -65,7 +67,7 @@ class VariableDeclarationResolver {
     }
 
     if (isTopLevel) {
-      _resolver.flowAnalysis.topLevelDeclaration_exit();
+      _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_end();

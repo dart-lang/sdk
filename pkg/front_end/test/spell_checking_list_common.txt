@@ -12,6 +12,7 @@
 a
 abbreviations
 abi
+abiding
 ability
 able
 abort
@@ -104,6 +105,7 @@ all
 allocated
 allocating
 allocation
+allocations
 allow
 allowed
 allowing
@@ -866,6 +868,7 @@ desugars
 detached
 detail
 detailed
+detailing
 details
 detect
 detected
@@ -1180,6 +1183,7 @@ expressed
 expression
 expressions
 extend
+extendable
 extended
 extending
 extends
@@ -1356,6 +1360,7 @@ generate
 generated
 generates
 generating
+generations
 generative
 generator
 generators
@@ -1397,6 +1402,7 @@ groups
 grow
 growable
 guaranteed
+guaranteeing
 guarantees
 guard
 guarding
@@ -1466,6 +1472,7 @@ horns
 horribly
 host
 hostnames
+hot
 how
 however
 http
@@ -2570,6 +2577,7 @@ regular
 reinsert
 reissue
 rejected
+rejections
 rejects
 relate
 related
@@ -2697,6 +2705,7 @@ review
 revise
 revision
 revisit
+rewind
 rewrite
 rewriter
 rewriting
@@ -2831,6 +2840,7 @@ shorted
 shorten
 shortened
 shorter
+shorthands
 shorting
 shorts
 should
@@ -2938,6 +2948,7 @@ stable
 stack
 stacked
 stage
+stamped
 stamps
 standalone
 standard

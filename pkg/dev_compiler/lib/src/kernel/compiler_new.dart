@@ -51,6 +51,11 @@ import 'type_table.dart';
 /// used to store them.
 final _extensionSymbolHolderName = 'dartx';
 
+/// A prefix for symbols used to store lazily evaluated field values.
+///
+/// Names prefixed with this must not be reset across hot reloads.
+final _fieldValueStorePrefix = '_#v_';
+
 /// Symbol data used to map library members kernel nodes to identifiers used
 /// in the compiled JavaScript.
 ///
@@ -158,7 +163,7 @@ class LibraryBundleCompiler implements old.Compiler {
         js.statement('# = #', [
           js_ast.PropertyAccess.field(id, 'link'),
           js_ast.NamedFunction(
-              js_ast.TemporaryId('link__$_extensionSymbolHolderName'),
+              js_ast.ScopedId('link__$_extensionSymbolHolderName'),
               js_ast.Fun(const [], js_ast.Block(const [])))
         ]),
       ];
@@ -243,6 +248,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers =>
       _symbolData.variableIdentifiers;
 
+  /// Identifiers for kernel variables with an analgous identifier in JS.
+  ///
+  /// [VariableDeclaration.name] is not necessarily a safe identifier for JS
+  /// transpiled code. The same name can be used in shadowing contexts. We map
+  /// each kernel variable to a [js_ast.ScopedId] so that at code emission
+  /// time, references that would be shadowed are given a unique name. If there
+  /// is no risk of shadowing, the original name will be used.
+  final Map<VariableDeclaration, js_ast.ScopedId> _variableTempIds = {};
+
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
   ///
@@ -258,10 +272,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   VariableDeclaration? _rethrowParameter;
 
   /// Temporary variables mapped to their corresponding JavaScript variable.
-  final _tempVariables = <VariableDeclaration, js_ast.TemporaryId>{};
+  final _tempVariables = <VariableDeclaration, js_ast.ScopedId>{};
 
   /// Let variables collected for the given function.
-  List<js_ast.TemporaryId>? _letVariables;
+  List<js_ast.ScopedId>? _letVariables;
 
   final _constTable = js_ast.Identifier('CT');
 
@@ -380,7 +394,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Reserved parameter used to reference RTI objects passed to generic
   /// constructors/factories and generic method signatures.
-  final _rtiParam = js_ast.TemporaryId('_ti');
+  final _rtiParam = js_ast.ScopedId('_ti');
 
   // Compilation of Kernel's [BreakStatement].
   //
@@ -468,7 +482,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _operatorSetResultStack = <js_ast.Identifier?>[];
 
   /// Private member names in this module, organized by their library.
-  final _privateNames = HashMap<Library, HashMap<String, js_ast.TemporaryId>>();
+  final _privateNames = HashMap<Library, HashMap<String, js_ast.ScopedId>>();
 
   /// Holds all top-level JS symbols (used for caching or indexing fields).
   final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
@@ -478,7 +492,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// These are added to the [_extensionSymbolsLibraryId]; see that field for more
   /// information.
-  final _extensionSymbols = <String, js_ast.TemporaryId>{};
+  final _extensionSymbols = <String, js_ast.ScopedId>{};
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -513,7 +527,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Must manually name the dart:_rti library because there are local variables
   /// within the library that inadvertently shadow the default name.
-  final _rtiLibraryId = js_ast.TemporaryId('dart_rti');
+  final _rtiLibraryId = js_ast.ScopedId('dart_rti');
 
   /// The library referred to by [_rtiLibraryId].
   final Library _rtiLibrary;
@@ -536,16 +550,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// The temporary variable that stores named arguments (these are passed via a
   /// JS object literal, to match JS conventions).
-  final _namedArgumentTemp = js_ast.TemporaryId('opts');
+  final _namedArgumentTemp = js_ast.ScopedId('opts');
 
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <js_ast.ModuleItem>[];
-
-  /// Like [_moduleItems] but for items that should be emitted after classes.
-  ///
-  /// This is used for deferred supertypes of mutually recursive non-generic
-  /// classes.
-  final _afterClassDefItems = <js_ast.ModuleItem>[];
 
   /// The entrypoint method of a dynamic module, if any.
   Procedure? _dynamicEntrypoint;
@@ -777,8 +785,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _constLazyAccessors.clear();
     }
 
-    _moduleItems.addAll(_afterClassDefItems);
-    _afterClassDefItems.clear();
     // Register the local const cache for this module so it can be cleared on a
     // hot restart.
     if (_constTableCache.isNotEmpty) {
@@ -804,35 +810,79 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var universeClass =
         _rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
-    var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
-    if (typeRules.isNotEmpty) {
+
+    // Emits either an 'addRules', 'addOrUpdateRules', or 'deleteRules'
+    // statement for a JSON-serializable [rules] made of RTI type rules.
+    //
+    // 'addRules' overrides existing state. Calling this function multiple
+    // times is safe for types whose hierarchies can be exhaustively
+    // discovered at compile-time, which is true for all types that aren't
+    // 'LegacyJavaScriptObject'.
+    //
+    // TODO: The above assumption may not hold if a class's hierarchy
+    // changes after a hot reload. Outdated 'addRules' invocations (during
+    // linking) may clobber updated type rules.
+    js_ast.Statement emitRulesStatement(Object? rules,
+        {required String rulesFunction}) {
       var template = '#._Universe.#(#, JSON.parse(#))';
-      var addRulesStatement = js.call(template, [
+      var rulesExpr = js.call(template, [
         _emitLibraryName(_rtiLibrary),
-        _emitMemberName('addRules', memberClass: universeClass),
+        _emitMemberName(rulesFunction, memberClass: universeClass),
         _runtimeCall('typeUniverse'),
-        js.string(jsonEncode(typeRules), "'")
-      ]).toStatement();
-      _typeRuleLinks.add(addRulesStatement);
-    }
-    // Update type rules for `LegacyJavaScriptObject` to add all interop
-    // types in this module as a supertype.
-    var updateRules = _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
-    if (updateRules.isNotEmpty) {
-      // All JavaScript interop classes should be mutual subtypes with
-      // `LegacyJavaScriptObject`. To achieve this the rules are manually
-      // added here. There is special redirecting rule logic in the dart:_rti
-      // library for interop types because otherwise they would duplicate
-      // a lot of supertype information.
-      var updateRulesStatement =
-          js.statement('#._Universe.#(#, JSON.parse(#))', [
-        _emitLibraryName(_rtiLibrary),
-        _emitMemberName('addOrUpdateRules', memberClass: universeClass),
-        _runtimeCall('typeUniverse'),
-        js.string(jsonEncode(updateRules), "'")
+        js.string(jsonEncode(rules), "'")
       ]);
-      _typeRuleLinks.add(updateRulesStatement);
+      return rulesExpr.toStatement();
     }
+
+    // We must emit type rules for every interface type encountered by DDC,
+    // with several caveats:
+    // 1) 'LegacyJavaScriptObject' has special treatment. Its hierarchy
+    //    accumulates across libraries and must always be emitted in 'append'
+    //    mode ('addOrUpdateRules') to avoid clobbering its previous state.
+    // 2) We manually add rules for mutual subtype relationships between
+    //    'LegacyJavaScriptObject' and all JavaScript interop classes. There is
+    //    special redirecting rule logic in the dart:_rti library for interop
+    //    types because otherwise they would duplicate a lot of supertype
+    //    information.
+    // 3) The RTI treats an empty type hierarchy as implicitly containing
+    //    'Object'. We explicitly emit 'deleteRules' instructions in case
+    //    a type hierarchy was deleted or edited to extend 'Object' after hot
+    //    reload.
+    var legacyJavaScriptObjectRecipe = _typeRecipeGenerator.interfaceTypeRecipe(
+        _coreTypes.index
+            .getClass('dart:_interceptors', 'LegacyJavaScriptObject'));
+    var legacyJavaScriptObjectRules = _typeRecipeGenerator
+        .liveInterfaceTypeRules[legacyJavaScriptObjectRecipe];
+    var typeRulesExceptLegacyJavaScriptObject = _typeRecipeGenerator
+        .liveInterfaceTypeRules
+      ..remove(legacyJavaScriptObjectRecipe);
+    var typesThatOnlyExtendObject =
+        Set.from(_typeRecipeGenerator.visitedInterfaceTypeRecipes)
+          ..removeAll(typeRulesExceptLegacyJavaScriptObject.keys)
+          ..remove(legacyJavaScriptObjectRecipe);
+    var legacyJavaScriptObjectMutualSubtypingRules =
+        _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
+
+    if (typeRulesExceptLegacyJavaScriptObject.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(
+          typeRulesExceptLegacyJavaScriptObject,
+          rulesFunction: 'addRules'));
+    }
+    if (typesThatOnlyExtendObject.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(typesThatOnlyExtendObject.toList(),
+          rulesFunction: 'deleteRules'));
+    }
+    if (legacyJavaScriptObjectRules != null) {
+      _typeRuleLinks.add(emitRulesStatement({
+        legacyJavaScriptObjectRecipe: legacyJavaScriptObjectRules,
+      }, rulesFunction: 'addOrUpdateRules'));
+    }
+    if (legacyJavaScriptObjectMutualSubtypingRules.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(
+          legacyJavaScriptObjectMutualSubtypingRules,
+          rulesFunction: 'addOrUpdateRules'));
+    }
+
     var jsInteropTypeRecipes = _typeRecipeGenerator.visitedJsInteropTypeRecipes;
     if (jsInteropTypeRecipes.isNotEmpty) {
       // Update the `LegacyJavaScriptObject` class with the type tags for all
@@ -896,10 +946,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     switch (_component.mode) {
       case NonNullableByDefaultCompiledMode.Strong:
         soundNullSafety = js_ast.LiteralBool(true);
-        break;
       case NonNullableByDefaultCompiledMode.Weak:
         soundNullSafety = js_ast.LiteralBool(false);
-        break;
       default:
         throw StateError('Unsupported Null Safety mode ${_component.mode}, '
             'in ${_component.location?.file}.');
@@ -946,7 +994,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _emitLibraryLinkMethod(Library library) {
     var libraryName = _emitLibraryName(library);
     var nameExpr = js_ast.PropertyAccess.field(libraryName, 'link');
-    var functionName = _emitTemporaryId('link__${_jsLibraryName(library)}');
+    var functionName = _emitScopedId('link__${_jsLibraryName(library)}');
 
     var parameters = const <js_ast.Parameter>[];
     var body = js_ast.Block([
@@ -1077,13 +1125,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //
       // TODO(jmesserly): we can merge these once we change signatures to be
       // lazily associated at the tear-off point for top-level functions.
-      _emitLibraryProcedures(library);
-      _emitTopLevelFields(library.fields);
+      _emitLibraryMembers(library);
       library.classes.forEach(_emitClass);
     } else {
       library.classes.forEach(_emitClass);
-      _emitLibraryProcedures(library);
-      _emitTopLevelFields(library.fields);
+      _emitLibraryMembers(library);
     }
     _staticTypeContext.leaveLibrary(_currentLibrary!);
   }
@@ -1158,8 +1204,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   static js_ast.Identifier _emitIdentifier(String name) =>
       js_ast.Identifier(js_ast.toJSIdentifier(name));
 
-  static js_ast.TemporaryId _emitTemporaryId(String name) =>
-      js_ast.TemporaryId(js_ast.toJSIdentifier(name));
+  static js_ast.ScopedId _emitScopedId(String name,
+          {bool needsCapture = false}) =>
+      js_ast.ScopedId(js_ast.toJSIdentifier(name), needsCapture: needsCapture);
 
   js_ast.Statement _emitClassDeclaration(Class c) {
     var className = _emitTopLevelNameNoExternalInterop(c);
@@ -1188,18 +1235,33 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     });
 
     var jsCtors = _defineConstructors(c, className);
-
-    var jsMethods = _emitClassMethods(c);
+    var jsProperties = _emitClassProperties(c);
+    var jsStaticMethodTypeTags = <js_ast.Statement>[];
+    for (var member in c.procedures) {
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (member.isStatic && _reifyTearoff(member) && !member.isExternal) {
+        var propertyAccessor = _emitStaticTarget(member);
+        var result = js.call(
+            '#.#', [propertyAccessor.receiver, propertyAccessor.selector]);
+        // We only need to tag static functions that are torn off at
+        // compile-time. We attach these at late so tearoffs have access to
+        // their types.
+        var reifiedType = member.function
+            .computeThisFunctionType(member.enclosingLibrary.nonNullable);
+        jsStaticMethodTypeTags.add(
+            _emitFunctionTagged(result, reifiedType, asLazy: true)
+                .toStatement());
+      }
+    }
 
     _emitSuperHelperSymbols(body);
-    // Deferred supertypes must be evaluated lazily while emitting classes to
-    // prevent evaluating a JS expression for a deferred type from influencing
-    // class declaration order (such as when calling 'emitDeferredType').
-    var deferredSupertypes = <js_ast.Statement Function()>[];
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
-    _defineClass(c, className, jsMethods, body, deferredSupertypes);
+    _defineClass(c, className, jsProperties, body);
     body.addAll(jsCtors);
+    body.addAll(jsStaticMethodTypeTags);
 
     // Emit things that come after the ES6 `class ... { ... }`.
 
@@ -1247,17 +1309,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var typeFormals = c.typeParameters;
-    var evaluatedDeferredSupertypes =
-        deferredSupertypes.map<js_ast.Statement>((f) => f()).toList();
     if (typeFormals.isNotEmpty) {
-      var genericClassStmts = _defineGenericClass(typeFormals,
-          js_ast.Statement.from(body), evaluatedDeferredSupertypes);
+      var genericClassStmts =
+          _defineGenericClass(typeFormals, js_ast.Statement.from(body));
       body = [...genericClassStmts];
-    } else {
-      _afterClassDefItems.addAll(evaluatedDeferredSupertypes);
     }
 
-    _emitStaticFieldsAndAccessors(c, body);
     if (c == _coreTypes.objectClass) {
       // Avoid polluting the native JavaScript Object prototype with the members
       // of the Dart Core Object class.
@@ -1281,7 +1338,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (!hasJSInteropAnnotation(c)) return null;
     var className = _emitTopLevelNameNoExternalInterop(c);
 
-    var nonExternalMethods = <js_ast.Method>[];
+    // Non-external procedures and statics are still emitted
+    var nonExternalProperties = <js_ast.Property>[];
+    // Add factories and static methods.
     for (var procedure in c.procedures) {
       if (procedure.isExternal) continue;
       // Don't emit tear-offs for @staticInterop members as they're disallowed.
@@ -1289,32 +1348,40 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (procedure.isFactory && !procedure.isRedirectingFactory) {
         // Skip redirecting factories (they've already been resolved).
         var factory = _emitFactoryConstructor(procedure);
-        if (factory != null) nonExternalMethods.add(factory);
+        if (factory != null) nonExternalProperties.add(factory);
       } else if (procedure.isStatic) {
         var staticMethod = _emitMethodDeclaration(procedure);
-        if (staticMethod != null) nonExternalMethods.add(staticMethod);
+        if (staticMethod != null) nonExternalProperties.add(staticMethod);
       }
     }
 
-    // Emit static fields, if there are any.
-    var fieldInitialization = <js_ast.Statement>[];
-    _emitStaticFieldsAndAccessors(c, fieldInitialization);
+    // Add static fields and setters.
+    var staticFields =
+        c.fields.where((f) => f.isStatic && !f.isExternal).toList();
+    var staticFieldNames = Set.of(staticFields.map((f) => f.name));
+    var staticSetters = c.procedures.where(
+        (p) => p.isStatic && p.isAccessor && staticFieldNames.contains(p.name));
+    var members = [...staticFields, ...staticSetters];
+    if (members.isNotEmpty) {
+      nonExternalProperties.addAll(_emitLazyMembers(
+          _emitTopLevelNameNoExternalInterop(c),
+          members,
+          (n) => _emitStaticMemberName(n.name.text)));
+    }
 
     // Avoid unnecessary code emission if there are no members we care about.
-    if (nonExternalMethods.isNotEmpty || fieldInitialization.isNotEmpty) {
+    if (nonExternalProperties.isNotEmpty) {
       // Note that this class has no heritage. This class should never be used
       // as a type. It's merely a placeholder for static members.
       var body = <js_ast.Statement>[
-        _emitClassStatement(c, className, null, nonExternalMethods)
+        _emitClassStatement(c, className, null, nonExternalProperties)
             .toStatement()
       ];
       var typeFormals = c.typeParameters;
       if (typeFormals.isNotEmpty) {
         var genericClassStmts =
-            _defineGenericClass(typeFormals, js_ast.Statement.from(body), []);
-        body = [...genericClassStmts, ...fieldInitialization];
-      } else {
-        body = [...body, ...fieldInitialization];
+            _defineGenericClass(typeFormals, js_ast.Statement.from(body));
+        body = genericClassStmts;
       }
       return js_ast.Statement.from(body);
     }
@@ -1322,26 +1389,28 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits a generic class with additional initialization logic.
-  List<js_ast.Statement> _defineGenericClass(List<TypeParameter> formals,
-      js_ast.Statement body, List<js_ast.Statement> deferredBaseClass) {
+  List<js_ast.Statement> _defineGenericClass(
+      List<TypeParameter> formals, js_ast.Statement body) {
     assert(formals.isNotEmpty);
     return [
       ..._typeTable.dischargeFreeTypes(formals),
       body,
-      ...deferredBaseClass,
     ];
   }
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
-      js_ast.Expression? heritage, List<js_ast.Method> methods) {
-    var classIdentifier = _emitTemporaryId(getLocalClassName(c));
+      js_ast.Expression? heritage, List<js_ast.Property> properties) {
+    var classIdentifier = _emitScopedId(getLocalClassName(c));
     if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
     if (heritage != null) {
       _classExtendsLinks
           .add(_runtimeStatement('classExtends(#, #)', [className, heritage]));
     }
-    var classExpr = js_ast.ClassExpression(classIdentifier, null, methods);
-    return js.statement('# = #;', [className, classExpr]);
+    var classExpr = js_ast.ClassExpression(classIdentifier, null, properties);
+    var libraryExpr = (className as js_ast.PropertyAccess).receiver;
+    var propertyExpr = className.selector;
+    return _runtimeStatement(
+        'declareClass(#, #, #)', [libraryExpr, propertyExpr, classExpr]);
   }
 
   /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
@@ -1375,19 +1444,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Class c,
       js_ast.Expression className,
       js_ast.Expression heritage,
-      List<js_ast.Method> methods,
+      List<js_ast.Property> properties,
       List<js_ast.Statement> body) {
-    var staticMethods = methods.where((m) => m.isStatic).toList();
-    var instanceMethods = methods.where((m) => !m.isStatic).toList();
+    var staticProperties = properties.where((m) => m.isStatic).toList();
+    var instanceProperties = properties.where((m) => !m.isStatic).toList();
 
-    body.add(_emitClassStatement(c, className, heritage, staticMethods));
-    var superclassId = _emitTemporaryId(getLocalClassName(c.superclass!));
+    body.add(_emitClassStatement(c, className, heritage, staticProperties));
+    var superclassId = _emitScopedId(getLocalClassName(c.superclass!));
     var classId = className is js_ast.Identifier
         ? className
-        : _emitTemporaryId(getLocalClassName(c));
+        : _emitScopedId(getLocalClassName(c));
 
     var mixinMemberClass =
-        js_ast.ClassExpression(classId, superclassId, instanceMethods);
+        js_ast.ClassExpression(classId, superclassId, instanceProperties);
 
     js_ast.Node arrowFnBody = mixinMemberClass;
     var extensionInit = <js_ast.Statement>[];
@@ -1409,14 +1478,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ]));
   }
 
-  void _defineClass(
-      Class c,
-      js_ast.Expression className,
-      List<js_ast.Method> methods,
-      List<js_ast.Statement> body,
-      List<js_ast.Statement Function()> deferredSupertypes) {
+  /// Emits code required to represent [c] as a series of statements in [body].
+  ///
+  /// [properties] holds methods, fields, or properties in [c].
+  void _defineClass(Class c, js_ast.Expression className,
+      List<js_ast.Property> properties, List<js_ast.Statement> body) {
     if (c == _coreTypes.objectClass) {
-      body.add(_emitClassStatement(c, className, null, methods));
+      body.add(_emitClassStatement(c, className, null, properties));
       return;
     }
 
@@ -1507,7 +1575,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _hierarchy.getClassAsInstanceOf(c, mixinClass)!.asInterfaceType;
       var mixinName =
           '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
-      var mixinId = _emitTemporaryId('$mixinName\$');
+      var mixinId = _emitScopedId('$mixinName\$');
       // Collect all forwarding stub members from anonymous mixins classes.
       // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1552,7 +1620,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       body.add(js.statement('const # = #', [
         mixinId,
         js_ast.ClassExpression(
-            _emitTemporaryId(mixinName), null, forwardingMethodStubs)
+            _emitScopedId(mixinName), null, forwardingMethodStubs)
       ]));
       _classExtendsLinks
           .add(_runtimeStatement('classExtends(#, #)', [mixinId, baseClass]));
@@ -1564,9 +1632,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (c.isMixinDeclaration && !c.isMixinClass) {
-      _emitMixinStatement(c, className, baseClass, methods, body);
+      _emitMixinStatement(c, className, baseClass, properties, body);
     } else {
-      body.add(_emitClassStatement(c, className, baseClass, methods));
+      body.add(_emitClassStatement(c, className, baseClass, properties));
     }
 
     _classEmittingExtends = savedTopLevelClass;
@@ -1611,7 +1679,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   void _emitDartSymbols(
-      Iterable<js_ast.TemporaryId> vars, List<js_ast.ModuleItem> body) {
+      Iterable<js_ast.ScopedId> vars, List<js_ast.ModuleItem> body) {
     for (var id in vars) {
       body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
@@ -1619,22 +1687,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitSuperHelperSymbols(List<js_ast.Statement> body) {
     _emitDartSymbols(
-        _superHelpers.values.map((m) => m.name as js_ast.TemporaryId), body);
+        _superHelpers.values.map((m) => m.name as js_ast.ScopedId), body);
     _superHelpers.clear();
-  }
-
-  /// Emits non-external static fields for a class, and initialize them eagerly
-  /// if possible, otherwise define them as lazy properties.
-  void _emitStaticFieldsAndAccessors(Class c, List<js_ast.Statement> body) {
-    var fields = c.fields.where((f) => f.isStatic && !f.isExternal).toList();
-    var fieldNames = Set.of(fields.map((f) => f.name));
-    var staticSetters = c.procedures.where(
-        (p) => p.isStatic && p.isAccessor && fieldNames.contains(p.name));
-    var members = [...fields, ...staticSetters];
-    if (fields.isNotEmpty) {
-      body.add(_emitLazyMembers(_emitTopLevelNameNoExternalInterop(c), members,
-          (n) => _emitStaticMemberName(n.name.text)));
-    }
   }
 
   /// Ensure `dartx.` symbols we will use are present.
@@ -2162,6 +2216,23 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return c.fields.any((f) => !f.isStatic);
   }
 
+  js_ast.Expression _emitFieldValueAccessor(Field f) {
+    var virtualField = _classProperties!.virtualFields[f];
+    // Avoid calling getSymbol on _declareMemberName since _declareMemberName
+    // calls _emitMemberName downstream, which already invokes getSymbol.
+    var access =
+        virtualField == null ? _declareMemberName(f) : _getSymbol(virtualField);
+    return access;
+  }
+
+  js_ast.Expression _emitFieldInit(
+      Field f, Expression? initializer, TreeNode hoverInfo) {
+    var access = _emitFieldValueAccessor(f);
+    var jsInit = _visitInitializer(initializer, f.annotations);
+    return jsInit.toAssignExpression(
+        js.call('this.#', [access])..sourceInformation = _nodeStart(hoverInfo));
+  }
+
   /// Initialize fields. They follow the sequence:
   ///
   ///   1. field declaration initializer if non-const,
@@ -2176,21 +2247,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         .toSet();
 
     var body = <js_ast.Statement>[];
-    void emitFieldInit(Field f, Expression? initializer, TreeNode hoverInfo) {
-      var virtualField = _classProperties!.virtualFields[f];
-
-      // Avoid calling getSymbol on _declareMemberName since _declareMemberName
-      // calls _emitMemberName downstream, which already invokes getSymbol.
-      var access = virtualField == null
-          ? _declareMemberName(f)
-          : _getSymbol(virtualField);
-      var jsInit = _visitInitializer(initializer, f.annotations);
-      body.add(jsInit
-          .toAssignExpression(js.call('this.#', [access])
-            ..sourceInformation = _nodeStart(hoverInfo))
-          .toStatement());
-    }
-
     for (var f in fields) {
       if (f.isStatic) continue;
       var init = f.initializer;
@@ -2200,7 +2256,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         continue;
       }
       _staticTypeContext.enterMember(f);
-      emitFieldInit(f, init, f);
+      body.add(_emitFieldInit(f, init, f).toStatement());
       _staticTypeContext.leaveMember(f);
     }
 
@@ -2208,7 +2264,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (ctor != null) {
       for (var init in ctor.initializers) {
         if (init is FieldInitializer) {
-          emitFieldInit(init.field, init.value, init);
+          body.add(_emitFieldInit(init.field, init.value, init).toStatement());
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
         } else if (init is AssertInitializer) {
@@ -2271,17 +2327,27 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
   }
 
-  List<js_ast.Method> _emitClassMethods(Class c) {
+  /// Emits a value store and getter/setter pair for [member] that constitutes
+  /// a static field.
+  List<js_ast.Property> _emitStaticFieldAndAccessor(Member member) {
+    return _emitLazyMember(
+        _emitTopLevelNameNoExternalInterop(member.enclosingClass!),
+        member,
+        (m) => _emitStaticMemberName(m.name.text));
+  }
+
+  /// Emits class methods and properties.
+  List<js_ast.Property> _emitClassProperties(Class c) {
     var virtualFields = _classProperties!.virtualFields;
 
-    var jsMethods = <js_ast.Method?>[];
+    var jsProperties = <js_ast.Property?>[];
     var hasJsPeer = _extensionTypes.isNativeClass(c);
     var hasIterator = false;
 
     if (c == _coreTypes.objectClass) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
-      jsMethods.add(js_ast.Method(
+      jsProperties.add(js_ast.Method(
           _propertyName('constructor'),
           js.fun(r'''function() {
                 throw Error("use `new " + # +
@@ -2296,18 +2362,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //
       // This will become obsolete when
       // https://github.com/dart-lang/sdk/issues/31003 is addressed.
-      jsMethods.add(js_ast.Method(
+      jsProperties.add(js_ast.Method(
           _propertyName('constructor'), js.fun(r'function() { return []; }')));
     }
 
-    var staticFieldNames = <Name>{};
     for (var m in c.fields) {
       if (m.isStatic) {
-        staticFieldNames.add(m.name);
+        jsProperties.addAll(_emitStaticFieldAndAccessor(m));
       } else if (_extensionTypes.isNativeClass(c)) {
-        jsMethods.addAll(_emitNativeFieldAccessors(m));
+        jsProperties.addAll(_emitNativeFieldAccessors(m));
       } else if (virtualFields.containsKey(m)) {
-        jsMethods.addAll(_emitVirtualFieldAccessor(m));
+        jsProperties.addAll(_emitVirtualFieldAccessor(m));
       }
     }
 
@@ -2324,11 +2389,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var savedUri = _currentUri;
     for (var m in c.procedures) {
-      // Static accessors on static/lazy fields are emitted earlier in
-      // `_emitStaticFieldsAndAccessors`.
-      if (m.isStatic && m.isAccessor && staticFieldNames.contains(m.name)) {
-        continue;
-      }
       _staticTypeContext.enterMember(m);
       // For the Dart SDK, we use the member URI because it may be different
       // from the class (because of patch files). User code does not need this.
@@ -2340,22 +2400,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentUri = m.isNoSuchMethodForwarder ? null : m.fileUri;
       if (_isForwardingStub(m)) {
         // TODO(jmesserly): is there any other kind of forwarding stub?
-        jsMethods.addAll(_emitCovarianceCheckStub(m));
+        jsProperties.addAll(_emitCovarianceCheckStub(m));
       } else if (m.isFactory) {
         if (m.isRedirectingFactory) {
           // Skip redirecting factories (they've already been resolved).
         } else {
-          jsMethods.add(_emitFactoryConstructor(m));
+          jsProperties.add(_emitFactoryConstructor(m));
         }
       } else if (m.isAccessor) {
-        jsMethods.add(_emitMethodDeclaration(m));
-        jsMethods.add(_emitSuperAccessorWrapper(m, getters, setters));
+        jsProperties.add(_emitMethodDeclaration(m));
+        jsProperties.add(_emitSuperAccessorWrapper(m, getters, setters));
         if (!hasJsPeer && m.isGetter && m.name.text == 'iterator') {
           hasIterator = true;
-          jsMethods.add(_emitIterable(c));
+          jsProperties.add(_emitIterable(c));
         }
       } else {
-        jsMethods.add(_emitMethodDeclaration(m));
+        jsProperties.add(_emitMethodDeclaration(m));
       }
       _staticTypeContext.leaveMember(m);
     }
@@ -2370,13 +2430,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // method, but that's more expensive to check for, so it doesn't seem worth
     // it. The above case for an explicit `iterator` method will catch those.)
     if (!hasJsPeer && !hasIterator) {
-      jsMethods.add(_emitIterable(c));
+      jsProperties.add(_emitIterable(c));
     }
 
     // Add all of the super helper methods
-    jsMethods.addAll(_superHelpers.values);
+    jsProperties.addAll(_superHelpers.values);
 
-    return jsMethods.nonNulls.toList();
+    return jsProperties.nonNulls.toList();
   }
 
   bool _isForwardingStub(Procedure member) {
@@ -2433,7 +2493,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else {
       method.sourceInformation = _nodeEnd(member.fileEndOffset);
     }
-
     return method;
   }
 
@@ -2609,11 +2668,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// exist, resulting in a runtime error. Even if they did exist, that's the
   /// wrong behavior if a new field was declared.
   List<js_ast.Method> _emitVirtualFieldAccessor(Field field) {
-    var virtualField = _classProperties!.virtualFields[field]!;
-    var virtualFieldSymbol = _getSymbol(virtualField);
+    var virtualFieldSymbol = _emitFieldValueAccessor(field);
     var name = _declareMemberName(field);
-
-    var getter = js.fun('function() { return this[#]; }', [virtualFieldSymbol]);
+    var initializer = _visitInitializer(field.initializer, field.annotations);
+    var getter = _emitLazyInitializingFunction(
+      js.call('this.#', virtualFieldSymbol),
+      initializer,
+      field,
+    );
     var jsGetter = js_ast.Method(name, getter, isGetter: true)
       ..sourceInformation = _nodeStart(field);
 
@@ -2660,7 +2722,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Generate setter
     if (!field.isFinal) {
-      var value = _emitTemporaryId('value');
+      var value = _emitScopedId('value');
       fn = js_ast.Fun([value], js.block('{ this.# = #; }', [name, value]));
       method = js_ast.Method(_declareMemberName(field), fn, isSetter: true);
       jsMethods.add(method);
@@ -2751,113 +2813,300 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
   }
 
-  void _emitTopLevelFields(List<Field> fields) {
-    if (_isSdkInternalRuntime(_currentLibrary!)) {
-      /// Treat dart:_runtime fields as safe to eagerly evaluate.
-      // TODO(jmesserly): it'd be nice to avoid this special case.
-      var lazyFields = <Field>[];
-      var savedUri = _currentUri;
+  /// Generates an entrypoint function for [field] that returns the value in
+  /// [valueCache] or initializes it to [initializer] on first access.
+  ///
+  /// [valueCache] is 'undefined' when uninitialized and holds a special
+  /// sentinel value if [field] is final to detect multiple initializations.
+  js_ast.Fun _emitLazyInitializingFunction(js_ast.Expression valueCache,
+      js_ast.Expression initializer, Field field) {
+    // We avoid emitting casts for top level fields in the legacy SDK since
+    // some are used for legacy type checks and must be initialized to avoid
+    // infinite loops.
+    var initialFieldValueExpression =
+        !_options.soundNullSafety && _isSdkInternalRuntime(_currentLibrary!)
+            ? valueCache
+            : _emitCast(valueCache, field.type);
 
-      // Helper functions to test if a constructor invocation is internal and
-      // should be eagerly evaluated.
-      bool isInternalConstructor(ConstructorInvocation node) {
-        var type = node.getStaticType(_staticTypeContext) as InterfaceType;
-        var library = type.classNode.enclosingLibrary;
-        return _isSdkInternalRuntime(library);
-      }
-
-      for (var field in fields) {
-        _staticTypeContext.enterMember(field);
-        var init = field.initializer;
-        if (init == null ||
-            init is BasicLiteral ||
-            init is ConstructorInvocation && isInternalConstructor(init) ||
-            init is StaticInvocation && isInlineJS(init.target)) {
-          if (init is ConstructorInvocation) {
-            // This is an eagerly executed constructor invocation.  We need to
-            // ensure the class is emitted before this statement.
-            var type = init.getStaticType(_staticTypeContext) as InterfaceType;
-            _emitClass(type.classNode);
+    // Lazy static fields require an additional type check around their value
+    // cache if their type is updated after hot reload. To avoid a type check
+    // on every access, the generated getter overrides itself with a direct
+    // access on its underlying value cache on first access.
+    // TODO(markzipan): The performance ramifications of a lookup vs
+    // self-rewriting "smart" getter are unknown. We should revisit this if
+    // property accesses become a bottleneck.
+    if (field.isStatic) {
+      var getterName = memberNames[field]!;
+      // Final fields are generated with additional logic to detect
+      // initialization cycles via a special sentinel.
+      if (field.isFinal) {
+        var finalLateInitDetectorSentinel = _getSymbol(
+            _emitPrivateNameSymbol(field.enclosingLibrary, '_#initializing'));
+        // Emits code like:
+        //
+        // if ([valueCache] === _#initializing)
+        //   dart.throwLateInitializationError(field);
+        // if ([valueCache] === void 0) {
+        //   [valueCache] = _#initializing;
+        //   try {
+        //     [valueCache] = initializer;
+        //   } catch (e) {
+        //     // Reset the sentinel on error so it can be reinitialized.
+        //     if ([valueCache] === _#initializing) {
+        //       [valueCache] = void 0;
+        //     }
+        //     throw e;
+        //   }
+        // }
+        // _typeCheck([valueCache]);
+        // Object.defineProperty(this, field, {
+        //   get() {
+        //     return [valueCache];
+        //   }
+        // });
+        // return this.field;
+        return js.fun(r'''
+        function() {
+          if (# === #) #;
+          if (# === void 0) {
+            # = #;
+            try {
+              # = #;
+            } catch (e) {
+              if (# === #) {
+                # = void 0;
+              }
+              throw e;
+            }
           }
-          _currentUri = field.fileUri;
-          _moduleItems.add(js.statement('# = #;', [
-            _emitTopLevelName(field),
-            _visitInitializer(init, field.annotations)
-          ]));
-        } else {
-          lazyFields.add(field);
+          #;
+          Object.defineProperty(this, #, {
+            get() {
+              return #;
+            }
+          });
+          return this.#;
         }
-        _staticTypeContext.leaveMember(field);
+      ''', [
+          valueCache,
+          finalLateInitDetectorSentinel,
+          _runtimeCall(
+            'throwLateInitializationError(#)',
+            [js.string(field.name.text)],
+          ),
+          valueCache,
+          valueCache,
+          finalLateInitDetectorSentinel,
+          valueCache,
+          initializer,
+          valueCache,
+          finalLateInitDetectorSentinel,
+          valueCache,
+          initialFieldValueExpression,
+          js.string(getterName),
+          valueCache,
+          getterName,
+        ]);
+      } else {
+        // Emits code like:
+        //
+        // if ([valueCache] === void 0) {
+        //   [valueCache] = initializer;
+        // }
+        // _typeCheck([valueCache]);
+        // Object.defineProperty(this, field, {
+        //   get() {
+        //     return [valueCache];
+        //   }
+        // });
+        // return this.field;
+        return js.fun(r'''
+        function() {
+          if (# === void 0) {
+            # = #;
+          }
+          #;
+          Object.defineProperty(this, #, {
+            get() {
+              return #;
+            }
+          });
+          return this.#;
+          }
+      ''', [
+          valueCache,
+          valueCache,
+          initializer,
+          initialFieldValueExpression,
+          js.string(getterName),
+          valueCache,
+          getterName,
+        ]);
       }
-
-      _currentUri = savedUri;
-      fields = lazyFields;
     }
-
-    if (fields.isEmpty) return;
-    _moduleItems.add(_emitLazyMembers(
-        _emitLibraryName(_currentLibrary!), fields, _emitTopLevelMemberName));
+    // Final fields are generated with additional logic to detect
+    // initialization cycles via a special sentinel.
+    if (field.isFinal) {
+      var finalLateInitDetectorSentinel = _getSymbol(
+          _emitPrivateNameSymbol(field.enclosingLibrary, '_#initializing'));
+      // Emits code like:
+      //
+      // if ([valueCache] === _#initializing)
+      //   dart.throwLateInitializationError(field);
+      // if ([valueCache] === void 0) {
+      //   [valueCache] = _#initializing;
+      //   try {
+      //     [valueCache] = initializer;
+      //   } catch (e) {
+      //     // Reset the sentinel on error so it can be reinitialized.
+      //     if ([valueCache] === _#initializing) {
+      //       [valueCache] = void 0;
+      //     }
+      //     throw e;
+      //   }
+      // }
+      // return [valueCache];
+      return js.fun(r'''
+        function() {
+          if (# === #) #;
+          if (# === void 0) {
+            # = #;
+            try {
+              # = #;
+            } catch (e) {
+              if (# === #) {
+                # = void 0;
+              }
+              throw e;
+            }
+          }
+          return #;
+        }
+      ''', [
+        valueCache,
+        finalLateInitDetectorSentinel,
+        _runtimeCall(
+          'throwLateInitializationError(#)',
+          [js.string(field.name.text)],
+        ),
+        valueCache,
+        valueCache,
+        finalLateInitDetectorSentinel,
+        valueCache,
+        initializer,
+        valueCache,
+        finalLateInitDetectorSentinel,
+        valueCache,
+        initialFieldValueExpression,
+      ]);
+    } else {
+      return js.fun(r'''
+        function() {
+          if (# === void 0) {
+            # = #;
+          }
+          return #;
+        }
+      ''', [
+        valueCache,
+        valueCache,
+        initializer,
+        initialFieldValueExpression,
+      ]);
+    }
   }
 
-  js_ast.Statement _emitLazyMembers(
+  /// Emit a lazy field (i.e., late or static).
+  ///
+  /// Lazy fields are represented as an inlined initializer and a value store.
+  /// Value stores are JS symbols prefixed by [_fieldValueStorePrefix], are
+  /// initialized on first access, and are not replaced after a hot reload.
+  List<js_ast.Property> _emitLazyMember(js_ast.Expression objExpr,
+      Member member, js_ast.LiteralString Function(Member) emitMemberName) {
+    _currentUri = member.fileUri;
+    _staticTypeContext.enterMember(member);
+    var access = emitMemberName(member);
+    memberNames[member] = access.valueWithoutQuotes;
+    var properties = <js_ast.Property>[];
+
+    if (member is Field) {
+      // Add this field's value store. Lazy members must be prefixed by
+      // [_fieldValueStorePrefix] to allow correct hot reload semantics.
+      // TODO(markzipan): Const values are emitted along the lazy pathway, but
+      // their hot reload semantics seem to permit their values to change after
+      // initialization. Revisit this later as we work on consts.
+      var fieldValueStoreName = member.isConst
+          ? memberNames[member]!
+          : '$_fieldValueStorePrefix${memberNames[member]!}';
+      var memberValueStore = _getSymbol(
+          _emitPrivateNameSymbol(_currentLibrary!, fieldValueStoreName));
+      properties.add(js_ast.Property(memberValueStore, js.call('void 0'),
+          isStatic: member.isStatic && member.enclosingClass != null,
+          isClassProperty: member.enclosingClass != null));
+
+      var initializer =
+          _visitInitializer(member.initializer, member.annotations);
+      var getter = _emitLazyInitializingFunction(
+          js.call('this.#', memberValueStore), initializer, member);
+      properties.add(js_ast.Method(access, getter,
+          isGetter: true,
+          isStatic: member.isStatic && member.enclosingClass != null)
+        ..sourceInformation = _hoverComment(
+          js_ast.PropertyAccess(objExpr, access),
+          member.fileOffset,
+          member.name.text.length,
+        ));
+
+      if (!member.isFinal && !member.isConst) {
+        var body = <js_ast.Statement>[];
+        var param = _emitIdentifier('v');
+        if (_requiresExtraNullCheck(member.setterType, member.annotations)) {
+          body.add(_nullSafetyParameterCheck(
+              param, member.location, member.name.text));
+        }
+        body.add(js.statement('this.# = #;', [memberValueStore, param]));
+        // Even when no null check is present a dummy setter is still required
+        // to indicate writeable.
+        properties.add(js_ast.Method(
+          access,
+          js_ast.Fun([param], js_ast.Block(body)),
+          isSetter: true,
+          isStatic: member.isStatic && member.enclosingClass != null,
+        ));
+      }
+    } else if (member is Procedure) {
+      properties.add(js_ast.Method(
+        access,
+        _emitFunction(member.function, member.name.text),
+        isGetter: member.isGetter,
+        isSetter: member.isSetter,
+        isStatic: member.isStatic && member.enclosingClass != null,
+      )..sourceInformation = _hoverComment(
+          js_ast.PropertyAccess(objExpr, access),
+          member.fileOffset,
+          member.name.text.length));
+    } else {
+      throw UnsupportedError(
+          'Unsupported lazy member type ${member.runtimeType}: $member');
+    }
+    _staticTypeContext.leaveMember(member);
+    return properties;
+  }
+
+  /// Emits [members] as lazy fields.
+  List<js_ast.Property> _emitLazyMembers(
     js_ast.Expression objExpr,
     Iterable<Member> members,
     js_ast.LiteralString Function(Member) emitMemberName,
   ) {
-    var accessors = <js_ast.Method>[];
+    var properties = <js_ast.Property>[];
     var savedUri = _currentUri;
 
     for (var member in members) {
-      _currentUri = member.fileUri;
-      _staticTypeContext.enterMember(member);
-      var access = emitMemberName(member);
-      memberNames[member] = access.valueWithoutQuotes;
-
-      if (member is Field) {
-        accessors.add(js_ast.Method(access, _emitStaticFieldInitializer(member),
-            isGetter: true)
-          ..sourceInformation = _hoverComment(
-              js_ast.PropertyAccess(objExpr, access),
-              member.fileOffset,
-              member.name.text.length));
-        if (!member.isFinal && !member.isConst) {
-          var body = <js_ast.Statement>[];
-          var value = _emitIdentifier('value');
-          if (_requiresExtraNullCheck(member.setterType, member.annotations)) {
-            body.add(_nullSafetyParameterCheck(
-                value, member.location, member.name.text));
-          }
-          // Even when no null check is present a dummy setter is still required
-          // to indicate writeable.
-          accessors.add(js_ast.Method(
-              access, js_ast.Fun([value], js_ast.Block(body)),
-              isSetter: true));
-        }
-      } else if (member is Procedure) {
-        accessors.add(js_ast.Method(
-            access, _emitFunction(member.function, member.name.text),
-            isGetter: member.isGetter, isSetter: member.isSetter)
-          ..sourceInformation = _hoverComment(
-              js_ast.PropertyAccess(objExpr, access),
-              member.fileOffset,
-              member.name.text.length));
-      } else {
-        throw UnsupportedError(
-            'Unsupported lazy member type ${member.runtimeType}: $member');
-      }
-      _staticTypeContext.leaveMember(member);
+      properties.addAll(_emitLazyMember(objExpr, member, emitMemberName));
     }
     _currentUri = savedUri;
-
-    return _runtimeStatement('defineLazy(#, { # })', [objExpr, accessors]);
-  }
-
-  js_ast.Fun _emitStaticFieldInitializer(Field field) {
-    return js_ast.Fun([], js_ast.Block(_withLetScope(() {
-      return [
-        js_ast.Return(_visitInitializer(field.initializer, field.annotations))
-      ];
-    })));
+    return properties;
   }
 
   List<js_ast.Statement> _withLetScope(
@@ -3071,7 +3320,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Reserved by JS, not a valid static member name.
       case 'prototype':
         name += '_';
-        break;
       default:
         // All trailing underscores static names are reserved for the compiler
         // or SDK libraries.
@@ -3211,16 +3459,90 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return access!;
   }
 
-  void _emitLibraryProcedures(Library library) {
+  /// Emits top level library procedures and fields.
+  ///
+  /// Top level fields are represented as an initializer and a value store.
+  /// The getter initializes the value on first access, and an accompanying
+  /// setter (if not final) sets the underlying value store. Value stores
+  /// prefixed by [_fieldValueStorePrefix] are not replaced after a hot reload.
+  void _emitLibraryMembers(Library library) {
+    var libraryProperties = <js_ast.Property>[];
+
+    // Emit procedures
     var procedures = library.procedures
         .where((p) =>
             !p.isExternal && !p.isAbstract && !_isStaticInteropTearOff(p))
         .toList();
-    _moduleItems.addAll(procedures
-        .where((p) => !p.isAccessor)
-        .map(_emitLibraryFunction)
-        .toList());
-    _emitLibraryAccessors(procedures.where((p) => p.isAccessor).toList());
+    for (var p in procedures) {
+      if (!p.isAccessor) {
+        _moduleItems.add(_emitLibraryFunction(p));
+      }
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (p.isStatic && _reifyTearoff(p) && !p.isExternal) {
+        var nameExpr = _emitTopLevelName(p);
+        _moduleItems.add(_emitFunctionTagged(
+                nameExpr,
+                p.function
+                    .computeThisFunctionType(p.enclosingLibrary.nonNullable),
+                asLazy: true)
+            .toStatement());
+      }
+    }
+    var accessors =
+        procedures.where((p) => p.isAccessor).map(_emitLibraryAccessor);
+    libraryProperties.addAll(accessors);
+
+    // Emit fields
+    var fields = library.fields;
+    if (_isSdkInternalRuntime(_currentLibrary!)) {
+      /// Treat dart:_runtime fields as safe to eagerly evaluate.
+      // TODO(jmesserly): it'd be nice to avoid this special case.
+      var lazyFields = <Field>[];
+      var savedUri = _currentUri;
+
+      // Helper functions to test if a constructor invocation is internal and
+      // should be eagerly evaluated.
+      bool isInternalConstructor(ConstructorInvocation node) {
+        var type = node.getStaticType(_staticTypeContext) as InterfaceType;
+        var library = type.classNode.enclosingLibrary;
+        return _isSdkInternalRuntime(library);
+      }
+
+      for (var field in fields) {
+        _staticTypeContext.enterMember(field);
+        var init = field.initializer;
+        if (init == null ||
+            init is BasicLiteral ||
+            init is ConstructorInvocation && isInternalConstructor(init) ||
+            init is StaticInvocation && isInlineJS(init.target)) {
+          _currentUri = field.fileUri;
+          _moduleItems.add(js.statement('# = #;', [
+            _emitTopLevelName(field),
+            _visitInitializer(init, field.annotations)
+          ]));
+        } else {
+          lazyFields.add(field);
+        }
+        _staticTypeContext.leaveMember(field);
+      }
+
+      _currentUri = savedUri;
+      fields = lazyFields;
+    }
+
+    var libraryExpr = _emitLibraryName(_currentLibrary!);
+    if (fields.isNotEmpty) {
+      libraryProperties.addAll(
+          _emitLazyMembers(libraryExpr, fields, _emitTopLevelMemberName));
+    }
+
+    if (libraryProperties.isNotEmpty) {
+      var propertiesObject = js_ast.ObjectInitializer(libraryProperties);
+      _moduleItems.add(_runtimeStatement(
+          'declareTopLevelProperties(#, #)', [libraryExpr, propertiesObject]));
+    }
   }
 
   /// Check whether [p] is a tear-off for an external or synthetic static
@@ -3262,14 +3584,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return false;
   }
 
-  void _emitLibraryAccessors(Iterable<Procedure> accessors) {
-    if (accessors.isEmpty) return;
-    _moduleItems.add(_runtimeStatement('copyProperties(#, { # })', [
-      _emitLibraryName(_currentLibrary!),
-      accessors.map(_emitLibraryAccessor).toList()
-    ]));
-  }
-
   js_ast.Method _emitLibraryAccessor(Procedure node) {
     var savedUri = _currentUri;
     _staticTypeContext.enterMember(node);
@@ -3305,7 +3619,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var nameExpr = _emitTopLevelName(p);
     var jsName = _safeFunctionNameForSafari(p.name.text, fn);
-    var functionName = _emitTemporaryId(jsName);
+    var functionName = _emitScopedId(jsName);
     procedureIdentifiers[p] = functionName;
     body.add(js.statement(
         '# = #', [nameExpr, js_ast.NamedFunction(functionName, fn)]));
@@ -3356,13 +3670,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return candidateName;
   }
 
-  js_ast.Expression _emitFunctionTagged(
-      js_ast.Expression fn, FunctionType type) {
+  js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
+      {bool asLazy = false}) {
     var typeRep = _emitType(
         // Avoid tagging a closure as Function? or Function*
         type.withDeclaredNullability(Nullability.nonNullable));
     if (type.typeParameters.isEmpty) {
-      return _runtimeCall('fn(#, #)', [fn, typeRep]);
+      return asLazy
+          ? _runtimeCall('lazyFn(#, () => #)', [fn, typeRep])
+          : _runtimeCall('fn(#, #)', [fn, typeRep]);
     } else {
       var typeParameterDefaults = [
         for (var parameter in type.typeParameters)
@@ -3370,8 +3686,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ];
       var defaultInstantiatedBounds =
           _emitConstList(const DynamicType(), typeParameterDefaults);
-      return _runtimeCall(
-          'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
+      return asLazy
+          ? _runtimeCall('lazyGFn(#, () => #, () => #)',
+              [fn, typeRep, defaultInstantiatedBounds])
+          : _runtimeCall(
+              'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
     }
   }
 
@@ -3703,7 +4022,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       SourceLocation? functionBody,
       List<js_ast.Statement>? bodyPrefix}) {
     AsyncRewriterBase? asyncRewriter;
-    final bodyName = _emitTemporaryId('t\$async${name ?? 'Body'}');
+    final bodyName = _emitScopedId('t\$async${name ?? 'Body'}');
     switch (asyncMarker) {
       case AsyncMarker.Sync:
         break;
@@ -3722,7 +4041,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.SyncStar:
         asyncRewriter = SyncStarRewriter(
             makeSyncStarIterable:
@@ -3735,7 +4053,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             yieldStarSelector: _emitMemberName('_yieldStar',
                 member: _syncStarIteratorYieldStarMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.AsyncStar:
         asyncRewriter = AsyncStarRewriter(
             asyncStarHelper:
@@ -3752,7 +4069,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
     }
     if (asyncRewriter != null) {
       return asyncRewriter.rewrite(fun, functionBody, functionEnd,
@@ -4513,13 +4829,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// }
   /// ```
   js_ast.Statement _rewriteAsWhile(ForStatement node) {
-    var initFlagTempId = _emitTemporaryId('t#_init');
+    var initFlagTempId = _emitScopedId('t#_init');
     var loopVariableIds = {
       for (var variable in node.variables) variable: _emitVariableDef(variable),
     };
     var prevVariableTempIds = {
       for (var variable in node.variables)
-        variable: _emitTemporaryId('t#_prev_${variable.name!}'),
+        variable: _emitScopedId('t#_prev_${variable.name!}'),
     };
     var inits = js_ast.Block([
       // Set init flag to false so the initialization only happens on the first
@@ -4602,7 +4918,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (node.variable.name != null &&
           js_ast.variableIsReferenced(node.variable.name!, iterable)) {
-        var temp = _emitTemporaryId('iter');
+        var temp = _emitScopedId('iter');
         return js_ast.Block([
           iterable.toVariableDeclaration(temp),
           js_ast.ForOf(init, temp, body)
@@ -4640,7 +4956,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 .firstWhere((p) => p.isFactory && p.name.text == '')),
         [streamIteratorRti, _visitExpression(node.iterable)]);
 
-    var iter = _emitTemporaryId('iter');
+    var iter = _emitScopedId('iter');
 
     var savedContinueTargets = _currentContinueTargets;
     var savedBreakTargets = _currentBreakTargets;
@@ -4689,16 +5005,23 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var cases = <js_ast.SwitchClause>[];
 
     if (_inLabeledContinueSwitch) {
-      var labelState = _emitTemporaryId('labelState');
+      var labelState = _emitScopedId('labelState');
       // TODO(markzipan): Retrieve the real label name with source offsets
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
+
+      // Since we wrap the switch in a 'while (true)' loop the continue targets
+      // within the switch will no longer target the correct loop so we need
+      // explicit breaks.
+      final savedCurrentContinueTargets = _currentContinueTargets;
+      _currentContinueTargets = [];
 
       for (var c in node.cases) {
         var subcases =
             _visitSwitchCase(c, lastSwitchCase: c == node.cases.last);
         if (subcases.isNotEmpty) cases.addAll(subcases);
       }
+      _currentContinueTargets = savedCurrentContinueTargets;
 
       var switchExpr = _visitExpression(node.expression);
       var switchStmt = js_ast.Switch(labelState, cases);
@@ -4974,7 +5297,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var v = node.variable;
     var id = _emitVariableRef(v);
     if (id.name == v.name) {
-      id.sourceInformation = _variableSpan(node.fileOffset, v.name!.length);
+      id = id.withSourceInformation(
+          _variableSpan(node.fileOffset, v.name!.length));
     }
     return id;
   }
@@ -5008,11 +5332,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return null;
   }
 
-  js_ast.Identifier _emitVariableRef(VariableDeclaration v) {
+  js_ast.ScopedId _emitVariableRef(VariableDeclaration v) {
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
-      return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
+      return _tempVariables.putIfAbsent(v, () => _emitScopedId(name!));
     }
     var name = v.name!;
     if (isLateLoweredLocal(v)) {
@@ -5022,7 +5346,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // See https://github.com/dart-lang/sdk/issues/55918
       name = extractLocalNameFromLateLoweredLocal(name);
     }
-    return _emitIdentifier(name);
+    return js_ast.ScopedId.from(
+        _variableTempIds[v] ??= _emitScopedId(name, needsCapture: true));
   }
 
   /// Emits the declaration of a variable.
@@ -5134,7 +5459,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsMemberName = _emitMemberName(memberName, member: member);
     if (_reifyTearoff(member)) {
-      return _runtimeCall('bind(#, #)', [jsReceiver, jsMemberName]);
+      return _runtimeCall('tearoff(#, #)', [jsReceiver, jsMemberName]);
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
@@ -5324,15 +5649,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitStaticGet(node.target);
 
   js_ast.Expression _emitStaticGet(Member target) {
-    var result = _emitStaticTarget(target);
+    var propertyAccessor = _emitStaticTarget(target);
+    var context = propertyAccessor.receiver;
+    var property = propertyAccessor.selector;
+    var result = js.call('#.#', [context, property]);
     if (_reifyTearoff(target)) {
-      // TODO(jmesserly): we could tag static/top-level function types once
-      // in the module initialization, rather than at the point where they
-      // escape.
-      return _emitFunctionTagged(
-          result,
-          target.function!
-              .computeThisFunctionType(target.enclosingLibrary.nonNullable));
+      return _runtimeCall('staticTearoff(#, #)', [context, property]);
     }
     return result;
   }
@@ -6003,7 +6325,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 : 'function() { return super[#]; }',
             [jsName]);
 
-        return js_ast.Method(_emitTemporaryId(name), fn,
+        return js_ast.Method(_emitScopedId(name), fn,
             isGetter: !setter, isSetter: setter);
       } else {
         var function = member.function;
@@ -6017,7 +6339,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var fn = js.fun(
             'function(#) { return super[#](#); }', [params, jsName, params]);
         name = js_ast.friendlyNameForDartOperator[name] ?? name;
-        return js_ast.Method(_emitTemporaryId(name), fn);
+        return js_ast.Method(_emitScopedId(name), fn);
       }
     });
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
@@ -6037,7 +6359,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
-      return js_ast.Method(_emitTemporaryId(name), fn);
+      return js_ast.Method(_emitScopedId(name), fn);
     });
     return js_ast.Call(js_ast.PropertyAccess(js_ast.This(), jsMethod.name), []);
   }
@@ -6433,7 +6755,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
-  js_ast.Expression _emitStaticTarget(Member target) {
+  js_ast.PropertyAccess _emitStaticTarget(Member target) {
     var c = target.enclosingClass;
     if (c != null) {
       // A static native element should just forward directly to the JS type's
@@ -6443,9 +6765,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (isExternal && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
-          var memberName = _annotationName(target, isJSName) ??
-              _emitStaticMemberName(target.name.text, target);
-          return _runtimeCall('global.#.#', [nativeName[0], memberName]);
+          var annotationName = _annotationName(target, isJSName);
+          var memberName = annotationName == null
+              ? _emitStaticMemberName(target.name.text, target)
+              : js.string(annotationName);
+          return js_ast.PropertyAccess(
+              _runtimeCall('global.#', [nativeName[0]]), memberName);
         }
       }
       return js_ast.PropertyAccess(_emitStaticClassName(c, isExternal),
@@ -6749,7 +7074,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(mapType);
             return js.call('new #.new(#)', [mapClass, rti]);
           }
-          break;
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
@@ -6764,12 +7088,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(setType);
             return js.call('new #.new(#)', [setClass, rti]);
           }
-          break;
         case 'List':
           if (ctor.name.text == '') {
             return _emitList(type.typeArguments[0], []);
           }
-          break;
       }
     }
     var rti = _requiresRtiForInstantiation(ctorClass)
@@ -7633,9 +7955,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is now required for fields of constant objects that may be overridden
   /// within the same library.
-  js_ast.TemporaryId _emitClassPrivateNameSymbol(
+  js_ast.ScopedId _emitClassPrivateNameSymbol(
       Library library, String className, Member member,
-      [js_ast.TemporaryId? id]) {
+      [js_ast.ScopedId? id]) {
     var name = '$className.${member.name.text}';
     // Wrap the name as a symbol here so it matches what you would find at
     // runtime when you get all properties and symbols from an instance.
@@ -7759,7 +8081,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       bool Function() isLastParamMutated) {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
-          ? js_ast.TemporaryId((formals.last as js_ast.Identifier).name)
+          ? js_ast.ScopedId((formals.last as js_ast.Identifier).name)
           : formals.last as js_ast.Identifier);
     } else {
       _operatorSetResultStack.add(null);
@@ -7836,8 +8158,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// define new symbols and to reference existing ones.  If it's called
   /// multiple times with same [library] and [name], we'll allocate redundant
   /// top-level variables (see callers to this method).
-  js_ast.TemporaryId _emitPrivateNameSymbol(Library library, String name,
-      [js_ast.TemporaryId? id]) {
+  js_ast.ScopedId _emitPrivateNameSymbol(Library library, String name,
+      [js_ast.ScopedId? id]) {
     /// Initializes the JS `Symbol` for the private member [name] in [library].
     ///
     /// If the library is in the current JS module ([_libraries] contains it),
@@ -7851,10 +8173,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// If the library is imported, then the existing private name will be
     /// retrieved from it. In both cases, we use the same `dart.privateName`
     /// runtime call.
-    js_ast.TemporaryId initPrivateNameSymbol() {
+    js_ast.ScopedId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
-      var identifier = id ?? js_ast.TemporaryId(idName);
+      var identifier = id ?? js_ast.ScopedId(idName);
       _addSymbol(
           identifier,
           _runtimeCall('privateName(#, #)',
@@ -7954,9 +8276,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js_ast.Identifier(_extensionSymbolHolderName);
     } else {
       // Otherwise allow these to be renamed so users can write them.
-      _runtimeLibraryId = js_ast.TemporaryId('dart');
-      _extensionSymbolsLibraryId =
-          js_ast.TemporaryId(_extensionSymbolHolderName);
+      _runtimeLibraryId = js_ast.ScopedId('dart');
+      _extensionSymbolsLibraryId = js_ast.ScopedId(_extensionSymbolHolderName);
     }
 
     // Initialize our library variables.
@@ -7967,11 +8288,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else {
       var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
           ? _rtiLibraryId
-          : js_ast.TemporaryId(_jsLibraryName(library));
+          : js_ast.ScopedId(_jsLibraryName(library));
 
       _libraries[library] = libraryId;
       var alias = _jsLibraryAlias(library);
-      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+      var aliasId = alias == null ? null : js_ast.ScopedId(alias);
       exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
     items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
@@ -7979,7 +8300,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isSdkInternalRuntime(library)) {
       // Initialize the private name function.
       // To bootstrap the SDK, this needs to be emitted before other code.
-      var privateNamesId = _emitTemporaryId('privateNames');
+      var privateNamesId = _emitScopedId('privateNames');
       items.add(js.statement('const # = new Map()', privateNamesId));
       items.add(_runtimeStatement(r'''
         privateName = function privateName(libraryUri, name) {
@@ -8004,7 +8325,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _imports.putIfAbsent(library, () {
           if (_isSdkInternalRuntime(library)) return _runtimeLibraryId;
           if (_isDartLibrary(library, '_rti')) return _rtiLibraryId;
-          return js_ast.TemporaryId(_jsLibraryName(library));
+          return js_ast.ScopedId(_jsLibraryName(library));
         });
   }
 
@@ -8034,7 +8355,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               usedLibraries!.contains(_jsLibraryName(library))) {
             var alias = _jsLibraryAlias(library);
             if (alias != null) {
-              var aliasId = js_ast.TemporaryId(alias);
+              var aliasId = js_ast.ScopedId(alias);
               items.add(js_ast.ImportDeclaration(
                   from: js.string('${library.importUri}'),
                   namedImports: [
@@ -8123,14 +8444,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _libraries.forEach((library, libraryId) {
         if (usedLibraries.contains(_jsLibraryName(library))) {
           var alias = _jsLibraryAlias(library);
-          var aliasId = alias == null ? libraryId : js_ast.TemporaryId(alias);
+          var aliasId = alias == null ? libraryId : js_ast.ScopedId(alias);
           var asName = alias == null ? null : libraryId;
           exports.add(js_ast.NameSpecifier(aliasId, asName: asName));
         }
       });
 
       items.add(js_ast.ImportDeclaration(
-          namedImports: exports, from: js.string(module, "'")));
+          namedImports: exports,
+          from: js.string(current.importUri.toString(), "'")));
     }
   }
 
@@ -8267,9 +8589,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Do not call this directly; you want [_emitMemberName], which knows how to
   /// handle the many details involved in naming.
-  js_ast.TemporaryId _getExtensionSymbolInternal(String name) {
+  js_ast.ScopedId _getExtensionSymbolInternal(String name) {
     if (!_extensionSymbols.containsKey(name)) {
-      var id = js_ast.TemporaryId(
+      var id = js_ast.ScopedId(
           '\$${js_ast.friendlyNameForDartOperator[name] ?? name}');
       _extensionSymbols[name] = id;
       _addSymbol(id, id);

@@ -9,7 +9,7 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
-#include "vm/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/timeline.h"
 
@@ -379,7 +379,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
-  StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
+  StrictCompareInstr* comparison = instr->condition()->AsStrictCompare();
   if (comparison == nullptr) return;
   bool negated = comparison->kind() == Token::kNE_STRICT;
   LoadClassIdInstr* load_cid =
@@ -865,18 +865,6 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
   if (other.IsTopTypeForSubtyping()) {
     return true;
   }
-
-  if (IsNone()) {
-    return false;
-  }
-
-  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
-}
-
-bool CompileType::IsAssignableTo(const AbstractType& other) {
-  if (other.IsTopTypeForSubtyping()) {
-    return true;
-  }
   // If we allow comparisons against an uninstantiated type, then we can
   // end up incorrectly optimizing away AssertAssignables where the incoming
   // value and outgoing value have CompileTypes that would return true to the
@@ -894,19 +882,6 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
     return false;
   }
   if (is_nullable() && !Instance::NullIsAssignableTo(other)) {
-    return false;
-  }
-  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
-}
-
-bool CompileType::IsInstanceOf(const AbstractType& other) {
-  if (other.IsTopTypeForInstanceOf()) {
-    return true;
-  }
-  if (IsNone() || !other.IsInstantiated()) {
-    return false;
-  }
-  if (is_nullable() && !other.IsNullable()) {
     return false;
   }
   return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
@@ -939,7 +914,7 @@ bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
 // bounds.
 static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
   if (type.IsInstantiated()) {
-    return CompileType::Smi().IsAssignableTo(type);
+    return CompileType::Smi().IsSubtypeOf(type);
   } else if (type.IsTypeParameter()) {
     // For type parameters look at their bounds (if recurse allows us).
     const auto& param = TypeParameter::Cast(type);
@@ -1193,14 +1168,17 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver.
+  if (block_->IsCatchBlockEntry()) {
+    // Parameter of a catch block may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
+  }
+
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
   if (graph_entry == nullptr) {
     if (auto function_entry = block_->AsFunctionEntry()) {
       graph_entry = function_entry->graph_entry();
     } else if (auto osr_entry = block_->AsOsrEntry()) {
       graph_entry = osr_entry->graph_entry();
-    } else if (auto catch_entry = block_->AsCatchBlockEntry()) {
-      graph_entry = catch_entry->graph_entry();
     } else {
       UNREACHABLE();
     }
@@ -1330,11 +1308,6 @@ CompileType ParameterInstr::ComputeType() const {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
-  }
-
-  if (block_->IsCatchBlockEntry()) {
-    // Parameter of a catch block may correspond to a late local variable.
-    return CompileType::DynamicOrSentinel();
   }
 
   return CompileType::Dynamic();
@@ -1776,7 +1749,7 @@ CompileType SimdOpInstr::ComputeType() const {
 }
 
 CompileType MathMinMaxInstr::ComputeType() const {
-  return CompileType::FromCid(result_cid_);
+  return CompileType::FromUnboxedRepresentation(representation());
 }
 
 CompileType CaseInsensitiveCompareInstr::ComputeType() const {
@@ -1822,7 +1795,9 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
       cid == kImmutableArrayCid ||
       array_type.type_class() ==
-          IsolateGroup::Current()->object_store()->list_class()) {
+          IsolateGroup::Current()->object_store()->list_class() ||
+      array_type.type_class() ==
+          IsolateGroup::Current()->object_store()->iterable_class()) {
     const auto& type_args =
         TypeArguments::Handle(Type::Cast(array_type).arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);

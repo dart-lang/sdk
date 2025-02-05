@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' as v;
 
@@ -34,21 +34,21 @@ Future<void> testList() async {
   Expect.listEquals(list, <int>[
     await for (var i in stream([1, 2])) i,
     3,
-    4
+    4,
   ]);
 
   // Await for in middle.
   Expect.listEquals(list, <int>[
     1,
     await for (var i in stream([2, 3])) i,
-    4
+    4,
   ]);
 
   // Await for at end.
   Expect.listEquals(list, <int>[
     1,
     2,
-    await for (var i in stream([3, 4])) i
+    await for (var i in stream([3, 4])) i,
   ]);
 
   // Empty await for.
@@ -58,48 +58,51 @@ Future<void> testList() async {
   Expect.listEquals(list, <int>[
     await for (var i in stream([1])) i,
     2,
-    await for (var i in stream([3, 4])) i
+    await for (var i in stream([3, 4])) i,
   ]);
 
   // Spread inside await for.
   Expect.listEquals(list, <int>[
-    await for (var i in stream([0, 2])) ...<int>[1 + i, 2 + i]
+    await for (var i in stream([0, 2])) ...<int>[1 + i, 2 + i],
   ]);
 
   // If inside await for.
   Expect.listEquals(list, <int>[
     await for (var i in stream([1, 9, 2, 3, 9, 4]))
-      if (i != 9) i
+      if (i != 9) i,
   ]);
 
   // Else inside await for.
   Expect.listEquals(list, <int>[
     await for (var i in stream([1, -2, 3, -4]))
-      if (i < 0) -i else i
+      if (i < 0) -i else i,
   ]);
 
   // For inside await for.
   Expect.listEquals(list, <int>[
     await for (var i in stream([0, 2]))
-      for (var j = 1; j <= 2; j++) i + j
+      for (var j = 1; j <= 2; j++) i + j,
   ]);
 
   // Does not flatten nested collection literal.
   Expect.listEquals(
-      [1],
-      [
-        await for (var i in stream([1])) [i]
-      ].first);
+    [1],
+    [
+      await for (var i in stream([1])) [i],
+    ].first,
+  );
   Expect.mapEquals(
-      {1: 1},
-      [
-        await for (var i in stream([1])) {i: i}
-      ].first);
+    {1: 1},
+    [
+      await for (var i in stream([1])) {i: i},
+    ].first,
+  );
   Expect.setEquals(
-      {1},
-      [
-        await for (var i in stream([1])) {i}
-      ].first);
+    {1},
+    [
+      await for (var i in stream([1])) {i},
+    ].first,
+  );
 }
 
 Future<void> testMap() async {
@@ -110,58 +113,63 @@ Future<void> testMap() async {
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([1, 2])) i: i,
     3: 3,
-    4: 4
+    4: 4,
   });
 
   // Await for in middle.
   Expect.mapEquals(map, <int, int>{
     1: 1,
     await for (var i in stream([2, 3])) i: i,
-    4: 4
+    4: 4,
   });
 
   // Await for at end.
   Expect.mapEquals(map, <int, int>{
     1: 1,
     2: 2,
-    await for (var i in stream([3, 4])) i: i
+    await for (var i in stream([3, 4])) i: i,
   });
 
   // Empty await for.
-  Expect.mapEquals(map,
-      <int, int>{1: 1, await for (var i in stream([])) i: i, 2: 2, 3: 3, 4: 4});
+  Expect.mapEquals(map, <int, int>{
+    1: 1,
+    await for (var i in stream([])) i: i,
+    2: 2,
+    3: 3,
+    4: 4,
+  });
 
   // Multiple await fors.
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([1])) i: i,
     2: 2,
-    await for (var i in stream([3, 4])) i: i
+    await for (var i in stream([3, 4])) i: i,
   });
 
   // Spread inside await for.
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([0, 2])) ...<int, int>{
       1 + i: 1 + i,
-      2 + i: 2 + i
-    }
+      2 + i: 2 + i,
+    },
   });
 
   // If inside await for.
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([1, 9, 2, 3, 9, 4]))
-      if (i != 9) i: i
+      if (i != 9) i: i,
   });
 
   // Else inside await for.
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([1, -2, 3, -4]))
-      if (i < 0) -i: -i else i: i
+      if (i < 0) -i: -i else i: i,
   });
 
   // For inside await for.
   Expect.mapEquals(map, <int, int>{
     await for (var i in stream([0, 2]))
-      for (var j = 1; j <= 2; j++) i + j: i + j
+      for (var j = 1; j <= 2; j++) i + j: i + j,
   });
 }
 
@@ -173,21 +181,21 @@ Future<void> testSet() async {
   Expect.setEquals(set, <int>{
     await for (var i in stream([1, 2])) i,
     3,
-    4
+    4,
   });
 
   // Await for in middle.
   Expect.setEquals(set, <int>{
     1,
     await for (var i in stream([2, 3])) i,
-    4
+    4,
   });
 
   // Await for at end.
   Expect.setEquals(set, <int>{
     1,
     2,
-    await for (var i in stream([3, 4])) i
+    await for (var i in stream([3, 4])) i,
   });
 
   // Empty await for.
@@ -197,48 +205,51 @@ Future<void> testSet() async {
   Expect.setEquals(set, <int>{
     await for (var i in stream([1])) i,
     2,
-    await for (var i in stream([3, 4])) i
+    await for (var i in stream([3, 4])) i,
   });
 
   // Spread inside await for.
   Expect.setEquals(set, <int>{
-    await for (var i in stream([0, 2])) ...<int>[1 + i, 2 + i]
+    await for (var i in stream([0, 2])) ...<int>[1 + i, 2 + i],
   });
 
   // If inside await for.
   Expect.setEquals(set, <int>{
     await for (var i in stream([1, 9, 2, 3, 9, 4]))
-      if (i != 9) i
+      if (i != 9) i,
   });
 
   // Else inside await for.
   Expect.setEquals(set, <int>{
     await for (var i in stream([1, -2, 3, -4]))
-      if (i < 0) -i else i
+      if (i < 0) -i else i,
   });
 
   // For inside await for.
   Expect.setEquals(set, <int>{
     await for (var i in stream([0, 2]))
-      for (var j = 1; j <= 2; j++) i + j
+      for (var j = 1; j <= 2; j++) i + j,
   });
 
   // Does not flatten nested collection literal.
   Expect.listEquals(
-      [1],
-      {
-        await for (var i in stream([1])) [i]
-      }.first);
+    [1],
+    {
+      await for (var i in stream([1])) [i],
+    }.first,
+  );
   Expect.mapEquals(
-      {1: 1},
-      {
-        await for (var i in stream([1])) {i: i}
-      }.first);
+    {1: 1},
+    {
+      await for (var i in stream([1])) {i: i},
+    }.first,
+  );
   Expect.setEquals(
-      {1},
-      {
-        await for (var i in stream([1])) {i}
-      }.first);
+    {1},
+    {
+      await for (var i in stream([1])) {i},
+    }.first,
+  );
 }
 
 Future<void> testDuplicateKeys() async {
@@ -247,14 +258,14 @@ Future<void> testDuplicateKeys() async {
     await for (var i in stream([1, 2, 3])) i: i,
     await for (var i in stream([2, 3])) i: i,
     3: 3,
-    4: 4
+    4: 4,
   });
   Expect.setEquals(set, <int>{
     1,
     await for (var i in stream([1, 2, 3])) i,
     await for (var i in stream([2, 3])) i,
     3,
-    4
+    4,
   });
 }
 
@@ -269,14 +280,14 @@ Future<void> testKeyOrder() async {
 
   var map = <Equality, int>{
     e1a: 1,
-    await for (var i in stream([0, 1, 2])) keys[i]: values[i]
+    await for (var i in stream([0, 1, 2])) keys[i]: values[i],
   };
   Expect.equals("1:a,2:a", map.keys.join(","));
   Expect.equals("2,4", map.values.join(","));
 
   var set = <Equality>{
     e1a,
-    await for (var i in stream([0, 1, 2])) keys[i]
+    await for (var i in stream([0, 1, 2])) keys[i],
   };
   Expect.equals("1:a,2:a", set.join(","));
 }
@@ -306,23 +317,23 @@ Future<void> testRuntimeErrors() async {
   dynamic nonInt = "string";
   asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int>[
-      await for (var i in stream([1])) nonInt
+      await for (var i in stream([1])) nonInt,
     ];
   }());
   asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int, int>{
-      await for (var i in stream([1])) nonInt: 1
+      await for (var i in stream([1])) nonInt: 1,
     };
   }());
   asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int, int>{
-      await for (var i in stream([1])) 1: nonInt
+      await for (var i in stream([1])) 1: nonInt,
     };
   }());
 
   asyncExpectThrowsWhen(v.checkedImplicitDowncasts, () async {
     <int>{
-      await for (var i in stream([1])) nonInt
+      await for (var i in stream([1])) nonInt,
     };
   }());
 }

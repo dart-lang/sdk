@@ -4,8 +4,8 @@
 
 // Functional test of 'noInline' annotation from package:meta/dart2js.dart.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -36,16 +36,17 @@ const MEMORY_SOURCE_FILES = const {
           print(A.bar(87654));
           print(new A().gee(1337, 919182));
           print(new A().field + 1);
-        }'''
+        }''',
 };
 
 void main() {
   runTests() async {
     OutputCollector collector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector,
-        options: [Flags.testMode]);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+      options: [Flags.testMode],
+    );
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
     String jsOutput = collector.getOutput('', api.OutputType.js)!;
@@ -56,7 +57,9 @@ void main() {
 
     void hasNot(String text) {
       Expect.isFalse(
-          jsOutput.contains(text), "output must not contain '$text'");
+        jsOutput.contains(text),
+        "output must not contain '$text'",
+      );
     }
 
     has('49912344');

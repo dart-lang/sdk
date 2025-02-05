@@ -75,7 +75,8 @@ abstract class PageWriter {
     sink.writeln('<head>');
     sink.writeln('<meta charset="utf-8">');
     sink.writeln(
-        '<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0">');
+      '<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0">',
+    );
     sink.writeln('<title>Instrumentation Log</title>');
     sink.writeln('<style>');
     writeStyleSheet(sink);
@@ -189,13 +190,14 @@ th.narrow {
   /// contained in 'div' elements with the id's [leftColumnId], [centerColumnId]
   /// and [rightColumnId].
   void writeThreeColumns(
-      StringSink sink,
-      String leftColumnId,
-      Writer writeLeftColumn,
-      String centerColumnId,
-      Writer writeCenterColumn,
-      String rightColumnId,
-      Writer writeRightColumn) {
+    StringSink sink,
+    String leftColumnId,
+    Writer writeLeftColumn,
+    String centerColumnId,
+    Writer writeCenterColumn,
+    String rightColumnId,
+    Writer writeRightColumn,
+  ) {
     sink.writeln('<div>');
     sink.writeln('  <div>');
     sink.writeln('    <div id="$leftColumnId">');
@@ -220,8 +222,12 @@ th.narrow {
   /// Writeto the given [sink] the styles needed by a three column section where
   /// the columns have the ids [leftColumnId], [centerColumnId] and
   /// [rightColumnId].
-  void writeThreeColumnStyles(StringSink sink, String leftColumnId,
-      String centerColumnId, String rightColumnId) {
+  void writeThreeColumnStyles(
+    StringSink sink,
+    String leftColumnId,
+    String centerColumnId,
+    String rightColumnId,
+  ) {
     sink.writeln('''
 #$leftColumnId {
   float: left;
@@ -247,8 +253,13 @@ th.narrow {
   /// columns. The content of the columns will be written by the functions
   /// [writeLeftColumn] and [writeRightColumn] and will be contained in 'div'
   /// elements with the id's [leftColumnId] and [rightColumnId].
-  void writeTwoColumns(StringSink sink, String leftColumnId,
-      Writer writeLeftColumn, String rightColumnId, Writer writeRightColumn) {
+  void writeTwoColumns(
+    StringSink sink,
+    String leftColumnId,
+    Writer writeLeftColumn,
+    String rightColumnId,
+    Writer writeRightColumn,
+  ) {
     sink.writeln('<div id="container">');
     sink.writeln('  <div id="content">');
     sink.writeln('    <div id="$leftColumnId">');
@@ -268,7 +279,10 @@ th.narrow {
   /// Writeto the given [sink] the styles needed by a two column section where
   /// the columns have the ids [leftColumnId] and [rightColumnId].
   void writeTwoColumnStyles(
-      StringSink sink, String leftColumnId, String rightColumnId) {
+    StringSink sink,
+    String leftColumnId,
+    String rightColumnId,
+  ) {
     sink.writeln('''
 #$leftColumnId {
   float: left;

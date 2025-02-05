@@ -37,8 +37,12 @@ abstract class IntegrationTest {
   Future<ServerGetVersionResult> sendServerGetVersion() async {
     var result = await server.send('server.getVersion', null);
     var decoder = ResponseDecoder(null);
-    return ServerGetVersionResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return ServerGetVersionResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Cleanly shutdown the analysis server. Requests that are received after
@@ -64,9 +68,11 @@ abstract class IntegrationTest {
   ///
   ///   A list of the services being subscribed to.
   Future<void> sendServerSetSubscriptions(
-      List<ServerService> subscriptions) async {
-    var params = ServerSetSubscriptionsParams(subscriptions)
-        .toJson(clientUriConverter: uriConverter);
+    List<ServerService> subscriptions,
+  ) async {
+    var params = ServerSetSubscriptionsParams(
+      subscriptions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -85,8 +91,9 @@ abstract class IntegrationTest {
   ///
   ///   The id of the request that should be cancelled.
   Future<void> sendServerCancelRequest(String id) async {
-    var params =
-        ServerCancelRequestParams(id).toJson(clientUriConverter: uriConverter);
+    var params = ServerCancelRequestParams(
+      id,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.cancelRequest', params);
     outOfTestExpect(result, isNull);
   }
@@ -109,8 +116,8 @@ abstract class IntegrationTest {
   ///   The following is a list of the names of the requests that can be
   ///   specified:
   ///
-  ///   - openUrlRequest
-  ///   - showMessageRequest
+  ///   - `openUrlRequest`
+  ///   - `showMessageRequest`
   ///
   /// supportsUris: bool (optional)
   ///
@@ -118,18 +125,21 @@ abstract class IntegrationTest {
   ///   paths.
   ///
   ///   In this mode, the server will use URIs in all protocol fields with the
-  ///   type FilePath. Returned URIs may be `file://` URIs or custom schemes.
+  ///   type `FilePath`. Returned URIs may be `file://` URIs or custom schemes.
   ///   The client can fetch the file contents for URIs with custom schemes
   ///   (and receive modification events) through the LSP protocol (see the
   ///   "lsp" domain).
   ///
   ///   LSP notifications are automatically enabled when the client sets this
   ///   capability.
-  Future<void> sendServerSetClientCapabilities(List<String> requests,
-      {bool? supportsUris}) async {
-    var params =
-        ServerSetClientCapabilitiesParams(requests, supportsUris: supportsUris)
-            .toJson(clientUriConverter: uriConverter);
+  Future<void> sendServerSetClientCapabilities(
+    List<String> requests, {
+    bool? supportsUris,
+  }) async {
+    var params = ServerSetClientCapabilitiesParams(
+      requests,
+      supportsUris: supportsUris,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setClientCapabilities', params);
     outOfTestExpect(result, isNull);
   }
@@ -143,7 +153,7 @@ abstract class IntegrationTest {
   ///
   /// The request will only be sent from the server to the client if the client
   /// has indicated that it supports this request by using the
-  /// setClientCapabilities request.
+  /// `setClientCapabilities` request.
   ///
   /// Parameters
   ///
@@ -151,8 +161,9 @@ abstract class IntegrationTest {
   ///
   ///   The URL to be opened.
   Future<void> sendServerOpenUrlRequest(String url) async {
-    var params = ServerOpenUrlRequestParams(url)
-        .toJson(clientUriConverter: uriConverter);
+    var params = ServerOpenUrlRequestParams(
+      url,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.openUrlRequest', params);
     outOfTestExpect(result, isNull);
   }
@@ -167,7 +178,7 @@ abstract class IntegrationTest {
   ///
   /// The request will only be sent from the server to the client if the client
   /// has indicated that it supports this request by using the
-  /// setClientCapabilities request.
+  /// `setClientCapabilities` request.
   ///
   /// This request is modeled after the same request from the LSP
   /// specification.
@@ -194,13 +205,23 @@ abstract class IntegrationTest {
   ///   or `null` if the user dismissed the message without clicking an action
   ///   button.
   Future<ServerShowMessageRequestResult> sendServerShowMessageRequest(
-      MessageType type, String message, List<MessageAction> actions) async {
-    var params = ServerShowMessageRequestParams(type, message, actions)
-        .toJson(clientUriConverter: uriConverter);
+    MessageType type,
+    String message,
+    List<MessageAction> actions,
+  ) async {
+    var params = ServerShowMessageRequestParams(
+      type,
+      message,
+      actions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.showMessageRequest', params);
     var decoder = ResponseDecoder(null);
-    return ServerShowMessageRequestResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return ServerShowMessageRequestResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Reports that the server is running. This notification is issued once
@@ -222,8 +243,9 @@ abstract class IntegrationTest {
       _onServerConnected.stream.asBroadcastStream();
 
   /// Stream controller for [onServerConnected].
-  final _onServerConnected =
-      StreamController<ServerConnectedParams>(sync: true);
+  final _onServerConnected = StreamController<ServerConnectedParams>(
+    sync: true,
+  );
 
   /// Reports that an unexpected error has occurred while executing the server.
   /// This notification is not used for problems with specific requests (which
@@ -269,7 +291,7 @@ abstract class IntegrationTest {
   /// has been no change in the status represented by that parameter.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "STATUS" in the list of services passed in a
+  /// by including the value `"STATUS"` in the list of services passed in a
   /// server.setSubscriptions request.
   ///
   /// Parameters
@@ -300,7 +322,8 @@ abstract class IntegrationTest {
   /// that can be computed will be returned and the response will contain an
   /// error to indicate why the errors could not be computed. If the content of
   /// the file changes after this request was received but before a response
-  /// could be sent, then an error of type CONTENT_MODIFIED will be generated.
+  /// could be sent, then an error of type `CONTENT_MODIFIED` will be
+  /// generated.
   ///
   /// This request is intended to be used by clients that cannot asynchronously
   /// apply updated error information. Clients that can apply error information
@@ -310,7 +333,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_ERRORS_INVALID_FILE will be generated.
+  /// `GET_ERRORS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -324,12 +347,17 @@ abstract class IntegrationTest {
   ///
   ///   The errors associated with the file.
   Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) async {
-    var params =
-        AnalysisGetErrorsParams(file).toJson(clientUriConverter: uriConverter);
+    var params = AnalysisGetErrorsParams(
+      file,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getErrors', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetErrorsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetErrorsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the hover information associate with the given location. If some
@@ -356,13 +384,21 @@ abstract class IntegrationTest {
   ///   contexts in conflicting ways (such as a part that is included in
   ///   multiple libraries).
   Future<AnalysisGetHoverResult> sendAnalysisGetHover(
-      String file, int offset) async {
-    var params = AnalysisGetHoverParams(file, offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+  ) async {
+    var params = AnalysisGetHoverParams(
+      file,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getHover', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetHoverResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetHoverResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return a description of all of the elements referenced in a given region
@@ -371,7 +407,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file that does not exist, or that is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified via analysis.setAnalysisRoots), an error of type
-  /// GET_IMPORTED_ELEMENTS_INVALID_FILE will be generated.
+  /// `GET_IMPORTED_ELEMENTS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -396,13 +432,23 @@ abstract class IntegrationTest {
   ///   The information about the elements that are referenced in the specified
   ///   region of the specified file that come from imported libraries.
   Future<AnalysisGetImportedElementsResult> sendAnalysisGetImportedElements(
-      String file, int offset, int length) async {
-    var params = AnalysisGetImportedElementsParams(file, offset, length)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = AnalysisGetImportedElementsParams(
+      file,
+      offset,
+      length,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getImportedElements', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetImportedElementsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetImportedElementsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return library dependency information for use in client-side indexing and
@@ -424,12 +470,15 @@ abstract class IntegrationTest {
   ///   names to source directories for use in client-side package URI
   ///   resolution.
   Future<AnalysisGetLibraryDependenciesResult>
-      sendAnalysisGetLibraryDependencies() async {
+  sendAnalysisGetLibraryDependencies() async {
     var result = await server.send('analysis.getLibraryDependencies', null);
     var decoder = ResponseDecoder(null);
     return AnalysisGetLibraryDependenciesResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the navigation information associated with the given region of the
@@ -438,7 +487,7 @@ abstract class IntegrationTest {
   /// the given file is out of date, then the response for this request will be
   /// delayed until it has been computed. If the content of the file changes
   /// after this request was received but before a response could be sent, then
-  /// an error of type CONTENT_MODIFIED will be generated.
+  /// an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// If a navigation region overlaps (but extends either before or after) the
   /// given region of the file it will be included in the result. This means
@@ -450,7 +499,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_NAVIGATION_INVALID_FILE will be generated.
+  /// `GET_NAVIGATION_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -485,13 +534,23 @@ abstract class IntegrationTest {
   ///   A list of the navigation regions within the requested region of the
   ///   file.
   Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
-      String file, int offset, int length) async {
-    var params = AnalysisGetNavigationParams(file, offset, length)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = AnalysisGetNavigationParams(
+      file,
+      offset,
+      length,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getNavigation', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetNavigationResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetNavigationResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the transitive closure of reachable sources for a given file.
@@ -499,7 +558,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+  /// `GET_REACHABLE_SOURCES_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -522,13 +581,19 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
-      String file) async {
-    var params = AnalysisGetReachableSourcesParams(file)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+  ) async {
+    var params = AnalysisGetReachableSourcesParams(
+      file,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getReachableSources', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetReachableSourcesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the signature information associated with the given location in
@@ -538,14 +603,14 @@ abstract class IntegrationTest {
   /// will be delayed until it has been computed. If a request is made for a
   /// file which does not exist, or which is not currently subject to analysis
   /// (e.g. because it is not associated with any analysis root specified to
-  /// analysis.setAnalysisRoots), an error of type GET_SIGNATURE_INVALID_FILE
+  /// analysis.setAnalysisRoots), an error of type `GET_SIGNATURE_INVALID_FILE`
   /// will be generated. If the location given is not inside the argument list
   /// for a function (including method and constructor) invocation, then an
-  /// error of type GET_SIGNATURE_INVALID_OFFSET will be generated. If the
+  /// error of type `GET_SIGNATURE_INVALID_OFFSET` will be generated. If the
   /// location is inside an argument list but the function is not defined or
   /// cannot be determined (such as a method invocation where the target has
-  /// type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will
-  /// be generated.
+  /// type 'dynamic') then an error of type `GET_SIGNATURE_UNKNOWN_FUNCTION`
+  /// will be generated.
   ///
   /// Parameters
   ///
@@ -576,13 +641,21 @@ abstract class IntegrationTest {
   ///   is omitted if there is no referenced element, or if the element has no
   ///   dartdoc.
   Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
-      String file, int offset) async {
-    var params = AnalysisGetSignatureParams(file, offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+  ) async {
+    var params = AnalysisGetSignatureParams(
+      file,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getSignature', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetSignatureResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisGetSignatureResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Force re-reading of all potentially changed files, re-resolving of all
@@ -645,11 +718,15 @@ abstract class IntegrationTest {
   ///   If this field is absent, or the empty map is specified, that indicates
   ///   that the normal pubspec.yaml mechanism should always be used.
   Future<void> sendAnalysisSetAnalysisRoots(
-      List<String> included, List<String> excluded,
-      {Map<String, String>? packageRoots}) async {
-    var params = AnalysisSetAnalysisRootsParams(included, excluded,
-            packageRoots: packageRoots)
-        .toJson(clientUriConverter: uriConverter);
+    List<String> included,
+    List<String> excluded, {
+    Map<String, String>? packageRoots,
+  }) async {
+    var params = AnalysisSetAnalysisRootsParams(
+      included,
+      excluded,
+      packageRoots: packageRoots,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setAnalysisRoots', params);
     outOfTestExpect(result, isNull);
   }
@@ -668,9 +745,11 @@ abstract class IntegrationTest {
   ///
   ///   A list of the services being subscribed to.
   Future<void> sendAnalysisSetGeneralSubscriptions(
-      List<GeneralAnalysisService> subscriptions) async {
-    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions)
-        .toJson(clientUriConverter: uriConverter);
+    List<GeneralAnalysisService> subscriptions,
+  ) async {
+    var params = AnalysisSetGeneralSubscriptionsParams(
+      subscriptions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setGeneralSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -699,8 +778,9 @@ abstract class IntegrationTest {
   ///
   ///   The files that are to be a priority for analysis.
   Future<void> sendAnalysisSetPriorityFiles(List<String> files) async {
-    var params = AnalysisSetPriorityFilesParams(files)
-        .toJson(clientUriConverter: uriConverter);
+    var params = AnalysisSetPriorityFilesParams(
+      files,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setPriorityFiles', params);
     outOfTestExpect(result, isNull);
   }
@@ -736,9 +816,11 @@ abstract class IntegrationTest {
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
   Future<void> sendAnalysisSetSubscriptions(
-      Map<AnalysisService, List<String>> subscriptions) async {
-    var params = AnalysisSetSubscriptionsParams(subscriptions)
-        .toJson(clientUriConverter: uriConverter);
+    Map<AnalysisService, List<String>> subscriptions,
+  ) async {
+    var params = AnalysisSetSubscriptionsParams(
+      subscriptions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -760,13 +842,19 @@ abstract class IntegrationTest {
   ///
   /// Returns
   Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(
-      Map<String, Object> files) async {
-    var params = AnalysisUpdateContentParams(files)
-        .toJson(clientUriConverter: uriConverter);
+    Map<String, Object> files,
+  ) async {
+    var params = AnalysisUpdateContentParams(
+      files,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.updateContent', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisUpdateContentResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalysisUpdateContentResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Deprecated: all of the options can be set by users in an analysis options
@@ -786,8 +874,9 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalysisUpdateOptions(AnalysisOptions options) async {
-    var params = AnalysisUpdateOptionsParams(options)
-        .toJson(clientUriConverter: uriConverter);
+    var params = AnalysisUpdateOptionsParams(
+      options,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.updateOptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -795,8 +884,8 @@ abstract class IntegrationTest {
   /// Reports the paths of the files that are being analyzed.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "ANALYZED_FILES" in the list of services passed in
-  /// an analysis.setGeneralSubscriptions request.
+  /// by including the value `"ANALYZED_FILES"` in the list of services passed
+  /// in an analysis.setGeneralSubscriptions request.
   ///
   /// Parameters
   ///
@@ -813,8 +902,8 @@ abstract class IntegrationTest {
   /// Reports closing labels relevant to a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "CLOSING_LABELS" in the list of services passed in
-  /// an analysis.setSubscriptions request.
+  /// by including the value `"CLOSING_LABELS"` in the list of services passed
+  /// in an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -879,8 +968,9 @@ abstract class IntegrationTest {
       _onAnalysisFlushResults.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisFlushResults].
-  final _onAnalysisFlushResults =
-      StreamController<AnalysisFlushResultsParams>(sync: true);
+  final _onAnalysisFlushResults = StreamController<AnalysisFlushResultsParams>(
+    sync: true,
+  );
 
   /// Reports the folding regions associated with a given file. Folding regions
   /// can be nested, but will not be overlapping. Nesting occurs when a
@@ -888,7 +978,7 @@ abstract class IntegrationTest {
   /// element such as a class.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "FOLDING" in the list of services passed in an
+  /// by including the value `"FOLDING"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -904,14 +994,15 @@ abstract class IntegrationTest {
       _onAnalysisFolding.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisFolding].
-  final _onAnalysisFolding =
-      StreamController<AnalysisFoldingParams>(sync: true);
+  final _onAnalysisFolding = StreamController<AnalysisFoldingParams>(
+    sync: true,
+  );
 
   /// Reports the highlight regions associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "HIGHLIGHTS" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -930,15 +1021,16 @@ abstract class IntegrationTest {
       _onAnalysisHighlights.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisHighlights].
-  final _onAnalysisHighlights =
-      StreamController<AnalysisHighlightsParams>(sync: true);
+  final _onAnalysisHighlights = StreamController<AnalysisHighlightsParams>(
+    sync: true,
+  );
 
   /// Reports the classes that are implemented or extended and class members
   /// that are implemented or overridden in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "IMPLEMENTED" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"IMPLEMENTED"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -957,15 +1049,16 @@ abstract class IntegrationTest {
       _onAnalysisImplemented.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisImplemented].
-  final _onAnalysisImplemented =
-      StreamController<AnalysisImplementedParams>(sync: true);
+  final _onAnalysisImplemented = StreamController<AnalysisImplementedParams>(
+    sync: true,
+  );
 
   /// Reports that the navigation information associated with a region of a
   /// single file has become invalid and should be re-requested.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "INVALIDATE" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"INVALIDATE"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -990,14 +1083,15 @@ abstract class IntegrationTest {
       _onAnalysisInvalidate.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisInvalidate].
-  final _onAnalysisInvalidate =
-      StreamController<AnalysisInvalidateParams>(sync: true);
+  final _onAnalysisInvalidate = StreamController<AnalysisInvalidateParams>(
+    sync: true,
+  );
 
   /// Reports the navigation targets associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "NAVIGATION" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"NAVIGATION"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1018,24 +1112,25 @@ abstract class IntegrationTest {
   /// targets: List<NavigationTarget>
   ///
   ///   The navigation targets referenced in the file. They are referenced by
-  ///   NavigationRegions by their index in this array.
+  ///   `NavigationRegion`s by their index in this array.
   ///
   /// files: List<FilePath>
   ///
   ///   The files containing navigation targets referenced in the file. They
-  ///   are referenced by NavigationTargets by their index in this array.
+  ///   are referenced by `NavigationTarget`s by their index in this array.
   late final Stream<AnalysisNavigationParams> onAnalysisNavigation =
       _onAnalysisNavigation.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisNavigation].
-  final _onAnalysisNavigation =
-      StreamController<AnalysisNavigationParams>(sync: true);
+  final _onAnalysisNavigation = StreamController<AnalysisNavigationParams>(
+    sync: true,
+  );
 
   /// Reports the occurrences of references to elements within a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OCCURRENCES" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -1050,13 +1145,14 @@ abstract class IntegrationTest {
       _onAnalysisOccurrences.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOccurrences].
-  final _onAnalysisOccurrences =
-      StreamController<AnalysisOccurrencesParams>(sync: true);
+  final _onAnalysisOccurrences = StreamController<AnalysisOccurrencesParams>(
+    sync: true,
+  );
 
   /// Reports the outline associated with a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -1084,13 +1180,14 @@ abstract class IntegrationTest {
       _onAnalysisOutline.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOutline].
-  final _onAnalysisOutline =
-      StreamController<AnalysisOutlineParams>(sync: true);
+  final _onAnalysisOutline = StreamController<AnalysisOutlineParams>(
+    sync: true,
+  );
 
   /// Reports the overriding members in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OVERRIDES" in the list of services passed in an
+  /// by including the value `"OVERRIDES"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -1106,8 +1203,9 @@ abstract class IntegrationTest {
       _onAnalysisOverrides.stream.asBroadcastStream();
 
   /// Stream controller for [onAnalysisOverrides].
-  final _onAnalysisOverrides =
-      StreamController<AnalysisOverridesParams>(sync: true);
+  final _onAnalysisOverrides = StreamController<AnalysisOverridesParams>(
+    sync: true,
+  );
 
   /// Request that completion suggestions for the given offset in the given
   /// file be returned. The suggestions will be filtered using fuzzy matching
@@ -1126,13 +1224,13 @@ abstract class IntegrationTest {
   /// maxResults: int
   ///
   ///   The maximum number of suggestions to return. If the number of
-  ///   suggestions after filtering is greater than the maxResults, then
-  ///   isIncomplete is set to true.
+  ///   suggestions after filtering is greater than the `maxResults`, then
+  ///   `isIncomplete` is set to `true`.
   ///
   /// completionCaseMatchingMode: CompletionCaseMatchingMode (optional)
   ///
   ///   The mode of code completion being invoked. If no value is provided,
-  ///   MATCH_FIRST_CHAR will be assumed.
+  ///   `MATCH_FIRST_CHAR` will be assumed.
   ///
   /// Returns
   ///
@@ -1155,43 +1253,53 @@ abstract class IntegrationTest {
   ///
   ///   The completion suggestions being reported. This list is filtered by the
   ///   already existing prefix, and sorted first by relevance, and (if the
-  ///   same) by the suggestion text. The list will have at most maxResults
+  ///   same) by the suggestion text. The list will have at most `maxResults`
   ///   items. If the user types a new keystroke, the client is expected to
   ///   either do local filtering (when the returned list was complete), or ask
-  ///   the server again (if isIncomplete was true).
+  ///   the server again (if `isIncomplete` was `true`).
   ///
   ///   This list contains suggestions from both imported, and not yet imported
   ///   libraries. Items from not yet imported libraries will have
-  ///   isNotImported set to true.
+  ///   `isNotImported` set to `true`.
   ///
   /// isIncomplete: bool
   ///
   ///   True if the number of suggestions after filtering was greater than the
-  ///   requested maxResults.
+  ///   requested `maxResults`.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
-      String file, int offset, int maxResults,
-      {CompletionCaseMatchingMode? completionCaseMatchingMode,
-      CompletionMode? completionMode,
-      int? invocationCount,
-      int? timeout}) async {
-    var params = CompletionGetSuggestions2Params(file, offset, maxResults,
-            completionCaseMatchingMode: completionCaseMatchingMode,
-            completionMode: completionMode,
-            invocationCount: invocationCount,
-            timeout: timeout)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    int maxResults, {
+    CompletionCaseMatchingMode? completionCaseMatchingMode,
+    CompletionMode? completionMode,
+    int? invocationCount,
+    int? timeout,
+  }) async {
+    var params = CompletionGetSuggestions2Params(
+      file,
+      offset,
+      maxResults,
+      completionCaseMatchingMode: completionCaseMatchingMode,
+      completionMode: completionMode,
+      invocationCount: invocationCount,
+      timeout: timeout,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.getSuggestions2', params);
     var decoder = ResponseDecoder(null);
-    return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return CompletionGetSuggestions2Result.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// The client can make this request to express interest in certain libraries
   /// to receive completion suggestions from based on the client path. If this
   /// request is received before the client has used
   /// 'completion.setSubscriptions' to subscribe to the
-  /// AVAILABLE_SUGGESTION_SETS service, then an error of type
-  /// NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS will be generated. All
+  /// `AVAILABLE_SUGGESTION_SETS` service, then an error of type
+  /// `NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS` will be generated. All
   /// previous paths are replaced by the given set of paths.
   ///
   /// Parameters
@@ -1206,16 +1314,18 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendCompletionRegisterLibraryPaths(
-      List<LibraryPathSet> paths) async {
-    var params = CompletionRegisterLibraryPathsParams(paths)
-        .toJson(clientUriConverter: uriConverter);
+    List<LibraryPathSet> paths,
+  ) async {
+    var params = CompletionRegisterLibraryPathsParams(
+      paths,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.registerLibraryPaths', params);
     outOfTestExpect(result, isNull);
   }
 
   /// Clients must make this request when the user has selected a completion
-  /// suggestion with the isNotImported field set to true. The server will
-  /// respond with the text to insert, as well as any SourceChange that needs
+  /// suggestion with the `isNotImported` field set to `true`. The server will
+  /// respond with the text to insert, as well as any `SourceChange` that needs
   /// to be applied in case the completion requires an additional import to be
   /// added. The text to insert might be different from the original suggestion
   /// to include an import prefix if the library will be imported with a prefix
@@ -1233,23 +1343,23 @@ abstract class IntegrationTest {
   ///
   /// completion: String
   ///
-  ///   The completion from the selected CompletionSuggestion. It could be a
-  ///   name of a class, or a name of a constructor in form
+  ///   The `completion` from the selected `CompletionSuggestion`. It could be
+  ///   a name of a class, or a name of a constructor in form
   ///   "typeName.constructorName()", or an enumeration constant in form
   ///   "enumName.constantName", etc.
   ///
   /// libraryUri: String
   ///
   ///   The URI of the library to import, so that the element referenced in the
-  ///   completion becomes accessible.
+  ///   `completion` becomes accessible.
   ///
   /// Returns
   ///
   /// completion: String
   ///
   ///   The full text to insert, which possibly includes now an import prefix.
-  ///   The client should insert this text, not the completion from the
-  ///   selected CompletionSuggestion.
+  ///   The client should insert this text, not the `completion` from the
+  ///   selected `CompletionSuggestion`.
   ///
   /// change: SourceChange
   ///
@@ -1257,16 +1367,26 @@ abstract class IntegrationTest {
   ///   suggestion available. In most cases the change is to add a new import
   ///   directive to the file.
   Future<CompletionGetSuggestionDetails2Result>
-      sendCompletionGetSuggestionDetails2(
-          String file, int offset, String completion, String libraryUri) async {
+  sendCompletionGetSuggestionDetails2(
+    String file,
+    int offset,
+    String completion,
+    String libraryUri,
+  ) async {
     var params = CompletionGetSuggestionDetails2Params(
-            file, offset, completion, libraryUri)
-        .toJson(clientUriConverter: uriConverter);
+      file,
+      offset,
+      completion,
+      libraryUri,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.getSuggestionDetails2', params);
     var decoder = ResponseDecoder(null);
     return CompletionGetSuggestionDetails2Result.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Reports existing imports in a library. This notification may be sent
@@ -1283,7 +1403,7 @@ abstract class IntegrationTest {
   ///
   ///   The existing imports in the library.
   late final Stream<CompletionExistingImportsParams>
-      onCompletionExistingImports =
+  onCompletionExistingImports =
       _onCompletionExistingImports.stream.asBroadcastStream();
 
   /// Stream controller for [onCompletionExistingImports].
@@ -1330,14 +1450,23 @@ abstract class IntegrationTest {
   ///   If no element was found at the given location, this field will be
   ///   absent.
   Future<SearchFindElementReferencesResult> sendSearchFindElementReferences(
-      String file, int offset, bool includePotential) async {
-    var params =
-        SearchFindElementReferencesParams(file, offset, includePotential)
-            .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    bool includePotential,
+  ) async {
+    var params = SearchFindElementReferencesParams(
+      file,
+      offset,
+      includePotential,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findElementReferences', params);
     var decoder = ResponseDecoder(null);
-    return SearchFindElementReferencesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return SearchFindElementReferencesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Perform a search for declarations of members whose name is equal to the
@@ -1358,14 +1487,19 @@ abstract class IntegrationTest {
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(
-      String name) async {
-    var params = SearchFindMemberDeclarationsParams(name)
-        .toJson(clientUriConverter: uriConverter);
+    String name,
+  ) async {
+    var params = SearchFindMemberDeclarationsParams(
+      name,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findMemberDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchFindMemberDeclarationsResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Perform a search for references to members whose name is equal to the
@@ -1388,13 +1522,19 @@ abstract class IntegrationTest {
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(
-      String name) async {
-    var params = SearchFindMemberReferencesParams(name)
-        .toJson(clientUriConverter: uriConverter);
+    String name,
+  ) async {
+    var params = SearchFindMemberReferencesParams(
+      name,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findMemberReferences', params);
     var decoder = ResponseDecoder(null);
-    return SearchFindMemberReferencesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return SearchFindMemberReferencesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Perform a search for declarations of top-level elements (classes,
@@ -1417,14 +1557,18 @@ abstract class IntegrationTest {
   ///
   ///   The identifier used to associate results with this search request.
   Future<SearchFindTopLevelDeclarationsResult>
-      sendSearchFindTopLevelDeclarations(String pattern) async {
-    var params = SearchFindTopLevelDeclarationsParams(pattern)
-        .toJson(clientUriConverter: uriConverter);
+  sendSearchFindTopLevelDeclarations(String pattern) async {
+    var params = SearchFindTopLevelDeclarationsParams(
+      pattern,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findTopLevelDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchFindTopLevelDeclarationsResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return top-level and class member declarations.
@@ -1455,16 +1599,24 @@ abstract class IntegrationTest {
   /// files: List<FilePath>
   ///
   ///   The list of the paths of files with declarations.
-  Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
-      {String? file, String? pattern, int? maxResults}) async {
+  Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations({
+    String? file,
+    String? pattern,
+    int? maxResults,
+  }) async {
     var params = SearchGetElementDeclarationsParams(
-            file: file, pattern: pattern, maxResults: maxResults)
-        .toJson(clientUriConverter: uriConverter);
+      file: file,
+      pattern: pattern,
+      maxResults: maxResults,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.getElementDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchGetElementDeclarationsResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the type hierarchy of the class declared or referenced at the
@@ -1500,15 +1652,23 @@ abstract class IntegrationTest {
   ///   not represent a type, or if the file has not been sufficiently analyzed
   ///   to allow a type hierarchy to be produced.
   Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(
-      String file, int offset,
-      {bool? superOnly}) async {
-    var params =
-        SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
-            .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset, {
+    bool? superOnly,
+  }) async {
+    var params = SearchGetTypeHierarchyParams(
+      file,
+      offset,
+      superOnly: superOnly,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.getTypeHierarchy', params);
     var decoder = ResponseDecoder(null);
-    return SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return SearchGetTypeHierarchyResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Reports some or all of the results of performing a requested search.
@@ -1547,8 +1707,8 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// FORMAT_INVALID_FILE will be generated. If the source contains syntax
-  /// errors, an error of type FORMAT_WITH_ERRORS will be generated.
+  /// `FORMAT_INVALID_FILE` will be generated. If the source contains syntax
+  /// errors, an error of type `FORMAT_WITH_ERRORS` will be generated.
   ///
   /// Parameters
   ///
@@ -1566,7 +1726,9 @@ abstract class IntegrationTest {
   ///
   /// lineLength: int (optional)
   ///
-  ///   The line length to be used by the formatter.
+  ///   The line length to be used by the formatter. This value is ignored if a
+  ///   `formatter.page_width` has been configured in the relevant
+  ///   `analysis_options.yaml` file.
   ///
   /// Returns
   ///
@@ -1583,15 +1745,25 @@ abstract class IntegrationTest {
   ///
   ///   The length of the selection after formatting the code.
   Future<EditFormatResult> sendEditFormat(
-      String file, int selectionOffset, int selectionLength,
-      {int? lineLength}) async {
-    var params = EditFormatParams(file, selectionOffset, selectionLength,
-            lineLength: lineLength)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int selectionOffset,
+    int selectionLength, {
+    int? lineLength,
+  }) async {
+    var params = EditFormatParams(
+      file,
+      selectionOffset,
+      selectionLength,
+      lineLength: lineLength,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.format', params);
     var decoder = ResponseDecoder(null);
-    return EditFormatResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditFormatResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Format the contents of the files in one or more directories, but only if
@@ -1617,13 +1789,19 @@ abstract class IntegrationTest {
   ///   empty if none of the files were formatted, whether because they were
   ///   not eligible to be formatted or because they were already formatted.
   Future<EditFormatIfEnabledResult> sendEditFormatIfEnabled(
-      List<String> directories) async {
-    var params = EditFormatIfEnabledParams(directories)
-        .toJson(clientUriConverter: uriConverter);
+    List<String> directories,
+  ) async {
+    var params = EditFormatIfEnabledParams(
+      directories,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.formatIfEnabled', params);
     var decoder = ResponseDecoder(null);
-    return EditFormatIfEnabledResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditFormatIfEnabledResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the set of assists that are available at the given location. An
@@ -1651,13 +1829,23 @@ abstract class IntegrationTest {
   ///
   ///   The assists that are available at the given location.
   Future<EditGetAssistsResult> sendEditGetAssists(
-      String file, int offset, int length) async {
-    var params = EditGetAssistsParams(file, offset, length)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = EditGetAssistsParams(
+      file,
+      offset,
+      length,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getAssists', params);
     var decoder = ResponseDecoder(null);
-    return EditGetAssistsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditGetAssistsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Get a list of the kinds of refactorings that are valid for the given
@@ -1683,14 +1871,23 @@ abstract class IntegrationTest {
   ///
   ///   The kinds of refactorings that are valid for the given selection.
   Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
-      String file, int offset, int length) async {
-    var params = EditGetAvailableRefactoringsParams(file, offset, length)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = EditGetAvailableRefactoringsParams(
+      file,
+      offset,
+      length,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getAvailableRefactorings', params);
     var decoder = ResponseDecoder(null);
     return EditGetAvailableRefactoringsResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Analyze the specified sources for fixes that can be applied in bulk and
@@ -1706,12 +1903,12 @@ abstract class IntegrationTest {
   ///   suggested.
   ///
   ///   If a request is made with a path that is invalid, e.g. is not absolute
-  ///   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  ///   and normalized, an error of type `INVALID_FILE_PATH_FORMAT` will be
   ///   generated. If a request is made for a file which does not exist, or
   ///   which is not currently subject to analysis (e.g. because it is not
   ///   associated with any analysis root specified to
-  ///   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
-  ///   generated.
+  ///   analysis.setAnalysisRoots), an error of type `FILE_NOT_ANALYZED` will
+  ///   be generated.
   ///
   /// inTestMode: bool (optional)
   ///
@@ -1720,7 +1917,7 @@ abstract class IntegrationTest {
   ///   for a configuration file that can modify the content of the data file
   ///   used to compute the fixes when data-driven fixes are being considered.
   ///
-  ///   If this field is omitted the flag defaults to false.
+  ///   If this field is omitted the flag defaults to `false`.
   ///
   /// updatePubspec: bool (optional)
   ///
@@ -1730,7 +1927,7 @@ abstract class IntegrationTest {
   ///   check to see if they are listed in the corresponding pubspec file, and
   ///   compute the fixes, if any.
   ///
-  ///   If this field is omitted the flag defaults to false.
+  ///   If this field is omitted the flag defaults to `false`.
   ///
   /// codes: List<String> (optional)
   ///
@@ -1750,15 +1947,26 @@ abstract class IntegrationTest {
   ///
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
-  Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
-      {bool? inTestMode, bool? updatePubspec, List<String>? codes}) async {
-    var params = EditBulkFixesParams(included,
-            inTestMode: inTestMode, updatePubspec: updatePubspec, codes: codes)
-        .toJson(clientUriConverter: uriConverter);
+  Future<EditBulkFixesResult> sendEditBulkFixes(
+    List<String> included, {
+    bool? inTestMode,
+    bool? updatePubspec,
+    List<String>? codes,
+  }) async {
+    var params = EditBulkFixesParams(
+      included,
+      inTestMode: inTestMode,
+      updatePubspec: updatePubspec,
+      codes: codes,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
-    return EditBulkFixesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditBulkFixesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the set of fixes that are available for the errors at a given
@@ -1767,7 +1975,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_FIXES_INVALID_FILE will be generated.
+  /// `GET_FIXES_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -1785,12 +1993,18 @@ abstract class IntegrationTest {
   ///
   ///   The fixes that are available for the errors at the given offset.
   Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
-    var params = EditGetFixesParams(file, offset)
-        .toJson(clientUriConverter: uriConverter);
+    var params = EditGetFixesParams(
+      file,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getFixes', params);
     var decoder = ResponseDecoder(null);
-    return EditGetFixesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditGetFixesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Get the changes required to convert the postfix template at the given
@@ -1817,19 +2031,29 @@ abstract class IntegrationTest {
   ///
   ///   The change to be applied in order to complete the statement.
   Future<EditGetPostfixCompletionResult> sendEditGetPostfixCompletion(
-      String file, String key, int offset) async {
-    var params = EditGetPostfixCompletionParams(file, key, offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    String key,
+    int offset,
+  ) async {
+    var params = EditGetPostfixCompletionParams(
+      file,
+      key,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getPostfixCompletion', params);
     var decoder = ResponseDecoder(null);
-    return EditGetPostfixCompletionResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditGetPostfixCompletionResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Get the changes required to perform a refactoring.
   ///
   /// If another refactoring request is received during the processing of this
-  /// one, an error of type REFACTORING_REQUEST_CANCELLED will be generated.
+  /// one, an error of type `REFACTORING_REQUEST_CANCELLED` will be generated.
   ///
   /// Parameters
   ///
@@ -1906,17 +2130,30 @@ abstract class IntegrationTest {
   ///   reference to a member from an unknown type. This field will be omitted
   ///   if the change field is omitted or if there are no potential edits for
   ///   the refactoring.
-  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind,
-      String file, int offset, int length, bool validateOnly,
-      {RefactoringOptions? options}) async {
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(
+    RefactoringKind kind,
+    String file,
+    int offset,
+    int length,
+    bool validateOnly, {
+    RefactoringOptions? options,
+  }) async {
     var params = EditGetRefactoringParams(
-            kind, file, offset, length, validateOnly,
-            options: options)
-        .toJson(clientUriConverter: uriConverter);
+      kind,
+      file,
+      offset,
+      length,
+      validateOnly,
+      options: options,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getRefactoring', params);
     var decoder = ResponseDecoder(kind);
-    return EditGetRefactoringResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditGetRefactoringResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Get the changes required to convert the partial statement at the given
@@ -1948,13 +2185,21 @@ abstract class IntegrationTest {
   ///   Will be true if the change contains nothing but whitespace characters,
   ///   or is empty.
   Future<EditGetStatementCompletionResult> sendEditGetStatementCompletion(
-      String file, int offset) async {
-    var params = EditGetStatementCompletionParams(file, offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+  ) async {
+    var params = EditGetStatementCompletionParams(
+      file,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getStatementCompletion', params);
     var decoder = ResponseDecoder(null);
-    return EditGetStatementCompletionResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditGetStatementCompletionResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Determine if the request postfix completion template is applicable at the
@@ -1981,16 +2226,27 @@ abstract class IntegrationTest {
   ///
   ///   True if the template can be expanded at the given location.
   Future<EditIsPostfixCompletionApplicableResult>
-      sendEditIsPostfixCompletionApplicable(
-          String file, String key, int offset) async {
-    var params = EditIsPostfixCompletionApplicableParams(file, key, offset)
-        .toJson(clientUriConverter: uriConverter);
-    var result =
-        await server.send('edit.isPostfixCompletionApplicable', params);
+  sendEditIsPostfixCompletionApplicable(
+    String file,
+    String key,
+    int offset,
+  ) async {
+    var params = EditIsPostfixCompletionApplicableParams(
+      file,
+      key,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
+    var result = await server.send(
+      'edit.isPostfixCompletionApplicable',
+      params,
+    );
     var decoder = ResponseDecoder(null);
     return EditIsPostfixCompletionApplicableResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return a list of all postfix templates currently available.
@@ -2001,12 +2257,15 @@ abstract class IntegrationTest {
   ///
   ///   The list of available templates.
   Future<EditListPostfixCompletionTemplatesResult>
-      sendEditListPostfixCompletionTemplates() async {
+  sendEditListPostfixCompletionTemplates() async {
     var result = await server.send('edit.listPostfixCompletionTemplates', null);
     var decoder = ResponseDecoder(null);
     return EditListPostfixCompletionTemplatesResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return a list of edits that would need to be applied in order to ensure
@@ -2016,7 +2275,7 @@ abstract class IntegrationTest {
   /// If a request is made for a file that does not exist, or that is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified via analysis.setAnalysisRoots), an error of type
-  /// IMPORT_ELEMENTS_INVALID_FILE will be generated.
+  /// `IMPORT_ELEMENTS_INVALID_FILE` will be generated.
   ///
   /// Parameters
   ///
@@ -2046,25 +2305,34 @@ abstract class IntegrationTest {
   ///   file is a part file. This field will be omitted if there are no edits
   ///   that need to be applied.
   Future<EditImportElementsResult> sendEditImportElements(
-      String file, List<ImportedElements> elements,
-      {int? offset}) async {
-    var params = EditImportElementsParams(file, elements, offset: offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    List<ImportedElements> elements, {
+    int? offset,
+  }) async {
+    var params = EditImportElementsParams(
+      file,
+      elements,
+      offset: offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.importElements', params);
     var decoder = ResponseDecoder(null);
-    return EditImportElementsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditImportElementsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Sort all of the directives, unit and class members of the given Dart
   /// file.
   ///
   /// If a request is made for a file that does not exist, does not belong to
-  /// an analysis root or is not a Dart file, SORT_MEMBERS_INVALID_FILE will be
-  /// generated.
-  ///
-  /// If the Dart file has scan or parse errors, SORT_MEMBERS_PARSE_ERRORS will
+  /// an analysis root or is not a Dart file, `SORT_MEMBERS_INVALID_FILE` will
   /// be generated.
+  ///
+  /// If the Dart file has scan or parse errors, `SORT_MEMBERS_PARSE_ERRORS`
+  /// will be generated.
   ///
   /// Parameters
   ///
@@ -2079,24 +2347,29 @@ abstract class IntegrationTest {
   ///   The file edit that is to be applied to the given file to effect the
   ///   sorting.
   Future<EditSortMembersResult> sendEditSortMembers(String file) async {
-    var params =
-        EditSortMembersParams(file).toJson(clientUriConverter: uriConverter);
+    var params = EditSortMembersParams(
+      file,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.sortMembers', params);
     var decoder = ResponseDecoder(null);
-    return EditSortMembersResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditSortMembersResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Organizes all of the directives - removes unused imports and sorts
   /// directives of the given Dart file according to the Dart Style Guide.
   ///
   /// If a request is made for a file that does not exist, does not belong to
-  /// an analysis root or is not a Dart file, FILE_NOT_ANALYZED will be
+  /// an analysis root or is not a Dart file, `FILE_NOT_ANALYZED` will be
   /// generated.
   ///
   /// If directives of the Dart file cannot be organized, for example because
   /// it has scan or parse errors, or by other reasons,
-  /// ORGANIZE_DIRECTIVES_ERROR will be generated. The message will provide
+  /// `ORGANIZE_DIRECTIVES_ERROR` will be generated. The message will provide
   /// details about the reason.
   ///
   /// Parameters
@@ -2112,13 +2385,19 @@ abstract class IntegrationTest {
   ///   The file edit that is to be applied to the given file to effect the
   ///   organizing.
   Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(
-      String file) async {
-    var params = EditOrganizeDirectivesParams(file)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+  ) async {
+    var params = EditOrganizeDirectivesParams(
+      file,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.organizeDirectives', params);
     var decoder = ResponseDecoder(null);
-    return EditOrganizeDirectivesResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return EditOrganizeDirectivesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Create an execution context for the executable file with the given path.
@@ -2139,13 +2418,19 @@ abstract class IntegrationTest {
   ///
   ///   The identifier used to refer to the execution context that was created.
   Future<ExecutionCreateContextResult> sendExecutionCreateContext(
-      String contextRoot) async {
-    var params = ExecutionCreateContextParams(contextRoot)
-        .toJson(clientUriConverter: uriConverter);
+    String contextRoot,
+  ) async {
+    var params = ExecutionCreateContextParams(
+      contextRoot,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.createContext', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionCreateContextResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return ExecutionCreateContextResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Delete the execution context with the given identifier. The context id is
@@ -2158,8 +2443,9 @@ abstract class IntegrationTest {
   ///
   ///   The identifier of the execution context that is to be deleted.
   Future<void> sendExecutionDeleteContext(String id) async {
-    var params = ExecutionDeleteContextParams(id)
-        .toJson(clientUriConverter: uriConverter);
+    var params = ExecutionDeleteContextParams(
+      id,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.deleteContext', params);
     outOfTestExpect(result, isNull);
   }
@@ -2238,41 +2524,51 @@ abstract class IntegrationTest {
   ///
   ///   This field is omitted the field "suggestions" is returned.
   Future<ExecutionGetSuggestionsResult> sendExecutionGetSuggestions(
-      String code,
-      int offset,
-      String contextFile,
-      int contextOffset,
-      List<RuntimeCompletionVariable> variables,
-      {List<RuntimeCompletionExpression>? expressions}) async {
+    String code,
+    int offset,
+    String contextFile,
+    int contextOffset,
+    List<RuntimeCompletionVariable> variables, {
+    List<RuntimeCompletionExpression>? expressions,
+  }) async {
     var params = ExecutionGetSuggestionsParams(
-            code, offset, contextFile, contextOffset, variables,
-            expressions: expressions)
-        .toJson(clientUriConverter: uriConverter);
+      code,
+      offset,
+      contextFile,
+      contextOffset,
+      variables,
+      expressions: expressions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.getSuggestions', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionGetSuggestionsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return ExecutionGetSuggestionsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Map a URI from the execution context to the file that it corresponds to,
   /// or map a file to the URI that it corresponds to in the execution context.
   ///
   /// Exactly one of the file and uri fields must be provided. If both fields
-  /// are provided, then an error of type INVALID_PARAMETER will be generated.
-  /// Similarly, if neither field is provided, then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// are provided, then an error of type `INVALID_PARAMETER` will be
+  /// generated. Similarly, if neither field is provided, then an error of type
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the file field is provided and the value is not the path of a file
   /// (either the file does not exist or the path references something other
-  /// than a file), then an error of type INVALID_PARAMETER will be generated.
+  /// than a file), then an error of type `INVALID_PARAMETER` will be
+  /// generated.
   ///
   /// If the uri field is provided and the value is not a valid URI or if the
   /// URI references something that is not a file (either a file that does not
   /// exist or something other than a file), then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the contextRoot used to create the execution context does not exist,
-  /// then an error of type INVALID_EXECUTION_CONTEXT will be generated.
+  /// then an error of type `INVALID_EXECUTION_CONTEXT` will be generated.
   ///
   /// Parameters
   ///
@@ -2300,17 +2596,27 @@ abstract class IntegrationTest {
   ///
   ///   The URI to which the file path was mapped. This field is omitted if the
   ///   file field was not given in the request.
-  Future<ExecutionMapUriResult> sendExecutionMapUri(String id,
-      {String? file, String? uri}) async {
-    var params = ExecutionMapUriParams(id, file: file, uri: uri)
-        .toJson(clientUriConverter: uriConverter);
+  Future<ExecutionMapUriResult> sendExecutionMapUri(
+    String id, {
+    String? file,
+    String? uri,
+  }) async {
+    var params = ExecutionMapUriParams(
+      id,
+      file: file,
+      uri: uri,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.mapUri', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionMapUriResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return ExecutionMapUriResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
-  /// Deprecated: the analysis server no longer fires LAUNCH_DATA events.
+  /// Deprecated: the analysis server no longer fires `LAUNCH_DATA` events.
   ///
   /// Subscribe for services. All previous subscriptions are replaced by the
   /// given set of services.
@@ -2328,9 +2634,11 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendExecutionSetSubscriptions(
-      List<ExecutionService> subscriptions) async {
-    var params = ExecutionSetSubscriptionsParams(subscriptions)
-        .toJson(clientUriConverter: uriConverter);
+    List<ExecutionService> subscriptions,
+  ) async {
+    var params = ExecutionSetSubscriptionsParams(
+      subscriptions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -2339,7 +2647,7 @@ abstract class IntegrationTest {
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
   /// by including the value "LAUNCH_DATA" in the list of services passed in an
-  /// execution.setSubscriptions request.
+  /// `execution.setSubscriptions` request.
   ///
   /// Parameters
   ///
@@ -2361,8 +2669,9 @@ abstract class IntegrationTest {
       _onExecutionLaunchData.stream.asBroadcastStream();
 
   /// Stream controller for [onExecutionLaunchData].
-  final _onExecutionLaunchData =
-      StreamController<ExecutionLaunchDataParams>(sync: true);
+  final _onExecutionLaunchData = StreamController<ExecutionLaunchDataParams>(
+    sync: true,
+  );
 
   /// Return server diagnostics.
   ///
@@ -2374,14 +2683,18 @@ abstract class IntegrationTest {
   Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() async {
     var result = await server.send('diagnostic.getDiagnostics', null);
     var decoder = ResponseDecoder(null);
-    return DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return DiagnosticGetDiagnosticsResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Return the port of the diagnostic web server. If the server is not
   /// running this call will start the server. If unable to start the
   /// diagnostic web server, this call will return an error of
-  /// DEBUG_PORT_COULD_NOT_BE_OPENED.
+  /// `DEBUG_PORT_COULD_NOT_BE_OPENED`.
   ///
   /// Returns
   ///
@@ -2391,8 +2704,12 @@ abstract class IntegrationTest {
   Future<DiagnosticGetServerPortResult> sendDiagnosticGetServerPort() async {
     var result = await server.send('diagnostic.getServerPort', null);
     var decoder = ResponseDecoder(null);
-    return DiagnosticGetServerPortResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return DiagnosticGetServerPortResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Deprecated: this flag is no longer supported.
@@ -2401,13 +2718,13 @@ abstract class IntegrationTest {
   ///
   /// This flag controls whether the analysis server sends any analytics data
   /// to the cloud. If disabled, the analysis server does not send any
-  /// analytics data, and any data sent to it by clients (from sendEvent and
-  /// sendTiming) will be ignored.
+  /// analytics data, and any data sent to it by clients (from `sendEvent` and
+  /// `sendTiming`) will be ignored.
   ///
   /// The value of this flag can be changed by other tools outside of the
   /// analysis server's process. When you query the flag, you get the value of
   /// the flag at a given moment. Clients should not use the value returned to
-  /// decide whether or not to send the sendEvent and sendTiming requests.
+  /// decide whether or not to send the `sendEvent` and `sendTiming` requests.
   /// Those requests should be used unconditionally and server will determine
   /// whether or not it is appropriate to forward the information to the cloud
   /// at the time each request is received.
@@ -2423,8 +2740,12 @@ abstract class IntegrationTest {
   Future<AnalyticsIsEnabledResult> sendAnalyticsIsEnabled() async {
     var result = await server.send('analytics.isEnabled', null);
     var decoder = ResponseDecoder(null);
-    return AnalyticsIsEnabledResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return AnalyticsIsEnabledResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Deprecated: this option is no longer supported.
@@ -2432,7 +2753,7 @@ abstract class IntegrationTest {
   /// Enable or disable the sending of analytics data. Note that there are
   /// other ways for users to change this setting, so clients cannot assume
   /// that they have complete control over this setting. In particular, there
-  /// is no guarantee that the result returned by the isEnabled request will
+  /// is no guarantee that the result returned by the `isEnabled` request will
   /// match the last value set via this request.
   ///
   /// Parameters
@@ -2444,8 +2765,9 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalyticsEnable(bool value) async {
-    var params =
-        AnalyticsEnableParams(value).toJson(clientUriConverter: uriConverter);
+    var params = AnalyticsEnableParams(
+      value,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.enable', params);
     outOfTestExpect(result, isNull);
   }
@@ -2456,11 +2778,11 @@ abstract class IntegrationTest {
   /// in the client as part of the analytics data being sent. The data will
   /// only be included if the sending of analytics data is enabled at the time
   /// the request is processed. The action that was performed is indicated by
-  /// the value of the action field.
+  /// the value of the `action` field.
   ///
   /// The value of the action field should not include the identity of the
   /// client. The analytics data sent by server will include the client id
-  /// passed in using the --client-id command-line argument. The request will
+  /// passed in using the `--client-id` command-line argument. The request will
   /// be ignored if the client id was not provided when server was started.
   ///
   /// Parameters
@@ -2469,8 +2791,9 @@ abstract class IntegrationTest {
   ///
   ///   The value used to indicate which action was performed.
   Future<void> sendAnalyticsSendEvent(String action) async {
-    var params = AnalyticsSendEventParams(action)
-        .toJson(clientUriConverter: uriConverter);
+    var params = AnalyticsSendEventParams(
+      action,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.sendEvent', params);
     outOfTestExpect(result, isNull);
   }
@@ -2484,7 +2807,7 @@ abstract class IntegrationTest {
   ///
   /// The value of the event field should not include the identity of the
   /// client. The analytics data sent by server will include the client id
-  /// passed in using the --client-id command-line argument. The request will
+  /// passed in using the `--client-id` command-line argument. The request will
   /// be ignored if the client id was not provided when server was started.
   ///
   /// Parameters
@@ -2497,8 +2820,10 @@ abstract class IntegrationTest {
   ///
   ///   The duration of the event in milliseconds.
   Future<void> sendAnalyticsSendTiming(String event, int millis) async {
-    var params = AnalyticsSendTimingParams(event, millis)
-        .toJson(clientUriConverter: uriConverter);
+    var params = AnalyticsSendTimingParams(
+      event,
+      millis,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.sendTiming', params);
     outOfTestExpect(result, isNull);
   }
@@ -2506,10 +2831,10 @@ abstract class IntegrationTest {
   /// Return the description of the widget instance at the given location.
   ///
   /// If the location does not have a support widget, an error of type
-  /// FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
+  /// `FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET` will be generated.
   ///
   /// If a change to a file happens while widget descriptions are computed, an
-  /// error of type FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED will be
+  /// error of type `FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED` will be
   /// generated.
   ///
   /// Parameters
@@ -2527,17 +2852,25 @@ abstract class IntegrationTest {
   /// properties: List<FlutterWidgetProperty>
   ///
   ///   The list of properties of the widget. Some of the properties might be
-  ///   read only, when their editor is not set. This might be because they
+  ///   read only, when their `editor` is not set. This might be because they
   ///   have type that we don't know how to edit, or for compound properties
   ///   that work as containers for sub-properties.
   Future<FlutterGetWidgetDescriptionResult> sendFlutterGetWidgetDescription(
-      String file, int offset) async {
-    var params = FlutterGetWidgetDescriptionParams(file, offset)
-        .toJson(clientUriConverter: uriConverter);
+    String file,
+    int offset,
+  ) async {
+    var params = FlutterGetWidgetDescriptionParams(
+      file,
+      offset,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.getWidgetDescription', params);
     var decoder = ResponseDecoder(null);
-    return FlutterGetWidgetDescriptionResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return FlutterGetWidgetDescriptionResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Set the value of a property, or remove it.
@@ -2553,9 +2886,9 @@ abstract class IntegrationTest {
   /// id: int
   ///
   ///   The identifier of the property, previously returned as a part of a
-  ///   FlutterWidgetProperty.
+  ///   `FlutterWidgetProperty`.
   ///
-  ///   An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  ///   An error of type `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID` is
   ///   generated if the identifier is not valid.
   ///
   /// value: FlutterWidgetPropertyValue (optional)
@@ -2564,11 +2897,11 @@ abstract class IntegrationTest {
   ///
   ///   If absent, indicates that the property should be removed. If the
   ///   property corresponds to an optional parameter, the corresponding named
-  ///   argument is removed. If the property isRequired is true,
-  ///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///   argument is removed. If the property `isRequired` is true,
+  ///   `FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED` error is generated.
   ///
-  ///   If the expression is not a syntactically valid Dart code, then
-  ///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+  ///   If the `expression` is not a syntactically valid Dart code, then
+  ///   `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION` is reported.
   ///
   /// Returns
   ///
@@ -2576,15 +2909,21 @@ abstract class IntegrationTest {
   ///
   ///   The change that should be applied.
   Future<FlutterSetWidgetPropertyValueResult> sendFlutterSetWidgetPropertyValue(
-      int id,
-      {FlutterWidgetPropertyValue? value}) async {
-    var params = FlutterSetWidgetPropertyValueParams(id, value: value)
-        .toJson(clientUriConverter: uriConverter);
+    int id, {
+    FlutterWidgetPropertyValue? value,
+  }) async {
+    var params = FlutterSetWidgetPropertyValueParams(
+      id,
+      value: value,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.setWidgetPropertyValue', params);
     var decoder = ResponseDecoder(null);
     return FlutterSetWidgetPropertyValueResult.fromJson(
-        decoder, 'result', result,
-        clientUriConverter: uriConverter);
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Subscribe for services that are specific to individual files. All
@@ -2618,9 +2957,11 @@ abstract class IntegrationTest {
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
   Future<void> sendFlutterSetSubscriptions(
-      Map<FlutterService, List<String>> subscriptions) async {
-    var params = FlutterSetSubscriptionsParams(subscriptions)
-        .toJson(clientUriConverter: uriConverter);
+    Map<FlutterService, List<String>> subscriptions,
+  ) async {
+    var params = FlutterSetSubscriptionsParams(
+      subscriptions,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -2628,7 +2969,7 @@ abstract class IntegrationTest {
   /// Reports the Flutter outline associated with a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// flutter.setSubscriptions request.
   ///
   /// Parameters
@@ -2660,12 +3001,17 @@ abstract class IntegrationTest {
   ///
   ///   The LSP ResponseMessage returned by the handler.
   Future<LspHandleResult> sendLspHandle(Object lspMessage) async {
-    var params =
-        LspHandleParams(lspMessage).toJson(clientUriConverter: uriConverter);
+    var params = LspHandleParams(
+      lspMessage,
+    ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('lsp.handle', params);
     var decoder = ResponseDecoder(null);
-    return LspHandleResult.fromJson(decoder, 'result', result,
-        clientUriConverter: uriConverter);
+    return LspHandleResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Reports an LSP notification from the server.
@@ -2679,8 +3025,9 @@ abstract class IntegrationTest {
       _onLspNotification.stream.asBroadcastStream();
 
   /// Stream controller for [onLspNotification].
-  final _onLspNotification =
-      StreamController<LspNotificationParams>(sync: true);
+  final _onLspNotification = StreamController<LspNotificationParams>(
+    sync: true,
+  );
 
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
@@ -2689,107 +3036,214 @@ abstract class IntegrationTest {
     switch (event) {
       case 'server.connected':
         outOfTestExpect(params, isServerConnectedParams);
-        _onServerConnected.add(ServerConnectedParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onServerConnected.add(
+          ServerConnectedParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'server.error':
         outOfTestExpect(params, isServerErrorParams);
-        _onServerError.add(ServerErrorParams.fromJson(decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onServerError.add(
+          ServerErrorParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'server.log':
         outOfTestExpect(params, isServerLogParams);
-        _onServerLog.add(ServerLogParams.fromJson(decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onServerLog.add(
+          ServerLogParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'server.status':
         outOfTestExpect(params, isServerStatusParams);
-        _onServerStatus.add(ServerStatusParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onServerStatus.add(
+          ServerStatusParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.analyzedFiles':
         outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
-        _onAnalysisAnalyzedFiles.add(AnalysisAnalyzedFilesParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisAnalyzedFiles.add(
+          AnalysisAnalyzedFilesParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.closingLabels':
         outOfTestExpect(params, isAnalysisClosingLabelsParams);
-        _onAnalysisClosingLabels.add(AnalysisClosingLabelsParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisClosingLabels.add(
+          AnalysisClosingLabelsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors.add(AnalysisErrorsParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisErrors.add(
+          AnalysisErrorsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.flushResults':
         outOfTestExpect(params, isAnalysisFlushResultsParams);
-        _onAnalysisFlushResults.add(AnalysisFlushResultsParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisFlushResults.add(
+          AnalysisFlushResultsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.folding':
         outOfTestExpect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding.add(AnalysisFoldingParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisFolding.add(
+          AnalysisFoldingParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.highlights':
         outOfTestExpect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights.add(AnalysisHighlightsParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisHighlights.add(
+          AnalysisHighlightsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.implemented':
         outOfTestExpect(params, isAnalysisImplementedParams);
-        _onAnalysisImplemented.add(AnalysisImplementedParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisImplemented.add(
+          AnalysisImplementedParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.invalidate':
         outOfTestExpect(params, isAnalysisInvalidateParams);
-        _onAnalysisInvalidate.add(AnalysisInvalidateParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisInvalidate.add(
+          AnalysisInvalidateParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.navigation':
         outOfTestExpect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation.add(AnalysisNavigationParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisNavigation.add(
+          AnalysisNavigationParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.occurrences':
         outOfTestExpect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences.add(AnalysisOccurrencesParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisOccurrences.add(
+          AnalysisOccurrencesParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.outline':
         outOfTestExpect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline.add(AnalysisOutlineParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisOutline.add(
+          AnalysisOutlineParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'analysis.overrides':
         outOfTestExpect(params, isAnalysisOverridesParams);
-        _onAnalysisOverrides.add(AnalysisOverridesParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onAnalysisOverrides.add(
+          AnalysisOverridesParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'completion.existingImports':
         outOfTestExpect(params, isCompletionExistingImportsParams);
         _onCompletionExistingImports.add(
-            CompletionExistingImportsParams.fromJson(decoder, 'params', params,
-                clientUriConverter: uriConverter));
+          CompletionExistingImportsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'search.results':
         outOfTestExpect(params, isSearchResultsParams);
-        _onSearchResults.add(SearchResultsParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onSearchResults.add(
+          SearchResultsParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'execution.launchData':
         outOfTestExpect(params, isExecutionLaunchDataParams);
-        _onExecutionLaunchData.add(ExecutionLaunchDataParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onExecutionLaunchData.add(
+          ExecutionLaunchDataParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'flutter.outline':
         outOfTestExpect(params, isFlutterOutlineParams);
-        _onFlutterOutline.add(FlutterOutlineParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onFlutterOutline.add(
+          FlutterOutlineParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       case 'lsp.notification':
         outOfTestExpect(params, isLspNotificationParams);
-        _onLspNotification.add(LspNotificationParams.fromJson(
-            decoder, 'params', params,
-            clientUriConverter: uriConverter));
+        _onLspNotification.add(
+          LspNotificationParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
       default:
         fail('Unexpected notification: $event');
     }

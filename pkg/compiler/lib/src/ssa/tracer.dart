@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ssa.tracer;
+library;
 
 import '../../compiler_api.dart' as api show OutputSink;
-import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../diagnostics/invariant.dart' show debugMode;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;
 import '../js_model/js_world.dart' show JClosedWorld;
@@ -23,7 +23,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   HTracer(this.output, this.closedWorld);
 
   void traceGraph(String name, HGraph graph) {
-    DEBUG_MODE = true;
+    debugMode = true;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);
@@ -31,7 +31,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   }
 
   void traceJavaScriptText(String name, String data) {
-    DEBUG_MODE = true;
+    debugMode = true;
     tag("cfg", () {
       printProperty("name", name);
       // Emit a fake basic block, with one 'instruction' per line of text.
@@ -86,10 +86,14 @@ class HTracer extends HGraphVisitor with TracerUtil {
   }
 
   void addInstructions(
-      HInstructionStringifier stringifier, HInstructionList list) {
-    for (HInstruction? instruction = list.first;
-        instruction != null;
-        instruction = instruction.next) {
+    HInstructionStringifier stringifier,
+    HInstructionList list,
+  ) {
+    for (
+      HInstruction? instruction = list.first;
+      instruction != null;
+      instruction = instruction.next
+    ) {
       int bci = 0;
       int uses = instruction.usedBy.length;
       String changes = instruction.sideEffects.hasSideEffects() ? '!' : ' ';
@@ -103,8 +107,10 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstructionStringifier stringifier =
-        HInstructionStringifier(block, closedWorld);
+    HInstructionStringifier stringifier = HInstructionStringifier(
+      block,
+      closedWorld,
+    );
     assert(block.id >= 0);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -149,9 +155,10 @@ class HInstructionStringifier implements HVisitor<String> {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  String visit(HInstruction node) => node is HControlFlow
-      ? '${node.accept(this)}'
-      : '${node.accept(this)} ${node.instructionType}';
+  String visit(HInstruction node) =>
+      node is HControlFlow
+          ? node.accept(this)
+          : '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;
@@ -242,7 +249,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitBoundsCheck(HBoundsCheck node) {
     String lengthId = temporaryId(node.length);
     String indexId = temporaryId(node.index);
-    return "BoundsCheck: length = $lengthId, index = $indexId";
+    return 'BoundsCheck: length = $lengthId, index = $indexId'
+        ', ${node.staticChecks.name}';
   }
 
   @override
@@ -275,7 +283,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitCreate(HCreate node) {
-    return handleGenericInvoke("Create", "${node.element.name}", node.inputs);
+    return handleGenericInvoke("Create", node.element.name, node.inputs);
   }
 
   @override
@@ -366,7 +374,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String handleGenericInvoke(
-      String invokeType, String? functionName, List<HInstruction> arguments) {
+    String invokeType,
+    String? functionName,
+    List<HInstruction> arguments,
+  ) {
     StringBuffer argumentsString = StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) argumentsString.write(", ");
@@ -394,9 +405,12 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      String cls = suffixForGetInterceptor(closedWorld.commonElements,
-          closedWorld.nativeData, node.interceptedClasses!);
-      return "Interceptor (${cls}): $value";
+      String cls = suffixForGetInterceptor(
+        closedWorld.commonElements,
+        closedWorld.nativeData,
+        node.interceptedClasses!,
+      );
+      return "Interceptor ($cls): $value";
     }
     return "Interceptor: $value";
   }
@@ -409,7 +423,7 @@ class HInstructionStringifier implements HVisitor<String> {
     String receiver = temporaryId(invoke.receiver);
     String name = invoke.selector.name;
     String target = '$receiver.$name';
-    int offset = HInvoke.ARGUMENTS_OFFSET;
+    int offset = HInvoke.argumentsOffset;
     List<HInstruction> arguments = invoke.inputs.sublist(offset);
     final attributes = {
       if (invoke.isInvariant) 'Invariant',
@@ -417,9 +431,7 @@ class HInstructionStringifier implements HVisitor<String> {
     };
     String attributesText = attributes.isEmpty ? '' : ' $attributes';
 
-    return handleGenericInvoke(kind, target, arguments) +
-        "(${invoke.receiverType})" +
-        attributesText;
+    return "${handleGenericInvoke(kind, target, arguments)}(${invoke.receiverType})$attributesText";
   }
 
   @override
@@ -462,7 +474,7 @@ class HInstructionStringifier implements HVisitor<String> {
     var inputs = node.inputs;
     String? targetString;
     if (target.isInstanceMember) {
-      targetString = temporaryId(inputs.first) + '.${target.name}';
+      targetString = '${temporaryId(inputs.first)}.${target.name}';
       inputs = inputs.sublist(1);
     } else {
       targetString = target.name;
@@ -656,9 +668,9 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String _primitiveCheckKind(HPrimitiveCheck node) => switch (node.kind) {
-        PrimitiveCheckKind.receiverType => 'RECEIVER',
-        PrimitiveCheckKind.argumentType => 'ARGUMENT',
-      };
+    PrimitiveCheckKind.receiverType => 'RECEIVER',
+    PrimitiveCheckKind.argumentType => 'ARGUMENT',
+  };
 
   @override
   String visitBoolConversion(HBoolConversion node) {
@@ -713,7 +725,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitRangeConversion(HRangeConversion node) {
-    return "RangeConversion: ${node.checkedInput}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return 'RangeConversion: $inputs';
   }
 
   @override

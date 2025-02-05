@@ -15,17 +15,28 @@ class ExecutionMapUriHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   ExecutionMapUriHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = ExecutionMapUriParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = ExecutionMapUriParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var contextId = params.id;
     var path = server.executionContext.contextMap[contextId];
     if (path == null) {
-      sendResponse(Response.invalidParameter(request, 'id',
-          'There is no execution context with an id of $contextId'));
+      sendResponse(
+        Response.invalidParameter(
+          request,
+          'id',
+          'There is no execution context with an id of $contextId',
+        ),
+      );
       return;
     }
 
@@ -41,8 +52,13 @@ class ExecutionMapUriHandler extends LegacyHandler {
     var uri = params.uri;
     if (file != null) {
       if (uri != null) {
-        sendResponse(Response.invalidParameter(request, 'file',
-            'Either file or uri must be provided, but not both'));
+        sendResponse(
+          Response.invalidParameter(
+            request,
+            'file',
+            'Either file or uri must be provided, but not both',
+          ),
+        );
         return;
       }
       var resource = server.resourceProvider.getResource(file);
@@ -50,8 +66,13 @@ class ExecutionMapUriHandler extends LegacyHandler {
         sendResponse(Response.invalidParameter(request, 'file', 'Must exist'));
         return;
       } else if (resource is! File) {
-        sendResponse(Response.invalidParameter(
-            request, 'file', 'Must not refer to a directory'));
+        sendResponse(
+          Response.invalidParameter(
+            request,
+            'file',
+            'Must not refer to a directory',
+          ),
+        );
         return;
       }
 
@@ -67,11 +88,7 @@ class ExecutionMapUriHandler extends LegacyHandler {
         return;
       }
 
-      sendResult(
-        ExecutionMapUriResult(
-          uri: '${fileResult.uri}',
-        ),
-      );
+      sendResult(ExecutionMapUriResult(uri: '${fileResult.uri}'));
       return;
     } else if (uri != null) {
       var source = sourceFactory.forUri(uri);
@@ -83,7 +100,12 @@ class ExecutionMapUriHandler extends LegacyHandler {
       sendResult(ExecutionMapUriResult(file: file));
       return;
     }
-    sendResponse(Response.invalidParameter(
-        request, 'file', 'Either file or uri must be provided'));
+    sendResponse(
+      Response.invalidParameter(
+        request,
+        'file',
+        'Either file or uri must be provided',
+      ),
+    );
   }
 }

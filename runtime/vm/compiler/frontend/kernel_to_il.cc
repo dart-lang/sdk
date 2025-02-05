@@ -96,6 +96,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_catch_block_(nullptr),
       try_finally_block_(nullptr),
       catch_block_(nullptr),
+      try_entries_(0),
       prepend_type_arguments_(Function::ZoneHandle(zone_)) {
   const auto& info = KernelProgramInfo::Handle(
       Z, parsed_function->function().KernelProgramInfo());
@@ -261,9 +262,12 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
-      handler_index, needs_stacktrace, GetNextDeoptId(), exception_var,
-      stacktrace_var, raw_exception_var, raw_stacktrace_var);
-  graph_entry_->AddCatchEntry(entry);
+      handler_index, needs_stacktrace, GetNextDeoptId(), /*stack_depth=*/0,
+      exception_var, stacktrace_var, raw_exception_var, raw_stacktrace_var);
+
+  TryEntryInstr* try_entry = try_entries_[handler_index];
+  ASSERT(try_entry != nullptr && try_entry->catch_target() == nullptr);
+  try_entry->set_catch_target(entry);
 
   Fragment instructions(entry);
 
@@ -315,19 +319,34 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   return instructions;
 }
 
-Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
+Fragment FlowGraphBuilder::TryEntry(int try_handler_index) {
   // The body of the try needs to have it's own block in order to get a new try
   // index.
   //
   // => We therefore create a block for the body (fresh try index) and another
   //    join block (with current try index).
+
+  //  ...
+  //  saved_try_context_var = current_context_var
+  //  goto try_entry
+  // [try_entry try_body=target_entry try_idx=try_handlder_index]
+  // [target_entry]
+  //  ...
   Fragment body;
-  JoinEntryInstr* entry = BuildJoinEntry(try_handler_index);
   body += LoadLocal(parsed_function_->current_context_var());
   body += StoreLocal(TokenPosition::kNoSource, CurrentCatchContext());
   body += Drop();
-  body += Goto(entry);
-  return Fragment(body.entry, entry);
+  TryEntryInstr* try_entry_instr = BuildTryEntry(try_handler_index);
+
+  try_entries_.EnsureLength(try_handler_index + 1, nullptr);
+  ASSERT(try_entries_[try_handler_index] == nullptr);
+  try_entries_[try_handler_index] = try_entry_instr;
+
+  body += Goto(try_entry_instr);
+  JoinEntryInstr* target_entry_into_try_body =
+      BuildJoinEntry(try_handler_index);
+  try_entry_instr->set_try_body(target_entry_into_try_body);
+  return Fragment(body.entry, target_entry_into_try_body);
 }
 
 Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
@@ -1115,6 +1134,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kCompactHash_uninitializedIndex:
+    case MethodRecognizer::kCompactHash_uninitializedData:
     case MethodRecognizer::kSmi_hashCode:
     case MethodRecognizer::kMint_hashCode:
     case MethodRecognizer::kDouble_hashCode:
@@ -1725,6 +1746,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
 #endif  // PRODUCT
+    } break;
+    case MethodRecognizer::kCompactHash_uninitializedIndex: {
+      body += Constant(Object::uninitialized_index());
+    } break;
+    case MethodRecognizer::kCompactHash_uninitializedData: {
+      body += Constant(Object::uninitialized_data());
     } break;
     case MethodRecognizer::kSmi_hashCode: {
       // TODO(dartbug.com/38985): We should make this LoadLocal+Unbox+
@@ -2547,8 +2574,8 @@ Fragment FlowGraphBuilder::PushExplicitParameters(
         ASSERT(target.is_unboxed_double_parameter_at(i));
         to = kUnboxedDouble;
       }
-      const auto unbox = UnboxInstr::Create(to, Pop(), DeoptId::kNone,
-                                            Instruction::kNotSpeculative);
+      const auto unbox = UnboxInstr::Create(
+          to, Pop(), DeoptId::kNone, UnboxInstr::ValueMode::kHasValidType);
       Push(unbox);
       push_param += Fragment(unbox);
     }
@@ -4483,7 +4510,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (IsCompiledForOsr()) {
-    graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_ + 1);
+    auto result = graph_entry_->FindOsrEntry(Z, last_used_block_id_ + 1);
+    RelinkToOsrEntry(std::move(result));
   }
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
@@ -4590,7 +4618,7 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   auto const unbox_to = to == kUnboxedFloat ? kUnboxedDouble : to;
   Fragment instructions;
   auto* unbox = UnboxInstr::Create(unbox_to, Pop(), DeoptId::kNone,
-                                   Instruction::kNotSpeculative);
+                                   UnboxInstr::ValueMode::kHasValidType);
   instructions <<= unbox;
   Push(unbox);
   if (to == kUnboxedFloat) {
@@ -4680,9 +4708,9 @@ Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
   if (CompilerState::Current().is_aot()) {
     Value* right = Pop();
     Value* left = Pop();
-    RelationalOpInstr* instr = new (Z) RelationalOpInstr(
-        InstructionSource(position), kind, left, right, kMintCid,
-        GetNextDeoptId(), Instruction::SpeculativeMode::kNotSpeculative);
+    RelationalOpInstr* instr =
+        new (Z) RelationalOpInstr(InstructionSource(position), kind, left,
+                                  right, kUnboxedInt64, GetNextDeoptId());
     Push(instr);
     return Fragment(instr);
   }
@@ -4909,9 +4937,8 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
   // isn't automatically added that thinks it can deopt.
   Representation from_representation = Peek(0)->representation();
   if (from_representation != representation) {
-    IntConverterInstr* convert = new IntConverterInstr(
-        from_representation, representation, Pop(), DeoptId::kNone);
-    convert->mark_truncating();
+    IntConverterInstr* convert =
+        new IntConverterInstr(from_representation, representation, Pop());
     Push(convert);
     body <<= convert;
   }
@@ -5426,7 +5453,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     // Wrap in Try catch to transition from Native to Generated on a throw from
     // the dart_api.
     try_handler_index = AllocateTryIndex();
-    body += TryCatch(try_handler_index);
+    body += TryEntry(try_handler_index);
+
     ++try_depth_;
     // TODO(dartbug.com/48989): Remove scope for calls where we don't actually
     // need it.
@@ -5526,6 +5554,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   if (signature_contains_handles) {
     --try_depth_;
+
     ++catch_depth_;
     Fragment catch_body =
         CatchBlockEntry(Array::empty_array(), try_handler_index,
@@ -5540,6 +5569,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     catch_body += LoadLocal(CurrentException());
     catch_body += LoadLocal(CurrentStackTrace());
     catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
+    Drop();
     --catch_depth_;
   }
 
@@ -5599,7 +5629,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   // Wrap the entire method in a big try/catch. This is important to ensure that
   // the VM does not crash if the callback throws an exception.
   const intptr_t try_handler_index = AllocateTryIndex();
-  Fragment body = TryCatch(try_handler_index);
+  Fragment body = TryEntry(try_handler_index);
   ++try_depth_;
 
   LocalVariable* closure = nullptr;
@@ -5663,9 +5693,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   function_body += body;
 
   ++catch_depth_;
-  Fragment catch_body = CatchBlockEntry(Array::empty_array(), try_handler_index,
-                                        /*needs_stacktrace=*/false,
-                                        /*is_synthesized=*/true);
+  Fragment catch_body =
+      CatchBlockEntry(Array::empty_array(), try_handler_index,
+                      /*needs_stacktrace=*/false, /*is_synthesized=*/true);
 
   // Return the "exceptional return" value given in 'fromFunction'.
   if (marshaller.IsVoid(compiler::ffi::kResultIndex)) {
@@ -5743,7 +5773,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
   // Wrap the entire method in a big try/catch. This is important to ensure that
   // the VM does not crash if the callback throws an exception.
   const intptr_t try_handler_index = AllocateTryIndex();
-  Fragment body = TryCatch(try_handler_index);
+  Fragment body = TryEntry(try_handler_index);
   ++try_depth_;
 
   // Box and push the arguments into an array, to be sent to the target.
@@ -5770,9 +5800,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
   function_body += body;
 
   ++catch_depth_;
-  Fragment catch_body = CatchBlockEntry(Array::empty_array(), try_handler_index,
-                                        /*needs_stacktrace=*/false,
-                                        /*is_synthesized=*/true);
+  Fragment catch_body =
+      CatchBlockEntry(Array::empty_array(), try_handler_index,
+                      /*needs_stacktrace=*/false, /*is_synthesized=*/true);
 
   // This catch indicates there's been some sort of error, but async callbacks
   // are fire-and-forget, and we don't guarantee delivery.
@@ -5793,6 +5823,81 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
   SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
                                                 : try_catch_block->try_index());
+}
+
+// TODO(aam): Try to replace OsrEntryRelinkingInfo* with Instruction*,
+// pass graph_entry as parameter, use instr->depot_id instead of
+// parent->deopt_id, discover try_entries via try_index.
+void FlowGraphBuilder::RelinkToOsrEntry(FlowGraphBuilder* builder,
+                                        OsrEntryRelinkingInfo* info) {
+  auto graph_entry = info->graph_entry();
+  auto instr = info->instr();
+  auto parent = info->parent();
+
+  auto block = instr->GetBlock();
+  // Sanity check that we found a stack check instruction.
+  ASSERT(instr->IsCheckStackOverflow());
+  // Loop stack check checks are always in join blocks so that they can
+  // be the target of a goto.
+  ASSERT(block->IsJoinEntry());
+  // The instruction should be the first instruction in the block so
+  // we can simply jump to the beginning of the block.
+  ASSERT(instr->previous() == block);
+
+  ASSERT(block->stack_depth() == instr->AsCheckStackOverflow()->stack_depth());
+  auto normal_entry = graph_entry->normal_entry();
+  auto osr_entry = new OsrEntryInstr(
+      graph_entry, normal_entry->block_id(), normal_entry->try_index(),
+      normal_entry->deopt_id(), block->stack_depth());
+
+  // All who jumped to try_entry, will jump to corresponding try_body
+  // directly.
+  TryEntryInstr* pred_try_entry = nullptr;
+  for (intptr_t i = 0; i < info->try_entries_length(); ++i) {
+    TryEntryInstr* try_entry = info->try_entries_at(i);
+    // Add temporary variables
+    ASSERT(block->stack_depth() >= try_entry->stack_depth());
+    try_entry->set_stack_depth(block->stack_depth());
+    // Need to find all places that go to this try entry and retarget them
+    // to go to try block directly.
+    // The try entry instead of going to try block will go to nested try
+    // entry.
+    for (intptr_t pred_index = 0; pred_index < try_entry->PredecessorCount();
+         pred_index++) {
+      BlockEntryInstr* pred = try_entry->PredecessorAt(pred_index);
+      pred->last_instruction()->AsGoto()->set_successor(try_entry->try_body());
+    }
+    // Link try_entries together: try_entry jumps to the next one in the
+    // chain.
+    if (pred_try_entry != nullptr) {
+      pred_try_entry->set_try_body(try_entry);
+    }
+    pred_try_entry = try_entry;
+  }
+  ASSERT(parent != nullptr);
+  auto goto_join = new GotoInstr(block->AsJoinEntry(), parent->deopt_id());
+  if (info->try_entries_length() == 0) {
+    osr_entry->LinkTo(goto_join);
+  } else {
+    // OSR entry goes to the first try_entry
+    auto goto_first_try_entry = new GotoInstr(
+        info->try_entries_at(0), CompilerState::Current().GetNextDeoptId());
+    osr_entry->LinkTo(goto_first_try_entry);
+
+    // Last try_entry goes to the instruction that triggered OSR. Create a
+    // block with single goto(the one which gets proper deopt_id), have
+    // try_entry jump to that block.
+    ASSERT(builder != nullptr);
+    auto join_entry = builder->BuildJoinEntry(pred_try_entry->try_index());
+    join_entry->set_stack_depth(pred_try_entry->stack_depth());
+    pred_try_entry->set_try_body(join_entry);
+    join_entry->LinkTo(goto_join);
+  }
+
+  // Remove normal function entries & add osr entry.
+  graph_entry->set_normal_entry(nullptr);
+  graph_entry->set_unchecked_entry(nullptr);
+  graph_entry->set_osr_entry(osr_entry);
 }
 
 const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {

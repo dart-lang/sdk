@@ -43,7 +43,7 @@ class TypedefTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "typedef _s_ = _s_;",
-              allFailing: true),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
           TestDescriptor(
               'equals',
               'typedef T =',

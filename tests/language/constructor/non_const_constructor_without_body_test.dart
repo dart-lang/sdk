@@ -20,7 +20,9 @@ class NonConstConstructorWithoutBodyTest {
     Expect.equals(1, new NonConstConstructorWithoutBodyTest.initializers().x);
     Expect.equals(2, new NonConstConstructorWithoutBodyTest.parameters(1).x);
     Expect.equals(
-        2, new NonConstConstructorWithoutBodyTest.fieldParameter(2).x);
+      2,
+      new NonConstConstructorWithoutBodyTest.fieldParameter(2).x,
+    );
     Expect.equals(1, new NonConstConstructorWithoutBodyTest.redirection().x);
   }
 }

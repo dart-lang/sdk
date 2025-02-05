@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/io/source_information.dart';
@@ -14,7 +14,9 @@ import 'package:js_ast/js_ast.dart';
 import '../helpers/sourcemap_helper.dart';
 
 typedef CodePointWhiteListFunction WhiteListFunction(
-    String configuration, String file);
+  String configuration,
+  String file,
+);
 
 typedef bool CodePointWhiteListFunction(CodePoint codePoint);
 
@@ -28,8 +30,10 @@ main(List<String> arguments) {
   test(arguments);
 }
 
-void test(List<String> arguments,
-    {WhiteListFunction whiteListFunction = emptyWhiteListFunction}) {
+void test(
+  List<String> arguments, {
+  WhiteListFunction whiteListFunction = emptyWhiteListFunction,
+}) {
   Set<String> configurations = Set<String>();
   Map<String, Uri> tests = <String, Uri>{};
   if (!parseArguments(arguments, configurations, tests)) {
@@ -46,8 +50,9 @@ void test(List<String> arguments,
         Uri uri = tests[file]!;
         TestResult result = await runTests(config, file, uri, options);
         if (result.missingCodePointsMap.isNotEmpty) {
-          errorsFound =
-              result.printMissingCodePoints(whiteListFunction(config, file));
+          errorsFound = result.printMissingCodePoints(
+            whiteListFunction(config, file),
+          );
         }
         if (result.multipleNodesMap.isNotEmpty) {
           result.printMultipleNodes();
@@ -60,17 +65,21 @@ void test(List<String> arguments,
       }
     }
     Expect.isFalse(
-        errorsFound,
-        "Errors found. "
-        "Run the test with a URI option, "
-        "`source_mapping_test_viewer [--out=<uri>] [configs] [tests]`, to "
-        "create a html visualization of the missing code points.");
+      errorsFound,
+      "Errors found. "
+      "Run the test with a URI option, "
+      "`source_mapping_test_viewer [--out=<uri>] [configs] [tests]`, to "
+      "create a html visualization of the missing code points.",
+    );
   });
 }
 
 bool parseArguments(
-    List<String> arguments, Set<String> configurations, Map<String, Uri> tests,
-    {bool measure = false}) {
+  List<String> arguments,
+  Set<String> configurations,
+  Map<String, Uri> tests, {
+  bool measure = false,
+}) {
   Set<String>? extra = arguments.contains('--file') ? Set<String>() : null;
 
   for (String argument in arguments) {
@@ -110,8 +119,12 @@ bool parseArguments(
 /// On failure, a message is printed and `false` is returned.
 ///
 /// Unmatching arguments are added to [files] is provided.
-bool parseArgument(String argument, Set<String> configurations,
-    Map<String, Uri> tests, Set<String>? extra) {
+bool parseArgument(
+  String argument,
+  Set<String> configurations,
+  Map<String, Uri> tests,
+  Set<String>? extra,
+) {
   if (argument.startsWith('-')) {
     // Skip options.
     return true;
@@ -122,9 +135,11 @@ bool parseArgument(String argument, Set<String> configurations,
   } else if (extra != null) {
     extra.add(argument);
   } else {
-    print("Unknown configuration or test file '$argument'. "
-        "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}' or "
-        "'${TEST_FILES.keys.join("', '")}'.");
+    print(
+      "Unknown configuration or test file '$argument'. "
+      "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}' or "
+      "'${TEST_FILES.keys.join("', '")}'.",
+    );
     return false;
   }
   return true;
@@ -138,8 +153,9 @@ final Map<String, Uri> TEST_FILES = _computeTestFiles();
 
 Map<String, Uri> _computeTestFiles() {
   Map<String, Uri> map = <String, Uri>{};
-  Directory dataDir =
-      Directory.fromUri(Uri.base.resolve('pkg/compiler/test/sourcemaps/data/'));
+  Directory dataDir = Directory.fromUri(
+    Uri.base.resolve('pkg/compiler/test/sourcemaps/data/'),
+  );
   for (FileSystemEntity file in dataDir.listSync()) {
     Uri uri = file.uri;
     map[uri.pathSegments.last] = uri;
@@ -148,25 +164,35 @@ Map<String, Uri> _computeTestFiles() {
 }
 
 Future<TestResult> runTests(
-    String config, String filename, Uri uri, List<String> options,
-    {bool verbose = true}) async {
+  String config,
+  String filename,
+  Uri uri,
+  List<String> options, {
+  bool verbose = true,
+}) async {
   SourceMapProcessor processor = SourceMapProcessor(uri);
-  SourceMaps sourceMaps = await processor
-      .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);
+  SourceMaps sourceMaps = await processor.process([
+    '--csp',
+    Flags.disableInlining,
+    ...options,
+  ], verbose: verbose);
   TestResult result = TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
     if (info.element!.library.canonicalUri.isScheme('dart')) continue;
     result.userInfoList.add(info);
-    Iterable<CodePoint> missingCodePoints =
-        info.codePoints.where((c) => c.isMissing);
+    Iterable<CodePoint> missingCodePoints = info.codePoints.where(
+      (c) => c.isMissing,
+    );
     if (missingCodePoints.isNotEmpty) {
       result.missingCodePointsMap[info] = missingCodePoints;
     }
     Map<int, Set<SourceLocation>> offsetToLocationsMap =
         <int, Set<SourceLocation>>{};
     for (Node node in info.nodeMap.nodes) {
-      info.nodeMap[node]!
-          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
+      info.nodeMap[node]!.forEach((
+        int targetOffset,
+        List<SourceLocation> sourceLocations,
+      ) {
         if (sourceLocations.length > 1) {
           Map<Node, List<SourceLocation>> multipleMap = result.multipleNodesMap
               .putIfAbsent(info, () => <Node, List<SourceLocation>>{});
@@ -178,8 +204,10 @@ Future<TestResult> runTests(
         }
       });
     }
-    offsetToLocationsMap
-        .forEach((int targetOffset, Set<SourceLocation> sourceLocations) {
+    offsetToLocationsMap.forEach((
+      int targetOffset,
+      Set<SourceLocation> sourceLocations,
+    ) {
       if (sourceLocations.length > 1) {
         Map<int, Set<SourceLocation>> multipleMap = result.multipleOffsetsMap
             .putIfAbsent(info, () => <int, Set<SourceLocation>>{});
@@ -210,12 +238,15 @@ class TestResult {
 
   TestResult(this.config, this.file, this.processor);
 
-  bool printMissingCodePoints(
-      [CodePointWhiteListFunction codePointWhiteList = emptyWhiteList]) {
+  bool printMissingCodePoints([
+    CodePointWhiteListFunction codePointWhiteList = emptyWhiteList,
+  ]) {
     bool allWhiteListed = true;
     missingCodePointsMap.forEach((info, missingCodePoints) {
-      print("Missing code points for ${info.element} in '$file' "
-          "in config '$config':");
+      print(
+        "Missing code points for ${info.element} in '$file' "
+        "in config '$config':",
+      );
       for (CodePoint codePoint in missingCodePoints) {
         if (codePointWhiteList(codePoint)) {
           print("  $codePoint (white-listed)");
@@ -231,9 +262,11 @@ class TestResult {
   void printMultipleNodes() {
     multipleNodesMap.forEach((info, multipleMap) {
       multipleMap.forEach((node, sourceLocations) {
-        print('Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
-            'for `${nodeToString(node)}` in ${info.element} in '
-            '$file.');
+        print(
+          'Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
+          'for `${nodeToString(node)}` in ${info.element} in '
+          '$file.',
+        );
       });
     });
   }
@@ -241,8 +274,10 @@ class TestResult {
   void printMultipleOffsets() {
     multipleOffsetsMap.forEach((info, multipleMap) {
       multipleMap.forEach((targetOffset, sourceLocations) {
-        print('Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
-            'for offset $targetOffset in ${info.element} in $file.');
+        print(
+          'Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
+          'for offset $targetOffset in ${info.element} in $file.',
+        );
       });
     });
   }

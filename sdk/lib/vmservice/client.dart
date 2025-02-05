@@ -26,7 +26,7 @@ abstract class Client {
   /// Pairs of 1) the ID of a Service ID zone created by this client and 2) the
   /// ID of the isolate in which that zone was created.
   final List<({String serviceIdZoneId, String isolateId})>
-      createdServiceIdZones = [];
+  createdServiceIdZones = [];
 
   /// The set of user tags that the client wants to receive CPU samples for.
   final profilerUserTagFilters = <String>{};
@@ -56,7 +56,9 @@ abstract class Client {
   void onRequest(Message message) =>
       // In JSON-RPC 2.0 messages with and id are Request and must be answered
       // http://www.jsonrpc.org/specification#notification
-      service.routeRequest(service, message).then(post);
+      service
+      .routeRequest(service, message)
+      .then(post);
 
   void onResponse(Message message) => service.routeResponse(message);
 
@@ -65,7 +67,8 @@ abstract class Client {
       // In JSON-RPC 2.0 messages without an id are Notification
       // and should not be answered
       // http://www.jsonrpc.org/specification#notification
-      service.routeRequest(service, message);
+      service
+      .routeRequest(service, message);
 
   // Sends a result to the client. Implemented in subclasses.
   //

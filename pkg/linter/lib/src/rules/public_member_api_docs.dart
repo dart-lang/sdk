@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Document all public members.';
 
@@ -112,12 +111,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Whether [node] overrides some other member.
   bool isOverridingMember(Declaration node) =>
-      context.inheritanceManager.overriddenMember(node.declaredElement) != null;
+      context.inheritanceManager
+          .overriddenMember(node.declaredFragment?.element) !=
+      null;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
-    if (element == null || element.hasInternal) return;
+    var element = node.declaredFragment?.element;
+    if (element == null || element.metadata2.hasInternal) return;
     _visitMembers(node, node.name, node.members);
   }
 
@@ -220,8 +221,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    var element = node.declaredElement;
-    if (element == null || element.hasInternal) return;
+    var element = node.declaredFragment?.element;
+    if (element == null || element.metadata2.hasInternal) return;
     _visitMembers(node, node.name, node.members);
   }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -25,6 +27,7 @@ main() {
     defineReflectiveTests(InheritanceManager3Test);
     defineReflectiveTests(InheritanceManager3Test_elements);
     defineReflectiveTests(InheritanceManager3Test_ExtensionType);
+    defineReflectiveTests(InheritanceManager3NameTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -1144,7 +1147,7 @@ class X extends A implements B {}
     _assertGetMember4(
       className: 'X',
       name: 'foo=',
-      expected: 'B.foo=: void Function(Object?)',
+      expected: 'B.foo: void Function(Object?)',
     );
   }
 
@@ -1164,7 +1167,7 @@ abstract class X extends A implements B {}
     _assertGetMember4(
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo=: void Function(Future<Object?>)',
+      expected: 'X.foo: void Function(Future<Object?>)',
     );
   }
 
@@ -1410,6 +1413,47 @@ class B extends A {
       forSuper: true,
       expected: 'A.foo: void Function()',
     );
+  }
+}
+
+@reflectiveTest
+class InheritanceManager3NameTest {
+  test_equals() {
+    expect(Name(null, 'foo'), Name(null, 'foo'));
+    expect(Name(null, 'foo'), Name(null, 'foo=').forGetter);
+    expect(Name(null, 'foo='), Name(null, 'foo='));
+    expect(Name(null, 'foo='), Name(null, 'foo').forSetter);
+    expect(Name(null, 'foo='), Name(null, 'foo').forSetter.forSetter.forSetter);
+  }
+
+  test_forGetter() {
+    var name = Name(null, 'foo');
+    expect(name.forGetter.name, 'foo');
+    expect(name, name.forGetter);
+  }
+
+  test_forGetter_fromSetter() {
+    var name = Name(null, 'foo=');
+    expect(name.forGetter.name, 'foo');
+  }
+
+  test_forSetter() {
+    var name = Name(null, 'foo=');
+    expect(name.forSetter.name, 'foo=');
+    expect(name, name.forSetter);
+  }
+
+  test_forSetter_fromGetter() {
+    var name = Name(null, 'foo');
+    expect(name.forSetter.name, 'foo=');
+  }
+
+  test_name_getter() {
+    expect(Name(null, 'foo').name, 'foo');
+  }
+
+  test_name_setter() {
+    expect(Name(null, 'foo=').name, 'foo=');
   }
 }
 
@@ -2358,6 +2402,28 @@ abstract class B extends A {}
     expect(returnType.element, same(T));
   }
 
+  test_getMember_method_covariantAfterSubstitutedParameter_merged() async {
+    await resolveTestCode(r'''
+class A<T> {
+  void foo<U>(covariant Object a, U b, int c) {}
+}
+
+class B extends A<int> implements C {}
+
+class C {
+  void foo<U>(Object a, U b, covariant Object c) {}
+}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('B'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
+    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.parameters[1].isCovariant, isFalse);
+    expect(member.parameters[2].isCovariant, isTrue);
+  }
+
   test_getMember_method_covariantByDeclaration_inherited() async {
     await resolveTestCode('''
 abstract class A {
@@ -2396,7 +2462,6 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.declaration, same(findElement.method('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }
 
@@ -2658,7 +2723,6 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.declaration, same(findElement.setter('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }
 
@@ -4190,18 +4254,18 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var type = element.type;
       var typeStr = typeString(type);
 
-      var actual = '${enclosingElement?.name}.${element.name}: $typeStr';
+      var actual = '${enclosingElement?.name3}.${element.name3}: $typeStr';
       expect(actual, expected);
 
       if (element is GetterElement) {
         var variable = element.variable3!;
         expect(variable.enclosingElement2, same(enclosingElement));
-        expect(variable.name, element.displayName);
+        expect(variable.name3, element.displayName);
         expect(variable.type, element.returnType);
       } else if (element is SetterElement) {
         var variable = element.variable3!;
         expect(variable.enclosingElement2, same(enclosingElement));
-        expect(variable.name, element.displayName);
+        expect(variable.name3, element.displayName);
         expect(variable.type, element.formalParameters[0].type);
       }
     } else {
@@ -4340,10 +4404,10 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var type = element.type;
 
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement?.name == 'Object') continue;
+      if (enclosingElement?.name3 == 'Object') continue;
 
       var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement?.name}.${element.name}: $typeStr');
+      lines.add('${enclosingElement?.name3}.${element.name3}: $typeStr');
     }
 
     lines.sort();

@@ -25,15 +25,6 @@ library;
 //   void values() {} // Error in E7.
 //        ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/declared_values.dart:36:6: Error: The type 'List<E6>' of the getter 'E6.values' is not a subtype of the type 'Never' of the setter 'E6.values'.
-//  - 'List' is from 'dart:core'.
-//  - 'E6' is from 'pkg/front_end/testcases/enhanced_enums/declared_values.dart'.
-// enum E6 {
-//      ^^^^^...
-// pkg/front_end/testcases/enhanced_enums/declared_values.dart:39:19: Context: This is the declaration of the setter 'E6.values'.
-//   static void set values(Never x) {} // Error in E6.
-//                   ^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

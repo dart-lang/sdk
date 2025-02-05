@@ -12,6 +12,7 @@ import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
 import 'package:modular_test/src/suite.dart';
+import 'package:path/path.dart' as p;
 
 String packageConfigJsonPath = '.dart_tool/package_config.json';
 Uri sdkRoot = Platform.script.resolve('../../../');
@@ -19,6 +20,7 @@ Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 late Options _options;
 late String _dartdevcScript;
 late String _kernelWorkerScript;
+late String _dartExecutable;
 
 const dillId = DataId('dill');
 const jsId = DataId('js');
@@ -120,7 +122,7 @@ class SourceToSummaryDillStep implements IOModularStep {
     ];
 
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+        _dartExecutable, args, root.toFilePath(), _options.verbose);
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -219,7 +221,7 @@ class DDCStep implements IOModularStep {
       '$output',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+        _dartExecutable, args, root.toFilePath(), _options.verbose);
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -337,8 +339,23 @@ Future<void> resolveScripts(Options options) async {
     return result;
   }
 
-  _dartdevcScript = await resolve(
-      'pkg/dev_compiler/bin/dartdevc.dart', 'snapshots/dartdevc.dart.snapshot');
-  _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
-      'snapshots/kernel_worker.dart.snapshot');
+  _dartdevcScript = await resolve('pkg/dev_compiler/bin/dartdevc.dart',
+      'snapshots/dartdevc_aot.dart.snapshot');
+  if (File(_dartdevcScript).existsSync()) {
+    _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
+        'snapshots/kernel_worker_aot.dart.snapshot');
+    var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
+    _dartExecutable = p.absolute(
+      sdkPath,
+      'bin',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+    );
+  } else {
+    // This can be removed once we stop supporting ia32 architecture.
+    _dartdevcScript = await resolve('pkg/dev_compiler/bin/dartdevc.dart',
+        'snapshots/dartdevc.dart.snapshot');
+    _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
+        'snapshots/kernel_worker.dart.snapshot');
+    _dartExecutable = Platform.resolvedExecutable;
+  }
 }

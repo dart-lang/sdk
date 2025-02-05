@@ -15,11 +15,12 @@ class Child2 extends Base {}
 bool trivial(/*[exact=JSBool]*/ x) => true;
 
 /*member: either:Union([exact=Child1], [exact=Child2])*/
-Base either = DateTime.now()
-            . /*[exact=DateTime]*/ millisecondsSinceEpoch /*invoke: [subclass=JSInt]*/ >
-        0
-    ? Child2()
-    : Child1();
+Base either =
+    DateTime.now()
+                . /*[exact=DateTime]*/ millisecondsSinceEpoch /*invoke: [subclass=JSInt]*/ >
+            0
+        ? Child2()
+        : Child1();
 
 /*member: test1:Union(null, [exact=Child1], [exact=Child2])*/
 test1() {

@@ -4,12 +4,13 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -30,6 +31,14 @@ class FlutterWrap extends MultiCorrectionProducer {
       if (!widgetType.isExactWidgetTypeContainer) {
         producers.add(_FlutterWrapContainer(widgetExpr, context: context));
       }
+      if (!widgetType.isExactWidgetTypeExpanded &&
+          (widgetExpr.isParentFlexWidget || !widgetExpr.isParentWidget)) {
+        producers.add(_FlutterWrapExpanded(widgetExpr, context: context));
+      }
+      if (!widgetType.isExactWidgetTypeFlexible &&
+          (widgetExpr.isParentFlexWidget || !widgetExpr.isParentWidget)) {
+        producers.add(_FlutterWrapFlexible(widgetExpr, context: context));
+      }
       if (!widgetType.isExactWidgetTypePadding) {
         producers.add(_FlutterWrapPadding(widgetExpr, context: context));
       }
@@ -42,7 +51,8 @@ class FlutterWrap extends MultiCorrectionProducer {
   }
 
   Future<void> _wrapMultipleWidgets(
-      List<ResolvedCorrectionProducer> producers) async {
+    List<ResolvedCorrectionProducer> producers,
+  ) async {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     unitResult.unit.accept(analyzer);
@@ -89,8 +99,9 @@ class FlutterWrap extends MultiCorrectionProducer {
 
     var firstWidget = widgetExpressions.first;
     var lastWidget = widgetExpressions.last;
-    producers
-        .add(_FlutterWrapColumn(firstWidget, lastWidget, context: context));
+    producers.add(
+      _FlutterWrapColumn(firstWidget, lastWidget, context: context),
+    );
     producers.add(_FlutterWrapRow(firstWidget, lastWidget, context: context));
   }
 }
@@ -113,8 +124,11 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
-  _FlutterWrapColumn(super.firstWidget, super.lastWidget,
-      {required super.context});
+  _FlutterWrapColumn(
+    super.firstWidget,
+    super.lastWidget, {
+    required super.context,
+  });
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_COLUMN;
@@ -133,6 +147,36 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
 
   @override
   String get _parentClassName => 'Container';
+
+  @override
+  String get _parentLibraryUri => widgetsUri;
+}
+
+/// A correction processor that can make one of the possible changes computed by
+/// the [FlutterWrap] producer.
+class _FlutterWrapExpanded extends _WrapSingleWidget {
+  _FlutterWrapExpanded(super.widgetExpr, {required super.context});
+
+  @override
+  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_EXPANDED;
+
+  @override
+  String get _parentClassName => 'Expanded';
+
+  @override
+  String get _parentLibraryUri => widgetsUri;
+}
+
+/// A correction processor that can make one of the possible changes computed by
+/// the [FlutterWrap] producer.
+class _FlutterWrapFlexible extends _WrapSingleWidget {
+  _FlutterWrapFlexible(super.widgetExpr, {required super.context});
+
+  @override
+  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_FLEXIBLE;
+
+  @override
+  String get _parentClassName => 'Flexible';
 
   @override
   String get _parentLibraryUri => widgetsUri;
@@ -216,8 +260,9 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   String get _parentClassName;
 
@@ -227,8 +272,10 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var selectedRange = range.startEnd(firstWidget, lastWidget);
     var src = utils.getRangeText(selectedRange);
-    var parentClassElement =
-        await sessionHelper.getClass(_parentLibraryUri, _parentClassName);
+    var parentClassElement = await sessionHelper.getClass(
+      _parentLibraryUri,
+      _parentClassName,
+    );
     var widgetClassElement = await sessionHelper.getFlutterClass('Widget');
     if (parentClassElement == null || widgetClassElement == null) {
       return;
@@ -248,11 +295,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
         builder.write('children: [');
         builder.write(eol);
 
-        var newSrc = utils.replaceSourceIndent(
-          src,
-          indentOld,
-          indentNew2,
-        );
+        var newSrc = utils.replaceSourceIndent(src, indentOld, indentNew2);
         builder.write(indentNew2);
         builder.write(newSrc);
 
@@ -279,8 +322,9 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   List<String> get _leadingLines => const [];
 
@@ -295,10 +339,12 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement? parentClassElement;
+    ClassElement2? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
-      parentClassElement =
-          await sessionHelper.getClass(parentLibraryUri, parentClassName);
+      parentClassElement = await sessionHelper.getClass(
+        parentLibraryUri,
+        parentClassName,
+      );
       if (parentClassElement == null) {
         return;
       }
@@ -348,5 +394,55 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
         builder.write(')');
       });
     });
+  }
+}
+
+extension on Expression {
+  /// Return `true` if the parent is a `Flex` widget creation.
+  ///
+  /// This is used to determine if the widget is wrapped in a `Row`, `Column`,
+  /// or `Flex` widget.
+  bool get isParentFlexWidget {
+    var parent = _getParentInstanceCreationExpression();
+    if (parent == null || !parent.isWidgetCreation) {
+      return false;
+    }
+    return parent.staticType.isWidgetFlexType;
+  }
+
+  /// Return `true` if the parent is a widget creation.
+  ///
+  /// This tells if this is a direct child of a widget creation.
+  /// It will return `false` if we are assigning this to a variable or
+  /// returning it from a function or other similar cases.
+  bool get isParentWidget {
+    var parent = _getParentInstanceCreationExpression();
+    return parent != null && parent.isWidgetCreation;
+  }
+
+  /// Return the parent `InstanceCreationExpression` if it exists.
+  ///
+  /// This is used to find the parent widget creation if it exists.
+  InstanceCreationExpression? _getParentInstanceCreationExpression() {
+    var self = this;
+    NamedExpression? namedExpression;
+    if (self.parent case ListLiteral listLiteral) {
+      if (listLiteral.parent case NamedExpression parent) {
+        namedExpression = parent;
+      }
+    }
+    // NamedExpression (child:), ArgumentList, InstanceCreationExpression
+    if ((namedExpression ?? self.parent)?.parent?.parent
+        case InstanceCreationExpression parent?) {
+      return parent;
+    }
+    return null;
+  }
+}
+
+extension on DartType? {
+  bool get isWidgetFlexType {
+    var self = this;
+    return self is InterfaceType && self.element3.isFlexWidget;
   }
 }

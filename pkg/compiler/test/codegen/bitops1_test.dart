@@ -5,7 +5,7 @@
 library bitops1_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const COMMON = r"""
@@ -111,11 +111,13 @@ main() {
       if (!test.contains('callFoo')) {
         program += 'int callFoo(int a, int b, int c) => foo(a);\n';
       }
-      return compile(program,
-          entry: 'main',
-          methodName: 'foo',
-          disableTypeInference: false,
-          check: checkerForAbsentPresent(test));
+      return compile(
+        program,
+        entry: 'main',
+        methodName: 'foo',
+        disableTypeInference: false,
+        check: checkerForAbsentPresent(test),
+      );
     }
 
     await check(TEST1);

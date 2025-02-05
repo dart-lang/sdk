@@ -57,10 +57,7 @@ This is my class.
       numberOfRecordedResponses(Method.textDocument_hover.toString()),
       isPositive,
     );
-    expect(
-      numberOfRecordedResponses('lsp.handle'),
-      isZero,
-    );
+    expect(numberOfRecordedResponses('lsp.handle'), isZero);
   }
 
   MarkupContent _getMarkupContents(Hover hover) {

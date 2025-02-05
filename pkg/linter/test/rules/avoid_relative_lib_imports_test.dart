@@ -35,8 +35,7 @@ class C {}
 /// This provides [C].
 import '../lib/lib.dart';
 ''');
-    var lib2Result = await resolveFile(test.path);
-    await assertDiagnosticsIn(lib2Result.errors, [
+    await assertDiagnosticsInFile(test.path, [
       lint(30, 17),
     ]);
   }
@@ -56,8 +55,7 @@ part of 'a.dart';
 /// This provides [C].
 import '../lib/lib.dart';
 ''');
-    var lib2Result = await resolveFile(test.path);
-    await assertDiagnosticsIn(lib2Result.errors, [
+    await assertDiagnosticsInFile(test.path, [
       lint(49, 17),
     ]);
   }

@@ -27,7 +27,8 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-      "This page tests for proper backtracking with greedy quantifiers and non-capturing parentheses.");
+    "This page tests for proper backtracking with greedy quantifiers and non-capturing parentheses.",
+  );
 
   var re = new RegExp(r"(?:a*)a");
   shouldBe(re.firstMatch('a'), ['a']);

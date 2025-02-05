@@ -1238,10 +1238,6 @@ struct Struct3BytesPackedIntCopy {
 };
 #pragma pack(pop)
 
-DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
-  return sizeof(Struct3BytesPackedIntCopy);
-}
-
 // Define ssize_t for Windows as intptr_t.
 #if defined(_WIN32)
 typedef intptr_t ssize_t;
@@ -1360,6 +1356,23 @@ DART_EXPORT int32_t CallTwoPointerIntFunction(int32_t (*fn)(void*, void*),
 DART_EXPORT char TakeString(char* my_string) {
   std::cout << "TakeString(" << my_string << ")\n";
   return my_string[4];
+}
+
+struct Vec4 {
+  double x;
+  double y;
+  double z;
+  double w;
+};
+
+// Rearranges the components of the input Vec4 and stores them in the result
+// Vec4.
+// [x, y, z, w] -> [y, z, w, x]
+DART_EXPORT void TwiddleVec4Components(Vec4 input, Vec4* result) {
+  result->x = input.y;
+  result->y = input.z;
+  result->z = input.w;
+  result->w = input.x;
 }
 
 }  // namespace dart

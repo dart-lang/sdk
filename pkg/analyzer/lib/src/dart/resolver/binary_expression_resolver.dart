@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -99,8 +102,7 @@ class BinaryExpressionResolver {
     ExpressionInfo<SharedTypeView<DartType>>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo =
-          flow?.equalityOperand_end(left, SharedTypeView(left.typeOrThrow));
+      leftInfo = flow?.equalityOperand_end(left);
     }
 
     _resolver.analyzeExpression(
@@ -109,8 +111,12 @@ class BinaryExpressionResolver {
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOperation_end(node, leftInfo,
-          flow.equalityOperand_end(right, SharedTypeView(right.typeOrThrow)),
+      flow?.equalityOperation_end(
+          node,
+          leftInfo,
+          SharedTypeView(left.typeOrThrow),
+          flow.equalityOperand_end(right),
+          SharedTypeView(right.typeOrThrow),
           notEqual: notEqual);
     }
 
@@ -136,14 +142,14 @@ class BinaryExpressionResolver {
     }
 
     if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
-      var element = left.staticElement;
-      if (element is PromotableElement &&
+      var element = left.element;
+      if (element is PromotableElementImpl2 &&
           flowAnalysis.isDefinitelyUnassigned(left, element)) {
         reportNullComparison(left, node.operator);
       }
     } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
-      var element = right.staticElement;
-      if (element is PromotableElement &&
+      var element = right.element;
+      if (element is PromotableElementImpl2 &&
           flowAnalysis.isDefinitelyUnassigned(right, element)) {
         reportNullComparison(node.operator, right);
       }
@@ -303,8 +309,12 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
-    node.leftOperand.accept(_resolver);
-    node.rightOperand.accept(_resolver);
+    _resolver.analyzeExpression(
+        node.leftOperand, _resolver.operations.unknownType);
+    _resolver.popRewrite();
+    _resolver.analyzeExpression(
+        node.rightOperand, _resolver.operations.unknownType);
+    _resolver.popRewrite();
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 
@@ -398,9 +408,9 @@ class BinaryExpressionResolver {
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {
-    Expression leftOperand = node.leftOperand;
+    ExpressionImpl leftOperand = node.leftOperand;
 
-    if (leftOperand is ExtensionOverride) {
+    if (leftOperand is ExtensionOverrideImpl) {
       var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {

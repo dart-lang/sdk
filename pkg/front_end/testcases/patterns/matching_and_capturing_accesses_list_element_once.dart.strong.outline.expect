@@ -10,14 +10,6 @@ abstract class _A&Object&ListMixin = core::Object with col::ListBase<core::int> 
   const synthetic constructor •() → self::_A&Object&ListMixin
     : super core::Object::•()
     ;
-  mixin-super-stub get first() → core::int
-    return super.{col::ListBase::first};
-  mixin-super-stub set first(covariant-by-class core::int value) → void
-    return super.{col::ListBase::first} = value;
-  mixin-super-stub get last() → core::int
-    return super.{col::ListBase::last};
-  mixin-super-stub set last(covariant-by-class core::int value) → void
-    return super.{col::ListBase::last} = value;
   mixin-super-stub get iterator() → core::Iterator<core::int>
     return super.{col::ListBase::iterator};
   mixin-super-stub method elementAt(core::int index) → core::int
@@ -30,6 +22,14 @@ abstract class _A&Object&ListMixin = core::Object with col::ListBase<core::int> 
     return super.{col::ListBase::isEmpty};
   mixin-super-stub get isNotEmpty() → core::bool
     return super.{col::ListBase::isNotEmpty};
+  mixin-super-stub get first() → core::int
+    return super.{col::ListBase::first};
+  mixin-super-stub set first(covariant-by-class core::int value) → void
+    return super.{col::ListBase::first} = value;
+  mixin-super-stub get last() → core::int
+    return super.{col::ListBase::last};
+  mixin-super-stub set last(covariant-by-class core::int value) → void
+    return super.{col::ListBase::last} = value;
   mixin-super-stub get single() → core::int
     return super.{col::ListBase::single};
   mixin-super-stub method contains(core::Object? element) → core::bool

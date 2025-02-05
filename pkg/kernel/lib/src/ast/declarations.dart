@@ -200,9 +200,11 @@ class Class extends NamedNode implements TypeDeclaration {
     // mixedInType) of constraints, where all the interior nodes are anonymous
     // mixin applications.
     Supertype? current = supertype;
-    while (current != null && current.classNode.isAnonymousMixin) {
+    while (current != null &&
+        current.classNode.isAnonymousMixin &&
+        // While we expect 2, with erroneous code we don't always have that.
+        current.classNode.implementedTypes.length == 2) {
       Class currentClass = current.classNode;
-      assert(currentClass.implementedTypes.length == 2);
       Substitution substitution = Substitution.fromSupertype(current);
       constraints.add(
           substitution.substituteSupertype(currentClass.implementedTypes[1]));
@@ -748,7 +750,9 @@ class ExtensionMemberDescriptor {
   int flags = 0;
 
   /// Reference to the top-level member created for the extension method.
-  final Reference memberReference;
+  /// This member reference is not null after the front-end but can
+  /// be cleared by certain back-ends (e.g. VM/AOT) if member is not used.
+  final Reference? memberReference;
 
   /// Reference to the top-level member created for the extension member tear
   /// off, if any.
@@ -761,6 +765,7 @@ class ExtensionMemberDescriptor {
       required this.memberReference,
       required this.tearOffReference}) {
     this.isStatic = isStatic;
+    assert(memberReference != null || tearOffReference != null);
   }
 
   /// Return `true` if the extension method was declared as `static`.
@@ -773,7 +778,7 @@ class ExtensionMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
-        '${memberReference.toStringInternal()},isStatic=${isStatic})';
+        '${memberReference?.toStringInternal()},isStatic=${isStatic})';
   }
 }
 
@@ -1034,7 +1039,9 @@ class ExtensionTypeMemberDescriptor {
 
   /// Reference to the top-level member created for the extension type
   /// declaration member.
-  final Reference memberReference;
+  /// This member reference is not null after the front-end but can
+  /// be cleared by certain back-ends (e.g. VM/AOT) if member is not used.
+  final Reference? memberReference;
 
   /// Reference to the top-level member created for the extension type
   /// declaration member tear off, if any.
@@ -1047,6 +1054,7 @@ class ExtensionTypeMemberDescriptor {
       required this.memberReference,
       required this.tearOffReference}) {
     this.isStatic = isStatic;
+    assert(memberReference != null || tearOffReference != null);
   }
 
   /// Return `true` if the extension type declaration member was declared as
@@ -1060,7 +1068,7 @@ class ExtensionTypeMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionTypeMemberDescriptor($name,$kind,'
-        '${memberReference.toStringInternal()},isStatic=${isStatic},'
+        '${memberReference?.toStringInternal()},isStatic=${isStatic},'
         '${tearOffReference?.toStringInternal()})';
   }
 }

@@ -82,8 +82,11 @@ RefactoringStatus validateLibraryName(String name) {
   // check identifiers
   var identifiers = name.split('.');
   for (var identifier in identifiers) {
-    var status = _validateIdentifier(identifier, 'Library name identifier',
-        'a lowercase letter or underscore');
+    var status = _validateIdentifier(
+      identifier,
+      'Library name identifier',
+      'a lowercase letter or underscore',
+    );
     if (!status.isOK) {
       return status;
     }
@@ -93,7 +96,8 @@ RefactoringStatus validateLibraryName(String name) {
     for (var c in identifier.codeUnits) {
       if (isUpperCase(c)) {
         return RefactoringStatus.warning(
-            'Library name should consist of lowercase identifier separated by dots.');
+          'Library name should consist of lowercase identifier separated by dots.',
+        );
       }
     }
   }
@@ -142,8 +146,11 @@ RefactoringStatus validateVariableName(String name) {
 }
 
 RefactoringStatus _validateIdentifier(
-    String identifier, String desc, String beginDesc,
-    {bool allowBuiltIn = false}) {
+  String identifier,
+  String desc,
+  String beginDesc, {
+  bool allowBuiltIn = false,
+}) {
   // has leading/trailing spaces
   var trimmed = identifier.trim();
   if (identifier != trimmed) {
@@ -192,13 +199,19 @@ RefactoringStatus _validateIdentifier(
 }
 
 /// Validates [identifier], should be lower camel case.
-RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
-    {bool allowBuiltIn = false}) {
+RefactoringStatus _validateLowerCamelCase(
+  String identifier,
+  String desc, {
+  bool allowBuiltIn = false,
+}) {
   desc += ' name';
   // is not identifier
   var status = _validateIdentifier(
-      identifier, desc, 'a lowercase letter or underscore',
-      allowBuiltIn: allowBuiltIn);
+    identifier,
+    desc,
+    'a lowercase letter or underscore',
+    allowBuiltIn: allowBuiltIn,
+  );
   if (!status.isOK) {
     return status;
   }
@@ -224,7 +237,10 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
   desc += ' name';
   // is not identifier
   var status = _validateIdentifier(
-      identifier, desc, 'an uppercase letter or underscore');
+    identifier,
+    desc,
+    'an uppercase letter or underscore',
+  );
   if (!status.isOK) {
     return status;
   }

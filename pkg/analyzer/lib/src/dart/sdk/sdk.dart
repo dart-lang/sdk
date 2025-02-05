@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/context/builder.dart';
+library;
+
 import 'dart:collection';
 import 'dart:io' as io;
 

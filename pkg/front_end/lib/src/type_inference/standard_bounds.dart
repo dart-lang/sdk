@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show DartType, NeverType;
+import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/src/standard_bounds.dart';
 
 import 'type_schema.dart' show UnknownType;
@@ -13,16 +13,15 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   DartType greatestClosureForLowerBound(DartType typeSchema) {
     //  - We replace all uses of `T1 <: T2` in the `DOWN` algorithm by `S1 <:
     //  S2` where `Si` is the greatest closure of `Ti` with respect to `_`.
-    return greatestClosure(typeSchema, coreTypes.objectNullableRawType,
-        const NeverType.nonNullable());
+    return greatestClosure(typeSchema,
+        topType: coreTypes.objectNullableRawType);
   }
 
   @override
   DartType leastClosureForUpperBound(DartType typeSchema) {
     //  - We replace all uses of `T1 <: T2` in the `UP` algorithm by `S1 <: S2`
     //  where `Si` is the least closure of `Ti` with respect to `_`.
-    return leastClosure(typeSchema, coreTypes.objectNullableRawType,
-        const NeverType.nonNullable());
+    return leastClosure(typeSchema, coreTypes: coreTypes);
   }
 
   @override

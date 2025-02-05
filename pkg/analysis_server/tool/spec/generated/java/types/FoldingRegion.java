@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a region that can be folded.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class FoldingRegion {
 
-  public static final FoldingRegion[] EMPTY_ARRAY = new FoldingRegion[0];
-
-  public static final List<FoldingRegion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FoldingRegion> EMPTY_LIST = List.of();
 
   /**
    * The kind of the region.
@@ -61,10 +56,9 @@ public class FoldingRegion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FoldingRegion) {
-      FoldingRegion other = (FoldingRegion) obj;
+    if (obj instanceof FoldingRegion other) {
       return
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.kind, kind) &&
         other.offset == offset &&
         other.length == length;
     }
@@ -82,10 +76,9 @@ public class FoldingRegion {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FoldingRegion> list = new ArrayList<FoldingRegion>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FoldingRegion> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -113,11 +106,11 @@ public class FoldingRegion {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(offset);
-    builder.append(length);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      offset,
+      length
+    );
   }
 
   public JsonObject toJson() {
@@ -133,9 +126,11 @@ public class FoldingRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
     builder.append(length);
     builder.append("]");

@@ -13,19 +13,26 @@ class EditGetRefactoringHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetRefactoringHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetRefactoringParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetRefactoringParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     server.analyticsManager.startedGetRefactoring(params);
 
     var refactoringManager = server.refactoringManager;
     if (refactoringManager == null) {
       sendResponse(
-          Response.unsupportedFeature(request.id, 'Search is not enabled.'));
+        Response.unsupportedFeature(request.id, 'Search is not enabled.'),
+      );
       return;
     }
     refactoringManager.getRefactoring(request, params, cancellationToken);

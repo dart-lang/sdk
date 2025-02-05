@@ -18,12 +18,13 @@ void main() {
 @reflectiveTest
 class SnippetBuilderTest {
   Future<void> test_appendChoice() async {
-    var builder = SnippetBuilder()
-      ..appendChoice({r'a'})
-      ..appendChoice({r'a', r'b'})
-      ..appendChoice({}, placeholderNumber: 6)
-      ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
-      ..appendChoice({r'aaa', r'bbb \ bbb $ bbb | bbb , bbb } bbb'});
+    var builder =
+        SnippetBuilder()
+          ..appendChoice({r'a'})
+          ..appendChoice({r'a', r'b'})
+          ..appendChoice({}, placeholderNumber: 6)
+          ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
+          ..appendChoice({r'aaa', r'bbb \ bbb $ bbb | bbb , bbb } bbb'});
 
     expect(
       builder.value,
@@ -39,10 +40,11 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendPlaceholder() async {
-    var builder = SnippetBuilder()
-      ..appendPlaceholder(r'placeholder $ 1')
-      ..appendPlaceholder(r'')
-      ..appendPlaceholder(r'placeholder } 3', placeholderNumber: 6);
+    var builder =
+        SnippetBuilder()
+          ..appendPlaceholder(r'placeholder $ 1')
+          ..appendPlaceholder(r'')
+          ..appendPlaceholder(r'placeholder } 3', placeholderNumber: 6);
 
     expect(
       builder.value,
@@ -53,10 +55,11 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendTabStop() async {
-    var builder = SnippetBuilder()
-      ..appendTabStop()
-      ..appendTabStop(placeholderNumber: 10)
-      ..appendTabStop();
+    var builder =
+        SnippetBuilder()
+          ..appendTabStop()
+          ..appendTabStop(placeholderNumber: 10)
+          ..appendTabStop();
 
     expect(
       builder.value,
@@ -67,10 +70,11 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_appendText() async {
-    var builder = SnippetBuilder()
-      ..appendText(r'text 1')
-      ..appendText(r'text ${that needs} escaping $0')
-      ..appendText(r'text 2');
+    var builder =
+        SnippetBuilder()
+          ..appendText(r'text 1')
+          ..appendText(r'text ${that needs} escaping $0')
+          ..appendText(r'text 2');
 
     expect(
       builder.value,
@@ -97,8 +101,9 @@ class SnippetBuilderTest {
       lsp.SnippetPlaceholder(22, 2, suggestions: ['aaa', 'bbb']),
     ];
 
-    var builder = SnippetBuilder()
-      ..appendPlaceholders(code, placeholders, isPreSorted: false);
+    var builder =
+        SnippetBuilder()
+          ..appendPlaceholders(code, placeholders, isPreSorted: false);
 
     expect(builder.value, r'''
 01${1:23}45678
@@ -110,14 +115,15 @@ class SnippetBuilderTest {
   }
 
   Future<void> test_mixed() async {
-    var builder = SnippetBuilder()
-      ..appendText('text1')
-      ..appendPlaceholder('placeholder')
-      ..appendText('text2')
-      ..appendChoice({'aaa', 'bbb'})
-      ..appendText('text3')
-      ..appendTabStop()
-      ..appendText('text4');
+    var builder =
+        SnippetBuilder()
+          ..appendText('text1')
+          ..appendPlaceholder('placeholder')
+          ..appendText('text2')
+          ..appendChoice({'aaa', 'bbb'})
+          ..appendText('text3')
+          ..appendTabStop()
+          ..appendText('text4');
 
     expect(
       builder.value,
@@ -159,9 +165,12 @@ var a = 1;
       ],
     );
     // Choices are never 0th placeholders, so this is `$1`.
-    expect(result, equals(r'''
+    expect(
+      result,
+      equals(r'''
 var ${1|a,aaa,bbb${}\,\|,ccc|} = 1;
-'''));
+'''),
+    );
   }
 
   Future<void> test_editGroups_emptyGroup() async {
@@ -174,21 +183,17 @@ class  {
       filePath: mainPath,
       editOffset: 0,
       editGroups: [
-        server.LinkedEditGroup(
-          [
-            _pos(6),
-            _pos(11),
-          ],
-          0,
-          [],
-        ),
+        server.LinkedEditGroup([_pos(6), _pos(11)], 0, []),
       ],
     );
-    expect(result, equals(r'''
+    expect(
+      result,
+      equals(r'''
 class $0 {
   $0();
 }
-'''));
+'''),
+    );
   }
 
   Future<void> test_editGroups_positionsInOtherFiles() async {
@@ -212,11 +217,14 @@ class A {
         ),
       ],
     );
-    expect(result, equals(r'''
+    expect(
+      result,
+      equals(r'''
 class ${0:A} {
   ${0:A}();
 }
-'''));
+'''),
+    );
   }
 
   Future<void> test_editGroups_simpleGroup() async {
@@ -229,21 +237,17 @@ class A {
       filePath: mainPath,
       editOffset: 0,
       editGroups: [
-        server.LinkedEditGroup(
-          [
-            _pos(6),
-            _pos(12),
-          ],
-          1,
-          [],
-        ),
+        server.LinkedEditGroup([_pos(6), _pos(12)], 1, []),
       ],
     );
-    expect(result, equals(r'''
+    expect(
+      result,
+      equals(r'''
 class ${0:A} {
   ${0:A}();
 }
-'''));
+'''),
+    );
   }
 
   Future<void> test_editGroups_withOffset() async {
@@ -258,21 +262,17 @@ class A {
       // offsets will be 100 more than in the supplied text.
       editOffset: 100,
       editGroups: [
-        server.LinkedEditGroup(
-          [
-            _pos(100 + 6),
-            _pos(100 + 12),
-          ],
-          1,
-          [],
-        ),
+        server.LinkedEditGroup([_pos(100 + 6), _pos(100 + 12)], 1, []),
       ],
     );
-    expect(result, equals(r'''
+    expect(
+      result,
+      equals(r'''
 class ${0:A} {
   ${0:A}();
 }
-'''));
+'''),
+    );
   }
 
   Future<void> test_tabStops_contains() async {
@@ -292,13 +292,21 @@ class ${0:A} {
 
   Future<void> test_tabStops_escape() async {
     var result = lsp.buildSnippetStringWithTabStops(
-        r'te$tstri}ng, te$tstri}ng, te$tstri}ng', [13, 11]);
+      r'te$tstri}ng, te$tstri}ng, te$tstri}ng',
+      [13, 11],
+    );
     expect(result, equals(r'te\$tstri}ng, ${0:te\$tstri\}ng}, te\$tstri}ng'));
   }
 
   Future<void> test_tabStops_multiple() async {
-    var result =
-        lsp.buildSnippetStringWithTabStops('a, b, c', [0, 1, 3, 1, 6, 1]);
+    var result = lsp.buildSnippetStringWithTabStops('a, b, c', [
+      0,
+      1,
+      3,
+      1,
+      6,
+      1,
+    ]);
     expect(result, equals(r'${1:a}, ${2:b}, ${3:c}'));
   }
 

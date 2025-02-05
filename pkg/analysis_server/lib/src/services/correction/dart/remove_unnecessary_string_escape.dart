@@ -43,7 +43,9 @@ class RemoveUnnecessaryStringEscape extends ParsedCorrectionProducer {
               prevNode.rightBracket == null)) {
         builder.addSimpleReplacement(SourceRange(offset, 1), '}');
         builder.addSimpleInsertion(
-            childEntities.elementAt(index - 1).offset + 1, '{');
+          childEntities.elementAt(index - 1).offset + 1,
+          '{',
+        );
       } else {
         builder.addDeletion(SourceRange(offset, 1));
       }

@@ -28,15 +28,18 @@ class Foo {
 
     await standardAnalysisSetup();
 
-    await sendAnalysisSetGeneralSubscriptions(
-        [GeneralAnalysisService.ANALYZED_FILES]);
+    await sendAnalysisSetGeneralSubscriptions([
+      GeneralAnalysisService.ANALYZED_FILES,
+    ]);
     await analysisFinished;
 
     expect(lastAnalyzedFiles, isNotEmpty);
     expect(lastAnalyzedFiles, contains(pathname));
     expect(
-        lastAnalyzedFiles
-            .any((String file) => file.endsWith(join('core', 'core.dart'))),
-        true);
+      lastAnalyzedFiles.any(
+        (String file) => file.endsWith(join('core', 'core.dart')),
+      ),
+      true,
+    );
   }
 }

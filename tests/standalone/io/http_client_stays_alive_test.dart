@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 // NOTE: This test tries to ensure that an HttpClient will close it's
 // underlying idle connections after [HttpClient.idleTimeout].

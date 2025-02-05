@@ -6,7 +6,7 @@
 // https://github.com/dart-lang/language/issues/1618#issuecomment-1507241494,
 // using if-null assignments whose target is a null-aware index expression.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>?` for the operand, or `Iterable<_>?`
 /// if no type argument is supplied.

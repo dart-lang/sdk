@@ -10,7 +10,7 @@
 
 // @dart=3.3
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>` for the operand, or `Iterable<_>` if
 /// no type argument is supplied.

@@ -13,7 +13,11 @@ class DiagnosticGetDiagnosticsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   DiagnosticGetDiagnosticsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
@@ -25,7 +29,12 @@ class DiagnosticGetDiagnosticsHandler extends LegacyHandler {
   ContextData _extractDataFromDriver(AnalysisDriver driver) {
     var explicitFileCount = driver.addedFiles.length;
     var knownFileCount = driver.knownFiles.length;
-    return ContextData(driver.name, explicitFileCount,
-        knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
+    return ContextData(
+      driver.name,
+      explicitFileCount,
+      knownFileCount - explicitFileCount,
+      driver.numberOfFilesToAnalyze,
+      [],
+    );
   }
 }

@@ -442,6 +442,9 @@ IsolateGroup::~IsolateGroup() {
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   ASSERT(isolates_lock_->IsCurrentThreadWriter());
+  if (isolates_.IsEmpty()) {
+    interrupt_port_ = isolate->main_port();
+  }
   isolates_.Append(isolate);
   isolate_count_++;
 }
@@ -454,14 +457,14 @@ bool IsolateGroup::ContainsOnlyOneIsolate() {
   return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
-void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  fun();
-}
-
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolates_.Remove(isolate);
+  if (isolates_.IsEmpty()) {
+    interrupt_port_ = ILLEGAL_PORT;
+  } else {
+    interrupt_port_ = isolates_.First()->main_port();
+  }
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount() {
@@ -863,7 +866,7 @@ Isolate* IsolateGroup::EnterTemporaryIsolate() {
   Dart_IsolateFlags flags;
   Isolate::FlagsInitialize(&flags);
   Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
-  ASSERT(isolate != nullptr);
+  RELEASE_ASSERT(isolate != nullptr);
   ASSERT(Isolate::Current() == isolate);
   return isolate;
 }
@@ -1424,6 +1427,13 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
           }
         }
       }
+    } else if (msg.IsSmi()) {
+      uword interrupt_bits = Smi::Cast(msg).Value();
+      const Error& error =
+          Error::Handle(thread->HandleInterrupts(interrupt_bits));
+      if (!error.IsNull()) {
+        status = ProcessUnhandledException(error);
+      }
     }
   } else if (message->IsFinalizerInvocationRequest()) {
     const Object& msg_handler = Object::Handle(
@@ -1689,13 +1699,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 }
 
 #if defined(DEBUG)
-// static
-void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
-  ASSERT(isolate == Isolate::Current());
-}
-#endif  // defined(DEBUG)
-
-#if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
   reusable_##object##_handle_scope_active_(false),
 #else
@@ -1726,8 +1729,7 @@ class LibraryPrefixMapTraits {
 // that shared monitor.
 Isolate::Isolate(IsolateGroup* isolate_group,
                  const Dart_IsolateFlags& api_flags)
-    : BaseIsolate(),
-      current_tag_(UserTag::null()),
+    : current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
       finalizers_(GrowableObjectArray::null()),
@@ -1850,14 +1852,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
 
-  // First we ensure we enter the isolate. This will ensure we're participating
-  // in any safepointing requests from this point on. Other threads requesting a
-  // safepoint operation will therefore wait until we've stopped.
-  //
-  // Though the [result] isolate is still in a state where no memory has been
-  // allocated, which means it's safe to GC the isolate group until here.
-  Thread::EnterIsolate(result);
-
   // Setup the isolate message handler.
   result->message_handler_ = new IsolateMessageHandler(result);
 
@@ -1868,6 +1862,14 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   Isolate::VisitIsolates(&id_verifier);
 #endif
   result->set_origin_id(result->main_port());
+
+  // First we ensure we enter the isolate. This will ensure we're participating
+  // in any safepointing requests from this point on. Other threads requesting a
+  // safepoint operation will therefore wait until we've stopped.
+  //
+  // Though the [result] isolate is still in a state where no memory has been
+  // allocated, which means it's safe to GC the isolate group until here.
+  Thread::EnterIsolate(result);
 
   // Keep capability IDs less than 2^53 so web clients of the service
   // protocol can process it properly.
@@ -1952,13 +1954,6 @@ void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),
                          is_executable);
-}
-
-void IsolateGroup::ScheduleInterrupts(uword interrupt_bits) {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  for (Isolate* isolate : isolates_) {
-    isolate->ScheduleInterrupts(interrupt_bits);
-  }
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {

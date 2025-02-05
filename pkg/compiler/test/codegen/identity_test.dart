@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -17,17 +17,21 @@ bool foo(bar) {
 
 main() {
   runTest() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      // Check that no boolify code is generated.
-      RegExp regexp = RegExp("=== true");
-      Iterator matches = regexp.allMatches(generated).iterator;
-      Expect.isFalse(matches.moveNext());
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        // Check that no boolify code is generated.
+        RegExp regexp = RegExp("=== true");
+        Iterator matches = regexp.allMatches(generated).iterator;
+        Expect.isFalse(matches.moveNext());
 
-      regexp = RegExp("===");
-      matches = regexp.allMatches(generated).iterator;
-      Expect.isTrue(matches.moveNext());
-      Expect.isFalse(matches.moveNext());
-    });
+        regexp = RegExp("===");
+        matches = regexp.allMatches(generated).iterator;
+        Expect.isTrue(matches.moveNext());
+        Expect.isFalse(matches.moveNext());
+      },
+    );
   }
 
   asyncTest(() async {

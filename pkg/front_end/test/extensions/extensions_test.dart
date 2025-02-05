@@ -15,6 +15,8 @@ import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/source/source_function_builder.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
+import 'package:front_end/src/source/source_method_builder.dart';
+import 'package:front_end/src/source/source_property_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -158,8 +160,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     }
     Features features = new Features();
     features[Tags.builderName] = clsBuilder.name;
-    if (clsBuilder.typeVariables != null) {
-      for (NominalVariableBuilder typeVariable in clsBuilder.typeVariables!) {
+    if (clsBuilder.typeParameters != null) {
+      for (NominalParameterBuilder typeVariable in clsBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
@@ -204,7 +206,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = extensionBuilder.name;
     if (extensionBuilder.typeParameters != null) {
-      for (NominalVariableBuilder typeVariable
+      for (NominalParameterBuilder typeVariable
           in extensionBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
@@ -251,9 +253,61 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderPositionalParameters);
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
-      if (memberBuilder.typeVariables != null) {
-        for (NominalVariableBuilder typeVariable
-            in memberBuilder.typeVariables!) {
+      if (memberBuilder.typeParameters != null) {
+        for (NominalParameterBuilder typeVariable
+            in memberBuilder.typeParameters!) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
+        features.markAsUnsorted(Tags.builderTypeParameters);
+      }
+    } else if (memberBuilder is SourceMethodBuilder) {
+      if (memberBuilder.formalsForTesting != null) {
+        for (FormalParameterBuilder parameter
+        in memberBuilder.formalsForTesting!) {
+          if (parameter.isRequiredPositional) {
+            features.addElement(Tags.builderRequiredParameters, parameter.name);
+          } else if (parameter.isPositional) {
+            features.addElement(
+                Tags.builderPositionalParameters, parameter.name);
+          } else {
+            assert(parameter.isNamed);
+            features.addElement(Tags.builderNamedParameters, parameter.name);
+          }
+        }
+        features.markAsUnsorted(Tags.builderRequiredParameters);
+        features.markAsUnsorted(Tags.builderPositionalParameters);
+        features.markAsUnsorted(Tags.builderNamedParameters);
+      }
+      if (memberBuilder.typeParametersForTesting != null) {
+        for (NominalParameterBuilder typeVariable
+        in memberBuilder.typeParametersForTesting!) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
+        features.markAsUnsorted(Tags.builderTypeParameters);
+      }
+    } else if (memberBuilder is SourcePropertyBuilder) {
+      if (memberBuilder.formalsForTesting != null) {
+        for (FormalParameterBuilder parameter
+            in memberBuilder.formalsForTesting!) {
+          if (parameter.isRequiredPositional) {
+            features.addElement(Tags.builderRequiredParameters, parameter.name);
+          } else if (parameter.isPositional) {
+            features.addElement(
+                Tags.builderPositionalParameters, parameter.name);
+          } else {
+            assert(parameter.isNamed);
+            features.addElement(Tags.builderNamedParameters, parameter.name);
+          }
+        }
+        features.markAsUnsorted(Tags.builderRequiredParameters);
+        features.markAsUnsorted(Tags.builderPositionalParameters);
+        features.markAsUnsorted(Tags.builderNamedParameters);
+      }
+      if (memberBuilder.typeParametersForTesting != null) {
+        for (NominalParameterBuilder typeVariable
+            in memberBuilder.typeParametersForTesting!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

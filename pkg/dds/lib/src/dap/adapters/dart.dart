@@ -15,7 +15,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
-import '../../../dds_launcher.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
@@ -354,12 +353,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// value should contain trailing slashes.
   final orgDartlangSdkMappings = <String, Uri>{};
 
-  /// The DDS instance that was started and that [vmService] is connected to.
-  ///
-  /// `null` if the session is running in noDebug mode of the connection has not
-  /// yet been made or has been shut down.
-  DartDevelopmentServiceLauncher? _dds;
-
   /// The [DartInitializeRequestArguments] provided by the client in the
   /// `initialize` request.
   ///
@@ -368,12 +361,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Whether to use IPv6 for DAP/Debugger services.
   final bool ipv6;
-
-  /// Whether to enable DDS for launched applications.
-  final bool enableDds;
-
-  /// Whether to enable authentication codes for the VM Service/DDS.
-  final bool enableAuthCodes;
 
   /// A logger for printing diagnostic information.
   final Logger? logger;
@@ -407,7 +394,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (args is DartLaunchRequestArguments)
       path.dirname((args as DartLaunchRequestArguments).program),
     ...?args.additionalProjectPaths,
-  ].nonNulls.toList();
+  ].nonNulls.map(normalizePath).toList();
 
   /// Whether we have already sent the [TerminatedEvent] to the client.
   ///
@@ -491,8 +478,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
-    this.enableDds = true,
-    this.enableAuthCodes = true,
+    @Deprecated('DAP never spawns DDS now, this `enableDds` does nothing')
+    bool enableDds = true,
+    @Deprecated('DAP never spawns DDS now, this `enableAuthCodes` does nothing')
+    bool enableAuthCodes = true,
     this.logger,
     Function? onError,
   }) : super(channel, onError: onError) {
@@ -649,59 +638,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Attempts to start a DDS instance to connect to the VM Service at [uri].
-  ///
-  /// Returns the URI to connect the debugger to (whether it's a newly spawned
-  /// DDS or there was an existing one).
-  ///
-  /// If we failed to start DDS for a reason other than one already existed for
-  /// that VM Service we will return `null` and initiate a shutdown with the
-  /// exception printed to the user.
-  ///
-  /// If a new DDS instance was started, it is assigned to [_dds].
-  Future<Uri?> _startOrReuseDds(Uri uri) async {
-    try {
-      final dds = await startDds(uri);
-      _dds = dds;
-      return dds.wsUri;
-    } catch (error, stack) {
-      if (error is DartDevelopmentServiceException &&
-          error.errorCode ==
-              DartDevelopmentServiceException.existingDdsInstanceError) {
-        // If there's an existing DDS instance, we will just continue
-        // but need to map the URI to the ws: version.
-        return vmServiceUriToWebSocket(uri);
-      } else {
-        // Otherwise, we failed to start DDS for an unknown reason and
-        // consider this a fatal error. Handle terminating here (so we can
-        // print this error/stack)...
-        _handleDebuggerInitializationError(
-            'Failed to start DDS for $uri', error, stack);
-        // ... and return no URI as a signal to the caller.
-        return null;
-      }
-    }
-  }
-
   /// Connects to the VM Service at [uri] and initializes debugging.
   ///
   /// This is the implementation for [connectDebugger] which is executed in a
   /// try/catch.
   Future<void> _connectDebuggerImpl(Uri uri) async {
-    if (enableDds) {
-      // Start up a DDS instance for this VM.
-      logger?.call('Starting a DDS instance for $uri');
-      final targetUri = await _startOrReuseDds(uri);
-      if (targetUri == null) {
-        // If we got no URI, this is a fatal error and we can skip everything
-        // else. The detailed error would have been printed from
-        // [_startOrReuseDds].
-        return;
-      }
-      uri = targetUri;
-    } else {
-      uri = vmServiceUriToWebSocket(uri);
-    }
+    uri = vmServiceUriToWebSocket(uri);
 
     logger?.call('Connecting to debugger at $uri');
     sendConsoleOutput('Connecting to VM Service at $uri');
@@ -769,31 +711,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     );
 
     _debuggerInitializedCompleter.complete();
-  }
-
-  /// Handlers an error during debugger initialization (such as exceptions
-  /// trying to call `getSupportedProtocols` or `getVM`) by sending it to the
-  /// client and shutting down.
-  ///
-  /// Without this, the exceptions may go unhandled and just terminate the debug
-  /// adapter, which may not be visible to the user. For example VS Code does
-  /// not expose stderr of a debug adapter process. With this change, the
-  /// exception will show up in the Debug Console before the debug session
-  /// terminates.
-  void _handleDebuggerInitializationError(
-      String reason, Object? error, StackTrace stack) {
-    final message = '$reason\n$error\n$stack';
-    logger?.call(message);
-    isTerminating = true;
-    sendConsoleOutput(message);
-    shutdown();
-  }
-
-  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) {
-    return DartDevelopmentServiceLauncher.start(
-      remoteVmServiceUri: vmServiceUriToHttp(uri),
-      enableAuthCodes: enableAuthCodes,
-    );
   }
 
   // This is intended for subclasses to override to provide a URI converter to
@@ -1039,6 +956,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         sendResponse(_noResult);
         break;
 
+      // Used by tests to force a GC for a given DAP threadId.
+      case '_collectAllGarbage':
+        final threadId = args?.args['threadId'] as int;
+        final isolateId = isolateManager.getThread(threadId)?.isolate.id;
+        // Trigger the GC.
+        if (isolateId != null) {
+          await vmService?.callMethod(
+            '_collectAllGarbage',
+            isolateId: isolateId,
+          );
+        }
+
+        // Respond to the incoming request.
+        sendResponse(_noResult);
+        break;
+
       default:
         await super.customRequest(request, args, sendResponse);
     }
@@ -1070,7 +1003,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await disconnectImpl();
-    await shutdownDebugee();
     sendResponse();
 
     await shutdown();
@@ -1172,11 +1104,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           thread,
         );
       } else if (thread != null && frameIndex != null) {
-        result = await vmService?.evaluateInFrame(
-          thread.isolate.id!,
+        result = await vmEvaluateInFrame(
+          thread,
           frameIndex,
           expression,
-          disableBreakpoints: true,
         );
       } else if (targetScriptFileUri != null &&
           // Since we can't currently get a thread, we assume the first thread is
@@ -1189,12 +1120,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           throw 'Unable to find the library for $targetScriptFileUri';
         }
 
-        result = await vmService?.evaluate(
-          thread.isolate.id!,
-          library.id!,
-          expression,
-          disableBreakpoints: true,
-        );
+        result = await vmEvaluate(thread, library.id!, expression);
       }
     } catch (e) {
       final rawMessage = '$e';
@@ -1323,6 +1249,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           defaultValue: true,
         ),
       ],
+      supportsANSIStyling: true,
       supportsClipboardContext: true,
       supportsConditionalBreakpoints: true,
       supportsConfigurationDoneRequest: true,
@@ -1688,25 +1615,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down/detaches from the debugee and cleans up.
-  ///
-  /// This is called by [disconnectRequest] and [terminateRequest] but may also
-  /// be called if the client just disconnects from the server without calling
-  /// either.
-  ///
-  /// This method must tolerate being called multiple times.
-  @nonVirtual
-  Future<void> shutdownDebugee() async {
-    await _dds?.shutdown();
-    _dds = null;
-  }
-
   /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
   @override
   @nonVirtual
   Future<void> shutdown() async {
-    await shutdownDebugee();
     await _waitForPendingOutputEvents();
     handleSessionTerminate();
 
@@ -2008,7 +1921,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await terminateImpl();
-    await shutdownDebugee();
     sendResponse();
 
     await shutdown();
@@ -2348,8 +2260,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     // Extract all the URIs so we can send a batch request for resolving them.
     final lines = message.split('\n');
-    final frames = lines.map(parseDartStackFrame).toList();
-    final uris = frames.nonNulls.map((f) => f.uri).toList();
+    final frameLocations = lines.map(parseDartStackFrame).toList();
+    final uris = frameLocations.nonNulls.map((f) => f.uri).toList();
 
     // We need an Isolate to resolve package URIs. Since we don't know what
     // isolate printed an error to stderr, we just have to use the first one and
@@ -2382,7 +2294,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Convert any URIs to paths and if we successfully get a path, check
     // whether it's inside the users workspace so we can fade out unrelated
     // frames.
-    final paths = await Future.wait(frames.map((frame) async {
+    final framePaths = await Future.wait(frameLocations.map((frame) async {
       final uri = frame?.uri;
       if (uri == null) return null;
       if (isSupportedFileScheme(uri)) {
@@ -2404,16 +2316,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final supportsAnsiColors = args.allowAnsiColorOutput ?? false;
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      final frame = frames[i];
-      final uri = frame?.uri;
-      final pathInfo = paths[i];
+      final frameLocation = frameLocations[i];
+      final uri = frameLocation?.uri;
+      final framePathInfo = framePaths[i];
 
       // A file-like URI ('file://' or 'dart-macro+file://').
-      final fileLikeUri = pathInfo?.uri;
+      final fileLikeUri = framePathInfo?.uri;
 
       // Default to true so that if we don't know whether this is user-project
       // then we leave the formatting as-is and don't fade anything out.
-      final isUserProject = pathInfo?.isUserCode ?? true;
+      final isUserProject = framePathInfo?.isUserCode ?? true;
 
       // For the name, we usually use the package URI, but if we only had a file
       // URI to begin with, try to make it relative to cwd so it's not so long.
@@ -2450,8 +2362,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           output: output,
           source:
               clientPath != null ? Source(name: name, path: clientPath) : null,
-          line: frame?.line,
-          column: frame?.column,
+          line: frameLocation?.line,
+          column: frameLocation?.column,
         ),
       );
     }
@@ -2483,11 +2395,54 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final expressionWithoutExceptionExpression =
         expression.substring(threadExceptionExpression.length + 1);
 
-    return vmService?.evaluate(
-      thread.isolate.id!,
+    return vmEvaluate(
+      thread,
       exception.id!,
       expressionWithoutExceptionExpression,
-      disableBreakpoints: true,
+    );
+  }
+
+  /// Sends a VM 'evaluate' request for [thread].
+  Future<vm.Response?> vmEvaluate(
+    ThreadInfo thread,
+    String targetId,
+    String expression, {
+    bool? disableBreakpoints = true,
+  }) async {
+    final isolateId = thread.isolate.id!;
+    final futureOrEvalZoneId = thread.currentEvaluationZoneId;
+    final evalZoneId = futureOrEvalZoneId is String
+        ? futureOrEvalZoneId
+        : await futureOrEvalZoneId;
+
+    return vmService?.evaluate(
+      isolateId,
+      targetId,
+      expression,
+      disableBreakpoints: disableBreakpoints,
+      idZoneId: evalZoneId,
+    );
+  }
+
+  /// Sends a VM 'evaluateInFrame' request for [thread].
+  Future<vm.Response?> vmEvaluateInFrame(
+    ThreadInfo thread,
+    int frameIndex,
+    String expression, {
+    bool? disableBreakpoints = true,
+  }) async {
+    final isolateId = thread.isolate.id!;
+    final futureOrEvalZoneId = thread.currentEvaluationZoneId;
+    final evalZoneId = futureOrEvalZoneId is String
+        ? futureOrEvalZoneId
+        : await futureOrEvalZoneId;
+
+    return vmService?.evaluateInFrame(
+      isolateId,
+      frameIndex,
+      expression,
+      disableBreakpoints: disableBreakpoints,
+      idZoneId: evalZoneId,
     );
   }
 
@@ -2727,6 +2682,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (cwd != null) {
       Directory.current = Directory(cwd);
     }
+
+    // Also ensure the cwd always has uppercase drive letters to match what
+    // we'll normalize to everywhere else.
+    Directory.current = Directory(normalizePath(Directory.current.path));
 
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.

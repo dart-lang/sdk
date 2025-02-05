@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of the references to a single element within a single file.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class Occurrences {
 
-  public static final Occurrences[] EMPTY_ARRAY = new Occurrences[0];
-
-  public static final List<Occurrences> EMPTY_LIST = Lists.newArrayList();
+  public static final List<Occurrences> EMPTY_LIST = List.of();
 
   /**
    * The element that was referenced.
@@ -70,10 +65,9 @@ public class Occurrences {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Occurrences) {
-      Occurrences other = (Occurrences) obj;
+    if (obj instanceof Occurrences other) {
       return
-        ObjectUtilities.equals(other.element, element) &&
+        Objects.equals(other.element, element) &&
         Arrays.equals(other.offsets, offsets) &&
         other.length == length;
     }
@@ -91,10 +85,9 @@ public class Occurrences {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<Occurrences> list = new ArrayList<Occurrences>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<Occurrences> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -122,11 +115,11 @@ public class Occurrences {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(element);
-    builder.append(offsets);
-    builder.append(length);
-    return builder.toHashCode();
+    return Objects.hash(
+      element,
+      Arrays.hashCode(offsets),
+      length
+    );
   }
 
   public JsonObject toJson() {
@@ -146,9 +139,11 @@ public class Occurrences {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element + ", ");
+    builder.append(element);
+    builder.append(", ");
     builder.append("offsets=");
-    builder.append(StringUtils.join(offsets, ", ") + ", ");
+    builder.append(Arrays.stream(offsets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("length=");
     builder.append(length);
     builder.append("]");

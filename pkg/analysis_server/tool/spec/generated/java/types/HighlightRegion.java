@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a region that could have special highlighting associated with it.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class HighlightRegion {
 
-  public static final HighlightRegion[] EMPTY_ARRAY = new HighlightRegion[0];
-
-  public static final List<HighlightRegion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<HighlightRegion> EMPTY_LIST = List.of();
 
   /**
    * The type of highlight associated with the region.
@@ -65,10 +60,9 @@ public class HighlightRegion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof HighlightRegion) {
-      HighlightRegion other = (HighlightRegion) obj;
+    if (obj instanceof HighlightRegion other) {
       return
-        ObjectUtilities.equals(other.type, type) &&
+        Objects.equals(other.type, type) &&
         other.offset == offset &&
         other.length == length;
     }
@@ -86,10 +80,9 @@ public class HighlightRegion {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<HighlightRegion> list = new ArrayList<HighlightRegion>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<HighlightRegion> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -117,11 +110,11 @@ public class HighlightRegion {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(type);
-    builder.append(offset);
-    builder.append(length);
-    return builder.toHashCode();
+    return Objects.hash(
+      type,
+      offset,
+      length
+    );
   }
 
   public JsonObject toJson() {
@@ -137,9 +130,11 @@ public class HighlightRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
     builder.append(length);
     builder.append("]");

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -16,7 +16,7 @@ const MEMORY_SOURCE_FILES = const {
           print(0xffffffff00000000);
           print(double.maxFinite);
           print(-22230000);
-        }'''
+        }''',
 };
 
 Future test({required bool minify}) async {
@@ -26,9 +26,10 @@ Future test({required bool minify}) async {
     options.add(Flags.minify);
   }
   await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      outputProvider: collector,
-      options: options);
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+    outputProvider: collector,
+    options: options,
+  );
 
   // Check that we use the shorter exponential representations.
   String jsOutput = collector.getOutput('', api.OutputType.js)!;

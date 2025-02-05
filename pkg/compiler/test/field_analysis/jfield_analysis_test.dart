@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -17,8 +17,12 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('jdata'));
-    await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
-        args: args, testedConfigs: allSpecConfigs);
+    await checkTests(
+      dataDir,
+      const JAllocatorAnalysisDataComputer(),
+      args: args,
+      testedConfigs: allSpecConfigs,
+    );
   });
 }
 
@@ -37,9 +41,12 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
   const JAllocatorAnalysisDataComputer();
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     if (member is FieldEntity) {
       DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
       JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -55,11 +62,12 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
         features.add(Tags.isInitializedInAllocator);
       }
       if (fieldData.isEffectivelyConstant) {
-        features[Tags.constantValue] =
-            fieldData.constantValue!.toStructuredText(dartTypes);
+        features[Tags.constantValue] = fieldData.constantValue!
+            .toStructuredText(dartTypes);
       } else if (fieldData.initialValue != null) {
-        features[Tags.initialValue] =
-            fieldData.initialValue!.toStructuredText(dartTypes);
+        features[Tags.initialValue] = fieldData.initialValue!.toStructuredText(
+          dartTypes,
+        );
       } else if (fieldData.isEager) {
         if (fieldData.eagerCreationIndex != null) {
           features[Tags.eagerCreationIndex] =
@@ -82,8 +90,13 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       }
       Id id = computeMemberId(node);
       ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-      actualMap[id] = ActualData<Features>(id, features,
-          nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
+      actualMap[id] = ActualData<Features>(
+        id,
+        features,
+        nodeWithOffset.location!.file,
+        nodeWithOffset.fileOffset,
+        member,
+      );
     }
   }
 

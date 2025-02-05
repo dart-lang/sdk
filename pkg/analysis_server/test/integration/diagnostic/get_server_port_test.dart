@@ -27,8 +27,9 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
 
     // Connect to the server and verify that it's serving the status page.
     var client = HttpClient();
-    var request = await client
-        .getUrl(Uri.parse('http://localhost:${result.port}/status'));
+    var request = await client.getUrl(
+      Uri.parse('http://localhost:${result.port}/status'),
+    );
     var response = await request.close();
     var responseBody = await utf8.decodeStream(response.cast<List<int>>());
     expect(responseBody, contains('<title>Analysis Server</title>'));

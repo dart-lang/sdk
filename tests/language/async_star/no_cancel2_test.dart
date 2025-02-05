@@ -3,23 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 var events = [];
 
 var timer;
 ticker(period) async* {
   var sc;
-  sc = new StreamController(onListen: () {
-    events.add("listen");
-    timer = new Timer.periodic(period, (_) {
-      sc.add(null);
-    });
-  }, onCancel: () {
-    events.add("cancel");
-    timer.cancel();
-  });
+  sc = new StreamController(
+    onListen: () {
+      events.add("listen");
+      timer = new Timer.periodic(period, (_) {
+        sc.add(null);
+      });
+    },
+    onCancel: () {
+      events.add("cancel");
+      timer.cancel();
+    },
+  );
 
   try {
     var counter = 0;
@@ -34,8 +37,9 @@ ticker(period) async* {
 void main() {
   asyncStart();
   events.add("main");
-  final subscription =
-      ticker(const Duration(milliseconds: 20)).listen((val) {});
+  final subscription = ticker(
+    const Duration(milliseconds: 20),
+  ).listen((val) {});
 
   bool cancelFinished = false;
   new Timer(const Duration(milliseconds: 100), () async {

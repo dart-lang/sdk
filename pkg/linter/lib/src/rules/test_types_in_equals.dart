@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
@@ -42,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var parameters = declaration?.parameters;
-    var parameterName = parameters?.parameterElements.first?.name;
+    var parameterName = parameters?.parameterFragments.first?.name2;
     if (expression.name == parameterName) {
       var typeName = _getTypeName(declaration!);
       rule.reportLint(node, arguments: [typeName]);
@@ -69,5 +68,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       declaration != null &&
       declaration.isOperator &&
       declaration.name.lexeme == '==' &&
-      declaration.parameters?.parameterElements.length == 1;
+      declaration.parameters?.parameterFragments.length == 1;
 }

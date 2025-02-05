@@ -4,10 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -19,7 +18,7 @@ bool _isFormalParameterReassigned(
     FormalParameter parameter, AssignmentExpression assignment) {
   var leftHandSide = assignment.leftHandSide;
   return leftHandSide is SimpleIdentifier &&
-      leftHandSide.staticElement == parameter.declaredElement;
+      leftHandSide.element == parameter.declaredFragment?.element;
 }
 
 class ParameterAssignments extends LintRule {
@@ -52,7 +51,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
       {required this.paramIsNotNullByDefault,
       required this.paramDefaultsToNull});
 
-  Element? get parameterElement => parameter.declaredElement;
+  Element2? get parameterElement => parameter.declaredFragment?.element;
 
   void checkPatternElements(DartPattern node) {
     NodeList<PatternField>? fields;
@@ -113,8 +112,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   visitPostfixExpression(PostfixExpression node) {
     if (paramIsNotNullByDefault) {
       var operand = node.operand;
-      if (operand is SimpleIdentifier &&
-          operand.staticElement == parameterElement) {
+      if (operand is SimpleIdentifier && operand.element == parameterElement) {
         reportLint(node);
       }
     }
@@ -126,8 +124,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   visitPrefixExpression(PrefixExpression node) {
     if (paramIsNotNullByDefault) {
       var operand = node.operand;
-      if (operand is SimpleIdentifier &&
-          operand.staticElement == parameterElement) {
+      if (operand is SimpleIdentifier && operand.element == parameterElement) {
         reportLint(node);
       }
     }
@@ -156,9 +153,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.parameters) {
-      var declaredElement = parameter.declaredElement;
+      var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
-          body.isPotentiallyMutatedInScope(declaredElement)) {
+          body.isPotentiallyMutatedInScope2(declaredElement)) {
         var paramIsNotNullByDefault = parameter is SimpleFormalParameter ||
             _isDefaultFormalParameterWithDefaultValue(parameter);
         var paramDefaultsToNull = parameter is DefaultFormalParameter &&
@@ -174,9 +171,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on AstNode {
-  Element? get element {
-    var self = this;
-    if (self is AssignedVariablePattern) return self.element;
-    return null;
-  }
+  Element2? get element => switch (this) {
+        AssignedVariablePattern(:var element2) => element2,
+        _ => null,
+      };
 }

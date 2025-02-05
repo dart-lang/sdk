@@ -28,9 +28,10 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   ///
   /// Text written to [StreamSink] methods is encoded to bytes using [encoding]
   /// before being output on [target].
-  factory IOSink(StreamConsumer<List<int>> target,
-          {Encoding encoding = utf8}) =>
-      new _IOSinkImpl(target, encoding);
+  factory IOSink(
+    StreamConsumer<List<int>> target, {
+    Encoding encoding = utf8,
+  }) => new _IOSinkImpl(target, encoding);
 
   /// The [Encoding] used when writing strings.
   ///
@@ -168,9 +169,12 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_hasError) return done;
 
     _isBound = true;
-    var future = _controllerCompleter == null
-        ? _target.addStream(stream)
-        : _controllerCompleter!.future.then((_) => _target.addStream(stream));
+    var future =
+        _controllerCompleter == null
+            ? _target.addStream(stream)
+            : _controllerCompleter!.future.then(
+              (_) => _target.addStream(stream),
+            );
     _controllerInstance?.close();
 
     // Wait for any pending events in [_controller] to be dispatched before
@@ -239,28 +243,33 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_controllerInstance == null) {
       _controllerInstance = new StreamController<T>(sync: true);
       _controllerCompleter = new Completer();
-      _target.addStream(_controller.stream).then((_) {
-        if (_isBound) {
-          // A new stream takes over - forward values to that stream.
-          _controllerCompleter!.complete(this);
-          _controllerCompleter = null;
-          _controllerInstance = null;
-        } else {
-          // No new stream, .close was called. Close _target.
-          _closeTarget();
-        }
-      }, onError: (error, stackTrace) {
-        if (_isBound) {
-          // A new stream takes over - forward errors to that stream.
-          _controllerCompleter!.completeError(error, stackTrace);
-          _controllerCompleter = null;
-          _controllerInstance = null;
-        } else {
-          // No new stream. No need to close target, as it has already
-          // failed.
-          _completeDoneError(error, stackTrace);
-        }
-      });
+      _target
+          .addStream(_controller.stream)
+          .then(
+            (_) {
+              if (_isBound) {
+                // A new stream takes over - forward values to that stream.
+                _controllerCompleter!.complete(this);
+                _controllerCompleter = null;
+                _controllerInstance = null;
+              } else {
+                // No new stream, .close was called. Close _target.
+                _closeTarget();
+              }
+            },
+            onError: (error, stackTrace) {
+              if (_isBound) {
+                // A new stream takes over - forward errors to that stream.
+                _controllerCompleter!.completeError(error, stackTrace);
+                _controllerCompleter = null;
+                _controllerInstance = null;
+              } else {
+                // No new stream. No need to close target, as it has already
+                // failed.
+                _completeDoneError(error, stackTrace);
+              }
+            },
+          );
     }
     return _controllerInstance!;
   }

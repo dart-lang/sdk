@@ -371,7 +371,8 @@ void f() {
 
     expect(
       result.errorCode,
-      protocol.RequestErrorCode
+      protocol
+          .RequestErrorCode
           .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
     );
     expect(result.change, isNull);
@@ -408,10 +409,7 @@ void functionbefore() {
 }
 
 void f() {
-  Text(
-    '',
-    maxLines: 42,
-  );
+  Text('', maxLines: 42);
 }
 
 void functionAfter() {
@@ -457,10 +455,7 @@ class MyWidget<T> {
 import 'package:flutter/material.dart';
 
 void f() {
-  MyWidget<int>(
-    xxx: 42,
-    child: Text(''),
-  );
+  MyWidget<int>(xxx: 42, child: Text(''));
 }
 
 class MyWidget<T> {
@@ -494,10 +489,7 @@ class MyWidget<T> {
 import 'package:flutter/material.dart';
 
 void f() {
-  MyWidget<int>(
-    xxx: 42,
-    children: [Text('')],
-  );
+  MyWidget<int>(xxx: 42, children: [Text('')]);
 }
 
 class MyWidget<T> {
@@ -525,10 +517,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    maxLines: 42,
-  );
+  Text('', maxLines: 42);
 }
 ''');
   }
@@ -552,10 +541,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    maxLines: 42,
-  );
+  Text('', maxLines: 42);
 }
 ''');
   }
@@ -585,10 +571,7 @@ class MyWidget<T> {
 import 'package:flutter/material.dart';
 
 void f() {
-  MyWidget<int>(
-    aaa: 42,
-    bbb: 2,
-  );
+  MyWidget<int>(aaa: 42, bbb: 2);
 }
 
 class MyWidget<T> {
@@ -622,10 +605,7 @@ class MyWidget<T> {
 import 'package:flutter/material.dart';
 
 void f() {
-  MyWidget<int>(
-    aaa: 1,
-    bbb: 42,
-  );
+  MyWidget<int>(aaa: 1, bbb: 42);
 }
 
 class MyWidget<T> {
@@ -660,11 +640,7 @@ class MyWidget<T> {
 import 'package:flutter/material.dart';
 
 void f() {
-  MyWidget<int>(
-    aaa: 1,
-    bbb: 42,
-    ccc: 3,
-  );
+  MyWidget<int>(aaa: 1, bbb: 42, ccc: 3);
 }
 
 class MyWidget<T> {
@@ -760,12 +736,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    style: TextStyle(
-      fontSize: 42,
-    ),
-  );
+  Text('', style: TextStyle(fontSize: 42));
 }
 ''');
   }
@@ -791,12 +762,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    style: TextStyle(
-      fontSize: 42,
-    ),
-  );
+  Text('', style: TextStyle(fontSize: 42));
 }
 ''');
   }
@@ -869,10 +835,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    overflow: TextOverflow.ellipsis,
-  );
+  Text('', overflow: TextOverflow.ellipsis);
 }
 ''');
   }

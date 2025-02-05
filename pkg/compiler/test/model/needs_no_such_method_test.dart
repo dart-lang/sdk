@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
@@ -51,11 +51,13 @@ testClassSets() async {
     main.writeln('}');
     testMode = '$instantiated';
 
-    var env =
-        await TypeEnvironment.create(main.toString(), testBackendWorld: true);
-    foo = Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
-    bar = Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
-    baz = Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
+    var env = await TypeEnvironment.create(
+      main.toString(),
+      testBackendWorld: true,
+    );
+    foo = Selector.call(const PublicName('foo'), CallStructure.noArgs);
+    bar = Selector.call(const PublicName('bar'), CallStructure.noArgs);
+    baz = Selector.call(const PublicName('baz'), CallStructure.noArgs);
 
     closedWorld = env.jClosedWorld;
     superclass = env.getElement('Superclass') as ClassEntity;
@@ -63,21 +65,27 @@ testClassSets() async {
     subtype = env.getElement('Subtype') as ClassEntity;
   }
 
-  void check(ClassEntity cls, ClassQuery query, Selector selector,
-      bool expectedResult) {
+  void check(
+    ClassEntity cls,
+    ClassQuery query,
+    Selector selector,
+    bool expectedResult,
+  ) {
     bool result = closedWorld.needsNoSuchMethod(cls, selector, query);
     Expect.equals(
-        expectedResult,
-        result,
-        'Unexpected result for $selector in $cls ($query) '
-        'for instantiations $testMode');
+      expectedResult,
+      result,
+      'Unexpected result for $selector in $cls ($query) '
+      'for instantiations $testMode',
+    );
   }
 
   await run([]);
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
   Expect.isFalse(
-      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
+    closedWorld.classHierarchy.isIndirectlyInstantiated(superclass),
+  );
   Expect.isFalse(closedWorld.isImplemented(superclass));
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
@@ -88,41 +96,42 @@ testClassSets() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
-  check(superclass, ClassQuery.EXACT, foo, false);
-  check(superclass, ClassQuery.EXACT, bar, false);
-  check(superclass, ClassQuery.EXACT, baz, false);
-  check(superclass, ClassQuery.SUBCLASS, foo, false);
-  check(superclass, ClassQuery.SUBCLASS, bar, false);
-  check(superclass, ClassQuery.SUBCLASS, baz, false);
-  check(superclass, ClassQuery.SUBTYPE, foo, false);
-  check(superclass, ClassQuery.SUBTYPE, bar, false);
-  check(superclass, ClassQuery.SUBTYPE, baz, false);
+  check(superclass, ClassQuery.exact, foo, false);
+  check(superclass, ClassQuery.exact, bar, false);
+  check(superclass, ClassQuery.exact, baz, false);
+  check(superclass, ClassQuery.subclass, foo, false);
+  check(superclass, ClassQuery.subclass, bar, false);
+  check(superclass, ClassQuery.subclass, baz, false);
+  check(superclass, ClassQuery.subtype, foo, false);
+  check(superclass, ClassQuery.subtype, bar, false);
+  check(superclass, ClassQuery.subtype, baz, false);
 
-  check(subclass, ClassQuery.EXACT, foo, false);
-  check(subclass, ClassQuery.EXACT, bar, false);
-  check(subclass, ClassQuery.EXACT, baz, false);
-  check(subclass, ClassQuery.SUBCLASS, foo, false);
-  check(subclass, ClassQuery.SUBCLASS, bar, false);
-  check(subclass, ClassQuery.SUBCLASS, baz, false);
-  check(subclass, ClassQuery.SUBTYPE, foo, false);
-  check(subclass, ClassQuery.SUBTYPE, bar, false);
-  check(subclass, ClassQuery.SUBTYPE, baz, false);
+  check(subclass, ClassQuery.exact, foo, false);
+  check(subclass, ClassQuery.exact, bar, false);
+  check(subclass, ClassQuery.exact, baz, false);
+  check(subclass, ClassQuery.subclass, foo, false);
+  check(subclass, ClassQuery.subclass, bar, false);
+  check(subclass, ClassQuery.subclass, baz, false);
+  check(subclass, ClassQuery.subtype, foo, false);
+  check(subclass, ClassQuery.subtype, bar, false);
+  check(subclass, ClassQuery.subtype, baz, false);
 
-  check(subtype, ClassQuery.EXACT, foo, false);
-  check(subtype, ClassQuery.EXACT, bar, false);
-  check(subtype, ClassQuery.EXACT, baz, false);
-  check(subtype, ClassQuery.SUBCLASS, foo, false);
-  check(subtype, ClassQuery.SUBCLASS, bar, false);
-  check(subtype, ClassQuery.SUBCLASS, baz, false);
-  check(subtype, ClassQuery.SUBTYPE, foo, false);
-  check(subtype, ClassQuery.SUBTYPE, bar, false);
-  check(subtype, ClassQuery.SUBTYPE, baz, false);
+  check(subtype, ClassQuery.exact, foo, false);
+  check(subtype, ClassQuery.exact, bar, false);
+  check(subtype, ClassQuery.exact, baz, false);
+  check(subtype, ClassQuery.subclass, foo, false);
+  check(subtype, ClassQuery.subclass, bar, false);
+  check(subtype, ClassQuery.subclass, baz, false);
+  check(subtype, ClassQuery.subtype, foo, false);
+  check(subtype, ClassQuery.subtype, bar, false);
+  check(subtype, ClassQuery.subtype, baz, false);
 
   await run(['Superclass']);
 
   Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
   Expect.isFalse(
-      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
+    closedWorld.classHierarchy.isIndirectlyInstantiated(superclass),
+  );
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
@@ -133,41 +142,42 @@ testClassSets() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
-  check(superclass, ClassQuery.EXACT, foo, false);
-  check(superclass, ClassQuery.EXACT, bar, true);
-  check(superclass, ClassQuery.EXACT, baz, true);
-  check(superclass, ClassQuery.SUBCLASS, foo, false);
-  check(superclass, ClassQuery.SUBCLASS, bar, true);
-  check(superclass, ClassQuery.SUBCLASS, baz, true);
-  check(superclass, ClassQuery.SUBTYPE, foo, false);
-  check(superclass, ClassQuery.SUBTYPE, bar, true);
-  check(superclass, ClassQuery.SUBTYPE, baz, true);
+  check(superclass, ClassQuery.exact, foo, false);
+  check(superclass, ClassQuery.exact, bar, true);
+  check(superclass, ClassQuery.exact, baz, true);
+  check(superclass, ClassQuery.subclass, foo, false);
+  check(superclass, ClassQuery.subclass, bar, true);
+  check(superclass, ClassQuery.subclass, baz, true);
+  check(superclass, ClassQuery.subtype, foo, false);
+  check(superclass, ClassQuery.subtype, bar, true);
+  check(superclass, ClassQuery.subtype, baz, true);
 
-  check(subclass, ClassQuery.EXACT, foo, false);
-  check(subclass, ClassQuery.EXACT, bar, false);
-  check(subclass, ClassQuery.EXACT, baz, false);
-  check(subclass, ClassQuery.SUBCLASS, foo, false);
-  check(subclass, ClassQuery.SUBCLASS, bar, false);
-  check(subclass, ClassQuery.SUBCLASS, baz, false);
-  check(subclass, ClassQuery.SUBTYPE, foo, false);
-  check(subclass, ClassQuery.SUBTYPE, bar, false);
-  check(subclass, ClassQuery.SUBTYPE, baz, false);
+  check(subclass, ClassQuery.exact, foo, false);
+  check(subclass, ClassQuery.exact, bar, false);
+  check(subclass, ClassQuery.exact, baz, false);
+  check(subclass, ClassQuery.subclass, foo, false);
+  check(subclass, ClassQuery.subclass, bar, false);
+  check(subclass, ClassQuery.subclass, baz, false);
+  check(subclass, ClassQuery.subtype, foo, false);
+  check(subclass, ClassQuery.subtype, bar, false);
+  check(subclass, ClassQuery.subtype, baz, false);
 
-  check(subtype, ClassQuery.EXACT, foo, false);
-  check(subtype, ClassQuery.EXACT, bar, false);
-  check(subtype, ClassQuery.EXACT, baz, false);
-  check(subtype, ClassQuery.SUBCLASS, foo, false);
-  check(subtype, ClassQuery.SUBCLASS, bar, false);
-  check(subtype, ClassQuery.SUBCLASS, baz, false);
-  check(subtype, ClassQuery.SUBTYPE, foo, false);
-  check(subtype, ClassQuery.SUBTYPE, bar, false);
-  check(subtype, ClassQuery.SUBTYPE, baz, false);
+  check(subtype, ClassQuery.exact, foo, false);
+  check(subtype, ClassQuery.exact, bar, false);
+  check(subtype, ClassQuery.exact, baz, false);
+  check(subtype, ClassQuery.subclass, foo, false);
+  check(subtype, ClassQuery.subclass, bar, false);
+  check(subtype, ClassQuery.subclass, baz, false);
+  check(subtype, ClassQuery.subtype, foo, false);
+  check(subtype, ClassQuery.subtype, bar, false);
+  check(subtype, ClassQuery.subtype, baz, false);
 
   await run(['Subclass']);
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
   Expect.isTrue(
-      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
+    closedWorld.classHierarchy.isIndirectlyInstantiated(superclass),
+  );
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
   Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
@@ -178,41 +188,42 @@ testClassSets() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
-  check(superclass, ClassQuery.EXACT, foo, false);
-  check(superclass, ClassQuery.EXACT, bar, false);
-  check(superclass, ClassQuery.EXACT, baz, false);
-  check(superclass, ClassQuery.SUBCLASS, foo, false);
-  check(superclass, ClassQuery.SUBCLASS, bar, false);
-  check(superclass, ClassQuery.SUBCLASS, baz, true);
-  check(superclass, ClassQuery.SUBTYPE, foo, false);
-  check(superclass, ClassQuery.SUBTYPE, bar, false);
-  check(superclass, ClassQuery.SUBTYPE, baz, true);
+  check(superclass, ClassQuery.exact, foo, false);
+  check(superclass, ClassQuery.exact, bar, false);
+  check(superclass, ClassQuery.exact, baz, false);
+  check(superclass, ClassQuery.subclass, foo, false);
+  check(superclass, ClassQuery.subclass, bar, false);
+  check(superclass, ClassQuery.subclass, baz, true);
+  check(superclass, ClassQuery.subtype, foo, false);
+  check(superclass, ClassQuery.subtype, bar, false);
+  check(superclass, ClassQuery.subtype, baz, true);
 
-  check(subclass, ClassQuery.EXACT, foo, false);
-  check(subclass, ClassQuery.EXACT, bar, false);
-  check(subclass, ClassQuery.EXACT, baz, true);
-  check(subclass, ClassQuery.SUBCLASS, foo, false);
-  check(subclass, ClassQuery.SUBCLASS, bar, false);
-  check(subclass, ClassQuery.SUBCLASS, baz, true);
-  check(subclass, ClassQuery.SUBTYPE, foo, false);
-  check(subclass, ClassQuery.SUBTYPE, bar, false);
-  check(subclass, ClassQuery.SUBTYPE, baz, true);
+  check(subclass, ClassQuery.exact, foo, false);
+  check(subclass, ClassQuery.exact, bar, false);
+  check(subclass, ClassQuery.exact, baz, true);
+  check(subclass, ClassQuery.subclass, foo, false);
+  check(subclass, ClassQuery.subclass, bar, false);
+  check(subclass, ClassQuery.subclass, baz, true);
+  check(subclass, ClassQuery.subtype, foo, false);
+  check(subclass, ClassQuery.subtype, bar, false);
+  check(subclass, ClassQuery.subtype, baz, true);
 
-  check(subtype, ClassQuery.EXACT, foo, false);
-  check(subtype, ClassQuery.EXACT, bar, false);
-  check(subtype, ClassQuery.EXACT, baz, false);
-  check(subtype, ClassQuery.SUBCLASS, foo, false);
-  check(subtype, ClassQuery.SUBCLASS, bar, false);
-  check(subtype, ClassQuery.SUBCLASS, baz, false);
-  check(subtype, ClassQuery.SUBTYPE, foo, false);
-  check(subtype, ClassQuery.SUBTYPE, bar, false);
-  check(subtype, ClassQuery.SUBTYPE, baz, false);
+  check(subtype, ClassQuery.exact, foo, false);
+  check(subtype, ClassQuery.exact, bar, false);
+  check(subtype, ClassQuery.exact, baz, false);
+  check(subtype, ClassQuery.subclass, foo, false);
+  check(subtype, ClassQuery.subclass, bar, false);
+  check(subtype, ClassQuery.subclass, baz, false);
+  check(subtype, ClassQuery.subtype, foo, false);
+  check(subtype, ClassQuery.subtype, bar, false);
+  check(subtype, ClassQuery.subtype, baz, false);
 
   await run(['Subtype']);
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
   Expect.isFalse(
-      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
+    closedWorld.classHierarchy.isIndirectlyInstantiated(superclass),
+  );
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
@@ -223,41 +234,42 @@ testClassSets() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isTrue(closedWorld.isImplemented(subtype));
 
-  check(superclass, ClassQuery.EXACT, foo, false);
-  check(superclass, ClassQuery.EXACT, bar, false);
-  check(superclass, ClassQuery.EXACT, baz, false);
-  check(superclass, ClassQuery.SUBCLASS, foo, false);
-  check(superclass, ClassQuery.SUBCLASS, bar, false);
-  check(superclass, ClassQuery.SUBCLASS, baz, false);
-  check(superclass, ClassQuery.SUBTYPE, foo, false);
-  check(superclass, ClassQuery.SUBTYPE, bar, false);
-  check(superclass, ClassQuery.SUBTYPE, baz, true);
+  check(superclass, ClassQuery.exact, foo, false);
+  check(superclass, ClassQuery.exact, bar, false);
+  check(superclass, ClassQuery.exact, baz, false);
+  check(superclass, ClassQuery.subclass, foo, false);
+  check(superclass, ClassQuery.subclass, bar, false);
+  check(superclass, ClassQuery.subclass, baz, false);
+  check(superclass, ClassQuery.subtype, foo, false);
+  check(superclass, ClassQuery.subtype, bar, false);
+  check(superclass, ClassQuery.subtype, baz, true);
 
-  check(subclass, ClassQuery.EXACT, foo, false);
-  check(subclass, ClassQuery.EXACT, bar, false);
-  check(subclass, ClassQuery.EXACT, baz, false);
-  check(subclass, ClassQuery.SUBCLASS, foo, false);
-  check(subclass, ClassQuery.SUBCLASS, bar, false);
-  check(subclass, ClassQuery.SUBCLASS, baz, false);
-  check(subclass, ClassQuery.SUBTYPE, foo, false);
-  check(subclass, ClassQuery.SUBTYPE, bar, false);
-  check(subclass, ClassQuery.SUBTYPE, baz, false);
+  check(subclass, ClassQuery.exact, foo, false);
+  check(subclass, ClassQuery.exact, bar, false);
+  check(subclass, ClassQuery.exact, baz, false);
+  check(subclass, ClassQuery.subclass, foo, false);
+  check(subclass, ClassQuery.subclass, bar, false);
+  check(subclass, ClassQuery.subclass, baz, false);
+  check(subclass, ClassQuery.subtype, foo, false);
+  check(subclass, ClassQuery.subtype, bar, false);
+  check(subclass, ClassQuery.subtype, baz, false);
 
-  check(subtype, ClassQuery.EXACT, foo, false);
-  check(subtype, ClassQuery.EXACT, bar, false);
-  check(subtype, ClassQuery.EXACT, baz, true);
-  check(subtype, ClassQuery.SUBCLASS, foo, false);
-  check(subtype, ClassQuery.SUBCLASS, bar, false);
-  check(subtype, ClassQuery.SUBCLASS, baz, true);
-  check(subtype, ClassQuery.SUBTYPE, foo, false);
-  check(subtype, ClassQuery.SUBTYPE, bar, false);
-  check(subtype, ClassQuery.SUBTYPE, baz, true);
+  check(subtype, ClassQuery.exact, foo, false);
+  check(subtype, ClassQuery.exact, bar, false);
+  check(subtype, ClassQuery.exact, baz, true);
+  check(subtype, ClassQuery.subclass, foo, false);
+  check(subtype, ClassQuery.subclass, bar, false);
+  check(subtype, ClassQuery.subclass, baz, true);
+  check(subtype, ClassQuery.subtype, foo, false);
+  check(subtype, ClassQuery.subtype, bar, false);
+  check(subtype, ClassQuery.subtype, baz, true);
 
   await run(['Subclass', 'Subtype']);
 
   Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
   Expect.isTrue(
-      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
+    closedWorld.classHierarchy.isIndirectlyInstantiated(superclass),
+  );
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
   Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
@@ -268,33 +280,33 @@ testClassSets() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isTrue(closedWorld.isImplemented(subtype));
 
-  check(superclass, ClassQuery.EXACT, foo, false);
-  check(superclass, ClassQuery.EXACT, bar, false);
-  check(superclass, ClassQuery.EXACT, baz, false);
-  check(superclass, ClassQuery.SUBCLASS, foo, false);
-  check(superclass, ClassQuery.SUBCLASS, bar, false);
-  check(superclass, ClassQuery.SUBCLASS, baz, true);
-  check(superclass, ClassQuery.SUBTYPE, foo, false);
-  check(superclass, ClassQuery.SUBTYPE, bar, false);
-  check(superclass, ClassQuery.SUBTYPE, baz, true);
+  check(superclass, ClassQuery.exact, foo, false);
+  check(superclass, ClassQuery.exact, bar, false);
+  check(superclass, ClassQuery.exact, baz, false);
+  check(superclass, ClassQuery.subclass, foo, false);
+  check(superclass, ClassQuery.subclass, bar, false);
+  check(superclass, ClassQuery.subclass, baz, true);
+  check(superclass, ClassQuery.subtype, foo, false);
+  check(superclass, ClassQuery.subtype, bar, false);
+  check(superclass, ClassQuery.subtype, baz, true);
 
-  check(subclass, ClassQuery.EXACT, foo, false);
-  check(subclass, ClassQuery.EXACT, bar, false);
-  check(subclass, ClassQuery.EXACT, baz, true);
-  check(subclass, ClassQuery.SUBCLASS, foo, false);
-  check(subclass, ClassQuery.SUBCLASS, bar, false);
-  check(subclass, ClassQuery.SUBCLASS, baz, true);
-  check(subclass, ClassQuery.SUBTYPE, foo, false);
-  check(subclass, ClassQuery.SUBTYPE, bar, false);
-  check(subclass, ClassQuery.SUBTYPE, baz, true);
+  check(subclass, ClassQuery.exact, foo, false);
+  check(subclass, ClassQuery.exact, bar, false);
+  check(subclass, ClassQuery.exact, baz, true);
+  check(subclass, ClassQuery.subclass, foo, false);
+  check(subclass, ClassQuery.subclass, bar, false);
+  check(subclass, ClassQuery.subclass, baz, true);
+  check(subclass, ClassQuery.subtype, foo, false);
+  check(subclass, ClassQuery.subtype, bar, false);
+  check(subclass, ClassQuery.subtype, baz, true);
 
-  check(subtype, ClassQuery.EXACT, foo, false);
-  check(subtype, ClassQuery.EXACT, bar, false);
-  check(subtype, ClassQuery.EXACT, baz, true);
-  check(subtype, ClassQuery.SUBCLASS, foo, false);
-  check(subtype, ClassQuery.SUBCLASS, bar, false);
-  check(subtype, ClassQuery.SUBCLASS, baz, true);
-  check(subtype, ClassQuery.SUBTYPE, foo, false);
-  check(subtype, ClassQuery.SUBTYPE, bar, false);
-  check(subtype, ClassQuery.SUBTYPE, baz, true);
+  check(subtype, ClassQuery.exact, foo, false);
+  check(subtype, ClassQuery.exact, bar, false);
+  check(subtype, ClassQuery.exact, baz, true);
+  check(subtype, ClassQuery.subclass, foo, false);
+  check(subtype, ClassQuery.subclass, bar, false);
+  check(subtype, ClassQuery.subclass, baz, true);
+  check(subtype, ClassQuery.subtype, foo, false);
+  check(subtype, ClassQuery.subtype, bar, false);
+  check(subtype, ClassQuery.subtype, baz, true);
 }

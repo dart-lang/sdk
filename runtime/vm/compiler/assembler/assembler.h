@@ -31,4 +31,32 @@
 #error Unknown architecture.
 #endif
 
+namespace dart {
+
+// Convert comparison Token::Kind to GPR comparison condition.
+static inline Condition TokenKindToIntCondition(Token::Kind kind,
+                                                bool is_unsigned) {
+  // Use platform-independent condition names
+  // declared in constant_<arch>.h on all platforms.
+  switch (kind) {
+    case Token::kEQ:
+      return EQUAL;
+    case Token::kNE:
+      return NOT_EQUAL;
+    case Token::kLT:
+      return is_unsigned ? UNSIGNED_LESS : LESS;
+    case Token::kGT:
+      return is_unsigned ? UNSIGNED_GREATER : GREATER;
+    case Token::kLTE:
+      return is_unsigned ? UNSIGNED_LESS_EQUAL : LESS_EQUAL;
+    case Token::kGTE:
+      return is_unsigned ? UNSIGNED_GREATER_EQUAL : GREATER_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+}  // namespace dart
+
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_

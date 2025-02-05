@@ -37,12 +37,13 @@ void smokeTest() {
   Expect.equals([1, 2].toString(), '[1, 2]');
   Expect.equals(['I', 'II'].toString(), '[I, II]');
   Expect.equals(
-      [
-        [1, 2],
-        [3, 4],
-        [5, 6]
-      ].toString(),
-      '[[1, 2], [3, 4], [5, 6]]');
+    [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+    ].toString(),
+    '[[1, 2], [3, 4], [5, 6]]',
+  );
 
   // Const lists
   Expect.equals((const []).toString(), '[]');
@@ -52,13 +53,13 @@ void smokeTest() {
   Expect.equals((const [1, 2]).toString(), '[1, 2]');
   Expect.equals((const ['I', 'II']).toString(), '[I, II]');
   Expect.equals(
-      (const [
-        const [1, 2],
-        const [3, 4],
-        const [5, 6]
-      ])
-          .toString(),
-      '[[1, 2], [3, 4], [5, 6]]');
+    (const [
+      const [1, 2],
+      const [3, 4],
+      const [5, 6],
+    ]).toString(),
+    '[[1, 2], [3, 4], [5, 6]]',
+  );
 
   // Non-const maps - Note that all keys are strings; the spec currently demands this
   Expect.equals({}.toString(), '{}');
@@ -66,12 +67,13 @@ void smokeTest() {
   Expect.equals({'Elvis': null}.toString(), '{Elvis: null}');
   Expect.equals({'I': 1, 'II': 2}.toString(), '{I: 1, II: 2}');
   Expect.equals(
-      {
-        'X': {'I': 1, 'II': 2},
-        'Y': {'III': 3, 'IV': 4},
-        'Z': {'V': 5, 'VI': 6}
-      }.toString(),
-      '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
+    {
+      'X': {'I': 1, 'II': 2},
+      'Y': {'III': 3, 'IV': 4},
+      'Z': {'V': 5, 'VI': 6},
+    }.toString(),
+    '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}',
+  );
 
   // Const maps
   Expect.equals(const {}.toString(), '{}');
@@ -79,12 +81,13 @@ void smokeTest() {
   Expect.equals({'Elvis': null}.toString(), '{Elvis: null}');
   Expect.equals(const {'I': 1, 'II': 2}.toString(), '{I: 1, II: 2}');
   Expect.equals(
-      const {
-        'X': const {'I': 1, 'II': 2},
-        'Y': const {'III': 3, 'IV': 4},
-        'Z': const {'V': 5, 'VI': 6}
-      }.toString(),
-      '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
+    const {
+      'X': const {'I': 1, 'II': 2},
+      'Y': const {'III': 3, 'IV': 4},
+      'Z': const {'V': 5, 'VI': 6},
+    }.toString(),
+    '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}',
+  );
 }
 
 // SERIOUS "BASHER" TESTS
@@ -143,7 +146,11 @@ void inexactTest() {
  * If exact is true, the returned collections will not be, and will not contain
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
-Object randomCollection(int size, StringBuffer stringRep, {bool exact = false}) {
+Object randomCollection(
+  int size,
+  StringBuffer stringRep, {
+  bool exact = false,
+}) {
   return randomCollectionHelper(size, exact, stringRep, []);
 }
 
@@ -157,7 +164,11 @@ Object randomCollection(int size, StringBuffer stringRep, {bool exact = false}) 
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
 Object randomCollectionHelper(
-    int size, bool exact, StringBuffer stringRep, List beingMade) {
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+) {
   double interfaceFrac = rand.nextDouble();
 
   if (exact) {
@@ -198,9 +209,19 @@ List randomList(int size, bool exact, StringBuffer stringRep, List beingMade) {
  * Like randomList, but returns a queue.
  */
 Queue randomQueue(
-    int size, bool exact, StringBuffer stringRep, List beingMade) {
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+) {
   return populateRandomCollection(
-      size, exact, stringRep, beingMade, new Queue(), "{}");
+    size,
+    exact,
+    stringRep,
+    beingMade,
+    new Queue(),
+    "{}",
+  );
 }
 
 /**
@@ -217,10 +238,20 @@ Set randomSet(int size, bool exact, StringBuffer stringRep, List beingMade) {
 Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
   if (exact) {
     return populateRandomMap(
-        size, exact, stringRep, beingMade, new LinkedHashMap());
+      size,
+      exact,
+      stringRep,
+      beingMade,
+      new LinkedHashMap(),
+    );
   } else {
-    return populateRandomMap(size, exact, stringRep, beingMade,
-        randomBool() ? new Map() : new LinkedHashMap());
+    return populateRandomMap(
+      size,
+      exact,
+      stringRep,
+      beingMade,
+      randomBool() ? new Map() : new LinkedHashMap(),
+    );
   }
 }
 
@@ -234,8 +265,14 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
  * and will not contain a collection with ill-defined iteration order
  * (i.e., a HashSet or HashMap).
  */
-populateRandomCollection(int size, bool exact, StringBuffer stringRep,
-    List beingMade, var coll, String delimiters) {
+populateRandomCollection(
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+  var coll,
+  String delimiters,
+) {
   beingMade.add(coll);
   int start = stringRep.length;
 
@@ -301,7 +338,12 @@ populateRandomCollection(int size, bool exact, StringBuffer stringRep,
 
 /** Like populateRandomCollection, but for sets (elements must be hashable) */
 Set populateRandomSet(
-    int size, bool exact, StringBuffer stringRep, List beingMade, Set set) {
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+  Set set,
+) {
   stringRep.write('{');
 
   for (int i = 0; i < size; i++) {
@@ -316,7 +358,12 @@ Set populateRandomSet(
 
 /** Like populateRandomCollection, but for maps. */
 Map populateRandomMap(
-    int size, bool exact, StringBuffer stringRep, List beingMade, Map map) {
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+  Map map,
+) {
   beingMade.add(map);
   stringRep.write('{');
 
@@ -344,7 +391,11 @@ Map populateRandomMap(
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
 Object randomElement(
-    int size, bool exact, StringBuffer stringRep, List beingMade) {
+  int size,
+  bool exact,
+  StringBuffer stringRep,
+  List beingMade,
+) {
   Object result;
   double elementTypeFrac = rand.nextDouble();
   if (elementTypeFrac < 1 / 3) {

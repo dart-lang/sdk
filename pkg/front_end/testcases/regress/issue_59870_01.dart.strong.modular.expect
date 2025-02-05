@@ -1,0 +1,66 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_59870_01.dart:14:32: Error: Type 'C' not found.
+// mixin MAiBC on A implements B, C { }
+//                                ^
+//
+// pkg/front_end/testcases/regress/issue_59870_01.dart:15:20: Error: Type 'C' not found.
+// mixin MBCiIJ on B, C implements I, J { }
+//                    ^
+//
+// pkg/front_end/testcases/regress/issue_59870_01.dart:17:7: Error: 'CAaMAiBC' doesn't implement '_MBCiIJ&B&C' so it can't be used with 'MBCiIJ'.
+//  - 'CAaMAiBC' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.
+//  - 'B with C' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.
+//  - 'MBCiIJ' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.
+// class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+}
+abstract class J extends core::Object {
+  synthetic constructor •() → self::J
+    : super core::Object::•()
+    ;
+}
+abstract class MAiBC extends self::A implements self::B /*isMixinDeclaration*/  {
+}
+abstract class _MBCiIJ&B&C extends core::Object implements self::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MBCiIJ&B&C
+    : super core::Object::•()
+    ;
+}
+abstract class MBCiIJ extends self::_MBCiIJ&B&C implements self::I, self::J /*isMixinDeclaration*/  {
+}
+class CAaMAiBC = self::A with self::MAiBC {
+  synthetic constructor •() → self::CAaMAiBC
+    : super self::A::•()
+    ;
+}
+abstract class _CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ = self::CAaMAiBC with self::MBCiIJ /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ
+    : super self::CAaMAiBC::•()
+    ;
+}
+class CAaMAiBCaMBCiIJ_2 extends self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ {
+  synthetic constructor •() → self::CAaMAiBCaMBCiIJ_2
+    : super self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ::•()
+    ;
+}

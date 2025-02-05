@@ -4,7 +4,7 @@
 
 #include "vm/canonical_tables.h"
 
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 
 namespace dart {
 

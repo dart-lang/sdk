@@ -116,6 +116,16 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    (defined(TARGET_ARCH_ARM64) && defined(DART_TARGET_OS_MACOS))
+#define TARGET_HAS_FAST_WRITE_WRITE_FENCE 1
+#endif
+
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
+    (defined(HOST_ARCH_ARM64) && defined(DART_HOST_OS_MACOS))
+#define HOST_HAS_FAST_WRITE_WRITE_FENCE 1
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

@@ -32,7 +32,7 @@ void f() {
     writeFile(pathname, text);
     await standardAnalysisSetup();
     await sendAnalysisSetSubscriptions({
-      AnalysisService.OCCURRENCES: [pathname]
+      AnalysisService.OCCURRENCES: [pathname],
     });
 
     await analysisFinished;
@@ -52,9 +52,10 @@ void f() {
     }
 
     void check(String elementName, Iterable<String> expectedOccurrences) {
-      var expectedOffsets = expectedOccurrences
-          .map((String substring) => text.indexOf(substring))
-          .toSet();
+      var expectedOffsets =
+          expectedOccurrences
+              .map((String substring) => text.indexOf(substring))
+              .toSet();
       var foundOffsets = findOffsets(elementName);
       expect(foundOffsets, equals(expectedOffsets));
     }

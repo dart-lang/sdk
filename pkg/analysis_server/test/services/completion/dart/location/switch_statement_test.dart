@@ -147,7 +147,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_withoutBody_partial() async {
+  test_afterLeftBrace_beforeRightBrace_withoutBody_partial() async {
     await computeSuggestions('''
 void f() {switch(n^)}
 ''');

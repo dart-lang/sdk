@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, exit;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -80,8 +81,8 @@ Future<void> main(List<String> args) async {
   print("Compiled to Component with ${c.libraries.length} "
       "libraries in ${stopwatch.elapsedMilliseconds} ms.");
   stopwatch.reset();
-  late List<int> firstCompileData;
-  late Map<Uri, List<int>> libToData;
+  late Uint8List firstCompileData;
+  late Map<Uri, Uint8List> libToData;
   if (fast) {
     libToData = {};
     c.libraries.sort((l1, l2) {
@@ -96,7 +97,7 @@ Future<void> main(List<String> args) async {
       library.additionalExports.sort();
       library.problemsAsJson?.sort();
 
-      List<int> libSerialized =
+      Uint8List libSerialized =
           serializeComponent(c, filter: (l) => l == library);
       libToData[library.importUri] = libSerialized;
     }
@@ -169,7 +170,7 @@ Future<void> main(List<String> args) async {
         library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
-        List<int> libSerialized =
+        Uint8List libSerialized =
             serializeComponent(c2, filter: (l) => l == library);
         if (!isEqual(libToData[library.importUri]!, libSerialized)) {
           print("=====");
@@ -188,7 +189,7 @@ Future<void> main(List<String> args) async {
       }
       print("Serialized library in ${localStopwatch.elapsedMilliseconds} ms");
     } else {
-      List<int> thisCompileData = util.postProcess(c2);
+      Uint8List thisCompileData = util.postProcess(c2);
       print("Serialized in ${localStopwatch.elapsedMilliseconds} ms");
       if (!isEqual(firstCompileData, thisCompileData)) {
         print("=====");
@@ -214,7 +215,7 @@ Future<void> main(List<String> args) async {
       "${stopwatch.elapsedMilliseconds} ms");
 }
 
-bool isEqual(List<int> a, List<int> b) {
+bool isEqual(Uint8List a, Uint8List b) {
   bool result = isEqualBitForBit(a, b);
   if (result) return result;
   // Not binary equal. Do a to-text, if that is not equal, do a to to-text
@@ -232,7 +233,7 @@ bool isEqual(List<int> a, List<int> b) {
   return false;
 }
 
-String toText(List<int> data, {bool skipInterfaceTarget = false}) {
+String toText(Uint8List data, {bool skipInterfaceTarget = false}) {
   Component component = new Component();
   new BinaryBuilder(data).readComponent(component);
   StringBuffer buffer = new StringBuffer();

@@ -22,10 +22,7 @@ class OptionsPackagesIntegrationTest
   @override
   Future<void> startServer({int? diagnosticPort, int? servicePort}) {
     var fooPath = sourcePath('foo');
-    writeFile(
-      path.join(fooPath, 'lib', 'foo.dart'),
-      'var my_foo = 0;',
-    );
+    writeFile(path.join(fooPath, 'lib', 'foo.dart'), 'var my_foo = 0;');
 
     var packagesPath = sourcePath('my_packages.json');
     writeFile(packagesPath, '''

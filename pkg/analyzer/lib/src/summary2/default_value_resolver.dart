@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -37,9 +39,9 @@ class DefaultValueResolver {
     _executable(context, element);
   }
 
-  DefaultFormalParameter? _defaultParameter(ParameterElement element) {
+  DefaultFormalParameterImpl? _defaultParameter(ParameterElement element) {
     var node = _linker.getLinkingNode(element);
-    if (node is DefaultFormalParameter && node.defaultValue != null) {
+    if (node is DefaultFormalParameterImpl && node.defaultValue != null) {
       return node;
     } else {
       return null;

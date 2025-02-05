@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Verify that if an `await` expression appears in a syntactic postion that
+// Verify that if an `await` expression appears in a syntactic position that
 // doesn't impose a context on it, it supplies a context of `FutureOr<_>` to its
 // operand, rather than `_` (which was the behavior prior to fixing
 // https://github.com/dart-lang/language/issues/3648).
@@ -28,7 +28,7 @@
 //   `Future.value(C())` to `B`.
 // - So the static type of `Future.value(C())` is `Future<B>`.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {
   var prop;
@@ -39,16 +39,20 @@ class C extends B {}
 
 main() async {
   // Initializer part of a C-style for loop
-  for (await ((null as Future<B>?) ??
-          (Future.value(C())..expectStaticType<Exactly<Future<C>>>()));
-      false;) {}
+  for (
+    await ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>()));
+    false;
+  ) {}
 
   // Updater part of a C-style for loop
-  for (var i = 0;
-      i < 1;
-      i++,
-      await ((null as Future<B>?) ??
-          (Future.value(C())..expectStaticType<Exactly<Future<C>>>()))) {}
+  for (
+    var i = 0;
+    i < 1;
+    i++,
+    await ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>()))
+  ) {}
 
   // Target of a property set
   (await ((null as Future<B>?) ??
@@ -63,9 +67,10 @@ main() async {
   // Assert statement message
   try {
     assert(
-        false,
-        await ((null as Future<B>?) ??
-            (Future.value(C())..expectStaticType<Exactly<Future<C>>>())));
+      false,
+      await ((null as Future<B>?) ??
+          (Future.value(C())..expectStaticType<Exactly<Future<C>>>())),
+    );
   } on AssertionError {}
 
   // Expression statement

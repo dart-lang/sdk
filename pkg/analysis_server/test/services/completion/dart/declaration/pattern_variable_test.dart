@@ -326,7 +326,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchExpression_nonIntersecting_partial() async {
+  test_logicalAnd_switchExpression_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   var x = switch (a01) {
@@ -368,7 +368,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchStatement_multiple_intersecting_partial() async {
+  test_logicalAnd_switchStatement_multiple_intersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -391,7 +391,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchStatement_multiple_nonIntersecting() async {
+  test_logicalAnd_switchStatement_multiple_nonIntersecting() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -418,7 +418,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchStatement_multiple_nonIntersecting_partial() async {
+  test_logicalAnd_switchStatement_multiple_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -466,7 +466,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchStatement_single_intersecting_partial() async {
+  test_logicalAnd_switchStatement_single_intersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -509,7 +509,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalAnd_switchStatement_single_nonIntersecting_partial() async {
+  test_logicalAnd_switchStatement_single_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -629,7 +629,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalOr_switchStatement_multiple_intersecting_partial() async {
+  test_logicalOr_switchStatement_multiple_intersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -678,7 +678,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalOr_switchStatement_multiple_nonIntersecting_partial() async {
+  test_logicalOr_switchStatement_multiple_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -726,7 +726,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalOr_switchStatement_single_intersecting_partial() async {
+  test_logicalOr_switchStatement_single_intersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -769,7 +769,7 @@ suggestions
   }
 
   Future<void>
-      test_logicalOr_switchStatement_single_nonIntersecting_partial() async {
+  test_logicalOr_switchStatement_single_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f(Object a01) {
   switch (a01) {
@@ -1013,7 +1013,7 @@ suggestions
   }
 
   Future<void>
-      test_patternDeclarationStatement_previousStatement_partial() async {
+  test_patternDeclarationStatement_previousStatement_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   a^
@@ -1125,7 +1125,7 @@ suggestions
   }
 
   Future<void>
-      test_switchStatementCase_different_first_explicit_partial() async {
+  test_switchStatementCase_different_first_explicit_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -1167,7 +1167,7 @@ suggestions
   }
 
   Future<void>
-      test_switchStatementCase_different_first_implicit_partial() async {
+  test_switchStatementCase_different_first_implicit_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -1251,7 +1251,7 @@ suggestions
   }
 
   Future<void>
-      test_switchStatementCase_same_multiple_intersecting_partial() async {
+  test_switchStatementCase_same_multiple_intersecting_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {
@@ -1298,7 +1298,7 @@ suggestions
   }
 
   Future<void>
-      test_switchStatementCase_same_multiple_nonIntersecting_partial() async {
+  test_switchStatementCase_same_multiple_nonIntersecting_partial() async {
     await computeSuggestions('''
 void f((int, int) a01) {
   switch (a01) {

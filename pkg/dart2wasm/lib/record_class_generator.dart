@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'records.dart';
+import 'util.dart';
 
 /// Generates a class extending `Record` for each record shape in the
 /// [Component].
@@ -30,9 +31,9 @@ import 'records.dart';
 ///   Record_2_a(this.$1, this.$2, this.a);
 ///
 ///   @pragma('wasm:entry-point')
-///   bool _checkRecordType(WasmArray<_Type> types, WasmArray<String> names) {
+///   bool _checkRecordType(WasmArray<_Type> types, ImmutableWasmArray<String> names) {
 ///     if (types.length != 3) return false;
-///     if (!identical(names, const WasmArray(["a"]))) return false;
+///     if (!identical(names, const ImmutableWasmArray(["a"]))) return false;
 ///
 ///     if (!_isSubtype($1, types[0])) return false;
 ///     if (!_isSubtype($2, types[1])) return false;
@@ -44,7 +45,7 @@ import 'records.dart';
 ///   @pragma('wasm:entry-point')
 ///   _Type get _masqueradedRecordRuntimeType =>
 ///     _RecordType(
-///       const WasmArray(["a"]),
+///       const ImmutableWasmArray(["a"]),
 ///       WasmArray.literal([
 ///         _getMasqueradedRuntimeTypeNullable($1),
 ///         _getMasqueradedRuntimeTypeNullable($2),
@@ -54,7 +55,7 @@ import 'records.dart';
 ///   @pragma('wasm:entry-point')
 ///   _Type get _recordRuntimeType =>
 ///     _RecordType(
-///       const WasmArray(["a"]),
+///       const ImmutableWasmArray(["a"]),
 ///       WasmArray.literal([
 ///         _getActualRuntimeTypeNullable($1),
 ///         _getActualRuntimeTypeNullable($2),
@@ -126,6 +127,9 @@ class _RecordClassGenerator {
   late final Class wasmArrayClass =
       coreTypes.index.getClass('dart:_wasm', 'WasmArray');
 
+  late final Class immutableWasmArrayClass =
+      coreTypes.index.getClass('dart:_wasm', 'ImmutableWasmArray');
+
   late final Procedure wasmArrayRefLength =
       coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayRef', 'get:length');
 
@@ -135,7 +139,7 @@ class _RecordClassGenerator {
       .singleWhere((e) => e.name == 'WasmArrayExt')
       .memberDescriptors
       .singleWhere((member) => member.name.text == '[]')
-      .memberReference
+      .memberReference!
       .node as Procedure;
 
   late final Constructor wasmArrayLiteralConstructor =
@@ -144,11 +148,16 @@ class _RecordClassGenerator {
   late final Field wasmArrayValueField =
       coreTypes.index.getField("dart:_wasm", "WasmArray", "_value");
 
+  late final Field immutableWasmArrayValueField =
+      coreTypes.index.getField("dart:_wasm", "ImmutableWasmArray", "_value");
+
   late final InterfaceType wasmArrayOfType = InterfaceType(
       wasmArrayClass, Nullability.nonNullable, [nonNullableTypeType]);
 
-  late final InterfaceType wasmArrayOfString = InterfaceType(
-      wasmArrayClass, Nullability.nonNullable, [nonNullableStringType]);
+  late final InterfaceType immutableWasmArrayOfString = InterfaceType(
+      immutableWasmArrayClass,
+      Nullability.nonNullable,
+      [nonNullableStringType]);
 
   late final InterfaceType runtimeTypeType =
       InterfaceType(typeRuntimetypeTypeClass, Nullability.nonNullable);
@@ -181,14 +190,6 @@ class _RecordClassGenerator {
     classes.putIfAbsent(shape, () => _generateClass(shape, id));
   }
 
-  /// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
-  T _addWasmEntryPointPragma<T extends Annotatable>(T node) => node
-    ..addAnnotation(ConstantExpression(
-        InstanceConstant(coreTypes.pragmaClass.reference, [], {
-      coreTypes.pragmaName.fieldReference: StringConstant("wasm:entry-point"),
-      coreTypes.pragmaOptions.fieldReference: NullConstant(),
-    })));
-
   Class _generateClass(RecordShape shape, int id) {
     final fields = _generateFields(shape);
 
@@ -197,19 +198,22 @@ class _RecordClassGenerator {
       className = '${className}_${shape.names.join('_')}';
     }
 
-    final cls = _addWasmEntryPointPragma(Class(
-      name: className,
-      isAbstract: false,
-      isAnonymousMixin: false,
-      supertype: Supertype(coreTypes.recordClass, []),
-      constructors: [_generateConstructor(shape, fields)],
-      procedures: [
-        _generateHashCode(fields, id),
-        _generateToString(shape, fields),
-      ],
-      fields: fields,
-      fileUri: library.fileUri,
-    ));
+    final cls = addWasmEntryPointPragma(
+        Class(
+          name: className,
+          isAbstract: false,
+          isAnonymousMixin: false,
+          supertype: Supertype(coreTypes.recordClass, []),
+          constructors: [_generateConstructor(shape, fields)],
+          procedures: [
+            _generateHashCode(fields, id),
+            _generateToString(shape, fields),
+          ],
+          fields: fields,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
+
     library.addClass(cls);
     cls.addProcedure(_generateEquals(shape, fields, cls));
     cls.addProcedure(_generateCheckRecordType(shape, fields));
@@ -222,19 +226,23 @@ class _RecordClassGenerator {
     final List<Field> fields = [];
 
     for (int i = 0; i < shape.positionals; i += 1) {
-      fields.add(_addWasmEntryPointPragma(Field.immutable(
-        Name('\$${i + 1}', library),
-        isFinal: true,
-        fileUri: library.fileUri,
-      )));
+      fields.add(addWasmEntryPointPragma(
+          Field.immutable(
+            Name('\$${i + 1}', library),
+            isFinal: true,
+            fileUri: library.fileUri,
+          ),
+          coreTypes));
     }
 
     for (String name in shape.names) {
-      fields.add(_addWasmEntryPointPragma(Field.immutable(
-        Name(name, library),
-        isFinal: true,
-        fileUri: library.fileUri,
-      )));
+      fields.add(addWasmEntryPointPragma(
+          Field.immutable(
+            Name(name, library),
+            isFinal: true,
+            fileUri: library.fileUri,
+          ),
+          coreTypes));
     }
 
     return fields;
@@ -255,11 +263,13 @@ class _RecordClassGenerator {
     final function =
         FunctionNode(null, positionalParameters: positionalParameters);
 
-    return _addWasmEntryPointPragma(Constructor(function,
-        name: Name('_', library),
-        isConst: true,
-        initializers: initializers,
-        fileUri: library.fileUri));
+    return addWasmEntryPointPragma(
+        Constructor(function,
+            name: Name('_', library),
+            isConst: true,
+            initializers: initializers,
+            fileUri: library.fileUri),
+        coreTypes);
   }
 
   /// Generate `int get hashCode` member.
@@ -287,12 +297,14 @@ class _RecordClassGenerator {
       }
     }
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('hashCode', library),
-      ProcedureKind.Getter,
-      FunctionNode(ReturnStatement(returnValue), returnType: intType),
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('hashCode', library),
+          ProcedureKind.Getter,
+          FunctionNode(ReturnStatement(returnValue), returnType: intType),
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `String toString()` member.
@@ -349,12 +361,14 @@ class _RecordClassGenerator {
               ),
             ));
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('toString', library),
-      ProcedureKind.Method,
-      FunctionNode(ReturnStatement(stringExpression)),
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('toString', library),
+          ProcedureKind.Method,
+          FunctionNode(ReturnStatement(stringExpression)),
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `bool operator ==` member.
@@ -402,19 +416,21 @@ class _RecordClassGenerator {
       returnType: boolType,
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('==', library),
-      ProcedureKind.Operator,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('==', library),
+          ProcedureKind.Operator,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `_checkRecordType` member.
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
     final typesParameter = VariableDeclaration('types', type: wasmArrayOfType);
     final namesParameter =
-        VariableDeclaration('names', type: wasmArrayOfString);
+        VariableDeclaration('names', type: immutableWasmArrayOfString);
 
     final List<Statement> statements = [];
 
@@ -477,12 +493,14 @@ class _RecordClassGenerator {
       returnType: boolType,
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('_checkRecordType', library),
-      ProcedureKind.Method,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('_checkRecordType', library),
+          ProcedureKind.Method,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `_Type get _recordRuntimeType` member.
@@ -502,7 +520,7 @@ class _RecordClassGenerator {
       String name, Procedure target, RecordShape shape, List<Field> fields) {
     final List<Statement> statements = [];
 
-    // const WasmArray(["name1", "name2", ...])
+    // const ImmutableWasmArray(["name1", "name2", ...])
     final fieldNamesList = ConstantExpression(_fieldNamesConstant(shape));
 
     Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
@@ -539,19 +557,22 @@ class _RecordClassGenerator {
           InterfaceType(recordRuntimeTypeClass, Nullability.nonNullable),
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name(name, library),
-      ProcedureKind.Getter,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name(name, library),
+          ProcedureKind.Getter,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
-    return InstanceConstant(wasmArrayClass.reference, [
+    return InstanceConstant(immutableWasmArrayClass.reference, [
       nonNullableStringType
     ], {
-      wasmArrayValueField.fieldReference: ListConstant(nonNullableStringType,
+      immutableWasmArrayValueField.fieldReference: ListConstant(
+          nonNullableStringType,
           shape.names.map((name) => StringConstant(name)).toList())
     });
   }

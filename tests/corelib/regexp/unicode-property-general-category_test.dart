@@ -54,21 +54,45 @@ void main() {
   assertTrue(RegExp(r"\P{Ll}", unicode: true).hasMatch("\u{1D5E3}"));
 
   assertTrue(
-      RegExp(r"\p{Ll}", caseSensitive: false, unicode: true).hasMatch("a"));
-  assertTrue(RegExp(r"\p{Ll}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118D4}"));
+    RegExp(r"\p{Ll}", caseSensitive: false, unicode: true).hasMatch("a"),
+  );
   assertTrue(
-      RegExp(r"\p{Ll}", caseSensitive: false, unicode: true).hasMatch("A"));
-  assertTrue(RegExp(r"\p{Ll}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118B4}"));
+    RegExp(
+      r"\p{Ll}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118D4}"),
+  );
   assertTrue(
-      RegExp(r"\P{Ll}", caseSensitive: false, unicode: true).hasMatch("a"));
-  assertTrue(RegExp(r"\P{Ll}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118D4}"));
+    RegExp(r"\p{Ll}", caseSensitive: false, unicode: true).hasMatch("A"),
+  );
   assertTrue(
-      RegExp(r"\P{Ll}", caseSensitive: false, unicode: true).hasMatch("A"));
-  assertTrue(RegExp(r"\P{Ll}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118B4}"));
+    RegExp(
+      r"\p{Ll}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118B4}"),
+  );
+  assertTrue(
+    RegExp(r"\P{Ll}", caseSensitive: false, unicode: true).hasMatch("a"),
+  );
+  assertTrue(
+    RegExp(
+      r"\P{Ll}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118D4}"),
+  );
+  assertTrue(
+    RegExp(r"\P{Ll}", caseSensitive: false, unicode: true).hasMatch("A"),
+  );
+  assertTrue(
+    RegExp(
+      r"\P{Ll}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118B4}"),
+  );
 
   assertTrue(RegExp(r"\p{Lu}", unicode: true).hasMatch("A"));
   assertFalse(RegExp(r"\P{Lu}", unicode: true).hasMatch("A"));
@@ -80,21 +104,45 @@ void main() {
   assertTrue(RegExp(r"\P{Lu}", unicode: true).hasMatch("\u{1D7BE}"));
 
   assertTrue(
-      RegExp(r"\p{Lu}", caseSensitive: false, unicode: true).hasMatch("a"));
-  assertTrue(RegExp(r"\p{Lu}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118D4}"));
+    RegExp(r"\p{Lu}", caseSensitive: false, unicode: true).hasMatch("a"),
+  );
   assertTrue(
-      RegExp(r"\p{Lu}", caseSensitive: false, unicode: true).hasMatch("A"));
-  assertTrue(RegExp(r"\p{Lu}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118B4}"));
+    RegExp(
+      r"\p{Lu}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118D4}"),
+  );
   assertTrue(
-      RegExp(r"\P{Lu}", caseSensitive: false, unicode: true).hasMatch("a"));
-  assertTrue(RegExp(r"\P{Lu}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118D4}"));
+    RegExp(r"\p{Lu}", caseSensitive: false, unicode: true).hasMatch("A"),
+  );
   assertTrue(
-      RegExp(r"\P{Lu}", caseSensitive: false, unicode: true).hasMatch("A"));
-  assertTrue(RegExp(r"\P{Lu}", caseSensitive: false, unicode: true)
-      .hasMatch("\u{118B4}"));
+    RegExp(
+      r"\p{Lu}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118B4}"),
+  );
+  assertTrue(
+    RegExp(r"\P{Lu}", caseSensitive: false, unicode: true).hasMatch("a"),
+  );
+  assertTrue(
+    RegExp(
+      r"\P{Lu}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118D4}"),
+  );
+  assertTrue(
+    RegExp(r"\P{Lu}", caseSensitive: false, unicode: true).hasMatch("A"),
+  );
+  assertTrue(
+    RegExp(
+      r"\P{Lu}",
+      caseSensitive: false,
+      unicode: true,
+    ).hasMatch("\u{118B4}"),
+  );
 
   assertTrue(RegExp(r"\p{Sm}", unicode: true).hasMatch("+"));
   assertFalse(RegExp(r"\P{Sm}", unicode: true).hasMatch("+"));
@@ -109,6 +157,7 @@ void main() {
 
   assertTrue(RegExp(r"\p{gc=Ll}", unicode: true).hasMatch("a"));
   assertTrue(
-      RegExp(r"\p{General_Category=Math_Symbol}", unicode: true).hasMatch("+"));
+    RegExp(r"\p{General_Category=Math_Symbol}", unicode: true).hasMatch("+"),
+  );
   assertTrue(RegExp(r"\p{General_Category=L}", unicode: true).hasMatch("X"));
 }

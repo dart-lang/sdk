@@ -6,10 +6,12 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin2/generator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// An object that watches the results produced by analysis drivers to identify
 /// references to previously unseen packages and, if those packages have plugins
@@ -31,18 +33,21 @@ class PluginWatcher implements DriverWatcher {
 
   /// Initialize a newly created plugin watcher.
   PluginWatcher(this.resourceProvider, this.manager)
-      : _locator = PluginLocator(resourceProvider);
+    : _locator = PluginLocator(resourceProvider);
 
-  /// The context manager has just added the given analysis [driver]. This
-  /// method must be called before the driver has been allowed to perform any
-  /// analysis.
   @override
   void addedDriver(AnalysisDriver driver) {
     var contextRoot = driver.analysisContext!.contextRoot;
-    _driverInfo[driver] = _DriverInfo(
-        contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
-    var enabledPlugins = driver.enabledLegacyPluginNames;
-    for (var hostPackageName in enabledPlugins) {
+    _driverInfo[driver] = _DriverInfo(contextRoot, <String>[
+      contextRoot.root.path,
+      _getSdkPath(driver),
+    ]);
+
+    // We temporarily support both "legacy plugins" and (new) "plugins." We
+    // restrict the number of legacy plugins to 1, for performance reasons.
+    // At some point, we will stop adding legacy plugins to the context root.
+
+    for (var hostPackageName in driver.enabledLegacyPluginNames) {
       //
       // Determine whether the package exists and defines a plugin.
       //
@@ -64,7 +69,37 @@ class PluginWatcher implements DriverWatcher {
       // If we don't, then tests don't have any way to know when to expect
       // that the list of plugins has been updated.
       manager.addPluginToContextRoot(
-          driver.analysisContext!.contextRoot, pluginPath);
+        driver.analysisContext!.contextRoot,
+        pluginPath,
+        isLegacyPlugin: true,
+      );
+    }
+
+    // Now we add any specified (new) plugins to the context, as a single
+    // "legacy plugin" shared entrypoint.
+    var pluginConfigurations = driver.pluginConfigurations;
+    // Add a shared entrypoint plugin to the context root, only if one or more
+    // plugins are specified in analysis options.
+    if (pluginConfigurations.isNotEmpty) {
+      var contextRoot = driver.analysisContext!.contextRoot;
+      var packageGenerator = PluginPackageGenerator(pluginConfigurations);
+      // The path here just needs to be unique per context root.
+      var sharedPluginFolder = manager.pluginStateFolder(contextRoot.root.path)
+        ..create();
+      sharedPluginFolder
+          .getChildAssumingFile(file_paths.pubspecYaml)
+          .writeAsStringSync(packageGenerator.generatePubspec());
+      var libFolder = sharedPluginFolder.getChildAssumingFolder('bin')
+        ..create();
+      libFolder
+          .getChildAssumingFile('plugin.dart')
+          .writeAsStringSync(packageGenerator.generateEntrypoint());
+
+      manager.addPluginToContextRoot(
+        contextRoot,
+        sharedPluginFolder.path,
+        isLegacyPlugin: false,
+      );
     }
   }
 

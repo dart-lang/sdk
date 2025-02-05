@@ -52,9 +52,13 @@ class _InvocationMirror implements Invocation {
   List<Object?>? _positionalArguments;
   Map<Symbol, Object?>? _namedArguments;
 
-  _InvocationMirror._withType(this._memberName, int? type, this._typeArguments,
-      this._positionalArguments, this._namedArguments)
-      : _type = type ?? _UNINITIALIZED {
+  _InvocationMirror._withType(
+    this._memberName,
+    int? type,
+    this._typeArguments,
+    this._positionalArguments,
+    this._namedArguments,
+  ) : _type = type ?? _UNINITIALIZED {
     _typeArguments ??= const <Type>[];
     _positionalArguments ??= const [];
     _namedArguments ??= const {};
@@ -70,8 +74,9 @@ class _InvocationMirror implements Invocation {
       _memberName = new internal.Symbol.unvalidated(funcName.substring(4));
     } else if (funcName.startsWith("set:")) {
       _type |= _SETTER;
-      _memberName =
-          new internal.Symbol.unvalidated(funcName.substring(4) + "=");
+      _memberName = new internal.Symbol.unvalidated(
+        funcName.substring(4) + "=",
+      );
     } else {
       _type |=
           _isSuperInvocation ? (_SUPER << _LEVEL_SHIFT) | _METHOD : _METHOD;
@@ -107,7 +112,9 @@ class _InvocationMirror implements Invocation {
   // Unpack the given TypeArguments object into a new list of individual types.
   @pragma("vm:external-name", "InvocationMirror_unpackTypeArguments")
   external static List<Type> _unpackTypeArguments(
-      typeArguments, int numTypeArguments);
+    typeArguments,
+    int numTypeArguments,
+  );
 
   List get positionalArguments {
     if (_positionalArguments == null) {
@@ -122,7 +129,10 @@ class _InvocationMirror implements Invocation {
       var receiverIndex = _typeArgsLen > 0 ? 1 : 0;
       var args = _arguments!;
       _positionalArguments = new _ImmutableList._from(
-          args, receiverIndex + 1, numPositionalArguments);
+        args,
+        receiverIndex + 1,
+        numPositionalArguments,
+      );
     }
     return _positionalArguments!;
   }
@@ -180,20 +190,39 @@ class _InvocationMirror implements Invocation {
     return (_type & _KIND_MASK) == _SETTER;
   }
 
-  _InvocationMirror(this._functionName, this._argumentsDescriptor,
-      this._arguments, this._isSuperInvocation, this._type,
-      [this._delayedTypeArgumentsLen = 0]);
+  _InvocationMirror(
+    this._functionName,
+    this._argumentsDescriptor,
+    this._arguments,
+    this._isSuperInvocation,
+    this._type, [
+    this._delayedTypeArgumentsLen = 0,
+  ]);
 
-  _InvocationMirror._withoutType(this._functionName, this._typeArguments,
-      this._positionalArguments, this._namedArguments, this._isSuperInvocation,
-      [this._delayedTypeArgumentsLen = 0]);
+  _InvocationMirror._withoutType(
+    this._functionName,
+    this._typeArguments,
+    this._positionalArguments,
+    this._namedArguments,
+    this._isSuperInvocation, [
+    this._delayedTypeArgumentsLen = 0,
+  ]);
 
   @pragma("vm:entry-point", "call")
-  static _allocateInvocationMirror(String functionName,
-      List argumentsDescriptor, List arguments, bool isSuperInvocation,
-      [int type = _UNINITIALIZED]) {
+  static _allocateInvocationMirror(
+    String functionName,
+    List argumentsDescriptor,
+    List arguments,
+    bool isSuperInvocation, [
+    int type = _UNINITIALIZED,
+  ]) {
     return new _InvocationMirror(
-        functionName, argumentsDescriptor, arguments, isSuperInvocation, type);
+      functionName,
+      argumentsDescriptor,
+      arguments,
+      isSuperInvocation,
+      type,
+    );
   }
 
   // This factory is used when creating an `Invocation` for a closure call which
@@ -203,12 +232,19 @@ class _InvocationMirror implements Invocation {
   // the type arguments vector will be the first entry in `arguments`.
   @pragma("vm:entry-point", "call")
   static _allocateInvocationMirrorForClosure(
-      String functionName,
-      List argumentsDescriptor,
-      List arguments,
-      int? type,
-      int delayedTypeArgumentsLen) {
-    return new _InvocationMirror(functionName, argumentsDescriptor, arguments,
-        false, type ?? _UNINITIALIZED, delayedTypeArgumentsLen);
+    String functionName,
+    List argumentsDescriptor,
+    List arguments,
+    int? type,
+    int delayedTypeArgumentsLen,
+  ) {
+    return new _InvocationMirror(
+      functionName,
+      argumentsDescriptor,
+      arguments,
+      false,
+      type ?? _UNINITIALIZED,
+      delayedTypeArgumentsLen,
+    );
   }
 }

@@ -1,0 +1,99 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.1.0"
+  },
+  "uris": [
+    "nested.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "name": "MyClass"
+    },
+    {
+      "uri": 0,
+      "name": "MyOtherClass"
+    }
+  ],
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "i": 0
+      }
+    },
+    {
+      "type": "String",
+      "value": "test"
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "i": 2
+      }
+    },
+    {
+      "type": "Instance"
+    }
+  ],
+  "instances": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "uri": 0,
+          "line": 19,
+          "column": 7
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "instanceConstant": 1,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 15,
+            "column": 9
+          }
+        },
+        {
+          "instanceConstant": 3,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 15,
+            "column": 9
+          }
+        }
+      ]
+    },
+    {
+      "definition": {
+        "id": 1,
+        "@": {
+          "uri": 0,
+          "line": 26,
+          "column": 7
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "instanceConstant": 4,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 15,
+            "column": 9
+          }
+        }
+      ]
+    }
+  ]
+}

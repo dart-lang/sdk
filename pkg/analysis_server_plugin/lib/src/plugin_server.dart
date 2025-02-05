@@ -21,14 +21,15 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -62,6 +63,9 @@ class PluginServer {
 
   String? _sdkPath;
 
+  /// Paths of priority files.
+  Set<String> _priorityPaths = {};
+
   final List<Plugin> _plugins;
 
   final _registry = PluginRegistryImpl();
@@ -80,6 +84,16 @@ class PluginServer {
     for (var plugin in plugins) {
       plugin.register(_registry);
     }
+  }
+
+  /// Handles an 'analysis.setPriorityFiles' request.
+  ///
+  /// Throws a [RequestFailure] if the request could not be handled.
+  Future<protocol.AnalysisSetPriorityFilesResult>
+      handleAnalysisSetPriorityFiles(
+          protocol.AnalysisSetPriorityFilesParams parameters) async {
+    _priorityPaths = parameters.files.toSet();
+    return protocol.AnalysisSetPriorityFilesResult();
   }
 
   /// Handles an 'edit.getFixes' request.
@@ -102,8 +116,8 @@ class PluginServer {
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetFixesResult(const []);
     }
-    var result = await analysisContext.currentSession.getResolvedUnit(path);
-    if (result is! ResolvedUnitResult) {
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult is! ResolvedUnitResult) {
       return protocol.EditGetFixesResult(const []);
     }
 
@@ -119,7 +133,8 @@ class PluginServer {
         // implementations get InstrumentationService from AnalysisServer.
         instrumentationService: InstrumentationService.NULL_SERVICE,
         workspace: workspace,
-        resolvedResult: result,
+        libraryResult: libraryResult,
+        unitResult: unitResult,
         error: error,
       );
 
@@ -166,8 +181,6 @@ class PluginServer {
     _channel = channel;
     _channel.listen(_handleRequestZoned,
         // TODO(srawlins): Implement.
-        onError: () {},
-        // TODO(srawlins): Implement.
         onDone: () {});
   }
 
@@ -177,7 +190,14 @@ class PluginServer {
     required AnalysisContextCollection contextCollection,
   }) async {
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
-      var paths = analysisContext.contextRoot.analyzedFiles().toList();
+      var paths = analysisContext.contextRoot
+          .analyzedFiles()
+          // TODO(srawlins): Enable analysis on other files, even if only
+          // YAML files for analysis options and pubspec analysis and quick
+          // fixes.
+          .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
+          .toSet();
+
       await _analyzeFiles(
         analysisContext: analysisContext,
         paths: paths,
@@ -185,23 +205,36 @@ class PluginServer {
     });
   }
 
+  Future<void> _analyzeFile({
+    required AnalysisContext analysisContext,
+    required String path,
+  }) async {
+    var file = _resourceProvider.getFile(path);
+    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
+    var diagnostics = await _computeLints(
+      analysisContext,
+      path,
+      analysisOptions: analysisOptions as AnalysisOptionsImpl,
+    );
+    _channel.sendNotification(
+        protocol.AnalysisErrorsParams(path, diagnostics).toNotification());
+  }
+
   /// Analyzes the files at the given [paths].
   Future<void> _analyzeFiles({
     required AnalysisContext analysisContext,
-    required List<String> paths,
+    required Set<String> paths,
   }) async {
-    // TODO(srawlins): Implement "priority files" and analyze them first.
-    // TODO(srawlins): Analyze libraries instead of files, for efficiency.
-    for (var path in paths.toSet()) {
-      var file = _resourceProvider.getFile(path);
-      var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-      var lints = await _computeLints(
-        analysisContext,
-        path,
-        analysisOptions: analysisOptions as AnalysisOptionsImpl,
-      );
-      _channel.sendNotification(
-          protocol.AnalysisErrorsParams(path, lints).toNotification());
+    // First analyze priority files.
+    for (var path in _priorityPaths) {
+      if (paths.remove(path)) {
+        await _analyzeFile(analysisContext: analysisContext, path: path);
+      }
+    }
+
+    // Then analyze the remaining files.
+    for (var path in paths) {
+      await _analyzeFile(analysisContext: analysisContext, path: path);
     }
   }
 
@@ -215,53 +248,61 @@ class PluginServer {
     if (libraryResult is! ResolvedLibraryResult) {
       return [];
     }
-    var result = await analysisContext.currentSession.getResolvedUnit(path);
-    if (result is! ResolvedUnitResult) {
+    var unitResult = await analysisContext.currentSession.getResolvedUnit(path);
+    if (unitResult is! ResolvedUnitResult) {
       return [];
     }
     var listener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(listener, result.libraryElement.source);
+    var errorReporter = ErrorReporter(
+        listener, unitResult.libraryElement2.firstFragment.source);
 
     var currentUnit = LintRuleUnitContext(
-      file: result.file,
-      content: result.content,
+      file: unitResult.file,
+      content: unitResult.content,
       errorReporter: errorReporter,
-      unit: result.unit,
+      unit: unitResult.unit,
     );
     var allUnits = [
-      for (var unit in libraryResult.units)
+      for (var unitResult in libraryResult.units)
         LintRuleUnitContext(
-          file: unit.file,
-          content: unit.content,
+          file: unitResult.file,
+          content: unitResult.content,
           errorReporter: errorReporter,
-          unit: unit.unit,
+          unit: unitResult.unit,
         ),
     ];
 
-    var enableTiming = analysisOptions.enableTiming;
-    var nodeRegistry = NodeLintRegistry(enableTiming);
+    // TODO(srawlins): Enable timing similar to what the linter package's
+    // `benchhmark.dart` script does.
+    var nodeRegistry = NodeLintRegistry(enableTiming: false);
 
     var context = LinterContextWithResolvedResults(
       allUnits,
       currentUnit,
-      libraryResult.element.typeProvider,
-      libraryResult.element.typeSystem as TypeSystemImpl,
+      libraryResult.element2.typeProvider,
+      libraryResult.element2.typeSystem as TypeSystemImpl,
       (analysisContext.currentSession as AnalysisSessionImpl)
           .inheritanceManager,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
 
-    // TODO(srawlins): Distinguish between registered rules and enabled rules.
-    for (var rule in _registry.registeredRules) {
-      rule.reporter = errorReporter;
-      var timer = enableTiming ? lintRuleTimers.getTimer(rule) : null;
-      timer?.start();
-      rule.registerNodeProcessors(nodeRegistry, context);
-      timer?.stop();
+    for (var configuration in analysisOptions.pluginConfigurations) {
+      if (!configuration.isEnabled) continue;
+      // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
+      var rules =
+          Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
+      for (var rule in rules) {
+        rule.reporter = errorReporter;
+        // TODO(srawlins): Enable timing similar to what the linter package's
+        // `benchhmark.dart` script does.
+        rule.registerNodeProcessors(nodeRegistry, context);
+      }
     }
 
-    currentUnit.unit.accept(LinterVisitor(nodeRegistry));
+    context.currentUnit = currentUnit;
+    currentUnit.unit.accept(
+        AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [
@@ -287,12 +328,21 @@ class PluginServer {
     return errorsAndProtocolErrors.map((e) => e.protocolError).toList();
   }
 
-  /// Invokes [fn] for all analysis contexts.
+  /// Invokes [fn] first for priority analysis contexts, then for the rest.
   Future<void> _forAnalysisContexts(
     AnalysisContextCollection contextCollection,
     Future<void> Function(AnalysisContext analysisContext) fn,
   ) async {
+    var nonPriorityAnalysisContexts = <AnalysisContext>[];
     for (var analysisContext in contextCollection.contexts) {
+      if (_isPriorityAnalysisContext(analysisContext)) {
+        await fn(analysisContext);
+      } else {
+        nonPriorityAnalysisContexts.add(analysisContext);
+      }
+    }
+
+    for (var analysisContext in nonPriorityAnalysisContexts) {
       await fn(analysisContext);
     }
   }
@@ -355,9 +405,8 @@ class PluginServer {
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
-    var analyzedPaths = paths
-        .where(analysisContext.contextRoot.isAnalyzed)
-        .toList(growable: false);
+    var analyzedPaths =
+        paths.where(analysisContext.contextRoot.isAnalyzed).toSet();
 
     await _analyzeFiles(
       analysisContext: analysisContext,
@@ -487,6 +536,9 @@ class PluginServer {
       },
     );
   }
+
+  bool _isPriorityAnalysisContext(AnalysisContext analysisContext) =>
+      _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
 
   static protocol.Location _locationFor(
       CompilationUnit unit, String path, AnalysisError error) {

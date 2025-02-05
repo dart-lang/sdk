@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/names.dart' show noSuchMethodName;
@@ -12,6 +10,7 @@ import '../../base/common.dart';
 import '../../base/messages.dart'
     show
         LocatedMessage,
+        ProblemReporting,
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
@@ -21,11 +20,9 @@ import '../../base/messages.dart'
         messageInheritedMembersConflictCause2,
         messageStaticAndInstanceConflict,
         messageStaticAndInstanceConflictCause,
-        templateCantInferTypesDueToNoCombinedSignature,
         templateCantInferReturnTypeDueToNoCombinedSignature,
         templateCantInferTypeDueToNoCombinedSignature,
-        templateDuplicatedDeclaration,
-        templateDuplicatedDeclarationCause,
+        templateCantInferTypesDueToNoCombinedSignature,
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
@@ -36,8 +33,6 @@ import '../../builder/member_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
-import '../../source/source_field_builder.dart';
-import '../../source/source_procedure_builder.dart';
 import '../combined_member_signature.dart';
 import '../member_covariance.dart';
 import 'class_member.dart';
@@ -103,7 +98,7 @@ abstract class MembersNodeBuilder {
       } else {
         declarationBuilder.addProblem(
             messageInheritedMembersConflict,
-            declarationBuilder.charOffset,
+            declarationBuilder.fileOffset,
             declarationBuilder.fullNameForErrors.length,
             context: _inheritedConflictContext(a, b));
       }
@@ -137,52 +132,6 @@ abstract class MembersNodeBuilder {
             name.length,
             instanceMember.fileUri);
       }
-    } else {
-      // This message can be reported twice (when merging localMembers with
-      // classSetters, or localSetters with classMembers). By ensuring that
-      // we always report the one with higher charOffset as the duplicate,
-      // the message duplication logic ensures that we only report this
-      // problem once.
-      ClassMember existing;
-      ClassMember duplicate;
-      assert(a.fileUri == b.fileUri ||
-          // Coverage-ignore(suite): Not run.
-          a.name.text == "toString" &&
-              (a.fileUri.isScheme("org-dartlang-sdk") &&
-                      a.fileUri.pathSegments.isNotEmpty &&
-                      a.fileUri.pathSegments.last == "enum.dart" ||
-                  b.fileUri.isScheme("org-dartlang-sdk") &&
-                      b.fileUri.pathSegments.isNotEmpty &&
-                      b.fileUri.pathSegments.last == "enum.dart"));
-
-      if (a.fileUri != b.fileUri) {
-        // Coverage-ignore-block(suite): Not run.
-        if (a.fileUri.isScheme("org-dartlang-sdk")) {
-          existing = a;
-          duplicate = b;
-        } else {
-          assert(b.fileUri.isScheme("org-dartlang-sdk"));
-          existing = b;
-          duplicate = a;
-        }
-      } else {
-        if (a.charOffset < b.charOffset) {
-          existing = a;
-          duplicate = b;
-        } else {
-          existing = b;
-          duplicate = a;
-        }
-      }
-      declarationBuilder.libraryBuilder.addProblem(
-          templateDuplicatedDeclaration.withArguments(name),
-          duplicate.charOffset,
-          name.length,
-          duplicate.fileUri,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
-                existing.fileUri, existing.charOffset, name.length)
-          ]);
     }
   }
 }
@@ -209,16 +158,18 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       ClassHierarchyBuilder hierarchyBuilder,
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder classBuilder,
-      SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    assert(!declaredMember.isGetter && !declaredMember.isSetter);
-    if (declaredMember.classBuilder == classBuilder &&
-        (declaredMember.returnType is InferableTypeBuilder ||
-            declaredMember.formals != null &&
-                declaredMember.formals!.any(
-                    (parameter) => parameter.type is InferableTypeBuilder))) {
-      Procedure declaredProcedure = declaredMember.member as Procedure;
-      FunctionNode declaredFunction = declaredProcedure.function;
+      FunctionNode declaredFunction,
+      TypeBuilder declaredReturnType,
+      List<FormalParameterBuilder>? formals,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int nameOffset,
+      required int nameLength}) {
+    if (declaredReturnType is InferableTypeBuilder ||
+        formals != null &&
+            formals
+                .any((parameter) => parameter.type is InferableTypeBuilder)) {
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
       List<VariableDeclaration> declaredPositional =
@@ -243,7 +194,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       bool cantInferReturnType = false;
       List<FormalParameterBuilder>? cantInferParameterTypes;
 
-      if (declaredMember.returnType is InferableTypeBuilder) {
+      if (declaredReturnType is InferableTypeBuilder) {
         if (combinedMemberSignatureType == null) {
           inferredReturnType = const InvalidType();
           cantInferReturnType = true;
@@ -251,9 +202,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           inferredReturnType = combinedMemberSignatureType.returnType;
         }
       }
-      if (declaredMember.formals != null) {
+      if (formals != null) {
         for (int i = 0; i < declaredPositional.length; i++) {
-          FormalParameterBuilder declaredParameter = declaredMember.formals![i];
+          FormalParameterBuilder declaredParameter = formals[i];
           if (declaredParameter.type is! InferableTypeBuilder) {
             continue;
           }
@@ -272,10 +223,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         }
 
         Map<String, DartType>? namedParameterTypes;
-        for (int i = declaredPositional.length;
-            i < declaredMember.formals!.length;
-            i++) {
-          FormalParameterBuilder declaredParameter = declaredMember.formals![i];
+        for (int i = declaredPositional.length; i < formals.length; i++) {
+          FormalParameterBuilder declaredParameter = formals[i];
           if (declaredParameter.type is! InferableTypeBuilder) {
             continue;
           }
@@ -303,22 +252,29 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       if ((cantInferReturnType && cantInferParameterTypes != null) ||
           (cantInferParameterTypes != null &&
               cantInferParameterTypes.length > 1)) {
-        reportCantInferTypes(classBuilder, declaredMember, overriddenMembers);
+        reportCantInferTypes(classBuilder.libraryBuilder, overriddenMembers,
+            name: name,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            nameLength: nameLength);
       } else if (cantInferReturnType) {
         reportCantInferReturnType(
-            classBuilder, declaredMember, overriddenMembers);
+            classBuilder.libraryBuilder, overriddenMembers,
+            name: name,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            nameLength: nameLength);
       } else if (cantInferParameterTypes != null) {
-        reportCantInferParameterType(
-            classBuilder, cantInferParameterTypes.single, overriddenMembers);
+        reportCantInferParameterType(classBuilder.libraryBuilder,
+            cantInferParameterTypes.single, overriddenMembers);
       }
 
-      if (declaredMember.returnType is InferableTypeBuilder) {
+      if (declaredReturnType is InferableTypeBuilder) {
         inferredReturnType ??= const DynamicType();
-        declaredMember.returnType.registerInferredType(inferredReturnType);
+        declaredReturnType.registerInferredType(inferredReturnType);
       }
-      if (declaredMember.formals != null) {
-        for (FormalParameterBuilder declaredParameter
-            in declaredMember.formals!) {
+      if (formals != null) {
+        for (FormalParameterBuilder declaredParameter in formals) {
           if (declaredParameter.type is InferableTypeBuilder) {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
@@ -368,11 +324,13 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       ClassHierarchyBuilder hierarchyBuilder,
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder classBuilder,
-      SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isGetter);
-    if (declaredMember.classBuilder == classBuilder &&
-        declaredMember.returnType is InferableTypeBuilder) {
+      TypeBuilder declaredTypeBuilder,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int nameOffset,
+      required int nameLength}) {
+    if (declaredTypeBuilder is InferableTypeBuilder) {
       DartType? inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
 
@@ -395,7 +353,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
-          reportCantInferReturnType(classBuilder, declaredMember, members);
+          reportCantInferReturnType(classBuilder.libraryBuilder, members,
+              name: name,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              nameLength: nameLength);
         } else {
           inferredType = combinedMemberSignatureType;
         }
@@ -420,7 +382,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         inferFrom(overriddenSetters, forSetter: true);
       }
 
-      declaredMember.returnType
+      declaredTypeBuilder
           .registerInferredType(inferredType ?? const DynamicType());
     }
   }
@@ -429,17 +391,18 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       ClassHierarchyBuilder hierarchyBuilder,
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder classBuilder,
-      SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isSetter);
-    List<FormalParameterBuilder>? formals = declaredMember.formals;
+      List<FormalParameterBuilder>? formals,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int nameOffset,
+      required int nameLength}) {
     if (formals == null) {
       // Erroneous case.
       return;
     }
     FormalParameterBuilder parameter = formals.first;
-    if (declaredMember.classBuilder == classBuilder &&
-        parameter.type is InferableTypeBuilder) {
+    if (parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -463,7 +426,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
-          reportCantInferReturnType(classBuilder, declaredMember, members);
+          reportCantInferReturnType(classBuilder.libraryBuilder, members,
+              name: name,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              nameLength: name.length);
         } else {
           inferredType = combinedMemberSignatureType;
         }
@@ -497,10 +464,14 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       ClassHierarchyBuilder hierarchyBuilder,
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder classBuilder,
-      SourceFieldBuilder fieldBuilder,
-      Iterable<ClassMember> overriddenMembers) {
-    if (fieldBuilder.classBuilder == classBuilder &&
-        fieldBuilder.type is InferableTypeBuilder) {
+      TypeBuilder declaredFieldType,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int nameOffset,
+      required int nameLength,
+      required bool isAssignable}) {
+    if (declaredFieldType is InferableTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -524,7 +495,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       }
 
       DartType? combinedMemberSignatureType;
-      if (fieldBuilder.isAssignable &&
+      if (isAssignable &&
           overriddenGetters.isNotEmpty &&
           overriddenSetters.isNotEmpty) {
         // The type of a non-final field which overrides/implements both a
@@ -562,12 +533,16 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
       if (combinedMemberSignatureType == null) {
         inferredType = const InvalidType();
-        reportCantInferFieldType(classBuilder, fieldBuilder, overriddenMembers);
+        reportCantInferFieldType(classBuilder.libraryBuilder, overriddenMembers,
+            name: name,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            nameLength: nameLength);
       } else {
         inferredType = combinedMemberSignatureType;
       }
 
-      fieldBuilder.type.registerInferredType(inferredType);
+      declaredFieldType.registerInferredType(inferredType);
     }
   }
 
@@ -941,12 +916,14 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// not a valid getter/setter in `Class` because the type of the getter
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
-          _membersBuilder.registerGetterSetterCheck(
-              new DelayedClassGetterSetterCheck(
-                  classBuilder as SourceClassBuilder,
-                  name,
-                  interfaceGetable,
-                  interfaceSetable));
+          SourceClassBuilder sourceClassBuilder =
+              classBuilder as SourceClassBuilder;
+          if (!sourceClassBuilder
+              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+            _membersBuilder.registerGetterSetterCheck(
+                new DelayedClassGetterSetterCheck(sourceClassBuilder, name,
+                    interfaceGetable, interfaceSetable));
+          }
         }
       }
       overrides.collectOverrides(
@@ -1089,7 +1066,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     classBuilder.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
             classBuilder.fullNameForErrors, names),
-        classBuilder.charOffset,
+        classBuilder.fileOffset,
         classBuilder.fullNameForErrors.length,
         context: context);
   }
@@ -2834,7 +2811,7 @@ void _toSet(DeclarationBuilder declarationBuilder,
   }
 }
 
-void reportCantInferParameterType(ClassBuilder cls,
+void reportCantInferParameterType(ProblemReporting problemReporting,
     FormalParameterBuilder parameter, Iterable<ClassMember> overriddenMembers) {
   String name = parameter.name;
   List<LocatedMessage> context = overriddenMembers
@@ -2847,17 +2824,21 @@ void reportCantInferParameterType(ClassBuilder cls,
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  cls.addProblem(
+  problemReporting.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      parameter.charOffset,
+      parameter.fileOffset,
       name.length,
+      parameter.fileUri,
       wasHandled: true,
       context: context);
 }
 
-void reportCantInferTypes(ClassBuilder cls, SourceProcedureBuilder member,
-    Iterable<ClassMember> overriddenMembers) {
-  String name = member.fullNameForErrors;
+void reportCantInferTypes(
+    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
+    {required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
@@ -2868,17 +2849,21 @@ void reportCantInferTypes(ClassBuilder cls, SourceProcedureBuilder member,
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  cls.addProblem(
+  problemReporting.addProblem(
       templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
-      name.length,
+      nameOffset,
+      nameLength,
+      fileUri,
       wasHandled: true,
       context: context);
 }
 
-void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
-    Iterable<ClassMember> overriddenMembers) {
-  String name = member.fullNameForErrors;
+void reportCantInferReturnType(
+    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
+    {required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
@@ -2889,63 +2874,21 @@ void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  // // TODO(ahe): The following is for debugging, but could be cleaned up and
-  // // used to improve this error message in general.
-  //
-  // context = <LocatedMessage>[];
-  // ClassHierarchyNode supernode = hierarchy.getNodeFromType(cls.supertype);
-  // // TODO(ahe): Wrong template.
-  // Template<Message Function(String)> template =
-  //     templateMissingImplementationCause;
-  // if (supernode != null) {
-  //   Declaration superMember =
-  //       supernode.getInterfaceMember(new Name(name), false);
-  //   if (superMember != null) {
-  //     context.add(template
-  //         .withArguments(name)
-  //         .withLocation(
-  //             superMember.fileUri, superMember.charOffset, name.length));
-  //   }
-  //   superMember = supernode.getInterfaceMember(new Name(name), true);
-  //   if (superMember != null) {
-  //     context.add(template
-  //         .withArguments(name)
-  //         .withLocation(
-  //             superMember.fileUri, superMember.charOffset, name.length));
-  //   }
-  // }
-  // List<TypeBuilder> directInterfaces = cls.interfaces;
-  // for (int i = 0; i < directInterfaces.length; i++) {
-  //   ClassHierarchyNode supernode =
-  //       hierarchy.getNodeFromType(directInterfaces[i]);
-  //   if (supernode != null) {
-  //     Declaration superMember =
-  //         supernode.getInterfaceMember(new Name(name), false);
-  //     if (superMember != null) {
-  //       context.add(template
-  //           .withArguments(name)
-  //           .withLocation(
-  //               superMember.fileUri, superMember.charOffset, name.length));
-  //     }
-  //     superMember = supernode.getInterfaceMember(new Name(name), true);
-  //     if (superMember != null) {
-  //       context.add(template
-  //           .withArguments(name)
-  //           .withLocation(
-  //               superMember.fileUri, superMember.charOffset, name.length));
-  //     }
-  //   }
-  // }
-  cls.addProblem(
+  problemReporting.addProblem(
       templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
-      name.length,
+      nameOffset,
+      nameLength,
+      fileUri,
       wasHandled: true,
       context: context);
 }
 
-void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
-    Iterable<ClassMember> overriddenMembers) {
+void reportCantInferFieldType(
+    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
+    {required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
         return messageDeclaredMemberConflictsWithOverriddenMembersCause
@@ -2956,11 +2899,11 @@ void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  String name = member.fullNameForErrors;
-  cls.addProblem(
+  problemReporting.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
-      name.length,
+      nameOffset,
+      nameLength,
+      fileUri,
       wasHandled: true,
       context: context);
 }

@@ -140,11 +140,6 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   void setUriConverter(UriConverter uriConverter) {
     _uriConverter = uriConverter;
   }
-
-  @override
-  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) async {
-    return MockDartDevelopmentServiceLauncher();
-  }
 }
 
 class MockRequest extends dap.Request {

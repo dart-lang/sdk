@@ -22,13 +22,22 @@ class CiderAssistsComputer {
   final Map<ProducerGenerator, Set<LintCode>> _producerGeneratorsForLintRules;
 
   CiderAssistsComputer(
-      this._logger, this._fileResolver, this._producerGeneratorsForLintRules);
+    this._logger,
+    this._fileResolver,
+    this._producerGeneratorsForLintRules,
+  );
 
   /// Compute quick assists on the line and character position.
   Future<List<Assist>> compute(
-      String path, int lineNumber, int colNumber, int length) async {
+    String path,
+    int lineNumber,
+    int colNumber,
+    int length,
+  ) async {
     var result = <Assist>[];
-    var resolvedUnit = await _fileResolver.resolve(path: path);
+    var resolvedLibrary = await _fileResolver.resolveLibrary2(path: path);
+    var resolvedUnit = resolvedLibrary.unitWithPath(path)!;
+
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(lineNumber) + colNumber;
 
@@ -38,6 +47,7 @@ class CiderAssistsComputer {
         var context = DartAssistContextImpl(
           InstrumentationService.NULL_SERVICE,
           workspace,
+          resolvedLibrary,
           resolvedUnit,
           _producerGeneratorsForLintRules,
           offset,

@@ -13,9 +13,10 @@ void main() {
   var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
   var pathToAnalyze = provider.pathContext.join(packageRoot, 'analysis_server');
   var testDirPath = provider.pathContext.join(pathToAnalyze, 'test');
-  _VerifyTests(testDirPath, excludedPaths: [
-    provider.pathContext.join(testDirPath, 'mock_packages')
-  ]).build();
+  _VerifyTests(
+    testDirPath,
+    excludedPaths: [provider.pathContext.join(testDirPath, 'mock_packages')],
+  ).build();
 }
 
 class _VerifyTests extends VerifyTests {

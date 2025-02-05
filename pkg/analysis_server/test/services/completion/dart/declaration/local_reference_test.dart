@@ -193,7 +193,7 @@ suggestions
   }
 
   Future<void>
-      test_argumentList_instanceCreationExpression_functionalArg() async {
+  test_argumentList_instanceCreationExpression_functionalArg() async {
     newFile('$testPackageLibPath/a.dart', '''
 library A0;
 class A0 {
@@ -2510,7 +2510,7 @@ suggestions
   }
 
   Future<void>
-      test_constructor_parameters_mixed_required_and_positional() async {
+  test_constructor_parameters_mixed_required_and_positional() async {
     await computeSuggestions('''
 class A {
   A(x0, [int y0]) {
@@ -4412,7 +4412,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_abstractClass_implicitConstructor() async {
+  test_instanceCreationExpression_abstractClass_implicitConstructor() async {
     await computeSuggestions('''
 abstract class A0 {}
 
@@ -4426,7 +4426,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_assignment_expression_filter() async {
+  test_instanceCreationExpression_assignment_expression_filter() async {
     await computeSuggestions('''
 class A0 {}
 class B0 extends A0 {}
@@ -4451,7 +4451,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_assignment_expression_filter2() async {
+  test_instanceCreationExpression_assignment_expression_filter2() async {
     await computeSuggestions('''
 class A0 {}
 class B0 extends A0 {}
@@ -4536,7 +4536,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_invocationArgument_named() async {
+  test_instanceCreationExpression_invocationArgument_named() async {
     await computeSuggestions('''
 class A0 {}
 class B0 extends A0 {}
@@ -4576,7 +4576,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_variable_declaration_filter() async {
+  test_instanceCreationExpression_variable_declaration_filter() async {
     await computeSuggestions('''
 class A0 {}
 class B0 extends A0 {}
@@ -4600,7 +4600,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_variable_declaration_filter2() async {
+  test_instanceCreationExpression_variable_declaration_filter2() async {
     await computeSuggestions('''
 class A0 {}
 class B0 extends A0 {}
@@ -5330,7 +5330,7 @@ suggestions
   }
 
   Future<void>
-      test_method_parameters_mixed_required_and_positional_local() async {
+  test_method_parameters_mixed_required_and_positional_local() async {
     printerConfiguration.withParameterNames = true;
     await computeSuggestions('''
 class A {
@@ -6148,7 +6148,7 @@ suggestions
   }
 
   Future<void>
-      test_namedArgument_instanceCreation_x_localFunction_void() async {
+  test_namedArgument_instanceCreation_x_localFunction_void() async {
     await computeSuggestions('''
 class A {
   A({required void Function() a});

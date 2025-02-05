@@ -84,6 +84,7 @@
 ///     var jsArray = JsObject.jsify([1, 2, 3]);
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use dart:js_interop instead.')
 library dart.js;
 
 import 'dart:collection' show ListMixin;
@@ -208,8 +209,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   external void removeRange(int start, int end);
 
-  external void setRange(int start, int end, Iterable<E> iterable,
-      [int skipCount = 0]);
+  external void setRange(
+    int start,
+    int end,
+    Iterable<E> iterable, [
+    int skipCount = 0,
+  ]);
 
   external void sort([int compare(E a, E b)?]);
 }

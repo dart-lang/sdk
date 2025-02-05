@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Classes for representing information about the program structure.
-library vm_snapshot_analysis.program_info;
+library;
 
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
@@ -379,8 +379,7 @@ abstract class Bucketing extends BucketInfo {
   /// [cls] and function name [fun].
   String bucketFor(String? pkg, String lib, String? cls, String? fun);
 
-  const Bucketing({required List<String> nameComponents})
-      : super(nameComponents: nameComponents);
+  const Bucketing({required super.nameComponents});
 
   static const _forType = {
     HistogramType.bySymbol: _BucketBySymbol(),

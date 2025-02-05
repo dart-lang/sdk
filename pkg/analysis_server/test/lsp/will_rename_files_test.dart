@@ -28,12 +28,15 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   /// produce conflicting edits if not handled correctly.
   Future<void> test_part_partOf() async {
     // mainFileUri = lib/main.dart
-    var mainFileNewUri =
-        toUri(join(projectFolderPath, 'lib', 'dest1', 'main.dart'));
-    var otherFileUri =
-        toUri(join(projectFolderPath, 'lib', 'other', 'other.dart'));
-    var otherFileNewUri =
-        toUri(join(projectFolderPath, 'lib', 'dest2', 'other.dart'));
+    var mainFileNewUri = toUri(
+      join(projectFolderPath, 'lib', 'dest1', 'main.dart'),
+    );
+    var otherFileUri = toUri(
+      join(projectFolderPath, 'lib', 'other', 'other.dart'),
+    );
+    var otherFileNewUri = toUri(
+      join(projectFolderPath, 'lib', 'dest2', 'other.dart'),
+    );
 
     var mainContent = "part 'other/other.dart';";
     var otherContent = "part of '../main.dart';";
@@ -68,10 +71,7 @@ part of '../dest1/main.dart';<<<<<<<<<<
     var registrations = <Registration>[];
     await monitorDynamicRegistrations(registrations, initialize);
 
-    expect(
-      registrations.where(isWillRenameFilesRegistration),
-      hasLength(1),
-    );
+    expect(registrations.where(isWillRenameFilesRegistration), hasLength(1));
   }
 
   Future<void> test_registration_disabled() async {
@@ -80,27 +80,18 @@ part of '../dest1/main.dart';<<<<<<<<<<
 
     var registrations = <Registration>[];
     await provideConfig(
-      () => monitorDynamicRegistrations(
-        registrations,
-        initialize,
-      ),
+      () => monitorDynamicRegistrations(registrations, initialize),
       {'updateImportsOnRename': false},
     );
 
-    expect(
-      registrations.where(isWillRenameFilesRegistration),
-      isEmpty,
-    );
+    expect(registrations.where(isWillRenameFilesRegistration), isEmpty);
   }
 
   Future<void> test_registration_disabledThenEnabled() async {
     setAllSupportedTextDocumentDynamicRegistrations();
     setAllSupportedWorkspaceDynamicRegistrations();
     // Start disabled.
-    await provideConfig(
-      initialize,
-      {'updateImportsOnRename': false},
-    );
+    await provideConfig(initialize, {'updateImportsOnRename': false});
 
     // Collect any new registrations when enabled.
     var registrations = <Registration>[];
@@ -110,10 +101,7 @@ part of '../dest1/main.dart';<<<<<<<<<<
     );
 
     // Expect that willRenameFiles was included.
-    expect(
-      registrations.where(isWillRenameFilesRegistration),
-      hasLength(1),
-    );
+    expect(registrations.where(isWillRenameFilesRegistration), hasLength(1));
   }
 
   Future<void> test_renameFile_updatesImports() async {
@@ -196,23 +184,30 @@ final a = A();
     ///
     /// If [fileMapping] is supplied, it will be used to replace the imported
     /// paths (so that this method can also be used to build expected content).
-    Map<String, String> buildFiles(List<String> relativePaths,
-        [Map<String, String>? fileMapping]) {
+    Map<String, String> buildFiles(
+      List<String> relativePaths, [
+      Map<String, String>? fileMapping,
+    ]) {
       var contentMap = <String, String>{};
 
       for (var relativePath in relativePaths) {
-        var absolutePath = join(projectFolderPath, 'lib',
-            fileMapping?[relativePath] ?? relativePath);
+        var absolutePath = join(
+          projectFolderPath,
+          'lib',
+          fileMapping?[relativePath] ?? relativePath,
+        );
 
         // Add imports for every other file.
         var content = relativePaths
             .where((other) => other != relativePath) // Exclude self.
             .map((other) => fileMapping?[other] ?? other)
-            .expand((other) => [
-                  // Create both package + relative imports.
-                  'package:test/${_asUriString(other)}',
-                  _asRelativeUri(absolutePath, _asAbsolute(other)),
-                ])
+            .expand(
+              (other) => [
+                // Create both package + relative imports.
+                'package:test/${_asUriString(other)}',
+                _asRelativeUri(absolutePath, _asAbsolute(other)),
+              ],
+            )
             .map((uri) => "import '$uri';")
             .join('\n');
 
@@ -226,27 +221,29 @@ final a = A();
     // A file from each folder will be moved, and a file from each will remain.
     // All files will be moved into the same folder, so the relative paths
     // change,
-    var relativeTestPaths = [
-      'moving1.dart',
-      'not_moving1.dart',
-      'f1/moving2.dart',
-      'f1/not_moving2.dart',
-      'f1/f1f2/moving3.dart',
-      'f1/f1f2/not_moving3.dart',
-      'dest/not_moving4.dart',
-    ]
-        .map(convertPath)
-        // Sort the files so when we build the expected string, it's in the same
-        // order that [LspChangeVerifier] produces.
-        .sorted((a, b) => a.compareTo(b))
-        .toList();
+    var relativeTestPaths =
+        [
+              'moving1.dart',
+              'not_moving1.dart',
+              'f1/moving2.dart',
+              'f1/not_moving2.dart',
+              'f1/f1f2/moving3.dart',
+              'f1/f1f2/not_moving3.dart',
+              'dest/not_moving4.dart',
+            ]
+            .map(convertPath)
+            // Sort the files so when we build the expected string, it's in the same
+            // order that [LspChangeVerifier] produces.
+            .sorted((a, b) => a.compareTo(b))
+            .toList();
 
     // Build a mapping of old -> new paths.
     var pathMappings = {
       for (final relativeTestPath in relativeTestPaths)
-        relativeTestPath: relativeTestPath.contains('not_moving')
-            ? relativeTestPath
-            : convertPath('dest/${pathContext.basename(relativeTestPath)}')
+        relativeTestPath:
+            relativeTestPath.contains('not_moving')
+                ? relativeTestPath
+                : convertPath('dest/${pathContext.basename(relativeTestPath)}'),
     };
 
     var initialContent = buildFiles(pathMappings.keys.toList());
@@ -272,12 +269,15 @@ final a = A();
 
     // Build expected edits in the format the change verifier uses (to avoid
     // hard-coding ~100 lines of files/imports here).
-    var expectedEdits = expectedContent.entries
-        .expand((entry) => [
-              '>>>>>>>>>> lib/${_asUriString(entry.key)}\n',
-              entry.value,
-            ])
-        .join();
+    var expectedEdits =
+        expectedContent.entries
+            .expand(
+              (entry) => [
+                '>>>>>>>>>> lib/${_asUriString(entry.key)}\n',
+                entry.value,
+              ],
+            )
+            .join();
 
     // Verify they match what the content would be using the destination paths.
     verifyEdit(edit, expectedEdits);
@@ -298,7 +298,8 @@ final a = A();
   /// [from].
   String _asRelativeUri(String from, String to) {
     return _asUriString(
-        pathContext.relative(to, from: pathContext.dirname(from)));
+      pathContext.relative(to, from: pathContext.dirname(from)),
+    );
   }
 
   /// Formats a relative path with forward slashes for use as an import.

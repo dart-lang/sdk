@@ -52,13 +52,13 @@ dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
 dev_compiler/test/worker/*: Skip # test needs fixes
-front_end/test/fasta/analyze_git_test: Pass, Slow
-front_end/test/fasta/bootstrap_test: Pass, Slow
-front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
-front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
-front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
+front_end/test/analyze_git_test: Pass, Slow
+front_end/test/bootstrap_test: Pass, Slow
 front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
 front_end/test/incremental_dart2js_test: Pass, Slow
+front_end/test/rasta/*: SkipByDesign # Anything in rasta is input to cfe unit tests and shouldn't be run as tests.
+front_end/test/types/dart2js_benchmark_test: Pass, Slow
+front_end/test/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/dart_scope_calculator_test: Slow, Pass
@@ -138,6 +138,8 @@ vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
 vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -158,6 +160,9 @@ vm_service/test/issue_25465_test: SkipByDesign # Debugger is disabled in AOT mod
 vm_service/test/issue_27238_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_27287_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_56911_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_57040_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_59661_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
 vm_service/test/local_variable_declaration_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -186,6 +191,7 @@ vm_service/test/regress_55559_test: SkipByDesign # Spawns a child process from s
 vm_service/test/regress_88104_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/reload_sources_rpc_triggers_isolate_reload_event_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/reload_sources_with_resident_compiler_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/resume_shutdown_race_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/rewind*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/sdk_break_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -246,7 +252,7 @@ vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
 _macros/test/executor/executor_test: Skip # dartbug.com/56002
-front_end/test/fasta/bootstrap_test: Skip # Issue 31902
+front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
 vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
@@ -285,6 +291,9 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 # Timeout. These tests do not run efficiently on our simulator.
 [ $simulator ]
 *: Skip
+
+[ $arch == arm64 && $runtime == vm && $system == windows ]
+dds/test/log_history_size_gigantic_test: Skip # The Windows ARM64 bots are not powerful enough to run this test without it timing out
 
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
@@ -341,10 +350,6 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir
-
-[ $mode != release || $runtime != vm ]
-front_end/test/fasta/*: Skip
-front_end/tool/_fasta/*: Skip
 
 [ $browser || $jscl ]
 compiler/test/*: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).

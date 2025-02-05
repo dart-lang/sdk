@@ -16,15 +16,16 @@ void checkStatic(
   String valueOf = 'v',
 }) {
   Expect.equals(
-      expected,
-      '$arguments,'
-      '$constructor,'
-      '$hasOwnProperty,'
-      '$isPrototypeOf,'
-      '$propertyIsEnumerable,'
-      '$toLocaleString,'
-      '$toString,'
-      '$valueOf');
+    expected,
+    '$arguments,'
+    '$constructor,'
+    '$hasOwnProperty,'
+    '$isPrototypeOf,'
+    '$propertyIsEnumerable,'
+    '$toLocaleString,'
+    '$toString,'
+    '$valueOf',
+  );
 }
 
 class CheckMethod {
@@ -40,15 +41,16 @@ class CheckMethod {
     String valueOf = 'v',
   }) {
     Expect.equals(
-        expected,
-        '$arguments,'
-        '$constructor,'
-        '$hasOwnProperty,'
-        '$isPrototypeOf,'
-        '$propertyIsEnumerable,'
-        '$toLocaleString,'
-        '$toString,'
-        '$valueOf');
+      expected,
+      '$arguments,'
+      '$constructor,'
+      '$hasOwnProperty,'
+      '$isPrototypeOf,'
+      '$propertyIsEnumerable,'
+      '$toLocaleString,'
+      '$toString,'
+      '$valueOf',
+    );
   }
 
   static void check(CheckMethod object) {
@@ -87,15 +89,16 @@ class CheckMethod2 extends CheckMethod {
     toString ??= 'S';
     valueOf ??= 'v';
     Expect.equals(
-        expected,
-        '$arguments,'
-        '$constructor,'
-        '$hasOwnProperty,'
-        '$isPrototypeOf,'
-        '$propertyIsEnumerable,'
-        '$toLocaleString,'
-        '$toString,'
-        '$valueOf');
+      expected,
+      '$arguments,'
+      '$constructor,'
+      '$hasOwnProperty,'
+      '$isPrototypeOf,'
+      '$propertyIsEnumerable,'
+      '$toLocaleString,'
+      '$toString,'
+      '$valueOf',
+    );
   }
 }
 

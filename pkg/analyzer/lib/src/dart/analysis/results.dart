@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -266,12 +269,12 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
 class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final LibraryElement element;
+  final LibraryElementImpl element;
 
   LibraryElementResultImpl(this.element);
 
   @override
-  LibraryElement2 get element2 => element as LibraryElement2;
+  LibraryElementImpl get element2 => element;
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -367,7 +370,7 @@ class ResolvedForCompletionResultImpl {
   final CompilationUnit parsedUnit;
 
   /// The full element for the unit.
-  final CompilationUnitElement unitElement;
+  final LibraryFragment unitElement;
 
   /// Nodes from [parsedUnit] that were resolved to provide enough context
   /// to perform completion. How much is enough depends on the location
@@ -396,8 +399,6 @@ class ResolvedForCompletionResultImpl {
     required this.unitElement,
     required this.resolvedNodes,
   });
-
-  LibraryElement get libraryElement => unitElement.library;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
@@ -488,8 +489,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
   bool get exists => fileState.exists;
 
   @override
-  LibraryElement get libraryElement {
-    return unit.declaredElement!.library;
+  LibraryElementImpl get libraryElement {
+    var element = unit.declaredElement as CompilationUnitElementImpl;
+    return element.library;
   }
 
   @override
@@ -502,13 +504,13 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => libraryElement.typeSystem as TypeSystemImpl;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final CompilationUnitElement element;
+  final CompilationUnitElementImpl element;
 
   UnitElementResultImpl({
     required super.session,
@@ -517,5 +519,5 @@ class UnitElementResultImpl extends FileResultImpl
   });
 
   @override
-  LibraryFragment get fragment => element as LibraryFragment;
+  LibraryFragment get fragment => element;
 }

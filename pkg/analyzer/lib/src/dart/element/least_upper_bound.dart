@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:math' show max;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
@@ -9,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -71,8 +72,7 @@ class InterfaceLeastUpperBoundHelper {
       for (int i = 0; i < args1.length; i++) {
         // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
-        Variance parameterVariance =
-            (params[i] as TypeParameterElementImpl).variance;
+        Variance parameterVariance = params[i].variance;
         if (parameterVariance.isCovariant) {
           args.add(typeSystem.leastUpperBound(args1[i], args2[i]));
         } else if (parameterVariance.isContravariant) {
@@ -196,11 +196,11 @@ class InterfaceLeastUpperBoundHelper {
     return NullabilitySuffix.none;
   }
 
-  /// Return the length of the longest inheritance path from a subtype of the
-  /// given [element] to Object, where the given [depth] is the length of the
-  /// longest path from the subtype to this type. The set of [visitedElements]
-  /// is used to prevent infinite recursion in the case of a cyclic type
-  /// structure.
+  /// Returns the length of the longest inheritance path from a subtype of the
+  /// given [type] to `Object`.
+  ///
+  /// The set of [visitedElements] is used to prevent infinite recursion in the
+  /// case of a cyclic type structure.
   static int _computeLongestInheritancePathToObject(
       InterfaceType type, Set<InterfaceElement> visitedElements) {
     var element = type.element;
@@ -406,7 +406,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
-      var B1a = _typeSystem.greatestClosure(B1, [X1.element]);
+      var B1a = _typeSystem.greatestClosure(B1, [X1.element3]);
       return getLeastUpperBound(B1a, T2);
     }
 
@@ -423,7 +423,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
-      var B2a = _typeSystem.greatestClosure(B2, [X2.element]);
+      var B2a = _typeSystem.greatestClosure(B2, [X2.element3]);
       return getLeastUpperBound(T1, B2a);
     }
 
@@ -532,7 +532,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
       var bound = _typeParameterBound(T1);
-      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element3]);
       return getLeastUpperBound(closure, T2);
     }
 
@@ -550,7 +550,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
       var bound = _typeParameterBound(T2);
-      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element3]);
       return getLeastUpperBound(T1, closure);
     }
 

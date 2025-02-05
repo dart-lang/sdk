@@ -7,8 +7,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'list_factory_specializer.dart';
 
-typedef SpecializerTransformer = TreeNode Function(
-    StaticInvocation node, Member contextMember);
+typedef SpecializerTransformer =
+    TreeNode Function(StaticInvocation node, Member contextMember);
 
 abstract class BaseSpecializer {
   // Populated in constructors of subclasses.
@@ -19,12 +19,14 @@ class FactorySpecializer extends BaseSpecializer {
   final ListFactorySpecializer _listFactorySpecializer;
 
   FactorySpecializer(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : _listFactorySpecializer = ListFactorySpecializer(coreTypes, hierarchy) {
+    : _listFactorySpecializer = ListFactorySpecializer(coreTypes, hierarchy) {
     transformers.addAll(_listFactorySpecializer.transformers);
   }
 
   TreeNode transformStaticInvocation(
-      StaticInvocation invocation, Member contextMember) {
+    StaticInvocation invocation,
+    Member contextMember,
+  ) {
     final target = invocation.target;
     final transformer = transformers[target];
     if (transformer != null) {

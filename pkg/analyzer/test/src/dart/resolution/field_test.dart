@@ -34,7 +34,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
-      element2: dart:core::<fragment>::@class::Object#element
+      element2: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -64,7 +64,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
-      element2: dart:core::<fragment>::@class::Object#element
+      element2: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -97,7 +97,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -132,7 +132,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -167,7 +167,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -223,10 +223,10 @@ class A {
   var f = 0;
 }
 ''');
-    var getter = findElement.getter('f');
+    var getter = findElement2.getter('f');
     expect(getter.session, result.session);
 
-    var setter = findElement.setter('f');
+    var setter = findElement2.setter('f');
     expect(setter.session, result.session);
   }
 
@@ -236,7 +236,7 @@ class A {
   var f = 0;
 }
 ''');
-    assertType(findElement.field('f').type, 'int');
+    assertType(findElement2.field('f').type, 'int');
   }
 
   test_type_inferred_Never() async {
@@ -245,7 +245,7 @@ class A {
   var f = throw 42;
 }
 ''');
-    assertType(findElement.field('f').type, 'Never');
+    assertType(findElement2.field('f').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
@@ -254,7 +254,7 @@ class A {
   var f;
 }
 ''');
-    assertType(findElement.field('f').type, 'dynamic');
+    assertType(findElement2.field('f').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
@@ -263,7 +263,7 @@ class A {
   var f = null;
 }
 ''');
-    assertType(findElement.field('f').type, 'dynamic');
+    assertType(findElement2.field('f').type, 'dynamic');
   }
 
   test_type_scope() async {

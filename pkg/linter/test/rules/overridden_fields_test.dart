@@ -36,11 +36,8 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(45, 1),
     ]);
   }
@@ -67,13 +64,24 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(85, 1),
     ]);
+    await assertNoDiagnosticsInFile(b.path);
+  }
 
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+  test_conflictingFieldAndMethod() async {
+    await assertDiagnostics(r'''
+class A {
+  int x() => 0;
+}
+
+class B extends A {
+  int x = 9;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 1),
+    ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/2874
@@ -87,6 +95,57 @@ class B extends A {
   String field = 'otherValue';
 }
 ''');
+  }
+
+  test_extendingClass_multipleDeclarations() async {
+    await assertDiagnostics(r'''
+class A {
+  int y = 1;
+}
+class B extends A {
+  final x = 1, y = 2;
+}
+''', [
+      lint(60, 1),
+    ]);
+  }
+
+  test_extendingClass_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  abstract int x;
+}
+class B extends A {
+  @override
+  int x = 1;
+}
+''');
+  }
+
+  test_extendingClass_staticField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static int x = 1;
+}
+class B extends A {
+  static int x = 2;
+}
+''');
+  }
+
+  test_extendsClass_indirectly() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 0;
+}
+class B extends A {}
+class C extends B {
+  @override
+  int x = 1;
+}
+''', [
+      lint(84, 1),
+    ]);
   }
 
   test_externalLibrary() async {
@@ -119,6 +178,56 @@ class B extends A {
 ''', [
       error(WarningCode.UNUSED_FIELD, 44, 8),
     ]);
+  }
+
+  test_fieldOverridesGetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get a => 0;
+}
+class B extends A {
+  @override
+  int a = 1;
+}
+''');
+  }
+
+  test_implementingClass() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 1;
+}
+class B implements A {
+  @override
+  int x = 2;
+}
+''');
+  }
+
+  test_mixingInMixin() async {
+    await assertDiagnostics(r'''
+mixin M {
+  int x = 1;
+}
+class A with M {
+  @override
+  int x = 2;
+}
+''', [
+      lint(60, 1),
+    ]);
+  }
+
+  test_mixingInMixin_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  abstract int x;
+}
+class A with M {
+  @override
+  int x = 2;
+}
+''');
   }
 
   test_mixinInheritsFromNotObject() async {
@@ -195,6 +304,7 @@ class GC34 extends GC33 {
       lint(127, 5),
       lint(194, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 273, 4),
+      lint(301, 9),
       lint(343, 5),
       lint(418, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 472, 4),
@@ -206,6 +316,63 @@ class GC34 extends GC33 {
       lint(821, 4),
       lint(883, 1),
       lint(912, 4),
+    ]);
+  }
+
+  test_mixinSuperclassConstraint() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 1;
+}
+mixin M on A {
+  @override
+  final x = 1;
+}
+''', [
+      lint(60, 1),
+    ]);
+  }
+
+  test_overridingAbstractField() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  abstract int x;
+}
+
+class B extends A {
+  @override
+  int x = 1;
+}
+''');
+  }
+
+  test_privateFieldInSameLibrary() async {
+    await assertDiagnostics(r'''
+class A {
+  int _x = 0;
+}
+
+class B extends A {
+  int _x = 9;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 16, 2),
+      lint(53, 2),
+      error(WarningCode.UNUSED_FIELD, 53, 2),
+    ]);
+  }
+
+  test_publicFieldInSameLibrary() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 0;
+}
+
+class B extends A {
+  int x = 9;
+}
+''', [
+      lint(52, 1),
     ]);
   }
 

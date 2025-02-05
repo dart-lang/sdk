@@ -1,0 +1,70 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_59870_02.dart:12:32: Error: The class 'Function' can't be implemented outside of its library because it's a final class.
+// mixin MAiBC on A implements B, Function { }
+//                                ^
+//
+// pkg/front_end/testcases/regress/issue_59870_02.dart:13:20: Error: The class 'Function' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+// mixin MBCiIJ on B, Function implements I, J { }
+//                    ^
+//
+// pkg/front_end/testcases/regress/issue_59870_02.dart:13:7: Error: The mixin 'MBCiIJ' must be 'base' because the supertype 'Function' is 'final'.
+// Try adding 'base' to the mixin.
+// mixin MBCiIJ on B, Function implements I, J { }
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_59870_02.dart:15:7: Error: The type 'CAaMAiBCaMBCiIJ_2' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_59870_02.dart:15:7: Error: 'CAaMAiBC' doesn't implement '_MBCiIJ&B&Function' so it can't be used with 'MBCiIJ'.
+//  - 'CAaMAiBC' is from 'pkg/front_end/testcases/regress/issue_59870_02.dart'.
+//  - 'B with Function' is from 'pkg/front_end/testcases/regress/issue_59870_02.dart'.
+//  - 'MBCiIJ' is from 'pkg/front_end/testcases/regress/issue_59870_02.dart'.
+// class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+}
+abstract class J extends core::Object {
+  synthetic constructor •() → self::J
+    ;
+}
+abstract class MAiBC extends self::A implements self::B /*isMixinDeclaration*/  {
+}
+abstract class _MBCiIJ&B&Function extends core::Object implements self::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MBCiIJ&B&Function
+    ;
+}
+abstract class MBCiIJ extends self::_MBCiIJ&B&Function implements self::I, self::J /*isMixinDeclaration*/  {
+}
+class CAaMAiBC = self::A with self::MAiBC {
+  synthetic constructor •() → self::CAaMAiBC
+    : super self::A::•()
+    ;
+}
+abstract class _CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ = self::CAaMAiBC with self::MBCiIJ /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ
+    : super self::CAaMAiBC::•()
+    ;
+}
+class CAaMAiBCaMBCiIJ_2 extends self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ {
+  synthetic constructor •() → self::CAaMAiBCaMBCiIJ_2
+    ;
+}

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -9,10 +11,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -77,6 +79,35 @@ class ElementTextConfiguration {
   ElementTextConfiguration({
     this.filter = _filterTrue,
   });
+
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> extensionTypeNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is ExtensionTypeElement) {
+        return extensionTypeNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
+  }
 
   static bool _filterTrue(Object element) => true;
 }
@@ -182,6 +213,16 @@ abstract class _AbstractElementWriter {
       });
     }
   }
+
+  void _writeReference2(ElementImpl2 e) {
+    var reference = e.reference;
+    if (reference != null) {
+      _sink.writeIndentedLine(() {
+        _sink.write('reference: ');
+        _elementPrinter.writeReference(reference);
+      });
+    }
+  }
 }
 
 /// Writes the canonical text presentation of elements.
@@ -205,8 +246,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       // _writeList(
       //   'libraryExports',
@@ -230,7 +270,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList('getters', e, e.getters, _writeGetterElement);
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList(
-          'functions', e, e.functions, _writeTopLevelFunctionElement);
+          'functions', e, e.topLevelFunctions, _writeTopLevelFunctionElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -253,28 +293,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(element.nonSynthetic2, same(element));
   }
 
-  String _elementName(Element2 e) {
-    var name = e.name ?? '<null>';
-    if (e is SetterElement) {
-      expect(name, endsWith('='));
-    }
-    if (name.isEmpty && e is ConstructorElement2) {
-      return 'new';
-    }
-    return name;
-  }
-
-  String _fragmentName(Fragment f) {
-    var name = f.name ?? '<null>';
-    if (f is PropertyAccessorElementImpl && f.isSetter) {
-      expect(name, endsWith('='));
-    }
-    if (name.isEmpty && f is ConstructorFragment) {
-      return 'new';
-    }
-    return name;
-  }
-
   void _writeConstructorElement(ConstructorElement2 e) {
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -294,8 +312,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeDisplayName(e);
 
       _writeElementList(
@@ -358,16 +375,17 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
-      var periodOffset = f.periodOffset;
-      var nameEnd = f.nameEnd;
-      if (periodOffset != null && nameEnd != null) {
+      _sink.writelnWithIndent('typeName: ${f.typeName}');
+      if (f.typeNameOffset case var typeNameOffset?) {
+        _sink.writelnWithIndent('typeNameOffset: $typeNameOffset');
+      }
+
+      if (f.periodOffset case var periodOffset?) {
         _sink.writelnWithIndent('periodOffset: $periodOffset');
-        _sink.writelnWithIndent('nameEnd: $nameEnd');
       }
 
       _writeFragmentList(
@@ -449,7 +467,7 @@ class _Element2Writer extends _AbstractElementWriter {
             // element, only an enclosing fragment).
           } else {
             if (expectedEnclosingElement is Member) {
-              expectedEnclosingElement = expectedEnclosingElement.baseElement!;
+              expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
             expect(element.enclosingElement2, expectedEnclosingElement);
           }
@@ -460,7 +478,25 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementName(Element2 e) {
-    _sink.write(_elementName(e));
+    var name = e.name3 ?? '<null-name>';
+    _sink.write(name);
+
+    switch (e) {
+      case MethodElement2():
+        if (e.name3 == '-' && e.formalParameters.isEmpty) {
+          expect(e.lookupName, 'unary-');
+        } else {
+          expect(e.lookupName, e.name3);
+        }
+      case SetterElement():
+        if (e.name3 case var name?) {
+          expect(e.lookupName, '$name=');
+        } else {
+          expect(e.lookupName, isNull);
+        }
+      default:
+        expect(e.lookupName, e.name3);
+    }
   }
 
   void _writeElementReference(String name, Element2? e) {
@@ -497,16 +533,15 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
-      _sink.writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
-      _sink.writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
-      _sink.writeIf(e is FieldElementImpl && e.isExternal, 'external ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      _sink.writeIf(e.isCovariant, 'covariant ');
+      _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isLate, 'late ');
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.isConst, 'const ');
-      if (e is FieldElementImpl) {
-        _sink.writeIf(e.isEnumConstant, 'enumConstant ');
-        _sink.writeIf(e.isPromotable, 'promotable ');
-      }
+      _sink.writeIf(e.isEnumConstant, 'enumConstant ');
+      _sink.writeIf(e.isPromotable, 'promotable ');
+      _sink.writeIf(e.hasInitializer, 'hasInitializer ');
 
       _writeElementName(e);
     });
@@ -562,19 +597,9 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // _sink.writeIf(f.isAugmentation, 'augment ');
-      // _sink.writeIf(f.isSynthetic, 'synthetic ');
-      // _sink.writeIf(f.isStatic, 'static ');
-      _sink.writeIf(f is FieldElementImpl && f.isAbstract, 'abstract ');
-      _sink.writeIf(f is FieldElementImpl && f.isCovariant, 'covariant ');
-      _sink.writeIf(f is FieldElementImpl && f.isExternal, 'external ');
-      // _sink.writeIf(f.isLate, 'late ');
-      // _sink.writeIf(f.isFinal, 'final ');
-      // _sink.writeIf(f.isConst, 'const ');
-      if (f is FieldElementImpl) {
-        _sink.writeIf(f.isEnumConstant, 'enumConstant ');
-        _sink.writeIf(f.isPromotable, 'promotable ');
-      }
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      _sink.writeIf(f.isSynthetic, 'synthetic ');
+      _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _writeFragmentName(f);
     });
@@ -641,6 +666,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -655,8 +681,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -717,8 +742,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       // _writeType('type', f.type);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
       // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
@@ -770,9 +794,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writelnWithIndent(name);
       _sink.withIndent(() {
         for (var element in filtered) {
-          expect(element.enclosingFragment, expectedEnclosingFragment);
-          // TODO(brianwilkerson): Explicitly check the next/previous fragment
-          //  attributes and stop writing them to the dump.
+          if (expectedEnclosingFragment != null) {
+            expect(element.enclosingFragment, expectedEnclosingFragment);
+          }
           write(element);
         }
       });
@@ -780,12 +804,13 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFragmentName(Fragment f) {
-    var name = _fragmentName(f);
-    _sink.write(name);
-    var offset = f.nameOffset;
-    if (offset != null) {
-      _sink.write(name.isNotEmpty ? ' @' : '@');
-      _sink.write(offset);
+    if (f.name2 == null) {
+      expect(f.nameOffset2, isNull);
+    }
+
+    _sink.write(f.name2 ?? '<null-name>');
+    if (f.nameOffset2 case var nameOffset?) {
+      _sink.write(' @$nameOffset');
     }
   }
 
@@ -807,10 +832,8 @@ class _Element2Writer extends _AbstractElementWriter {
     } else {
       element = f.element;
       if (element is! ElementImpl) {
-        if (element is NotAugmentedInstanceElementImpl) {
-          element = element.baseElement;
-        } else if (element is MaybeAugmentedInstanceElementMixin) {
-          element = element.declaration;
+        if (element is InstanceElementImpl2) {
+          element = element.firstFragment;
         }
       }
     }
@@ -875,8 +898,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -894,16 +916,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeGetterFragment(GetterFragment f) {
     var variable = f.variable3;
-    if (variable != null) {
-      var variableEnclosing = variable.enclosingFragment;
-      if (variableEnclosing is LibraryFragment) {
-        expect(variableEnclosing.topLevelVariables2, contains(variable));
-      } else if (variableEnclosing is InterfaceFragment) {
-        expect(variableEnclosing.fields2, contains(variable));
-      }
+    if (f.isAugmentation) {
+      expect(variable, isNull);
     } else {
-      expect(f.isAugmentation, isTrue);
-      expect(f.previousFragment, isNull);
+      var enclosing = variable!.enclosingFragment;
+      switch (enclosing) {
+        case LibraryFragment():
+          expect(enclosing.topLevelVariables2, contains(variable));
+        case InterfaceFragment():
+          expect(enclosing.fields2, contains(variable));
+      }
     }
 
     // if (f.isSynthetic) {
@@ -915,13 +937,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writeIndentedLine(() {
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // _sink.writeIf(e.isSynthetic, 'synthetic ');
-      // _sink.writeIf(e.isStatic, 'static ');
-      // _sink.writeIf(e.isAbstract, 'abstract ');
-      // _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _sink.write('get ');
-
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });
@@ -941,8 +959,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
@@ -965,15 +982,19 @@ class _Element2Writer extends _AbstractElementWriter {
     if (fragment != null) {
       _sink.writeIf(fragment.isDeferred, ' deferred');
       _sink.write(' as ');
-      _sink.write(fragment.name);
-      _sink.write(' @${fragment.nameOffset}');
+      _writeFragmentName(fragment);
     }
   }
 
-  void _writeInstanceElement(InstanceElement2 e) {
+  void _writeInstanceElement(InstanceElementImpl2 e) {
+    expect(e.thisOrAncestorOfType2<InstanceElement2>(), same(e));
+    expect(e.thisOrAncestorOfType2<GetterElement>(), isNull);
+    expect(e.thisOrAncestorMatching2((_) => true), same(e));
+    expect(e.thisOrAncestorMatching2((_) => false), isNull);
+
     _sink.writeIndentedLine(() {
       switch (e) {
-        case ClassElement2():
+        case ClassElementImpl2():
           _sink.writeIf(e.isAbstract, 'abstract ');
           // _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
@@ -984,12 +1005,12 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
-        case EnumElement2():
+        case EnumElementImpl2():
           // _writeNotSimplyBounded(e);
           _sink.write('enum ');
-        case ExtensionElement2():
+        case ExtensionElementImpl2():
           _sink.write('extension ');
-        case ExtensionTypeElement2():
+        case ExtensionTypeElementImpl2():
           //   _sink.writeIf(
           //     e.hasRepresentationSelfReference,
           //     'hasRepresentationSelfReference ',
@@ -1000,7 +1021,7 @@ class _Element2Writer extends _AbstractElementWriter {
           //   );
           //   // _writeNotSimplyBounded(e);
           _sink.write('extension type ');
-        case MixinElement2():
+        case MixinElementImpl2():
           _sink.writeIf(e.isBase, 'base ');
           // _writeNotSimplyBounded(e);
           _sink.write('mixin ');
@@ -1010,50 +1031,67 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeSinceSdkVersion(e.metadata2.sinceSdkVersion);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
 
-      if (e is InterfaceElement2) {
-        var supertype = e.supertype;
-        if (supertype != null &&
-            (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
-          _writeType('supertype', supertype);
+      void writeSupertype(InterfaceElement2 e) {
+        if (e.supertype case var supertype?) {
+          if (supertype.element.name != 'Object' || e.mixins.isNotEmpty) {
+            _writeType('supertype', supertype);
+          }
         }
       }
 
-      if (e is ExtensionTypeElement2) {
-        // _elementPrinter.writeNamedElement('representation', e.representation2);
-        // _elementPrinter.writeNamedElement(
-        //     'primaryConstructor', e.primaryConstructor2);
-        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+      switch (e) {
+        case ClassElementImpl2():
+          writeSupertype(e);
+          _elementPrinter.writeTypeList('mixins', e.mixins);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case EnumElementImpl2():
+          writeSupertype(e);
+          _elementPrinter.writeTypeList('mixins', e.mixins);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case ExtensionElementImpl2():
+          break;
+        case ExtensionTypeElementImpl2():
+          expect(e.supertype, isNull);
+          _elementPrinter.writelnNamedElement2(
+            'representation',
+            e.representation2,
+          );
+          _elementPrinter.writelnNamedElement2(
+            'primaryConstructor',
+            e.primaryConstructor2,
+          );
+          _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case MixinElementImpl2():
+          expect(e.supertype, isNull);
+          _elementPrinter.writeTypeList(
+            'superclassConstraints',
+            e.superclassConstraints,
+          );
+          expect(e.mixins, isEmpty);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        default:
+          throw UnimplementedError('${e.runtimeType}');
       }
 
-      if (e is MixinElement2) {
-        _elementPrinter.writeTypeList(
-          'superclassConstraints',
-          e.superclassConstraints,
-        );
-      }
-
-      // TODO(brianwilkerson): Add a `writeTypeList2` that will use the new API
-      //  version of the elements of type parameters.
-      // _elementPrinter.writeTypeList('mixins', e.mixins);
-      // _elementPrinter.writeTypeList('interfaces', e.interfaces);
-
-      if (configuration.withAllSupertypes && e is InterfaceElement2) {
+      if (configuration.withAllSupertypes && e is InterfaceElementImpl2) {
         var sorted = e.allSupertypes.sortedBy((t) => t.element.name);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
       _writeElementList('fields', e, e.fields2, _writeFieldElement);
-      if (e is InterfaceElement2) {
+      if (e is InterfaceElementImpl2) {
         var constructors = e.constructors2;
-        if (e is MixinElement2) {
+        if (e is MixinElementImpl2) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
           _writeElementList(
@@ -1105,15 +1143,7 @@ class _Element2Writer extends _AbstractElementWriter {
           // _writeNotSimplyBounded(f);
           _sink.write('mixin ');
       }
-      var name = f.element.name;
-      if (name != null) {
-        _sink.write(name);
-      }
-      var offset = f.nameOffset;
-      if (offset != null) {
-        _sink.write(' @');
-        _sink.write(offset);
-      }
+      _writeFragmentName(f);
     });
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
@@ -1147,10 +1177,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeMetadata(f.metadata);
+      _writeMetadata(f.metadata2, includeSince: false);
 
       if (configuration.withImports) {
         var imports = f.libraryImports2.where((import) {
@@ -1163,7 +1194,8 @@ class _Element2Writer extends _AbstractElementWriter {
           _writeLibraryImport,
         );
       }
-      _writeElementList('prefixes', f, f.prefixes, _writePrefixElement);
+      _writeElementList(
+          'prefixes', f.library2!, f.prefixes, _writePrefixElement);
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);
@@ -1214,7 +1246,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata);
+      _writeMetadata(e.metadata2, includeSince: false);
       // _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1489,8 +1521,9 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMetadata(List<ElementAnnotation> annotations) {
+  void _writeMetadata(Metadata metadata, {bool includeSince = true}) {
     if (configuration.withMetadata) {
+      var annotations = metadata.annotations;
       if (annotations.isNotEmpty) {
         _sink.writelnWithIndent('metadata');
         _sink.withIndent(() {
@@ -1501,9 +1534,12 @@ class _Element2Writer extends _AbstractElementWriter {
         });
       }
     }
+    if (includeSince) {
+      _writeSinceSdkVersion(metadata.sinceSdkVersion);
+    }
   }
 
-  void _writeMethodElement(MethodElement2 e) {
+  void _writeMethodElement(MethodElementImpl2 e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
@@ -1514,11 +1550,11 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeTypeInferenceError(e);
 
       _writeElementList(
@@ -1564,8 +1600,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       _writeFragmentCodeRange(f);
       // _writeTypeInferenceError(f);
 
@@ -1599,7 +1634,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('fragments: ');
         _sink.write(e.fragments.map((f) {
           expect(f.element, same(e));
-          return '@${f.nameOffset}';
+          expect(f.name2, e.name3);
+          return '@${f.nameOffset2}';
         }).join(' '));
       });
     });
@@ -1650,8 +1686,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -1669,16 +1704,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeSetterFragment(SetterFragment f) {
     var variable = f.variable3;
-    if (variable != null) {
-      var variableEnclosing = variable.enclosingFragment;
-      if (variableEnclosing is LibraryFragment) {
-        expect(variableEnclosing.topLevelVariables2, contains(variable));
-      } else if (variableEnclosing is InterfaceFragment) {
-        expect(variableEnclosing.fields2, contains(variable));
-      }
+    if (f.isAugmentation) {
+      expect(variable, isNull);
     } else {
-      expect(f.isAugmentation, isTrue);
-      expect(f.previousFragment, isNull);
+      var enclosing = variable!.enclosingFragment;
+      switch (enclosing) {
+        case LibraryFragment():
+          expect(enclosing.topLevelVariables2, contains(variable));
+        case InterfaceFragment():
+          expect(enclosing.fields2, contains(variable));
+      }
     }
 
     // if (f.isSynthetic) {
@@ -1690,10 +1725,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writeIndentedLine(() {
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // _sink.writeIf(f.isSynthetic, 'synthetic ');
-      // _sink.writeIf(f.isStatic, 'static ');
-      // _sink.writeIf(f.isAbstract, 'abstract ');
-      // _sink.writeIf(f.isExternal, 'external ');
+      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _sink.write('set ');
       _writeFragmentName(f);
@@ -1715,8 +1747,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
 
       expect(f.typeParameters2, isEmpty);
@@ -1741,7 +1772,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeTopLevelFunctionElement(TopLevelFunctionElement e) {
+  void _writeTopLevelFunctionElement(TopLevelFunctionElementImpl e) {
     expect(e.isStatic, isTrue);
 
     _sink.writeIndentedLine(() {
@@ -1752,10 +1783,10 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -1792,8 +1823,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(e);
       _writeFragmentList(
         'typeParameters',
@@ -1816,12 +1846,12 @@ class _Element2Writer extends _AbstractElementWriter {
     // _assertNonSyntheticElementSelf(f);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElement2 e) {
+  void _writeTopLevelVariableElement(TopLevelVariableElementImpl2 e) {
     DartType type = e.type;
     expect(type, isNotNull);
 
     if (!e.isSynthetic) {
-      expect(e.getter2, isNotNull);
+      // expect(e.getter2, isNotNull);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -1830,6 +1860,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isLate, 'late ');
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.hasInitializer, 'hasInitializer ');
 
       _writeElementName(e);
     });
@@ -1851,10 +1882,10 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
@@ -1885,9 +1916,8 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
-      // _sink.writeIf(f.isLate, 'late ');
-      _sink.writeIf(f.isFinal, 'final ');
-      _sink.writeIf(f.isConst, 'const ');
+      _sink.writeIf(f.hasInitializer, 'hasInitializer ');
+
       _writeFragmentName(f);
     });
 
@@ -1911,8 +1941,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
@@ -1953,8 +1982,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
@@ -1992,8 +2020,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(e);
       _writeFragmentList(
           'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
@@ -2036,7 +2063,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(e.metadata);
+      _writeMetadata(e.metadata2, includeSince: false);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2062,7 +2089,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(f.metadata);
+      _writeMetadata(f.metadata2, includeSince: false);
     });
 
     // _assertNonSyntheticElementSelf(f);
@@ -2092,19 +2119,7 @@ class _ElementWriter extends _AbstractElementWriter {
         _sink.writelnWithIndent('nameOffset: $nameOffset');
       }
 
-      _writeLibraryOrAugmentationElement(e);
-
-      // ignore:deprecated_member_use_from_same_package
-      for (var part in e.parts) {
-        if (part.uri case DirectiveUriWithUnitImpl uri) {
-          expect(uri.unit.libraryOrAugmentationElement, same(e));
-        }
-      }
-
-      // ignore:deprecated_member_use_from_same_package
-      _writeElements('parts', e.parts, (part) {
-        _sink.writelnWithIndent(_idMap[part]);
-      });
+      _writeLibraryElement(e);
 
       _writeElements('units', e.units, (unit) {
         _sink.writeIndent();
@@ -2133,6 +2148,15 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
       _writeMacroDiagnostics(e);
     });
+  }
+
+  void _assertEnclosingElement<E extends Element>(
+    Iterable<E> elements,
+    Element enclosingElement,
+  ) {
+    for (var element in elements) {
+      expect(element.enclosingElement3, same(enclosingElement));
+    }
   }
 
   void _assertNonSyntheticElementSelf(Element element) {
@@ -2188,7 +2212,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
     // No augmentation, not interesting.
     if (e.augmentation == null) {
-      expect(e.augmented, TypeMatcher<NotAugmentedInstanceElementImpl>());
       if (!configuration.withAugmentedWithoutAugmentation) {
         return;
       }
@@ -2205,7 +2228,7 @@ class _ElementWriter extends _AbstractElementWriter {
       if (!configuration.withConstructors) {
         return;
       }
-      if (augmented is AugmentedInterfaceElementImpl) {
+      if (augmented is InterfaceElementImpl2) {
         var sorted = augmented.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);
         _elementPrinter.writeElementList('constructors', sorted);
@@ -2289,9 +2312,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeCodeRange(Element e) {
     if (configuration.withCodeRanges && !e.isSynthetic) {
-      if (e is MaybeAugmentedInstanceElementMixin) {
-        e = e.declaration!;
-      }
       e as ElementImpl;
       _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
       _sink.writelnWithIndent('codeLength: ${e.codeLength}');
@@ -2619,6 +2639,20 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
+  void _writeLibraryElement(LibraryElementImpl e) {
+    _writeReference(e);
+
+    _writeDocumentation(e);
+    _writeMetadata(e);
+    _writeSinceSdkVersion(e);
+
+    var definingUnit = e.definingCompilationUnit;
+    expect(definingUnit.enclosingFragment, isNull);
+    if (configuration.filter(definingUnit)) {
+      _elementPrinter.writeNamedElement('definingUnit', definingUnit);
+    }
+  }
+
   void _writeLibraryExportElement(LibraryExportElementImpl e) {
     e.location;
 
@@ -2651,41 +2685,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
-  }
-
-  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
-    _writeReference(e);
-
-    _writeDocumentation(e);
-    _writeMetadata(e);
-    _writeSinceSdkVersion(e);
-
-    if (configuration.withImports) {
-      // ignore:deprecated_member_use_from_same_package
-      var imports = e.libraryImports.where((import) {
-        return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
-      }).toList();
-      _writeElements(
-        'libraryImports',
-        imports,
-        _writeLibraryImportElement,
-      );
-      // ignore:deprecated_member_use_from_same_package
-      _writeElements('prefixes', e.prefixes, _writePrefixElement);
-    }
-
-    _writeElements(
-      'libraryExports',
-      // ignore:deprecated_member_use_from_same_package
-      e.libraryExports,
-      _writeLibraryExportElement,
-    );
-
-    var definingUnit = e.definingCompilationUnit;
-    expect(definingUnit.libraryOrAugmentationElement, same(e));
-    if (configuration.filter(definingUnit)) {
-      _elementPrinter.writeNamedElement('definingUnit', definingUnit);
-    }
   }
 
   void _writeMacroDiagnostics(Element e) {
@@ -3074,6 +3073,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -3138,16 +3138,16 @@ class _ElementWriter extends _AbstractElementWriter {
     e as PropertyAccessorElementImpl;
 
     var variable = e.variable2;
-    if (variable != null) {
-      var variableEnclosing = variable.enclosingElement3;
-      if (variableEnclosing is CompilationUnitElement) {
-        expect(variableEnclosing.topLevelVariables, contains(variable));
-      } else if (variableEnclosing is InterfaceElement) {
-        expect(variableEnclosing.fields, contains(variable));
-      }
+    if (e.isAugmentation) {
+      expect(variable, isNull);
     } else {
-      expect(e.isAugmentation, isTrue);
-      expect(e.augmentationTarget, isNull);
+      var enclosing = variable!.enclosingElement3;
+      switch (enclosing) {
+        case CompilationUnitElement():
+          expect(enclosing.topLevelVariables, contains(variable));
+        case InterfaceElement():
+          expect(enclosing.fields, contains(variable));
+      }
     }
 
     if (e.isSynthetic) {
@@ -3341,6 +3341,8 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
+
+      _assertEnclosingElement(e.typeParameters, e);
       _writeTypeParameterElements(e.typeParameters);
 
       var aliasedType = e.aliasedType;
@@ -3348,10 +3350,21 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
+        expect(aliasedElement.enclosingElement3, same(e));
         _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _sink.withIndent(() {
+          _assertEnclosingElement(
+            aliasedElement.typeParameters,
+            aliasedElement,
+          );
           _writeTypeParameterElements(aliasedElement.typeParameters);
+
+          _assertEnclosingElement(
+            aliasedElement.parameters,
+            aliasedElement,
+          );
           _writeParameterElements(aliasedElement.parameters);
+
           _writeReturnType(aliasedElement.returnType);
         });
       }

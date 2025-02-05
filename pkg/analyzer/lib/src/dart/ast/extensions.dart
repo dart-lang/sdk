@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -278,6 +280,10 @@ extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;
   }
+
+  Element2? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
+  }
 }
 
 extension ListOfFormalParameterExtension on List<FormalParameter> {
@@ -306,6 +312,15 @@ extension NamedTypeExtension on NamedType {
     } else {
       return name2.lexeme;
     }
+  }
+}
+
+extension NullableStringExtension on String? {
+  bool get isEmptyOrNull {
+    var str = this;
+    if (str == null) return true;
+    if (str.isEmpty) return true;
+    return false;
   }
 }
 

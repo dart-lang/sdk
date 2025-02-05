@@ -43,12 +43,21 @@ void testModifiableList(l1) {
   // Note: this is the last expectation because, when `!v.checkedParameters`
   // this ends up modifying [l1].
   final e = Expect.throwsWhen(
-      v.checkedParameters, () => l1.removeAt(null), "index is null");
+    v.checkedParameters,
+    () => l1.removeAt(null),
+    "index is null",
+  );
   if (e != null) {
-    Expect.equals(!v.unsoundNullSafety, e is TypeError,
-        "TypeError expected in sound null safety");
-    Expect.equals(v.unsoundNullSafety, e is ArgumentError,
-        "ArgumentError expected in unsound null safety");
+    Expect.equals(
+      !v.unsoundNullSafety,
+      e is TypeError,
+      "TypeError expected in sound null safety",
+    );
+    Expect.equals(
+      v.unsoundNullSafety,
+      e is ArgumentError,
+      "ArgumentError expected in unsound null safety",
+    );
   }
 }
 

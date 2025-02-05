@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -18,12 +18,16 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir =
-        Directory.fromUri(Platform.script.resolve('inference_data'));
-    await checkTests(dataDir, const InferenceDataComputer(),
-        args: args,
-        testedConfigs: allSpecConfigs,
-        options: [stopAfterTypeInference]);
+    Directory dataDir = Directory.fromUri(
+      Platform.script.resolve('inference_data'),
+    );
+    await checkTests(
+      dataDir,
+      const InferenceDataComputer(),
+      args: args,
+      testedConfigs: allSpecConfigs,
+      options: [stopAfterTypeInference],
+    );
   });
 }
 
@@ -40,15 +44,21 @@ class InferenceDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    InferredDataIrComputer(compiler.reporter, actualMap, closedWorld,
-            compiler.globalInference.resultsForTesting!.inferredData)
-        .run(definition.node);
+    InferredDataIrComputer(
+      compiler.reporter,
+      actualMap,
+      closedWorld,
+      compiler.globalInference.resultsForTesting!.inferredData,
+    ).run(definition.node);
   }
 
   @override
@@ -61,11 +71,11 @@ class InferredDataIrComputer extends IrDataExtractor<String> {
   final InferredData inferredData;
 
   InferredDataIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this.closedWorld,
-      this.inferredData)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this.closedWorld,
+    this.inferredData,
+  ) : super(reporter, actualMap);
 
   JsToElementMap get _elementMap => closedWorld.elementMap;
 
@@ -95,8 +105,9 @@ class InferredDataIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

@@ -7,7 +7,7 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 class FileAndDir {
   FileEntry file;
@@ -20,7 +20,7 @@ main() async {
   // test the functions that use those items.
   Future doDirSetup(String testName) async {
     final fs = await window.requestFileSystem(100);
-    // Prepend this file name to prevent collisions among tests runnning on the
+    // Prepend this file name to prevent collisions among tests running on the
     // same browser.
     const prefix = 'fileapi_directory_reader_';
     var file =

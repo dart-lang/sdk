@@ -31,8 +31,11 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
 int regExpCaptureCount(JSSyntaxRegExp regexp) {
   var nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
   JS('void', '#.lastIndex = #', nativeAnchoredRegExp, 0);
-  JSExtendableArray match =
-      JS('JSExtendableArray', "#.exec('')", nativeAnchoredRegExp);
+  JSExtendableArray match = JS(
+    'JSExtendableArray',
+    "#.exec('')",
+    nativeAnchoredRegExp,
+  );
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.
   return match.length - 2;
@@ -47,19 +50,32 @@ class JSSyntaxRegExp implements RegExp {
   String toString() =>
       'RegExp/$pattern/' + JS<String>('!', '#.flags', _nativeRegExp);
 
-  JSSyntaxRegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false})
-      : this.pattern = source,
-        this._nativeRegExp = makeNative(
-            source, multiLine, caseSensitive, unicode, dotAll, false);
+  JSSyntaxRegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) : this.pattern = source,
+       this._nativeRegExp = makeNative(
+         source,
+         multiLine,
+         caseSensitive,
+         unicode,
+         dotAll,
+         false,
+       );
 
   get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
     return _nativeGlobalRegExp = makeNative(
-        pattern, _isMultiLine, _isCaseSensitive, _isUnicode, _isDotAll, true);
+      pattern,
+      _isMultiLine,
+      _isCaseSensitive,
+      _isUnicode,
+      _isDotAll,
+      true,
+    );
   }
 
   get _nativeAnchoredVersion {
@@ -69,8 +85,14 @@ class JSSyntaxRegExp implements RegExp {
     // that it tries, and you can see if the original regexp matched, or it
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative("$pattern|()", _isMultiLine,
-        _isCaseSensitive, _isUnicode, _isDotAll, true);
+    return _nativeAnchoredRegExp = makeNative(
+      "$pattern|()",
+      _isMultiLine,
+      _isCaseSensitive,
+      _isUnicode,
+      _isDotAll,
+      true,
+    );
   }
 
   bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
@@ -80,8 +102,14 @@ class JSSyntaxRegExp implements RegExp {
   // currently assume this is non-null.  Coerce to false if not present.
   bool get _isDotAll => JS("bool", "#.dotAll == true", _nativeRegExp);
 
-  static makeNative(@nullCheck String source, bool multiLine,
-      bool caseSensitive, bool unicode, bool dotAll, bool global) {
+  static makeNative(
+    @nullCheck String source,
+    bool multiLine,
+    bool caseSensitive,
+    bool unicode,
+    bool dotAll,
+    bool global,
+  ) {
     String m = multiLine ? 'm' : '';
     String i = caseSensitive ? '' : 'i';
     String u = unicode ? 'u' : '';
@@ -91,20 +119,21 @@ class JSSyntaxRegExp implements RegExp {
     // to avoid dragging in Dart runtime support just because of using
     // RegExp.
     var regexp = JS(
-        '',
-        '(function() {'
-            'try {'
-            'return new RegExp(#, # + # + # + # + #);'
-            '} catch (e) {'
-            'return e;'
-            '}'
-            '})()',
-        source,
-        m,
-        i,
-        u,
-        s,
-        g);
+      '',
+      '(function() {'
+          'try {'
+          'return new RegExp(#, # + # + # + # + #);'
+          '} catch (e) {'
+          'return e;'
+          '}'
+          '})()',
+      source,
+      m,
+      i,
+      u,
+      s,
+      g,
+    );
     if (JS<bool>('!', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
@@ -131,8 +160,10 @@ class JSSyntaxRegExp implements RegExp {
     return null;
   }
 
-  Iterable<RegExpMatch> allMatches(@nullCheck String string,
-      [@nullCheck int start = 0]) {
+  Iterable<RegExpMatch> allMatches(
+    @nullCheck String string, [
+    @nullCheck int start = 0,
+  ]) {
     if (start < 0 || start > string.length) {
       throw RangeError.range(start, 0, string.length);
     }

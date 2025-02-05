@@ -7,16 +7,16 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
 //
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
+
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+library;
 
 import "package:analyzer/error/error.dart";
 
@@ -287,11 +287,11 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     "The option '{1}' isn't supported by '{0}'.",
   );
 
-  ///  An error code indicating that a plugin is being configured with an
+  ///  An error code indicating that a YAML section is being configured with an
   ///  unsupported option where there is just one legal value.
   ///
   ///  Parameters:
-  ///  0: the plugin name
+  ///  0: the section name
   ///  1: the unsupported option key
   ///  2: the legal value
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
@@ -301,11 +301,11 @@ class AnalysisOptionsWarningCode extends ErrorCode {
         "option: '{2}'.",
   );
 
-  ///  An error code indicating that a plugin is being configured with an
+  ///  An error code indicating that a YAML section is being configured with an
   ///  unsupported option and legal options are provided.
   ///
   ///  Parameters:
-  ///  0: the plugin name
+  ///  0: the section name
   ///  1: the unsupported option key
   ///  2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =

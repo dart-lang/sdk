@@ -45,8 +45,11 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
     var next = _next(variables, node);
 
     await builder.addDartFileEdit(file, (builder) {
-      void replaceWithNewLine(SourceRange range,
-          {String? before, String? after}) {
+      void replaceWithNewLine(
+        SourceRange range, {
+        String? before,
+        String? after,
+      }) {
         builder.addReplacement(range, (builder) {
           if (before != null) {
             builder.write(before);
@@ -67,8 +70,10 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
           builder.addDeletion(range.startStart(type, type.endToken.next!));
         }
       } else if (previous.initializer is! FunctionExpression) {
-        var r =
-            range.endStart(previous.endToken, previous.endToken.next!.next!);
+        var r = range.endStart(
+          previous.endToken,
+          previous.endToken.next!.next!,
+        );
         replaceWithNewLine(r, before: ';');
       }
 
@@ -96,13 +101,17 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
   }
 
   VariableDeclaration? _next(
-      NodeList<VariableDeclaration> variables, VariableDeclaration variable) {
+    NodeList<VariableDeclaration> variables,
+    VariableDeclaration variable,
+  ) {
     var i = variables.indexOf(variable);
     return i < variables.length - 1 ? variables[i + 1] : null;
   }
 
   VariableDeclaration? _previous(
-      NodeList<VariableDeclaration> variables, VariableDeclaration variable) {
+    NodeList<VariableDeclaration> variables,
+    VariableDeclaration variable,
+  ) {
     var i = variables.indexOf(variable);
     return i > 0 ? variables[i - 1] : null;
   }

@@ -355,7 +355,8 @@ class PreferTypingUninitializedVariablesInFileTest
     extends FixInFileProcessorTest {
   Future<void> test_File() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.prefer_typing_uninitialized_variables]);
+      lints: [LintNames.prefer_typing_uninitialized_variables],
+    );
     await resolveTestCode(r'''
 void f() {
   var a, b;
@@ -435,7 +436,8 @@ class SpecifyNonObviousLocalVariableTypesInFileTest
     extends FixInFileProcessorTest {
   Future<void> test_File() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.specify_nonobvious_local_variable_types]);
+      lints: [LintNames.specify_nonobvious_local_variable_types],
+    );
     await resolveTestCode(r'''
 f() {
   var x = g(0), y = g('');

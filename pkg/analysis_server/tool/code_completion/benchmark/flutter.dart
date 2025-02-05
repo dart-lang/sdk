@@ -60,11 +60,7 @@ Future<void> _runForever({
     PhysicalResourceProvider.INSTANCE,
   );
 
-  resourceProvider.setOverlay(
-    path,
-    content: rawCode,
-    modificationStamp: -1,
-  );
+  resourceProvider.setOverlay(path, content: rawCode, modificationStamp: -1);
 
   var collection = AnalysisContextCollectionImpl(
     resourceProvider: resourceProvider,

@@ -62,21 +62,28 @@ void main() {
     test(MyList([1, 2, 3]), 3, makeIterable([]));
 
     Expect.throwsRangeError(() => test([1, 2, 3], -1, makeIterable([4, 5])));
-    Expect.throwsRangeError(() =>
-        test([1, 2, 3].toList(growable: false), -1, makeIterable([4, 5])));
+    Expect.throwsRangeError(
+      () => test([1, 2, 3].toList(growable: false), -1, makeIterable([4, 5])),
+    );
     Expect.throwsRangeError(() => test([1, 2, 3], 1, makeIterable([4, 5, 6])));
-    Expect.throwsRangeError(() =>
-        test([1, 2, 3].toList(growable: false), 1, makeIterable([4, 5, 6])));
     Expect.throwsRangeError(
-        () => test(MyList([1, 2, 3]), -1, makeIterable([4, 5])));
+      () => test([1, 2, 3].toList(growable: false), 1, makeIterable([4, 5, 6])),
+    );
     Expect.throwsRangeError(
-        () => test(MyList([1, 2, 3]), 1, makeIterable([4, 5, 6])));
+      () => test(MyList([1, 2, 3]), -1, makeIterable([4, 5])),
+    );
+    Expect.throwsRangeError(
+      () => test(MyList([1, 2, 3]), 1, makeIterable([4, 5, 6])),
+    );
     Expect.throwsUnsupportedError(
-        () => test(const [1, 2, 3], 0, makeIterable([4, 5])));
+      () => test(const [1, 2, 3], 0, makeIterable([4, 5])),
+    );
     Expect.throwsUnsupportedError(
-        () => test(const [1, 2, 3], -1, makeIterable([4, 5])));
+      () => test(const [1, 2, 3], -1, makeIterable([4, 5])),
+    );
     Expect.throwsUnsupportedError(
-        () => test(const [1, 2, 3], 1, makeIterable([4, 5, 6])));
+      () => test(const [1, 2, 3], 1, makeIterable([4, 5, 6])),
+    );
   }
 }
 

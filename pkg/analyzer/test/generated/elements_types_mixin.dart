@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
@@ -73,11 +76,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
-  InterfaceTypeImpl get nullQuestion {
-    var element = typeProvider.nullType.element;
-    return interfaceTypeQuestion(element) as InterfaceTypeImpl;
-  }
-
   InterfaceType get numNone {
     var element = typeProvider.numType.element;
     return interfaceTypeNone(element);
@@ -127,22 +125,28 @@ mixin ElementsTypesMixin {
     bool isAugmentation = false,
     bool isSealed = false,
     InterfaceType? superType,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
     List<MethodElementImpl> methods = const [],
   }) {
-    var element = ClassElementImpl(name, 0);
-    element.isAbstract = isAbstract;
-    element.isAugmentation = isAugmentation;
-    element.isSealed = isSealed;
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.supertype = superType ?? typeProvider.objectType;
-    element.interfaces = interfaces;
-    element.mixins = mixins;
-    element.methods = methods;
-    return element;
+    var fragment = ClassElementImpl(name, 0);
+    fragment.isAbstract = isAbstract;
+    fragment.isAugmentation = isAugmentation;
+    fragment.isSealed = isSealed;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.supertype = superType ?? typeProvider.objectType;
+    fragment.interfaces = interfaces;
+    fragment.mixins = mixins;
+    fragment.methods = methods;
+
+    var element = ClassElementImpl2(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return fragment;
   }
 
   InterfaceType comparableNone(DartType type) {
@@ -168,6 +172,7 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
+    EnumElementImpl2(Reference.root(), element);
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
@@ -183,10 +188,11 @@ mixin ElementsTypesMixin {
     required DartType extendedType,
     String? name,
     bool isAugmentation = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
+    ExtensionElementImpl2(Reference.root(), element);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
@@ -199,23 +205,26 @@ mixin ElementsTypesMixin {
     String name, {
     String representationName = 'it',
     required DartType representationType,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
-    var element = ExtensionTypeElementImpl(name, -1);
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.interfaces = interfaces;
+    var fragment = ExtensionTypeElementImpl(name, -1);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.interfaces = interfaces;
 
     var field = FieldElementImpl(representationName, -1);
     field.type = representationType;
-    element.fields = [field];
+    fragment.fields = [field];
 
-    element.augmented
+    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
+    element
       ..representation = field
-      ..typeErasure = representationType;
+      ..typeErasure = representationType
+      ..interfaces = fragment.interfaces
+      ..fields = fragment.fields;
 
-    return element;
+    return fragment;
   }
 
   FunctionTypeImpl functionType({
@@ -394,8 +403,8 @@ mixin ElementsTypesMixin {
     String name,
     DartType returnType, {
     bool isStatic = false,
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic
@@ -407,21 +416,27 @@ mixin ElementsTypesMixin {
   MixinElementImpl mixin_({
     required String name,
     bool isAugmentation = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
-    var element = MixinElementImpl(name, 0);
-    element.isAugmentation = isAugmentation;
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.superclassConstraints = constraints ?? [typeProvider.objectType];
-    element.interfaces = interfaces;
-    element.constructors = const <ConstructorElementImpl>[];
-    return element;
+    var fragment = MixinElementImpl(name, 0);
+    fragment.isAugmentation = isAugmentation;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
+    fragment.interfaces = interfaces;
+    fragment.constructors = const <ConstructorElementImpl>[];
+
+    var element = MixinElementImpl2(Reference.root(), fragment);
+    element.superclassConstraints = fragment.superclassConstraints;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return fragment;
   }
 
-  ParameterElement namedParameter({
+  ParameterElementImpl namedParameter({
     required String name,
     required DartType type,
     bool isCovariant = false,
@@ -451,7 +466,7 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  ParameterElement positionalParameter({
+  ParameterElementImpl positionalParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,
@@ -545,7 +560,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  ParameterElement requiredParameter({
+  ParameterElementImpl requiredParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,
@@ -562,7 +577,7 @@ mixin ElementsTypesMixin {
 
   TypeAliasElementImpl typeAlias({
     required String name,
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);
@@ -637,11 +652,6 @@ class _MockSource implements Source {
 
 extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
-    expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
-
-    var augmented = AugmentedClassElementImpl(this);
-    augmentedInternal = augmented;
-
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
@@ -651,19 +661,22 @@ extension ClassElementImplExtension on ClassElementImpl {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-      augmented.interfaces.addAll(augmentation.interfaces);
-      augmented.mixins.addAll(augmentation.mixins);
+
+      augmentedInternal.interfaces = [
+        ...augmentedInternal.interfaces,
+        ...augmentation.interfaces,
+      ];
+
+      augmentedInternal.mixins = [
+        ...augmentedInternal.mixins,
+        ...augmentation.mixins,
+      ];
     }
   }
 }
 
 extension MixinElementImplExtension on MixinElementImpl {
   void addAugmentations(List<MixinElementImpl> augmentations) {
-    expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
-
-    var augmented = AugmentedMixinElementImpl(this);
-    augmentedInternal = augmented;
-
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
@@ -673,9 +686,16 @@ extension MixinElementImplExtension on MixinElementImpl {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-      augmented.superclassConstraints
-          .addAll(augmentation.superclassConstraints);
-      augmented.interfaces.addAll(augmentation.interfaces);
+
+      augmentedInternal.superclassConstraints = [
+        ...augmentedInternal.superclassConstraints,
+        ...augmentation.superclassConstraints,
+      ];
+
+      augmentedInternal.interfaces = [
+        ...augmentedInternal.interfaces,
+        ...augmentation.interfaces,
+      ];
     }
   }
 }

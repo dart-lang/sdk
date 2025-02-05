@@ -269,8 +269,10 @@ class BinaryReader {
       case InfoKind.closure:
         return readClosure();
       case InfoKind.package:
-        throw StateError('Binary serialization is not supported for '
-            'PackageInfo');
+        throw StateError(
+          'Binary serialization is not supported for '
+          'PackageInfo',
+        );
     }
   }
 
@@ -279,9 +281,11 @@ class BinaryReader {
     int version = source.readInt();
     int minorVersion = source.readInt();
     if (info.version != version || info.minorVersion != minorVersion) {
-      print("warning: data was encoded with format version "
-          "$version.$minorVersion, but decoded with "
-          "${info.version}.${info.minorVersion}");
+      print(
+        "warning: data was encoded with format version "
+        "$version.$minorVersion, but decoded with "
+        "${info.version}.${info.minorVersion}",
+      );
     }
     info.libraries.addAll(source.readList(readLibrary));
     info.classes.addAll(source.readList(readClass));
@@ -344,20 +348,21 @@ class BinaryReader {
     final isMirrorsUsed = source.readBool();
     final minified = source.readBool();
     return ProgramInfo(
-        entrypoint: entrypoint,
-        size: size,
-        ramUsage: ramUsage,
-        dart2jsVersion: dart2jsVersion,
-        compilationMoment: compilationMoment,
-        compilationDuration: compilationDuration,
-        toJsonDuration: toJsonDuration,
-        dumpInfoDuration: dumpInfoDuration,
-        noSuchMethodEnabled: noSuchMethodEnabled,
-        isRuntimeTypeUsed: isRuntimeTypeUsed,
-        isIsolateInUse: isIsolateInUse,
-        isFunctionApplyUsed: isFunctionApplyUsed,
-        isMirrorsUsed: isMirrorsUsed,
-        minified: minified);
+      entrypoint: entrypoint,
+      size: size,
+      ramUsage: ramUsage,
+      dart2jsVersion: dart2jsVersion,
+      compilationMoment: compilationMoment,
+      compilationDuration: compilationDuration,
+      toJsonDuration: toJsonDuration,
+      dumpInfoDuration: dumpInfoDuration,
+      noSuchMethodEnabled: noSuchMethodEnabled,
+      isRuntimeTypeUsed: isRuntimeTypeUsed,
+      isIsolateInUse: isIsolateInUse,
+      isFunctionApplyUsed: isFunctionApplyUsed,
+      isMirrorsUsed: isMirrorsUsed,
+      minified: minified,
+    );
   }
 
   void _readBasicInfo(BasicInfo info) {
@@ -369,60 +374,60 @@ class BinaryReader {
   }
 
   LibraryInfo readLibrary() => source.readCached<LibraryInfo>(() {
-        LibraryInfo info = LibraryInfo.internal();
-        info.uri = source.readUri();
-        _readBasicInfo(info);
-        info.topLevelFunctions.addAll(source.readList(readFunction));
-        info.topLevelVariables.addAll(source.readList(readField));
-        info.classes.addAll(source.readList(readClass));
-        info.classTypes.addAll(source.readList(readClassType));
-        info.typedefs.addAll(source.readList(readTypedef));
+    LibraryInfo info = LibraryInfo.internal();
+    info.uri = source.readUri();
+    _readBasicInfo(info);
+    info.topLevelFunctions.addAll(source.readList(readFunction));
+    info.topLevelVariables.addAll(source.readList(readField));
+    info.classes.addAll(source.readList(readClass));
+    info.classTypes.addAll(source.readList(readClassType));
+    info.typedefs.addAll(source.readList(readTypedef));
 
-        LibraryInfo setParent(BasicInfo child) => child.parent = info;
-        info.topLevelFunctions.forEach(setParent);
-        info.topLevelVariables.forEach(setParent);
-        info.classes.forEach(setParent);
-        info.classTypes.forEach(setParent);
-        info.typedefs.forEach(setParent);
-        return info;
-      });
+    LibraryInfo setParent(BasicInfo child) => child.parent = info;
+    info.topLevelFunctions.forEach(setParent);
+    info.topLevelVariables.forEach(setParent);
+    info.classes.forEach(setParent);
+    info.classTypes.forEach(setParent);
+    info.typedefs.forEach(setParent);
+    return info;
+  });
 
   ClassInfo readClass() => source.readCached<ClassInfo>(() {
-        ClassInfo info = ClassInfo.internal();
-        _readBasicInfo(info);
-        info.isAbstract = source.readBool();
-        info.fields.addAll(source.readList(readField));
-        info.functions.addAll(source.readList(readFunction));
-        info.supers.addAll(source.readList(readClass));
+    ClassInfo info = ClassInfo.internal();
+    _readBasicInfo(info);
+    info.isAbstract = source.readBool();
+    info.fields.addAll(source.readList(readField));
+    info.functions.addAll(source.readList(readFunction));
+    info.supers.addAll(source.readList(readClass));
 
-        ClassInfo setParent(BasicInfo child) => child.parent = info;
-        info.fields.forEach(setParent);
-        info.functions.forEach(setParent);
-        return info;
-      });
+    ClassInfo setParent(BasicInfo child) => child.parent = info;
+    info.fields.forEach(setParent);
+    info.functions.forEach(setParent);
+    return info;
+  });
 
   ClassTypeInfo readClassType() => source.readCached<ClassTypeInfo>(() {
-        var info = ClassTypeInfo.internal();
-        _readBasicInfo(info);
-        return info;
-      });
+    var info = ClassTypeInfo.internal();
+    _readBasicInfo(info);
+    return info;
+  });
 
   FieldInfo readField() => source.readCached<FieldInfo>(() {
-        FieldInfo info = FieldInfo.internal();
-        _readBasicInfo(info);
-        info.closures = source.readList(readClosure);
-        info.inferredType = source.readString();
-        info.code = source.readList(_readCodeSpan);
-        info.type = source.readString();
-        info.isConst = source.readBool();
-        if (info.isConst) {
-          info.initializer = _readConstantOrNull();
-        }
-        for (var c in info.closures) {
-          c.parent = info;
-        }
-        return info;
-      });
+    FieldInfo info = FieldInfo.internal();
+    _readBasicInfo(info);
+    info.closures = source.readList(readClosure);
+    info.inferredType = source.readString();
+    info.code = source.readList(_readCodeSpan);
+    info.type = source.readString();
+    info.isConst = source.readBool();
+    if (info.isConst) {
+      info.initializer = _readConstantOrNull();
+    }
+    for (var c in info.closures) {
+      c.parent = info;
+    }
+    return info;
+  });
 
   CodeSpan _readCodeSpan() {
     final start = source.readIntOrNull();
@@ -438,62 +443,66 @@ class BinaryReader {
   }
 
   ConstantInfo readConstant() => source.readCached<ConstantInfo>(() {
-        ConstantInfo info = ConstantInfo.internal();
-        _readBasicInfo(info);
-        info.code = source.readList(_readCodeSpan);
-        return info;
-      });
+    ConstantInfo info = ConstantInfo.internal();
+    _readBasicInfo(info);
+    info.code = source.readList(_readCodeSpan);
+    return info;
+  });
 
   FunctionModifiers _readFunctionModifiers() {
     int value = source.readInt();
     return FunctionModifiers(
-        isStatic: value & _staticMask != 0,
-        isConst: value & _constMask != 0,
-        isFactory: value & _factoryMask != 0,
-        isExternal: value & _externalMask != 0);
+      isStatic: value & _staticMask != 0,
+      isConst: value & _constMask != 0,
+      isFactory: value & _factoryMask != 0,
+      isExternal: value & _externalMask != 0,
+    );
   }
 
   ParameterInfo _readParameterInfo() {
     return ParameterInfo(
-        source.readString(), source.readString(), source.readString());
+      source.readString(),
+      source.readString(),
+      source.readString(),
+    );
   }
 
   FunctionInfo readFunction() => source.readCached<FunctionInfo>(() {
-        FunctionInfo info = FunctionInfo.internal();
-        _readBasicInfo(info);
-        info.functionKind = source.readInt();
-        info.closures = source.readList(readClosure);
-        info.modifiers = _readFunctionModifiers();
-        info.returnType = source.readString();
-        info.inferredReturnType = source.readString();
-        info.parameters = source.readList(_readParameterInfo);
-        info.sideEffects = source.readString();
-        info.inlinedCount = source.readIntOrNull();
-        info.code = source.readList(_readCodeSpan);
-        info.type = source.readString();
-        for (var c in info.closures) {
-          c.parent = info;
-        }
-        return info;
-      });
+    FunctionInfo info = FunctionInfo.internal();
+    _readBasicInfo(info);
+    info.functionKind = source.readInt();
+    info.closures = source.readList(readClosure);
+    info.modifiers = _readFunctionModifiers();
+    info.returnType = source.readString();
+    info.inferredReturnType = source.readString();
+    info.parameters = source.readList(_readParameterInfo);
+    info.sideEffects = source.readString();
+    info.inlinedCount = source.readIntOrNull();
+    info.code = source.readList(_readCodeSpan);
+    info.type = source.readString();
+    for (var c in info.closures) {
+      c.parent = info;
+    }
+    return info;
+  });
 
   DependencyInfo _readDependencyInfo() =>
       DependencyInfo(readInfoWithKind(), source.readStringOrNull());
 
   ClosureInfo readClosure() => source.readCached<ClosureInfo>(() {
-        ClosureInfo info = ClosureInfo.internal();
-        _readBasicInfo(info);
-        info.function = readFunction();
-        info.function.parent = info;
-        return info;
-      });
+    ClosureInfo info = ClosureInfo.internal();
+    _readBasicInfo(info);
+    info.function = readFunction();
+    info.function.parent = info;
+    return info;
+  });
 
   TypedefInfo readTypedef() => source.readCached<TypedefInfo>(() {
-        TypedefInfo info = TypedefInfo.internal();
-        _readBasicInfo(info);
-        info.type = source.readString();
-        return info;
-      });
+    TypedefInfo info = TypedefInfo.internal();
+    _readBasicInfo(info);
+    info.type = source.readString();
+    return info;
+  });
 
   OutputUnitInfo? _readOutputOrNull() {
     bool hasOutput = source.readBool();
@@ -502,12 +511,12 @@ class BinaryReader {
   }
 
   OutputUnitInfo readOutput() => source.readCached<OutputUnitInfo>(() {
-        OutputUnitInfo info = OutputUnitInfo.internal();
-        _readBasicInfo(info);
-        info.filename = source.readString();
-        info.imports.addAll(source.readList(source.readString));
-        return info;
-      });
+    OutputUnitInfo info = OutputUnitInfo.internal();
+    _readBasicInfo(info);
+    info.filename = source.readString();
+    info.imports.addAll(source.readList(source.readString));
+    return info;
+  });
 }
 
 const int _staticMask = 1 << 3;

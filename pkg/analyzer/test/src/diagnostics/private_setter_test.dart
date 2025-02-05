@@ -38,7 +38,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -104,7 +104,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -155,7 +155,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier

@@ -7,7 +7,6 @@
 
 class Foo {
   Foo();
-
 }
 
 main() {

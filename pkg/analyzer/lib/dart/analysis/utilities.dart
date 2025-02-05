@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/dart/analysis/session.dart';
+library;
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -82,11 +87,15 @@ ParseStringResult parseString(
       featureSet: featureSet,
     );
   var token = scanner.tokenize();
+  var languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: scanner.overrideVersion);
   var lineInfo = LineInfo(scanner.lineStarts);
   var parser = Parser(
     source,
     errorCollector,
     featureSet: scanner.featureSet,
+    languageVersion: languageVersion,
     lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(token);

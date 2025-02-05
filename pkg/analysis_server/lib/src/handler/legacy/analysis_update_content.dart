@@ -14,12 +14,18 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisUpdateContentHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisUpdateContentParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisUpdateContentParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     for (var file in params.files.keys) {
       if (!server.isAbsoluteAndNormalized(file)) {
@@ -34,7 +40,8 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
     //
     var converter = RequestConverter();
     server.pluginManager.setAnalysisUpdateContentParams(
-        converter.convertAnalysisUpdateContentParams(params));
+      converter.convertAnalysisUpdateContentParams(params),
+    );
     //
     // Send the response.
     //

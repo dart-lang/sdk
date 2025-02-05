@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 import '../helpers/compiler_helper.dart';
 
@@ -30,8 +30,10 @@ main() {
 void main() {
   runTest() async {
     String generated = await compileAll(TEST);
-    Expect.isTrue(generated.contains('return c + c;'),
-        "Expected generated code to contain 'return c + c;':\n$generated");
+    Expect.isTrue(
+      generated.contains('return c + c;'),
+      "Expected generated code to contain 'return c + c;':\n$generated",
+    );
   }
 
   asyncTest(() async {

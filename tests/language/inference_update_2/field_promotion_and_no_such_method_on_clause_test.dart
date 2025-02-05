@@ -6,7 +6,7 @@
 // whether field promotion should be inhibited due to a `noSuchMethod`
 // forwarder.
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 mixin M on C {}
 

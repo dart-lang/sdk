@@ -37,10 +37,11 @@ void f() {
     // order in which they appear in the file.  If these edits are applied in
     // the wrong order, some of the quotation marks will be in the wrong
     // places, and there will still be errors.
-    var edits = '"'
-        .allMatches(goodText)
-        .map((Match match) => SourceEdit(match.start, 0, '"'))
-        .toList();
+    var edits =
+        '"'
+            .allMatches(goodText)
+            .map((Match match) => SourceEdit(match.start, 0, '"'))
+            .toList();
     await sendAnalysisUpdateContent({pathname: ChangeContentOverlay(edits)});
     await analysisFinished;
     // There should be no errors now, assuming that quotation marks have been

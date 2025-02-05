@@ -29,8 +29,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -43,6 +41,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -53,15 +52,15 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
-/// that listens on a [CommunicationChannel] for LSP messages and processes
-/// them.
+/// that listens on a [LspServerCommunicationChannel] for LSP messages and
+/// processes them.
 class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
   /// Information about the connected client. Will be null prior to
   /// initialization or if the client did not provide it.
-  InitializeParamsClientInfo? _clientInfo;
+  ClientInfo? _clientInfo;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
@@ -160,43 +159,48 @@ class LspAnalysisServer extends AnalysisServer {
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
-    // Disable to avoid using this in unit tests.
-    bool enableBlazeWatcher = false,
-    DartFixPromptManager? dartFixPromptManager,
-  })  : lspClientConfiguration =
-            LspClientConfiguration(baseResourceProvider.pathContext),
-        super(
-          options,
-          sdkManager,
-          diagnosticServer,
-          analyticsManager,
-          crashReportingAttachmentsBuilder,
-          baseResourceProvider,
-          instrumentationService,
-          httpClient,
-          processRunner,
-          LspNotificationManager(baseResourceProvider.pathContext),
-          enableBlazeWatcher: enableBlazeWatcher,
-          dartFixPromptManager: dartFixPromptManager,
-        ) {
+    super.enableBlazeWatcher,
+    super.dartFixPromptManager,
+    super.retainDataForTesting,
+  }) : lspClientConfiguration = LspClientConfiguration(
+         baseResourceProvider.pathContext,
+       ),
+       super(
+         options,
+         sdkManager,
+         diagnosticServer,
+         analyticsManager,
+         crashReportingAttachmentsBuilder,
+         baseResourceProvider,
+         instrumentationService,
+         httpClient,
+         processRunner,
+         LspNotificationManager(baseResourceProvider.pathContext),
+       ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
     capabilitiesComputer = ServerCapabilitiesComputer(this);
 
-    var contextManagerCallbacks =
-        LspServerContextManagerCallbacks(this, resourceProvider);
+    var contextManagerCallbacks = LspServerContextManagerCallbacks(
+      this,
+      resourceProvider,
+    );
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverSchedulerEventsSubscription =
-        analysisDriverScheduler.events.listen(handleAnalysisEvent);
+    analysisDriverSchedulerEventsSubscription = analysisDriverScheduler.events
+        .listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
-    _channelSubscription =
-        channel.listen(scheduleMessage, onDone: done, onError: socketError);
+    _channelSubscription = channel.listen(
+      scheduleMessage,
+      onDone: done,
+      onError: socketError,
+    );
 
     if (AnalysisServer.supportsPlugins) {
-      _pluginChangeSubscription =
-          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+      _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
+        (_) => _onPluginsChanged(),
+      );
     }
   }
 
@@ -213,7 +217,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Information about the connected editor client. Will be `null` prior to
   /// initialization.
-  InitializeParamsClientInfo? get clientInfo => _clientInfo;
+  ClientInfo? get clientInfo => _clientInfo;
 
   /// The name of the remote when the client is running using a remote workspace.
   ///
@@ -274,8 +278,9 @@ class LspAnalysisServer extends AnalysisServer {
       super.pluginManager = value;
       _pluginChangeSubscription?.cancel();
 
-      _pluginChangeSubscription =
-          pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+      _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
+        (_) => _onPluginsChanged(),
+      );
     }
   }
 
@@ -325,8 +330,9 @@ class LspAnalysisServer extends AnalysisServer {
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
       var response = await sendRequest(
-          Method.workspace_configuration,
-          ConfigurationParams(items: [
+        Method.workspace_configuration,
+        ConfigurationParams(
+          items: [
             // Dart settings for each workspace folder.
             for (var folder in folders)
               ConfigurationItem(
@@ -336,7 +342,9 @@ class LspAnalysisServer extends AnalysisServer {
             // Global Dart settings. This comes last to simplify matching up the
             // indexes in the results (folder[i] is the i'th item).
             ConfigurationItem(section: 'dart'),
-          ]));
+          ],
+        ),
+      );
 
       var result = response.result;
 
@@ -360,8 +368,9 @@ class LspAnalysisServer extends AnalysisServer {
 
         if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           await _refreshAnalysisRoots();
-        } else if (lspClientConfiguration
-            .affectsAnalysisResults(oldGlobalConfig)) {
+        } else if (lspClientConfiguration.affectsAnalysisResults(
+          oldGlobalConfig,
+        )) {
           // Some settings affect analysis results and require re-analysis
           // (such as showTodos).
           await reanalyze();
@@ -384,7 +393,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
   /// `null` if the document version is not known.
   ///
-  /// Prefer using [LspHandlerHelperMixin.extractDocumentVersion] when you
+  /// Prefer using [HandlerHelperMixin.extractDocumentVersion] when you
   /// already have a [TextDocumentIdentifier] from the client because it is
   /// guaranteed to be what the client expected and not just the current version
   /// the server has.
@@ -400,14 +409,15 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   FutureOr<void> handleAnalysisStatusChange(
-      analysis.AnalysisStatus status) async {
+    analysis.AnalysisStatus status,
+  ) async {
     super.handleAnalysisStatusChange(status);
     await sendStatusNotification(status);
   }
 
   void handleClientConnection(
     ClientCapabilities capabilities,
-    InitializeParamsClientInfo? clientInfo,
+    ClientInfo? clientInfo,
     Object? initializationOptions,
   ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
@@ -415,7 +425,8 @@ class LspAnalysisServer extends AnalysisServer {
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     /// Enable virtual file support.
-    var supportsVirtualFiles = _clientCapabilities
+    var supportsVirtualFiles =
+        _clientCapabilities
             ?.supportsDartExperimentalTextDocumentContentProvider ??
         false;
     if (supportsVirtualFiles) {
@@ -431,17 +442,22 @@ class LspAnalysisServer extends AnalysisServer {
     // Notify the client of any issues parsing experimental capabilities.
     var errors = _clientCapabilities?.experimentalCapabilitiesErrors;
     if (errors != null && errors.isNotEmpty) {
-      var message = 'There were errors parsing your experimental '
+      var message =
+          'There were errors parsing your experimental '
           'client capabilities:\n${errors.join(', ')}';
 
-      var params =
-          ShowMessageParams(type: MessageType.warning.forLsp, message: message);
+      var params = ShowMessageParams(
+        type: MessageType.warning.forLsp,
+        message: message,
+      );
 
-      channel.sendNotification(NotificationMessage(
-        method: Method.window_showMessage,
-        params: params,
-        jsonrpc: jsonRpcVersion,
-      ));
+      channel.sendNotification(
+        NotificationMessage(
+          method: Method.window_showMessage,
+          params: params,
+          jsonrpc: jsonRpcVersion,
+        ),
+      );
     }
   }
 
@@ -476,8 +492,15 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  /// Handle a [message] that was read from the communication channel.
-  void handleMessage(Message message) {
+  /// Handle a [message] that was read from the communication channel. The
+  /// [completer] is used to indicate when the [RequestMessage] handling is
+  /// done. [ResponseMessage] and [NotificationMessage]'s are not waited on
+  /// till finish.
+  void handleMessage(
+    Message message,
+    Completer<void>? completer, {
+    CancelableToken? cancellationToken,
+  }) {
     var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
@@ -501,18 +524,26 @@ class LspAnalysisServer extends AnalysisServer {
               performance: performance,
               clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
+              completer: completer,
             );
 
             if (message is RequestMessage) {
               analyticsManager.startedRequestMessage(
-                  request: message, startTime: startTime);
-              await _handleRequestMessage(message, messageInfo);
+                request: message,
+                startTime: startTime,
+              );
+              await _handleRequestMessage(
+                message,
+                messageInfo,
+                cancellationToken: cancellationToken,
+              );
             } else if (message is NotificationMessage) {
               await _handleNotificationMessage(message, messageInfo);
               analyticsManager.handledNotificationMessage(
-                  notification: message,
-                  startTime: startTime,
-                  endTime: DateTime.now());
+                notification: message,
+                startTime: startTime,
+                endTime: DateTime.now(),
+              );
             } else {
               showErrorMessageToUser('Unknown incoming message type');
             }
@@ -525,28 +556,34 @@ class LspAnalysisServer extends AnalysisServer {
         } else {
           showErrorMessageToUser('Unknown message type');
         }
+        completer?.setComplete();
       } on InconsistentAnalysisException {
         sendErrorResponse(
-            message,
-            ResponseError(
-              code: ErrorCodes.ContentModified,
-              message: 'Document was modified before operation completed',
-            ));
+          message,
+          ResponseError(
+            code: ErrorCodes.ContentModified,
+            message: 'Document was modified before operation completed',
+          ),
+        );
+        completer?.setComplete();
       } catch (error, stackTrace) {
-        var errorMessage = message is ResponseMessage
-            ? 'An error occurred while handling the response to request ${message.id}'
-            : message is RequestMessage
+        var errorMessage =
+            message is ResponseMessage
+                ? 'An error occurred while handling the response to request ${message.id}'
+                : message is RequestMessage
                 ? 'An error occurred while handling ${message.method} request'
                 : message is NotificationMessage
-                    ? 'An error occurred while handling ${message.method} notification'
-                    : 'Unknown message type';
+                ? 'An error occurred while handling ${message.method} notification'
+                : 'Unknown message type';
         sendErrorResponse(
-            message,
-            ResponseError(
-              code: ServerErrorCodes.UnhandledError,
-              message: errorMessage,
-            ));
+          message,
+          ResponseError(
+            code: ServerErrorCodes.UnhandledError,
+            message: errorMessage,
+          ),
+        );
         logException(errorMessage, error, stackTrace);
+        completer?.setComplete();
       }
     }, socketError);
   }
@@ -592,12 +629,16 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
-    channel.sendNotification(NotificationMessage(
-      method: Method.window_logMessage,
-      params:
-          LogMessageParams(type: MessageType.error.forLsp, message: message),
-      jsonrpc: jsonRpcVersion,
-    ));
+    channel.sendNotification(
+      NotificationMessage(
+        method: Method.window_logMessage,
+        params: LogMessageParams(
+          type: MessageType.error.forLsp,
+          message: message,
+        ),
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
   }
 
   /// Logs an exception by sending it to the client (window/logMessage) and
@@ -620,27 +661,21 @@ class LspAnalysisServer extends AnalysisServer {
     logErrorToClient(fullError);
 
     // remember the last few exceptions
-    exceptions.add(ServerException(
-      message,
-      exception,
-      stackTrace,
-      false,
-    ));
+    exceptions.add(ServerException(message, exception, stackTrace, false));
 
     instrumentationService.logException(
-      FatalException(
-        message,
-        exception,
-        stackTrace,
-      ),
+      FatalException(message, exception, stackTrace),
       null,
       crashReportingAttachmentsBuilder.forException(exception),
     );
   }
 
   void onOverlayCreated(String path, String content) {
-    resourceProvider.setOverlay(path,
-        content: content, modificationStamp: overlayModificationStamp++);
+    resourceProvider.setOverlay(
+      path,
+      content: content,
+      modificationStamp: overlayModificationStamp++,
+    );
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
@@ -648,8 +683,13 @@ class LspAnalysisServer extends AnalysisServer {
     // dependencies (so the optimization works for them) but below we use
     // `contextManager.driverFor` so we only add to the specific driver.
     var driver = getAnalysisDriver(path);
+    var state = driver?.fsState.getExistingFromPath(path);
+    // Content is updated if we have no state, we have state that does not exist
+    // or the content differs. For a file with state that does not exist, the
+    // content will be an empty string, so we must check exists to cover files
+    // that are newly created with empty contents.
     var contentIsUpdated =
-        driver?.fsState.getExistingFromPath(path)?.content != content;
+        state == null || !state.exists || state.content != content;
 
     if (contentIsUpdated) {
       _afterOverlayChanged(path, plugin.AddContentOverlay(content));
@@ -681,23 +721,31 @@ class LspAnalysisServer extends AnalysisServer {
   ///
   /// If the result of applying the edits is already known, [newContent] can be
   /// set to avoid doing that calculation twice.
-  void onOverlayUpdated(String path, List<plugin.SourceEdit> edits,
-      {String? newContent}) {
+  void onOverlayUpdated(
+    String path,
+    List<plugin.SourceEdit> edits, {
+    String? newContent,
+  }) {
     assert(resourceProvider.hasOverlay(path));
     if (newContent == null) {
       var oldContent = resourceProvider.getFile(path).readAsStringSync();
       newContent = plugin.applySequenceOfEdits(oldContent, edits);
     }
 
-    resourceProvider.setOverlay(path,
-        content: newContent, modificationStamp: overlayModificationStamp++);
+    resourceProvider.setOverlay(
+      path,
+      content: newContent,
+      modificationStamp: overlayModificationStamp++,
+    );
 
     _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     var params = PublishClosingLabelsParams(
-        uri: uriConverter.toClientUri(path), labels: labels);
+      uri: uriConverter.toClientUri(path),
+      labels: labels,
+    );
     var message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -719,7 +767,9 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     var params = PublishDiagnosticsParams(
-        uri: uriConverter.toClientUri(path), diagnostics: errors);
+      uri: uriConverter.toClientUri(path),
+      diagnostics: errors,
+    );
     var message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -730,7 +780,9 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
     var params = PublishFlutterOutlineParams(
-        uri: uriConverter.toClientUri(path), outline: outline);
+      uri: uriConverter.toClientUri(path),
+      outline: outline,
+    );
     var message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -741,7 +793,9 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishOutline(String path, Outline outline) {
     var params = PublishOutlineParams(
-        uri: uriConverter.toClientUri(path), outline: outline);
+      uri: uriConverter.toClientUri(path),
+      outline: outline,
+    );
     var message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,
@@ -760,14 +814,22 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void scheduleMessage(Message message) {
-    messageScheduler.add(LspMessage(message: message));
-    messageScheduler.notify();
+    CancelableToken? cancellationToken;
+    // Create a  cancellation token that will allow us to cancel
+    // this request if requested.
+    if (message is RequestMessage) {
+      cancellationToken = messageHandler.cancelHandler.createToken(message);
+    }
+    messageScheduler.add(
+      LspMessage(message: message, cancellationToken: cancellationToken),
+    );
   }
 
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
-      sendResponse(ResponseMessage(
-          id: message.id, error: error, jsonrpc: jsonRpcVersion));
+      sendResponse(
+        ResponseMessage(id: message.id, error: error, jsonrpc: jsonRpcVersion),
+      );
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it
       // as show instead of log.
@@ -786,7 +848,8 @@ class LspAnalysisServer extends AnalysisServer {
 
       var message = 'An unrecoverable error occurred.';
       logErrorToClient(
-          '$message\n\n${error.message}\n\n${error.code}\n\n${error.data}');
+        '$message\n\n${error.message}\n\n${error.code}\n\n${error.data}',
+      );
 
       unawaited(shutdown());
     }
@@ -798,19 +861,22 @@ class LspAnalysisServer extends AnalysisServer {
     channel.sendNotification(notification);
   }
 
-  /// Send the given [request] to the client and wait for a response. Completes
-  /// with the raw [ResponseMessage] which could be an error response.
+  /// Sends a request with the given [params] to the client and wait for a
+  /// response. Completes with the raw [ResponseMessage] which could be an
+  /// error response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     var requestId = nextRequestId++;
     var completer = Completer<ResponseMessage>();
     completers[requestId] = completer;
 
-    channel.sendRequest(RequestMessage(
-      id: Either2<int, String>.t1(requestId),
-      method: method,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    ));
+    channel.sendRequest(
+      RequestMessage(
+        id: Either2<int, String>.t1(requestId),
+        method: method,
+        params: params,
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
 
     return completer.future;
   }
@@ -823,8 +889,11 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   void sendServerErrorNotification(
-      String message, Object exception, StackTrace? stackTrace,
-      {bool fatal = false}) {
+    String message,
+    Object exception,
+    StackTrace? stackTrace, {
+    bool fatal = false,
+  }) {
     message = '$message: $exception';
 
     // Show message (without stack) to the user.
@@ -848,18 +917,21 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     if (editorClientCapabilities?.workDoneProgress != true) {
-      channel.sendNotification(NotificationMessage(
-        method: CustomMethods.analyzerStatus,
-        params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
-        jsonrpc: jsonRpcVersion,
-      ));
+      channel.sendNotification(
+        NotificationMessage(
+          method: CustomMethods.analyzerStatus,
+          params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
+          jsonrpc: jsonRpcVersion,
+        ),
+      );
       return;
     }
 
     if (isAnalyzing) {
-      analyzingProgressReporter ??=
-          ProgressReporter.serverCreated(this, analyzingProgressToken)
-            ..begin('Analyzing…');
+      analyzingProgressReporter ??= ProgressReporter.serverCreated(
+        this,
+        analyzingProgressToken,
+      )..begin('Analyzing…');
     } else {
       if (analyzingProgressReporter != null) {
         // Do not null this out until after end completes, otherwise we may try
@@ -902,11 +974,13 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void showMessageToUser(MessageType type, String message) {
-    channel.sendNotification(NotificationMessage(
-      method: Method.window_showMessage,
-      params: ShowMessageParams(type: type.forLsp, message: message),
-      jsonrpc: jsonRpcVersion,
-    ));
+    channel.sendNotification(
+      NotificationMessage(
+        method: Method.window_showMessage,
+        params: ShowMessageParams(type: type.forLsp, message: message),
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
   }
 
   /// Shows the user a prompt with some actions to select from using
@@ -949,7 +1023,10 @@ class LspAnalysisServer extends AnalysisServer {
     var response = await sendRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(
-          type: type.forLsp, message: message, actions: actions),
+        type: type.forLsp,
+        message: message,
+        actions: actions,
+      ),
     );
 
     var result = response.result;
@@ -966,9 +1043,11 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
-    unawaited(Future(() {
-      channel.close();
-    }));
+    unawaited(
+      Future(() {
+        channel.close();
+      }),
+    );
     unawaited(_pluginChangeSubscription?.cancel());
     _pluginChangeSubscription = null;
   }
@@ -981,7 +1060,9 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   Future<void> updateWorkspaceFolders(
-      List<String> addedPaths, List<String> removedPaths) async {
+    List<String> addedPaths,
+    List<String> removedPaths,
+  ) async {
     // TODO(dantup): This is currently case-sensitive!
 
     // Normalize all potential workspace folder paths as these may contain
@@ -1047,10 +1128,7 @@ class LspAnalysisServer extends AnalysisServer {
       }
     }
 
-    return [
-      ...packages,
-      ...additionalFiles,
-    ];
+    return [...packages, ...additionalFiles];
   }
 
   Future<void> _handleNotificationMessage(
@@ -1063,30 +1141,38 @@ class LspAnalysisServer extends AnalysisServer {
 
   Future<void> _handleRequestMessage(
     RequestMessage message,
-    MessageInfo messageInfo,
-  ) async {
-    var result = await messageHandler.handleMessage(message, messageInfo);
+    MessageInfo messageInfo, {
+    CancelableToken? cancellationToken,
+  }) async {
+    var result = await messageHandler.handleMessage(
+      message,
+      messageInfo,
+      cancellationToken: cancellationToken,
+    );
     result.ifError((error) => sendErrorResponse(message, error));
     result.ifResult(
-      (result) => sendResponse(ResponseMessage(
-        id: message.id,
-        result: result,
-        jsonrpc: jsonRpcVersion,
-      )),
+      (result) => sendResponse(
+        ResponseMessage(
+          id: message.id,
+          result: result,
+          jsonrpc: jsonRpcVersion,
+        ),
+      ),
     );
   }
 
   /// Returns whether [filePath] is in a project that can resolve
   /// 'package:flutter' libraries.
   bool _isInFlutterProject(String filePath) =>
-      getAnalysisDriver(filePath)
-          ?.currentSession
-          .uriConverter
-          .uriToPath(Uri.parse(widgetsUri)) !=
+      getAnalysisDriver(
+        filePath,
+      )?.currentSession.uriConverter.uriToPath(Uri.parse(widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(
-      String path, plugin.HasToJson changeForPlugins) {
+    String path,
+    plugin.HasToJson changeForPlugins,
+  ) {
     if (AnalysisServer.supportsPlugins) {
       pluginManager.setAnalysisUpdateContentParams(
         plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
@@ -1102,32 +1188,40 @@ class LspAnalysisServer extends AnalysisServer {
     // When there are open folders, they are always the roots. If there are no
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
-    var includedPaths = _workspaceFolders.isNotEmpty
-        ? _workspaceFolders.toSet()
-        : _getRootsForOpenFiles();
+    var includedPaths =
+        _workspaceFolders.isNotEmpty
+            ? _workspaceFolders.toSet()
+            : _getRootsForOpenFiles();
 
-    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
-        .expand((excludePath) => resourceProvider.pathContext
-                .isAbsolute(excludePath)
-            ? [excludePath]
-            // Apply the relative path to each open workspace folder.
-            // TODO(dantup): Consider supporting per-workspace config by
-            // calling workspace/configuration whenever workspace folders change
-            // and caching the config for each one.
-            : _workspaceFolders.map(
-                (root) => resourceProvider.pathContext.join(root, excludePath)))
-        .map(pathContext.normalize)
-        .toSet();
+    var excludedPaths =
+        lspClientConfiguration.global.analysisExcludedFolders
+            .expand(
+              (excludePath) =>
+                  resourceProvider.pathContext.isAbsolute(excludePath)
+                      ? [excludePath]
+                      // Apply the relative path to each open workspace folder.
+                      // TODO(dantup): Consider supporting per-workspace config by
+                      // calling workspace/configuration whenever workspace folders change
+                      // and caching the config for each one.
+                      : _workspaceFolders.map((root) => resourceProvider.pathContext.join(root, excludePath)),
+            )
+            .map(pathContext.normalize)
+            .toSet();
 
     var completer = analysisContextRebuildCompleter = Completer();
     try {
       var includedPathsList = includedPaths.toList();
       var excludedPathsList = excludedPaths.toList();
       notificationManager.setAnalysisRoots(
-          includedPathsList, excludedPathsList);
+        includedPathsList,
+        excludedPathsList,
+      );
       if (detachableFileSystemManager != null) {
         detachableFileSystemManager?.setAnalysisRoots(
-            null, includedPathsList, excludedPathsList);
+          null,
+          includedPathsList,
+          excludedPathsList,
+        );
       } else {
         await contextManager.setRoots(includedPathsList, excludedPathsList);
       }
@@ -1143,23 +1237,24 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     if (AnalysisServer.supportsPlugins) {
-      var pluginPriorities =
-          plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
+      var pluginPriorities = plugin.AnalysisSetPriorityFilesParams(
+        priorityFilesList,
+      );
       pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
 
       // Plugins send most of their analysis results via notifications, but with
       // LSP we're supposed to have them available per request. Assume that
       // we'll only receive requests for files that are currently open.
       var pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
-        for (var service in plugin.AnalysisService.VALUES)
+        for (var service in plugin.AnalysisService.values)
           service: priorityFilesList,
       });
       pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
     }
 
     notificationManager.setSubscriptions({
-      for (var service in protocol.AnalysisService.VALUES)
-        service: priorityFiles
+      for (var service in protocol.AnalysisService.values)
+        service: priorityFiles,
     });
   }
 }
@@ -1190,22 +1285,22 @@ class LspInitializationOptions {
       );
 
   LspInitializationOptions._(Map<String, Object?> options)
-      : raw = options,
-        appHost = options['appHost'] as String?,
-        remoteName = options['remoteName'] as String?,
-        onlyAnalyzeProjectsWithOpenFiles =
-            options['onlyAnalyzeProjectsWithOpenFiles'] == true,
-        // suggestFromUnimportedLibraries defaults to true, so must be
-        // explicitly passed as false to disable.
-        suggestFromUnimportedLibraries =
-            options['suggestFromUnimportedLibraries'] != false,
-        closingLabels = options['closingLabels'] == true,
-        outline = options['outline'] == true,
-        flutterOutline = options['flutterOutline'] == true,
-        completionBudgetMilliseconds =
-            options['completionBudgetMilliseconds'] as int?,
-        allowOpenUri = options['allowOpenUri'] == true,
-        useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
+    : raw = options,
+      appHost = options['appHost'] as String?,
+      remoteName = options['remoteName'] as String?,
+      onlyAnalyzeProjectsWithOpenFiles =
+          options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+      // suggestFromUnimportedLibraries defaults to true, so must be
+      // explicitly passed as false to disable.
+      suggestFromUnimportedLibraries =
+          options['suggestFromUnimportedLibraries'] != false,
+      closingLabels = options['closingLabels'] == true,
+      outline = options['outline'] == true,
+      flutterOutline = options['flutterOutline'] == true,
+      completionBudgetMilliseconds =
+          options['completionBudgetMilliseconds'] as int?,
+      allowOpenUri = options['allowOpenUri'] == true,
+      useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 
 class LspServerContextManagerCallbacks
@@ -1243,18 +1338,17 @@ class LspServerContextManagerCallbacks
 
     var unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {
-      var labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
-          .compute()
-          .map((l) => toClosingLabel(result.lineInfo, l))
-          .toList();
+      var labels =
+          DartUnitClosingLabelsComputer(
+            result.lineInfo,
+            unit,
+          ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
 
       analysisServer.publishClosingLabels(path, labels);
     }
     if (analysisServer.shouldSendOutlineFor(path)) {
-      var outline = DartUnitOutlineComputer(
-        result,
-        withBasicFlutter: true,
-      ).compute();
+      var outline =
+          DartUnitOutlineComputer(result, withBasicFlutter: true).compute();
       var lspOutline = toOutline(result.lineInfo, outline);
       analysisServer.publishOutline(path, lspOutline);
     }
@@ -1286,7 +1380,17 @@ class LspServerContextManagerCallbacks
     if (analysisServer.lspClientConfiguration.global.showAllTodos) {
       return true;
     }
-    return analysisServer.lspClientConfiguration.global.showTodoTypes
-        .contains(error.code.toUpperCase());
+    return analysisServer.lspClientConfiguration.global.showTodoTypes.contains(
+      error.code.toUpperCase(),
+    );
+  }
+}
+
+extension on Completer<void> {
+  void setComplete() {
+    if (isCompleted) {
+      return;
+    }
+    complete();
   }
 }

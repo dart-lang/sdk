@@ -30,8 +30,11 @@ class Bar {
 
     await analysisFinished;
 
-    var result =
-        await sendAnalysisGetNavigation(pathname, text.indexOf('Foo foo'), 0);
+    var result = await sendAnalysisGetNavigation(
+      pathname,
+      text.indexOf('Foo foo'),
+      0,
+    );
     expect(result.targets, hasLength(1));
     var target = result.targets.first;
     expect(target.kind, ElementKind.CLASS);

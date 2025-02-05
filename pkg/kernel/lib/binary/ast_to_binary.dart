@@ -2648,10 +2648,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.memberReference.canonicalName != null,
+      final Reference? memberReference = descriptor.memberReference;
+      assert(memberReference == null || memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.memberReference);
-      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
+      writeNullAllowedCanonicalNameReference(memberReference);
+      final Reference? tearOffReference = descriptor.tearOffReference;
+      assert(tearOffReference == null || tearOffReference.canonicalName != null,
+          "No canonical name for ${descriptor} tear-off.");
+      writeNullAllowedCanonicalNameReference(tearOffReference);
     }
   }
 
@@ -2689,14 +2693,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.memberReference.canonicalName != null,
+      final Reference? memberReference = descriptor.memberReference;
+      assert(memberReference == null || memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.memberReference);
-      assert(
-          descriptor.tearOffReference == null ||
-              descriptor.tearOffReference?.canonicalName != null,
+      writeNullAllowedCanonicalNameReference(memberReference);
+      final Reference? tearOffReference = descriptor.tearOffReference;
+      assert(tearOffReference == null || tearOffReference.canonicalName != null,
           "No canonical name for ${descriptor} tear-off.");
-      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
+      writeNullAllowedCanonicalNameReference(tearOffReference);
     }
   }
 
@@ -2764,7 +2768,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.patterns);
     writeOptionalNode(node.requiredType);
     writeOptionalNode(node.matchedValueType);
-    writeByte((node.needsCheck ? 0x1 : 0) | (node.hasRestPattern ? 0x2 : 0));
+    writeByte(node.flags);
     writeOptionalNode(node.lookupType);
     writeNullAllowedReference(node.lengthTargetReference);
     writeOptionalNode(node.lengthType);
@@ -2787,7 +2791,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.entries);
     writeOptionalNode(node.requiredType);
     writeOptionalNode(node.matchedValueType);
-    writeByte(node.needsCheck ? 0x1 : 0);
+    writeByte(node.flags);
     writeOptionalNode(node.lookupType);
     writeNullAllowedReference(node.containsKeyTargetReference);
     writeOptionalNode(node.containsKeyType);

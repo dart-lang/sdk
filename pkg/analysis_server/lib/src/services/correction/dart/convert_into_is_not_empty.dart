@@ -16,8 +16,9 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
@@ -45,12 +46,12 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
       return;
     }
     // should be "isEmpty"
-    var propertyElement = isEmptyIdentifier.staticElement;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
+    var propertyElement = isEmptyIdentifier.element;
+    if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
       return;
     }
     // should have "isNotEmpty"
-    var propertyTarget = propertyElement.enclosingElement3;
+    var propertyTarget = propertyElement.enclosingElement2;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
@@ -68,9 +69,12 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
     var isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
-          range.startStart(prefixExpression, prefixExpression.operand));
+        range.startStart(prefixExpression, prefixExpression.operand),
+      );
       builder.addSimpleReplacement(
-          range.node(isEmptyIdentifier_final), 'isNotEmpty');
+        range.node(isEmptyIdentifier_final),
+        'isNotEmpty',
+      );
     });
   }
 }

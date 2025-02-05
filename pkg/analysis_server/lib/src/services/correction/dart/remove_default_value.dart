@@ -14,8 +14,9 @@ class RemoveDefaultValue extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_DEFAULT_VALUE;
@@ -32,7 +33,8 @@ class RemoveDefaultValue extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
-          range.endStart(separator.previous!, defaultValue.endToken.next!));
+        range.endStart(separator.previous!, defaultValue.endToken.next!),
+      );
     });
   }
 }

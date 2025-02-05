@@ -9,7 +9,4 @@
 
 class foo {}
 
-void main() {
-
-
-}
+void main() {}

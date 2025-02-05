@@ -13,19 +13,21 @@ class RemoveComma extends ResolvedCorrectionProducer {
   final String targetDescription;
 
   RemoveComma.emptyRecordLiteral({required CorrectionProducerContext context})
-      : this._(context: context, targetDescription: 'empty record literals');
+    : this._(context: context, targetDescription: 'empty record literals');
   RemoveComma.emptyRecordType({required CorrectionProducerContext context})
-      : this._(context: context, targetDescription: 'empty record types');
+    : this._(context: context, targetDescription: 'empty record types');
   RemoveComma.representationField({required CorrectionProducerContext context})
-      : this._(
-            context: context,
-            commaKind: 'trailing ',
-            targetDescription: 'representation fields');
+    : this._(
+        context: context,
+        commaKind: 'trailing ',
+        targetDescription: 'representation fields',
+      );
 
-  RemoveComma._(
-      {required super.context,
-      this.commaKind = '',
-      required this.targetDescription});
+  RemoveComma._({
+    required super.context,
+    this.commaKind = '',
+    required this.targetDescription,
+  });
 
   @override
   CorrectionApplicability get applicability =>

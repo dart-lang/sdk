@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -18,7 +21,8 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
-import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<ExecutableElement>>();
@@ -135,11 +139,25 @@ class InheritanceOverrideVerifier {
     return _missingMustBeOverridden[node.name] ?? const [];
   }
 
+  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// given class with `@mustBeOverridden`, but don't have implementations.
+  static List<ExecutableElement2> missingMustBeOverridden2(
+      NamedCompilationUnitMember node) {
+    return _missingMustBeOverridden[node.name].asElement2;
+  }
+
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
   static List<ExecutableElement> missingOverrides(
       NamedCompilationUnitMember node) {
     return _missingOverrides[node.name] ?? const [];
+  }
+
+  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// given class, but don't have concrete implementations.
+  static List<ExecutableElement2> missingOverrides2(
+      NamedCompilationUnitMember node) {
+    return _missingOverrides[node.name].asElement2;
   }
 }
 
@@ -191,7 +209,7 @@ class _ClassVerifier {
 
     var fragment = classElement;
     var augmented = fragment.augmented;
-    var declaration = augmented.declaration;
+    var declaration = augmented.firstFragment;
 
     if (declaration is! EnumElement &&
         declaration is ClassElement &&
@@ -279,7 +297,7 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-    ).checkInterface(declaration, interface);
+    ).checkInterface(fragment.asElement2, interface);
 
     if (declaration is ClassElement && !declaration.isAbstract ||
         declaration is EnumElement) {
@@ -1070,5 +1088,11 @@ class _ClassVerifier {
         ],
       );
     }
+  }
+}
+
+extension on List<ExecutableElement>? {
+  List<ExecutableElement2> get asElement2 {
+    return this?.map((element) => element.asElement2).toList() ?? const [];
   }
 }

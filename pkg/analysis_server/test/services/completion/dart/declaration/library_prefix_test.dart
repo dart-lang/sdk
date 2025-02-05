@@ -195,7 +195,7 @@ suggestions
   }
 
   Future<void>
-      test_fieldDeclaration_afterFinal_beforeConstructor_partial() async {
+  test_fieldDeclaration_afterFinal_beforeConstructor_partial() async {
     newFile('$testPackageLibPath/b.dart', '''
 class B { }
 ''');
@@ -330,7 +330,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_afterNew_beforeEnd_inPart() async {
+  test_instanceCreationExpression_afterNew_beforeEnd_inPart() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   foo() {
@@ -388,7 +388,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_afterNew_beforeEnd_inPart_detached() async {
+  test_instanceCreationExpression_afterNew_beforeEnd_inPart_detached() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   foo() {
@@ -432,7 +432,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_afterNew_beforeEnd_partial() async {
+  test_instanceCreationExpression_afterNew_beforeEnd_partial() async {
     await computeSuggestions('''
 import "dart:convert" as j0;
 

@@ -71,9 +71,7 @@ main() {
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 98, 4),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 120, 1),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 1,
-          contextMessages: [message(testFile, 124, 1)]),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 126, 3),
     ]);
   }
 
@@ -104,14 +102,12 @@ main() {
           125,
           1),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 142, 1),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 146, 3),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           150,
           1),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 163, 1),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 167, 3),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -208,7 +204,6 @@ void main() {
   g(f);
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
@@ -224,7 +219,6 @@ void main() {
   g(a.f);
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 78, 3),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 78, 3),
     ]);
   }
@@ -237,7 +231,6 @@ void main() {
   g(f);
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
@@ -254,7 +247,6 @@ void main() {
   g(C().m);
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 124, 5),
     ]);
   }
@@ -312,7 +304,7 @@ main() {
   new Foo<String>().method(42);
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 97, 6),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 104, 2),
     ]);
   }
 
@@ -358,9 +350,7 @@ class C<P extends num> {
 
 var c = C([]);
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
-          contextMessages: [message(testFile, 82, 1)]),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 2),
     ]);
   }
 }

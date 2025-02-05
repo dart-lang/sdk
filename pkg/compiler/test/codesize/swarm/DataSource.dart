@@ -45,7 +45,9 @@ class Sections extends IterableBase<Section> {
 
   // This method is exposed for tests.
   static void initializeFromData(
-      String data, void Function(Sections sects) callback) {
+    String data,
+    void Function(Sections sects) callback,
+  ) {
     final decoder = Decoder(data);
     int nSections = decoder.readInt();
     final sections = <Section>[];
@@ -57,18 +59,21 @@ class Sections extends IterableBase<Section> {
   }
 
   static void initializeFromUrl(
-      bool useCannedData, void Function(Sections sections) callback) {
+    bool useCannedData,
+    void Function(Sections sections) callback,
+  ) {
     if (Sections.runningFromFile || useCannedData) {
       initializeFromData(CannedData.data['user.data']!, callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      HttpRequest.getString('data/user.data')
-          .then(EventBatch.wrap((responseText) {
-        // TODO(jimhug): Nice response if get error back from server.
-        // TODO(jimhug): Might be more efficient to parse request
-        // in sections.
-        initializeFromData(responseText, callback);
-      }));
+      HttpRequest.getString('data/user.data').then(
+        EventBatch.wrap((responseText) {
+          // TODO(jimhug): Nice response if get error back from server.
+          // TODO(jimhug): Might be more efficient to parse request
+          // in sections.
+          initializeFromData(responseText, callback);
+        }),
+      );
     }
   }
 
@@ -135,8 +140,8 @@ class Feed {
   ObservableValue<bool> error; // TODO(jimhug): Check if dead code.
 
   Feed(this.id, this.title, this.iconUrl, {this.description = ''})
-      : articles = ObservableList<Article>(),
-        error = ObservableValue<bool>(false);
+    : articles = ObservableList<Article>(),
+      error = ObservableValue<bool>(false);
 
   static Feed decode(Decoder decoder) {
     final sourceId = decoder.readString();
@@ -173,11 +178,20 @@ class Article {
 
   bool error; // TODO(jimhug): Check if this is dead and remove.
 
-  Article(this.dataSource, this.id, this.date, this.title, this.author,
-      this.srcUrl, this.hasThumbnail, this.textBody,
-      {htmlBody, bool unread = true, this.error = false})
-      : unread = ObservableValue<bool>(unread),
-        _htmlBody = htmlBody;
+  Article(
+    this.dataSource,
+    this.id,
+    this.date,
+    this.title,
+    this.author,
+    this.srcUrl,
+    this.hasThumbnail,
+    this.textBody, {
+    htmlBody,
+    bool unread = true,
+    this.error = false,
+  }) : unread = ObservableValue<bool>(unread),
+       _htmlBody = htmlBody;
 
   String get htmlBody {
     _ensureLoaded();
@@ -185,9 +199,9 @@ class Article {
   }
 
   String get dataUri {
-    return SwarmUri.encodeComponent(id)!
-        .replaceAll('%2F', '/')
-        .replaceAll('%253A', '%3A');
+    return SwarmUri.encodeComponent(
+      id,
+    )!.replaceAll('%2F', '/').replaceAll('%253A', '%3A');
   }
 
   String? get thumbUrl {
@@ -231,9 +245,19 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date =
-        DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000, isUtc: true);
+    final date = DateTime.fromMillisecondsSinceEpoch(
+      dateInSeconds * 1000,
+      isUtc: true,
+    );
     return Article(
-        source, id, date, title, author, srcUrl, hasThumbnail, snippet);
+      source,
+      id,
+      date,
+      title,
+      author,
+      srcUrl,
+      hasThumbnail,
+      snippet,
+    );
   }
 }

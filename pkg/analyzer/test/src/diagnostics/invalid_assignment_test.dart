@@ -26,7 +26,7 @@ class C {
 
 String Function(String) f = C();
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 76, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 76, 3),
     ]);
   }
 

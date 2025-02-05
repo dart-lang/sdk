@@ -8,7 +8,7 @@
 // disagree about the exhaustiveness of a switch statement. For details see
 // https://github.com/dart-lang/language/issues/3534#issuecomment-1885839268.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension type E(int i) {}
 

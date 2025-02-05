@@ -31,7 +31,10 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
 /// Compare the lists [listA] and [listB], using [itemEqual] to compare
 /// list elements.
 bool listEqual<T>(
-    List<T>? listA, List<T>? listB, bool Function(T a, T b) itemEqual) {
+  List<T>? listA,
+  List<T>? listB,
+  bool Function(T a, T b) itemEqual,
+) {
   if (listA == null) {
     return listB == null;
   }
@@ -52,7 +55,10 @@ bool listEqual<T>(
 /// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
 /// values.
 bool mapEqual<K, V>(
-    Map<K, V>? mapA, Map<K, V>? mapB, bool Function(V a, V b) valueEqual) {
+  Map<K, V>? mapA,
+  Map<K, V>? mapB,
+  bool Function(V a, V b) valueEqual,
+) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -75,8 +81,11 @@ bool mapEqual<K, V>(
 
 /// Translate the input [map], applying [keyCallback] to all its keys, and
 /// [valueCallback] to all its values.
-Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
-    {KR Function(KP key)? keyCallback, VR Function(VP value)? valueCallback}) {
+Map<KR, VR> mapMap<KP, VP, KR, VR>(
+  Map<KP, VP> map, {
+  KR Function(KP key)? keyCallback,
+  VR Function(VP value)? valueCallback,
+}) {
   var result = <KR, VR>{};
   map.forEach((key, value) {
     KR resultKey;
@@ -97,64 +106,120 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
 }
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
-RefactoringFeedback? refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, Map<Object?, Object?> feedbackJson,
-    {required ClientUriConverter? clientUriConverter}) {
+RefactoringFeedback? refactoringFeedbackFromJson(
+  JsonDecoder jsonDecoder,
+  String jsonPath,
+  Object? json,
+  Map<Object?, Object?> feedbackJson, {
+  required ClientUriConverter? clientUriConverter,
+}) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractLocalVariableFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractMethodFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractWidgetFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return InlineLocalVariableFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return InlineMethodFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return RenameFeedback.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   return null;
 }
 
 /// Create a [RefactoringOptions] corresponding the given [kind].
-RefactoringOptions? refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, RefactoringKind kind,
-    {required ClientUriConverter? clientUriConverter}) {
+RefactoringOptions? refactoringOptionsFromJson(
+  JsonDecoder jsonDecoder,
+  String jsonPath,
+  Object? json,
+  RefactoringKind kind, {
+  required ClientUriConverter? clientUriConverter,
+}) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractLocalVariableOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractMethodOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return ExtractWidgetOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return InlineMethodOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.MOVE_FILE) {
-    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return MoveFileOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameOptions.fromJson(jsonDecoder, jsonPath, json,
-        clientUriConverter: clientUriConverter);
+    return RenameOptions.fromJson(
+      jsonDecoder,
+      jsonPath,
+      json,
+      clientUriConverter: clientUriConverter,
+    );
   }
   return null;
 }
@@ -191,13 +256,19 @@ class RequestDecoder extends JsonDecoder {
       buffer.write('"');
     }
     return RequestFailure(
-        Response.invalidParameter(_request, jsonPath, buffer.toString()));
+      Response.invalidParameter(_request, jsonPath, buffer.toString()),
+    );
   }
 
   @override
   Object missingKey(String jsonPath, String key) {
-    return RequestFailure(Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
+    return RequestFailure(
+      Response.invalidParameter(
+        _request,
+        jsonPath,
+        'Expected to contain key ${json.encode(key)}',
+      ),
+    );
   }
 }
 

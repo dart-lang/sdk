@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -154,17 +156,10 @@ class _Node extends graph.Node<_Node> {
 
     element.representation.type = type;
     element.augmented.typeErasure = type.extensionTypeErasure;
-
-    var interfaces = element.augmented.interfaces
+    element.augmented.interfaces = element.augmented.interfaces
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
-    switch (element.augmented) {
-      case AugmentedExtensionTypeElementImpl augmented:
-        augmented.interfaces = interfaces;
-      default:
-        element.interfaces = interfaces;
-    }
 
     var primaryConstructor = element.constructors.first;
     var primaryFormalParameter = primaryConstructor.parameters.first;

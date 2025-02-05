@@ -7,7 +7,7 @@
 import 'dart:js_interop';
 import 'dart:_wasm';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 // Catch JS exceptions in try-catch and try-finally, in sync and async

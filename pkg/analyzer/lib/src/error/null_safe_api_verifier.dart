@@ -25,11 +25,11 @@ class NullSafeApiVerifier {
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
   void instanceCreation(InstanceCreationExpression expression) {
-    var constructor = expression.constructorName.staticElement;
+    var constructor = expression.constructorName.element;
     if (constructor == null) return;
 
     var type = constructor.returnType;
-    var isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
+    var isFutureValue = type.isDartAsyncFuture && constructor.name3 == 'value';
 
     if (isFutureValue) {
       _checkTypes(expression, 'Future.value', type.typeArguments.single,
@@ -43,10 +43,10 @@ class NullSafeApiVerifier {
     var targetType = node.realTarget?.staticType;
     if (targetType is! InterfaceType) return;
 
-    var targetClass = targetType.element;
+    var targetClass = targetType.element3;
 
-    if (targetClass.library.isDartAsync == true &&
-        targetClass.name == 'Completer' &&
+    if (targetClass.library2.isDartAsync == true &&
+        targetClass.name3 == 'Completer' &&
         node.methodName.name == 'complete') {
       _checkTypes(node, 'Completer.complete', targetType.typeArguments.single,
           node.argumentList);

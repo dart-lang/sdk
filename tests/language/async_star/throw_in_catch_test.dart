@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class Tracer {
   final String expected;
@@ -91,28 +91,32 @@ foo4(Tracer tracer) async* {
   tracer.trace("g");
 }
 
-runTest(test, expectedTrace, expectedError, shouldCancel) {
+Future runTest(test, expectedTrace, expectedError, shouldCancel) {
   Tracer tracer = new Tracer(expectedTrace);
   Completer done = new Completer();
   var subscription;
-  subscription = test(tracer).listen((event) async {
-    tracer.trace("Y");
-    if (shouldCancel) {
-      await subscription.cancel();
-      tracer.trace("C");
+  subscription = test(tracer).listen(
+    (event) async {
+      tracer.trace("Y");
+      if (shouldCancel) {
+        await subscription.cancel();
+        tracer.trace("C");
+        done.complete(null);
+      }
+    },
+    onError: (error) {
+      Expect.equals(expectedError, error);
+      tracer.trace("X");
+    },
+    onDone: () {
+      tracer.done();
       done.complete(null);
-    }
-  }, onError: (error) {
-    Expect.equals(expectedError, error);
-    tracer.trace("X");
-  }, onDone: () {
-    tracer.done();
-    done.complete(null);
-  });
+    },
+  );
   return done.future.then((_) => tracer.done());
 }
 
-test() async {
+Future test() async {
   // TODO(sigurdm): These tests are too dependent on scheduling, and buffering
   // behavior.
   await runTest(foo1, "abcYgC", null, true);

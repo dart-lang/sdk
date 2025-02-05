@@ -49,9 +49,10 @@ abstract class PubspecFixTest with ResourceProviderMixin {
     var node = loadYamlNode(content);
     this.node = node;
     var errors = pubspec_validator.validatePubspec(
-        source: FileSource(pubspecFile),
-        contents: node,
-        provider: resourceProvider);
+      source: FileSource(pubspecFile),
+      contents: node,
+      provider: resourceProvider,
+    );
     expect(errors.length, 1);
     error = errors[0];
   }

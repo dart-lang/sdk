@@ -17,7 +17,8 @@ bar(/*[exact=JSBool]*/ x) {
   }
 }
 
-/*member: main:[null]*/ main() {
+/*member: main:[null]*/
+main() {
   bar(foo(5));
   bar(foo(6));
 }

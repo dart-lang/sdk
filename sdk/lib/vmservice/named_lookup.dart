@@ -11,7 +11,7 @@ class NamedLookup<E extends Object> extends Iterable<E> {
   final _ids = <E, String>{};
 
   NamedLookup({String prologue = ''})
-      : _generator = IdGenerator(prologue: prologue);
+    : _generator = IdGenerator(prologue: prologue);
 
   void add(E e) {
     final id = _generator.newId();

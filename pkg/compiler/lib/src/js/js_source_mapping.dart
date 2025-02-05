@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js.source_mapping;
+library;
 
 import '../io/code_output.dart'
     show BufferedCodeOutput, SourceLocations, SourceLocationsProvider;
@@ -19,8 +19,9 @@ class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
   /// code offsets in a [SourceMapper] provided by [sourceMapperProvider].
   /// Source information for each [Node] is provider by [reader].
   SourceInformationProcessor createProcessor(
-      SourceMapperProvider sourceMapperProvider,
-      SourceInformationReader reader) {
+    SourceMapperProvider sourceMapperProvider,
+    SourceInformationReader reader,
+  ) {
     return const SourceInformationProcessor();
   }
 }
@@ -49,7 +50,11 @@ class CodePositionListener {
   ///
   /// The nodes are seen in post-traversal order.
   void onPositions(
-      Node node, int startPosition, int endPosition, int? closingPosition) {}
+    Node node,
+    int startPosition,
+    int endPosition,
+    int? closingPosition,
+  ) {}
 }
 
 /// Interface for creating [SourceMapper]s for multiple source information
@@ -78,7 +83,10 @@ abstract class SourceMapper {
 
   /// Associate [codeOffset] with an inlining call at [sourceLocation].
   void registerPush(
-      int codeOffset, SourceLocation? sourceLocation, String inlinedMethodName);
+    int codeOffset,
+    SourceLocation? sourceLocation,
+    String inlinedMethodName,
+  );
 
   /// Associate [codeOffset] with an inlining return.
   ///
@@ -100,8 +108,11 @@ class SourceLocationsMapper implements SourceMapper {
   }
 
   @override
-  void registerPush(int codeOffset, SourceLocation? sourceLocation,
-      String inlinedMethodName) {
+  void registerPush(
+    int codeOffset,
+    SourceLocation? sourceLocation,
+    String inlinedMethodName,
+  ) {
     sourceLocations.addPush(codeOffset, sourceLocation, inlinedMethodName);
   }
 

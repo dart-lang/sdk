@@ -31,11 +31,15 @@ class RemoveIfNullOperator extends ResolvedCorrectionProducer {
     }
     SourceRange sourceRange;
     if (expression.leftOperand.unParenthesized is NullLiteral) {
-      sourceRange =
-          range.startStart(expression.leftOperand, expression.rightOperand);
+      sourceRange = range.startStart(
+        expression.leftOperand,
+        expression.rightOperand,
+      );
     } else if (expression.rightOperand.unParenthesized is NullLiteral) {
-      sourceRange =
-          range.endEnd(expression.leftOperand, expression.rightOperand);
+      sourceRange = range.endEnd(
+        expression.leftOperand,
+        expression.rightOperand,
+      );
     } else {
       return;
     }

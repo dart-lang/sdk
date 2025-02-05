@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 // TODO(nshahan): update description as scope increases.
 const _desc = r"Don't do 'is' checks on DartTypes.";
@@ -17,7 +16,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
       : super(
           name: LintNames.erase_dart_type_extension_types,
           description: _desc,
-          state: State.internal(),
+          state: const State.internal(),
         );
 
   @override

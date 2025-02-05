@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 120;
+  UInt32 formatVersion = 122;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -358,8 +358,8 @@ type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
-  MemberReference member;
-  MemberReference tearOff;
+  MemberReference member;  // May be NullReference.
+  MemberReference tearOff; // May be NullReference.
 }
 
 type ExtensionTypeDeclaration extends Node {
@@ -384,8 +384,8 @@ type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
   Byte flags (isStatic);
-  MemberReference member;
-  MemberReference tearOff;
+  MemberReference member;  // May be NullReference.
+  MemberReference tearOff; // May be NullReference.
 }
 
 abstract type Member extends Node {}
@@ -1501,7 +1501,7 @@ type VariableDeclarationPlain {
 
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
-              isLowered, isSynthesized, isHoisted, isWildcard);
+              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1708,7 +1708,7 @@ type ListPattern extends Pattern {
   List<Pattern> patterns;
   Option<DartType> requiredType;
   Option<DartType> matchedValueType;
-  Byte flags { needsCheck, hasRestPattern };
+  Byte flags { needsCheck, hasRestPattern, isNeverPattern };
   Option<DartType> lookupType;
   Option<MemberReference> lengthTargetReference;
   Option<DartType> lengthType;
@@ -1730,7 +1730,7 @@ type MapPattern extends Pattern {
   List<MapPatternEntry> entries;
   Option<DartType> requiredType;
   Option<DartType> matchedValueType;
-  Byte flags { needsCheck };
+  Byte flags { needsCheck, isNeverPattern };
   Option<DartType> lookupType;
   Option<MemberReference> containsKeyTargetReference;
   Option<DartType> containsKeyType;

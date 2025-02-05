@@ -7,10 +7,10 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 mixin Base {
   noSuchMethod(Invocation invocation) {
@@ -28,9 +28,12 @@ mixin Base {
 }
 
 extension on Future<void> {
-  Future<void> ignoreError<T>() => then((_) => null, onError: (e) {
-        if (e is! T) throw e;
-      });
+  Future<void> ignoreError<T>() => then(
+    (_) => null,
+    onError: (e) {
+      if (e is! T) throw e;
+    },
+  );
 }
 
 class Derived<T> = Object with Base implements Future<T>;

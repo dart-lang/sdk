@@ -101,6 +101,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void Function(Notification)? notificationListener;
 
+  bool get retainDataForTesting => false;
+
   Folder get sdkRoot => newFolder('/sdk');
 
   Future<void> addGeneralAnalysisSubscription(
@@ -115,10 +117,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     required String requestId,
     required RequestErrorCode errorCode,
   }) {
-    expect(
-      response,
-      isResponseFailure(requestId, errorCode),
-    );
+    expect(response, isResponseFailure(requestId, errorCode));
   }
 
   void createDefaultFiles() {}
@@ -153,6 +152,14 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     );
   }
 
+  Future<void> setPriorityFiles2(List<File> files) async {
+    await handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams(
+        files.map((e) => e.path).toList(),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
+    );
+  }
+
   Future<void> setRoots({
     required List<String> included,
     required List<String> excluded,
@@ -172,10 +179,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   void setUp() {
     serverChannel = MockServerChannel();
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     createDefaultFiles();
 
@@ -192,6 +196,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
+      retainDataForTesting: retainDataForTesting,
     );
 
     server.completionState.budgetDuration = const Duration(seconds: 30);

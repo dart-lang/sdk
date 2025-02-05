@@ -38,6 +38,8 @@ amend
 amended
 amortized
 analyses
+analytics
+analyzerinput
 andahalf
 animal
 animated
@@ -66,6 +68,7 @@ autofocus
 automatic
 averaged
 averages
+avg
 ax
 axis
 ba
@@ -125,6 +128,7 @@ ca
 cafebabe
 calloc
 camel
+cap
 capacity
 capitalized
 caption
@@ -159,6 +163,7 @@ cnn
 coded
 codepath
 coincidences
+cold
 collisions
 columns
 commented
@@ -200,6 +205,7 @@ ctrl
 cumulative
 cursor
 cuts
+cutting
 cx
 da
 dacoharkes
@@ -244,6 +250,7 @@ di
 diagnosticable
 dictionaries
 dictionary
+dicy
 differentiate
 dijkstra
 dijkstras
@@ -312,6 +319,7 @@ exercised
 exercises
 exitcode
 exiting
+exotic
 expanded
 expansive
 explainer
@@ -322,6 +330,7 @@ fac
 failsafe
 faking
 falling
+fasta
 faults
 favors
 fb
@@ -346,6 +355,8 @@ foos
 forbidden
 forces
 foreground
+forever
+forgot
 forrest
 forth
 forty
@@ -363,6 +374,7 @@ futu
 futures
 fuzz
 fuzzed
+fuzzer
 fuzzing
 fx
 gallery
@@ -375,6 +387,7 @@ ge
 gesture
 gi
 gm
+golem
 goo
 google
 graphic
@@ -414,6 +427,7 @@ ia
 identification
 idle
 if's
+ij
 ikg
 illustrate
 image
@@ -437,6 +451,7 @@ ing
 inhibit
 inlinable
 inlineable
+inoperable
 insights
 instrument
 instrumenter
@@ -452,6 +467,7 @@ introducer
 inv
 involves
 ioo
+irrespective
 ish
 it'll
 italic
@@ -461,6 +477,7 @@ jc
 jk
 jlcontreras
 joo
+jsonrpc
 jumped
 kernels
 kitty
@@ -483,12 +500,14 @@ lints
 listening
 listing
 ln
+locale
 locating
 logd
 logs
 loo
 lookahead
 loopback
+lsp
 ma
 mac
 maker
@@ -505,6 +524,7 @@ micro
 migrations
 mimicking
 minimize
+minimized
 minimizer
 minimizing
 minitest
@@ -551,6 +571,7 @@ nondefault
 nonexisting
 noo
 noted
+notification
 noting
 nottest
 nq
@@ -561,6 +582,7 @@ nums
 ob
 obool
 observable
+october
 offers
 oh
 okay
@@ -571,6 +593,7 @@ oo
 oobar
 oocf
 ooo
+oops
 oovf
 opacity
 operate
@@ -580,12 +603,14 @@ oracle
 ot
 outbound
 outliers
+outstanding
 overflows
 overhead
 overlay
 overly
 ox
 pack
+packet
 paging
 paint
 parallax
@@ -597,6 +622,7 @@ paused
 pays
 pb
 pc
+percentile
 periodic
 periodically
 perm
@@ -616,6 +642,7 @@ population
 portions
 pp
 pr
+practise
 preliminary
 prematurely
 prerequisite
@@ -666,6 +693,7 @@ refname
 refusing
 regards
 regenerate
+regex
 regressions
 reify
 reject
@@ -673,6 +701,7 @@ relinked
 remap
 remapping
 remaps
+removeable
 rendition
 reorder
 reordering
@@ -693,6 +722,7 @@ revisions
 risky
 rk
 rnone
+routines
 row
 rows
 rr
@@ -714,6 +744,7 @@ sdkroot
 sdks
 secondary
 secondtest
+secure
 seemingly
 segment
 selection
@@ -739,6 +770,7 @@ sigwinch
 silence
 simplistic
 slashes
+sleep
 slight
 sliver
 smoke
@@ -760,6 +792,7 @@ spurious
 sqrt
 squared
 ss
+ssls
 sssp
 stacks
 stashed
@@ -775,6 +808,7 @@ stringy
 strip
 strongest
 stub's
+stuck
 stupid
 subcommand
 subdir
@@ -800,6 +834,7 @@ tails
 taskset
 te
 templates
+testfile
 theoretically
 there'll
 thereby
@@ -841,6 +876,7 @@ ugly
 unassignment
 unawaited
 unbreak
+uncalled
 uncaught
 uncommitted
 uncompiled
@@ -875,12 +911,14 @@ vf
 virtually
 visualization
 vp
+vscode
 vt
 vte
 waited
 waits
 walt
 warmup
+warmups
 week
 weekly
 went
@@ -891,6 +929,7 @@ wins
 wording
 workers
 workflow
+workspace
 worlds
 worse
 wrongly

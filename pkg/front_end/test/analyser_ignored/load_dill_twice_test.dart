@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Platform, exit;
+import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' show Component;
@@ -11,7 +12,7 @@ import 'package:kernel/text/ast_to_text.dart' show componentToString;
 import '../incremental_suite.dart' show normalCompileToBytes;
 
 main() async {
-  List<int> bytes = await normalCompileToBytes(
+  Uint8List bytes = await normalCompileToBytes(
       Platform.script.resolve("load_dill_twice_lib_1.dart"));
 
   Component c = new Component();

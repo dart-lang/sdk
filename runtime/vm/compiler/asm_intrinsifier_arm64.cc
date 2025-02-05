@@ -1778,7 +1778,7 @@ static void TryAllocateString(Assembler* assembler,
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));
-    __ str(R2, FieldAddress(R0, target::Object::tags_offset()));  // Store tags.
+    __ InitializeHeader(R2, R0);
   }
 
 #if DART_COMPRESSED_POINTERS

@@ -158,6 +158,12 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     return -1;
   }
 
+  // Ensure the socket doesn't get closed if used to send data to unreachable.
+  BOOL value = FALSE;
+  DWORD bytes;
+  WSAIoctl(s, SIO_UDP_CONNRESET, &value, sizeof value, NULL, 0, &bytes, nullptr,
+           nullptr);
+
   int status;
   if (reuseAddress) {
     BOOL optval = true;

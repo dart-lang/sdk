@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -319,7 +321,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     // Analyzer: impossible, we have only one suffix
 
     // * if S is Null then Null
-    check(nullQuestion, nullNone);
+    // Analyzer: impossible; `Null?` is always represented as `Null`.
 
     // * if S is FutureOr<R> and R is nullable then S
     check(futureOrQuestion(intQuestion), futureOrNone(intQuestion));

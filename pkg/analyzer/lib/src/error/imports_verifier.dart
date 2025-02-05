@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
@@ -11,11 +13,12 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Instances of the class `ImportsVerifier` visit all of the referenced
 /// libraries in the source code verifying that all of the imports are used,
-/// otherwise a [HintCode.UNUSED_IMPORT] hint is generated with
-/// [generateUnusedImportHints].
+/// otherwise a [WarningCode.UNUSED_IMPORT] hint is generated with
+/// [generateUnusedImportWarnings].
 ///
 /// Additionally, [generateDuplicateImportWarnings] generates
-/// [HintCode.DUPLICATE_IMPORT] hints and [HintCode.UNUSED_SHOWN_NAME] hints.
+/// [WarningCode.DUPLICATE_IMPORT] hints and [WarningCode.UNUSED_SHOWN_NAME]
+/// warnings.
 ///
 /// While this class does not yet have support for an "Organize Imports" action,
 /// this logic built up in this class could be used for such an action in the
@@ -34,11 +37,11 @@ class ImportsVerifier {
   /// from this list. After all the sources in the library have been evaluated,
   /// this list represents the set of unused imports.
   ///
-  /// See [ImportsVerifier.generateUnusedImportErrors].
+  /// See [generateUnusedImportWarnings].
   final Set<ImportDirective> _unusedImports = {};
 
-  /// After the list of [unusedImports] has been computed, this list is a proper
-  /// subset of the unused imports that are listed more than once.
+  /// After the list of [_unusedImports] has been computed, this list is a
+  /// proper subset of the unused imports that are listed more than once.
   final List<ImportDirective> _duplicateImports = [];
 
   /// This list is a proper subset of the unused exports that are listed more
@@ -234,8 +237,8 @@ class ImportsVerifier {
     }
   }
 
-  /// Report [WarningCode.UNUSED_IMPORT] for each unused import.
-  void generateUnusedImportHints(ErrorReporter errorReporter) {
+  /// Reports [WarningCode.UNUSED_IMPORT] for each unused import.
+  void generateUnusedImportWarnings(ErrorReporter errorReporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
@@ -276,7 +279,7 @@ class ImportsVerifier {
   /// Use the error [reporter] to report an [WarningCode.UNUSED_SHOWN_NAME]
   /// for each unused shown name.
   ///
-  /// This method should be invoked after [generateUnusedImportHints].
+  /// This method should be invoked after [generateUnusedImportWarnings].
   void generateUnusedShownNameHints(ErrorReporter reporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {

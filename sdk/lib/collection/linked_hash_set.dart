@@ -138,10 +138,11 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// and `isValidKey` is omitted, the resulting set is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashSet.identity].
-  external factory LinkedHashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory LinkedHashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   /// Creates an insertion-ordered identity-based set.
   ///

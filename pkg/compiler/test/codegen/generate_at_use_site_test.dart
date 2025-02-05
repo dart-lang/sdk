@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String FIB = r"""
@@ -56,12 +56,16 @@ main() {
 
     await compileAndDoNotMatch(BAR, 'bar', RegExp("isLeaf"));
 
-    await compile(TEST, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('else'));
-      // Regression check to ensure that there is no floating variable
-      // expression.
-      Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
-    });
+    await compile(
+      TEST,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isFalse(generated.contains('else'));
+        // Regression check to ensure that there is no floating variable
+        // expression.
+        Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+      },
+    );
   }
 
   asyncTest(() async {

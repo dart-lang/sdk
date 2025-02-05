@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 // TODO(johnniwinther): .
 // TODO(paulberry): Use the code for extraction of test data from
 // annotated code from CFE.
@@ -298,15 +300,14 @@ abstract class DataComputer<T> {
   /// state, so this testing feature is opt-in.
   bool get supportsErrors => false;
 
-  /// Returns data corresponding to [error].
+  /// Returns data corresponding to [errors].
   T? computeErrorData(TestConfig config, TestingData testingData, Id id,
           List<AnalysisError> errors) =>
       null;
 
-  /// Function that computes a data mapping for [unit].
+  /// Computes a data mapping for [unit].
   ///
-  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-  /// for the data origin.
+  /// Fills [actualMap] with the data.
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<T>> actualMap);
 }

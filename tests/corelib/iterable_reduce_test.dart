@@ -38,7 +38,7 @@ main() {
     [0, 1, 2].map((x) => x + 1),
     [
       [1, 2],
-      [3]
+      [3],
     ].expand(id),
     [3, 2, 1].reversed,
     [0, 1, 2, 3].skip(1),
@@ -67,9 +67,18 @@ main() {
           ..[1] = 2
           ..[2] = 3)
         .values,
-    new HashSet()..add(1)..add(2)..add(3),
-    new LinkedHashSet()..add(1)..add(2)..add(3),
-    new SplayTreeSet()..add(1)..add(2)..add(3),
+    new HashSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
+    new LinkedHashSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
+    new SplayTreeSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
     "\x01\x02\x03".codeUnits,
     "\x01\x02\x03".runes,
     new MyList([1, 2, 3]),
@@ -111,8 +120,9 @@ main() {
     "".runes,
     new MyList([]),
   ]) {
-    Expect
-        .throwsStateError(() => iterable.reduce((x, y) => throw "Unreachable"));
+    Expect.throwsStateError(
+      () => iterable.reduce((x, y) => throw "Unreachable"),
+    );
   }
 
   // Singleton iterables not calling reduce function.
@@ -128,7 +138,7 @@ main() {
     [0].map((x) => x + 1),
     [
       [],
-      [1]
+      [1],
     ].expand(id),
     [1].reversed,
     [0, 1].skip(1),
@@ -173,38 +183,67 @@ main() {
   }
 
   testModification([1, 2, 3], add4, id);
-  testModification(new HashSet()..add(1)..add(2)..add(3), add4, id);
-  testModification(new LinkedHashSet()..add(1)..add(2)..add(3), add4, id);
-  testModification(new SplayTreeSet()..add(1)..add(2)..add(3), add4, id);
+  testModification(
+    new HashSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
+    add4,
+    id,
+  );
+  testModification(
+    new LinkedHashSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
+    add4,
+    id,
+  );
+  testModification(
+    new SplayTreeSet()
+      ..add(1)
+      ..add(2)
+      ..add(3),
+    add4,
+    id,
+  );
   testModification(new MyList([1, 2, 3]), add4, id);
 
   testModification([0, 1, 2, 3], add4, (x) => x.where((int x) => x > 0));
   testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1));
-  testModification([
-    [1, 2],
-    [3]
-  ], addListOf4, (x) => x.expand((List<int> x) => x));
+  testModification(
+    [
+      [1, 2],
+      [3],
+    ],
+    addListOf4,
+    (x) => x.expand((List<int> x) => x),
+  );
   testModification([3, 2, 1], add4, (x) => x.reversed);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);
-  var hashMap = new HashMap()
-    ..[1] = 1
-    ..[2] = 2
-    ..[3] = 3;
+  var hashMap =
+      new HashMap()
+        ..[1] = 1
+        ..[2] = 2
+        ..[3] = 3;
   testModification(hashMap, put4, (x) => x.keys);
-  hashMap = new HashMap()
-    ..[1] = 1
-    ..[2] = 2
-    ..[3] = 3;
+  hashMap =
+      new HashMap()
+        ..[1] = 1
+        ..[2] = 2
+        ..[3] = 3;
   testModification(hashMap, put4, (x) => x.values);
-  var splayMap = new SplayTreeMap()
-    ..[1] = 1
-    ..[2] = 2
-    ..[3] = 3;
+  var splayMap =
+      new SplayTreeMap()
+        ..[1] = 1
+        ..[2] = 2
+        ..[3] = 3;
   testModification(splayMap, put4, (x) => x.keys);
-  splayMap = new SplayTreeMap()
-    ..[1] = 1
-    ..[2] = 2
-    ..[3] = 3;
+  splayMap =
+      new SplayTreeMap()
+        ..[1] = 1
+        ..[2] = 2
+        ..[3] = 3;
   testModification(splayMap, put4, (x) => x.values);
 }

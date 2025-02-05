@@ -5,6 +5,7 @@
 import 'dart:convert' show jsonDecode;
 import 'dart:developer' show debugger;
 import 'dart:io' show Directory, File;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
@@ -68,8 +69,8 @@ import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
-import 'fasta/suite_utils.dart';
-import 'fasta/testing/environment_keys.dart';
+import 'utils/suite_utils.dart';
+import 'testing/environment_keys.dart';
 import "incremental_utils.dart" as util;
 import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
@@ -690,7 +691,7 @@ Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Future<Map<String, List<int>>> createModules(
+Future<Map<String, Uint8List>> createModules(
     Map<String, Map<String, String>> module,
     final List<int> sdkSummaryData,
     Target target,
@@ -717,7 +718,7 @@ Future<Map<String, List<int>>> createModules(
     }
   }
 
-  Map<String, List<int>> moduleResult = new Map<String, List<int>>();
+  Map<String, Uint8List> moduleResult = {};
 
   for (String moduleName in module.keys) {
     List<Uri> moduleSources = <Uri>[];
@@ -766,7 +767,7 @@ Future<Map<String, List<int>>> createModules(
     }
     Component result = new Component(libraries: wantedLibs)
       ..setMainMethodAndMode(null, false, c.mode);
-    List<int> resultBytes = util.postProcess(result);
+    Uint8List resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
 
@@ -1153,17 +1154,17 @@ class NewWorldTest {
     final Uri sdkSummaryUri = base.resolve(sdkSummary);
     final Uri initializeFrom = base.resolve("initializeFrom.dill");
     Uri platformUri = platformBinariesRoot.resolve(sdkSummary);
-    final List<int> sdkSummaryData =
+    final Uint8List sdkSummaryData =
         await new File.fromUri(platformUri).readAsBytes();
 
-    List<int>? newestWholeComponentData;
+    Uint8List? newestWholeComponentData;
     TestMemoryFileSystem? fs;
     Map<String, String?>? sourceFiles;
     CompilerOptions? options;
     TestIncrementalCompiler? compiler;
     IncrementalSerializer? incrementalSerializer;
 
-    Map<String, List<int>>? moduleData;
+    Map<String, Uint8List>? moduleData;
     Map<String, Component>? moduleComponents;
 
     if (modules != null) {
@@ -1639,12 +1640,12 @@ class NewWorldTest {
           Expect.isNull(world.expectedInvalidatedUri);
         }
       }
-      Result<List<int>?> serializationResult = checkIncrementalSerialization(
+      Result<Uint8List?> serializationResult = checkIncrementalSerialization(
           incrementalSerialization, component!, incrementalSerializer, world);
       if (!serializationResult.isPass) {
         return serializationResult.copyWithOutput(data);
       }
-      List<int>? incrementalSerializationBytes = serializationResult.output;
+      Uint8List? incrementalSerializationBytes = serializationResult.output;
 
       worldErrors.add(formattedErrors.toSet());
       assert(worldErrors.length == worldNum);
@@ -1864,9 +1865,9 @@ class NewWorldTest {
 }
 
 Result<TestData>? checkConstantCoverageReferences(
-    List<int> newestWholeComponentData,
+    Uint8List newestWholeComponentData,
     bool omitPlatform,
-    List<int> sdkSummaryData,
+    Uint8List sdkSummaryData,
     TestData data) {
   // Note that this is in a method to avoid "semi-leaks".
   Component loadedComponent = new Component();
@@ -2186,7 +2187,7 @@ void checkErrorsAndWarnings(
   }
 }
 
-Result<List<int>?> checkIncrementalSerialization(
+Result<Uint8List?> checkIncrementalSerialization(
     bool? incrementalSerialization,
     Component component,
     IncrementalSerializer? incrementalSerializer,
@@ -2202,22 +2203,22 @@ Result<List<int>?> checkIncrementalSerialization(
     incrementalSerializer!.writePackagesToSinkAndTrimComponent(c, sink);
     int librariesAfter = c.libraries.length;
     if (librariesAfter > librariesBefore) {
-      return new Result<List<int>>(null, IncrementalSerializationError,
+      return new Result<Uint8List>(null, IncrementalSerializationError,
           "Incremental serialization added libraries!");
     }
     if (librariesBefore == librariesAfter &&
         world.incrementalSerializationDoesWork) {
-      return new Result<List<int>>(null, IncrementalSerializationError,
+      return new Result<Uint8List>(null, IncrementalSerializationError,
           "Incremental serialization didn't remove any libraries!");
     }
     if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
-      return new Result<List<int>>(
+      return new Result<Uint8List>(
           null,
           IncrementalSerializationError,
           "Incremental serialization didn't output any bytes, "
           "but did remove libraries");
     } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
-      return new Result<List<int>>(
+      return new Result<Uint8List>(
           null,
           IncrementalSerializationError,
           "Incremental serialization did output bytes, "
@@ -2227,7 +2228,7 @@ Result<List<int>?> checkIncrementalSerialization(
       // If we actually did incrementally serialize anything, check the output!
       BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(c);
-      List<int> bytes = sink.builder.takeBytes();
+      Uint8List bytes = sink.builder.takeBytes();
 
       // Load the bytes back in.
       Component loadedComponent = new Component();
@@ -2240,7 +2241,7 @@ Result<List<int>?> checkIncrementalSerialization(
         for (String uriString in world.serializationShouldNotInclude!) {
           Uri uri = Uri.parse(uriString);
           if (includedImportUris.contains(uri)) {
-            return new Result<List<int>>(
+            return new Result<Uint8List>(
                 null,
                 IncrementalSerializationError,
                 "Incremental serialization shouldn't include "
@@ -2260,16 +2261,16 @@ Result<List<int>?> checkIncrementalSerialization(
         afterContent.remove(key);
       }
       Result? result = checkExpectedContentData(afterContent, originalContent);
-      if (result != null) return result.copyWithOutput<List<int>?>(null);
+      if (result != null) return result.copyWithOutput<Uint8List?>(null);
 
       // Check that the result is self-contained.
       result = checkSelfContained(loadedComponent);
-      if (result != null) return result.copyWithOutput<List<int>?>(null);
+      if (result != null) return result.copyWithOutput<Uint8List?>(null);
 
-      return new Result<List<int>>.pass(bytes);
+      return new Result<Uint8List>.pass(bytes);
     }
   }
-  return new Result<List<int>?>.pass(null);
+  return new Result<Uint8List?>.pass(null);
 }
 
 Result? checkSelfContained(Component component) {
@@ -2581,7 +2582,7 @@ Future<bool> normalCompile(Uri input, Uri output,
   return compiler.initializedFromDillForTesting;
 }
 
-Future<List<int>> normalCompileToBytes(Uri input,
+Future<Uint8List> normalCompileToBytes(Uri input,
     {CompilerOptions? options, IncrementalCompiler? compiler}) async {
   Component component = await normalCompileToComponent(input,
       options: options, compiler: compiler);

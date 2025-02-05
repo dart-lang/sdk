@@ -5,8 +5,8 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 6);
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
+const Version defaultLanguageVersion = const Version(3, 7);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -15,7 +15,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 6)),
 
   classModifiers(
       name: 'class-modifiers',
@@ -55,7 +55,7 @@ enum ExperimentalFlag {
   digitSeparators(
       name: 'digit-separators',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6)),
 
@@ -68,6 +68,13 @@ enum ExperimentalFlag {
 
   enhancedParts(
       name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: const Version(3, 6)),
+
+  enumShorthands(
+      name: 'enum-shorthands',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
@@ -86,6 +93,13 @@ enum ExperimentalFlag {
       isExpired: true,
       experimentEnabledVersion: const Version(2, 14),
       experimentReleasedVersion: const Version(2, 14)),
+
+  getterSetterError(
+      name: 'getter-setter-error',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   inferenceUpdate1(
       name: 'inference-update-1',
@@ -117,10 +131,10 @@ enum ExperimentalFlag {
 
   inferenceUsingBounds(
       name: 'inference-using-bounds',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7)),
 
   inlineClass(
       name: 'inline-class',
@@ -257,10 +271,10 @@ enum ExperimentalFlag {
 
   wildcardVariables(
       name: 'wildcard-variables',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7)),
   ;
 
   final String name;

@@ -11,6 +11,11 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   ConstructorScope get constructorScope;
 
+  /// Type parameters declared on this declaration.
+  ///
+  /// This is `null` if the declaration is not generic.
+  List<NominalParameterBuilder>? get typeParameters;
+
   LibraryBuilder get libraryBuilder;
 
   @override
@@ -21,7 +26,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false});
 
   MemberBuilder? findConstructorOrFactory(
@@ -51,16 +56,11 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     implements IDeclarationBuilder {
   @override
-  final Uri fileUri;
-
-  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
-      String name, LibraryBuilder parent, this.fileUri, int fileOffset)
-      : super(metadata, modifiers, name, parent, fileOffset);
+  LibraryBuilder get parent;
 
   @override
   LibraryBuilder get libraryBuilder {
-    LibraryBuilder library = parent as LibraryBuilder;
-    return library.partOfLibrary ?? library;
+    return parent.partOfLibrary ?? parent;
   }
 
   @override

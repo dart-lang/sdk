@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 class A {
   get getter1 => null; //# 01: ok
   num get getter2 => 0; //# 02: ok

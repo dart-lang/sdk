@@ -40,8 +40,7 @@ environment:
 // ignore: unused_import
 import 'dart:html';
 ''');
-    result = await resolveFile(mainFile.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(mainFile.path);
   }
 
   test_nonWebApp() async {
@@ -68,8 +67,7 @@ flutter:
 // ignore: unused_import
 import 'dart:html';
 ''');
-    result = await resolveFile(mainFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(mainFile.path, [
       lint(25, 19),
     ]);
   }
@@ -79,8 +77,7 @@ import 'dart:html';
 // ignore: unused_import
 import 'dart:html';
 ''');
-    result = await resolveFile(mainFile.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(mainFile.path);
   }
 
   test_webApp() async {
@@ -108,8 +105,7 @@ flutter:
 import 'dart:html';
 ''');
     newFile('$testPackageRootPath/web/README', 'Placeholder.');
-    result = await resolveFile(mainFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(mainFile.path, [
       // Even in a package with a `web/` directory, do not use web libraries.
       // Note(srawlins): This seems weird to me, but this is the expectation
       // from the previous version of this test.
@@ -145,7 +141,6 @@ flutter:
 // ignore: unused_import
 import 'dart:html';
 ''');
-    result = await resolveFile(mainFile.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(mainFile.path);
   }
 }

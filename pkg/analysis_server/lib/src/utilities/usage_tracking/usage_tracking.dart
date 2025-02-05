@@ -10,10 +10,7 @@ void configureMemoryUsageTracking(
   UsageCallback callback,
 ) {
   var config = UsageTrackingConfig(
-    usageEventsConfig: UsageEventsConfig(
-      callback,
-      deltaMb: 512,
-    ),
+    usageEventsConfig: UsageEventsConfig(callback, deltaMb: 512),
     autoSnapshottingConfig: parseAutoSnapshottingConfig(arguments),
   );
   trackMemoryUsage(config);
@@ -42,26 +39,29 @@ AutoSnapshottingConfig? parseAutoSnapshottingConfig(List<String> args) {
 
   if (values.isEmpty) return null;
 
-  var items = Map.fromEntries(values.map((e) {
-    var keyValue = e.split('=');
-    if (keyValue.length != 2) {
-      throw ArgumentError(
-        'Invalid auto-snapshotting config: $values.\n'
-        'Expected "key-value", got "$e".',
-      );
-    }
-    var keyString = keyValue[0];
-    try {
-      var key = _Keys.values.byName(keyString);
+  var items = Map.fromEntries(
+    values.map((e) {
+      var keyValue = e.split('=');
+      if (keyValue.length != 2) {
+        throw ArgumentError(
+          'Invalid auto-snapshotting config: $values.\n'
+          'Expected "key-value", got "$e".',
+        );
+      }
+      var keyString = keyValue[0];
+      try {
+        var key = _Keys.values.byName(keyString);
 
-      return MapEntry(key, keyValue[1]);
-    } on ArgumentError {
-      throw ArgumentError('Invalid auto-snapshotting key: $keyString".');
-    }
-  }));
+        return MapEntry(key, keyValue[1]);
+      } on ArgumentError {
+        throw ArgumentError('Invalid auto-snapshotting key: $keyString".');
+      }
+    }),
+  );
   if (!items.containsKey(_Keys.dir)) {
     throw ArgumentError(
-        '${_Keys.dir.name} should be provided for auto-snapshotting.');
+      '${_Keys.dir.name} should be provided for auto-snapshotting.',
+    );
   }
   return AutoSnapshottingConfig(
     thresholdMb: _parseKey(_Keys.thresholdMb, items, 7000),
@@ -80,15 +80,10 @@ int _parseKey(_Keys key, Map<_Keys, String> items, int defaultValue) {
   var result = int.tryParse(value);
   if (result == null) {
     throw ArgumentError(
-        'Invalid auto-snapshotting value for ${key.name}: $value.');
+      'Invalid auto-snapshotting value for ${key.name}: $value.',
+    );
   }
   return result;
 }
 
-enum _Keys {
-  thresholdMb,
-  increaseMb,
-  dir,
-  dirLimitMb,
-  delaySec,
-}
+enum _Keys { thresholdMb, increaseMb, dir, dirLimitMb, delaySec }

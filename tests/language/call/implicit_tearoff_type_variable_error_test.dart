@@ -6,7 +6,7 @@
 // static type of the expression is a nullable type variable, or a type variable
 // whose bound is nullable.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   void call() {}
@@ -36,7 +36,8 @@ void testTypeVariablePromotedToNullableCallableClass<T>(T t) {
 }
 
 void testTypeVariableExtendsNullableTypeVariable<T extends U?, U extends C>(
-    T t) {
+  T t,
+) {
   context<void Function()>(t);
   //                       ^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE

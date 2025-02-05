@@ -53,8 +53,6 @@ fn(closure, type) {
 }
 
 /// Tag a generic [closure] with a [type] and the [defaultTypeArgs] values.
-///
-/// Only called from generated code when running with the new type system.
 gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
   JS('', '#[#] = #', closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), type);
   JS('', '#._defaultTypeArgs = #', closure, defaultTypeArgs);
@@ -70,10 +68,57 @@ gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
 /// resulting function is compatible with [fn] and the type can be set again
 /// safely.
 lazyFn(closure, Object Function() computeType) {
-  defineAccessor(closure, _runtimeType,
-      get: () => defineValue(closure, _runtimeType, computeType()),
-      set: (value) => defineValue(closure, _runtimeType, value),
-      configurable: true);
+  defineAccessor(
+    closure,
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+    get:
+        () => defineValue(
+          closure,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+          computeType(),
+        ),
+    set:
+        (value) =>
+            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
+    configurable: true,
+    enumerable: false,
+  );
+  return closure;
+}
+
+/// Tag a generic [closure] with a getter that uses [computeType] and
+/// [computeDefaultTypeArgs] to lazily return its runtime type and default type
+/// arguments, respectively,
+lazyGFn(
+  Object closure,
+  Object Function() computeType,
+  Object Function() computeDefaultTypeArgs,
+) {
+  defineAccessor(
+    closure,
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+    get:
+        () => defineValue(
+          closure,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+          computeType(),
+        ),
+    set:
+        (value) =>
+            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
+    configurable: true,
+    enumerable: false,
+  );
+  defineAccessor(
+    closure,
+    '_defaultTypeArgs',
+    get:
+        () =>
+            defineValue(closure, '_defaultTypeArgs', computeDefaultTypeArgs()),
+    set: (value) => defineValue(closure, '_defaultTypeArgs', value),
+    configurable: true,
+    enumerable: false,
+  );
   return closure;
 }
 
@@ -92,17 +137,28 @@ Object getInterceptorForRti(obj) {
   } else {
     switch (JS<String>('!', 'typeof #', obj)) {
       case 'number':
-        classRef = JS('', 'Math.floor(#) == # ? # : #', obj, obj,
-            JS_CLASS_REF(JSInt), JS_CLASS_REF(JSNumNotInt));
+        classRef = JS(
+          '',
+          'Math.floor(#) == # ? # : #',
+          obj,
+          obj,
+          JS_CLASS_REF(JSInt),
+          JS_CLASS_REF(JSNumNotInt),
+        );
         break;
       case 'function':
-        var signature =
-            JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
-        classRef = signature != null
-            ? JS_CLASS_REF(Function)
-            // Dart functions should always be tagged with a signature, assume
-            // this must be a JavaScript function.
-            : JS_CLASS_REF(JavaScriptFunction);
+        var signature = JS(
+          '',
+          '#[#]',
+          obj,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+        );
+        classRef =
+            signature != null
+                ? JS_CLASS_REF(Function)
+                // Dart functions should always be tagged with a signature,
+                // assume this must be a JavaScript function.
+                : JS_CLASS_REF(JavaScriptFunction);
         break;
       default:
         // The interceptors for native JavaScript types like bool, string, etc.
@@ -145,15 +201,25 @@ getReifiedType(obj) {
       return TYPE_REF<LegacyJavaScriptObject>();
     case "function":
       // Dart functions are tagged with a signature.
-      var signature =
-          JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+      var signature = JS(
+        '',
+        '#[#]',
+        obj,
+        JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+      );
       if (signature != null) return signature;
       return TYPE_REF<JavaScriptFunction>();
     case "undefined":
       return TYPE_REF<Null>();
     case "number":
-      return JS('', 'Math.floor(#) == # ? # : #', obj, obj, TYPE_REF<int>(),
-          TYPE_REF<double>());
+      return JS(
+        '',
+        'Math.floor(#) == # ? # : #',
+        obj,
+        obj,
+        TYPE_REF<int>(),
+        TYPE_REF<double>(),
+      );
     case "boolean":
       return TYPE_REF<bool>();
     case "string":
@@ -213,7 +279,11 @@ getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 /// done from bootstapping scripts that set up the stack trace mapper.
 // TODO(39630): move these public facing APIs to a dedicated public interface.
 void trackLibraries(
-    String moduleName, Object libraries, Object parts, String? sourceMap) {
+  String moduleName,
+  Object libraries,
+  Object parts,
+  String? sourceMap,
+) {
   if (parts is String) {
     // Added for backwards compatibility.
     // package:build_web_compilers currently invokes this without [parts]
@@ -261,6 +331,8 @@ _computeLibraryMetadata() {
 /// Returns the JS library object for a given library [uri] or
 /// undefined / null if it isn't loaded.  Top-level types and
 /// methods are available on this object.
+// TODO(srujzs): This is unused with the new DDC module format. Consider
+// removing.
 Object? getLibrary(String uri) {
   if (_libraryObjects == null) {
     _computeLibraryMetadata();
@@ -271,6 +343,7 @@ Object? getLibrary(String uri) {
 /// Returns a JSArray of library uris (e.g,
 /// ['dart:core', 'dart:_internal', ..., 'package:foo/bar.dart', ... 'main.dart'])
 /// loaded in this application.
+// TODO(srujzs): This is unused. Consider removing.
 List<String> getLibraries() {
   if (_libraries == null) {
     _computeLibraryMetadata();
@@ -291,6 +364,7 @@ List<String> getLibraries() {
 ///
 /// If [libraryUri] doesn't map to a library or maps to a library with no
 /// parts, an empty list is returned.
+// TODO(srujzs): This is unused. Consider removing.
 List<String> getParts(String libraryUri) {
   if (_parts == null) {
     _computeLibraryMetadata();

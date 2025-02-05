@@ -19,7 +19,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   final CorrectionApplicability applicability;
 
   UseCurlyBraces({required super.context})
-      : applicability = CorrectionApplicability.acrossFiles;
+    : applicability = CorrectionApplicability.acrossFiles;
 
   /// Create an instance that is prevented from being applied automatically in
   /// bulk.
@@ -28,7 +28,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   /// not clearly the only/correct fix to apply automatically, such as the
   /// `always_put_control_body_on_new_line` lint.
   UseCurlyBraces.nonBulk({required super.context})
-      : applicability = CorrectionApplicability.acrossSingleFile;
+    : applicability = CorrectionApplicability.acrossSingleFile;
 
   @override
   AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
@@ -80,7 +80,13 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       _replaceRange(
-          builder, node.doKeyword, body, node.whileKeyword, indent, prefix);
+        builder,
+        node.doKeyword,
+        body,
+        node.whileKeyword,
+        indent,
+        prefix,
+      );
     });
   }
 
@@ -107,7 +113,10 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   }
 
   Future<void> _ifStatement(
-      ChangeBuilder builder, IfStatement node, Statement? thenOrElse) async {
+    ChangeBuilder builder,
+    IfStatement node,
+    Statement? thenOrElse,
+  ) async {
     var parent = node.parent;
     if (parent is IfStatement && parent.elseStatement == node) {
       return;
@@ -123,10 +132,21 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
           (thenOrElse == null || thenOrElse == thenStatement)) {
         if (elseKeyword == null) {
           _replace(
-              builder, node.rightParenthesis, thenStatement, indent, prefix);
+            builder,
+            node.rightParenthesis,
+            thenStatement,
+            indent,
+            prefix,
+          );
         } else {
-          _replaceRange(builder, node.rightParenthesis, thenStatement,
-              elseKeyword, indent, prefix);
+          _replaceRange(
+            builder,
+            node.rightParenthesis,
+            thenStatement,
+            elseKeyword,
+            indent,
+            prefix,
+          );
         }
       }
 
@@ -145,27 +165,39 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     });
   }
 
-  void _replace(DartFileEditBuilder builder, SyntacticEntity left,
-      AstNode right, String indent, String prefix) {
+  void _replace(
+    DartFileEditBuilder builder,
+    SyntacticEntity left,
+    AstNode right,
+    String indent,
+    String prefix,
+  ) {
     _replaceLeftParenthesis(builder, left, right, indent);
 
     builder.addSimpleInsertion(_endAfterComments(right), '$eol$prefix}');
   }
 
-  void _replaceLeftParenthesis(DartFileEditBuilder builder,
-      SyntacticEntity left, SyntacticEntity right, String indent) {
+  void _replaceLeftParenthesis(
+    DartFileEditBuilder builder,
+    SyntacticEntity left,
+    SyntacticEntity right,
+    String indent,
+  ) {
     // Keep any comments preceding right.
     if (right is AstNode) {
       right = right.beginToken.precedingComments ?? right;
     }
-    builder.addSimpleReplacement(
-      range.endStart(left, right),
-      ' {$eol$indent',
-    );
+    builder.addSimpleReplacement(range.endStart(left, right), ' {$eol$indent');
   }
 
-  void _replaceRange(DartFileEditBuilder builder, SyntacticEntity left,
-      AstNode node, SyntacticEntity right, String indent, String prefix) {
+  void _replaceRange(
+    DartFileEditBuilder builder,
+    SyntacticEntity left,
+    AstNode node,
+    SyntacticEntity right,
+    String indent,
+    String prefix,
+  ) {
     _replaceLeftParenthesis(builder, left, node, indent);
 
     var end = _endAfterComments(node);
@@ -176,7 +208,9 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   }
 
   Future<void> _whileStatement(
-      ChangeBuilder builder, WhileStatement node) async {
+    ChangeBuilder builder,
+    WhileStatement node,
+  ) async {
     var body = node.body;
     if (body is Block) return;
 

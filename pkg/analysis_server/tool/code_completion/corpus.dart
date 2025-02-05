@@ -59,18 +59,24 @@ final recurseForDependencies = true;
 /// Whether to update existing clones.
 final updateExistingClones = false;
 
-final _appDir =
-    path.join(_homeDir, 'completion_metrics', 'third_party', 'apps');
+final _appDir = path.join(
+  _homeDir,
+  'completion_metrics',
+  'third_party',
+  'apps',
+);
 
-final _homeDir = Platform.isWindows
-    ? Platform.environment['LOCALAPPDATA']!
-    : Platform.environment['HOME']!;
+final _homeDir =
+    Platform.isWindows
+        ? Platform.environment['LOCALAPPDATA']!
+        : Platform.environment['HOME']!;
 
 final _package_config = path.join('.dart_tool', 'package_config.json');
 
 Future<CloneResult> _clone(String repo) async {
-  var name =
-      _trimName(repo.split('https://github.com/').last.replaceAll('/', '_'));
+  var name = _trimName(
+    repo.split('https://github.com/').last.replaceAll('/', '_'),
+  );
   var cloneDir = path.join(_appDir, name);
   ProcessResult result;
   if (Directory(cloneDir).existsSync()) {
@@ -81,8 +87,12 @@ Future<CloneResult> _clone(String repo) async {
     result = await Process.run('git', ['pull'], workingDirectory: cloneDir);
   } else {
     print('Cloning $repo to $cloneDir');
-    result = await Process.run(
-        'git', ['clone', '--recurse-submodules', '$repo.git', cloneDir]);
+    result = await Process.run('git', [
+      'clone',
+      '--recurse-submodules',
+      '$repo.git',
+      cloneDir,
+    ]);
   }
   return CloneResult(result.exitCode, cloneDir, msg: result.stderr as String);
 }

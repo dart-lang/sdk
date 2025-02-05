@@ -1,0 +1,27 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+regexp_sources = [
+  "regexp.cc",
+  "regexp.h",
+  "regexp_assembler.cc",
+  "regexp_assembler.h",
+  "regexp_assembler_bytecode.cc",
+  "regexp_assembler_bytecode.h",
+  "regexp_assembler_bytecode_inl.h",
+  "regexp_assembler_ir.cc",
+  "regexp_assembler_ir.h",
+  "regexp_ast.cc",
+  "regexp_ast.h",
+  "regexp_bytecodes.h",
+  "regexp_interpreter.cc",
+  "regexp_interpreter.h",
+  "regexp_parser.cc",
+  "regexp_parser.h",
+  "unibrow-inl.h",
+  "unibrow.cc",
+  "unibrow.h",
+]
+
+regexp_sources_tests = [ "regexp_test.cc" ]

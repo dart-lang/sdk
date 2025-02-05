@@ -32,7 +32,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A
 ''');
   }
@@ -49,7 +49,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<num>
 ''');
   }
@@ -66,7 +66,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<dynamic>
 ''');
   }
@@ -88,11 +88,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<int>
 ''');
   }
@@ -109,7 +109,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -131,7 +131,7 @@ NamedType
     element2: <testLibraryFragment>::@prefix2::myCore
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -165,7 +165,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -187,11 +187,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<int>
 ''');
   }
@@ -215,11 +215,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -243,16 +243,16 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A<InvalidType>
 ''');
   }
@@ -275,7 +275,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: T@8
@@ -295,7 +295,7 @@ void f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<num>
 ''');
   }
@@ -311,7 +311,7 @@ void f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<dynamic>
 ''');
   }
@@ -332,11 +332,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<int>
 ''');
   }
@@ -353,7 +353,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
 ''');
@@ -371,7 +371,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: num Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -391,7 +391,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: dynamic Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -416,11 +416,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -450,11 +450,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: dart:async::<fragment>::@class::Future
-  element2: dart:async::<fragment>::@class::Future#element
+  element2: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -483,7 +483,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <null>
@@ -532,7 +532,7 @@ main() {
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
-  element2: <testLibraryFragment>::@class::A#element
+  element2: <testLibrary>::@class::A
   type: A
 ''');
   }
@@ -583,11 +583,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: dart:async::<fragment>::@class::Future
-  element2: dart:async::<fragment>::@class::Future#element
+  element2: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -605,7 +605,7 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element: <null>
+  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
@@ -630,10 +630,10 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
+  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
@@ -655,7 +655,7 @@ NamedType
     name: int
     period: .
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
   name: double
   element: <null>
   element2: <null>
@@ -679,7 +679,7 @@ NamedType
     name: int
     period: .
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
   name: double
   element: <null>
   element2: <null>
@@ -701,7 +701,7 @@ void T() {}
 NamedType
   name: T
   element: <testLibraryFragment>::@function::T
-  element2: <testLibraryFragment>::@function::T#element
+  element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
@@ -725,11 +725,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@function::T
-  element2: <testLibraryFragment>::@function::T#element
+  element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
@@ -756,7 +756,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <null>
@@ -803,7 +803,7 @@ f(Never a) {}
 NamedType
   name: Never
   element: Never@-1
-  element2: Never@-1
+  element2: Never
   type: Never
 ''');
   }
@@ -829,11 +829,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -854,7 +854,7 @@ void f() {
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -880,11 +880,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -905,11 +905,11 @@ NamedType
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -927,11 +927,11 @@ NamedType
         name: String
         question: ?
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -955,11 +955,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -977,11 +977,11 @@ NamedType
         name: int
         question: ?
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1000,7 +1000,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never
 ''');
 
@@ -1010,7 +1010,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1026,7 +1026,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
 
@@ -1036,7 +1036,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1057,11 +1057,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: int?
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1085,11 +1085,11 @@ NamedType
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1108,7 +1108,7 @@ Nothing f() {}
 NamedType
   name: Nothing
   element: <testLibraryFragment>::@typeAlias::Nothing
-  element2: <testLibraryFragment>::@typeAlias::Nothing#element
+  element2: <testLibrary>::@typeAlias::Nothing
   type: void
 ''');
   }
@@ -1130,7 +1130,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <null>
@@ -1161,7 +1161,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <null>

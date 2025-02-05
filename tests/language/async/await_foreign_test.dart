@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 typedef Future<Null> Task();
 
@@ -21,15 +21,18 @@ class ForeignFuture implements Future<Null> {
 
   Future<S> then<S>(FutureOr<S> onValue(Null _), {Function? onError}) {
     assert(_future != null);
-    return _future!.then((_) {
-      _future = null;
-      return onValue(null);
-    }, onError: (error, trace) {
-      _future = null;
-      if (onError != null) {
-        onError(error, trace);
-      }
-    });
+    return _future!.then(
+      (_) {
+        _future = null;
+        return onValue(null);
+      },
+      onError: (error, trace) {
+        _future = null;
+        if (onError != null) {
+          onError(error, trace);
+        }
+      },
+    );
   }
 
   Stream<Null> asStream() {

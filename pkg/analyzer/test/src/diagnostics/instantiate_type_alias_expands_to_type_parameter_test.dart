@@ -119,7 +119,7 @@ InstanceCreationExpression
     type: NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
-      element2: <testLibraryFragment>::@typeAlias::B#element
+      element2: <testLibrary>::@typeAlias::B
       type: InvalidType
     staticElement: <null>
     element: <null>

@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:js';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'js_test_util.dart';
 

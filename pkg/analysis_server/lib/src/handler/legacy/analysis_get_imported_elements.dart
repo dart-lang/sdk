@@ -15,12 +15,18 @@ class AnalysisGetImportedElementsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisGetImportedElementsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisGetImportedElementsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisGetImportedElementsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -45,8 +51,11 @@ class AnalysisGetImportedElementsHandler extends LegacyHandler {
       elements = <ImportedElements>[];
     } else {
       elements =
-          ImportedElementsComputer(result.unit, params.offset, params.length)
-              .compute();
+          ImportedElementsComputer(
+            result.unit,
+            params.offset,
+            params.length,
+          ).compute();
     }
 
     sendResult(AnalysisGetImportedElementsResult(elements));

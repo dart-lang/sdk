@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 void main(List<String> args) {
   String arg = args[0];

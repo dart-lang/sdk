@@ -703,7 +703,7 @@ class HttpProfileResponseData {
   /// received across the wire and whether callers will receive compressed or
   /// uncompressed bytes when they listed to this response's byte stream.
   ///
-  /// See [HttpClientResponseCompressionState](https://api.dart.dev/stable/dart-io/HttpClientResponseCompressionState-class.html) for possible values.
+  /// See [HttpClientResponseCompressionState](https://api.dart.dev/dart-io/HttpClientResponseCompressionState-class.html) for possible values.
   final String? compressionState;
 
   /// The reason phrase associated with the status code.

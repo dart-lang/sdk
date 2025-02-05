@@ -37,13 +37,14 @@ String importPrefixString(OutputUnit unit) {
       var existing = importPrefixes[import.name];
       var current = import.enclosingLibraryUri;
       Expect.equals(
-          existing,
-          current,
-          '\n    Duplicate prefix \'${import.name}\' used in both:\n'
-          '     - $existing and\n'
-          '     - $current.\n'
-          '    We require using unique prefixes on these tests to make '
-          'the expectations more readable.');
+        existing,
+        current,
+        '\n    Duplicate prefix \'${import.name}\' used in both:\n'
+        '     - $existing and\n'
+        '     - $current.\n'
+        '    We require using unique prefixes on these tests to make '
+        'the expectations more readable.',
+      );
     }
     importPrefixes[import.name!] = import.enclosingLibraryUri;
   }
@@ -60,8 +61,9 @@ String outputUnitString(OutputUnit? unit) {
 }
 
 Map<String, List<PreFragment>> buildPreFragmentMap(
-    Map<String, List<FinalizedFragment>> fragmentsToLoad,
-    List<PreFragment> preDeferredFragments) {
+  Map<String, List<FinalizedFragment>> fragmentsToLoad,
+  List<PreFragment> preDeferredFragments,
+) {
   Map<FinalizedFragment, PreFragment> fragmentMap = {};
   for (var preFragment in preDeferredFragments) {
     fragmentMap[preFragment.finalizedFragment] = preFragment;
@@ -100,44 +102,69 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   /// fill [actualMap] with the data computed about what the resulting OutputUnit
   /// is.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
-            closedWorld.outputUnitData, closedWorld.closureDataLookup)
-        .run(definition.node);
+    OutputUnitIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      closedWorld.outputUnitData,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
-  void computeClassData(Compiler compiler, ClassEntity cls,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeClassData(
+    Compiler compiler,
+    ClassEntity cls,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
-    OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
-            closedWorld.outputUnitData, closedWorld.closureDataLookup)
-        .computeForClass(definition.node as ir.Class);
+    OutputUnitIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      closedWorld.outputUnitData,
+      closedWorld.closureDataLookup,
+    ).computeForClass(definition.node as ir.Class);
   }
 
   @override
-  void computeLibraryData(Compiler compiler, LibraryEntity library,
-      Map<Id, ActualData<Features>> actualMap,
-      {required bool verbose}) {
+  void computeLibraryData(
+    Compiler compiler,
+    LibraryEntity library,
+    Map<Id, ActualData<Features>> actualMap, {
+    required bool verbose,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
-    List<PreFragment> preDeferredFragments = compiler
-        .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting!;
+    List<PreFragment> preDeferredFragments =
+        compiler
+            .backendStrategy
+            .emitterTask
+            .emitter
+            .preDeferredFragmentsForTesting!;
     Map<String, List<FinalizedFragment>> fragmentsToLoad =
         compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     Set<OutputUnit> omittedOutputUnits =
         compiler.backendStrategy.emitterTask.emitter.omittedOutputUnits;
-    PreFragmentsIrComputer(compiler.reporter, actualMap, preDeferredFragments,
-            fragmentsToLoad, omittedOutputUnits)
-        .computeForLibrary(node);
+    PreFragmentsIrComputer(
+      compiler.reporter,
+      actualMap,
+      preDeferredFragments,
+      fragmentsToLoad,
+      omittedOutputUnits,
+    ).computeForLibrary(node);
   }
 
   @override
@@ -151,12 +178,12 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
   final Set<OutputUnit> _omittedOutputUnits;
 
   PreFragmentsIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<Features>> actualMap,
-      this._preDeferredFragments,
-      this._fragmentsToLoad,
-      this._omittedOutputUnits)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<Features>> actualMap,
+    this._preDeferredFragments,
+    this._fragmentsToLoad,
+    this._omittedOutputUnits,
+  ) : super(reporter, actualMap);
 
   @override
   Features computeLibraryValue(Id id, ir.Library library) {
@@ -203,8 +230,10 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
       }
 
       var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
-      features.addElement(Tags.preFragments,
-          'p$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+      features.addElement(
+        Tags.preFragments,
+        'p$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}',
+      );
     }
 
     // Now dump finalized fragments and load ids.
@@ -234,11 +263,14 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
       List<String> finalizedFragmentNeeds = [];
       for (var finalizedFragment in finalizedFragments) {
         assert(finalizedFragmentIndices.containsKey(finalizedFragment));
-        finalizedFragmentNeeds
-            .add('f${finalizedFragmentIndices[finalizedFragment]}');
+        finalizedFragmentNeeds.add(
+          'f${finalizedFragmentIndices[finalizedFragment]}',
+        );
       }
       features.addElement(
-          Tags.steps, '$loadId=(${finalizedFragmentNeeds.join(', ')})');
+        Tags.steps,
+        '$loadId=(${finalizedFragmentNeeds.join(', ')})',
+      );
     });
 
     return features;
@@ -253,18 +285,23 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   Set<String> _constants = {};
 
   OutputUnitIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<Features>> actualMap,
-      this._elementMap,
-      this._data,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<Features>> actualMap,
+    this._elementMap,
+    this._data,
+    this._closureDataLookup,
+  ) : super(reporter, actualMap);
 
   Features getMemberValue(
-      String tag, MemberEntity member, Set<String> constants) {
+    String tag,
+    MemberEntity member,
+    Set<String> constants,
+  ) {
     Features features = Features();
-    features.add(tag,
-        value: outputUnitString(_data.outputUnitForMemberForTesting(member)));
+    features.add(
+      tag,
+      value: outputUnitString(_data.outputUnitForMemberForTesting(member)),
+    );
     for (var constant in constants) {
       features.addElement(Tags.constants, constant);
     }
@@ -275,10 +312,14 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   Features computeClassValue(Id id, ir.Class node) {
     var cls = _elementMap.getClass(node);
     Features features = Features();
-    features.add(Tags.cls,
-        value: outputUnitString(_data.outputUnitForClassForTesting(cls)));
-    features.add(Tags.type,
-        value: outputUnitString(_data.outputUnitForClassTypeForTesting(cls)));
+    features.add(
+      Tags.cls,
+      value: outputUnitString(_data.outputUnitForClassForTesting(cls)),
+    );
+    features.add(
+      Tags.type,
+      value: outputUnitString(_data.outputUnitForClassTypeForTesting(cls)),
+    );
     return features;
   }
 
@@ -298,20 +339,25 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
           span = SourceSpan(span.uri, span.begin - 6, span.end - 6);
         }
         _registerValue(
-            NodeId(span.begin, IdKind.node),
-            Features.fromMap({
-              Tags.member: outputUnitString(
-                  _data.outputUnitForConstantForTesting(constant))
-            }),
-            node,
-            span,
-            actualMap,
-            reporter);
+          NodeId(span.begin, IdKind.node),
+          Features.fromMap({
+            Tags.member: outputUnitString(
+              _data.outputUnitForConstantForTesting(constant),
+            ),
+          }),
+          node,
+          span,
+          actualMap,
+          reporter,
+        );
       }
     }
 
-    Features features =
-        getMemberValue(Tags.member, _elementMap.getMember(node), _constants);
+    Features features = getMemberValue(
+      Tags.member,
+      _elementMap.getMember(node),
+      _constants,
+    );
     _constants = {};
     return features;
   }
@@ -320,8 +366,10 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   visitConstantExpression(ir.ConstantExpression node) {
     ConstantValue constant = _elementMap.getConstantValue(node)!;
     if (constant is! PrimitiveConstantValue) {
-      _constants.add('${constant.toStructuredText(_elementMap.types)}='
-          '${outputUnitString(_data.outputUnitForConstant(constant))}');
+      _constants.add(
+        '${constant.toStructuredText(_elementMap.types)}='
+        '${outputUnitString(_data.outputUnitForConstant(constant))}',
+      );
     }
     return super.visitConstantExpression(node);
   }
@@ -329,8 +377,9 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   @override
   Features? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(Tags.closure, info.callMethod!, const {});
     }
     return null;
@@ -340,21 +389,36 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
 /// Set [actualMap] to hold a key of [id] with the computed data [value]
 /// corresponding to [object] at location [sourceSpan]. We also perform error
 /// checking to ensure that the same [id] isn't added twice.
-void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
-    Map<Id, ActualData<T>> actualMap, DiagnosticReporter reporter) {
+void _registerValue<T>(
+  Id id,
+  T value,
+  Object object,
+  SourceSpan sourceSpan,
+  Map<Id, ActualData<T>> actualMap,
+  DiagnosticReporter reporter,
+) {
   if (actualMap.containsKey(id)) {
     ActualData<T> existingData = actualMap[id]!;
-    reportHere(reporter, sourceSpan,
-        "Duplicate id ${id}, value=$value, object=$object");
     reportHere(
-        reporter,
-        sourceSpan,
-        "Duplicate id ${id}, value=${existingData.value}, "
-        "object=${existingData.object}");
+      reporter,
+      sourceSpan,
+      "Duplicate id ${id}, value=$value, object=$object",
+    );
+    reportHere(
+      reporter,
+      sourceSpan,
+      "Duplicate id ${id}, value=${existingData.value}, "
+      "object=${existingData.object}",
+    );
     Expect.fail("Duplicate id $id.");
   }
   if (value != null) {
-    actualMap[id] =
-        ActualData<T>(id, value, sourceSpan.uri, sourceSpan.begin, object);
+    actualMap[id] = ActualData<T>(
+      id,
+      value,
+      sourceSpan.uri,
+      sourceSpan.begin,
+      object,
+    );
   }
 }

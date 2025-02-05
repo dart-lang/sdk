@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend.annotations;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -55,16 +55,28 @@ enum PragmaAnnotation {
   asCheck('as:check', forFunctionsOnly: false, internalOnly: false),
   typesTrust('types:trust', forFunctionsOnly: false, internalOnly: false),
   typesCheck('types:check', forFunctionsOnly: false, internalOnly: false),
-  parameterTrust('parameter:trust',
-      forFunctionsOnly: false, internalOnly: false),
-  parameterCheck('parameter:check',
-      forFunctionsOnly: false, internalOnly: false),
+  parameterTrust(
+    'parameter:trust',
+    forFunctionsOnly: false,
+    internalOnly: false,
+  ),
+  parameterCheck(
+    'parameter:check',
+    forFunctionsOnly: false,
+    internalOnly: false,
+  ),
   downcastTrust('downcast:trust', forFunctionsOnly: false, internalOnly: false),
   downcastCheck('downcast:check', forFunctionsOnly: false, internalOnly: false),
-  indexBoundsTrust('index-bounds:trust',
-      forFunctionsOnly: false, internalOnly: false),
-  indexBoundsCheck('index-bounds:check',
-      forFunctionsOnly: false, internalOnly: false),
+  indexBoundsTrust(
+    'index-bounds:trust',
+    forFunctionsOnly: false,
+    internalOnly: false,
+  ),
+  indexBoundsCheck(
+    'index-bounds:check',
+    forFunctionsOnly: false,
+    internalOnly: false,
+  ),
 
   /// Annotation for a `late` field to omit the checks on the late field. The
   /// annotation is not restricted to a field since it is copied from the field
@@ -79,8 +91,7 @@ enum PragmaAnnotation {
   lateCheck('late:check'),
 
   loadLibraryPriority('load-priority', hasOption: true),
-  resourceIdentifier('resource-identifier'),
-  ;
+  resourceIdentifier('resource-identifier');
 
   final String name;
   final bool forFunctionsOnly;
@@ -91,10 +102,12 @@ enum PragmaAnnotation {
   // setters, so some annotations meant only for functions could reasonable be
   // placed on a field to apply to the getter and setter.
 
-  const PragmaAnnotation(this.name,
-      {this.forFunctionsOnly = false,
-      this.internalOnly = false,
-      this.hasOption = true});
+  const PragmaAnnotation(
+    this.name, {
+    this.forFunctionsOnly = false,
+    this.internalOnly = false,
+    this.hasOption = true,
+  });
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
@@ -137,10 +150,11 @@ ir.Library _enclosingLibrary(ir.TreeNode node) {
 }
 
 EnumSet<PragmaAnnotation> processMemberAnnotations(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    ir.Annotatable node,
-    List<PragmaAnnotationData> pragmaAnnotationData) {
+  CompilerOptions options,
+  DiagnosticReporter reporter,
+  ir.Annotatable node,
+  List<PragmaAnnotationData> pragmaAnnotationData,
+) {
   EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>.empty();
 
   ir.Library library = _enclosingLibrary(node);
@@ -153,49 +167,61 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     String suffix = data.suffix;
     final annotation = PragmaAnnotation.lookupMap[suffix];
     if (annotation != null) {
-      annotations += annotation;
+      annotations = annotations.add(annotation);
 
       if (data.options != null && !annotation.hasOption) {
         reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(node),
-            MessageKind.GENERIC,
-            {'text': "@pragma('$name') annotation does not take options"});
+          computeSourceSpanFromTreeNode(node),
+          MessageKind.generic,
+          {'text': "@pragma('$name') annotation does not take options"},
+        );
       }
       if (annotation.forFunctionsOnly) {
         if (node is! ir.Procedure && node is! ir.Constructor) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-            'text': "@pragma('$name') annotation is only supported "
-                "for methods and constructors."
-          });
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.generic,
+            {
+              'text':
+                  "@pragma('$name') annotation is only supported "
+                  "for methods and constructors.",
+            },
+          );
         }
       }
       if (annotation.internalOnly && !platformAnnotationsAllowed) {
         reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(node),
-            MessageKind.GENERIC,
-            {'text': "Unrecognized dart2js pragma @pragma('$name')"});
+          computeSourceSpanFromTreeNode(node),
+          MessageKind.generic,
+          {'text': "Unrecognized dart2js pragma @pragma('$name')"},
+        );
       }
     } else {
       reporter.reportErrorMessage(
-          computeSourceSpanFromTreeNode(node),
-          MessageKind.GENERIC,
-          {'text': "Unknown dart2js pragma @pragma('$name')"});
+        computeSourceSpanFromTreeNode(node),
+        MessageKind.generic,
+        {'text': "Unknown dart2js pragma @pragma('$name')"},
+      );
     }
   }
 
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
-  for (PragmaAnnotation annotation
-      in annotations.iterable(PragmaAnnotation.values)) {
+  for (PragmaAnnotation annotation in annotations.iterable(
+    PragmaAnnotation.values,
+  )) {
     Set<PragmaAnnotation>? implies = PragmaAnnotation.implies[annotation];
     if (implies != null) {
       for (PragmaAnnotation other in implies) {
         if (annotations.contains(other)) {
           reporter.reportHintMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-            'text': "@pragma('dart2js:${annotation.name}') implies "
-                "@pragma('dart2js:${other.name}')."
-          });
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.generic,
+            {
+              'text':
+                  "@pragma('dart2js:${annotation.name}') implies "
+                  "@pragma('dart2js:${other.name}').",
+            },
+          );
         }
       }
     }
@@ -205,13 +231,19 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         if (annotations.contains(other) &&
             !(reportedExclusions[other]?.contains(annotation) ?? false)) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-            'text': "@pragma('dart2js:${annotation.name}') must not be used "
-                "with @pragma('dart2js:${other.name}')."
-          });
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.generic,
+            {
+              'text':
+                  "@pragma('dart2js:${annotation.name}') must not be used "
+                  "with @pragma('dart2js:${other.name}').",
+            },
+          );
           reportedExclusions.update(
-              annotation, (exclusions) => exclusions + other,
-              ifAbsent: () => EnumSet.fromValue(other));
+            annotation,
+            (exclusions) => exclusions.add(other),
+            ifAbsent: () => EnumSet.fromValue(other),
+          );
         }
       }
     }
@@ -220,10 +252,14 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       for (PragmaAnnotation other in requires) {
         if (!annotations.contains(other)) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-            'text': "@pragma('dart2js:${annotation.name}') should always be "
-                "combined with @pragma('dart2js:${other.name}')."
-          });
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.generic,
+            {
+              'text':
+                  "@pragma('dart2js:${annotation.name}') should always be "
+                  "combined with @pragma('dart2js:${other.name}').",
+            },
+          );
         }
       }
     }
@@ -234,9 +270,10 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
 abstract class AnnotationsData {
   /// Deserializes an [AnnotationsData] object from [source].
   factory AnnotationsData.readFromDataSource(
-      CompilerOptions options,
-      DiagnosticReporter reporter,
-      DataSourceReader source) = AnnotationsDataImpl.readFromDataSource;
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    DataSourceReader source,
+  ) = AnnotationsDataImpl.readFromDataSource;
 
   /// Serializes this [AnnotationsData] to [sink].
   void writeToDataSink(DataSinkWriter sink);
@@ -356,24 +393,29 @@ class AnnotationsDataImpl implements AnnotationsData {
   final DirectivesContext _root = DirectivesContext.root();
 
   AnnotationsDataImpl(
-      CompilerOptions options, this._reporter, this.pragmaAnnotations)
-      : this._options = options,
-        this._defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
-        this._defaultImplicitDowncastCheckPolicy =
-            options.defaultImplicitDowncastCheckPolicy,
-        this._defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
-        this._defaultExplicitCastCheckPolicy =
-            options.defaultExplicitCastCheckPolicy,
-        this._defaultIndexBoundsCheckPolicy =
-            options.defaultIndexBoundsCheckPolicy,
-        this._defaultLateVariableCheckPolicy = CheckPolicy.checked,
-        this._defaultDisableInlining = options.disableInlining;
+    CompilerOptions options,
+    this._reporter,
+    this.pragmaAnnotations,
+  ) : _options = options,
+      _defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
+      _defaultImplicitDowncastCheckPolicy =
+          options.defaultImplicitDowncastCheckPolicy,
+      _defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
+      _defaultExplicitCastCheckPolicy = options.defaultExplicitCastCheckPolicy,
+      _defaultIndexBoundsCheckPolicy = options.defaultIndexBoundsCheckPolicy,
+      _defaultLateVariableCheckPolicy = CheckPolicy.checked,
+      _defaultDisableInlining = options.disableInlining;
 
-  factory AnnotationsDataImpl.readFromDataSource(CompilerOptions options,
-      DiagnosticReporter reporter, DataSourceReader source) {
+  factory AnnotationsDataImpl.readFromDataSource(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    DataSourceReader source,
+  ) {
     source.begin(tag);
     Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = source
-        .readMemberMap((MemberEntity member) => EnumSet(source.readInt()));
+        .readMemberMap(
+          (MemberEntity member) => EnumSet.fromRawBits(source.readInt()),
+        );
     source.end(tag);
     return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
   }
@@ -381,9 +423,11 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMemberMap(pragmaAnnotations,
-        (MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      sink.writeInt(set.mask);
+    sink.writeMemberMap(pragmaAnnotations, (
+      MemberEntity member,
+      EnumSet<PragmaAnnotation> set,
+    ) {
+      sink.writeInt(set.mask.bits);
     });
     sink.end(tag);
   }
@@ -548,28 +592,35 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   DirectivesContext _getContext(ir.Annotatable node) {
     return _nodeToContextMap[node] ??= _findContext(node.parent!).extend(
-        processMemberAnnotations(_options, _reporter, node,
-            computePragmaAnnotationDataFromIr(node)));
+      processMemberAnnotations(
+        _options,
+        _reporter,
+        node,
+        computePragmaAnnotationDataFromIr(node),
+      ),
+    );
   }
 
   @override
   String getLoadLibraryPriority(ir.LoadLibrary node) {
-    String? _getPragmaOptionForNode(ir.TreeNode node) {
+    String? getPragmaOptionForNode(ir.TreeNode node) {
       ir.Annotatable? contextNode = _getContextNode(node);
       if (contextNode == null) return null;
       if (!_hasLoadLibraryPriority(_getContext(contextNode))) return null;
       final pragmaData = computePragmaAnnotationDataFromIr(contextNode);
-      final annotationData = pragmaData.firstWhere((d) =>
-          PragmaAnnotation.lookupMap[d.suffix] ==
-          PragmaAnnotation.loadLibraryPriority);
+      final annotationData = pragmaData.firstWhere(
+        (d) =>
+            PragmaAnnotation.lookupMap[d.suffix] ==
+            PragmaAnnotation.loadLibraryPriority,
+      );
       final option = annotationData.options;
       if (option is! ir.StringConstant) return null;
       return option.value;
     }
 
     // Annotation may be on enclosing declaration or on the import.
-    return _getPragmaOptionForNode(node) ??
-        _getPragmaOptionForNode(node.import) ??
+    return getPragmaOptionForNode(node) ??
+        getPragmaOptionForNode(node.import) ??
         '';
   }
 
@@ -600,7 +651,9 @@ class AnnotationsDataBuilder {
   Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = {};
 
   void registerPragmaAnnotations(
-      MemberEntity member, EnumSet<PragmaAnnotation> annotations) {
+    MemberEntity member,
+    EnumSet<PragmaAnnotation> annotations,
+  ) {
     if (annotations.isNotEmpty) {
       pragmaAnnotations[member] = annotations;
     }

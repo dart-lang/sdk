@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -29,7 +29,7 @@ void main(List<String> args) {
   print(methodAssumeDynamic('foo'));
   print(methodNoInline('bar'));
 }
-"""
+""",
 };
 
 main() {
@@ -40,53 +40,74 @@ main() {
 
 runTest() async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.testMode]);
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+    options: [Flags.testMode],
+  );
   Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
   void testTypeMatch(
-      FunctionEntity function,
-      AbstractValue expectedParameterType,
-      AbstractValue? expectedReturnType,
-      GlobalTypeInferenceResults results) {
+    FunctionEntity function,
+    AbstractValue expectedParameterType,
+    AbstractValue? expectedReturnType,
+    GlobalTypeInferenceResults results,
+  ) {
     closedWorld.elementEnvironment.forEachParameterAsLocal(
-        results.globalLocalsMap, function, (Local parameter) {
-      AbstractValue type = results.resultOfParameter(parameter);
-      Expect.equals(
-          expectedParameterType, simplify(type, commonMasks), "$parameter");
-    });
+      results.globalLocalsMap,
+      function,
+      (Local parameter) {
+        AbstractValue type = results.resultOfParameter(parameter);
+        Expect.equals(
+          expectedParameterType,
+          simplify(type, commonMasks),
+          "$parameter",
+        );
+      },
+    );
     if (expectedReturnType != null) {
       AbstractValue type = results.resultOfMember(function).returnType;
       Expect.equals(
-          expectedReturnType, simplify(type, commonMasks), "$function");
+        expectedReturnType,
+        simplify(type, commonMasks),
+        "$function",
+      );
     }
   }
 
-  void test(String name,
-      {bool expectNoInline = false,
-      AbstractValue? expectedParameterType,
-      AbstractValue? expectedReturnType,
-      bool expectAssumeDynamic = false}) {
+  void test(
+    String name, {
+    bool expectNoInline = false,
+    AbstractValue? expectedParameterType,
+    AbstractValue? expectedReturnType,
+    bool expectAssumeDynamic = false,
+  }) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary!;
-    final method = closedWorld.elementEnvironment
-        .lookupLibraryMember(mainApp, name) as FunctionEntity;
+    final method =
+        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name)
+            as FunctionEntity;
     Expect.isNotNull(method);
     Expect.equals(
-        expectNoInline,
-        closedWorld.annotationsData.hasNoInline(method),
-        "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
+      expectNoInline,
+      closedWorld.annotationsData.hasNoInline(method),
+      "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.",
+    );
     Expect.equals(
-        expectAssumeDynamic,
-        closedWorld.annotationsData.hasAssumeDynamic(method),
-        "Unexpected annotation of @pragma('dart2js:assumeDynamic') on "
-        "'$method'.");
+      expectAssumeDynamic,
+      closedWorld.annotationsData.hasAssumeDynamic(method),
+      "Unexpected annotation of @pragma('dart2js:assumeDynamic') on "
+      "'$method'.",
+    );
     GlobalTypeInferenceResults results =
         compiler.globalInference.resultsForTesting!;
     if (expectAssumeDynamic) {
       testTypeMatch(
-          method, closedWorld.abstractValueDomain.dynamicType, null, results);
+        method,
+        closedWorld.abstractValueDomain.dynamicType,
+        null,
+        results,
+      );
     }
   }
 

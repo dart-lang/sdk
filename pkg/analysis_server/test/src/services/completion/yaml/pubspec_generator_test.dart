@@ -39,11 +39,15 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     pubPackageService = PubPackageService(
+      InstrumentationService.NULL_SERVICE,
+      resourceProvider,
+      PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
+      PubCommand(
         InstrumentationService.NULL_SERVICE,
-        resourceProvider,
-        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
-        PubCommand(InstrumentationService.NULL_SERVICE,
-            resourceProvider.pathContext, processRunner));
+        resourceProvider.pathContext,
+        processRunner,
+      ),
+    );
   }
 
   void tearDown() {

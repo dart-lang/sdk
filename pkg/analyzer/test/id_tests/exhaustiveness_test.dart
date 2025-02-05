@@ -21,7 +21,7 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/exhaustiveness/data'));
   return runTests<Features>(dataDir,
@@ -49,11 +49,9 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Features>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var exhaustivenessData =
-        testingData.uriToExhaustivenessData[unitElement.source.uri]!;
-    _ExhaustivenessDataExtractor(
-            unitElement.source.uri, actualMap, exhaustivenessData)
+    var unitUri = unit.declaredFragment!.source.uri;
+    var exhaustivenessData = testingData.uriToExhaustivenessData[unitUri]!;
+    _ExhaustivenessDataExtractor(unitUri, actualMap, exhaustivenessData)
         .run(unit);
   }
 }

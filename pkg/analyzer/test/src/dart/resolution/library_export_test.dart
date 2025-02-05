@@ -34,7 +34,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -90,7 +90,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -442,9 +442,9 @@ set f(_) {}
     await resolveTestCode(r'''
 export 'a.dart';
 ''');
-    var exportNamespace = result.libraryElement.exportNamespace;
-    expect(exportNamespace.get('f'), isNotNull);
-    expect(exportNamespace.get('f='), isNotNull);
+    var exportNamespace = result.libraryElement2.exportNamespace;
+    expect(exportNamespace.get2('f'), isNotNull);
+    expect(exportNamespace.get2('f='), isNotNull);
   }
 
   test_inLibrary_noRelativeUri() async {

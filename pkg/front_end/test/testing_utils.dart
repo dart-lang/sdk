@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, Process, ProcessResult;
+import 'dart:io' show Directory, File, FileSystemEntity, Process, ProcessResult;
 
 import 'package:testing/testing.dart' show Chain, TestDescription;
 
@@ -50,4 +50,43 @@ void checkEnvironment(
         "Knows about these environment(s):"
         "\n - ${knownEnvironmentKeys.join("\n - ")}";
   }
+}
+
+Future<List<Uri>> computeSourceFiles(Uri repoDir) async {
+  Set<Uri> libUris = {};
+  libUris.add(repoDir.resolve("pkg/front_end/lib/"));
+  libUris.add(repoDir.resolve("pkg/front_end/test/"));
+  libUris.add(repoDir.resolve("pkg/front_end/tool/"));
+
+  List<String> dataDirectories = [
+    'pkg/front_end/test/class_hierarchy/data/',
+    'pkg/front_end/test/extensions/data/',
+    'pkg/front_end/test/id_testing/data/',
+    'pkg/front_end/test/language_versioning/data/',
+    'pkg/front_end/test/macros/application/data/',
+    'pkg/front_end/test/macros/declaration/data/',
+    'pkg/front_end/test/macros/incremental/data/',
+    'pkg/front_end/test/patching/data/',
+    'pkg/front_end/test/scopes/data/',
+    'pkg/front_end/test/static_types/data/',
+  ];
+
+  List<Uri> inputs = [];
+  for (Uri uri in libUris) {
+    Set<Uri> gitFiles = await getGitFiles(uri);
+    List<FileSystemEntity> entities =
+        new Directory.fromUri(uri).listSync(recursive: true);
+    for (FileSystemEntity entity in entities) {
+      if (entity is File &&
+          entity.path.endsWith(".dart") &&
+          gitFiles.contains(entity.uri)) {
+        if (dataDirectories
+            .any((exclude) => entity.uri.path.contains(exclude))) {
+          continue;
+        }
+        inputs.add(entity.uri);
+      }
+    }
+  }
+  return inputs;
 }

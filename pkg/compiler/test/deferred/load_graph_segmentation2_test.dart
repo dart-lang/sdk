@@ -6,15 +6,16 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
     Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;

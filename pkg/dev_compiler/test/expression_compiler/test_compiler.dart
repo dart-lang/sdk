@@ -8,7 +8,10 @@ import 'dart:io' show File;
 
 import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/command/options.dart' show Options;
+import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
+import 'package:dev_compiler/src/kernel/compiler_new.dart'
+    show LibraryBundleCompiler;
 import 'package:dev_compiler/src/kernel/expression_compiler.dart'
     show ExpressionCompiler;
 import 'package:dev_compiler/src/kernel/module_metadata.dart';
@@ -66,6 +69,7 @@ class TestExpressionCompiler {
       emitDebugMetadata: true,
       canaryFeatures: setup.canaryFeatures,
       enableAsserts: setup.enableAsserts,
+      moduleFormats: [setup.moduleFormat],
     );
     var coreTypes = compilerResult.coreTypes;
 
@@ -76,15 +80,22 @@ class TestExpressionCompiler {
     }
     summaryToModule[component] = moduleName;
 
-    var kernel2jsCompiler = ProgramCompiler(component, classHierarchy,
-        compilerOptions, importToSummary, summaryToModule,
-        coreTypes: coreTypes);
+    var kernel2jsCompiler = compilerOptions.emitLibraryBundle
+        ? LibraryBundleCompiler(component, classHierarchy, compilerOptions,
+            importToSummary, summaryToModule, coreTypes: coreTypes)
+        : ProgramCompiler(component, classHierarchy, compilerOptions,
+            importToSummary, summaryToModule,
+            coreTypes: coreTypes);
     var module = kernel2jsCompiler.emitModule(component);
+
+    var moduleFormat = compilerOptions.emitLibraryBundle
+        ? ModuleFormat.ddcLibraryBundle
+        : setup.moduleFormat;
 
     // Perform a full compile, writing the compiled JS + sourcemap.
     var code = jsProgramToCode(
       module,
-      setup.moduleFormat,
+      moduleFormat,
       inlineSourceMap: compilerOptions.inlineSourceMap,
       buildSourceMap: compilerOptions.sourceMap,
       emitDebugMetadata: compilerOptions.emitDebugMetadata,
@@ -103,7 +114,7 @@ class TestExpressionCompiler {
     // Save the expression compiler for future compilation.
     var compiler = ExpressionCompiler(
       setup.options,
-      setup.moduleFormat,
+      moduleFormat,
       setup.errors,
       frontend,
       kernel2jsCompiler,

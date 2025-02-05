@@ -98,7 +98,7 @@ class Interface extends LspEntity {
   }
 
   Interface.inline(String name, List<Member> members)
-      : this(name: name, members: members);
+    : this(name: name, members: members);
 }
 
 /// A type parsed from the LSP JSON model that has a singe literal value.
@@ -204,11 +204,7 @@ class MapType extends TypeBase {
 /// Base class for members ([Constant] and [Fields]s) parsed from the LSP JSON
 /// model.
 abstract class Member extends LspEntity {
-  Member({
-    required super.name,
-    super.comment,
-    super.isProposed,
-  });
+  Member({required super.name, super.comment, super.isProposed});
 }
 
 class NullableType extends TypeBase {
@@ -229,20 +225,21 @@ class NullableType extends TypeBase {
 class TypeAlias extends LspEntity {
   final TypeBase baseType;
 
-  /// Whether this alias is just a simple rename and not a name for a more
-  /// complex type.
-  ///
-  /// Renames will be followed when generating code, but other aliases may be
-  /// created as `typedef`s.
-  final bool isRename;
+  /// Whether this alias should be resolved to its base type when generating
+  /// code.
+  final bool renameReferences;
+
+  /// Whether a typedef should be created for this alias.
+  final bool generateTypeDef;
 
   TypeAlias({
     required super.name,
     super.comment,
     super.isProposed,
     required this.baseType,
-    required this.isRename,
-  });
+    required this.renameReferences,
+    bool? generateTypeDef,
+  }) : generateTypeDef = generateTypeDef ?? !renameReferences;
 }
 
 /// Base class for a Type parsed from the LSP JSON model.
@@ -301,7 +298,7 @@ class TypeReference extends TypeBase {
       // Simplify MarkedString from
       //     string | { language: string; value: string }
       // to just String
-      'MarkedString': 'String'
+      'MarkedString': 'String',
     };
 
     var typeName = mapping[name] ?? name;

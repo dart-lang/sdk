@@ -5,15 +5,14 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
-Element? _getElementFromVariableDeclarationStatement(
+Element2? _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
   var variables = statement.variables.variables;
   if (variables.length == 1) {
@@ -26,23 +25,23 @@ Element? _getElementFromVariableDeclarationStatement(
       // In such a case, we should not return any cascadable element here.
       return null;
     }
-    return variable.declaredElement;
+    return variable.declaredElement2 ?? variable.declaredFragment?.element;
   }
   return null;
 }
 
-ExecutableElement? _getExecutableElementFromMethodInvocation(
+ExecutableElement2? _getExecutableElementFromMethodInvocation(
     MethodInvocation node) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
     var executableElement = node.methodName.canonicalElement;
-    if (executableElement is ExecutableElement) {
+    if (executableElement is ExecutableElement2) {
       return executableElement;
     }
   }
   return null;
 }
 
-Element? _getPrefixElementFromExpression(Expression rawExpression) {
+Element2? _getPrefixElementFromExpression(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
     return expression.prefix.canonicalElement;
@@ -54,10 +53,10 @@ Element? _getPrefixElementFromExpression(Expression rawExpression) {
   return null;
 }
 
-Element? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
+Element2? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
     node.target.canonicalElement;
 
-Element? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
+Element2? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
     node.target.canonicalElement;
 
 bool _isInvokedWithoutNullAwareOperator(Token? token) =>
@@ -127,7 +126,7 @@ class _CascadableExpression {
   /// in the right part of an assignment in a following expression that we would
   /// like to join to this.
   final bool isCritical;
-  final Element? element;
+  final Element2? element;
   final List<AstNode> criticalNodes;
 
   factory _CascadableExpression.fromExpressionStatement(
@@ -164,14 +163,14 @@ class _CascadableExpression {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return _CascadableExpression._internal(
-          leftExpression.staticElement?.canonicalElement, [node.rightHandSide],
+          leftExpression.element, [node.rightHandSide],
           canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
           isCritical: true);
     }
     // setters
     var variable = _getPrefixElementFromExpression(leftExpression);
     var canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
-        variable is VariableElement &&
+        variable is VariableElement2 &&
         !variable.isStatic;
     return _CascadableExpression._internal(variable, [node.rightHandSide],
         canJoin: true, canReceive: canReceive, canBeCascaded: true);

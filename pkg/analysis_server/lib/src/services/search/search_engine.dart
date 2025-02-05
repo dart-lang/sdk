@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -41,20 +41,24 @@ class MatchKind {
       MatchKind.reference('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
 
   /// A reference to an element in an extends clause.
-  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_EXTENDS_CLAUSE');
+  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_EXTENDS_CLAUSE',
+  );
 
   /// A reference to an element in an implements clause.
-  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_IMPLEMENTS_CLAUSE');
+  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_IMPLEMENTS_CLAUSE',
+  );
 
   /// A reference to an element in a with clause.
-  static const MatchKind REFERENCE_IN_WITH_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_WITH_CLAUSE');
+  static const MatchKind REFERENCE_IN_WITH_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_WITH_CLAUSE',
+  );
 
   /// A reference to an element in an on clause.
-  static const MatchKind REFERENCE_IN_ON_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_ON_CLAUSE');
+  static const MatchKind REFERENCE_IN_ON_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_ON_CLAUSE',
+  );
 
   final String name;
 
@@ -75,15 +79,26 @@ abstract class SearchEngine {
   ///
   /// If [allSubtypes] already contains an element it is assumed that it
   /// contains the entire subtree and the element won't be search on further.
-  ///
-  /// [type] - the [InterfaceElement] being subtyped by the found matches.
-  Future<void> appendAllSubtypes(InterfaceElement type,
-      Set<InterfaceElement> allSubtypes, OperationPerformanceImpl performance);
+  Future<void> appendAllSubtypes(
+    InterfaceElement2 type,
+    Set<InterfaceElement2> allSubtypes,
+    OperationPerformanceImpl performance,
+  );
 
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement2 type);
+
+  /// Returns references to the given [fragment].
+  Future<List<LibraryFragmentSearchMatch>> searchLibraryFragmentReferences(
+    LibraryFragment fragment,
+  );
+
+  /// Returns references to the given [import].
+  Future<List<LibraryFragmentSearchMatch>> searchLibraryImportReferences(
+    LibraryImport import,
+  );
 
   /// Returns declarations of class members with the given name.
   ///
@@ -100,21 +115,23 @@ abstract class SearchEngine {
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
   Future<Set<String>> searchPrefixesUsedInLibrary(
-      LibraryElement library, Element element);
+    LibraryElement2 library,
+    Element2 element,
+  );
 
-  /// Returns references to the given [Element].
-  ///
-  /// [element] - the [Element] being referenced by the found matches.
-  Future<List<SearchMatch>> searchReferences(Element element);
+  /// Returns references to the given [element].
+  Future<List<SearchMatch>> searchReferences(Element2 element);
 
   /// Returns direct subtypes of the given [type].
   ///
-  /// [type] - the [ClassElement] being subtyped by the found matches.
+  /// [type] - the [InterfaceElement2] being subtyped by the found matches.
   /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
   ///    empty it will be filled out and can be used on any subsequent query.
   Future<List<SearchMatch>> searchSubtypes(
-      InterfaceElement type, SearchEngineCache cache,
-      {OperationPerformanceImpl? performance});
+    InterfaceElement2 type,
+    SearchEngineCache cache, {
+    OperationPerformanceImpl? performance,
+  });
 
   /// Returns all the top-level declarations matching the given pattern.
   ///
@@ -133,8 +150,8 @@ class SearchEngineCache {
 /// Instances of the class [SearchMatch] represent a match found by
 /// [SearchEngine].
 abstract class SearchMatch {
-  /// Return the [Element] containing the match.
-  Element get element;
+  /// Return the element containing the match.
+  Element2 get element2;
 
   /// The absolute path of the file containing the match.
   String get file;
@@ -142,14 +159,14 @@ abstract class SearchMatch {
   /// Is `true` if field or method access is done using qualifier.
   bool get isQualified;
 
-  /// Is `true` if the match is a resolved reference to some [Element].
+  /// Is `true` if the match is a resolved reference to some [Element2].
   bool get isResolved;
 
   /// The kind of the match.
   MatchKind get kind;
 
-  /// Return the [LibraryElement] for the [file].
-  LibraryElement get libraryElement;
+  /// Return the library element for the [file].
+  LibraryElement2 get libraryElement2;
 
   /// The library [Source] of the reference.
   Source get librarySource;

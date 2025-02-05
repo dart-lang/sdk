@@ -4,8 +4,8 @@
 
 library jsinterop.abstract_test;
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -36,7 +36,8 @@ class A {
 main() => A();
 '''),
   const SingleTest(
-      'Js-interop class with external method with required parameters.', '''
+    'Js-interop class with external method with required parameters.',
+    '''
 @JS()
 library test;
 
@@ -48,9 +49,11 @@ class A {
 }
 
 main() => A();
-'''),
+''',
+  ),
   const SingleTest(
-      'Js-interop class with external method with optional parameters.', '''
+    'Js-interop class with external method with optional parameters.',
+    '''
 @JS()
 library test;
 
@@ -62,11 +65,12 @@ class A {
 }
 
 main() => A();
-'''),
+''',
+  ),
   const SingleTest(
-      'Js-interop class with external method with optional parameters '
-          'with default values.',
-      '''
+    'Js-interop class with external method with optional parameters '
+        'with default values.',
+    '''
 @JS()
 library test;
 
@@ -78,7 +82,8 @@ class A {
 }
 
 main() => A();
-'''),
+''',
+  ),
   const SingleTest('Js-interop class with static method.', '''
 @JS()
 library test;
@@ -111,9 +116,9 @@ class B extends A {
 main() => B();
 '''),
   const SingleTest(
-      'Js-interop class that extends a js-interop class, '
-          'reversed declaration order.',
-      '''
+    'Js-interop class that extends a js-interop class, '
+        'reversed declaration order.',
+    '''
 @JS()
 library test;
 
@@ -130,12 +135,13 @@ abstract class A {
 }
 
 main() => B();
-'''),
+''',
+  ),
   const MultiTest(
-      'Js-interop class that extends a js-interop class from a different '
-      'library.',
-      const {
-        'main.dart': '''
+    'Js-interop class that extends a js-interop class from a different '
+    'library.',
+    const {
+      'main.dart': '''
 @JS()
 library test;
 
@@ -149,7 +155,7 @@ class B extends A {
 
 main() => B();
 ''',
-        'other.dart': '''
+      'other.dart': '''
 @JS()
 library other;
 
@@ -159,8 +165,9 @@ import 'package:js/js.dart';
 abstract class A {
   method();
 }
-'''
-      }),
+''',
+    },
+  ),
   const SingleTest('Js-interop class that implements a regular class.', '''
 @JS()
 library test;
@@ -237,7 +244,8 @@ class A {}
 main() => A();
 '''),
   const SingleTest(
-      'Anonymous js-interop class with generative constructor.', '''
+    'Anonymous js-interop class with generative constructor.',
+    '''
 @JS()
 library test;
 
@@ -250,7 +258,8 @@ class A {
 }
 
 main() => A();
-'''),
+''',
+  ),
   const SingleTest('Anonymous js-interop class with factory constructor.', '''
 @JS()
 library test;
@@ -268,7 +277,8 @@ class A {
 main() => A();
 '''),
   const SingleTest(
-      'Anonymous js-interop class with external factory constructor.', '''
+    'Anonymous js-interop class with external factory constructor.',
+    '''
 @JS()
 library test;
 
@@ -281,7 +291,8 @@ class A {
 }
 
 main() => A();
-'''),
+''',
+  ),
   const SingleTest('External factory constructor with named parameters.', '''
 @JS()
 library test;
@@ -297,9 +308,9 @@ class A {
 main() => A(a: 1);
 '''),
   const SingleTest(
-      'External factory constructor with named parameters '
-          'with default parameters.',
-      '''
+    'External factory constructor with named parameters '
+        'with default parameters.',
+    '''
 @JS()
 library test;
 
@@ -312,7 +323,8 @@ class A {
 }
 
 main() => A(a: 1);
-'''),
+''',
+  ),
   const SingleTest('Function-typed return type', '''
 @JS()
 library lib;
@@ -386,9 +398,12 @@ class SingleTest extends Test {
   @override
   final String source;
 
-  const SingleTest(super.name, this.source,
-      {super.errors = const <MessageKind>[],
-      super.warnings = const <MessageKind>[]});
+  const SingleTest(
+    super.name,
+    this.source, {
+    super.errors = const <MessageKind>[],
+    super.warnings = const <MessageKind>[],
+  });
 
   @override
   Map<String, String> get sources => {'main.dart': source};
@@ -398,9 +413,12 @@ class MultiTest extends Test {
   @override
   final Map<String, String> sources;
 
-  const MultiTest(super.name, this.sources,
-      {super.errors = const <MessageKind>[],
-      super.warnings = const <MessageKind>[]});
+  const MultiTest(
+    super.name,
+    this.sources, {
+    super.errors = const <MessageKind>[],
+    super.warnings = const <MessageKind>[],
+  });
 
   @override
   String get source => sources['main.dart']!;
@@ -418,19 +436,32 @@ runTestInternal(Test test) async {
   // TODO(redemption): Enable inlining.
   options.add(Flags.disableInlining);
   await runCompiler(
-      diagnosticHandler: collector,
-      options: options,
-      memorySourceFiles: test.sources);
+    diagnosticHandler: collector,
+    options: options,
+    memorySourceFiles: test.sources,
+  );
   Expect.equals(
-      test.errors.length, collector.errors.length, 'Unexpected error count.');
-  Expect.equals(test.warnings.length, collector.warnings.length,
-      'Unexpected warning count.');
+    test.errors.length,
+    collector.errors.length,
+    'Unexpected error count.',
+  );
+  Expect.equals(
+    test.warnings.length,
+    collector.warnings.length,
+    'Unexpected warning count.',
+  );
   for (int index = 0; index < test.errors.length; index++) {
-    Expect.equals(test.errors[index],
-        collector.errors.elementAt(index).messageKind, 'Unexpected error.');
+    Expect.equals(
+      test.errors[index],
+      collector.errors.elementAt(index).messageKind,
+      'Unexpected error.',
+    );
   }
   for (int index = 0; index < test.warnings.length; index++) {
-    Expect.equals(test.warnings[index],
-        collector.warnings.elementAt(index).messageKind, 'Unexpected warning.');
+    Expect.equals(
+      test.warnings[index],
+      collector.warnings.elementAt(index).messageKind,
+      'Unexpected warning.',
+    );
   }
 }

@@ -11,15 +11,15 @@ class A {
 main() {
   const A(1);
   const A();
+  //     ^
+  // [cfe] Too few positional arguments: 1 required, 0 given.
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-  //     ^^
-  // [cfe] Too few positional arguments: 1 required, 0 given.
   const A(1, 2);
+  //     ^
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //     ^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   const A.named();
   const A.named(b: 1);
   //            ^
@@ -36,8 +36,8 @@ main() {
   const A.optional();
   const A.optional(42);
   const A.optional(42, 54);
+  //              ^
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //                   ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //              ^^^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

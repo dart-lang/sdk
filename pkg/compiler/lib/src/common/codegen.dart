@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.common.codegen;
+library;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js show Precedence;
 
 import '../common/elements.dart';
@@ -69,8 +70,6 @@ class CodegenImpact extends WorldImpact {
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   static const String tag = 'codegen-impact';
 
-  @override
-  final MemberEntity member;
   Set<(DartType, DartType)>? _typeVariableBoundsSubtypeChecks;
   Set<String>? _constSymbols;
   List<Set<ClassEntity>>? _specializedGetInterceptors;
@@ -81,75 +80,86 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<FunctionEntity>? _nativeMethods;
   Set<Selector>? _oneShotInterceptors;
 
-  _CodegenImpact(this.member);
+  _CodegenImpact(MemberEntity super.member);
 
   _CodegenImpact.internal(
-      this.member,
-      Set<DynamicUse>? dynamicUses,
-      Set<StaticUse>? staticUses,
-      Set<TypeUse>? typeUses,
-      Set<ConstantUse>? constantUses,
-      this._typeVariableBoundsSubtypeChecks,
-      this._constSymbols,
-      this._specializedGetInterceptors,
-      this._usesInterceptor,
-      this._asyncMarkers,
-      this._genericInstantiations,
-      this._nativeBehaviors,
-      this._nativeMethods,
-      this._oneShotInterceptors)
-      : super.internal(dynamicUses, staticUses, typeUses, constantUses);
+    MemberEntity member,
+    super.dynamicUses,
+    super.staticUses,
+    super.typeUses,
+    super.constantUses,
+    this._typeVariableBoundsSubtypeChecks,
+    this._constSymbols,
+    this._specializedGetInterceptors,
+    this._usesInterceptor,
+    this._asyncMarkers,
+    this._genericInstantiations,
+    this._nativeBehaviors,
+    this._nativeMethods,
+    this._oneShotInterceptors,
+  ) : super.internal(member: member);
 
   factory _CodegenImpact.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity member = source.readMember();
-    final dynamicUses = source
-        .readListOrNull(() => DynamicUse.readFromDataSource(source))
-        ?.toSet();
-    final staticUses = source
-        .readListOrNull(() => StaticUse.readFromDataSource(source))
-        ?.toSet();
-    final typeUses = source
-        .readListOrNull(() => TypeUse.readFromDataSource(source))
-        ?.toSet();
-    final constantUses = source
-        .readListOrNull(() => ConstantUse.readFromDataSource(source))
-        ?.toSet();
-    final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
-      return (source.readDartType(), source.readDartType());
-    })?.toSet();
+    final dynamicUses =
+        source
+            .readListOrNull(() => DynamicUse.readFromDataSource(source))
+            ?.toSet();
+    final staticUses =
+        source
+            .readListOrNull(() => StaticUse.readFromDataSource(source))
+            ?.toSet();
+    final typeUses =
+        source
+            .readListOrNull(() => TypeUse.readFromDataSource(source))
+            ?.toSet();
+    final constantUses =
+        source
+            .readListOrNull(() => ConstantUse.readFromDataSource(source))
+            ?.toSet();
+    final typeVariableBoundsSubtypeChecks =
+        source.readListOrNull(() {
+          return (source.readDartType(), source.readDartType());
+        })?.toSet();
     final constSymbols = source.readStringsOrNull()?.toSet();
     final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
     });
     bool usesInterceptor = source.readBool();
     final asyncMarkersValue = source.readInt();
-    final asyncMarkers = EnumSet<AsyncMarker>(asyncMarkersValue);
-    final genericInstantiations = source
-        .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
-        ?.toSet();
-    final nativeBehaviors =
-        source.readListOrNull(() => NativeBehavior.readFromDataSource(source));
+    final asyncMarkers = EnumSet<AsyncMarker>.fromRawBits(asyncMarkersValue);
+    final genericInstantiations =
+        source
+            .readListOrNull(
+              () => GenericInstantiation.readFromDataSource(source),
+            )
+            ?.toSet();
+    final nativeBehaviors = source.readListOrNull(
+      () => NativeBehavior.readFromDataSource(source),
+    );
     final nativeMethods = source.readMembersOrNull<FunctionEntity>()?.toSet();
-    final oneShotInterceptors = source
-        .readListOrNull(() => Selector.readFromDataSource(source))
-        ?.toSet();
+    final oneShotInterceptors =
+        source
+            .readListOrNull(() => Selector.readFromDataSource(source))
+            ?.toSet();
     source.end(tag);
     return _CodegenImpact.internal(
-        member,
-        dynamicUses,
-        staticUses,
-        typeUses,
-        constantUses,
-        typeVariableBoundsSubtypeChecks,
-        constSymbols,
-        specializedGetInterceptors,
-        usesInterceptor,
-        asyncMarkers,
-        genericInstantiations,
-        nativeBehaviors,
-        nativeMethods,
-        oneShotInterceptors);
+      member,
+      dynamicUses,
+      staticUses,
+      typeUses,
+      constantUses,
+      typeVariableBoundsSubtypeChecks,
+      constSymbols,
+      specializedGetInterceptors,
+      usesInterceptor,
+      asyncMarkers,
+      genericInstantiations,
+      nativeBehaviors,
+      nativeMethods,
+      oneShotInterceptors,
+    );
   }
 
   @override
@@ -160,30 +170,44 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     sink.writeList(staticUses, (StaticUse use) => use.writeToDataSink(sink));
     sink.writeList(typeUses, (TypeUse use) => use.writeToDataSink(sink));
     sink.writeList(
-        constantUses, (ConstantUse use) => use.writeToDataSink(sink));
-    sink.writeListOrNull<(DartType, DartType)>(_typeVariableBoundsSubtypeChecks,
-        (pair) {
-      sink.writeDartType(pair.$1);
-      sink.writeDartType(pair.$2);
-    });
+      constantUses,
+      (ConstantUse use) => use.writeToDataSink(sink),
+    );
+    sink.writeListOrNull<(DartType, DartType)>(
+      _typeVariableBoundsSubtypeChecks,
+      (pair) {
+        sink.writeDartType(pair.$1);
+        sink.writeDartType(pair.$2);
+      },
+    );
     sink.writeStringsOrNull(_constSymbols);
     sink.writeListOrNull(_specializedGetInterceptors, sink.writeClasses);
     sink.writeBool(_usesInterceptor);
-    sink.writeInt(_asyncMarkers.mask);
+    sink.writeInt(_asyncMarkers.mask.bits);
     sink.writeListOrNull(
-        _genericInstantiations,
-        (GenericInstantiation instantiation) =>
-            instantiation.writeToDataSink(sink));
-    sink.writeListOrNull(_nativeBehaviors,
-        (NativeBehavior behavior) => behavior.writeToDataSink(sink));
+      _genericInstantiations,
+      (GenericInstantiation instantiation) =>
+          instantiation.writeToDataSink(sink),
+    );
+    sink.writeListOrNull(
+      _nativeBehaviors,
+      (NativeBehavior behavior) => behavior.writeToDataSink(sink),
+    );
     sink.writeMembersOrNull(_nativeMethods);
-    sink.writeListOrNull(_oneShotInterceptors,
-        (Selector selector) => selector.writeToDataSink(sink));
+    sink.writeListOrNull(
+      _oneShotInterceptors,
+      (Selector selector) => selector.writeToDataSink(sink),
+    );
     sink.end(tag);
   }
 
+  @override
+  MemberEntity get member => super.member!;
+
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType subtype, DartType supertype) {
+    DartType subtype,
+    DartType supertype,
+  ) {
     (_typeVariableBoundsSubtypeChecks ??= {}).add((subtype, supertype));
   }
 
@@ -218,7 +242,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers += asyncMarker;
+    _asyncMarkers = _asyncMarkers.add(asyncMarker);
   }
 
   @override
@@ -273,7 +297,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
-        iterable.forEach((e) => sb.write('\n  $e'));
+        for (var e in iterable) {
+          sb.write('\n  $e');
+        }
       }
     }
 
@@ -303,12 +329,12 @@ class CodegenRegistry {
   late final List<ModularExpression> _expressions = [];
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
-      : this._worldImpact = _CodegenImpact(_currentElement);
+    : _worldImpact = _CodegenImpact(_currentElement);
 
   @override
   String toString() => 'CodegenRegistry for $_currentElement';
 
-  @deprecated
+  @Deprecated("Use StaticUse for precise registration of statically known use")
   void registerInstantiatedClass(ClassEntity element) {
     registerInstantiation(_elementEnvironment.getRawType(element));
   }
@@ -330,7 +356,9 @@ class CodegenRegistry {
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType subtype, DartType supertype) {
+    DartType subtype,
+    DartType supertype,
+  ) {
     _worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
@@ -384,10 +412,13 @@ class CodegenRegistry {
 
   CodegenResult close(js.Fun? code) {
     return CodegenResult(
-        code,
-        _worldImpact,
-        js.DeferredExpressionData(_names.isEmpty ? const [] : _names,
-            _expressions.isEmpty ? const [] : _expressions));
+      code,
+      _worldImpact,
+      js.DeferredExpressionData(
+        _names.isEmpty ? const [] : _names,
+        _expressions.isEmpty ? const [] : _expressions,
+      ),
+    );
   }
 }
 
@@ -403,7 +434,8 @@ class OnDemandCodegenResults implements CodegenResults {
 
   @override
   ({CodegenResult result, bool isGenerated}) getCodegenResults(
-      MemberEntity member) {
+    MemberEntity member,
+  ) {
     return (result: _functionCompiler.compile(member), isGenerated: true);
   }
 }
@@ -423,8 +455,8 @@ class CodegenResult {
     source.begin(tag);
     js.Fun? code = source.readJsNodeOrNull() as js.Fun?;
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
-    final deferredExpressionData =
-        js.DeferredExpressionRegistry.readDataFromDataSource(source);
+    final deferredExpressionData = js
+        .DeferredExpressionRegistry.readDataFromDataSource(source);
     source.end(tag);
     if (code != null) {
       code = code.withAnnotation(deferredExpressionData) as js.Fun;
@@ -437,7 +469,9 @@ class CodegenResult {
     sink.begin(tag);
     final registry = js.DeferredExpressionRegistry();
     sink.withDeferredExpressionRegistry(
-        registry, () => sink.writeJsNodeOrNull(code));
+      registry,
+      () => sink.writeJsNodeOrNull(code),
+    );
     impact.writeToDataSink(sink);
     registry.writeToDataSink(sink);
     sink.end(tag);
@@ -455,8 +489,9 @@ class CodegenResult {
           name.value = namer.className(name.data as ClassEntity);
           break;
         case ModularNameKind.aliasedSuperMember:
-          name.value =
-              namer.aliasedSuperMemberPropertyName(name.data as MemberEntity);
+          name.value = namer.aliasedSuperMemberPropertyName(
+            name.data as MemberEntity,
+          );
           break;
         case ModularNameKind.staticClosure:
           name.value = namer.staticClosureName(name.data as FunctionEntity);
@@ -471,8 +506,9 @@ class CodegenResult {
           name.value = namer.instanceMethodName(name.data as FunctionEntity);
           break;
         case ModularNameKind.instanceField:
-          name.value =
-              namer.instanceFieldPropertyName(name.data as FieldEntity);
+          name.value = namer.instanceFieldPropertyName(
+            name.data as FieldEntity,
+          );
           break;
         case ModularNameKind.invocation:
           name.value = namer.invocationName(name.data as Selector);
@@ -481,23 +517,28 @@ class CodegenResult {
           name.value = namer.lazyInitializerName(name.data as FieldEntity);
           break;
         case ModularNameKind.globalPropertyNameForClass:
-          name.value =
-              namer.globalPropertyNameForClass(name.data as ClassEntity);
+          name.value = namer.globalPropertyNameForClass(
+            name.data as ClassEntity,
+          );
           break;
         case ModularNameKind.globalPropertyNameForMember:
-          name.value =
-              namer.globalPropertyNameForMember(name.data as MemberEntity);
+          name.value = namer.globalPropertyNameForMember(
+            name.data as MemberEntity,
+          );
           break;
         case ModularNameKind.globalNameForInterfaceTypeVariable:
           name.value = namer.globalNameForInterfaceTypeVariable(
-              name.data as TypeVariableEntity);
+            name.data as TypeVariableEntity,
+          );
           break;
         case ModularNameKind.nameForGetInterceptor:
           name.value = namer.nameForGetInterceptor(name.set!);
           break;
         case ModularNameKind.nameForOneShotInterceptor:
-          name.value =
-              namer.nameForOneShotInterceptor(name.data as Selector, name.set!);
+          name.value = namer.nameForOneShotInterceptor(
+            name.data as Selector,
+            name.set!,
+          );
           break;
         case ModularNameKind.asName:
           name.value = namer.asName(name.data as String);
@@ -534,10 +575,7 @@ class CodegenResult {
   }
 }
 
-enum ModularExpressionKind {
-  constant,
-  embeddedGlobalAccess,
-}
+enum ModularExpressionKind { constant, embeddedGlobalAccess }
 
 class ModularExpression extends js.DeferredExpression
     implements js.AstContainer {
@@ -587,7 +625,7 @@ class ModularExpression extends js.DeferredExpression
     return _value!;
   }
 
-  void set value(js.Expression node) {
+  set value(js.Expression node) {
     assert(!isFinalized);
     _value = node.withSourceInformation(sourceInformation);
   }
@@ -770,10 +808,7 @@ class JsNodeTags {
   static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
-enum JsAnnotationKind {
-  string,
-  resourceIdentifier,
-}
+enum JsAnnotationKind { string, resourceIdentifier }
 
 /// Visitor that serializes a [js.Node] into a [DataSinkWriter].
 ///
@@ -785,8 +820,11 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
 
   JsNodeSerializer._(this.sink, this._registry);
 
-  static void writeToDataSink(DataSinkWriter sink, js.Node node,
-      js.DeferredExpressionRegistry? registry) {
+  static void writeToDataSink(
+    DataSinkWriter sink,
+    js.Node node,
+    js.DeferredExpressionRegistry? registry,
+  ) {
     sink.begin(JsNodeTags.tag);
     JsNodeSerializer serializer = JsNodeSerializer._(sink, registry);
     serializer.visit(node);
@@ -820,8 +858,9 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
     if (hasSourceInformation) {
-      sink.writeIndexed<SourceInformation>(sourceInformation,
-          (SourceInformation sourceInformation) {
+      sink.writeIndexed<SourceInformation>(sourceInformation, (
+        SourceInformation sourceInformation,
+      ) {
         SourceInformation.writeToDataSink(sink, sourceInformation);
       });
     }
@@ -839,7 +878,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       annotation.writeToDataSink(sink);
     } else {
       throw UnsupportedError(
-          'JsNodeAnnotation ${annotation.runtimeType}: $annotation');
+        'JsNodeAnnotation ${annotation.runtimeType}: $annotation',
+      );
     }
   }
 
@@ -982,7 +1022,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       _writeInfo(node);
     } else {
       throw UnsupportedError(
-          'Unexpected deferred expression: ${node.runtimeType}.');
+        'Unexpected deferred expression: ${node.runtimeType}.',
+      );
     }
   }
 
@@ -1092,7 +1133,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       sink.end(JsNodeTags.deferredHolderExpression);
     } else {
       throw UnsupportedError(
-          'Unexpected deferred expression: ${node.runtimeType}.');
+        'Unexpected deferred expression: ${node.runtimeType}.',
+      );
     }
   }
 
@@ -1102,7 +1144,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.begin(JsNodeTags.function);
     visitList(node.params);
     sink.writeDeferrable(
-        () => sink.writeList(node.body.statements, sink.writeJsNode));
+      () => sink.writeList(node.body.statements, sink.writeJsNode),
+    );
     sink.writeEnum(node.asyncModifier);
     sink.end(JsNodeTags.function);
     _writeInfo(node);
@@ -1577,7 +1620,8 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.modularName);
         needsInfo = false;
         node = source.readIndexed<ModularName>(
-            () => _readInfo(ModularName.readFromDataSource(source)));
+          () => _readInfo(ModularName.readFromDataSource(source)),
+        );
         source.end(JsNodeTags.modularName);
         break;
       case JsNodeKind.asyncName:
@@ -1628,16 +1672,19 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.modularExpression);
         needsInfo = false;
         node = source.readIndexed<ModularExpression>(
-            () => _readInfo(ModularExpression.readFromDataSource(source)));
+          () => _readInfo(ModularExpression.readFromDataSource(source)),
+        );
         source.end(JsNodeTags.modularExpression);
         break;
       case JsNodeKind.function:
         source.begin(JsNodeTags.function);
         List<js.Parameter> params = readList();
         js.Block body = js.DeferredBlock(
-            source.readDeferrable(_readFunBodyStatements, cacheData: false));
-        js.AsyncModifier asyncModifier =
-            source.readEnum(js.AsyncModifier.values);
+          source.readDeferrable(_readFunBodyStatements, cacheData: false),
+        );
+        js.AsyncModifier asyncModifier = source.readEnum(
+          js.AsyncModifier.values,
+        );
         node = js.Fun(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.function);
         break;
@@ -1645,8 +1692,9 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.arrowFunction);
         List<js.Parameter> params = readList();
         js.Node body = read();
-        js.AsyncModifier asyncModifier =
-            source.readEnum(js.AsyncModifier.values);
+        js.AsyncModifier asyncModifier = source.readEnum(
+          js.AsyncModifier.values,
+        );
         node = js.ArrowFunction(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.arrowFunction);
         break;
@@ -1749,8 +1797,10 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.variableDeclarationList);
         List<js.VariableInitialization> declarations = readList();
         bool indentSplits = source.readBool();
-        node = js.VariableDeclarationList(declarations,
-            indentSplits: indentSplits);
+        node = js.VariableDeclarationList(
+          declarations,
+          indentSplits: indentSplits,
+        );
         source.end(JsNodeTags.variableDeclarationList);
         break;
       case JsNodeKind.literalExpression:
@@ -1908,21 +1958,24 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.stringReference);
         needsInfo = false;
         node = source.readIndexed<StringReference>(
-            () => _readInfo(StringReference.readFromDataSource(source)));
+          () => _readInfo(StringReference.readFromDataSource(source)),
+        );
         source.end(JsNodeTags.stringReference);
         break;
       case JsNodeKind.typeReference:
         source.begin(JsNodeTags.typeReference);
         needsInfo = false;
         node = source.readIndexed<TypeReference>(
-            () => _readInfo(TypeReference.readFromDataSource(source)));
+          () => _readInfo(TypeReference.readFromDataSource(source)),
+        );
         source.end(JsNodeTags.typeReference);
         break;
       case JsNodeKind.deferredHolderExpression:
         source.begin(JsNodeTags.deferredHolderExpression);
         needsInfo = false;
-        node = source.readIndexed<DeferredHolderExpression>(() =>
-            _readInfo(DeferredHolderExpression.readFromDataSource(source)));
+        node = source.readIndexed<DeferredHolderExpression>(
+          () => _readInfo(DeferredHolderExpression.readFromDataSource(source)),
+        );
         source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
@@ -1935,10 +1988,10 @@ class JsNodeDeserializer {
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
     if (hasSourceInformation) {
-      final sourceInformation =
-          source.readIndexedOrNullNoCache<SourceInformation>(() {
-        return SourceInformation.readFromDataSource(source);
-      });
+      final sourceInformation = source
+          .readIndexedOrNullNoCache<SourceInformation>(() {
+            return SourceInformation.readFromDataSource(source);
+          });
       node = node.withSourceInformation(sourceInformation);
     }
     for (int i = 0; i < annotationCount; i++) {
@@ -2085,7 +2138,7 @@ class ModularName extends js.Name implements js.AstContainer {
     return _value!;
   }
 
-  void set value(js.Name node) {
+  set value(js.Name node) {
     assert(!isFinalized);
     _value = node.withSourceInformation(sourceInformation) as js.Name;
   }
@@ -2218,7 +2271,7 @@ class ModularName extends js.Name implements js.AstContainer {
       if (selector.callStructure.typeArgumentCount > 0)
         '${selector.callStructure.typeArgumentCount}',
       '${selector.callStructure.argumentCount}',
-      ...selector.callStructure.getOrderedNamedArguments()
+      ...selector.callStructure.getOrderedNamedArguments(),
     ];
     return parts.join(r'$');
   }
@@ -2228,7 +2281,8 @@ class ModularName extends js.Name implements js.AstContainer {
 abstract class CodegenResults {
   CodegenInputs get codegenInputs;
   ({CodegenResult result, bool isGenerated}) getCodegenResults(
-      MemberEntity member);
+    MemberEntity member,
+  );
 }
 
 /// Deserialized code generation results.
@@ -2242,11 +2296,15 @@ class DeserializedCodegenResults implements CodegenResults {
   final Map<MemberEntity, CodegenResult> _map;
 
   DeserializedCodegenResults(
-      this.codegenInputs, this._map, this._functionCompiler);
+    this.codegenInputs,
+    this._map,
+    this._functionCompiler,
+  );
 
   @override
   ({CodegenResult result, bool isGenerated}) getCodegenResults(
-      MemberEntity member) {
+    MemberEntity member,
+  ) {
     // We only access these results once as it is picked up by the work queue
     // so it is safe to remove and free up space in the map. With deferred
     // deserialization this will also free the Deferrable holder.

@@ -706,7 +706,7 @@ class Uint8ListViewVarBench extends BenchmarkBase {
 class Uint8ClampedListViewVarBench extends BenchmarkBase {
   var list = Uint8ClampedList.view(Uint8ClampedList(N).buffer);
   Uint8ClampedListViewVarBench()
-      : super('TypedData.Uint8ClampedListViewVarBench');
+    : super('TypedData.Uint8ClampedListViewVarBench');
   @override
   void run() {
     doSetUint8ClampedVar(list);

@@ -27,6 +27,89 @@ final class MyStruct extends Struct {
   external Pointer<MyStruct> next;
 }
 
+final class MyUnion extends Union {
+  @Int8()
+  external int a;
+  @Int8()
+  external int b;
+}
+
+@Native()
+external void validInference();
+
+@Native()
+external void validInference2(Pointer x);
+
+@Native()
+external void validInference3(MyStruct x);
+
+@Native()
+external void validInference4(MyUnion x);
+
+@Native()
+external MyStruct validInference5();
+
+@Native()
+external MyStruct validInference6(Pointer x);
+
+@Native()
+external MyStruct validInference7(MyStruct x);
+
+@Native()
+external MyStruct validInference8(MyUnion x);
+
+@Native()
+external MyUnion validInference9();
+
+@Native()
+external MyUnion validInference10(Pointer x);
+
+@Native()
+external MyUnion validInference11(MyStruct x);
+
+@Native()
+external MyUnion validInference12(MyUnion x);
+
+@Native()
+external Pointer validInference13();
+
+@Native()
+external Pointer validInference14(Pointer x);
+
+@Native()
+external Pointer validInference15(MyStruct x);
+
+@Native()
+external Pointer validInference16(MyUnion x);
+
+@Native()
+external void invalidNoInference(int x);
+//            ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FUNCTION_MISSING_TYPE
+//            ^
+// [cfe] The native type of this function couldn't be inferred so it must be specified in the annotation.
+
+@Native()
+external MyStruct invalidNoInference2(int x);
+//                ^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FUNCTION_MISSING_TYPE
+//                ^
+// [cfe] The native type of this function couldn't be inferred so it must be specified in the annotation.
+
+@Native()
+external MyUnion invalidNoInference3(int x);
+//               ^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FUNCTION_MISSING_TYPE
+//               ^
+// [cfe] The native type of this function couldn't be inferred so it must be specified in the annotation.
+
+@Native()
+external Pointer invalidNoInference4(int x);
+//               ^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FUNCTION_MISSING_TYPE
+//               ^
+// [cfe] The native type of this function couldn't be inferred so it must be specified in the annotation.
+
 typedef ComplexNativeFunction = MyStruct Function(Long, Double, MyStruct);
 const native = Native<ComplexNativeFunction>();
 
@@ -68,7 +151,7 @@ external Pointer<MyStruct> myStructPtrInvalid;
 // [cfe] Expected type 'Pointer<MyStruct>' to be 'MyStruct', which is the Dart type corresponding to 'MyStruct'.
 
 @Native()
-external int invalidNoInferrence;
+external int invalidNoInference5;
 //           ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_MISSING_TYPE
 // [cfe] The native type of this field could not be inferred and must be specified in the annotation.
@@ -163,11 +246,31 @@ void addressOf() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_NATIVE
   // [cfe] Argument to 'Native.addressOf' must be annotated with @Native.
 
+  // dart format off
+
   Native.addressOf(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
   //     ^
   // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
+
+  Native.addressOf(validInference);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+  //     ^
+  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
+
+  Native.addressOf<NativeFunction>(_valid);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+
+  Native.addressOf<NativeFunction>(validInference);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
 
   Native.addressOf<NativeFunction<Void Function(Int)>>(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -175,7 +278,18 @@ void addressOf() {
   //     ^
   // [cfe] Expected type 'void Function()' to be 'void Function(int)', which is the Dart type corresponding to 'NativeFunction<Void Function(Int)>'.
 
+  Native.addressOf<NativeFunction<Void Function()>>(validInference);
+  Native.addressOf<NativeFunction<Void Function(Pointer)>>(validInference2);
+  Native.addressOf<NativeFunction<MyStruct Function()>>(validInference5);
+  Native.addressOf<NativeFunction<MyUnion Function()>>(validInference9);
+  Native.addressOf<NativeFunction<Pointer Function()>>(validInference13);
   Native.addressOf<NativeFunction<ComplexNativeFunction>>(validNative);
+
+  Native.addressOf(myStruct0);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
 
   Native.addressOf<MyStruct>(myStruct0);
   Native.addressOf<MyStruct>(myStruct1);

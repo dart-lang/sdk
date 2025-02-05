@@ -43,13 +43,18 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
       }
     }
     fail(
-        'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '$testRegion in\n'
-        '${testTargets.join('\n')}');
+      'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
+      '$testRegion in\n'
+      '${testTargets.join('\n')}',
+    );
   }
 
-  void assertHasOperatorRegion(String regionSearch, int regionLength,
-      String targetSearch, int targetLength) {
+  void assertHasOperatorRegion(
+    String regionSearch,
+    int regionLength,
+    String targetSearch,
+    int targetLength,
+  ) {
     assertHasRegion(regionSearch, length: regionLength);
     assertHasTarget(targetSearch, length: targetLength);
   }
@@ -78,8 +83,12 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
 
   /// Validates that there is an identifier region at [regionSearch] with target
   /// at [targetSearch].
-  void assertHasRegionTarget(String regionSearch, String targetSearch,
-      {int regionLength = -1, int targetLength = -1}) {
+  void assertHasRegionTarget(
+    String regionSearch,
+    String targetSearch, {
+    int regionLength = -1,
+    int targetLength = -1,
+  }) {
     assertHasRegion(regionSearch, length: regionLength);
     assertHasTarget(targetSearch, length: targetLength);
   }
@@ -110,12 +119,6 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
 
     var length = findIdentifierLength(search);
     assertHasFileTarget(dartCoreFile.path, offset, length);
-  }
-
-  /// Validates that there is a target in [testTargets]  with [testFile], at the
-  /// offset of [str] in [testFile], and with the length of  [str].
-  void assertHasTargetString(String str) {
-    assertHasTarget(str, length: str.length);
   }
 
   /// Validates that there is not a region at [search] and with the given
@@ -162,8 +165,10 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
         if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-              '${regions.join('\n')}');
+          fail(
+            'Not expected to find (offset=$offset; length=$length) in\n'
+            '${regions.join('\n')}',
+          );
         }
         testRegion = region;
         testTargetIndexes = region.targets;
@@ -172,8 +177,10 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${regions.join('\n')}');
+      fail(
+        'Expected to find (offset=$offset; length=$length) in\n'
+        '${regions.join('\n')}',
+      );
     }
   }
 }
@@ -197,8 +204,10 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
-      var params = AnalysisNavigationParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisNavigationParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path || params.file == augmentFilePath) {
         regions = params.regions;
         targets = params.targets;
@@ -222,6 +231,46 @@ AAA aaa;
     await waitForTasksFinished();
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareElements_inList() async {
+    addTestFile('''
+class AAA {}
+final aaa = [?((AAA arg) => null)];
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareElements_inSet() async {
+    addTestFile('''
+class AAA {}
+final aaa = {?((AAA arg) => null)};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareKey_inMap() async {
+    addTestFile('''
+class AAA {}
+final aaa = {?((AAA arg) => null): "value"};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareValue_inMap() async {
+    addTestFile('''
+class AAA {}
+final aaa = {"key": ?((AAA arg) => null)};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
   }
 
   Future<void> test_annotation_generic_typeArguments_class() async {
@@ -469,7 +518,7 @@ void f() {
   }
 
   Future<void>
-      test_class_constructor_annotationConstructor_importPrefix() async {
+  test_class_constructor_annotationConstructor_importPrefix() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
@@ -610,7 +659,7 @@ class B {
   }
 
   Future<void>
-      test_class_factoryRedirectingConstructor_implicit_withTypeArgument() async {
+  test_class_factoryRedirectingConstructor_implicit_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -650,7 +699,7 @@ class B {
   }
 
   Future<void>
-      test_class_factoryRedirectingConstructor_named_withTypeArgument() async {
+  test_class_factoryRedirectingConstructor_named_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -690,7 +739,7 @@ class B {
   }
 
   Future<void>
-      test_class_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
+  test_class_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -748,7 +797,7 @@ class A {
   }
 
   Future<void>
-      test_class_fieldFormalParameter_requiredPositional_functionTyped() async {
+  test_class_fieldFormalParameter_requiredPositional_functionTyped() async {
     addTestFile('''
 class B {
   final Object f;
@@ -765,7 +814,7 @@ class B {
   }
 
   Future<void>
-      test_class_fieldFormalParameter_requiredPositional_unresolved() async {
+  test_class_fieldFormalParameter_requiredPositional_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
@@ -1421,11 +1470,11 @@ library my.lib;
 ''');
     await prepareNavigation();
     assertHasRegionString('my.lib');
-    assertHasTargetString('my.lib');
+    assertHasTarget('library', length: 0); // line 0, col 0 for unit targets.
   }
 
   Future<void>
-      test_libraryAugmentation_topLevelFunction_annotationConstructor_importPrefix() async {
+  test_libraryAugmentation_topLevelFunction_annotationConstructor_importPrefix() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
@@ -1501,10 +1550,12 @@ const int foo = 0;
   Future<void> test_navigation_dart_example_api_multiple() async {
     var exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
     var exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
-    var exampleApiFile0 =
-        convertPath(join(workspaceRootPath, exampleLinkPath0));
-    var exampleApiFile1 =
-        convertPath(join(workspaceRootPath, exampleLinkPath1));
+    var exampleApiFile0 = convertPath(
+      join(workspaceRootPath, exampleLinkPath0),
+    );
+    var exampleApiFile1 = convertPath(
+      join(workspaceRootPath, exampleLinkPath1),
+    );
     newFile(exampleApiFile0, '/// Test 0');
     newFile(exampleApiFile1, '/// Test 1');
     addTestFile('''
@@ -1648,7 +1699,7 @@ void f() {
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_propertyAccess_propertyName_read() async {
@@ -1717,7 +1768,9 @@ class A {
     newFile('$testPackageLibPath/lib.dart', '').path;
     var lib2File = newFile('$testPackageLibPath/lib2.dart', '').path;
     newFile(
-        testFilePath, 'import "lib.dart" if (dart.library.html) "lib2.dart";');
+      testFilePath,
+      'import "lib.dart" if (dart.library.html) "lib2.dart";',
+    );
     await prepareNavigation();
     assertHasRegionString('"lib2.dart"');
     assertHasFileTarget(lib2File, 0, 0);
@@ -1729,7 +1782,7 @@ class A {
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_string_export_unresolvedUri() async {
@@ -1744,7 +1797,7 @@ class A {
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_string_import_noUri() async {
@@ -1857,7 +1910,7 @@ class B extends A {
   }
 
   Future<void>
-      test_superFormalParameter_requiredPositional_functionTyped() async {
+  test_superFormalParameter_requiredPositional_functionTyped() async {
     addTestFile('''
 class A {
   A(Object a); // 0

@@ -9,6 +9,6 @@ foo() {
   // The frontend will not recognize that this is the root library. Though this
   // library is not reachable from what the frontend considers the root library,
   // the entry point pragma will still cause this function to compiled by
-  // gen_snaption, so it is important that this library is assigned to a
+  // gen_snapshot, so it is important that this library is assigned to a
   // loading unit.
 }

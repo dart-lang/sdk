@@ -12,16 +12,24 @@ main() {
   // Getter Invocation.
   expectInvocation(new Invocation.getter(#name), nsm.name);
   // Setter Invocation.
-  expectInvocation(new Invocation.setter(const Symbol("name="), argument),
-      (nsm..name = argument).last);
+  expectInvocation(
+    new Invocation.setter(const Symbol("name="), argument),
+    (nsm..name = argument).last,
+  );
   // Method invocation.
   expectInvocation(new Invocation.method(#name, []), nsm.name());
   expectInvocation(
-      new Invocation.method(#name, [argument]), nsm.name(argument));
-  expectInvocation(new Invocation.method(#name, [], {#arg: argument}),
-      nsm.name(arg: argument));
-  expectInvocation(new Invocation.method(#name, [argument], {#arg: argument2}),
-      nsm.name(argument, arg: argument2));
+    new Invocation.method(#name, [argument]),
+    nsm.name(argument),
+  );
+  expectInvocation(
+    new Invocation.method(#name, [], {#arg: argument}),
+    nsm.name(arg: argument),
+  );
+  expectInvocation(
+    new Invocation.method(#name, [argument], {#arg: argument2}),
+    nsm.name(argument, arg: argument2),
+  );
   // Operator invocation.
   expectInvocation(new Invocation.method(#+, [argument]), nsm + argument);
   expectInvocation(new Invocation.method(#-, [argument]), nsm - argument);
@@ -30,14 +38,20 @@ main() {
   expectInvocation(new Invocation.method(#[], [argument]), nsm[argument]);
   nsm[argument] = argument2;
   expectInvocation(
-      new Invocation.method(#[]=, [argument, argument2]), nsm.last);
+    new Invocation.method(#[]=, [argument, argument2]),
+    nsm.last,
+  );
   // Call invocation.
   expectInvocation(new Invocation.method(#call, []), nsm());
   expectInvocation(new Invocation.method(#call, [argument]), nsm(argument));
   expectInvocation(
-      new Invocation.method(#call, [], {#arg: argument}), nsm(arg: argument));
-  expectInvocation(new Invocation.method(#call, [argument], {#arg: argument2}),
-      nsm(argument, arg: argument2));
+    new Invocation.method(#call, [], {#arg: argument}),
+    nsm(arg: argument),
+  );
+  expectInvocation(
+    new Invocation.method(#call, [argument], {#arg: argument2}),
+    nsm(argument, arg: argument2),
+  );
 }
 
 dynamic nsm = new Recorder();
@@ -80,7 +94,10 @@ expectInvocation(Invocation expect, Invocation actual) {
   Expect.equals(expect.memberName, actual.memberName, "memberName");
   Expect.listEquals(expect.typeArguments, actual.typeArguments, "types");
   Expect.listEquals(
-      expect.positionalArguments, actual.positionalArguments, "positional");
+    expect.positionalArguments,
+    actual.positionalArguments,
+    "positional",
+  );
   Expect.mapEquals(expect.namedArguments, actual.namedArguments, "named");
   checkUnmodifiableList(actual.typeArguments);
   checkUnmodifiableList(actual.positionalArguments);

@@ -10,12 +10,12 @@ void main() {
   Lib.testMain('source_map_simple', frameDetails);
 }
 
-const List<(String?, int?, int?)?> frameDetails = [
-  ('errors_patch.dart', null, null), // _throwWithCurrentStackTrace
-  ('source_map_simple_lib.dart', 16, 3), // g
-  ('source_map_simple_lib.dart', 12, 3), // f
-  ('source_map_simple_lib.dart', 38, 5), // testMain
-  ('source_map_simple_test.dart', 10, 7), // main
+const List<(String?, int?, int?, String?)?> frameDetails = [
+  ('errors_patch.dart', null, null, '_throwWithCurrentStackTrace'),
+  ('source_map_simple_lib.dart', 16, 3, 'g'),
+  ('source_map_simple_lib.dart', 12, 3, 'f'),
+  ('source_map_simple_lib.dart', 39, 5, 'testMain'),
+  ('source_map_simple_test.dart', 10, 7, 'main'),
   null, // main tear-off, compiler generated, not mapped
   // The rest of the stack is dependent on the compiler mode.
 ];

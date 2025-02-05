@@ -13,21 +13,40 @@ import 'package:ffi/ffi.dart';
 
 const maxSizeInBytes = 10 * 1024 * 1024;
 
-final argParser = ArgParser()
-  ..addMultiOption('length',
-      abbr: 'l',
-      help: 'Byte length to benchmark',
-      valueHelp: 'INT',
-      defaultsTo: const [])
-  ..addFlag('mebibytes-per-second',
-      abbr: 'm', help: 'Show MiB/s', defaultsTo: false)
-  ..addFlag('nanoseconds-per-byte',
-      abbr: 'n', help: 'Show ns/byte', defaultsTo: false)
-  ..addFlag('bytes-per-second',
-      abbr: 'b', help: 'Show byte/s', defaultsTo: true)
-  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
-  ..addFlag('aligned',
-      abbr: 'a', help: 'Align results on initial numbers', defaultsTo: false);
+final argParser =
+    ArgParser()
+      ..addMultiOption(
+        'length',
+        abbr: 'l',
+        help: 'Byte length to benchmark',
+        valueHelp: 'INT',
+        defaultsTo: const [],
+      )
+      ..addFlag(
+        'mebibytes-per-second',
+        abbr: 'm',
+        help: 'Show MiB/s',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'nanoseconds-per-byte',
+        abbr: 'n',
+        help: 'Show ns/byte',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'bytes-per-second',
+        abbr: 'b',
+        help: 'Show byte/s',
+        defaultsTo: true,
+      )
+      ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
+      ..addFlag(
+        'aligned',
+        abbr: 'a',
+        help: 'Align results on initial numbers',
+        defaultsTo: false,
+      );
 
 class Emitter {
   final bool bytesPerSecond;
@@ -36,12 +55,12 @@ class Emitter {
   final bool _alignedOutput;
 
   Emitter(ArgResults results)
-      : bytesPerSecond = results['bytes-per-second'] || results['verbose'],
-        nanosecondsPerByte =
-            results['nanoseconds-per-byte'] || results['verbose'],
-        mebibytesPerSecond =
-            results['mebibytes-per-second'] || results['verbose'],
-        _alignedOutput = results['aligned'];
+    : bytesPerSecond = results['bytes-per-second'] || results['verbose'],
+      nanosecondsPerByte =
+          results['nanoseconds-per-byte'] || results['verbose'],
+      mebibytesPerSecond =
+          results['mebibytes-per-second'] || results['verbose'],
+      _alignedOutput = results['aligned'];
 
   static final kValueRegexp = RegExp(r'^([0-9]+)');
   static final kMaxLabelLength =
@@ -57,7 +76,8 @@ class Emitter {
       ..write(': ');
     if (_alignedOutput) {
       final matches = kValueRegexp.firstMatch(valueString)!;
-      final valuePadding = (kMaxLabelLength - label.length) +
+      final valuePadding =
+          (kMaxLabelLength - label.length) +
           max<int>(kMaxDigits - matches[1]!.length, 0);
       buffer..write(' ' * valuePadding);
     }
@@ -98,9 +118,11 @@ abstract class MemoryCopyBenchmark {
     // to avoid discarding results that almost, but not quite, reach the minimum
     // duration requested.
     final allowedJitter = Duration(
-        microseconds: minDuration.inSeconds > 0
-            ? (minDuration.inMicroseconds * 0.1).floor()
-            : 0);
+      microseconds:
+          minDuration.inSeconds > 0
+              ? (minDuration.inMicroseconds * 0.1).floor()
+              : 0,
+    );
 
     final watch = Stopwatch()..start();
     while (true) {
@@ -148,7 +170,9 @@ abstract class MemoryCopyBenchmark {
       const nanoSecondsPerSecond = 1000 * 1000 * 1000;
       final nanosecondsPerByte = nanoSecondsPerSecond / bytesPerSecond;
       emitter.printLabeledValue(
-          '$name(NanosecondsPerChar)', nanosecondsPerByte);
+        '$name(NanosecondsPerChar)',
+        nanosecondsPerByte,
+      );
     }
     if (emitter.mebibytesPerSecond) {
       const bytesPerMebibyte = 1024 * 1024;
@@ -168,8 +192,8 @@ abstract class Uint8ListCopyBenchmark extends MemoryCopyBenchmark {
   late Uint8List result;
 
   Uint8ListCopyBenchmark(String method, int bytes)
-      : count = bytes,
-        super('$bytes.$method.TypedData.Uint8', bytes);
+    : count = bytes,
+      super('$bytes.$method.TypedData.Uint8', bytes);
 
   @override
   void setup() {
@@ -230,8 +254,8 @@ abstract class Float64ListCopyBenchmark extends MemoryCopyBenchmark {
   late Float64List result;
 
   Float64ListCopyBenchmark(String method, int bytes)
-      : count = bytes ~/ 8,
-        super('$bytes.$method.TypedData.Double', bytes);
+    : count = bytes ~/ 8,
+      super('$bytes.$method.TypedData.Double', bytes);
 
   static const maxSizeInElements = maxSizeInBytes ~/ 8;
 
@@ -294,8 +318,8 @@ abstract class PointerUint8CopyBenchmark extends MemoryCopyBenchmark {
   late Pointer<Uint8> result;
 
   PointerUint8CopyBenchmark(String method, int bytes)
-      : count = bytes,
-        super('$bytes.$method.Pointer.Uint8', bytes);
+    : count = bytes,
+      super('$bytes.$method.Pointer.Uint8', bytes);
 
   @override
   void setup() {
@@ -381,8 +405,8 @@ abstract class PointerDoubleCopyBenchmark extends MemoryCopyBenchmark {
   late Pointer<Double> result;
 
   PointerDoubleCopyBenchmark(String method, int bytes)
-      : count = bytes ~/ 8,
-        super('$bytes.$method.Pointer.Double', bytes);
+    : count = bytes ~/ 8,
+      super('$bytes.$method.Pointer.Double', bytes);
 
   static const maxSizeInElements = maxSizeInBytes ~/ 8;
 
@@ -451,10 +475,11 @@ void main(List<String> args) {
   List<int> lengthsInBytes = defaultLengthsInBytes;
   final emitter = Emitter(results);
   if (results['length'].isNotEmpty) {
-    lengthsInBytes = (results['length'] as List<String>)
-        .map(int.parse)
-        .where((i) => i <= maxSizeInBytes)
-        .toList();
+    lengthsInBytes =
+        (results['length'] as List<String>)
+            .map(int.parse)
+            .where((i) => i <= maxSizeInBytes)
+            .toList();
   }
   final filter = results.rest.firstOrNull;
   final benchmarks = [

@@ -24,7 +24,8 @@ test1() {
 
 /*member: witness1:[null]*/
 witness1(
-    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) {}
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) {}
 
 /*member: test2:[null]*/
 test2() {
@@ -35,7 +36,8 @@ test2() {
 
 /*member: witness2:[null]*/
 witness2(
-    /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x) {}
+  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+) {}
 
 /*member: test3:[null]*/
 test3() {
@@ -46,7 +48,8 @@ test3() {
 
 /*member: witness3:[null]*/
 witness3(
-    /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x) {}
+  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+) {}
 
 /*member: test4:[null]*/
 test4() {
@@ -57,4 +60,5 @@ test4() {
 
 /*member: witness4:[null]*/
 witness4(
-    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) {}
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) {}

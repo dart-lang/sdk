@@ -10,7 +10,7 @@ import 'dart:js' as js;
 import 'dart:html';
 import 'dart:svg' as svg;
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'utils.dart';
 

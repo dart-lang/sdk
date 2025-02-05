@@ -10,13 +10,15 @@ import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 final initializeApi = ffiTestFunctions.lookupFunction<
-    IntPtr Function(Pointer<Void>),
-    int Function(Pointer<Void>)>("InitDartApiDL");
+  IntPtr Function(Pointer<Void>),
+  int Function(Pointer<Void>)
+>("InitDartApiDL");
 
 main() {
   initializeApi(NativeApi.initializeApiDLData);
-  final isDeprecated =
-      ffiTestFunctions.lookupFunction<Void Function(), void Function()>(
-          "TestDeprecatedSymbols");
+  final isDeprecated = ffiTestFunctions
+      .lookupFunction<Void Function(), void Function()>(
+        "TestDeprecatedSymbols",
+      );
   isDeprecated();
 }

@@ -724,6 +724,11 @@ class Assembler : public AssemblerBase {
   void jmp(const ExternalLabel* label);
   void jmp(const Code& code);
 
+  /// Moves an XMM register's content to a 64-bit register.
+  void MoveFpuRegisterToRegister(Register dst, FpuRegister src) {
+    movq(dst, src);
+  }
+
   // Issue memory to memory move through a TMP register.
   // TODO(koda): Assert that these are not used for heap objects.
   void MoveMemoryToMemory(const Address& dst, const Address& src) {
@@ -835,6 +840,14 @@ class Assembler : public AssemblerBase {
   void LoadDImmediate(FpuRegister dst, double immediate);
   void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
+  // Sets register to zero.
+  // Affects flags (sets zero flag, clears rest).
+  void ClearRegister(Register reg) { xorl(reg, reg); }
+
+  // Sets XMM register to zero.
+  // Affects flags (sets zero flag, clears rest).
+  void ClearFpuRegister(FpuRegister reg) { xorps(reg, reg); }
+
   void LoadIsolate(Register dst);
   void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
@@ -866,6 +879,19 @@ class Assembler : public AssemblerBase {
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void Call(Address target) { call(target); }
+
+  void InitializeHeader(Register tags, Register object) {
+    movq(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
+  void InitializeHeaderUntagged(Register tags, Register object) {
+    movq(Address(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
+  void InitializeHeader(Immediate tags, Register object) {
+    movq(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.

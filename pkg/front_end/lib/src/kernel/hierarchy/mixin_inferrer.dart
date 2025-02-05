@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -159,12 +157,11 @@ class BuilderMixinInferrer {
     }
     // Bounds might mention the mixin class's type parameters so we have to
     // substitute them before calling instantiate to bounds.
-    Substitution substitution = Substitution.fromPairs(
-        mixinClass.typeParameters,
-        new List<DartType>.generate(
-            parameters.length,
-            (i) => new TypeParameterType.forAlphaRenaming(
-                mixinClass.typeParameters[i], parameters[i])));
+    Substitution substitution =
+        Substitution.fromPairs(mixinClass.typeParameters, [
+      for (TypeParameter parameter in parameters)
+        new TypeParameterType.withDefaultNullability(parameter)
+    ]);
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }
@@ -185,12 +182,12 @@ class BuilderMixinInferrer {
   // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
     int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
-    cls.addProblem(message, cls.charOffset, length);
+    cls.addProblem(message, cls.fileOffset, length);
   }
 
   // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
-    return unsupported(operation, cls.charOffset, cls.fileUri);
+    return unsupported(operation, cls.fileOffset, cls.fileUri);
   }
 }
 
@@ -224,8 +221,8 @@ class _MixinInferenceSolution {
   Map<TypeParameter, DartType>? _solveForEquality(
       DartType type1, DartType type2,
       {required BuilderMixinInferrer unsupportedErrorReporter}) {
-    assert(!(containsTypeVariable(type1, {...typeParametersToSolveFor}) &&
-        containsTypeVariable(type2, {...typeParametersToSolveFor})));
+    assert(!(containsTypeParameter(type1, {...typeParametersToSolveFor}) &&
+        containsTypeParameter(type2, {...typeParametersToSolveFor})));
     assert(type1 is! TypedefType);
     assert(type2 is! TypedefType);
     if (type1 is TypeParameterType &&

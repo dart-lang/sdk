@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
@@ -28,21 +27,16 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
-/// An implementation of a context builder.
-// ignore:deprecated_member_use_from_same_package
-class ContextBuilderImpl implements ContextBuilder {
+/// A utility class used to build an analysis context based on a context root.
+class ContextBuilderImpl {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -56,7 +50,23 @@ class ContextBuilderImpl implements ContextBuilder {
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  @override
+  /// Return an analysis context corresponding to the given [contextRoot].
+  ///
+  /// If a set of [declaredVariables] is provided, the values will be used to
+  /// map the variable names found in `fromEnvironment` invocations to the
+  /// constant value that will be returned. If none is given, then no variables
+  /// will be defined.
+  ///
+  /// If a list of [librarySummaryPaths] is provided, then the summary files at
+  /// those paths will be used, when possible, when analyzing the libraries
+  /// contained in the summary files.
+  ///
+  /// If an [sdkPath] is provided, and if it is a valid path to a directory
+  /// containing a valid SDK, then the SDK in the referenced directory will be
+  /// used when analyzing the code in the context.
+  ///
+  /// If an [sdkSummaryPath] is provided, then that file will be used as the
+  /// summary file for the SDK.
   DriverBasedAnalysisContext createContext({
     ByteStore? byteStore,
     required ContextRoot contextRoot,
@@ -68,7 +78,7 @@ class ContextBuilderImpl implements ContextBuilder {
     PerformanceLog? performanceLog,
     bool retainDataForTesting = false,
     AnalysisDriverScheduler? scheduler,
-    String? sdkPath,
+    required String sdkPath,
     String? sdkSummaryPath,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
@@ -80,11 +90,8 @@ class ContextBuilderImpl implements ContextBuilder {
     InfoDeclarationStore? infoDeclarationStore,
     MacroSupport? macroSupport,
     OwnedFiles? ownedFiles,
+    bool enableLintRuleTiming = false,
   }) {
-    // TODO(scheglov): Remove this, and make `sdkPath` required.
-    sdkPath ??= getSdkPath();
-    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
-
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
 
@@ -119,20 +126,19 @@ class ContextBuilderImpl implements ContextBuilder {
     var optionsFile = contextRoot.optionsFile;
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
-    var analysisOptionsMap =
-        // If there's an options file defined (as, e.g. passed into the
-        // AnalysisContextCollection), use a shared options map based on it.
-        (definedOptionsFile && optionsFile != null)
-            ? AnalysisOptionsMap.forSharedOptions(_getAnalysisOptions(
-                contextRoot,
-                optionsFile,
-                sourceFactory,
-                sdk,
-                updateAnalysisOptions2))
-            // Else, create one from the options file mappings stored in the
-            // context root.
-            : _createOptionsMap(
-                contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+    AnalysisOptionsMap analysisOptionsMap;
+    // If there's an options file defined (as, e.g. passed into the
+    // AnalysisContextCollection), use a shared options map based on it.
+    if (definedOptionsFile && optionsFile != null) {
+      analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
+          _getAnalysisOptions(contextRoot, optionsFile, sourceFactory, sdk,
+              updateAnalysisOptions2));
+    } else {
+      // Otherwise, create one from the options file mappings stored in the
+      // context root.
+      analysisOptionsMap = _createOptionsMap(
+          contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+    }
 
     var analysisContext =
         DriverBasedAnalysisContext(resourceProvider, contextRoot);
@@ -157,6 +163,7 @@ class ContextBuilderImpl implements ContextBuilder {
       declaredVariables: declaredVariables,
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,
+      enableLintRuleTiming: enableLintRuleTiming,
     );
 
     // AnalysisDriver reports results into streams.
@@ -179,18 +186,8 @@ class ContextBuilderImpl implements ContextBuilder {
           updateAnalysisOptions,
       DartSdk sdk) {
     var provider = AnalysisOptionsProvider(sourceFactory);
-    var pubspecFile = _findPubspecFile(contextRoot);
 
     void updateOptions(AnalysisOptionsImpl options) {
-      if (pubspecFile != null) {
-        var extractor = SdkConstraintExtractor(pubspecFile);
-        var sdkVersionConstraint = extractor.constraint();
-        if (sdkVersionConstraint != null) {
-          // TODO(pq): remove
-          // ignore: deprecated_member_use_from_same_package
-          options.sdkVersionConstraint = sdkVersionConstraint;
-        }
-      }
       if (updateAnalysisOptions != null) {
         updateAnalysisOptions(
           analysisOptions: options,
@@ -204,9 +201,12 @@ class ContextBuilderImpl implements ContextBuilder {
         (contextRoot as ContextRootImpl).optionsFileMap.entries;
     for (var entry in optionsMappings) {
       var file = entry.value;
-      var options = AnalysisOptionsImpl(file: file);
-      var optionsYaml = provider.getOptionsFromFile(file);
-      options.applyOptions(optionsYaml);
+      var options = AnalysisOptionsImpl.fromYaml(
+        optionsMap: provider.getOptionsFromFile(file),
+        file: file,
+        resourceProvider: resourceProvider,
+      );
+
       _optionsMap.add(entry.key, options);
     }
 
@@ -271,20 +271,6 @@ class ContextBuilderImpl implements ContextBuilder {
     return folderSdk;
   }
 
-  /// Return the `pubspec.yaml` file that should be used when analyzing code in
-  /// the [contextRoot], possibly `null`.
-  ///
-  // TODO(scheglov): Get it from [Workspace]?
-  File? _findPubspecFile(ContextRoot contextRoot) {
-    for (var current in contextRoot.root.withAncestors) {
-      var file = current.getChildAssumingFile(file_paths.pubspecYaml);
-      if (file.exists) {
-        return file;
-      }
-    }
-    return null;
-  }
-
   /// Return the analysis options that should be used to analyze code in the
   /// [contextRoot].
   ///
@@ -300,28 +286,21 @@ class ContextBuilderImpl implements ContextBuilder {
             required DartSdk sdk})?
         updateAnalysisOptions,
   ) {
-    var options = AnalysisOptionsImpl(file: optionsFile);
+    AnalysisOptionsImpl? options;
 
     if (optionsFile != null) {
       try {
         var provider = AnalysisOptionsProvider(sourceFactory);
-        var optionsMap = provider.getOptionsFromFile(optionsFile);
-        options.applyOptions(optionsMap);
+        options = AnalysisOptionsImpl.fromYaml(
+          optionsMap: provider.getOptionsFromFile(optionsFile),
+          file: optionsFile,
+          resourceProvider: resourceProvider,
+        );
       } catch (e) {
-        // ignore
+        // Ignore exception.
       }
     }
-
-    var pubspecFile = _findPubspecFile(contextRoot);
-    if (pubspecFile != null) {
-      var extractor = SdkConstraintExtractor(pubspecFile);
-      var sdkVersionConstraint = extractor.constraint();
-      if (sdkVersionConstraint != null) {
-        // TODO(pq): remove
-        // ignore: deprecated_member_use_from_same_package
-        options.sdkVersionConstraint = sdkVersionConstraint;
-      }
-    }
+    options ??= AnalysisOptionsImpl(file: optionsFile);
 
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(

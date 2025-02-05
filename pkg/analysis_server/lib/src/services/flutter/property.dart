@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -15,15 +15,16 @@ import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
-String? getFieldDocumentation(FieldElement field) {
+String? getFieldDocumentation(FieldElement2 field) {
   var rawComment = field.documentationComment;
   return getDartDocPlainText(rawComment);
 }
 
-String? getParameterDocumentation(ParameterElement? parameter) {
-  if (parameter is FieldFormalParameterElement) {
-    var rawComment = parameter.field?.documentationComment;
+String? getParameterDocumentation(FormalParameterElement? parameter) {
+  if (parameter is FieldFormalParameterElement2) {
+    var rawComment = parameter.field2?.documentationComment;
     return getDartDocPlainText(rawComment);
   }
   return null;
@@ -64,7 +65,7 @@ class PropertyDescription {
   /// The parameter element in the object constructor that is actually
   /// invoked by [instanceCreation], or will be invoked when
   /// [classDescription] is materialized.
-  final ParameterElement? parameterElement;
+  final FormalParameterElement? parameterElement;
 
   /// Optional nested properties.
   final List<PropertyDescription> children = [];
@@ -90,13 +91,14 @@ class PropertyDescription {
   String get name => protocolProperty.name;
 
   /// This property has type `EdgeInsets`, add its nested properties.
-  void addEdgeInsetsNestedProperties(ClassElement classEdgeInsets) {
+  void addEdgeInsetsNestedProperties(ClassElement2 classEdgeInsets) {
     _edgeInsetsProperty = _EdgeInsetsProperty(classEdgeInsets, this)
       ..addNested();
   }
 
   Future<protocol.SourceChange?> changeValue(
-      protocol.FlutterWidgetPropertyValue value) async {
+    protocol.FlutterWidgetPropertyValue value,
+  ) async {
     var edgeInsetsProperty = parent?._edgeInsetsProperty;
     if (edgeInsetsProperty != null) {
       return edgeInsetsProperty.changeValue(this, value);
@@ -104,7 +106,7 @@ class PropertyDescription {
 
     var builder = ChangeBuilder(session: resolvedUnit.session);
 
-    InterfaceElement? enumElement;
+    InterfaceElement2? enumElement;
     var enumValue = value.enumValue;
     if (enumValue != null) {
       var helper = AnalysisSessionHelper(resolvedUnit.session);
@@ -156,9 +158,7 @@ class PropertyDescription {
 
       var beginOffset = argumentExpression.offset;
       await builder.addDartFileEdit(resolvedUnit.path, (builder) {
-        builder.addDeletion(
-          SourceRange(beginOffset, endOffset - beginOffset),
-        );
+        builder.addDeletion(SourceRange(beginOffset, endOffset - beginOffset));
       });
     }
 
@@ -187,7 +187,7 @@ class PropertyDescription {
       if (parameterElement == null) {
         return;
       }
-      var parameterName = parameterElement.name;
+      var parameterName = parameterElement.name3!;
       var instanceCreation = this.instanceCreation;
       if (instanceCreation != null) {
         var argumentList = instanceCreation.argumentList;
@@ -268,10 +268,7 @@ class PropertyDescription {
     if (parentCreation != null) {
       // `new Padding(...)` -> `Container(...)`
       builder.addReplacement(
-        range.startEnd(
-          parentCreation,
-          parentCreation.constructorName,
-        ),
+        range.startEnd(parentCreation, parentCreation.constructorName),
         (builder) {
           builder.writeReference(virtualContainer.containerElement);
         },
@@ -300,37 +297,31 @@ class PropertyDescription {
         leadingComma = true;
       }
 
-      builder.addInsertion(
-        parameterOffset,
-        (builder) {
-          if (leadingComma) {
-            builder.write(', ');
-          }
-
-          builder.write(parameterName);
-          builder.write(': ');
-          writeArgumentValue(builder);
-
-          if (trailingComma) {
-            builder.write(', ');
-          }
-        },
-      );
-    } else {
-      builder.addInsertion(
-        virtualContainer.widgetCreation.offset,
-        (builder) {
-          builder.writeReference(virtualContainer.containerElement);
-          builder.write('(');
-
-          builder.write(parameterName);
-          builder.write(': ');
-          writeArgumentValue(builder);
+      builder.addInsertion(parameterOffset, (builder) {
+        if (leadingComma) {
           builder.write(', ');
+        }
 
-          builder.write('child: ');
-        },
-      );
+        builder.write(parameterName);
+        builder.write(': ');
+        writeArgumentValue(builder);
+
+        if (trailingComma) {
+          builder.write(', ');
+        }
+      });
+    } else {
+      builder.addInsertion(virtualContainer.widgetCreation.offset, (builder) {
+        builder.writeReference(virtualContainer.containerElement);
+        builder.write('(');
+
+        builder.write(parameterName);
+        builder.write(': ');
+        writeArgumentValue(builder);
+        builder.write(', ');
+
+        builder.write('child: ');
+      });
       builder.addSimpleInsertion(virtualContainer.widgetCreation.end, ',)');
     }
   }
@@ -398,7 +389,7 @@ class PropertyDescription {
 ///
 /// This class provides information necessary for such materialization.
 class VirtualContainerProperty {
-  final ClassElement containerElement;
+  final ClassElement2 containerElement;
   final InstanceCreationExpression widgetCreation;
 
   /// The existing wrapper around the widget, with semantic that is a subset
@@ -412,10 +403,7 @@ class VirtualContainerProperty {
   /// the new `Container` creation during its materialization.
   NamedExpression? _parentArgumentToMove;
 
-  VirtualContainerProperty(
-    this.containerElement,
-    this.widgetCreation,
-  );
+  VirtualContainerProperty(this.containerElement, this.widgetCreation);
 
   void setParentCreation(
     InstanceCreationExpression parentCreation,
@@ -430,13 +418,13 @@ class VirtualContainerProperty {
 ///
 /// We try to generate nice looking code for `EdgeInsets` instances.
 class _EdgeInsetsProperty {
-  final ClassElement classEdgeInsets;
+  final ClassElement2 classEdgeInsets;
 
   /// The property that has type `EdgeInsets`.
   final PropertyDescription property;
 
   /// The constructor `EdgeInsets.only`.
-  ConstructorElement? onlyConstructor;
+  ConstructorElement2? onlyConstructor;
 
   double? leftValue;
   double? topValue;
@@ -457,11 +445,11 @@ class _EdgeInsetsProperty {
     Expression? bottomExpression;
     var propertyExpression = property.valueExpression;
     if (propertyExpression is InstanceCreationExpression) {
-      var constructor = propertyExpression.constructorName.staticElement;
+      var constructor = propertyExpression.constructorName.element;
       if (constructor != null &&
-          constructor.enclosingElement3 == classEdgeInsets) {
+          constructor.enclosingElement2 == classEdgeInsets) {
         var arguments = propertyExpression.argumentList;
-        var constructorName = constructor.name;
+        var constructorName = constructor.name3;
         if (constructorName == 'all') {
           var expression = arguments.elementAtOrNull(0);
           leftExpression = expression;
@@ -498,7 +486,9 @@ class _EdgeInsetsProperty {
       }
     }
 
-    onlyConstructor = classEdgeInsets.getNamedConstructor('only');
+    onlyConstructor = classEdgeInsets.constructors2.firstWhereOrNull(
+      (e) => e.name3 == 'only',
+    );
 
     leftProperty = _addNestedProperty(
       name: 'left',
@@ -627,8 +617,8 @@ class _EdgeInsetsProperty {
     required Expression? expression,
     required double? value,
   }) {
-    var parameter = onlyConstructor?.parameters.singleWhere(
-      (p) => p.name == name,
+    var parameter = onlyConstructor?.formalParameters.singleWhere(
+      (p) => p.name3 == name,
     );
     var parameterDocumentation = getParameterDocumentation(parameter);
     var nested = PropertyDescription(
@@ -662,11 +652,10 @@ class _EdgeInsetsProperty {
   }
 
   static protocol.FlutterWidgetPropertyValue? _protocolValueDouble(
-      double? value) {
+    double? value,
+  ) {
     if (value != null) {
-      return protocol.FlutterWidgetPropertyValue(
-        doubleValue: value,
-      );
+      return protocol.FlutterWidgetPropertyValue(doubleValue: value);
     }
     return null;
   }

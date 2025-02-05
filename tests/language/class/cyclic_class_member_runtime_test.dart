@@ -7,9 +7,7 @@
 
 // Test that class with a cyclic hierarchy doesn't cause a loop in dart2js.
 
-class A
-
-{
+class A {
   // When checking that foo isn't overriding an instance method in the
   // superclass, dart2js might loop.
   static foo() {}

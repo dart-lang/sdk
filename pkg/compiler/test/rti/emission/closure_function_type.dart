@@ -8,7 +8,7 @@ test(o) => o is Function();
 main() {
   test(/*checks=[$signature],instance*/ () {});
   test(
-
-      /*checks=[$signature],instance*/
-      (a) {});
+    /*checks=[$signature],instance*/
+    (a) {},
+  );
 }

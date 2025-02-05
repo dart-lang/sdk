@@ -2,8 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/external.dart:42:29: Error: Inferred type argument 'int' doesn't conform to the bound 'B' of the type variable 'T' on 'T Function<T extends B>(T)'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
+// pkg/front_end/testcases/extension_types/external.dart:42:29: Error: A value of type 'B Function(B)' can't be assigned to a variable of type 'int Function(int)'.
 //   int Function(int) f3 = b2.genericMethod;
 //                             ^
 //
@@ -75,7 +74,9 @@ static method method(self::A a) → void {
   () → self::A f1 = self::B|get#method(b1);
   b2 = self::B|genericMethod<self::B% /* erasure=self::A, declared=! */>(b2, b2);
   <T extends self::B% /* erasure=self::A, declared=! */>(T%) → T% f2 = self::B|get#genericMethod(b2);
-  (core::int) → core::int f3 = self::B|get#genericMethod(b2)<core::int>;
+  (core::int) → core::int f3 = invalid-expression "pkg/front_end/testcases/extension_types/external.dart:42:29: Error: A value of type 'B Function(B)' can't be assigned to a variable of type 'int Function(int)'.
+  int Function(int) f3 = b2.genericMethod;
+                            ^" in (self::B|get#genericMethod(b2)<self::B% /* erasure=self::A, declared=! */>) as{TypeError} (core::int) → core::int;
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
   a = self::B|staticField;

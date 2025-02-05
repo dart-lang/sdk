@@ -55,12 +55,8 @@ void main(List<String> args) {
         logger: logger,
         expectExitCodeZero: false,
       );
-      expect(
-        result.stderr,
-        contains(
-          'Native assets build failed.',
-        ),
-      );
+      expect(result.stderr,
+          contains('Building assets for package:native_add failed.'));
       expect(result.exitCode, 255);
     });
   });

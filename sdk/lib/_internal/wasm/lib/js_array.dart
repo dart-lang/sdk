@@ -29,19 +29,31 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   T removeAt(int index) {
     RangeError.checkValueInInterval(index, 0, length - 1);
-    return js.JSValue.boxT<T>(js.JS<WasmExternRef?>(
-        '(a, i) => a.splice(i, 1)[0]', toExternRef, WasmI32.fromInt(index)));
+    return js.JSValue.boxT<T>(
+      js.JS<WasmExternRef?>(
+        '(a, i) => a.splice(i, 1)[0]',
+        toExternRef,
+        WasmI32.fromInt(index),
+      ),
+    );
   }
 
   @override
   void insert(int index, T value) {
     RangeError.checkValueInInterval(index, 0, length);
-    js.JS<void>('(a, i, v) => a.splice(i, 0, v)', toExternRef,
-        WasmI32.fromInt(index), value.toExternRef);
+    js.JS<void>(
+      '(a, i, v) => a.splice(i, 0, v)',
+      toExternRef,
+      WasmI32.fromInt(index),
+      value.toExternRef,
+    );
   }
 
   void _setLengthUnsafe(int newLength) => js.JS<void>(
-      '(a, l) => a.length = l', toExternRef, WasmI32.fromInt(newLength));
+    '(a, l) => a.length = l',
+    toExternRef,
+    WasmI32.fromInt(newLength),
+  );
 
   @override
   void insertAll(int index, Iterable<T> iterable) {
@@ -72,7 +84,10 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     for (var i = 0; i < length; i++) {
       if (this[i] == element) {
         js.JS<void>(
-            '(a, i) => a.splice(i, 1)', toExternRef, WasmI32.fromInt(i));
+          '(a, i) => a.splice(i, 1)',
+          toExternRef,
+          WasmI32.fromInt(i),
+        );
         return true;
       }
     }
@@ -142,10 +157,16 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     WasmExternRef? result;
     if (separator is JSStringImpl) {
       result = js.JS<WasmExternRef?>(
-          '(a, s) => a.join(s)', toExternRef, separator.toExternRef);
+        '(a, s) => a.join(s)',
+        toExternRef,
+        separator.toExternRef,
+      );
     } else {
       result = js.JS<WasmExternRef?>(
-          '(a, s) => a.join(s)', toExternRef, separator.toJS.toExternRef);
+        '(a, s) => a.join(s)',
+        toExternRef,
+        separator.toJS.toExternRef,
+      );
     }
     return JSStringImpl(result);
   }
@@ -239,8 +260,14 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   List<T> sublist(int start, [int? end]) {
     end = RangeError.checkValidRange(start, end, length);
-    return JSArrayImpl<T>(js.JS<WasmExternRef?>('(a, s, e) => a.slice(s, e)',
-        toExternRef, WasmI32.fromInt(start), WasmI32.fromInt(end)));
+    return JSArrayImpl<T>(
+      js.JS<WasmExternRef?>(
+        '(a, s, e) => a.slice(s, e)',
+        toExternRef,
+        WasmI32.fromInt(start),
+        WasmI32.fromInt(end),
+      ),
+    );
   }
 
   @override
@@ -272,8 +299,12 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   void removeRange(int start, int end) {
     RangeError.checkValidRange(start, end, length);
     int deleteCount = end - start;
-    js.JS<void>('(a, s, e) => a.splice(s, e)', toExternRef,
-        WasmI32.fromInt(start), WasmI32.fromInt(deleteCount));
+    js.JS<void>(
+      '(a, s, e) => a.splice(s, e)',
+      toExternRef,
+      WasmI32.fromInt(start),
+      WasmI32.fromInt(deleteCount),
+    );
   }
 
   @override
@@ -319,9 +350,10 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   void replaceRange(int start, int end, Iterable<T> replacement) {
     RangeError.checkValidRange(start, end, length);
-    final replacementList = replacement is EfficientLengthIterable
-        ? replacement
-        : replacement.toList();
+    final replacementList =
+        replacement is EfficientLengthIterable
+            ? replacement
+            : replacement.toList();
     final removeLength = end - start;
     final insertLength = replacementList.length;
     if (removeLength >= insertLength) {
@@ -368,10 +400,14 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   Iterable<T> get reversed => ReversedListIterable<T>(this);
 
-  static int _compareAny<T extends JSAny?>(T a, T b) => js
-      .JS<double>('(a, b) => a == b ? 0 : (a > b ? 1 : -1)', a.toExternRef,
-          b.toExternRef)
-      .toInt();
+  static int _compareAny<T extends JSAny?>(T a, T b) =>
+      js
+          .JS<double>(
+            '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
+            a.toExternRef,
+            b.toExternRef,
+          )
+          .toInt();
 
   @override
   void sort([int Function(T, T)? compare]) =>
@@ -459,12 +495,20 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
       throw RangeError.range(newLength, 0, null);
     }
     js.JS<void>(
-        '(a, l) => a.length = l', toExternRef, WasmI32.fromInt(newLength));
+      '(a, l) => a.length = l',
+      toExternRef,
+      WasmI32.fromInt(newLength),
+    );
   }
 
   @pragma("wasm:prefer-inline")
-  T _getUnchecked(int index) => js.JSValue.boxT<T>(js.JS<WasmExternRef?>(
-      '(a, i) => a[i]', toExternRef, WasmI32.fromInt(index)));
+  T _getUnchecked(int index) => js.JSValue.boxT<T>(
+    js.JS<WasmExternRef?>(
+      '(a, i) => a[i]',
+      toExternRef,
+      WasmI32.fromInt(index),
+    ),
+  );
 
   @override
   @pragma("wasm:prefer-inline")
@@ -474,8 +518,12 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   }
 
   @pragma("wasm:prefer-inline")
-  void _setUnchecked(int index, T value) => js.JS<void>('(a, i, v) => a[i] = v',
-      toExternRef, WasmI32.fromInt(index), value.toExternRef);
+  void _setUnchecked(int index, T value) => js.JS<void>(
+    '(a, i, v) => a[i] = v',
+    toExternRef,
+    WasmI32.fromInt(index),
+    value.toExternRef,
+  );
 
   @override
   @pragma("wasm:prefer-inline")
@@ -497,8 +545,13 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   List<T> operator +(List<T> other) {
     if (other is JSArrayImpl) {
-      return JSArrayImpl<T>(js.JS<WasmExternRef?>(
-          '(a, t) => a.concat(t)', toExternRef, other.toExternRef));
+      return JSArrayImpl<T>(
+        js.JS<WasmExternRef?>(
+          '(a, t) => a.concat(t)',
+          toExternRef,
+          other.toExternRef,
+        ),
+      );
     } else {
       return [...this, ...other];
     }

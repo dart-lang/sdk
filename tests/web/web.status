@@ -42,6 +42,7 @@ consistent_index_error_string_test: Slow, Pass # Issue 25940
 [ $compiler == dart2js && $csp ]
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 internal/object_members_test: SkipByDesign # Uses eval for interop
+js_interop_generic_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 regress/issue/49129_test: SkipByDesign # Uses eval for interop
@@ -56,9 +57,12 @@ code_motion_exception_test: Skip # Requires unminified operator names.
 code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
 
 [ $compiler == dart2wasm && $runtime != d8 ]
-wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
+wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/uri_base_test: SkipByDesign # Converts Uri.base to file path
+
+[ $compiler == dart2wasm && ( $runtime == d8 || $runtime == jsc || $runtime == jsshell ) ]
+wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.
 
 [ $compiler == dartk && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test

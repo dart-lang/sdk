@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli_internal.dart';
+import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -283,6 +283,46 @@ void main(List<String> args) {
       });
     });
   }
+
+  test(
+    'dart build with native dynamic linking',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
+        await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'build',
+            'bin/native_dynamic_linking.dart',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+
+        final outputDirectory =
+            Directory.fromUri(packageUri.resolve('bin/native_dynamic_linking'));
+        expect(outputDirectory.existsSync(), true);
+
+        File dylibFile(String name) {
+          final libDirectoryUri = (outputDirectory.uri.resolve('lib/'));
+          final dylibBasename =
+              OS.current.libraryFileName(name, DynamicLoadingBundled());
+          return File.fromUri(libDirectoryUri.resolve(dylibBasename));
+        }
+
+        expect(dylibFile('add').existsSync(), true);
+        expect(dylibFile('math').existsSync(), true);
+        expect(dylibFile('debug').existsSync(), true);
+
+        final proccessResult = await runProcess(
+          executable: outputDirectory.uri.resolve('native_dynamic_linking.exe'),
+          logger: logger,
+          throwOnUnexpectedExitCode: true,
+        );
+        expect(proccessResult.stdout, contains('42'));
+      });
+    },
+  );
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

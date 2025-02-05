@@ -13,7 +13,7 @@
 // and variable gets that look like member invocations, both scenarios are
 // tested.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class Base<T extends Object> {
   final T? _t;

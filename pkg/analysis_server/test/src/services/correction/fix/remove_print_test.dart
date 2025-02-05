@@ -22,9 +22,7 @@ class RemovePrintMultiTest extends FixInFileProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(
-      lints: [LintNames.avoid_print],
-    );
+    createAnalysisOptionsFile(lints: [LintNames.avoid_print]);
   }
 
   Future<void> test_multi_prints() async {

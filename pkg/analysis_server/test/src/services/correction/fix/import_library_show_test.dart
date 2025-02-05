@@ -17,7 +17,30 @@ void main() {
 @reflectiveTest
 class ImportLibraryShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+
+  Future<void> test_extension_aliased_notShown_method() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' as lib show C;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show C, E;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+  }
 
   Future<void> test_extension_notShown_getter() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -107,6 +130,31 @@ import 'package:test/lib.dart' show C, E;
 
 void f(String s, C c) {
   s.m = 2;
+}
+''');
+  }
+
+  Future<void> test_extension_shown_class_differentPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' as lib show C;
+import 'package:test/lib.dart' show E;
+
+void f(String s, lib2.C c) {
+  s.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show C;
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s.m;
 }
 ''');
   }

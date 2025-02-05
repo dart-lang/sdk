@@ -5,7 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
@@ -28,14 +28,16 @@ class ImportElementsComputer {
   /// Initialize a newly created builder.
   ImportElementsComputer(this.resourceProvider, this.libraryResult);
 
-  /// Create the edits that will cause the list of [importedElements] to be
-  /// imported into the library at the given [path].
+  /// Creates the edits that will cause the list of [importedElementsList] to be
+  /// imported into the library.
   Future<SourceChange> createEdits(
-      List<ImportedElements> importedElementsList) async {
+    List<ImportedElements> importedElementsList,
+  ) async {
     var unit = libraryResult.unit;
-    var filteredImportedElements =
-        _filterImportedElements(importedElementsList);
-    var libraryElement = libraryResult.libraryElement;
+    var filteredImportedElements = _filterImportedElements(
+      importedElementsList,
+    );
+    var libraryElement = libraryResult.libraryElement2;
     var uriConverter = libraryResult.session.uriConverter;
     var existingImports = <ImportDirective>[];
     for (var directive in unit.directives) {
@@ -48,11 +50,14 @@ class ImportElementsComputer {
     await builder.addDartFileEdit(libraryResult.path, (builder) {
       var analysisOptions = libraryResult.session.analysisContext
           .getAnalysisOptionsForFile(libraryResult.file);
-      var quote = analysisOptions.codeStyleOptions
-          .preferredQuoteForUris(existingImports);
+      var quote = analysisOptions.codeStyleOptions.preferredQuoteForUris(
+        existingImports,
+      );
       for (var importedElements in filteredImportedElements) {
-        var matchingImports =
-            _findMatchingImports(existingImports, importedElements);
+        var matchingImports = _findMatchingImports(
+          existingImports,
+          importedElements,
+        );
         if (matchingImports.isEmpty) {
           //
           // The required library is not being imported with a matching prefix,
@@ -102,9 +107,11 @@ class ImportElementsComputer {
             namesToShow.sort();
             var combinators = directive.combinators;
             var combinatorCount = combinators.length;
-            for (var combinatorIndex = 0;
-                combinatorIndex < combinatorCount;
-                combinatorIndex++) {
+            for (
+              var combinatorIndex = 0;
+              combinatorIndex < combinatorCount;
+              combinatorIndex++
+            ) {
               var combinator = combinators[combinatorIndex];
               if (combinator is HideCombinator && namesToUnhide.isNotEmpty) {
                 var hiddenNames = combinator.hiddenNames;
@@ -118,8 +125,12 @@ class ImportElementsComputer {
                   } else {
                     if (first >= 0) {
                       // Remove a range of names.
-                      builder.addDeletion(range.startStart(
-                          hiddenNames[first], hiddenNames[nameIndex]));
+                      builder.addDeletion(
+                        range.startStart(
+                          hiddenNames[first],
+                          hiddenNames[nameIndex],
+                        ),
+                      );
                       first = -1;
                     }
                   }
@@ -128,23 +139,37 @@ class ImportElementsComputer {
                   // Remove the whole combinator.
                   if (combinatorIndex == 0) {
                     if (combinatorCount > 1) {
-                      builder.addDeletion(range.startStart(
-                          combinator, combinators[combinatorIndex + 1]));
+                      builder.addDeletion(
+                        range.startStart(
+                          combinator,
+                          combinators[combinatorIndex + 1],
+                        ),
+                      );
                     } else {
-                      var precedingNode = directive.prefix ??
+                      var precedingNode =
+                          directive.prefix ??
                           directive.deferredKeyword ??
                           directive.uri;
-                      builder
-                          .addDeletion(range.endEnd(precedingNode, combinator));
+                      builder.addDeletion(
+                        range.endEnd(precedingNode, combinator),
+                      );
                     }
                   } else {
-                    builder.addDeletion(range.endEnd(
-                        combinators[combinatorIndex - 1], combinator));
+                    builder.addDeletion(
+                      range.endEnd(
+                        combinators[combinatorIndex - 1],
+                        combinator,
+                      ),
+                    );
                   }
                 } else if (first > 0) {
                   // Remove a range of names that includes the last name.
-                  builder.addDeletion(range.endEnd(
-                      hiddenNames[first - 1], hiddenNames[nameCount - 1]));
+                  builder.addDeletion(
+                    range.endEnd(
+                      hiddenNames[first - 1],
+                      hiddenNames[nameCount - 1],
+                    ),
+                  );
                 }
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
@@ -175,8 +200,11 @@ class ImportElementsComputer {
   ///   name,
   /// - there is an import that shows the name and doesn't subsequently hide the
   ///   name.
-  void _computeUpdate(Map<ImportDirective, _ImportUpdate> updateMap,
-      List<ImportDirective> matchingImports, String requiredName) {
+  void _computeUpdate(
+    Map<ImportDirective, _ImportUpdate> updateMap,
+    List<ImportDirective> matchingImports,
+    String requiredName,
+  ) {
     /// Return `true` if the [requiredName] is in the given list of [names].
     bool nameIn(NodeList<SimpleIdentifier> names) {
       for (var name in names) {
@@ -224,7 +252,9 @@ class ImportElementsComputer {
     }
 
     var update = updateMap.putIfAbsent(
-        preferredDirective, () => _ImportUpdate(preferredDirective));
+      preferredDirective,
+      () => _ImportUpdate(preferredDirective),
+    );
     if (deleteHide) {
       update.unhide(requiredName);
     }
@@ -238,7 +268,8 @@ class ImportElementsComputer {
   /// already defined are removed even if they might not resolve to the same
   /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
-      List<ImportedElements> originalList) {
+    List<ImportedElements> originalList,
+  ) {
     var filteredList = <ImportedElements>[];
     for (var elements in originalList) {
       var originalElements = elements.elements;
@@ -252,7 +283,8 @@ class ImportElementsComputer {
         filteredList.add(elements);
       } else if (filteredElements.isNotEmpty) {
         filteredList.add(
-            ImportedElements(elements.path, elements.prefix, filteredElements));
+          ImportedElements(elements.path, elements.prefix, filteredElements),
+        );
       }
     }
     return filteredList;
@@ -262,8 +294,9 @@ class ImportElementsComputer {
   /// match the given specification of [importedElements], or an empty list if
   /// there are no such imports.
   List<ImportDirective> _findMatchingImports(
-      List<ImportDirective> existingImports,
-      ImportedElements importedElements) {
+    List<ImportDirective> existingImports,
+    ImportedElements importedElements,
+  ) {
     var matchingImports = <ImportDirective>[];
     for (var existingImport in existingImports) {
       if (_matches(existingImport, importedElements)) {
@@ -309,7 +342,7 @@ class ImportElementsComputer {
   /// Computes the best URI to import [what] into [from].
   ///
   /// Copied from DartFileEditBuilderImpl.
-  String _getLibrarySourceUri(LibraryElement from, Source what) {
+  String _getLibrarySourceUri(LibraryElement2 from, Source what) {
     var whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
     var whatUri = what.uri;
@@ -319,17 +352,17 @@ class ImportElementsComputer {
     }
     // compute a relative URI
     var context = resourceProvider.pathContext;
-    var fromFolder = context.dirname(from.source.fullName);
+    var fromFolder = context.dirname(from.firstFragment.source.fullName);
     var relativeFile = context.relative(whatPath, from: fromFolder);
     return context.split(relativeFile).join('/');
   }
 
   bool _hasElement(String prefix, String name) {
-    var scope = libraryResult.libraryElement.definingCompilationUnit.scope;
+    var scope = libraryResult.libraryElement2.firstFragment.scope;
 
     if (prefix.isNotEmpty) {
-      var prefixElement = scope.lookup(prefix).getter;
-      if (prefixElement is PrefixElement) {
+      var prefixElement = scope.lookup(prefix).getter2;
+      if (prefixElement is PrefixElement2) {
         scope = prefixElement.scope;
       } else {
         return false;
@@ -337,20 +370,20 @@ class ImportElementsComputer {
     }
 
     var lookupResult = scope.lookup(name);
-    return lookupResult.getter != null || lookupResult.setter != null;
+    return lookupResult.getter2 != null || lookupResult.setter2 != null;
   }
 
   /// Return `true` if the given [import] matches the given specification of
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    var importElement = import.element;
-    if (importElement == null) {
+    var libraryImport = import.libraryImport;
+    if (libraryImport == null) {
       return false;
     }
-    var library = importElement.importedLibrary;
+    var library = libraryImport.importedLibrary2;
     return library != null &&
-        library.source.fullName == importedElements.path &&
+        library.firstFragment.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;
   }
 }
@@ -388,6 +421,6 @@ class _InsertionDescription {
   final int newLinesAfter;
 
   _InsertionDescription(this.offset, {int before = 0, int after = 0})
-      : newLinesBefore = before,
-        newLinesAfter = after;
+    : newLinesBefore = before,
+      newLinesAfter = after;
 }

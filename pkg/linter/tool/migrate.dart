@@ -10,54 +10,61 @@ import 'package:analyzer/error/error.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules/analyzer_use_new_elements.dart';
+import 'package:path/path.dart' as path;
 
 import 'checks/driver.dart';
 
 /// Lists files yet to be migrated to the new element model.
-main(List<String> args) async {
+void main(List<String> args) async {
   var parser = ArgParser()
     ..addFlag('write',
         abbr: 'w', help: 'Write updated `analyzer_use_new_elements.txt` file.');
 
-  var errors = await getOldElementModelAccesses(rulesDir.absolute.path);
+  var errors =
+      await getOldElementModelAccesses(directoryToMigrate.absolute.path);
 
   var errorFiles = <String>{};
   for (var error in errors) {
     errorFiles.add(error.source.fullName);
   }
 
-  var migratedFiles =
-      ruleFiles.where((rule) => !errorFiles.any((f) => f.endsWith(rule)));
+  var migratedFilesSet = filesToMigrate
+      .where((file) => !errorFiles.any((f) => f.endsWith(file)))
+      .toSet();
+  var migratedFilesSorted = migratedFilesSet.map(asRelativePosix).sorted();
+  var unmigratedFilesSorted = filesToMigrate
+      .where((file) => !migratedFilesSet.contains(file))
+      .map(asRelativePosix)
+      .sorted();
 
   var options = parser.parse(args);
   if (options['write'] == true) {
     print("Writing to 'analyzer_use_new_elements.txt'...");
     print('-' * 20);
     File('analyzer_use_new_elements.txt')
-        .writeAsStringSync('${migratedFiles.join('\n')}\n');
+        .writeAsStringSync('${unmigratedFilesSorted.join('\n')}\n');
   } else {
     print('Migrated files:\n');
-    print(migratedFiles.join('\n'));
+    print(migratedFilesSorted.join('\n'));
     print('-' * 20);
     print('-' * 20);
     print('\n');
   }
 
   print('Unmigrated files:\n\n');
-  for (var rule in ruleFiles) {
-    if (!migratedFiles.contains(rule)) {
-      print(rule);
-    }
-  }
+  print(unmigratedFilesSorted.join('\n'));
 }
 
-final List<String> ruleFiles = rulesDir
+final Directory directoryToMigrate = Directory.current;
+
+final List<String> filesToMigrate = directoryToMigrate
     .listSync(recursive: true)
     .where((f) => f.path.endsWith('.dart'))
     .map((r) => r.path)
-    .sorted();
+    .toList();
 
-final Directory rulesDir = Directory('lib/src/rules');
+String asRelativePosix(String fullPath) => path.posix.joinAll(
+    path.split(path.relative(fullPath, from: directoryToMigrate.path)));
 
 Future<List<AnalysisError>> getOldElementModelAccesses(String directory) async {
   var results = await Driver([AnalyzerUseNewElements(useOptInFile: false)])

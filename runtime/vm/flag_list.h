@@ -246,7 +246,7 @@ constexpr bool FLAG_support_il_printer = false;
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
   D(support_rr, bool, false, "Support running within RR.")                     \
-  P(verify_entry_points, bool, false,                                          \
+  P(verify_entry_points, bool, true,                                           \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")      \

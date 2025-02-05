@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
 
@@ -183,7 +182,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
-          if (element.name == function.type) {
+          if (element.name3 == function.type) {
             _checkNullArgForClosure(
                 node.argumentList, function.positional, function.named);
           }
@@ -234,13 +233,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = type.element3;
     if (element.isSynthetic) return null;
 
-    var method = getMethod(element.library2.name, element.name);
+    var elementName = element.name3;
+    if (elementName == null) {
+      return null;
+    }
+
+    var method = getMethod(element.library2.name3, elementName);
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
       var superElement = supertype.element3;
-      method = getMethod(superElement.library2.name, superElement.name);
-      if (method != null) return method;
+      if (superElement.name3 case var superElementName?) {
+        method = getMethod(superElement.library2.name3, superElementName);
+        if (method != null) return method;
+      }
     }
     return null;
   }

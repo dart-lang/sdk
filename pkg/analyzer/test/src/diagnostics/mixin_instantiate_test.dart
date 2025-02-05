@@ -38,7 +38,7 @@ InstanceCreationExpression
     type: NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
-      element2: <testLibraryFragment>::@mixin::M#element
+      element2: <testLibrary>::@mixin::M
       type: M
     period: .
     name: SimpleIdentifier
@@ -74,7 +74,7 @@ InstanceCreationExpression
     type: NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
-      element2: <testLibraryFragment>::@mixin::M#element
+      element2: <testLibrary>::@mixin::M
       type: M
     staticElement: <null>
     element: <null>

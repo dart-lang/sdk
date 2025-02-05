@@ -158,21 +158,7 @@ class Abi {
 }
 
 /// The hardware architectures the Dart VM runs on.
-enum _Architecture {
-  arm,
-  arm64,
-  ia32,
-  x64,
-  riscv32,
-  riscv64,
-}
+enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64 }
 
 /// The operating systems the Dart VM runs on.
-enum _OS {
-  android,
-  fuchsia,
-  ios,
-  linux,
-  macos,
-  windows,
-}
+enum _OS { android, fuchsia, ios, linux, macos, windows }

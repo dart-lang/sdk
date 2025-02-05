@@ -70,8 +70,12 @@ abstract class Benchmark {
   /// One of 'memory', 'cpu', or 'group'.
   final String kind;
 
-  Benchmark(this.id, this.description,
-      {this.enabled = true, required this.kind});
+  Benchmark(
+    this.id,
+    this.description, {
+    this.enabled = true,
+    required this.kind,
+  });
 
   int get maxIterations => 0;
 
@@ -87,8 +91,12 @@ abstract class Benchmark {
     bool verbose = false,
   });
 
-  Map<String, Object?> toJson() =>
-      {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'description': description,
+    'enabled': enabled,
+    'kind': kind,
+  };
 
   @override
   String toString() => '$id: $description';
@@ -132,10 +140,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     }
 
     var combined = CompoundBenchMarkResult(name);
-    var keys = {
-      ...results.keys,
-      ...other.results.keys,
-    }.toList();
+    var keys = {...results.keys, ...other.results.keys}.toList();
 
     for (var key in keys) {
       combined.add(key, combine(results[key], other.results[key]));
@@ -167,8 +172,11 @@ class ListCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   ListCommand(this.benchmarks) {
-    argParser.addFlag('machine',
-        negatable: false, help: 'Emit the list of benchmarks as json.');
+    argParser.addFlag(
+      'machine',
+      negatable: false,
+      help: 'Emit the list of benchmarks as json.',
+    );
   }
 
   @override
@@ -184,7 +192,7 @@ class ListCommand extends Command<void> {
   void run() {
     if (argResults!['machine'] as bool) {
       var map = <String, Object?>{
-        'benchmarks': benchmarks.map((b) => b.toJson()).toList()
+        'benchmarks': benchmarks.map((b) => b.toJson()).toList(),
       };
       print(JsonEncoder.withIndent('  ').convert(map));
     } else {
@@ -199,20 +207,32 @@ class RunCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
   RunCommand(this.benchmarks) {
-    argParser.addOption('dart-sdk',
-        help: 'The absolute normalized path of the Dart SDK.');
-    argParser.addOption('flutter-repository',
-        help: 'The absolute normalized path of the Flutter repository.');
-    argParser.addFlag('quick',
-        negatable: false,
-        help: 'Run a quick version of the benchmark. This is not useful for '
-            'gathering accurate times,\nbut can be used to validate that the '
-            'benchmark works.');
-    argParser.addOption('repeat',
-        defaultsTo: '4', help: 'The number of times to repeat the benchmark.');
-    argParser.addFlag('verbose',
-        negatable: false,
-        help: 'Print all communication to and from the analysis server.');
+    argParser.addOption(
+      'dart-sdk',
+      help: 'The absolute normalized path of the Dart SDK.',
+    );
+    argParser.addOption(
+      'flutter-repository',
+      help: 'The absolute normalized path of the Flutter repository.',
+    );
+    argParser.addFlag(
+      'quick',
+      negatable: false,
+      help:
+          'Run a quick version of the benchmark. This is not useful for '
+          'gathering accurate times,\nbut can be used to validate that the '
+          'benchmark works.',
+    );
+    argParser.addOption(
+      'repeat',
+      defaultsTo: '4',
+      help: 'The number of times to repeat the benchmark.',
+    );
+    argParser.addFlag(
+      'verbose',
+      negatable: false,
+      help: 'Print all communication to and from the analysis server.',
+    );
   }
 
   @override
@@ -242,11 +262,13 @@ class RunCommand extends Command<void> {
     var quick = args['quick'] as bool;
     var verbose = args['verbose'] as bool;
 
-    var benchmark =
-        benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
-      print("Benchmark '$benchmarkId' not found.");
-      exit(1);
-    });
+    var benchmark = benchmarks.firstWhere(
+      (b) => b.id == benchmarkId,
+      orElse: () {
+        print("Benchmark '$benchmarkId' not found.");
+        exit(1);
+      },
+    );
 
     dartSdkPath ??= path.dirname(path.dirname(Platform.resolvedExecutable));
 
@@ -261,8 +283,10 @@ class RunCommand extends Command<void> {
           exit(1);
         }
       } else {
-        print('The option --flutter-repository is required to '
-            "run '$benchmarkId'.");
+        print(
+          'The option --flutter-repository is required to '
+          "run '$benchmarkId'.",
+        );
         exit(1);
       }
     }
@@ -296,7 +320,7 @@ class RunCommand extends Command<void> {
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
       var m = <String, dynamic>{
         'benchmark': benchmarkId,
-        'result': result!.toJson()
+        'result': result!.toJson(),
       };
       print(json.encode(m));
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/element/element.dart';
@@ -37,6 +39,10 @@ class ElementDisplayStringBuilder {
 
   void writeAbstractElement(ElementImpl element) {
     _write(element.name ?? '<unnamed $runtimeType>');
+  }
+
+  void writeAbstractElement2(ElementImpl2 element) {
+    _write(element.name3 ?? '<unnamed $runtimeType>');
   }
 
   void writeClassElement(ClassElementImpl element) {
@@ -252,13 +258,39 @@ class ElementDisplayStringBuilder {
   }
 
   void writePrefixElement(PrefixElementImpl element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    var displayName = element.displayName;
+    if (libraryImports.isEmpty) {
+      _write('as ');
+      _write(displayName);
+      return;
+    }
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
+      return;
+    }
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
+    }
   }
 
   void writePrefixElement2(PrefixElementImpl2 element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    var displayName = element.displayName;
+    if (libraryImports.isEmpty) {
+      _write('as ');
+      _write(displayName);
+      return;
+    }
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
+      return;
+    }
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
+    }
   }
 
   void writeRecordType(RecordType type) {
@@ -600,6 +632,7 @@ class ElementDisplayStringBuilder {
       }
 
       var newTypeParameter = TypeParameterElementImpl(name, -1);
+      newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter);
     }
@@ -609,3 +642,12 @@ class ElementDisplayStringBuilder {
 }
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
+
+extension on LibraryImportElement {
+  String get libraryName {
+    if (uri case DirectiveUriWithRelativeUriString uri) {
+      return uri.relativeUriString;
+    }
+    return '<unknown>';
+  }
+}

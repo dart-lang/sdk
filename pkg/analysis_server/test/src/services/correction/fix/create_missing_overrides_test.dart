@@ -31,7 +31,8 @@ class A {
 
 class B implements A
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   void m() {};
 }
@@ -42,10 +43,13 @@ class B implements A {
     // TODO: implement m
   }
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode
+                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+      },
+    );
   }
 
   Future<void> test_brackets_left() async {
@@ -57,7 +61,8 @@ class A {
 class B implements A
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   void m() {};
 }
@@ -68,10 +73,13 @@ class B implements A {
     // TODO: implement m
   }
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode
+                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+      },
+    );
   }
 
   Future<void> test_brackets_right() async {
@@ -82,7 +90,8 @@ class A {
 
 class B implements A {
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   void m() {};
 }
@@ -93,10 +102,13 @@ class B implements A {
     // TODO: implement m
   }
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode
+                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+      },
+    );
   }
 
   Future<void> test_field_inEnum() async {
@@ -634,9 +646,11 @@ class B extends A {
     expect(selection.file, testFile.path);
     expect(
       expectedCode.substring(selection.offset),
-      startsWith(normalizeSource('''
+      startsWith(
+        normalizeSource('''
 @override
-  void m1''')),
+  void m1'''),
+      ),
     );
   }
 

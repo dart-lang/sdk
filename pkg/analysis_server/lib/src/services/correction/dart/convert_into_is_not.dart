@@ -78,9 +78,11 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
         builder.addDeletion(range.token(prefExpression.operator));
       } else {
         builder.addDeletion(
-            range.startEnd(prefExpression, parExpression.leftParenthesis));
+          range.startEnd(prefExpression, parExpression.leftParenthesis),
+        );
         builder.addDeletion(
-            range.startEnd(parExpression.rightParenthesis, prefExpression));
+          range.startEnd(parExpression.rightParenthesis, prefExpression),
+        );
       }
       builder.addSimpleInsertion(isExpression_final.isOperator.end, '!');
     });

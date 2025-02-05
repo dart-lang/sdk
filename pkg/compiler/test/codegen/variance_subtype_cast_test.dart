@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String LEGACY_COV_CAST = r"""
@@ -112,10 +112,12 @@ foo(param) {
 main() {
   runTests() async {
     Future check(String test) {
-      return compile(test,
-          entry: 'foo',
-          check: checkerForAbsentPresent(test),
-          enableVariance: true);
+      return compile(
+        test,
+        entry: 'foo',
+        check: checkerForAbsentPresent(test),
+        enableVariance: true,
+      );
     }
 
     await check(LEGACY_COV_CAST);

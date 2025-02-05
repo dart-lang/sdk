@@ -16,5 +16,4 @@ class A<T> {
 main() {
   Expect.equals(42, (const A<int>.named()).x);
   Expect.equals(42, (new A<int>.named()).x);
-
 }

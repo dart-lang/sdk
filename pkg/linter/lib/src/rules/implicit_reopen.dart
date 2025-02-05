@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r"Don't implicitly reopen classes.";
 
@@ -16,7 +15,7 @@ class ImplicitReopen extends LintRule {
       : super(
           name: LintNames.implicit_reopen,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override
@@ -39,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkElement(InterfaceElement2? element, NamedCompilationUnitMember node,
       {required String type}) {
     if (element is! ClassElement2) return;
-    if (element.hasReopen) return;
+    if (element.metadata2.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
@@ -74,8 +73,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     required InterfaceElement2 other,
     required String reason,
   }) {
-    rule.reportLintForToken(member.name,
-        arguments: [type, target.name, other.name, reason]);
+    var targetName = target.name3;
+    var otherName = other.name3;
+    if (targetName != null && otherName != null) {
+      rule.reportLintForToken(
+        member.name,
+        arguments: [type, targetName, otherName, reason],
+      );
+    }
   }
 
   @override

@@ -104,10 +104,7 @@ class AbstractContextTest
 
   void assertSourceChange(SourceChange sourceChange, String expected) {
     var buffer = StringBuffer();
-    _writeSourceChangeToBuffer(
-      buffer: buffer,
-      sourceChange: sourceChange,
-    );
+    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
     _assertTextExpectation(buffer.toString(), expected);
   }
 
@@ -191,6 +188,10 @@ class AbstractContextTest
     return result as ResolvedUnitResult;
   }
 
+  void makeFilePriority(File file) {
+    driverFor(file).priorityFiles2 = [file];
+  }
+
   @override
   File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
@@ -223,16 +224,11 @@ class AbstractContextTest
 
     setupResourceProvider();
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     writeTestPackageConfig();
 
-    createAnalysisOptionsFile(
-      experiments: experiments,
-    );
+    createAnalysisOptionsFile(experiments: experiments);
   }
 
   void setupResourceProvider() {}

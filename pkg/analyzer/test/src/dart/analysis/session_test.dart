@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -50,7 +52,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
-  void test_getParsedLibrary_notFileOfUri() async {
+  void test_getParsedLibrary_notFileOfUri() {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 

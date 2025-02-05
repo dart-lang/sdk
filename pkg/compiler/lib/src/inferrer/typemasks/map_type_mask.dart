@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 /// A [MapTypeMask] is a [TypeMask] for a specific allocation
 /// site of a map (currently only internal Map class) that will get specialized
@@ -28,12 +28,19 @@ class MapTypeMask extends AllocationTypeMask {
   // The key type of this map.
   final TypeMask keyType;
 
-  const MapTypeMask(this.forwardTo, this._allocationNode,
-      this.allocationElement, this.keyType, this.valueType);
+  const MapTypeMask(
+    this.forwardTo,
+    this._allocationNode,
+    this.allocationElement,
+    this.keyType,
+    this.valueType,
+  );
 
   /// Deserializes a [MapTypeMask] object from [source].
   factory MapTypeMask.readFromDataSource(
-      DataSourceReader source, CommonMasks domain) {
+    DataSourceReader source,
+    CommonMasks domain,
+  ) {
     source.begin(tag);
     final forwardTo = TypeMask.readFromDataSource(source, domain);
     final allocationElement = source.readMemberOrNull();
@@ -56,7 +63,7 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  MapTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -64,20 +71,27 @@ class MapTypeMask extends AllocationTypeMask {
       return this;
     }
     return MapTypeMask(
-        forwardTo.withFlags(
-            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
-        allocationNode,
-        allocationElement,
-        keyType,
-        valueType);
+      forwardTo.withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      ),
+      allocationNode,
+      allocationElement,
+      keyType,
+      valueType,
+    );
   }
 
   @override
   bool get isExact => true;
 
   @override
-  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {required bool isNullable, required bool hasLateSentinel}) {
+  TypeMask? _unionSpecialCases(
+    TypeMask other,
+    CommonMasks domain, {
+    required bool isNullable,
+    required bool hasLateSentinel,
+  }) {
     if (other is MapTypeMask) {
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);
@@ -87,21 +101,26 @@ class MapTypeMask extends AllocationTypeMask {
     if (other is DictionaryTypeMask) {
       // TODO(johnniwinther): Find another way to check this invariant that
       // doesn't need the compiler.
-      assert(other.keyType ==
-          TypeMask.nonNullExact(
-              domain.commonElements.jsStringClass, domain._closedWorld));
+      assert(
+        other.keyType ==
+            TypeMask.nonNullExact(
+              domain.commonElements.jsStringClass,
+              domain._closedWorld,
+            ),
+      );
       TypeMask newKeyType = keyType.union(other.keyType, domain);
-      TypeMask newValueType =
-          other._typeMap.values.fold(keyType, (p, n) => p.union(n, domain));
+      TypeMask newValueType = other._typeMap.values.fold(
+        keyType,
+        (p, n) => p.union(n, domain),
+      );
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       MapTypeMask newMapTypeMask = MapTypeMask(
-          newForwardTo,
-          allocationNode == other.allocationNode ? allocationNode : null,
-          allocationElement == other.allocationElement
-              ? allocationElement
-              : null,
-          newKeyType,
-          newValueType);
+        newForwardTo,
+        allocationNode == other.allocationNode ? allocationNode : null,
+        allocationElement == other.allocationElement ? allocationElement : null,
+        newKeyType,
+        newValueType,
+      );
       return newMapTypeMask;
     }
     return null;
@@ -118,7 +137,9 @@ class MapTypeMask extends AllocationTypeMask {
 
   @override
   int get hashCode => Hashing.objectHash(
-      valueType, Hashing.objectHash(keyType, super.hashCode));
+    valueType,
+    Hashing.objectHash(keyType, super.hashCode),
+  );
 
   @override
   String toString() {

@@ -9,7 +9,6 @@ import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use string in part of directives.';
 

@@ -138,7 +138,7 @@ PatternAssignment
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     leftParenthesis: (
     fields
@@ -160,7 +160,7 @@ PatternAssignment
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -227,7 +227,7 @@ PatternAssignment
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

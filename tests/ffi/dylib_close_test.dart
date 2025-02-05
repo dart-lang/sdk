@@ -21,7 +21,9 @@ void testClose() {
 
   lib.close();
   Expect.throwsStateError(
-      () => lib.lookup('ReturnMaxUint8'), 'Illegal lookup in closed library');
+    () => lib.lookup('ReturnMaxUint8'),
+    'Illegal lookup in closed library',
+  );
   lib.close(); // Duplicate close should not crash.
 }
 

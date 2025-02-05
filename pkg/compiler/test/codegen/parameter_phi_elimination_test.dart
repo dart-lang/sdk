@@ -6,7 +6,7 @@
 
 // VMOptions=--enable_asserts
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String SOURCE = r"""

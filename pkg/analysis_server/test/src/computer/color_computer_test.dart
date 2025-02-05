@@ -169,8 +169,10 @@ class ColorComputerTest extends AbstractContextTest {
       var expectedGreen = (0x0000ff00 & expectedColorValue) >> 8;
       var expectedBlue = (0x000000ff & expectedColorValue) >> 0;
 
-      var regionText =
-          dartCode.substring(color.offset, color.offset + color.length);
+      var regionText = dartCode.substring(
+        color.offset,
+        color.offset + color.length,
+      );
       expect(
         regionText,
         equals(expectedColorCode),
@@ -257,15 +259,14 @@ class MyTheme {
 }
 ''';
     await expectColors(
-      testCode,
-      {
-        'MyTheme.staticWhite': 0xFFFFFFFF,
-        'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
-        'theme.instanceWhite': 0xFFFFFFFF,
-        'theme.instanceMaterialRedAccent': 0xFFFFAA00,
-      },
-      otherCode: otherCode,
-    );
+        testCode,
+        {
+          'MyTheme.staticWhite': 0xFFFFFFFF,
+          'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
+          'theme.instanceWhite': 0xFFFFFFFF,
+          'theme.instanceMaterialRedAccent': 0xFFFFAA00,
+        },
+        otherCode: otherCode);
   }
 
   Future<void> test_customConst_initializer() async {
@@ -283,13 +284,12 @@ const myThemeWhite = Colors.white;
 const myThemeMaterialRedAccent = Colors.redAccent;
 ''';
     await expectColors(
-      testCode,
-      {
-        'myThemeWhite': 0xFFFFFFFF,
-        'myThemeMaterialRedAccent': 0xFFFFAA00,
-      },
-      otherCode: otherCode,
-    );
+        testCode,
+        {
+          'myThemeWhite': 0xFFFFFFFF,
+          'myThemeMaterialRedAccent': 0xFFFFAA00,
+        },
+        otherCode: otherCode);
   }
 
   Future<void> test_local_const() async {
@@ -351,6 +351,100 @@ void f() {
     const testCode = '''
 void f() {
   final a = [[COLOR]];
+}
+''';
+    await checkAllColors(testCode);
+  }
+
+  Future<void> test_nullAwareElement_inList_const() async {
+    const testCode = '''
+void f() {
+  const colors = [
+    ?[[COLOR]],
+  ];
+}
+''';
+    await checkAllColors(testCode, onlyConst: true);
+  }
+
+  Future<void> test_nullAwareElement_inList_nonConst() async {
+    const testCode = '''
+void f() {
+  final colors = [
+    ?[[COLOR]],
+  ];
+}
+''';
+    await checkAllColors(testCode);
+  }
+
+  Future<void> test_nullAwareElement_inSet_const() async {
+    // In the following test case the 'Color' object is placed inside of a list
+    // literal, since the 'Color' class defines 'operator==', and its objects
+    // can't be elements of constant sets.
+    const testCode = '''
+void f() {
+  const colors = {
+    ?[ [[COLOR]] ],
+  };
+}
+''';
+    await checkAllColors(testCode, onlyConst: true);
+  }
+
+  Future<void> test_nullAwareElement_inSet_nonConst() async {
+    const testCode = '''
+void f() {
+  final colors = {
+    ?[[COLOR]],
+  };
+}
+''';
+    await checkAllColors(testCode);
+  }
+
+  Future<void> test_nullAwareKey_inMap_const() async {
+    // In the following test case the 'Color' object is placed inside of a list
+    // literal, since the 'Color' class defines 'operator==', and its objects
+    // can't be keys of constant maps.
+    const testCode = '''
+void f() {
+  const colors = {
+    ?[ [[COLOR]] ]: "value",
+  };
+}
+''';
+    await checkAllColors(testCode, onlyConst: true);
+  }
+
+  Future<void> test_nullAwareKey_inMap_nonConst() async {
+    const testCode = '''
+void f() {
+  final colors = {
+    ?[[COLOR]]: "value",
+  };
+}
+''';
+    await checkAllColors(testCode);
+  }
+
+  Future<void> test_nullAwareValue_inMap_const() async {
+    const testCode = '''
+void f() {
+  const colors = {
+    "key": ?[[COLOR]],
+  };
+}
+''';
+    await checkAllColors(testCode, onlyConst: true);
+  }
+
+  Future<void> test_nullAwareValue_inMap_nonConst() async {
+    const testCode = '''
+void f() {
+  final colors = {
+    "key": ?[[COLOR]],
+  };
 }
 ''';
     await checkAllColors(testCode);

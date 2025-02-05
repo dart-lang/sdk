@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class MissingKeyTest extends AbstractTransformSetParserTest {
   void test_addParameterChange_argumentValue() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -29,13 +30,14 @@ transforms:
       index: 0
       name: 'a'
       style: required_positional
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 85),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 85)],
+    );
   }
 
   void test_addParameterChange_index() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -50,13 +52,14 @@ transforms:
       argumentValue:
         kind: 'argument'
         index: 0
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 133),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 133)],
+    );
   }
 
   void test_addParameterChange_name() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -71,13 +74,14 @@ transforms:
       argumentValue:
         kind: 'argument'
         index: 0
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 132),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 132)],
+    );
   }
 
   void test_addParameterChange_style() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -92,13 +96,14 @@ transforms:
       argumentValue:
         kind: 'argument'
         index: 0
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 115),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 115)],
+    );
   }
 
   void test_addTypeParameterChange_argumentValue() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -110,13 +115,14 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'a'
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 56),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 56)],
+    );
   }
 
   void test_addTypeParameterChange_index() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -129,13 +135,14 @@ transforms:
       name: 'a'
       argumentValue:
         expression: ''
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 85),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 85)],
+    );
   }
 
   void test_addTypeParameterChange_name() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -148,13 +155,14 @@ transforms:
       index: 0
       argumentValue:
         expression: ''
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 84),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 84)],
+    );
   }
 
   void test_change_kind() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -164,13 +172,14 @@ transforms:
     function: 'f'
   changes:
     - index: 0
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 9),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 9)],
+    );
   }
 
   void test_element_uris() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -178,13 +187,14 @@ transforms:
   element:
     function: 'f'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingKey, 69, 16),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 69, 16)],
+    );
   }
 
   void test_renameChange_newName() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -194,13 +204,14 @@ transforms:
     function: 'f'
   changes:
     - kind: 'rename'
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 15),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 124, 15)],
+    );
   }
 
   void test_transform_date() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -208,25 +219,27 @@ transforms:
     uris: ['test.dart']
     function: 'f'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingKey, 25, 77),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 25, 77)],
+    );
   }
 
   void test_transform_element() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
   date: 2020-09-14
   changes: []
-''', [
-      error(TransformSetErrorCode.missingKey, 25, 43),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 25, 43)],
+    );
   }
 
   void test_transform_title() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - date: 2020-09-14
@@ -234,24 +247,26 @@ transforms:
     uris: ['test.dart']
     function: 'f'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingKey, 25, 84),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 25, 84)],
+    );
   }
 
   void test_transformSet_transforms() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
-''', [
-      error(TransformSetErrorCode.missingKey, 0, 11),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 0, 11)],
+    );
   }
 
   void test_transformSet_version() {
-    assertErrors('''
+    assertErrors(
+      '''
 transforms: []
-''', [
-      error(TransformSetErrorCode.missingKey, 0, 15),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 0, 15)],
+    );
   }
 }

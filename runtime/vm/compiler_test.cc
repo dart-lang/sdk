@@ -176,13 +176,16 @@ ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
 
 TEST_CASE(EvalExpression) {
   const char* kScriptChars =
-      "int ten = 2 * 5;              \n"
-      "get dot => '.';               \n"
-      "class A {                     \n"
-      "  var apa = 'Herr Nilsson';   \n"
-      "  calc(x) => '${x*ten}';      \n"
-      "}                             \n"
-      "makeObj() => new A();         \n";
+      R"(
+       int ten = 2 * 5;
+       get dot => '.';
+       class A {
+         var apa = 'Herr Nilsson';
+         calc(x) => '${x*ten}';
+       }
+       @pragma('vm:entry-point', 'call')
+       makeObj() => new A();
+      )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle obj_handle =

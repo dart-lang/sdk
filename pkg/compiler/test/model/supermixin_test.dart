@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -38,8 +38,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source},
-        options: <String>[Flags.disableInlining]);
+      memorySourceFiles: {'main.dart': source},
+      options: <String>[Flags.disableInlining],
+    );
     Expect.isTrue(result.isSuccess);
 
     JElementEnvironment elementEnvironment =
@@ -55,8 +56,10 @@ main() {
     Expect.equals(mixin, elementEnvironment.getEffectiveMixinClass(superClass));
     Expect.equals(superB, elementEnvironment.getSuperClass(superClass));
     Expect.equals(superA, elementEnvironment.getSuperClass(superB));
-    Expect.equals(elementEnvironment.getSuperClass(superA),
-        elementEnvironment.getSuperClass(mixin));
+    Expect.equals(
+      elementEnvironment.getSuperClass(superA),
+      elementEnvironment.getSuperClass(mixin),
+    );
 
     final method1 =
         lookupMember(elementEnvironment, 'Class.method1') as FunctionEntity;

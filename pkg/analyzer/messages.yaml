@@ -231,11 +231,11 @@ AnalysisOptionsWarningCode:
     problemMessage: "The option '{1}' isn't supported by '{0}'. Try using the only supported option: '{2}'."
     hasPublishedDocs: false
     comment: |-
-      An error code indicating that a plugin is being configured with an
+      An error code indicating that a YAML section is being configured with an
       unsupported option where there is just one legal value.
 
       Parameters:
-      0: the plugin name
+      0: the section name
       1: the unsupported option key
       2: the legal value
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
@@ -243,11 +243,11 @@ AnalysisOptionsWarningCode:
     correctionMessage: "Try using one of the supported options: {2}."
     hasPublishedDocs: false
     comment: |-
-      An error code indicating that a plugin is being configured with an
+      An error code indicating that a YAML section is being configured with an
       unsupported option and legal options are provided.
 
       Parameters:
-      0: the plugin name
+      0: the section name
       1: the unsupported option key
       2: legal values
   UNSUPPORTED_VALUE:
@@ -408,14 +408,16 @@ CompileTimeErrorCode:
       export 'a.dart';
       export 'b.dart' hide C;
       ```
-  AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
+  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
+    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    problemMessage: "A member named '{0}' is defined in '{1}' and '{2}', and neither is more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-      1: the names of the declaring extensions
+      1: the name of the first declaring extension
+      2: the names of the second declaring extension
     documentation: |-
       #### Description
 
@@ -471,6 +473,15 @@ CompileTimeErrorCode:
         print(E2(s).charCount);
       }
       ```
+  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
+    correctionMessage: Try using an extension override to specify the extension you want to be chosen.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+      1: the names of the declaring extensions
   AMBIGUOUS_IMPORT:
     problemMessage: "The name '{0}' is defined in the libraries {1}."
     correctionMessage: "Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports."
@@ -2380,7 +2391,7 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type parameter and the extension in which the type parameter is defined."
-    correctionMessage: Try renaming either the type variaparameterble or the extension.
+    correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -2855,6 +2866,12 @@ CompileTimeErrorCode:
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "A literal string".
+  CONST_EVAL_PRIMITIVE_EQUALITY:
+    problemMessage: "In constant expressions, operands of the equality operator must have primitive equality."
+    hasPublishedDocs: false
+    comment: |-
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form e1 == e2".
   CONST_EVAL_TYPE_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'int'."
     hasPublishedDocs: false
@@ -19195,6 +19212,49 @@ FfiCode:
         external int f;
       }
       ```
+  NATIVE_FUNCTION_MISSING_TYPE:
+    problemMessage: The native type of this function couldn't be inferred so it must be specified in the annotation.
+    correctionMessage: Try adding a type parameter extending `NativeType` to the `@Native` annotation.
+    hasPublishedDocs: true
+    comment: No parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@Native`-annotated function
+      requires a type hint on the annotation to infer the native function type.
+
+      Dart types like `int` and `double` have multiple possible native
+      representations. Since the native type needs to be known at compile time
+      to generate correct bindings and call instructions for the function, an
+      explicit type must be given.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f()` has
+      the return type `int`, but doesn't have an explicit type parameter on the
+      `Native` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      external int [!f!]();
+      ```
+
+      #### Common fixes
+
+      Add the corresponding type to the annotation. For instance, if `f()` was
+      declared to return an `int32_t` in C, the Dart function should be declared
+      as:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Int32 Function()>()
+      external int f();
+      ```
   COMPOUND_IMPLEMENTS_FINALIZABLE:
     problemMessage: "The class '{0}' can't implement Finalizable."
     correctionMessage: "Try removing the implements clause from '{0}'."
@@ -20389,6 +20449,76 @@ FfiCode:
         NativeCallable<Void Function(Int32)>.listener(f);
       }
       ```
+  NEGATIVE_VARIABLE_DIMENSION:
+    problemMessage: The variable dimension of a variable-length array must be non-negative.
+    correctionMessage: Try using a value that is zero or greater.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic in two cases.
+
+      The first is when the variable dimension given in an
+      `Array.variableWithVariableDimension` annotation is negative. The variable
+      dimension is the first argument in the annotation.
+
+      The second is when the variable dimension given in an
+      `Array.variableMulti` annotation is negative. The variable dimension is
+      specified in the `variableDimension` argument of the annotation.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Examples
+
+      The following code produces this diagnostic because a variable dimension
+      of `-1` was provided in the `Array.variableWithVariableDimension`
+      annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variableWithVariableDimension([!-1!])
+        external Array<Uint8> a0;
+      }
+      ```
+
+      The following code produces this diagnostic because a variable dimension
+      of `-1` was provided in the `Array.variableMulti` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct2 extends Struct {
+        @Array.variableMulti(variableDimension: [!-1!], [1, 2])
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Change the variable dimension with zero (`0`) or a positive number:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variableWithVariableDimension(1)
+        external Array<Uint8> a0;
+      }
+      ```
+
+      Change the variable dimension with zero (`0`) or a positive number:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct2 extends Struct {
+        @Array.variableMulti(variableDimension: 1, [1, 2])
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
   NON_CONSTANT_TYPE_ARGUMENT:
     problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
@@ -20504,7 +20634,7 @@ FfiCode:
       #### Example
 
       The following code produces this diagnostic because an array dimension of
-      `-1` was provided:
+      `-8` was provided:
 
       ```dart
       import 'dart:ffi';
@@ -20528,7 +20658,8 @@ FfiCode:
       }
       ```
 
-      If this is a variable length inline array, change the annotation to `Array.variable()`:
+      If this is a variable length inline array, change the annotation to
+      `Array.variable()`:
 
       ```dart
       import 'dart:ffi';
@@ -22662,6 +22793,14 @@ StaticWarningCode:
       has the value `null`, the cast will fail and the invocation of `length`
       will not happen.
 
+      The following code produces this diagnostic because `s` can't be `null`:
+
+      ```dart
+      List<String> makeSingletonList(String s) {
+        return <String>[[!?!]s];
+      }
+      ```
+
       #### Common fixes
 
       Replace the null-aware operator with a non-null-aware equivalent; for
@@ -22684,6 +22823,24 @@ StaticWarningCode:
       Parameters:
       0: the null-aware operator that is invalid
       1: the non-null-aware operator that can replace the invalid operator
+  INVALID_NULL_AWARE_ELEMENT:
+    sharedName: INVALID_NULL_AWARE_OPERATOR
+    problemMessage: "The element can't be null, so the null-aware operator '?' is unnecessary."
+    correctionMessage: "Try removing the operator '?'."
+    hasPublishedDocs: true
+    comment: No parameters.
+  INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+    sharedName: INVALID_NULL_AWARE_OPERATOR
+    problemMessage: "The map entry key can't be null, so the null-aware operator '?' is unnecessary."
+    correctionMessage: "Try removing the operator '?'."
+    hasPublishedDocs: true
+    comment: No parameters.
+  INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+    sharedName: INVALID_NULL_AWARE_OPERATOR
+    problemMessage: "The map entry value can't be null, so the null-aware operator '?' is unnecessary."
+    correctionMessage: "Try removing the operator '?'."
+    hasPublishedDocs: true
+    comment: No parameters.
   MISSING_ENUM_CONSTANT_IN_SWITCH:
     problemMessage: "Missing case clause for '{0}'."
     correctionMessage: Try adding a case clause for the missing constant, or adding a default clause.
@@ -25963,10 +26120,10 @@ WarningCode:
     comment: |-
       No parameters.
 
-      There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
-      some cases of constructor tearoff features (like `List<int>.filled;`).
-      Other constructor tearoff cases are not realized until resolution
-      (like `List.filled;`).
+      There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
+      catches some cases of constructor tearoff features (like
+      `List<int>.filled;`). Other constructor tearoff cases are not realized
+      until resolution (like `List.filled;`).
     documentation: |-
       #### Description
 
@@ -27345,8 +27502,6 @@ WarningCode:
       kinds of declarations are analyzed:
       - Private top-level declarations and all of their members
       - Private members of public declarations
-      - Optional parameters of private functions for which a value is never
-        passed
 
       Not all references to an element will mark it as "used":
       - Assigning a value to a top-level variable (with a standard `=`
@@ -27365,6 +27520,26 @@ WarningCode:
       ```dart
       class [!_C!] {}
       ```
+
+      #### Common fixes
+
+      If the declaration isn't needed, then remove it.
+
+      If the declaration is intended to be used, then add the code to use it.
+  UNUSED_ELEMENT_PARAMETER:
+    problemMessage: "A value for optional parameter '{0}' isn't ever given."
+    correctionMessage: Try removing the unused parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter that is declared but not used
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is never passed for an
+      optional parameter declared within a private declaration.
+
+      #### Example
 
       Assuming that no code in the library passes a value for `y` in any
       invocation of `_m`, the following code produces this diagnostic:
@@ -27390,14 +27565,6 @@ WarningCode:
       ```
 
       If the declaration is intended to be used, then add the code to use it.
-  UNUSED_ELEMENT_PARAMETER:
-    sharedName: UNUSED_ELEMENT
-    problemMessage: "A value for optional parameter '{0}' isn't ever given."
-    correctionMessage: Try removing the unused parameter.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the parameter that is declared but not used
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.

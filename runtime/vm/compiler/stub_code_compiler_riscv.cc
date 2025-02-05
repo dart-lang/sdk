@@ -1231,8 +1231,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
 
     __ OrImmediate(T5, T5, tags);
-    __ StoreFieldToOffset(T5, AllocateArrayABI::kResultReg,
-                          target::Array::tags_offset());
+    __ InitializeHeader(T5, AllocateArrayABI::kResultReg);
 
     // Store the type argument field.
     __ StoreCompressedIntoObjectOffsetNoBarrier(
@@ -1546,7 +1545,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
       target::MakeTagWordForNewSpaceObject(kContextCid, /*instance_size=*/0);
 
   __ OrImmediate(T3, T3, tags);
-  __ StoreFieldToOffset(T3, A0, target::Object::tags_offset());
+  __ InitializeHeader(T3, A0);
 
   // Setup up number of context variables field.
   // A0: new object.
@@ -1841,14 +1840,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow;
-
     // Get card table.
     __ Bind(&remember_card);
     __ AndImmediate(TMP, A0, target::kPageMask);  // Page.
     __ lx(TMP2,
           Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ beqz(TMP2, &remember_card_slow);
 
     // Atomically dirty the card.
     __ sub(A6, A6, TMP);                               // Offset in page.
@@ -1863,17 +1859,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 #else
     __ amoord(ZR, TMP, Address(TMP2, 0));
 #endif
-    __ ret();
-
-    // Card table not yet allocated.
-    __ Bind(&remember_card_slow);
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mv(A0, A0);  // Arg0 = Object
-      __ mv(A1, A6);  // Arg1 = Slot
-      rt.Call(kRememberCardRuntimeEntry, /*argument_count=*/2);
-    }
     __ ret();
   }
 }
@@ -1928,8 +1913,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     }  // kInstanceSizeReg = R4, kEndReg = R5
 
     // Tags.
-    __ sx(kTagsReg, Address(AllocateObjectABI::kResultReg,
-                            target::Object::tags_offset()));
+    __ InitializeHeaderUntagged(kTagsReg, AllocateObjectABI::kResultReg);
 
     // Initialize the remaining words of the object.
     {
@@ -3442,7 +3426,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       uword tags =
           target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
       __ OrImmediate(T5, T5, tags);
-      __ sx(T5, FieldAddress(A0, target::Object::tags_offset())); /* Tags. */
+      __ InitializeHeader(T5, A0);
     }
     /* Set the length field. */
     /* A0: new object start as a tagged pointer. */

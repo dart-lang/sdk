@@ -19,11 +19,15 @@ class PoolPointerCall : public ValueObject {
     ASSERT(*reinterpret_cast<uint16_t*>(end_ - 2) == 0x9082);  // jalr ra
     uint32_t load_entry = LoadUnaligned(reinterpret_cast<uint32_t*>(end_ - 6));
 #if XLEN == 32
-    ASSERT((load_entry == 0x00362083) ||  // lw ra, entry(code)
+    ASSERT((load_entry == 0x0036a083) ||  // lw ra, entry(tmp)
+           (load_entry == 0x00b6a083) ||  // lw ra, unchecked_entry(tmp)
+           (load_entry == 0x00362083) ||  // lw ra, entry(code)
            (load_entry == 0x00b62083));   // lw ra, unchecked_entry(code)
 #elif XLEN == 64
-    ASSERT((load_entry == 0x00763083) ||  // ld ra, entry(code)
-           (load_entry = 0x01763083));    // ld ra, unchecked_entry(code)
+    ASSERT((load_entry == 0x0076b083) ||  // ld ra, entry(tmp)
+           (load_entry == 0x0176b083) ||  // ld ra, unchecked_entry(tmp)
+           (load_entry == 0x00763083) ||  // ld ra, entry(code)
+           (load_entry == 0x01763083));   // ld ra, unchecked_entry(code)
 #endif
     InstructionPattern::DecodeLoadWordFromPool(end_ - 6, &reg_, &index_);
   }

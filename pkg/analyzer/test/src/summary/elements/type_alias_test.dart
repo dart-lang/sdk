@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -79,7 +76,7 @@ library
               name: SimpleIdentifier
                 token: Object @73
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @79
@@ -100,7 +97,7 @@ library
               name: SimpleIdentifier
                 token: Object @109
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @115
@@ -121,7 +118,7 @@ library
               name: SimpleIdentifier
                 token: Object @213
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @219
@@ -142,7 +139,7 @@ library
               name: SimpleIdentifier
                 token: Object @272
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @278
@@ -163,21 +160,21 @@ library
       typeAliases
         Raw @8
           reference: <testLibraryFragment>::@typeAlias::Raw
-          element: <testLibraryFragment>::@typeAlias::Raw#element
+          element: <testLibrary>::@typeAlias::Raw
         HasDocComment @54
           reference: <testLibraryFragment>::@typeAlias::HasDocComment
-          element: <testLibraryFragment>::@typeAlias::HasDocComment#element
+          element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
         HasAnnotation @90
           reference: <testLibraryFragment>::@typeAlias::HasAnnotation
-          element: <testLibraryFragment>::@typeAlias::HasAnnotation#element
+          element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
               atSign: @ @72
               name: SimpleIdentifier
                 token: Object @73
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @79
@@ -186,7 +183,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @156
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
-          element: <testLibraryFragment>::@typeAlias::AnnotationThenComment#element
+          element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -194,7 +191,7 @@ library
               name: SimpleIdentifier
                 token: Object @109
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @115
@@ -203,7 +200,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @230
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
-          element: <testLibraryFragment>::@typeAlias::CommentThenAnnotation#element
+          element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -211,7 +208,7 @@ library
               name: SimpleIdentifier
                 token: Object @213
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @219
@@ -220,7 +217,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @304
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
-          element: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation#element
+          element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -228,7 +225,7 @@ library
               name: SimpleIdentifier
                 token: Object @272
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @278
@@ -251,7 +248,7 @@ library
           name: SimpleIdentifier
             token: Object @73
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @79
@@ -268,7 +265,7 @@ library
           name: SimpleIdentifier
             token: Object @109
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @115
@@ -285,7 +282,7 @@ library
           name: SimpleIdentifier
             token: Object @213
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @219
@@ -302,7 +299,7 @@ library
           name: SimpleIdentifier
             token: Object @272
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @278
@@ -371,7 +368,7 @@ library
               name: SimpleIdentifier
                 token: Object @95
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @101
@@ -392,7 +389,7 @@ library
               name: SimpleIdentifier
                 token: Object @142
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
@@ -413,7 +410,7 @@ library
               name: SimpleIdentifier
                 token: Object @257
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @263
@@ -434,7 +431,7 @@ library
               name: SimpleIdentifier
                 token: Object @327
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @333
@@ -455,21 +452,21 @@ library
       typeAliases
         Raw @8
           reference: <testLibraryFragment>::@typeAlias::Raw
-          element: <testLibraryFragment>::@typeAlias::Raw#element
+          element: <testLibrary>::@typeAlias::Raw
         HasDocComment @65
           reference: <testLibraryFragment>::@typeAlias::HasDocComment
-          element: <testLibraryFragment>::@typeAlias::HasDocComment#element
+          element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
         HasAnnotation @112
           reference: <testLibraryFragment>::@typeAlias::HasAnnotation
-          element: <testLibraryFragment>::@typeAlias::HasAnnotation#element
+          element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
               atSign: @ @94
               name: SimpleIdentifier
                 token: Object @95
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @101
@@ -478,7 +475,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @189
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
-          element: <testLibraryFragment>::@typeAlias::AnnotationThenComment#element
+          element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -486,7 +483,7 @@ library
               name: SimpleIdentifier
                 token: Object @142
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
@@ -495,7 +492,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @274
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
-          element: <testLibraryFragment>::@typeAlias::CommentThenAnnotation#element
+          element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -503,7 +500,7 @@ library
               name: SimpleIdentifier
                 token: Object @257
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @263
@@ -512,7 +509,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @359
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
-          element: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation#element
+          element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -520,7 +517,7 @@ library
               name: SimpleIdentifier
                 token: Object @327
                 staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::<fragment>::@class::Object#element
+                element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @333
@@ -543,7 +540,7 @@ library
           name: SimpleIdentifier
             token: Object @95
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @101
@@ -560,7 +557,7 @@ library
           name: SimpleIdentifier
             token: Object @142
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @148
@@ -577,7 +574,7 @@ library
           name: SimpleIdentifier
             token: Object @257
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @263
@@ -594,7 +591,7 @@ library
           name: SimpleIdentifier
             token: Object @327
             staticElement: dart:core::<fragment>::@class::Object
-            element: dart:core::<fragment>::@class::Object#element
+            element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @333
@@ -609,33 +606,117 @@ library
     var library = await buildLibrary(r'''
 typedef void F<T>(int a);
 ''');
-    var unit = library.definingCompilationUnit;
-
-    var F = unit.typeAliases[0];
-    expect(F.name, 'F');
-
-    var T = F.typeParameters[0];
-    expect(T.name, 'T');
-    expect(T.enclosingElement3, same(F));
-
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement3, same(F));
-
-    var a = function.parameters[0];
-    expect(a.name, 'a');
-    expect(a.enclosingElement3, same(function));
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            unrelated T @15
+              defaultType: dynamic
+          aliasedType: void Function(int)
+          aliasedElement: GenericFunctionTypeElement
+            parameters
+              requiredPositional a @22
+                type: int
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @15
+              element: <not-implemented>
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: void Function(int)
+''');
   }
 
   test_functionTypeAlias_type_element() async {
     var library = await buildLibrary(r'''
 typedef T F<T>();
-F<int> a;
+void f(F<int> a) {}
 ''');
-    var unit = library.definingCompilationUnit;
-    var type = unit.topLevelVariables[0].type as FunctionType;
-
-    expect(type.alias!.element, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.alias!.typeArguments, ['int']);
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            covariant T @12
+              defaultType: dynamic
+          aliasedType: T Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: T
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          enclosingElement3: <testLibraryFragment>
+          parameters
+            requiredPositional a @32
+              type: int Function()
+                alias: <testLibraryFragment>::@typeAlias::F
+                  typeArguments
+                    int
+          returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @12
+              element: <not-implemented>
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          element: <testLibrary>::@function::f
+          formalParameters
+            a @32
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: T Function()
+  functions
+    f
+      reference: <testLibrary>::@function::f
+      firstFragment: <testLibraryFragment>::@function::f
+      formalParameters
+        requiredPositional a
+          type: int Function()
+            alias: <testLibraryFragment>::@typeAlias::F
+              typeArguments
+                int
+      returnType: void
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {
@@ -670,7 +751,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -727,13 +808,13 @@ library
       typeAliases
         F1 @13
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @16
               element: <not-implemented>
         F2 @39
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @42
               element: <not-implemented>
@@ -795,13 +876,13 @@ library
       typeAliases
         F2 @14
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @17
               element: <not-implemented>
         F1 @36
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @39
               element: <not-implemented>
@@ -848,7 +929,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -890,7 +971,7 @@ library
       typeAliases
         F @16
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @18
               element: <not-implemented>
@@ -944,13 +1025,13 @@ library
       typeAliases
         F1 @10
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @13
               element: <not-implemented>
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @36
               element: <not-implemented>
@@ -1015,13 +1096,13 @@ library
       typeAliases
         F1 @13
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @16
               element: <not-implemented>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
               element: <not-implemented>
@@ -1071,7 +1152,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -1128,13 +1209,13 @@ library
       typeAliases
         F1 @10
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @13
               element: <not-implemented>
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @36
               element: <not-implemented>
@@ -1184,7 +1265,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -1201,25 +1282,47 @@ library
     var library = await buildLibrary(r'''
 typedef F<T> = void Function<U>(int a);
 ''');
-    var unit = library.definingCompilationUnit;
-
-    var F = unit.typeAliases[0];
-    expect(F.name, 'F');
-
-    var T = F.typeParameters[0];
-    expect(T.name, 'T');
-    expect(T.enclosingElement3, same(F));
-
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement3, same(F));
-
-    var U = function.typeParameters[0];
-    expect(U.name, 'U');
-    expect(U.enclosingElement3, same(function));
-
-    var a = function.parameters[0];
-    expect(a.name, 'a');
-    expect(a.enclosingElement3, same(function));
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            unrelated T @10
+              defaultType: dynamic
+          aliasedType: void Function<U>(int)
+          aliasedElement: GenericFunctionTypeElement
+            typeParameters
+              covariant U @29
+            parameters
+              requiredPositional a @36
+                type: int
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @10
+              element: <not-implemented>
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: void Function<U>(int)
+''');
   }
 
   test_genericTypeAlias_recursive() async {
@@ -1255,7 +1358,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
               element: <not-implemented>
@@ -1301,10 +1404,10 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
         G @34
           reference: <testLibraryFragment>::@typeAlias::G
-          element: <testLibraryFragment>::@typeAlias::G#element
+          element: <testLibrary>::@typeAlias::G
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1341,7 +1444,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1379,7 +1482,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1422,7 +1525,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1461,7 +1564,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1497,7 +1600,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1535,7 +1638,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1590,11 +1693,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @42
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @46
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -1604,6 +1707,7 @@ library
       aliasedType: void Function({int p})
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -1648,7 +1752,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1688,7 +1792,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1745,13 +1849,13 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
               element: <not-implemented>
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @45
               element: <not-implemented>
@@ -1798,7 +1902,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1840,7 +1944,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -1894,13 +1998,13 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
               element: <not-implemented>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
               element: <not-implemented>
@@ -1965,13 +2069,13 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
               element: <not-implemented>
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @45
               element: <not-implemented>
@@ -2030,20 +2134,22 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         F @19
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @21
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -2096,10 +2202,10 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
         G @37
           reference: <testLibraryFragment>::@typeAlias::G
-          element: <testLibraryFragment>::@typeAlias::G#element
+          element: <testLibrary>::@typeAlias::G
           typeParameters
             T @39
               element: <not-implemented>
@@ -2147,7 +2253,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -2204,13 +2310,13 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
           typeParameters
             T @11
               element: <not-implemented>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             T @41
               element: <not-implemented>
@@ -2260,7 +2366,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -2300,7 +2406,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2352,13 +2458,13 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
         B @41
           reference: <testLibraryFragment>::@typeAlias::B
-          element: <testLibraryFragment>::@typeAlias::B#element
+          element: <testLibrary>::@typeAlias::B
           typeParameters
             T @43
               element: <not-implemented>
@@ -2403,7 +2509,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2450,13 +2556,13 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
         B @36
           reference: <testLibraryFragment>::@typeAlias::B
-          element: <testLibraryFragment>::@typeAlias::B#element
+          element: <testLibrary>::@typeAlias::B
           typeParameters
             T @38
               element: <not-implemented>
@@ -2501,7 +2607,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2548,13 +2654,13 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
         B @48
           reference: <testLibraryFragment>::@typeAlias::B
-          element: <testLibraryFragment>::@typeAlias::B#element
+          element: <testLibrary>::@typeAlias::B
           typeParameters
             T @50
               element: <not-implemented>
@@ -2599,7 +2705,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2639,7 +2745,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2679,7 +2785,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -2729,7 +2835,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -2813,7 +2919,7 @@ library
       classes
         class A @43
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             f @58
               reference: <testLibraryFragment>::@class::A::@field::f
@@ -2821,29 +2927,31 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
-            get f @-1
+            synthetic get f
               reference: <testLibraryFragment>::@class::A::@getter::f
               element: <testLibraryFragment>::@class::A::@getter::f#element
           setters
-            set f= @-1
+            synthetic set f
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
-                _f @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
       typeAliases
         Foo @8
           reference: <testLibraryFragment>::@typeAlias::Foo
-          element: <testLibraryFragment>::@typeAlias::Foo#element
+          element: <testLibrary>::@typeAlias::Foo
           typeParameters
             S @12
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         f
@@ -2861,7 +2969,7 @@ library
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
       setters
-        synthetic set f=
+        synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
@@ -2922,20 +3030,22 @@ library
       classes
         class C @38
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @40
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -2994,20 +3104,22 @@ library
       classes
         class C @36
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @38
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -3063,20 +3175,22 @@ library
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @34
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -3125,7 +3239,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -3172,7 +3286,7 @@ library
       typeAliases
         F @68
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           documentationComment: /**\n * Docs\n */
   typeAliases
     F
@@ -3226,20 +3340,22 @@ library
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @29
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -3295,20 +3411,22 @@ library
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @23
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -3353,7 +3471,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -3393,7 +3511,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3428,7 +3546,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -3445,13 +3563,43 @@ library
     var library = await buildLibrary(r'''
 typedef void F(int a, b, [int c, d]);
 ''');
-    var F = library.definingCompilationUnit.typeAliases.single;
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    // TODO(scheglov): Use better textual presentation with all information.
-    expect(function.parameters[0].hasImplicitType, false);
-    expect(function.parameters[1].hasImplicitType, true);
-    expect(function.parameters[2].hasImplicitType, false);
-    expect(function.parameters[3].hasImplicitType, true);
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          aliasedType: void Function(int, dynamic, [int, dynamic])
+          aliasedElement: GenericFunctionTypeElement
+            parameters
+              requiredPositional a @19
+                type: int
+              requiredPositional hasImplicitType b @22
+                type: dynamic
+              optionalPositional c @30
+                type: int
+              optionalPositional hasImplicitType d @33
+                type: dynamic
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      aliasedType: void Function(int, dynamic, [int, dynamic])
+''');
   }
 
   test_typedef_legacy_parameter_parameters() async {
@@ -3472,9 +3620,9 @@ library
               requiredPositional g @10
                 type: dynamic Function(dynamic, dynamic)
                 parameters
-                  requiredPositional x @12
+                  requiredPositional hasImplicitType x @12
                     type: dynamic
-                  requiredPositional y @15
+                  requiredPositional hasImplicitType y @15
                     type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -3486,7 +3634,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3529,7 +3677,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             A @10
               element: <not-implemented>
@@ -3572,7 +3720,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3607,7 +3755,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3645,7 +3793,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -3673,9 +3821,9 @@ library
           aliasedType: dynamic Function(dynamic, dynamic)
           aliasedElement: GenericFunctionTypeElement
             parameters
-              requiredPositional x @10
+              requiredPositional hasImplicitType x @10
                 type: dynamic
-              requiredPositional y @13
+              requiredPositional hasImplicitType y @13
                 type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -3687,7 +3835,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3710,11 +3858,11 @@ library
           aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
           aliasedElement: GenericFunctionTypeElement
             parameters
-              optionalNamed y @11
+              optionalNamed hasImplicitType y @11
                 type: dynamic
-              optionalNamed z @14
+              optionalNamed hasImplicitType z @14
                 type: dynamic
-              optionalNamed x @17
+              optionalNamed hasImplicitType x @17
                 type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -3726,7 +3874,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3758,7 +3906,7 @@ library
       typeAliases
         F @12
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3793,7 +3941,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -3830,7 +3978,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3862,7 +4010,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3902,7 +4050,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -3961,15 +4109,16 @@ library
       classes
         class D @55
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -3977,6 +4126,7 @@ library
               element: <not-implemented>
   classes
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
@@ -4022,7 +4172,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -4065,7 +4215,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -4112,7 +4262,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -4162,7 +4312,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -4252,23 +4402,23 @@ library
       typeAliases
         A1 @8
           reference: <testLibraryFragment>::@typeAlias::A1
-          element: <testLibraryFragment>::@typeAlias::A1#element
+          element: <testLibrary>::@typeAlias::A1
         A2 @38
           reference: <testLibraryFragment>::@typeAlias::A2
-          element: <testLibraryFragment>::@typeAlias::A2#element
+          element: <testLibrary>::@typeAlias::A2
           typeParameters
             R @41
               element: <not-implemented>
       functions
         f1 @65
           reference: <testLibraryFragment>::@function::f1
-          element: <testLibraryFragment>::@function::f1#element
+          element: <testLibrary>::@function::f1
           formalParameters
             a @71
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @82
           reference: <testLibraryFragment>::@function::f2
-          element: <testLibraryFragment>::@function::f2#element
+          element: <testLibrary>::@function::f2
           formalParameters
             a @93
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
@@ -4283,6 +4433,7 @@ library
       aliasedType: R Function()
   functions
     f1
+      reference: <testLibrary>::@function::f1
       firstFragment: <testLibraryFragment>::@function::f1
       formalParameters
         requiredPositional a
@@ -4290,6 +4441,7 @@ library
             alias: <testLibraryFragment>::@typeAlias::A1
       returnType: void
     f2
+      reference: <testLibrary>::@function::f2
       firstFragment: <testLibraryFragment>::@function::f2
       formalParameters
         requiredPositional a
@@ -4357,10 +4509,10 @@ library
       typeAliases
         A1 @8
           reference: <testLibraryFragment>::@typeAlias::A1
-          element: <testLibraryFragment>::@typeAlias::A1#element
+          element: <testLibrary>::@typeAlias::A1
         A2 @32
           reference: <testLibraryFragment>::@typeAlias::A2
-          element: <testLibraryFragment>::@typeAlias::A2#element
+          element: <testLibrary>::@typeAlias::A2
           typeParameters
             T @35
               element: <not-implemented>
@@ -4369,13 +4521,13 @@ library
       functions
         f1 @59
           reference: <testLibraryFragment>::@function::f1
-          element: <testLibraryFragment>::@function::f1#element
+          element: <testLibrary>::@function::f1
           formalParameters
             a @65
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @76
           reference: <testLibraryFragment>::@function::f2
-          element: <testLibraryFragment>::@function::f2#element
+          element: <testLibrary>::@function::f2
           formalParameters
             a @95
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
@@ -4391,6 +4543,7 @@ library
       aliasedType: Map<T, U>
   functions
     f1
+      reference: <testLibrary>::@function::f1
       firstFragment: <testLibraryFragment>::@function::f1
       formalParameters
         requiredPositional a
@@ -4398,6 +4551,7 @@ library
             alias: <testLibraryFragment>::@typeAlias::A1
       returnType: void
     f2
+      reference: <testLibrary>::@function::f2
       firstFragment: <testLibraryFragment>::@function::f2
       formalParameters
         requiredPositional a
@@ -4473,7 +4627,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -4482,7 +4636,7 @@ library
       functions
         f @31
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @48
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -4495,6 +4649,7 @@ library
       aliasedType: (T, U)
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -4550,14 +4705,14 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             U @25
               element: <not-implemented>
@@ -4572,6 +4727,7 @@ library
       aliasedType: T
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
@@ -4655,32 +4811,35 @@ library
       classes
         class A @32
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @34
               element: <not-implemented>
             U @37
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @49
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -4689,7 +4848,13 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A<int, String>
+          alias: <testLibraryFragment>::@typeAlias::X
+            typeArguments
+              String
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -4768,44 +4933,49 @@ library
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @30
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
         class C @53
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class D @64
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -4813,17 +4983,23 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
+      interfaces
+        B
+        C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -4906,44 +5082,49 @@ library
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @30
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
         class C @53
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class D @64
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -4951,17 +5132,27 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
+      interfaces
+        B
+        A<int?>
+          alias: <testLibraryFragment>::@typeAlias::X
+            typeArguments
+              int
+        C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -5007,17 +5198,19 @@ library
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -5062,17 +5255,19 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -5142,50 +5337,59 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @35
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
         class C @46
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             U @48
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         U
+      interfaces
+        A
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -5250,42 +5454,51 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @35
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
         class C @46
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -5344,27 +5557,30 @@ library
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @28
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @40
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5372,8 +5588,12 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        A<int>
+          alias: <testLibraryFragment>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -5445,34 +5665,37 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @29
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @65
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
-          element: <testLibraryFragment>::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5480,17 +5703,23 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        M1
+        M2
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object
@@ -5564,34 +5793,37 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @29
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @65
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
-          element: <testLibraryFragment>::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5599,17 +5831,25 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        M1
+        A<int?>
+          alias: <testLibraryFragment>::@typeAlias::X
+        M2
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object
@@ -5653,17 +5893,19 @@ library
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -5724,30 +5966,33 @@ library
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @28
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @40
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5755,6 +6000,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
         alias: <testLibraryFragment>::@typeAlias::X
@@ -5823,33 +6069,36 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @26
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @38
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
           typeParameters
             T @10
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5857,6 +6106,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
         alias: <testLibraryFragment>::@typeAlias::X
@@ -5908,17 +6158,19 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -5974,27 +6226,30 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @29
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class D @41
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -6002,6 +6257,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
@@ -6062,30 +6318,33 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @29
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class D @41
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int?}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -6093,6 +6352,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: A<int?>
         alias: <testLibraryFragment>::@typeAlias::X
@@ -6140,17 +6400,19 @@ library
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -6195,17 +6457,19 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
-          element: <testLibraryFragment>::@typeAlias::X#element
+          element: <testLibrary>::@typeAlias::X
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -6214,6 +6478,38 @@ library
     X
       firstFragment: <testLibraryFragment>::@typeAlias::X
       aliasedType: Null
+''');
+  }
+
+  test_typedef_nonFunction_missingName() async {
+    var library = await buildLibrary(r'''
+typedef = int;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        @8
+          reference: <testLibraryFragment>::@typeAlias::0
+          aliasedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        <null-name>
+          reference: <testLibraryFragment>::@typeAlias::0
+          element: <testLibrary>::@typeAlias::0
+  typeAliases
+    <null-name>
+      firstFragment: <testLibraryFragment>::@typeAlias::0
+      aliasedType: int
 ''');
   }
 
@@ -6250,11 +6546,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @26
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @30
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6264,6 +6560,7 @@ library
       aliasedType: dynamic
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6278,9 +6575,6 @@ library
 typedef A = int;
 void f(A a) {}
 ''');
-
-    var alias = library.definingCompilationUnit.typeAliases[0];
-    _assertTypeStr(alias.aliasedType, 'dynamic Function()');
 
     checkElementText(library, r'''
 library
@@ -6311,11 +6605,11 @@ library
       typeAliases
         A @24
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @38
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @42
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6325,6 +6619,7 @@ library
       aliasedType: dynamic Function()
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6368,11 +6663,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @22
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @26
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6382,6 +6677,7 @@ library
       aliasedType: int
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6425,11 +6721,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @27
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6439,6 +6735,7 @@ library
       aliasedType: int?
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6487,14 +6784,14 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
       functions
         f @33
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @45
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6506,6 +6803,7 @@ library
       aliasedType: Map<int, T>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6550,11 +6848,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @24
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @28
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6564,6 +6862,7 @@ library
       aliasedType: Never
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6605,11 +6904,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @25
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @29
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6619,6 +6918,7 @@ library
       aliasedType: Never?
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6674,20 +6974,20 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
       functions
         f1 @23
           reference: <testLibraryFragment>::@function::f1
-          element: <testLibraryFragment>::@function::f1#element
+          element: <testLibrary>::@function::f1
           formalParameters
             a @28
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @39
           reference: <testLibraryFragment>::@function::f2
-          element: <testLibraryFragment>::@function::f2#element
+          element: <testLibrary>::@function::f2
           formalParameters
             a @49
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
@@ -6699,12 +6999,14 @@ library
       aliasedType: T
   functions
     f1
+      reference: <testLibrary>::@function::f1
       firstFragment: <testLibraryFragment>::@function::f1
       formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
     f2
+      reference: <testLibrary>::@function::f2
       firstFragment: <testLibraryFragment>::@function::f2
       formalParameters
         requiredPositional a
@@ -6763,20 +7065,20 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
       functions
         f1 @24
           reference: <testLibraryFragment>::@function::f1
-          element: <testLibraryFragment>::@function::f1#element
+          element: <testLibrary>::@function::f1
           formalParameters
             a @29
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @40
           reference: <testLibraryFragment>::@function::f2
-          element: <testLibraryFragment>::@function::f2#element
+          element: <testLibrary>::@function::f2
           formalParameters
             a @50
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
@@ -6788,12 +7090,14 @@ library
       aliasedType: T?
   functions
     f1
+      reference: <testLibrary>::@function::f1
       firstFragment: <testLibraryFragment>::@function::f1
       formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
     f2
+      reference: <testLibrary>::@function::f2
       firstFragment: <testLibraryFragment>::@function::f2
       formalParameters
         requiredPositional a
@@ -6838,11 +7142,11 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @27
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6852,6 +7156,7 @@ library
       aliasedType: void
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -6887,7 +7192,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -6922,31 +7227,20 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
         g @7
           reference: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: dynamic
     g
+      reference: <testLibrary>::@function::g
       firstFragment: <testLibraryFragment>::@function::g
       returnType: dynamic
 ''');
-  }
-
-  // TODO(scheglov): This is duplicate.
-  void _assertTypeStr(DartType type, String expected) {
-    var typeStr = type.getDisplayString();
-    expect(typeStr, expected);
-  }
-
-  void _assertTypeStrings(List<DartType> types, List<String> expected) {
-    var typeStringList = types.map((e) {
-      return e.getDisplayString();
-    }).toList();
-    expect(typeStringList, expected);
   }
 }
 
@@ -6967,8 +7261,6 @@ class A {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -6998,16 +7290,18 @@ library
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   typeAliases
     A
@@ -7031,8 +7325,6 @@ void A() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7063,20 +7355,22 @@ library
       functions
         A @20
           reference: <testLibraryFragment>::@function::A
-          element: <testLibraryFragment>::@function::A#element
+          element: <testLibrary>::@function::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
       aliasedType: int
   functions
     A
+      reference: <testLibrary>::@function::A
       firstFragment: <testLibraryFragment>::@function::A
       returnType: void
 ''');
@@ -7097,8 +7391,6 @@ int get A => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7132,9 +7424,9 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A @-1
+        synthetic A
           reference: <testLibraryFragment>::@topLevelVariable::A
-          element: <testLibraryFragment>::@topLevelVariable::A#element
+          element: <testLibrary>::@topLevelVariable::A
           getter2: <testLibraryFragment>::@getter::A
       getters
         get A @23
@@ -7142,17 +7434,19 @@ library
           element: <testLibraryFragment>::@getter::A#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
       aliasedType: int
   topLevelVariables
     synthetic A
+      reference: <testLibrary>::@topLevelVariable::A
       firstFragment: <testLibraryFragment>::@topLevelVariable::A
       type: int
       getter: <testLibraryFragment>::@getter::A#element
@@ -7177,8 +7471,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7204,11 +7496,12 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
@@ -7233,8 +7526,6 @@ set A(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7271,12 +7562,12 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A @-1
+        synthetic A
           reference: <testLibraryFragment>::@topLevelVariable::A
-          element: <testLibraryFragment>::@topLevelVariable::A#element
+          element: <testLibrary>::@topLevelVariable::A
           setter2: <testLibraryFragment>::@setter::A
       setters
-        set A= @19
+        set A @19
           reference: <testLibraryFragment>::@setter::A
           element: <testLibraryFragment>::@setter::A#element
           formalParameters
@@ -7284,22 +7575,24 @@ library
               element: <testLibraryFragment>::@setter::A::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
       aliasedType: int
   topLevelVariables
     synthetic A
+      reference: <testLibrary>::@topLevelVariable::A
       firstFragment: <testLibraryFragment>::@topLevelVariable::A
       type: int
       setter: <testLibraryFragment>::@setter::A#element
   setters
-    static set A=
+    static set A
       firstFragment: <testLibraryFragment>::@setter::A
       formalParameters
         requiredPositional _
@@ -7323,8 +7616,6 @@ typedef A = int;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7359,20 +7650,18 @@ library
       typeAliases
         A @23
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
-      aliasedType: int
-    A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
       aliasedType: int
   exportedReferences
     declared <testLibraryFragment>::@typeAlias::A

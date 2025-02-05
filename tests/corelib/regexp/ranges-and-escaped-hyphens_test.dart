@@ -27,7 +27,8 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-      'Tests for bug <a href="https://bugs.webkit.org/show_bug.cgi?id=21232">#21232</a>, and related range issues described in bug.');
+    'Tests for bug <a href="https://bugs.webkit.org/show_bug.cgi?id=21232">#21232</a>, and related range issues described in bug.',
+  );
 
   // Basic test for ranges - one to three and five are in regexp, four is not, and '-' should not match
   var regexp01 = new RegExp(r"[1-35]+").firstMatch("-12354");
@@ -75,7 +76,8 @@ void main() {
   shouldBe(regexp03b, ["+,-"]);
 
   // The actual bug reported.
-  var bug21232 =
-      (new RegExp(r"^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$")).hasMatch('@');
+  var bug21232 = (new RegExp(
+    r"^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$",
+  )).hasMatch('@');
   shouldBeFalse(bug21232);
 }

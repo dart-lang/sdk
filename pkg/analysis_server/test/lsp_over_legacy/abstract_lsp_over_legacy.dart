@@ -32,17 +32,23 @@ class EventsCollector {
       switch (notification.event) {
         case ANALYSIS_NOTIFICATION_ERRORS:
           events.add(
-            AnalysisErrorsParams.fromNotification(notification,
-                clientUriConverter: test.server.uriConverter),
+            AnalysisErrorsParams.fromNotification(
+              notification,
+              clientUriConverter: test.server.uriConverter,
+            ),
           );
         case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
           events.add(
-            AnalysisFlushResultsParams.fromNotification(notification,
-                clientUriConverter: test.server.uriConverter),
+            AnalysisFlushResultsParams.fromNotification(
+              notification,
+              clientUriConverter: test.server.uriConverter,
+            ),
           );
         case LSP_NOTIFICATION_NOTIFICATION:
-          var params = LspNotificationParams.fromNotification(notification,
-              clientUriConverter: test.server.uriConverter);
+          var params = LspNotificationParams.fromNotification(
+            notification,
+            clientUriConverter: test.server.uriConverter,
+          );
           events.add(params.lspNotification);
         default:
           throw StateError(notification.event);
@@ -175,8 +181,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     return handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         convertPath(filePath): AddContentOverlay(content),
-      }).toRequest('${_nextLspRequestId++}',
-          clientUriConverter: server.uriConverter),
+      }).toRequest(
+        '${_nextLspRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 
@@ -207,8 +215,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
 
   /// Creates a legacy request with an auto-assigned ID.
   Request createLegacyRequest(RequestParams params) {
-    return params.toRequest('${_nextLspRequestId++}',
-        clientUriConverter: server.uriConverter);
+    return params.toRequest(
+      '${_nextLspRequestId++}',
+      clientUriConverter: server.uriConverter,
+    );
   }
 
   @override
@@ -224,14 +234,17 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
 
     var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
     var legacyResponse = await handleSuccessfulRequest(legacyRequest);
-    var legacyResult = LspHandleResult.fromResponse(legacyResponse,
-        clientUriConverter: server.uriConverter);
+    var legacyResult = LspHandleResult.fromResponse(
+      legacyResponse,
+      clientUriConverter: server.uriConverter,
+    );
 
     // Round-trip response via JSON because this doesn't happen automatically
     // when we're bypassing the streams (running in-process) and we want to
     // validate everything.
-    var lspResponseJson = jsonDecode(jsonEncode(legacyResult.lspResponse))
-        as Map<String, Object?>;
+    var lspResponseJson =
+        jsonDecode(jsonEncode(legacyResult.lspResponse))
+            as Map<String, Object?>;
 
     // Unwrap the LSP response.
     var lspResponse = ResponseMessage.fromJson(lspResponseJson);
@@ -274,15 +287,19 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == LSP_NOTIFICATION_NOTIFICATION) {
-      var params = LspNotificationParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = LspNotificationParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       // Round-trip response via JSON because this doesn't happen automatically
       // when we're bypassing the streams (running in-process) and we want to
       // validate everything.
-      var lspNotificationJson = jsonDecode(jsonEncode(params.lspNotification))
-          as Map<String, Object?>;
-      var lspNotificationMessage =
-          NotificationMessage.fromJson(lspNotificationJson);
+      var lspNotificationJson =
+          jsonDecode(jsonEncode(params.lspNotification))
+              as Map<String, Object?>;
+      var lspNotificationMessage = NotificationMessage.fromJson(
+        lspNotificationJson,
+      );
       _notificationsFromServer.add(lspNotificationMessage);
     }
   }
@@ -297,8 +314,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     return handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         convertPath(filePath): ChangeContentOverlay([edit]),
-      }).toRequest('${_nextLspRequestId++}',
-          clientUriConverter: server.uriConverter),
+      }).toRequest(
+        '${_nextLspRequestId++}',
+        clientUriConverter: server.uriConverter,
+      ),
     );
   }
 

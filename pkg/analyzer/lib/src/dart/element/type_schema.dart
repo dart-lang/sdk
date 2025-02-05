@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
@@ -28,19 +30,11 @@ class UnknownInferredType extends TypeImpl
   @override
   Element? get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @override
   Element2? get element3 => null;
 
   @override
   int get hashCode => 1;
-
-  @Deprecated('Use `is UnknownInferredType` instead')
-  @override
-  bool get isDynamic => true;
 
   @Deprecated('Check element, or use getDisplayString()')
   @override

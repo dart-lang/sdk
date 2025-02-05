@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_IF = r"""
@@ -72,13 +72,18 @@ test(param) {
 """;
 
 Future compileAndTest(String code) {
-  return compile(code, entry: 'test', check: (String generated) {
-    RegExp validAdd =
-        RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
-    RegExp invalidAdd = RegExp("$anyIdentifier \\+ 53");
-    Expect.isTrue(validAdd.hasMatch(generated));
-    Expect.isFalse(invalidAdd.hasMatch(generated));
-  });
+  return compile(
+    code,
+    entry: 'test',
+    check: (String generated) {
+      RegExp validAdd = RegExp(
+        "($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)",
+      );
+      RegExp invalidAdd = RegExp("$anyIdentifier \\+ 53");
+      Expect.isTrue(validAdd.hasMatch(generated));
+      Expect.isFalse(invalidAdd.hasMatch(generated));
+    },
+  );
 }
 
 main() {

@@ -18,7 +18,6 @@ import 'package:kernel/ast.dart' show clearDummyTreeNodesParentPointer;
 import 'src/command/arguments.dart';
 import 'src/command/command.dart';
 import 'src/command/result.dart';
-import 'src/compiler/shared_command.dart';
 import 'src/kernel/expression_compiler_worker.dart';
 
 /// The internal entry point for the Dart Dev Compiler.

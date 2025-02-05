@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -22,9 +22,10 @@ runTest() async {
   String main = 'sdk/tests/web/native/main.dart';
   Uri entryPoint = Uri.parse('memory:$main');
 
-  CompilationResult result =
-      await runCompiler(entryPoint: entryPoint, memorySourceFiles: {
-    main: '''
+  CompilationResult result = await runCompiler(
+    entryPoint: entryPoint,
+    memorySourceFiles: {
+      main: '''
 class A {
   method1() {}
   method2() {}
@@ -175,8 +176,9 @@ method2() {
   a.method4();
   b.method5();
 }
-'''
-  });
+''',
+    },
+  );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
 
@@ -199,8 +201,9 @@ method2() {
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!,
-      (ClassEntity cls) {
+  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!, (
+    ClassEntity cls,
+  ) {
     List<String> expectedLiveMembers =
         expectedLiveMembersMap[cls.name] ?? const <String>[];
     List<String> actualLiveMembers = <String>[];
@@ -210,10 +213,11 @@ method2() {
       actualLiveMembers.add(member.name!);
     });
     Expect.setEquals(
-        expectedLiveMembers,
-        actualLiveMembers,
-        "Unexpected live members for $cls. \n"
-        "Expected members for ${cls.name}: $expectedLiveMembers\n"
-        "Actual members for ${cls.name}  : $actualLiveMembers");
+      expectedLiveMembers,
+      actualLiveMembers,
+      "Unexpected live members for $cls. \n"
+      "Expected members for ${cls.name}: $expectedLiveMembers\n"
+      "Actual members for ${cls.name}  : $actualLiveMembers",
+    );
   });
 }

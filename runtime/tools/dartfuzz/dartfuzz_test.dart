@@ -166,7 +166,7 @@ class TestRunnerAOT implements TestRunner {
       Map<String, String> e, this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     precompiler = '$top/pkg/vm/tool/precompiler2';
-    dart = '$top/pkg/vm/tool/dart_precompiled_runtime2';
+    dart = '$top/out/$tag/dartaotruntime';
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;

@@ -404,7 +404,7 @@ suggestions
   }
 
   Future<void>
-      test_afterRightParen_beforeExpressionStatement_inFunction() async {
+  test_afterRightParen_beforeExpressionStatement_inFunction() async {
     await computeSuggestions('''
 foo() {if (true) ^ go();}
 ''');

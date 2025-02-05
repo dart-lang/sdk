@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -36,7 +38,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _resolver.checkUnreachableNode(node);
 
-    _resolver.checkReadOfNotAssignedLocalVariable(node, node.staticElement);
+    _resolver.checkReadOfNotAssignedLocalVariable(node, node.element);
 
     _reportDeprecatedExportUse(node);
 
@@ -187,7 +189,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var element = hasRead ? result.readElement : result.writeElement;
 
-    var enclosingClass = _resolver.enclosingClass?.augmented.declaration;
+    var enclosingClass = _resolver.enclosingClass?.augmented.firstFragment;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       errorReporter.atNode(

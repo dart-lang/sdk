@@ -65,7 +65,7 @@ class WasmDataTransferFromBrowserString extends Benchmark {
   final JSString jsonString;
 
   WasmDataTransferFromBrowserString(this.jsonString, String subName)
-      : super('WasmDataTransfer.FromBrowserString.$subName');
+    : super('WasmDataTransfer.FromBrowserString.$subName');
 
   @override
   void run() {
@@ -86,7 +86,7 @@ class WasmDataTransferFromBrowserBytes extends Benchmark {
   final JSUint8Array bytes;
 
   WasmDataTransferFromBrowserBytes(this.bytes, String subName)
-      : super('WasmDataTransfer.FromBrowserBytes.$subName');
+    : super('WasmDataTransfer.FromBrowserBytes.$subName');
 
   @override
   void run() {
@@ -98,7 +98,7 @@ class WasmDataTransferToBrowserString extends Benchmark {
   final String string;
 
   WasmDataTransferToBrowserString(this.string, String subName)
-      : super('WasmDataTransfer.ToBrowserString.$subName');
+    : super('WasmDataTransfer.ToBrowserString.$subName');
 
   @override
   void run() {
@@ -110,7 +110,7 @@ class WasmDataTransferToBrowserBytes extends Benchmark {
   final Uint8List bytes;
 
   WasmDataTransferToBrowserBytes(this.bytes, String subName)
-      : super('WasmDataTransfer.ToBrowserBytes.$subName');
+    : super('WasmDataTransfer.ToBrowserBytes.$subName');
 
   @override
   void run() {

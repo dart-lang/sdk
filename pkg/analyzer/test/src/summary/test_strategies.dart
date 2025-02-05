@@ -34,13 +34,13 @@ CompilationUnit parseText(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: scanner.featureSet,
+    languageVersion: LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    ),
     lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(token);
-  unit.languageVersion = LibraryLanguageVersion(
-    package: ExperimentStatus.currentVersion,
-    override: null,
-  );
 
   return unit;
 }

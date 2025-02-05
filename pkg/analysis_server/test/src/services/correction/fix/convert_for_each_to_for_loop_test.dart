@@ -152,6 +152,121 @@ void f(List<String> list) {
     await assertNoFix();
   }
 
+  Future<void> test_blockBody_preferFinal() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.prefer_final_in_for_each,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) {
+    e.substring(3, 7);
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<String> list) {
+  for (final e in list) {
+    e.substring(3, 7);
+  }
+}
+''');
+  }
+
+  Future<void> test_blockBody_preferFinal_specifyTypes() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.prefer_final_in_for_each,
+        LintNames.always_specify_types,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) {
+    e.substring(3, 7);
+  });
+}
+''');
+    await assertHasFix(
+      '''
+void f(List<String> list) {
+  for (final String e in list) {
+    e.substring(3, 7);
+  }
+}
+''',
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
+  }
+
+  Future<void> test_blockBody_specifyTypes() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.always_specify_types,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) {
+    e.substring(3, 7);
+  });
+}
+''');
+    await assertHasFix(
+      '''
+void f(List<String> list) {
+  for (String e in list) {
+    e.substring(3, 7);
+  }
+}
+''',
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
+  }
+
+  Future<void> test_blockBody_specifyTypes_prefixed() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.always_specify_types,
+      ],
+    );
+    await resolveTestCode('''
+import 'dart:core' as core;
+
+void f(core.List<core.Set<core.String>> list) {
+  list.forEach((e) {
+    e.map((s) => s.substring(3, 7));
+  });
+}
+''');
+    await assertHasFix(
+      '''
+import 'dart:core' as core;
+
+void f(core.List<core.Set<core.String>> list) {
+  for (core.Set<core.String> e in list) {
+    e.map((s) => s.substring(3, 7));
+  }
+}
+''',
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
+  }
+
   Future<void> test_blockBody_syncStar() async {
     await resolveTestCode('''
 void f(List<String> list) {
@@ -194,9 +309,87 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
+  }
+
+  Future<void> test_expressionBody_preferFinal() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.prefer_final_in_for_each,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) => e.substring(3, 7));
+}
+''');
+    await assertHasFix('''
+void f(List<String> list) {
+  for (final e in list) {
+    e.substring(3, 7);
+  }
+}
+''');
+  }
+
+  Future<void> test_expressionBody_preferFinal_specifyTypes() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.prefer_final_in_for_each,
+        LintNames.always_specify_types,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) => e.substring(3, 7));
+}
+''');
+    await assertHasFix(
+      '''
+void f(List<String> list) {
+  for (final String e in list) {
+    e.substring(3, 7);
+  }
+}
+''',
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
+  }
+
+  Future<void> test_expressionBody_specifyTypes() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.avoid_function_literals_in_foreach_calls,
+        LintNames.always_specify_types,
+      ],
+    );
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) => e.substring(3, 7));
+}
+''');
+    await assertHasFix(
+      '''
+void f(List<String> list) {
+  for (String e in list) {
+    e.substring(3, 7);
+  }
+}
+''',
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_expressionBody_syncStar() async {
@@ -206,9 +399,11 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_functionExpression() async {
@@ -286,7 +481,8 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_multiple() async {
@@ -296,7 +492,8 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_statement() async {
@@ -306,7 +503,8 @@ void f(List<int> list, bool b) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_typeArguments() async {

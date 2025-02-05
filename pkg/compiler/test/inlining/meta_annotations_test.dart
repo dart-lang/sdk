@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -28,32 +28,39 @@ void main(List<String> args) {
   print(methodNoInline('bar'));
   print(methodTryInline('bar'));
 }
-"""
+""",
 };
 
 main() {
   runTests() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
     Compiler compiler = result.compiler!;
     KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
     KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
-    void test(String name,
-        {bool expectNoInline = false, bool expectTryInline = false}) {
+    void test(
+      String name, {
+      bool expectNoInline = false,
+      bool expectTryInline = false,
+    }) {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
-      final method = elementEnvironment.lookupLibraryMember(mainLibrary, name)
-          as FunctionEntity?;
+      final method =
+          elementEnvironment.lookupLibraryMember(mainLibrary, name)
+              as FunctionEntity?;
       Expect.isNotNull(method);
       Expect.equals(
-          expectNoInline,
-          closedWorld.annotationsData.hasNoInline(method!),
-          "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
+        expectNoInline,
+        closedWorld.annotationsData.hasNoInline(method!),
+        "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.",
+      );
       Expect.equals(
-          expectTryInline,
-          closedWorld.annotationsData.hasTryInline(method),
-          "Unexpected annotation of @pragma('dart2js:tryInline') on '$method'.");
+        expectTryInline,
+        closedWorld.annotationsData.hasTryInline(method),
+        "Unexpected annotation of @pragma('dart2js:tryInline') on '$method'.",
+      );
     }
 
     test('method');

@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class InvalidChangeForKindTest extends AbstractTransformSetParserTest {
   void test_integer() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Replace'
@@ -29,8 +30,8 @@ transforms:
       newElement:
         uris: ['test.dart']
         class: 'D'
-''', [
-      error(TransformSetErrorCode.invalidChangeForKind, 173, 39),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidChangeForKind, 173, 39)],
+    );
   }
 }

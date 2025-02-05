@@ -20,7 +20,7 @@ class A<in T> {
   T get c => throw "uncalled";
 //^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//        ^
+//      ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   late T d;
@@ -53,7 +53,7 @@ mixin BMixin<in T> {
   T get c => throw "uncalled";
 //^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//        ^
+//      ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   late T d;
@@ -76,7 +76,7 @@ abstract class C<in T> {
   T get a;
 //^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//       ^
+//      ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 }
 

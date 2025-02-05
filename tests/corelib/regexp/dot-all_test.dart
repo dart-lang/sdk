@@ -38,8 +38,13 @@ void main() {
   assertFalse(re.isUnicode);
   assertTrue(re.isDotAll);
 
-  re = new RegExp(r".",
-      caseSensitive: false, multiLine: true, unicode: true, dotAll: true);
+  re = new RegExp(
+    r".",
+    caseSensitive: false,
+    multiLine: true,
+    unicode: true,
+    dotAll: true,
+  );
   assertFalse(re.isCaseSensitive);
   assertTrue(re.isMultiLine);
   assertTrue(re.isUnicode);

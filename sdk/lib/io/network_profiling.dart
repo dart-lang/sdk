@@ -15,8 +15,9 @@ const String _udpSocket = 'udp';
 // dart:io service extension spec from an element of dart:developer's
 // [_developerProfilingData].
 Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
-    Map<String, dynamic> requestProfile,
-    {required bool ref}) async {
+  Map<String, dynamic> requestProfile, {
+  required bool ref,
+}) async {
   final responseData = requestProfile['responseData'] as Map<String, dynamic>;
 
   return <String, dynamic>{
@@ -70,7 +71,9 @@ abstract class _NetworkProfiling {
   }
 
   static Future<ServiceExtensionResponse> _serviceExtensionHandler(
-      String method, Map<String, String> parameters) async {
+    String method,
+    Map<String, String> parameters,
+  ) async {
     try {
       String responseJson;
       switch (method) {
@@ -81,20 +84,27 @@ abstract class _NetworkProfiling {
           responseJson = _getHttpEnableTimelineLogging();
           break;
         case _kGetHttpProfileRPC:
-          final updatedSince = parameters.containsKey('updatedSince')
-              ? int.tryParse(parameters['updatedSince']!)
-              : null;
+          final updatedSince =
+              parameters.containsKey('updatedSince')
+                  ? int.tryParse(parameters['updatedSince']!)
+                  : null;
           responseJson = json.encode({
             'type': 'HttpProfile',
             'timestamp': DateTime.now().microsecondsSinceEpoch,
             'requests': [
               ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
-              ...await Future.wait(getHttpClientProfilingData()
-                  .where((final Map<String, dynamic> p) =>
-                      updatedSince == null ||
-                      (p['_lastUpdateTime'] as int) >= updatedSince)
-                  .map((p) =>
-                      _createHttpProfileRequestFromProfileMap(p, ref: true)))
+              ...await Future.wait(
+                getHttpClientProfilingData()
+                    .where(
+                      (final Map<String, dynamic> p) =>
+                          updatedSince == null ||
+                          (p['_lastUpdateTime'] as int) >= updatedSince,
+                    )
+                    .map(
+                      (p) =>
+                          _createHttpProfileRequestFromProfileMap(p, ref: true),
+                    ),
+              ),
             ],
           });
           break;
@@ -133,15 +143,13 @@ abstract class _NetworkProfiling {
   }
 
   static String getVersion() => json.encode({
-        'type': 'Version',
-        'major': _versionMajor,
-        'minor': _versionMinor,
-      });
+    'type': 'Version',
+    'major': _versionMajor,
+    'minor': _versionMinor,
+  });
 }
 
-String _success() => json.encode({
-      'type': 'Success',
-    });
+String _success() => json.encode({'type': 'Success'});
 
 String _invalidArgument(String argument, dynamic value) =>
     "Value for parameter '$argument' is not valid: $value";
@@ -149,9 +157,9 @@ String _invalidArgument(String argument, dynamic value) =>
 String _missingArgument(String argument) => "Parameter '$argument' is required";
 
 String _getHttpEnableTimelineLogging() => json.encode({
-      'type': 'HttpTimelineLoggingState',
-      'enabled': HttpClient.enableTimelineLogging,
-    });
+  'type': 'HttpTimelineLoggingState',
+  'enabled': HttpClient.enableTimelineLogging,
+});
 
 String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   const String kEnabled = 'enabled';
@@ -173,11 +181,16 @@ Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
   final id = parameters['id']!;
   final request;
   if (id.startsWith('from_package/')) {
-    final profileMap = getHttpClientProfilingData()
-        .elementAtOrNull(int.parse(id.substring('from_package/'.length)) - 1);
-    request = profileMap == null
-        ? null
-        : await _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
+    final profileMap = getHttpClientProfilingData().elementAtOrNull(
+      int.parse(id.substring('from_package/'.length)) - 1,
+    );
+    request =
+        profileMap == null
+            ? null
+            : await _createHttpProfileRequestFromProfileMap(
+              profileMap,
+              ref: false,
+            );
   } else {
     request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
   }
@@ -221,27 +234,35 @@ abstract class _SocketProfile {
   static Map<String, _SocketStatistic> _idToSocketStatistic = {};
 
   static String toJson() => json.encode({
-        'type': _kType,
-        'sockets': _idToSocketStatistic.values.map((f) => f.toMap()).toList(),
-      });
+    'type': _kType,
+    'sockets': _idToSocketStatistic.values.map((f) => f.toMap()).toList(),
+  });
 
   static void collectNewSocket(
-      int id, String type, InternetAddress addr, int port) {
+    int id,
+    String type,
+    InternetAddress addr,
+    int port,
+  ) {
     _SocketProfile.collectStatistic(id, _SocketProfileType.startTime);
     _SocketProfile.collectStatistic(id, _SocketProfileType.socketType, type);
     _SocketProfile.collectStatistic(id, _SocketProfileType.address, addr);
     _SocketProfile.collectStatistic(id, _SocketProfileType.port, port);
   }
 
-  static void collectStatistic(int id, _SocketProfileType type,
-      [dynamic object]) {
+  static void collectStatistic(
+    int id,
+    _SocketProfileType type, [
+    dynamic object,
+  ]) {
     final idKey = id.toString();
     if (!_enableSocketProfiling) {
       return;
     }
     // Skip socket that started before _enableSocketProfiling turned on.
     if (!_idToSocketStatistic.containsKey(idKey) &&
-        type != _SocketProfileType.startTime) return;
+        type != _SocketProfileType.startTime)
+      return;
     _SocketStatistic stats =
         _idToSocketStatistic[idKey] ??= _SocketStatistic(idKey);
     switch (type) {
@@ -254,10 +275,11 @@ abstract class _SocketProfile {
       case _SocketProfileType.address:
         assert(object is InternetAddress);
         final internetAddress = object as InternetAddress;
-        stats.address = (internetAddress.type == InternetAddress.anyIPv6 ||
-                internetAddress.type == InternetAddress.loopbackIPv6)
-            ? '[${internetAddress.address}]'
-            : internetAddress.address;
+        stats.address =
+            (internetAddress.type == InternetAddress.anyIPv6 ||
+                    internetAddress.type == InternetAddress.loopbackIPv6)
+                ? '[${internetAddress.address}]'
+                : internetAddress.address;
         break;
       case _SocketProfileType.port:
         assert(object is int);
@@ -308,7 +330,7 @@ enum _SocketProfileType {
   port,
   socketType,
   readBytes,
-  writeBytes
+  writeBytes,
 }
 
 /// Socket statistic
@@ -327,9 +349,7 @@ class _SocketStatistic {
   _SocketStatistic(this.id);
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
-      'id': id,
-    };
+    final map = <String, dynamic>{'id': id};
     _setIfNotNull(map, 'startTime', startTime);
     _setIfNotNull(map, 'endTime', endTime);
     _setIfNotNull(map, 'address', address);

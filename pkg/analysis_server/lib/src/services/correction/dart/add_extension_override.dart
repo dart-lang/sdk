@@ -18,21 +18,27 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var node = this.node;
     if (node is! SimpleIdentifier) return const [];
     var parent = node.parent;
-    if (parent is! PropertyAccess) return const [];
-    var target = parent.target;
+    Expression? target;
+    if (parent is MethodInvocation) {
+      target = parent.target;
+    } else if (parent is PropertyAccess) {
+      target = parent.target;
+    } else {
+      return const [];
+    }
     if (target == null) return const [];
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) return const [];
 
-    var libraryFragment = dartFixContext.resolvedResult.unit.declaredElement!;
-    var libraryElement = libraryFragment.library;
+    var libraryFragment = dartFixContext.unitResult.unit.declaredFragment!;
+    var libraryElement = libraryFragment.element;
 
-    var nodeName = Name(libraryElement.source.uri, node.name);
-    var extensions =
-        libraryFragment.accessibleExtensions.havingMemberWithBaseName(nodeName);
+    var nodeName = Name(libraryElement.uri, node.name);
+    var extensions = libraryFragment.accessibleExtensions2
+        .havingMemberWithBaseName(nodeName);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
-      var name = extension.extension.name;
+      var name = extension.extension.name3;
       if (name != null) {
         producers.add(_AddOverride(target, name, context: context));
       }
@@ -54,8 +60,9 @@ class _AddOverride extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_name];

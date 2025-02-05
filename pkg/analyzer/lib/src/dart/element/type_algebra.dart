@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -15,6 +18,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -23,16 +27,16 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(
     List<TypeParameterElement> typeParameters) {
-  var freshParameters = List<TypeParameterElementImpl>.generate(
+  var freshParameters = List<TypeParameterElementImpl2>.generate(
     typeParameters.length,
-    (i) => TypeParameterElementImpl(typeParameters[i].name, -1),
+    (i) => TypeParameterElementImpl(typeParameters[i].name, -1).element,
     growable: false,
   );
 
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = TypeParameterTypeImpl(
-      element: freshParameters[i],
+      element: freshParameters[i].firstFragment,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -44,13 +48,13 @@ FreshTypeParameters getFreshTypeParameters(
     // variance is added to the interface.
     var typeParameter = typeParameters[i] as TypeParameterElementImpl;
     if (!typeParameter.isLegacyCovariant) {
-      freshParameters[i].variance = typeParameter.variance;
+      freshParameters[i].firstFragment.variance = typeParameter.variance;
     }
 
     var bound = typeParameter.bound;
     if (bound != null) {
       var newBound = substitution.substituteType(bound);
-      freshParameters[i].bound = newBound;
+      freshParameters[i].firstFragment.bound = newBound;
     }
   }
 
@@ -118,14 +122,14 @@ NullabilitySuffix uniteNullabilities(NullabilitySuffix a, NullabilitySuffix b) {
 }
 
 class FreshTypeParameters {
-  final List<TypeParameterElement> freshTypeParameters;
+  final List<TypeParameterElementImpl2> freshTypeParameters;
   final Substitution substitution;
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
     return FunctionTypeImpl(
-      typeFormals: freshTypeParameters,
+      typeFormals: freshTypeParameters.map((e) => e.firstFragment).toList(),
       parameters: type.parameters.map((parameter) {
         var type = substitute(parameter.type);
         return parameter.copyWith(type: type);
@@ -212,6 +216,16 @@ abstract class Substitution {
         types,
       ),
     );
+  }
+
+  /// Substitutes the Nth parameter in [parameters] with the Nth type in
+  /// [types].
+  static MapSubstitution fromPairs2(
+    List<TypeParameterElement2> parameters,
+    List<DartType> types,
+  ) {
+    var fragments = parameters.map((e) => e.asElement).toList();
+    return fromPairs(fragments, types);
   }
 
   /// Substitutes all occurrences of the given type parameters with the

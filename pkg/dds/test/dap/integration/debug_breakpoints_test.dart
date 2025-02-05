@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -28,43 +27,6 @@ main() {
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
-    });
-
-    testWithUriConfigurations(() => dap, 'resolves and updates breakpoints',
-        () async {
-      final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
-      final setBreakpointLine = lineWith(testFile, breakpointMarker);
-      final expectedResolvedBreakpointLine = setBreakpointLine + 1;
-
-      // Collect any breakpoint changes during the run.
-      final breakpointChangesFuture = client.breakpointChangeEvents.toList();
-
-      Future<SetBreakpointsResponseBody> setBreakpointFuture;
-      await Future.wait([
-        client
-            .expectStop('breakpoint',
-                file: testFile, line: expectedResolvedBreakpointLine)
-            .then((_) => client.terminate()),
-        client.initialize(),
-        setBreakpointFuture = client.setBreakpoint(testFile, setBreakpointLine),
-        client.launch(testFile.path),
-      ], eagerError: true);
-
-      // The initial setBreakpointResponse should always return unverified
-      // because we verify using the BreakpointAdded/BreakpointResolved events.
-      final setBreakpointResponse = await setBreakpointFuture;
-      expect(setBreakpointResponse.breakpoints, hasLength(1));
-      final setBreakpoint = setBreakpointResponse.breakpoints.single;
-      expect(setBreakpoint.verified, isFalse);
-
-      // The last breakpoint change we had should be verified and also update
-      // the line to [expectedResolvedBreakpointLine] since the breakpoint was
-      // on a blank line.
-      final breakpointChanges = await breakpointChangesFuture;
-      final updatedBreakpoint = breakpointChanges.last.breakpoint;
-      expect(updatedBreakpoint.verified, isTrue);
-      expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
     testWithUriConfigurations(() => dap, 'resolves modified breakpoints',
@@ -244,26 +206,6 @@ void main(List<String> args) async {
     test('stops at a line breakpoint and can be resumed', () async {
       await testHitBreakpointAndResume();
     });
-
-    test(
-        'stops at a line breakpoint and can be resumed '
-        'when breakpoint requests have lowercase drive letters '
-        'and program/VM have uppercase drive letters', () async {
-      final client = dap.client;
-      client.forceDriveLetterCasingUpper = true;
-      client.forceBreakpointDriveLetterCasingLower = true;
-      await testHitBreakpointAndResume();
-    }, skip: !Platform.isWindows);
-
-    test(
-        'stops at a line breakpoint and can be resumed '
-        'when breakpoint requests have uppercase drive letters '
-        'and program/VM have lowercase drive letters', () async {
-      final client = dap.client;
-      client.forceDriveLetterCasingLower = true;
-      client.forceBreakpointDriveLetterCasingUpper = true;
-      await testHitBreakpointAndResume();
-    }, skip: !Platform.isWindows);
 
     test('stops at a line breakpoint and can step over (next)', () async {
       final testFile = dap.createTestFile('''
@@ -644,7 +586,7 @@ void main(List<String> args) async {
       final thread1 = stop1.threadId!;
 
       // Attach a second debug adapter to it.
-      final dap2 = await DapTestSession.setUp();
+      final dap2 = await DapTestSession.setUp(logPrefix: '(CLIENT2) ');
       final client2 = dap2.client;
       await Future.wait([
         // We'll still get event for existing pause.

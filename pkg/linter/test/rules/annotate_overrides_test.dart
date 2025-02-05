@@ -17,11 +17,6 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.annotate_overrides;
 
-  @FailingTest(
-    reason:
-        '`augmented.hasOverride` not implemented yet (https://github.com/dart-lang/sdk/issues/55579)',
-    issue: 'https://github.com/dart-lang/linter/issues/4925',
-  )
   test_augmentationClass_implementsInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -45,11 +40,8 @@ augment class C implements HasLength {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(a.path);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentationClass_methodWithoutAnnotation() async {
@@ -138,6 +130,21 @@ class A {
 class B extends A {
   @override
   int get x => 5;
+}
+''');
+  }
+
+  test_class_getterWithAnnotation_setter_doesNotOverride() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 4;
+}
+
+class B extends A {
+  @override
+  int get x => 5;
+
+  set x(int _) {}
 }
 ''');
   }

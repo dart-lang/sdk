@@ -45,20 +45,6 @@ String experimentStatusToString(List<bool> enableFlags) {
   return 'FeatureSet{${featuresInSet.join(', ')}}';
 }
 
-/// Converts the flags in [status] to a list of strings suitable for
-/// passing to [_decodeFlags].
-List<String> experimentStatusToStringList(ExperimentStatus status) {
-  var result = <String>[];
-  for (var feature in _knownFeatures.values) {
-    if (feature.isExpired) continue;
-    var isEnabled = status.isEnabled(feature);
-    if (isEnabled != feature.isEnabledByDefault) {
-      result.add(feature.stringForValue(isEnabled));
-    }
-  }
-  return result;
-}
-
 /// Execute the callback, pretending that the given [knownFeatures] take the
 /// place of [ExperimentStatus.knownFeatures].
 ///
@@ -432,8 +418,7 @@ class UnrecognizedFlag extends ValidationResult {
   String get message => 'Flag "$flag" not recognized.';
 }
 
-/// Representation of a single error or warning reported by
-/// [ExperimentStatus.fromStrings].
+/// Representation of a single error or warning reported by [validateFlags].
 abstract class ValidationResult {
   /// Indicates which of the supplied strings is associated with the error or
   /// warning.

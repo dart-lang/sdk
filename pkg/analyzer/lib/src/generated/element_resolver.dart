@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -14,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -263,12 +266,12 @@ class ElementResolver {
   ///
   /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
   /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocation? visitMethodInvocation(MethodInvocation node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedList,
+  FunctionExpressionInvocationImpl? visitMethodInvocation(MethodInvocation node,
+      {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
       required DartType contextType}) {
-    whyNotPromotedList ??= [];
+    whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedList,
+        node as MethodInvocationImpl, whyNotPromotedArguments,
         contextType: contextType);
   }
 
@@ -468,7 +471,7 @@ class ElementResolver {
       return;
     }
     Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
+        NamespaceBuilder().createExportNamespaceForLibrary(library.asElement2);
     for (Combinator combinator in combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator is HideCombinator) {

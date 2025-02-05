@@ -17,10 +17,18 @@ class _StdStream extends Stream<List<int>> {
 
   _StdStream(this._stream);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
-    return _stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  StreamSubscription<List<int>> listen(
+    void onData(List<int> event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
+    return _stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 }
 
@@ -53,13 +61,16 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   /// If end-of-file is reached after any bytes have been read from stdin,
   /// that data is returned without a line terminator.
   /// Returns `null` if no bytes preceded the end of input.
-  String? readLineSync(
-      {Encoding encoding = systemEncoding, bool retainNewlines = false}) {
+  String? readLineSync({
+    Encoding encoding = systemEncoding,
+    bool retainNewlines = false,
+  }) {
     const CR = 13;
     const LF = 10;
     final List<int> line = <int>[];
     // On Windows, if lineMode is disabled, only CR is received.
-    bool crIsNewline = Platform.isWindows &&
+    bool crIsNewline =
+        Platform.isWindows &&
         (stdioType(stdin) == StdioType.terminal) &&
         !lineMode;
     if (retainNewlines) {
@@ -311,17 +322,19 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   Future addStream(Stream<List<int>> stream) {
     var completer = new Completer();
     late StreamSubscription<List<int>> sub;
-    sub = stream.listen((data) {
-      try {
-        _file.writeFromSync(data);
-      } catch (e, s) {
-        sub.cancel();
-        completer.completeError(e, s);
-      }
-    },
-        onError: completer.completeError,
-        onDone: completer.complete,
-        cancelOnError: true);
+    sub = stream.listen(
+      (data) {
+        try {
+          _file.writeFromSync(data);
+        } catch (e, s) {
+          sub.cancel();
+          completer.completeError(e, s);
+        }
+      },
+      onError: completer.completeError,
+      onDone: completer.complete,
+      cancelOnError: true,
+    );
     return completer.future;
   }
 
@@ -386,8 +399,11 @@ class _StdSink implements IOSink {
       _windowsLineTerminator = false;
       _lastWrittenCharIsCR = false;
     } else {
-      throw ArgumentError.value(lineTerminator, "lineTerminator",
-          r'invalid line terminator, must be one of "\r" or "\r\n"');
+      throw ArgumentError.value(
+        lineTerminator,
+        "lineTerminator",
+        r'invalid line terminator, must be one of "\r" or "\r\n"',
+      );
     }
   }
 
@@ -535,7 +551,10 @@ StdioType stdioType(object) {
     final type = _StdIOUtils._getStdioHandleType(stdiofd);
     if (type is OSError) {
       throw FileSystemException(
-          "Failed to get type of stdio handle (fd $stdiofd)", "", type);
+        "Failed to get type of stdio handle (fd $stdiofd)",
+        "",
+        type,
+      );
     }
     switch (type) {
       case _stdioHandleTypeTerminal:

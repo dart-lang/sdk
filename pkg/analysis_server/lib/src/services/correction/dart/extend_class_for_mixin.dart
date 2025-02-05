@@ -15,8 +15,9 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_typeName];
@@ -41,8 +42,9 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
       _typeName = message.substring(startIndex, endIndex);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(
-            declaration.typeParameters?.end ?? declaration.name.end,
-            ' extends $_typeName');
+          declaration.typeParameters?.end ?? declaration.name.end,
+          ' extends $_typeName',
+        );
       });
     }
   }

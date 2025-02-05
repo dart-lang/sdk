@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -189,7 +191,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Something invalid...
     _assertTypes(
       _inferCall(clone, [stringNone, numNone], expectError: true),
-      [objectNone],
+      [
+        interfaceTypeNone(A, typeArguments: [objectQuestion]),
+      ],
     );
   }
 
@@ -617,7 +621,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     var inferrer = typeSystem.setupGenericTypeInference(
-      typeParameters: ft.typeFormals,
+      typeParameters: ft.typeParameters,
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
       errorReporter: reporter,

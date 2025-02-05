@@ -7,8 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
@@ -43,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return element is TopLevelFunctionElement &&
         element.library2.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
-        element.name == functionName;
+        element.name3 == functionName;
   }
 
   @override

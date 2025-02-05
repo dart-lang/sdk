@@ -14,8 +14,10 @@ import 'launch_helper.dart' show dart2JsCommand;
 copyDirectory(Directory sourceDir, Directory destinationDir) {
   for (var element in sourceDir.listSync()) {
     if (element.path.endsWith('.git')) continue;
-    String newPath =
-        path.join(destinationDir.path, path.basename(element.path));
+    String newPath = path.join(
+      destinationDir.path,
+      path.basename(element.path),
+    );
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
@@ -34,16 +36,20 @@ void main() {
   out2.createSync();
   Directory out3 = Directory.fromUri(tmpDir.uri.resolve('binary'));
   out3.createSync();
-  Directory appDir =
-      Directory.fromUri(Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
+  Directory appDir = Directory.fromUri(
+    Uri.base.resolve('pkg/compiler/test/codesize/swarm'),
+  );
 
   print("Copying '${appDir.path}' to '${tmpDir.path}'.");
   copyDirectory(appDir, tmpDir);
   try {
     var command = dart2JsCommand(['--out=without/out.js', 'swarm.dart']);
     print('Run $command');
-    var result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    var result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -53,11 +59,17 @@ void main() {
     String output1 =
         File.fromUri(tmpDir.uri.resolve('without/out.js')).readAsStringSync();
 
-    command = dart2JsCommand(
-        ['--out=json/out.js', 'swarm.dart', '--stage=dump-info-all']);
+    command = dart2JsCommand([
+      '--out=json/out.js',
+      'swarm.dart',
+      '--stage=dump-info-all',
+    ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -67,8 +79,9 @@ void main() {
     String output2 =
         File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
     String dumpInfoJson1 =
-        File.fromUri(tmpDir.uri.resolve('json/out.js.info.json'))
-            .readAsStringSync();
+        File.fromUri(
+          tmpDir.uri.resolve('json/out.js.info.json'),
+        ).readAsStringSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output2);
@@ -77,11 +90,14 @@ void main() {
       '--out=binary/out.js',
       'swarm.dart',
       '--dump-info=binary',
-      '--stage=dump-info-all'
+      '--stage=dump-info-all',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -91,8 +107,9 @@ void main() {
     String output3 =
         File.fromUri(tmpDir.uri.resolve('binary/out.js')).readAsStringSync();
     List<int> dumpInfoBinary1 =
-        File.fromUri(tmpDir.uri.resolve('binary/out.js.info.data'))
-            .readAsBytesSync();
+        File.fromUri(
+          tmpDir.uri.resolve('binary/out.js.info.data'),
+        ).readAsBytesSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output3);
@@ -103,8 +120,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -118,8 +138,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -133,8 +156,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -151,8 +177,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -170,8 +199,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -188,8 +220,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -199,8 +234,9 @@ void main() {
     String output4 =
         File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
     String dumpInfoJson2 =
-        File.fromUri(tmpDir.uri.resolve('json/out.js.info.json'))
-            .readAsStringSync();
+        File.fromUri(
+          tmpDir.uri.resolve('json/out.js.info.json'),
+        ).readAsStringSync();
 
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
@@ -214,8 +250,11 @@ void main() {
       'swarm.dart',
     ]);
     print('Run $command');
-    result = Process.runSync(Platform.resolvedExecutable, command,
-        workingDirectory: tmpDir.path);
+    result = Process.runSync(
+      Platform.resolvedExecutable,
+      command,
+      workingDirectory: tmpDir.path,
+    );
     print('exit code: ${result.exitCode}');
     print('stdout:');
     print(result.stdout);
@@ -225,8 +264,9 @@ void main() {
     String output5 =
         File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
     List<int> dumpInfoBinary2 =
-        File.fromUri(tmpDir.uri.resolve('binary/out.js.info.data'))
-            .readAsBytesSync();
+        File.fromUri(
+          tmpDir.uri.resolve('binary/out.js.info.data'),
+        ).readAsBytesSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output4);

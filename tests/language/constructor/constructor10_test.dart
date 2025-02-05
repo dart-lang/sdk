@@ -10,23 +10,17 @@ class A {
 }
 
 class B extends A {
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
-// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
-  /*
-  B() : super(null);
-  */
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 }
 
 // ==========
 
 class Y extends A {
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
-// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
-  /*
-  Y() : super(null);
-  */
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 }
 
 class Z extends Y {
@@ -36,12 +30,9 @@ class Z extends Y {
 // ==============
 
 class G extends A {
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
-// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
-  /*
-  G() : super(null);
-  */
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 }
 
 class H extends G {}

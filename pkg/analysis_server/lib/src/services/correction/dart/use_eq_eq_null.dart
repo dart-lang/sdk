@@ -28,9 +28,11 @@ class UseEqEqNull extends ResolvedCorrectionProducer {
       var isExpression = coveringNode as IsExpression;
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(
-            range.endEnd(isExpression.expression, isExpression), (builder) {
-          builder.write(' == null');
-        });
+          range.endEnd(isExpression.expression, isExpression),
+          (builder) {
+            builder.write(' == null');
+          },
+        );
       });
     }
   }

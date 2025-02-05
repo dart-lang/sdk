@@ -8,13 +8,15 @@ part of "core_patch.dart";
 class Uri {
   @patch
   static Uri get base {
-    final currentUri = JSStringImpl(JS<WasmExternRef?>("""() => {
+    final currentUri = JSStringImpl(
+      JS<WasmExternRef?>("""() => {
       // On browsers return `globalThis.location.href`
       if (globalThis.location != null) {
         return globalThis.location.href;
       }
       return null;
-    }"""));
+    }"""),
+    );
     if (currentUri != null) {
       return Uri.parse(jsStringToDartString(currentUri));
     }
@@ -34,8 +36,8 @@ class _Uri {
       }""");
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
-  // component.  This corresponds to [_unreservedTable], i.e. characters that
-  // are not encoded by any encoding table.
+  // component.  This corresponds to `_unreservedMask` table,
+  // i.e. characters that are not encoded by any encoding table.
   static final RegExp _needsNoEncoding = RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
 
   /**
@@ -44,8 +46,12 @@ class _Uri {
    * that appear in [canonicalTable], and returns the escaped string.
    */
   @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  static String _uriEncode(
+    int canonicalMask,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
@@ -56,8 +62,7 @@ class _Uri {
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+      if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         result.writeCharCode(byte);
       } else if (spaceToPlus && byte == _SPACE) {
         result.write('+');
@@ -73,7 +78,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     return _makeQueryFromParametersDefault(queryParameters);
   }
 }

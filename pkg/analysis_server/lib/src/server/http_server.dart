@@ -31,8 +31,10 @@ class HttpAnalysisServer {
   final AbstractSocketServer _socketServer;
 
   /// An object that can handle HTTP requests.
-  late final AbstractHttpHandler _httpHandler =
-      DiagnosticsSite(_socketServer, _printBuffer);
+  late final AbstractHttpHandler _httpHandler = DiagnosticsSite(
+    _socketServer,
+    _printBuffer,
+  );
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer>? _serverFuture;
@@ -59,7 +61,9 @@ class HttpAnalysisServer {
     _printBuffer.add(line);
     if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
       _printBuffer.removeRange(
-          0, _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
+        0,
+        _printBuffer.length - MAX_PRINT_BUFFER_LENGTH,
+      );
     }
   }
 
@@ -70,8 +74,10 @@ class HttpAnalysisServer {
     }
 
     try {
-      _serverFuture =
-          HttpServer.bind(InternetAddress.loopbackIPv4, initialPort ?? 0);
+      _serverFuture = HttpServer.bind(
+        InternetAddress.loopbackIPv4,
+        initialPort ?? 0,
+      );
 
       var server = (await _serverFuture)!;
       _handleServer(server);
@@ -87,7 +93,7 @@ class HttpAnalysisServer {
 
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
-    httpServer.listen((HttpRequest request) async {
+    httpServer.listen((HttpRequest request) {
       var updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         _httpHandler.handleGetRequest(request);
@@ -100,7 +106,8 @@ class HttpAnalysisServer {
         response.statusCode = HttpStatus.notFound;
         response.headers.contentType = ContentType.text;
         response.write(
-            'WebSocket connections not supported (${request.uri.path}).');
+          'WebSocket connections not supported (${request.uri.path}).',
+        );
         unawaited(response.close());
       } else {
         _returnUnknownRequest(request);

@@ -111,6 +111,20 @@ extension Pluralized on String {
 }
 
 extension StringExtension on String {
+  String? get nullIfEmpty {
+    return isNotEmpty ? this : null;
+  }
+
+  /// If [length] is above the [limit], replace the middle with `...`.
+  String elideTo(int limit) {
+    if (length > limit) {
+      var headLength = limit ~/ 2 - 1;
+      var tailLength = limit - headLength - 3;
+      return '${substring(0, headLength)}...${substring(length - tailLength)}';
+    }
+    return this;
+  }
+
   /// If this is equal to [value], return [then], otherwise return `this`.
   String ifEqualThen(String value, String then) {
     return this == value ? then : this;

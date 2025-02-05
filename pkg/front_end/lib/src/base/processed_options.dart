@@ -143,12 +143,12 @@ class ProcessedOptions {
     return _sdkSummary;
   }
 
-  List<int>? _sdkSummaryBytes;
+  Uint8List? _sdkSummaryBytes;
   bool _triedLoadingSdkSummary = false;
 
   // Coverage-ignore(suite): Not run.
   /// Get the bytes of the SDK outline, if any.
-  Future<List<int>?> loadSdkSummaryBytes() async {
+  Future<Uint8List?> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
       if (sdkSummary == null) return null;
       FileSystemEntity entry = fileSystem.entityForUri(sdkSummary!);
@@ -162,6 +162,26 @@ class ProcessedOptions {
   Uri? get librariesSpecificationUri {
     _ensureSdkDefaults();
     return _librariesSpecificationUri;
+  }
+
+  Uri? get dynamicInterfaceSpecificationUri =>
+      _raw.dynamicInterfaceSpecificationUri;
+
+  String? _dynamicInterfaceSpecificationContents;
+  bool _triedLoadingDynamicInterfaceSpecification = false;
+
+  Future<String?> loadDynamicInterfaceSpecification() async {
+    final Uri? dynamicInterfaceSpecificationUri =
+        this.dynamicInterfaceSpecificationUri;
+    if (dynamicInterfaceSpecificationUri == null) return null;
+    if (_dynamicInterfaceSpecificationContents == null &&
+        !_triedLoadingDynamicInterfaceSpecification) {
+      FileSystemEntity entry =
+          fileSystem.entityForUri(dynamicInterfaceSpecificationUri);
+      _dynamicInterfaceSpecificationContents = await _readAsString(entry);
+      _triedLoadingDynamicInterfaceSpecification = true;
+    }
+    return _dynamicInterfaceSpecificationContents;
   }
 
   Ticker ticker;
@@ -517,7 +537,7 @@ class ProcessedOptions {
     if (_sdkSummaryComponent == null) {
       // Coverage-ignore-block(suite): Not run.
       if (sdkSummary == null) return null;
-      List<int>? bytes = await loadSdkSummaryBytes();
+      Uint8List? bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
         _sdkSummaryComponent =
             loadComponent(bytes, nameRoot, fileUri: sdkSummary);
@@ -543,11 +563,11 @@ class ProcessedOptions {
       List<Uri> uris = _raw.additionalDills;
       if (uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
-      List<List<int>?> allBytes = await Future.wait(
+      List<Uint8List?> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       List<Component> result = [];
       for (int i = 0; i < uris.length; i++) {
-        List<int>? bytes = allBytes[i];
+        Uint8List? bytes = allBytes[i];
         if (bytes == null) continue;
         result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
       }
@@ -558,7 +578,7 @@ class ProcessedOptions {
 
   // Coverage-ignore(suite): Not run.
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Component loadComponent(List<int> bytes, CanonicalName? nameRoot,
+  Component loadComponent(Uint8List bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));
@@ -595,13 +615,6 @@ class ProcessedOptions {
 
   Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
     String name = target.name;
-    // TODO(sigmund): Eek! We should get to the point where there is no
-    // fasta-specific targets and the target names are meaningful.
-    if (name.endsWith('_fasta')) {
-      // Coverage-ignore-block(suite): Not run.
-      name = name.substring(0, name.length - 6);
-    }
-
     if (librariesSpecificationUri == null ||
         !await fileSystem.entityForUri(librariesSpecificationUri!).exists()) {
       if (compileSdk) {
@@ -930,10 +943,24 @@ class ProcessedOptions {
   }
 
   // Coverage-ignore(suite): Not run.
-  Future<List<int>?> _readAsBytes(FileSystemEntity file) async {
+  Future<Uint8List?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(
+              error.uri, osErrorMessage(error.message)),
+          Severity.error);
+      return null;
+    }
+  }
+
+  Future<String?> _readAsString(FileSystemEntity file) async {
+    try {
+      return await file.readAsString();
+    }
+    // Coverage-ignore(suite): Not run.
+    on FileSystemException catch (error) {
       reportWithoutLocation(
           templateCantReadFile.withArguments(
               error.uri, osErrorMessage(error.message)),

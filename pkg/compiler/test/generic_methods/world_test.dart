@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/codegen_world_builder.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -82,8 +82,9 @@ main(args) {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': code});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': code},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     CodegenWorld codegenWorld = compiler.codegenWorldForTesting!;
@@ -100,15 +101,19 @@ main() {
     }
 
     void checkInvocationsFor(
-        String methodName, List<CallStructure> expectedCallStructures) {
-      Iterable<CallStructure> actualCallStructures =
-          getCallStructures(methodName);
+      String methodName,
+      List<CallStructure> expectedCallStructures,
+    ) {
+      Iterable<CallStructure> actualCallStructures = getCallStructures(
+        methodName,
+      );
       Expect.setEquals(
-          expectedCallStructures,
-          actualCallStructures,
-          "Unexpected call structures for '$methodName'. "
-          "Expected ${expectedCallStructures}, "
-          "actual ${actualCallStructures}.");
+        expectedCallStructures,
+        actualCallStructures,
+        "Unexpected call structures for '$methodName'. "
+        "Expected ${expectedCallStructures}, "
+        "actual ${actualCallStructures}.",
+      );
     }
 
     checkInvocationsFor('method1', [noTypeArguments]);

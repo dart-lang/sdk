@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Test that we report a compile-time error when an instance getter conflicts
 // with an inherited instance method of the same name.
 

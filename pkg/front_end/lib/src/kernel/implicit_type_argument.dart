@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.implicit_type_argument;
-
 import 'package:kernel/ast.dart'
     show
         AuxiliaryType,
@@ -36,8 +34,8 @@ class ImplicitTypeArgument extends AuxiliaryType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get nonTypeVariableBound {
-    throw unsupported("nonTypeVariableBound", -1, null);
+  DartType get nonTypeParameterBound {
+    throw unsupported("nonTypeParameterBound", -1, null);
   }
 
   @override

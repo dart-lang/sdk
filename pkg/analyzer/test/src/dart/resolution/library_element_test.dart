@@ -13,7 +13,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryElementTest_featureSet);
-    defineReflectiveTests(LibraryElementTest_scope);
     defineReflectiveTests(LibraryElementTest_toString);
   });
 }
@@ -156,7 +155,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   void _assertFeatureSet(List<Feature> expected) {
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = result.libraryElement2.featureSet;
 
     var actual = ExperimentStatus.knownFeatures.values
         .where(featureSet.isEnabled)
@@ -168,151 +167,10 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   void _assertLanguageVersion({
     required Version package,
     required Version? override,
-  }) async {
-    var element = result.libraryElement;
+  }) {
+    var element = result.libraryElement2;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);
-  }
-}
-
-@reflectiveTest
-class LibraryElementTest_scope extends PubPackageResolutionTest {
-  @deprecated
-  test_lookup() async {
-    await assertNoErrorsInCode(r'''
-int foo = 0;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup('foo').getter,
-      findElement.topGet('foo'),
-    );
-    assertElement(
-      scope.lookup('foo').setter,
-      findElement.topSet('foo'),
-    );
-  }
-
-  @deprecated
-  test_lookup_extension_unnamed() async {
-    await assertNoErrorsInCode(r'''
-extension on int {}
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElementNull(
-      scope.lookup('').getter,
-    );
-  }
-
-  @deprecated
-  test_lookup_implicitCoreImport() async {
-    await assertNoErrorsInCode('');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup('int').getter,
-      intElement,
-    );
-  }
-
-  @deprecated
-  test_lookup_notFound() async {
-    await assertNoErrorsInCode('');
-
-    var scope = result.libraryElement.scope;
-
-    assertElementNull(
-      scope.lookup('noSuchGetter').getter,
-    );
-
-    assertElementNull(
-      scope.lookup('noSuchSetter').setter,
-    );
-  }
-
-  @deprecated
-  test_lookup_prefersLocal() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math';
-
-int sin() => 3;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup('sin').getter,
-      findElement.topFunction('sin'),
-    );
-
-    assertElement(
-      scope.lookup('cos').getter,
-      findElement.importFind('dart:math').topFunction('cos'),
-    );
-  }
-
-  @deprecated
-  test_lookup_prefix() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' as math;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup('math').getter,
-      findElement.prefix('math'),
-    );
-  }
-
-  @deprecated
-  test_lookup_respectsCombinator_hide() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' hide sin;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElementNull(
-      scope.lookup('sin').getter,
-    );
-
-    var mathFind = findElement.importFind('dart:math');
-    assertElement(
-      scope.lookup('cos').getter,
-      mathFind.topFunction('cos'),
-    );
-    assertElement(
-      scope.lookup('tan').getter,
-      mathFind.topFunction('tan'),
-    );
-  }
-
-  @deprecated
-  test_lookup_respectsCombinator_show() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' show sin;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup('sin').getter,
-      findElement.importFind('dart:math').topFunction('sin'),
-    );
-
-    assertElementNull(
-      scope.lookup('cos').getter,
-    );
   }
 }
 
@@ -324,7 +182,7 @@ library my.name;
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }
@@ -335,7 +193,7 @@ library;
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }
@@ -346,7 +204,7 @@ class A {}
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }

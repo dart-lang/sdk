@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Status file for the strong_suite.dart test suite. This is testing generating
-# Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
-# strong-mode enabled.
+# Kernel ASTs directly, that is, code in pkg/kernel.
 
 # Macros are in development
 macros/scope_access: SemiFuzzFailure
@@ -90,6 +89,7 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 # Incremental compiler doesn't see custom dart: libraries as dependencies on recompilation:
 dart2js/tear_off_patch/main: SemiFuzzFailure
 dartdevc/factory_patch/main: SemiFuzzFailure
+extensions/patch/main: SemiFuzzFailure
 general/constructor_patch/main: SemiFuzzFailure
 general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure
@@ -103,6 +103,7 @@ general/patch_annotations/main: SemiFuzzFailure
 general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure
 general/patch_extension_scope/main: SemiFuzzFailure
+general/patch_getter/main: SemiFuzzFailure
 general/tear_off_patch/main: SemiFuzzFailure
 late_lowering/injected_late_field_checks/main: SemiFuzzFailure
 late_lowering/issue41436/issue41436: SemiFuzzFailure
@@ -114,7 +115,6 @@ nnbd/platform_optional_parameters/main: SemiFuzzFailure
 # UNSORTED ONES:
 coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
-general/bad_import: SemiFuzzCrash # missing end token on import
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
@@ -131,6 +131,7 @@ static_field_lowering/opt_in: SemiFuzzFailure
 
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
+macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies
 macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
 
 const_functions/const_functions_list: SemiFuzzCrash
@@ -188,7 +189,6 @@ extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/await_in_non_async: RuntimeError
-general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
@@ -196,8 +196,6 @@ general/constructor_initializer_invalid: RuntimeError
 general/continue_label_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic2: RuntimeError
-general/crashes/crash_02/main: Crash
-general/crashes/crash_06/main: Crash
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError

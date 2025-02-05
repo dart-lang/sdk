@@ -31,7 +31,12 @@ class ResourceIdentifier {
   final String arguments;
 
   ResourceIdentifier(
-      this.name, this.uri, this.location, this.nonconstant, this.arguments);
+    this.name,
+    this.uri,
+    this.location,
+    this.nonconstant,
+    this.arguments,
+  );
 
   factory ResourceIdentifier.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -39,9 +44,10 @@ class ResourceIdentifier {
     Uri uri = source.readUri();
 
     bool hasLocation = source.readBool();
-    ResourceIdentifierLocation? location = hasLocation
-        ? ResourceIdentifierLocation.readFromDataSource(source)
-        : null;
+    ResourceIdentifierLocation? location =
+        hasLocation
+            ? ResourceIdentifierLocation.readFromDataSource(source)
+            : null;
 
     bool nonconstant = source.readBool();
     String arguments = source.readString();
@@ -90,7 +96,8 @@ class ResourceIdentifierLocation {
   ResourceIdentifierLocation._(this.uri, this.line, this.column);
 
   factory ResourceIdentifierLocation.readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     final uri = source.readUri();
     final line = source.readIntOrNull();
     final column = source.readIntOrNull();
@@ -128,7 +135,12 @@ class ResourceIdentifierBuilder {
 
   ResourceIdentifier finish() {
     return ResourceIdentifier(
-        name, uri, _location, _nonconstant, jsonEncode(_arguments));
+      name,
+      uri,
+      _location,
+      _nonconstant,
+      jsonEncode(_arguments),
+    );
   }
 
   void add(String argumentName, ConstantValue? constant) {

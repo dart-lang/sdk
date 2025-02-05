@@ -37,9 +37,13 @@ class AddParameter extends ParameterModification {
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
-  AddParameter(this.index, this.name, this.isRequired, this.isPositional,
-      this.argumentValue)
-      : assert(index >= 0);
+  AddParameter(
+    this.index,
+    this.name,
+    this.isRequired,
+    this.isPositional,
+    this.argumentValue,
+  ) : assert(index >= 0);
 }
 
 /// The type change of a parameter.
@@ -73,7 +77,7 @@ class ModifyParameters extends Change<_Data> {
   /// Initialize a newly created transform to modifications to the parameter
   /// list of a function.
   ModifyParameters({required this.modifications})
-      : assert(modifications.isNotEmpty);
+    : assert(modifications.isNotEmpty);
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -124,9 +128,10 @@ class ModifyParameters extends Change<_Data> {
         if (argument == null) {
           // If there is no argument corresponding to the parameter then we assume
           // that the parameter was absent.
-          var index = reference is PositionalFormalParameterReference
-              ? reference.index
-              : remainingArguments.isNotEmpty
+          var index =
+              reference is PositionalFormalParameterReference
+                  ? reference.index
+                  : remainingArguments.isNotEmpty
                   ? remainingArguments.last + 1
                   : 0;
           remainingArguments.add(index);
@@ -138,9 +143,11 @@ class ModifyParameters extends Change<_Data> {
             var argumentValue = modification.argumentValue;
             if (argumentValue != null) {
               builder.addReplacement(
-                  SourceRange(argument.offset, argument.length), (builder) {
-                argumentValue.writeOn(builder, templateContext);
-              });
+                SourceRange(argument.offset, argument.length),
+                (builder) {
+                  argumentValue.writeOn(builder, templateContext);
+                },
+              );
             }
           }
         }
@@ -165,7 +172,9 @@ class ModifyParameters extends Change<_Data> {
     /// Write to the [builder] the change associated with a single
     /// [parameter].
     void writeChangeArgument(
-        DartEditBuilder builder, ChangeParameterType parameter) {
+      DartEditBuilder builder,
+      ChangeParameterType parameter,
+    ) {
       var argumentValue = parameter.argumentValue;
       if (argumentValue != null) {
         switch (parameter.reference) {
@@ -185,12 +194,17 @@ class ModifyParameters extends Change<_Data> {
       /// Write to the [builder] the new arguments in the [insertionRange]. If
       /// [needsInitialComma] is `true` then we need to write a comma before the
       /// first of the new arguments.
-      void writeInsertionRange(DartEditBuilder builder,
-          IndexRange insertionRange, bool needsInitialComma) {
+      void writeInsertionRange(
+        DartEditBuilder builder,
+        IndexRange insertionRange,
+        bool needsInitialComma,
+      ) {
         var needsComma = needsInitialComma;
-        for (var argumentIndex = insertionRange.lower;
-            argumentIndex <= insertionRange.upper;
-            argumentIndex++) {
+        for (
+          var argumentIndex = insertionRange.lower;
+          argumentIndex <= insertionRange.upper;
+          argumentIndex++
+        ) {
           if (needsComma) {
             builder.write(', ');
           } else {
@@ -219,8 +233,10 @@ class ModifyParameters extends Change<_Data> {
         if (insertionIndex <= remainingIndex + insertionCount) {
           // There are arguments that need to be inserted before the next
           // remaining argument.
-          var deletionRange =
-              _rangeContaining(deletionRanges, insertionIndex - 1);
+          var deletionRange = _rangeContaining(
+            deletionRanges,
+            insertionIndex - 1,
+          );
           if (deletionRange == null) {
             // The insertion range doesn't overlap a deletion range, so insert
             // the added arguments before the argument whose index is
@@ -231,9 +247,10 @@ class ModifyParameters extends Change<_Data> {
               offset = arguments[remainingIndex - 1].end;
               needsInitialComma = true;
             } else {
-              offset = arguments.isNotEmpty
-                  ? arguments[remainingIndex].offset
-                  : argumentList.leftParenthesis.end;
+              offset =
+                  arguments.isNotEmpty
+                      ? arguments[remainingIndex].offset
+                      : argumentList.leftParenthesis.end;
             }
             builder.addInsertion(offset, (builder) {
               writeInsertionRange(builder, insertionRange, needsInitialComma);
@@ -246,7 +263,11 @@ class ModifyParameters extends Change<_Data> {
             // arguments in the deletion range with the arguments in the
             // insertion range.
             var replacementRange = range.argumentRange(
-                argumentList, deletionRange.lower, deletionRange.upper, false);
+              argumentList,
+              deletionRange.lower,
+              deletionRange.upper,
+              false,
+            );
             builder.addReplacement(replacementRange, (builder) {
               writeInsertionRange(builder, insertionRange, false);
             });
@@ -262,9 +283,10 @@ class ModifyParameters extends Change<_Data> {
       }
       // The remaining insertion ranges might include new required arguments
       // that need to be inserted after the last argument.
-      var offset = arguments.isEmpty
-          ? argumentList.leftParenthesis.end
-          : arguments[arguments.length - 1].end;
+      var offset =
+          arguments.isEmpty
+              ? argumentList.leftParenthesis.end
+              : arguments[arguments.length - 1].end;
       while (nextInsertionRange < insertionRanges.length) {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
@@ -286,8 +308,11 @@ class ModifyParameters extends Change<_Data> {
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
-            writeInsertionRange(builder, IndexRange(lower, upper),
-                nextRemaining > 0 || insertionCount > 0);
+            writeInsertionRange(
+              builder,
+              IndexRange(lower, upper),
+              nextRemaining > 0 || insertionCount > 0,
+            );
           });
         }
         nextInsertionRange++;
@@ -309,8 +334,9 @@ class ModifyParameters extends Change<_Data> {
         // `ConflictingEditException`.
         builder.addDeletion(range.startEnd(arguments[lower], arguments[upper]));
       } else {
-        builder
-            .addDeletion(range.argumentRange(argumentList, lower, upper, true));
+        builder.addDeletion(
+          range.argumentRange(argumentList, lower, upper, true),
+        );
       }
     }
   }

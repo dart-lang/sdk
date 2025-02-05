@@ -89,9 +89,6 @@ abstract class ClassMemberAccess {
 }
 
 abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
-  /// The type variables declared on a class, extension or mixin declaration.
-  List<NominalVariableBuilder>? get typeVariables;
-
   /// The type in the `extends` clause of a class declaration.
   ///
   /// Currently this also holds the synthesized super class for a mixin
@@ -117,7 +114,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isInterface;
 
-  @override
   bool get isFinal;
 
   bool get declaresConstConstructor;
@@ -138,6 +134,9 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   ///
   /// For an augmentation class the origin class is returned.
   Class get cls;
+
+  /// Reference for the class built by this builder.
+  Reference get reference;
 
   @override
   ClassBuilder get origin;
@@ -179,23 +178,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
 
-  ClassBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
-      LibraryBuilder parent, Uri fileUri, int fileOffset)
-      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
-
-  @override
-  String get debugName => "ClassBuilder";
-
-  @override
-  bool get isAbstract => (modifiers & abstractMask) != 0;
-
   @override
   bool get isMixinApplication => mixedInTypeBuilder != null;
-
-  @override
-  bool get isNamedMixinApplication {
-    return isMixinApplication && (modifiers & namedMixinApplicationMask) != 0;
-  }
 
   @override
   bool get isAnonymousMixinApplication {
@@ -205,12 +189,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  bool get declaresConstConstructor =>
-      (modifiers & declaresConstConstructorMask) != 0;
-
-  @override
   Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             libraryBuilder.nameOriginBuilder.origin &&
@@ -221,14 +201,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getable: nameSpace.lookupLocalMember(name, setter: false),
         setable: nameSpace.lookupLocalMember(name, setter: true),
         name: name,
-        charOffset: charOffset,
+        charOffset: fileOffset,
         fileUri: fileUri,
         classNameOrDebugName: this.name,
         isSetter: isSetter,
         forStaticAccess: true);
     if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
-          name, charOffset, fileUri, accessingLibrary,
+          name, fileOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
     }
     return declaration;
@@ -278,19 +258,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   // Coverage-ignore(suite): Not run.
   InterfaceType get legacyRawType {
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nullableRawType {
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nonNullableRawType {
     return _nonNullableRawType ??= new InterfaceType(
         cls,
         Nullability.nonNullable,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType rawType(Nullability nullability) {
@@ -314,9 +294,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool get isFutureOr {
     if (name == "FutureOr") {
-      LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.isScheme("dart") &&
-          parentLibrary.importUri.path == "async") {
+      if (parent.importUri.isScheme("dart") &&
+          parent.importUri.path == "async") {
         return true;
       }
     }
@@ -363,7 +342,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     InterfaceType type = new InterfaceType(cls, nullability, arguments);
     if (arguments.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeVariablesCount == 0);
+      assert(typeParametersCount == 0);
       if (nullability == Nullability.nonNullable) {
         aliasedTypeWithBuiltArgumentsCacheNonNullable = type;
       } else if (nullability == Nullability.nullable) {
@@ -371,7 +350,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
     }
 
-    if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
+    if (typeParametersCount != 0 && library is SourceLibraryBuilder) {
       library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
           inferred: !hasExplicitTypeArguments);
     }
@@ -482,14 +461,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (isNullClass) {
       return Nullability.nullable;
     } else if (isFutureOr) {
       if (typeArguments != null && typeArguments.length == 1) {
         return typeArguments.single.computeNullability(
-            typeVariablesTraversalState: typeVariablesTraversalState);
+            typeParametersTraversalState: typeParametersTraversalState);
       } else {
         // This is `FutureOr<dynamic>`.
         return Nullability.nullable;

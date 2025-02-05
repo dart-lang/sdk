@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -40,27 +43,38 @@ class SinceSdkVersionComputer {
     }
   }
 
-  /// Returns the maximal specified `@Since()` version from the [annotations].
-  ///
-  /// Returns `null` if none of the annotations is a `@Since` annotation.
-  static Version? fromAnnotations(List<ElementAnnotationImpl> annotations) {
-    // TODO(brianwilkerson): Replace the body of `_specifiedVersion` with this
-    //  method.
-    Version? result;
-    for (var annotation in annotations) {
-      if (annotation.isDartInternalSince) {
-        var arguments = annotation.annotationAst.arguments?.arguments;
-        var versionNode = arguments?.singleOrNull;
-        if (versionNode is SimpleStringLiteralImpl) {
-          var versionStr = versionNode.value;
-          var version = _parseVersion(versionStr);
-          if (version != null) {
-            result = result.maxWith(version);
-          }
-        }
-      }
+  /// The [element] is a `dart:xyz` library, so it can have `@Since` annotations.
+  /// Evaluates its annotations and returns the version.
+  Version? compute2(Element2 element) {
+    // Must be in a `dart:` library.
+    var libraryUri = element.library2?.uri;
+    if (libraryUri == null || !libraryUri.isScheme('dart')) {
+      return null;
     }
-    return null;
+
+    // Fields cannot be referenced outside.
+    if (element is FieldElement2 && element.isSynthetic) {
+      return null;
+    }
+
+    // We cannot add required parameters.
+    if (element is FormalParameterElement && element.isRequired) {
+      return null;
+    }
+
+    Version? specified;
+    if (element is Annotatable) {
+      specified = _specifiedVersion2(element as Annotatable);
+    }
+    if (element.enclosingElement2 case Annotatable enclosingElement?) {
+      var enclosing = enclosingElement.metadata2.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else if (element.library2 case var libraryElement?) {
+      var enclosing = libraryElement.metadata2.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else {
+      return specified;
+    }
   }
 
   /// Returns the parsed [Version], or `null` if wrong format.
@@ -82,6 +96,27 @@ class SinceSdkVersionComputer {
   static Version? _specifiedVersion(ElementImpl element) {
     Version? result;
     for (var annotation in element.metadata) {
+      if (annotation.isDartInternalSince) {
+        var arguments = annotation.annotationAst.arguments?.arguments;
+        var versionNode = arguments?.singleOrNull;
+        if (versionNode is SimpleStringLiteralImpl) {
+          var versionStr = versionNode.value;
+          var version = _parseVersion(versionStr);
+          if (version != null) {
+            result = result.maxWith(version);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Returns the maximal specified `@Since()` version, `null` if none.
+  static Version? _specifiedVersion2(Annotatable element) {
+    var annotations =
+        element.metadata2.annotations.cast<ElementAnnotationImpl>();
+    Version? result;
+    for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {
         var arguments = annotation.annotationAst.arguments?.arguments;
         var versionNode = arguments?.singleOrNull;

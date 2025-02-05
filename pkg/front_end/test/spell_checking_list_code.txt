@@ -16,6 +16,8 @@ abbreviate
 abc
 abcdef
 abs
+absorb
+absorbed
 accepting
 accompany
 accounting
@@ -54,6 +56,7 @@ allocate
 allocator
 altered
 ambiguities
+ambivalent
 amd
 analogous
 analogy
@@ -130,6 +133,7 @@ bail
 balance
 bang
 bar
+basename
 basically
 basis
 batch
@@ -190,6 +194,7 @@ brevity
 brianwilkerson
 bridge
 bridges
+brief
 brute
 bs
 bsd
@@ -272,6 +277,7 @@ clil
 clock
 closurizing
 cls
+clutter
 cm
 cmdline
 cmdlines
@@ -399,6 +405,7 @@ danrubel
 daringfireball
 dartaotruntime
 dartbug
+dartdev
 dartdoc
 dartfix
 dartino
@@ -444,6 +451,8 @@ dependency's
 depfile
 deprecating
 deps
+dereference
+dereferences
 dereferencing
 deregister
 descent
@@ -532,6 +541,7 @@ dyn
 dynamically
 e
 eager
+ease
 easy
 eb
 ecma
@@ -624,6 +634,8 @@ explosion
 exportable
 exportee
 exportees
+expose
+exposing
 expr
 expression's
 ext
@@ -721,6 +733,7 @@ gardening
 garner
 gathers
 gb
+gc
 gen
 gendir
 generation
@@ -905,7 +918,9 @@ intersects
 interspersed
 interval
 intervals
+intervening
 intl
+introductory
 introspect
 introspectable
 introspecting
@@ -1179,6 +1194,7 @@ obstruct
 obtaining
 occasionally
 occupied
+occupy
 offending
 ogham
 okay
@@ -1262,6 +1278,7 @@ permit
 permits
 persist
 pertinent
+phrase
 physically
 pi
 picking
@@ -1270,6 +1287,7 @@ pids
 pieces
 pipe
 pkg
+pkgs
 play
 player
 plugin
@@ -1302,6 +1320,7 @@ precompiled
 precompiles
 precompiling
 precomputed
+precursor
 preexisted
 preexisting
 preferably
@@ -1312,6 +1331,7 @@ preorder
 prepares
 preprocess
 presented
+pressure
 presubmit
 presumably
 presuming
@@ -1471,6 +1491,7 @@ reinterpret
 reissued
 reject
 rejoin
+rejoins
 relatively
 relativize
 relax
@@ -1691,6 +1712,7 @@ sq
 sra
 srawlins
 src
+srujzs
 ssa
 st
 stability
@@ -1728,6 +1750,7 @@ stringify
 strip
 structs
 structurally
+structured
 structures
 stub
 stubs
@@ -1948,6 +1971,7 @@ unfiltered
 unfinalized
 unfold
 unfolds
+unfortunately
 unfuture
 unfutured
 unguarded

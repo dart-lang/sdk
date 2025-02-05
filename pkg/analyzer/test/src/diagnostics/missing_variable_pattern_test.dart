@@ -168,7 +168,7 @@ LogicalOrPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@39
@@ -231,7 +231,7 @@ LogicalOrPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -273,7 +273,7 @@ LogicalOrPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -285,7 +285,7 @@ LogicalOrPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@54
@@ -362,7 +362,7 @@ LogicalOrPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -381,7 +381,7 @@ LogicalOrPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@59
@@ -416,7 +416,7 @@ LogicalOrPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@44
@@ -563,7 +563,7 @@ LogicalOrPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@50

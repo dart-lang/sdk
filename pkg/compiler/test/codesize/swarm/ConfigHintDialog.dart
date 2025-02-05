@@ -16,7 +16,7 @@ class ConfigHintDialog extends DialogView {
   }
 
   ConfigHintDialog._impl(this._parent, this._doneHandler, View content)
-      : super('Feed configuration', '', content);
+    : super('Feed configuration', '', content);
 
   @override
   void onDone() {

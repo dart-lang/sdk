@@ -3,18 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 class ParseBase with ResourceProviderMixin {
   /// Override this to change the analysis options for a given set of tests.
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
+  AnalysisOptions get analysisOptions => AnalysisOptionsImpl();
 
   ParseResult parseUnit(String path) {
     var file = getFile(path);
@@ -34,12 +36,17 @@ class ParseBase with ResourceProviderMixin {
 
     var token = scanner.tokenize();
     var lineInfo = LineInfo(scanner.lineStarts);
+    var languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: scanner.overrideVersion,
+    );
     featureSet = scanner.featureSet;
 
     var parser = Parser(
       source,
       errorListener,
       featureSet: featureSet,
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
 

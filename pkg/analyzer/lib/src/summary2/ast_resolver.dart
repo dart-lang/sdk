@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -13,7 +16,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -25,7 +27,7 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
-  final AnalysisOptionsImpl analysisOptions;
+  final AnalysisOptions analysisOptions;
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   final AugmentableElement? enclosingAugmentation;
@@ -38,10 +40,7 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    _unitElement.library,
-    _unitElement.source,
-    _unitElement.library.typeProvider,
-    _errorListener,
+    ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
   );
   late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
@@ -75,10 +74,10 @@ class AstResolver {
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node, null);
+    _flowAnalysis.bodyOrInitializer_enter(node, null);
     node.accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void resolveConstructorNode(ConstructorDeclarationImpl node) {
@@ -94,28 +93,27 @@ class AstResolver {
     visit(_scopeResolverVisitor);
 
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
-        visit: visit);
+    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: visit);
     visit(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void resolveExpression(
-    Expression Function() getNode, {
+    ExpressionImpl Function() getNode, {
     DartType contextType = UnknownInferredType.instance,
   }) {
-    Expression node = getNode();
+    ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
+    _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void _prepareEnclosingDeclarations() {

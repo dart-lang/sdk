@@ -114,27 +114,30 @@ import 'dart:_rti' show Rti;
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
 @pragma('ddc:trust-inline')
-external T JS<T extends Object?>(String typeDescription, String codeTemplate,
-    [arg0,
-    arg1,
-    arg2,
-    arg3,
-    arg4,
-    arg5,
-    arg6,
-    arg7,
-    arg8,
-    arg9,
-    arg10,
-    arg11,
-    arg12,
-    arg13,
-    arg14,
-    arg15,
-    arg16,
-    arg17,
-    arg18,
-    arg19]);
+external T JS<T extends Object?>(
+  String typeDescription,
+  String codeTemplate, [
+  arg0,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  arg6,
+  arg7,
+  arg8,
+  arg9,
+  arg10,
+  arg11,
+  arg12,
+  arg13,
+  arg14,
+  arg15,
+  arg16,
+  arg17,
+  arg18,
+  arg19,
+]);
 
 /// Annotates the compiled Js name for fields and methods.
 /// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
@@ -274,8 +277,22 @@ external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 /// `_js_shared_embedded_names` library.
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
+external JS_BUILTIN(
+  String typeDescription,
+  JsBuiltin builtin, [
+  arg0,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  arg6,
+  arg7,
+  arg8,
+  arg9,
+  arg10,
+  arg11,
+]);
 
 /// Returns the interceptor for [object] as needed by the dart:rti library.
 ///

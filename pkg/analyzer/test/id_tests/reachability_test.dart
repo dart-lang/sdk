@@ -13,7 +13,7 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
   return runTests<Set<_ReachabilityAssertion>>(dataDir,
@@ -40,10 +40,9 @@ class _ReachabilityDataComputer
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
-    _ReachabilityDataExtractor(unitElement.source.uri, actualMap, flowResult)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
+    _ReachabilityDataExtractor(unitUri, actualMap, flowResult).run(unit);
   }
 }
 

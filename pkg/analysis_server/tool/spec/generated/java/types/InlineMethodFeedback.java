@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -29,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class InlineMethodFeedback extends RefactoringFeedback {
 
-  public static final InlineMethodFeedback[] EMPTY_ARRAY = new InlineMethodFeedback[0];
-
-  public static final List<InlineMethodFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<InlineMethodFeedback> EMPTY_LIST = List.of();
 
   /**
    * The name of the class enclosing the method being inlined. If not a class member is being
@@ -60,11 +55,10 @@ public class InlineMethodFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof InlineMethodFeedback) {
-      InlineMethodFeedback other = (InlineMethodFeedback) obj;
+    if (obj instanceof InlineMethodFeedback other) {
       return
-        ObjectUtilities.equals(other.className, className) &&
-        ObjectUtilities.equals(other.methodName, methodName) &&
+        Objects.equals(other.className, className) &&
+        Objects.equals(other.methodName, methodName) &&
         other.isDeclaration == isDeclaration;
     }
     return false;
@@ -81,10 +75,9 @@ public class InlineMethodFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<InlineMethodFeedback> list = new ArrayList<InlineMethodFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<InlineMethodFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -113,13 +106,14 @@ public class InlineMethodFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(className);
-    builder.append(methodName);
-    builder.append(isDeclaration);
-    return builder.toHashCode();
+    return Objects.hash(
+      className,
+      methodName,
+      isDeclaration
+    );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     if (className != null) {
@@ -135,9 +129,11 @@ public class InlineMethodFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("className=");
-    builder.append(className + ", ");
+    builder.append(className);
+    builder.append(", ");
     builder.append("methodName=");
-    builder.append(methodName + ", ");
+    builder.append(methodName);
+    builder.append(", ");
     builder.append("isDeclaration=");
     builder.append(isDeclaration);
     builder.append("]");

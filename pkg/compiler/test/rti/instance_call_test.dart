@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -15,6 +14,7 @@ import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -98,8 +98,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.omitImplicitChecks]);
+      memorySourceFiles: {'main.dart': code},
+      options: [Flags.omitImplicitChecks],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
@@ -109,42 +110,73 @@ main() {
     ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
     js.Name getName(String name, int typeArguments) {
-      return backendStrategy.namerForTesting.invocationName(new Selector.call(
-          PublicName(name), CallStructure(1, const <String>[], typeArguments)));
+      return backendStrategy.namerForTesting.invocationName(
+        new Selector.call(
+          PublicName(name),
+          CallStructure(1, const <String>[], typeArguments),
+        ),
+      );
     }
 
-    void checkParameters(String name,
-        {required int expectedParameterCount,
-        required bool needsTypeArguments}) {
+    void checkParameters(
+      String name, {
+      required int expectedParameterCount,
+      required bool needsTypeArguments,
+    }) {
       final function = lookupMember(elementEnvironment, name) as FunctionEntity;
 
       Expect.equals(
-          needsTypeArguments,
-          rtiNeed.methodNeedsTypeArguments(function),
-          "Unexpected type argument need for $function.");
+        needsTypeArguments,
+        rtiNeed.methodNeedsTypeArguments(function),
+        "Unexpected type argument need for $function.",
+      );
       Method method = programLookup.getMethod(function)!;
 
       final fun = method.code as js.Fun;
-      Expect.equals(expectedParameterCount, fun.params.length,
-          "Unexpected parameter count on $function: ${js.nodeToString(fun)}");
+      Expect.equals(
+        expectedParameterCount,
+        fun.params.length,
+        "Unexpected parameter count on $function: ${js.nodeToString(fun)}",
+      );
     }
 
     // The declarations should have type parameters only when needed.
-    checkParameters('A.method1',
-        expectedParameterCount: 2, needsTypeArguments: true);
-    checkParameters('B.method1',
-        expectedParameterCount: 2, needsTypeArguments: true);
-    checkParameters('A.method2',
-        expectedParameterCount: 2, needsTypeArguments: true);
-    checkParameters('B.method2',
-        expectedParameterCount: 1, needsTypeArguments: false);
-    checkParameters('A.method3',
-        expectedParameterCount: 1, needsTypeArguments: false);
-    checkParameters('B.method3',
-        expectedParameterCount: 1, needsTypeArguments: false);
+    checkParameters(
+      'A.method1',
+      expectedParameterCount: 2,
+      needsTypeArguments: true,
+    );
+    checkParameters(
+      'B.method1',
+      expectedParameterCount: 2,
+      needsTypeArguments: true,
+    );
+    checkParameters(
+      'A.method2',
+      expectedParameterCount: 2,
+      needsTypeArguments: true,
+    );
+    checkParameters(
+      'B.method2',
+      expectedParameterCount: 1,
+      needsTypeArguments: false,
+    );
+    checkParameters(
+      'A.method3',
+      expectedParameterCount: 1,
+      needsTypeArguments: false,
+    );
+    checkParameters(
+      'B.method3',
+      expectedParameterCount: 1,
+      needsTypeArguments: false,
+    );
 
-    checkArguments(String name, String targetName,
-        {required int expectedTypeArguments}) {
+    checkArguments(
+      String name,
+      String targetName, {
+      required int expectedTypeArguments,
+    }) {
       final function = lookupMember(elementEnvironment, name) as FunctionEntity;
       Method method = programLookup.getMethod(function)!;
 
@@ -152,22 +184,29 @@ main() {
 
       js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
-      forEachNode(fun, onCall: (js.Call node) {
-        js.Node target = js.undefer(node.target);
-        if (target is js.PropertyAccess) {
-          js.Node targetSelector = js.undefer(target.selector);
-          if (targetSelector is js.Name && targetSelector.key == selector.key) {
-            callFound = true;
-            Expect.equals(
+      forEachNode(
+        fun,
+        onCall: (js.Call node) {
+          js.Node target = js.undefer(node.target);
+          if (target is js.PropertyAccess) {
+            js.Node targetSelector = js.undefer(target.selector);
+            if (targetSelector is js.Name &&
+                targetSelector.key == selector.key) {
+              callFound = true;
+              Expect.equals(
                 1 + expectedTypeArguments,
                 node.arguments.length,
                 "Unexpected argument count in $function call to $targetName: "
-                "${js.nodeToString(fun)}");
+                "${js.nodeToString(fun)}",
+              );
+            }
           }
-        }
-      });
-      Expect.isTrue(callFound,
-          "No call to $targetName as '${selector.key}' in $function found.");
+        },
+      );
+      Expect.isTrue(
+        callFound,
+        "No call to $targetName as '${selector.key}' in $function found.",
+      );
     }
 
     // The declarations should have type parameters only when needed by the

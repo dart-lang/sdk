@@ -4,8 +4,8 @@
 
 /// TODO(johnniwinther): Currently this only works with the mock compiler.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""
@@ -89,15 +89,22 @@ main() {
 }
 """;
 
-checkRangeError(String test,
-    {required bool hasRangeError, String? methodName}) async {
-  String generated =
-      await compile(test, methodName: methodName, disableTypeInference: false);
+checkRangeError(
+  String test, {
+  required bool hasRangeError,
+  String? methodName,
+}) async {
+  String generated = await compile(
+    test,
+    methodName: methodName,
+    disableTypeInference: false,
+  );
   Expect.equals(
-      hasRangeError,
-      generated.contains('ioore'),
-      "Unexpected use of 'hasRangeError' for test:\n$test\n"
-      "in code\n$generated");
+    hasRangeError,
+    generated.contains('ioore'),
+    "Unexpected use of 'hasRangeError' for test:\n$test\n"
+    "in code\n$generated",
+  );
 }
 
 main() {

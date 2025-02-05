@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/element/element.dart';
@@ -1989,14 +1991,14 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
 
     isSubtype(
-      nullQuestion,
+      nullNone,
       functionTypeQuestion(
         parameters: [
           requiredParameter(type: intNone),
         ],
         returnType: numNone,
       ),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'num Function(int)?',
     );
   }
@@ -2205,18 +2207,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_futureOr_13() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       futureOrNone(intNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'FutureOr<int>',
     );
   }
 
   test_futureOr_14() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       futureQuestion(intNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'Future<int>?',
     );
   }
@@ -2603,15 +2605,17 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_25_interfaces() {
-    var A = class_(name: 'A');
     var I = class_(name: 'I');
 
-    A.interfaces = [
-      I.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ];
+    var A = class_(
+      name: 'A',
+      interfaces: [
+        I.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      ],
+    );
 
     var A_none = A.instantiate(
       typeArguments: const [],
@@ -2627,15 +2631,17 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_26_mixins() {
-    var A = class_(name: 'A');
     var M = class_(name: 'M');
 
-    A.mixins = [
-      M.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ];
+    var A = class_(
+      name: 'A',
+      mixins: [
+        M.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      ],
+    );
 
     var A_none = A.instantiate(
       typeArguments: const [],
@@ -2837,8 +2843,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isNotSubtype2('int Function(int)', 'num Function(num)');
 
-    isNotSubtype2('Null?', 'num Function(int)');
-    isSubtype2('Null?', 'num Function(int)?');
+    isNotSubtype2('Null', 'num Function(int)');
+    isSubtype2('Null', 'num Function(int)?');
 
     isSubtype2('Never', 'num Function(int)');
     isSubtype2('Never', 'num Function(int)?');
@@ -2894,8 +2900,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('FutureOr<int>', 'FutureOr<int>');
     isSubtype2('FutureOr<int>', 'FutureOr<num>');
     isSubtype2('FutureOr<int>', 'Object');
-    isSubtype2('Null?', 'FutureOr<num?>');
-    isSubtype2('Null?', 'FutureOr<num>?');
+    isSubtype2('Null', 'FutureOr<num?>');
+    isSubtype2('Null', 'FutureOr<num>?');
     isSubtype2('num?', 'FutureOr<num?>');
     isSubtype2('num?', 'FutureOr<num>?');
     isSubtype2('Future<num>', 'FutureOr<num?>');
@@ -3376,8 +3382,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('List<int>', 'List<Comparable<num>>');
     isSubtype2('List<int>', 'List<Comparable<Comparable<num>>>');
     isSubtype2('List<int>', 'Object');
-    isNotSubtype2('Null?', 'List<int>');
-    isSubtype2('Null?', 'List<int>?');
+    isNotSubtype2('Null', 'List<int>');
+    isSubtype2('Null', 'List<int>?');
     isSubtype2('Never', 'List<int>');
     isSubtype2('Never', 'List<int>?');
 
@@ -3404,7 +3410,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('int', 'Comparable<Object>');
     isSubtype2('double', 'num');
     isSubtype2('num', 'Object');
-    isSubtype2('Null?', 'num?');
+    isSubtype2('Null', 'num?');
     isSubtype2('Never', 'num');
     isSubtype2('Never', 'num?');
 
@@ -3413,7 +3419,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype2('int', 'Iterable<int>');
     isNotSubtype2('Comparable<int>', 'Iterable<int>');
     isNotSubtype2('num?', 'Object');
-    isNotSubtype2('Null?', 'num');
+    isNotSubtype2('Null', 'num');
     isNotSubtype2('num', 'Never');
   }
 
@@ -3424,7 +3430,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('Object', 'Object?');
 
     isNotSubtype2('Object', 'Never');
-    isNotSubtype2('Object', 'Null?');
+    isNotSubtype2('Object', 'Null');
     isNotSubtype2('dynamic', 'Object');
     isNotSubtype2('void', 'Object');
     isNotSubtype2('Object?', 'Object');
@@ -3447,13 +3453,13 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_multi_topAndBottom() {
-    isSubtype2('Null?', 'Null?');
-    isSubtype2('Never', 'Null?');
+    isSubtype2('Null', 'Null');
+    isSubtype2('Never', 'Null');
     isSubtype2('Never', 'Never');
-    isNotSubtype2('Null?', 'Never');
+    isNotSubtype2('Null', 'Never');
 
-    isSubtype2('Null?', 'Never?');
-    isSubtype2('Never?', 'Null?');
+    isSubtype2('Null', 'Never?');
+    isSubtype2('Never?', 'Null');
     isSubtype2('Never', 'Never?');
     isNotSubtype2('Never?', 'Never');
 
@@ -3470,16 +3476,16 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('Never', 'Object?');
     isSubtype2('Never', 'dynamic');
     isSubtype2('Never', 'void');
-    isSubtype2('Null?', 'Object?');
-    isSubtype2('Null?', 'dynamic');
-    isSubtype2('Null?', 'void');
+    isSubtype2('Null', 'Object?');
+    isSubtype2('Null', 'dynamic');
+    isSubtype2('Null', 'void');
 
     isNotSubtype2('Object?', 'Never');
-    isNotSubtype2('Object?', 'Null?');
+    isNotSubtype2('Object?', 'Null');
     isNotSubtype2('dynamic', 'Never');
-    isNotSubtype2('dynamic', 'Null?');
+    isNotSubtype2('dynamic', 'Null');
     isNotSubtype2('void', 'Never');
-    isNotSubtype2('void', 'Null?');
+    isNotSubtype2('void', 'Null');
   }
 
   test_multi_typeParameter_promotion() {
@@ -3742,68 +3748,68 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_never_29() {
-    isSubtype(neverNone, nullQuestion, strT0: 'Never', strT1: 'Null?');
+    isSubtype(neverNone, nullNone, strT0: 'Never', strT1: 'Null');
   }
 
   test_null_01() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       neverNone,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'Never',
     );
   }
 
   test_null_02() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       objectNone,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'Object',
     );
   }
 
   test_null_03() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       voidNone,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'void',
     );
   }
 
   test_null_04() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       dynamicType,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'dynamic',
     );
   }
 
   test_null_05() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       doubleNone,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'double',
     );
   }
 
   test_null_06() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       doubleQuestion,
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'double?',
     );
   }
 
   test_null_07() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       comparableNone(objectNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'Comparable<Object>',
     );
   }
@@ -3812,69 +3818,69 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectNone);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeNone(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T, T extends Object',
     );
   }
 
   test_null_09() {
     isSubtype(
-      nullQuestion,
-      nullQuestion,
-      strT0: 'Null?',
-      strT1: 'Null?',
+      nullNone,
+      nullNone,
+      strT0: 'Null',
+      strT1: 'Null',
     );
   }
 
   test_null_10() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       listNone(intNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'List<int>',
     );
   }
 
   test_null_13() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       functionTypeNone(
         returnType: numNone,
         parameters: [
           requiredParameter(type: intNone),
         ],
       ),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'num Function(int)',
     );
   }
 
   test_null_14() {
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       functionTypeNone(
         returnType: numNone,
         parameters: [
           requiredParameter(type: intNone),
         ],
       ),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'num Function(int)',
     );
   }
 
   test_null_15() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       functionTypeQuestion(
         returnType: numNone,
         parameters: [
           requiredParameter(type: intNone),
         ],
       ),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'num Function(int)?',
     );
   }
@@ -3883,9 +3889,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectNone);
 
     isSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeQuestion(T, numNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: '(T & num)?, T extends Object',
     );
   }
@@ -3894,9 +3900,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectQuestion);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeNone(T, numNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T & num, T extends Object?',
     );
   }
@@ -3905,9 +3911,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectQuestion);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeNone(T, numQuestion),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T & num?, T extends Object?',
     );
   }
@@ -3916,9 +3922,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectNone);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeNone(T, numNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T & num, T extends Object',
     );
   }
@@ -3928,9 +3934,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var S = typeParameter('S', bound: typeParameterTypeNone(T));
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeNone(T, typeParameterTypeNone(S)),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T & S, T extends Object?',
     );
   }
@@ -3939,9 +3945,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectNone);
 
     isSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeQuestion(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T?, T extends Object',
     );
   }
@@ -3950,9 +3956,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectQuestion);
 
     isSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeQuestion(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T?, T extends Object?',
     );
   }
@@ -3961,9 +3967,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectNone);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeNone(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T, T extends Object',
     );
   }
@@ -3972,32 +3978,32 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', bound: objectQuestion);
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeNone(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T, T extends Object?',
     );
   }
 
   test_null_25() {
-    var T = typeParameter('T', bound: nullQuestion);
+    var T = typeParameter('T', bound: nullNone);
 
     isSubtype(
       typeParameterTypeNone(T),
-      nullQuestion,
-      strT0: 'T, T extends Null?',
-      strT1: 'Null?',
+      nullNone,
+      strT0: 'T, T extends Null',
+      strT1: 'Null',
     );
   }
 
   test_null_26() {
-    var T = typeParameter('T', bound: nullQuestion);
+    var T = typeParameter('T', bound: nullNone);
 
     isSubtype(
       typeParameterTypeQuestion(T),
-      nullQuestion,
-      strT0: 'T?, T extends Null?',
-      strT1: 'Null?',
+      nullNone,
+      strT0: 'T?, T extends Null',
+      strT1: 'Null',
     );
   }
 
@@ -4006,9 +4012,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isNotSubtype(
       typeParameterTypeNone(T),
-      nullQuestion,
+      nullNone,
       strT0: 'T, T extends Object',
-      strT1: 'Null?',
+      strT1: 'Null',
     );
   }
 
@@ -4017,23 +4023,23 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isNotSubtype(
       typeParameterTypeNone(T),
-      nullQuestion,
+      nullNone,
       strT0: 'T, T extends Object?',
-      strT1: 'Null?',
+      strT1: 'Null',
     );
   }
 
   test_null_29() {
     isSubtype(
-      nullQuestion,
+      nullNone,
       comparableQuestion(objectNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'Comparable<Object>?',
     );
   }
 
   test_null_30() {
-    isNotSubtype(nullQuestion, objectNone, strT0: 'Null?', strT1: 'Object');
+    isNotSubtype(nullNone, objectNone, strT0: 'Null', strT1: 'Object');
   }
 
   test_nullabilitySuffix_01() {
@@ -4836,9 +4842,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       promotedTypeParameterTypeNone(T, numNone),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T & num',
     );
   }
@@ -5190,9 +5196,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      nullQuestion,
+      nullNone,
       typeParameterTypeNone(T),
-      strT0: 'Null?',
+      strT0: 'Null',
       strT1: 'T',
     );
   }
@@ -5406,7 +5412,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var unrelated = <DartType>[
       doubleNone,
       nullNone,
-      nullQuestion,
       neverQuestion,
     ];
 
@@ -5427,7 +5432,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var subtypes = <DartType>[
       intNone,
       nullNone,
-      nullQuestion,
       neverNone,
       neverQuestion,
     ];
@@ -5455,7 +5459,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   test_null() {
     var equivalents = <DartType>[
       nullNone,
-      nullQuestion,
       neverQuestion,
     ];
 

@@ -4,5 +4,6 @@ analyzer:
   errors:
     deprecated_member_use_from_same_package: ignore
   enable-experiment:
+    - augmentations
     - enhanced-parts
     - macros

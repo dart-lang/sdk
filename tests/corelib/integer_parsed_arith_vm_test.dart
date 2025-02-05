@@ -10,9 +10,10 @@ library integer_arithmetic_test;
 
 import "package:expect/expect.dart";
 
-String toHexString(int value) => value >= 0
-    ? "0x${value.toRadixString(16)}"
-    : "-0x${value.toRadixString(16).substring(1)}";
+String toHexString(int value) =>
+    value >= 0
+        ? "0x${value.toRadixString(16)}"
+        : "-0x${value.toRadixString(16).substring(1)}";
 
 addSubParsed(String a, String b, String sum) {
   int int_a = int.parse(a);
@@ -47,76 +48,93 @@ testAddSub() {
   addSubParsed("0x123", one, "0x124");
   addSubParsed(one, "0x123", "0x124");
   addSubParsed(
-      "0xFFFFFFF",
-      one, // 28 bit overflow.
-      "0x10000000");
+    "0xFFFFFFF",
+    one, // 28 bit overflow.
+    "0x10000000",
+  );
   addSubParsed(
-      "0xFFFFFFFF",
-      one, // 32 bit overflow.
-      "0x100000000");
+    "0xFFFFFFFF",
+    one, // 32 bit overflow.
+    "0x100000000",
+  );
   addSubParsed(
-      "0xFFFFFFFFFFFFFF",
-      one, // 56 bit overflow.
-      "0x100000000000000");
+    "0xFFFFFFFFFFFFFF",
+    one, // 56 bit overflow.
+    "0x100000000000000",
+  );
   addSubParsed(
-      "0x7FFFFFFFFFFFFFFF",
-      one, // 64 bit overflow.
-      "-0x8000000000000000");
+    "0x7FFFFFFFFFFFFFFF",
+    one, // 64 bit overflow.
+    "-0x8000000000000000",
+  );
   addSubParsed(
-      minus_one,
-      one, // 64 bit overflow.
-      zero);
+    minus_one,
+    one, // 64 bit overflow.
+    zero,
+  );
   addSubParsed(
-      "0x8000000", // 28 bit overflow.
-      "0x8000000",
-      "0x10000000");
+    "0x8000000", // 28 bit overflow.
+    "0x8000000",
+    "0x10000000",
+  );
   addSubParsed(
-      "0x80000000", // 32 bit overflow.
-      "0x80000000",
-      "0x100000000");
+    "0x80000000", // 32 bit overflow.
+    "0x80000000",
+    "0x100000000",
+  );
   addSubParsed(
-      "0x80000000000000", // 56 bit overflow.
-      "0x80000000000000",
-      "0x100000000000000");
+    "0x80000000000000", // 56 bit overflow.
+    "0x80000000000000",
+    "0x100000000000000",
+  );
   addSubParsed(
-      "-0x8000000000000000", // 64 bit overflow.
-      "-0x8000000000000000",
-      zero);
+    "-0x8000000000000000", // 64 bit overflow.
+    "-0x8000000000000000",
+    zero,
+  );
 
   addSubParsed("-0x123", minus_one, "-0x124");
   addSubParsed(minus_one, "-0x123", "-0x124");
   addSubParsed(
-      "-0xFFFFFFF",
-      minus_one, // 28 bit overflow.
-      "-0x10000000");
+    "-0xFFFFFFF",
+    minus_one, // 28 bit overflow.
+    "-0x10000000",
+  );
   addSubParsed(
-      "-0xFFFFFFFF",
-      minus_one, // 32 bit overflow.
-      "-0x100000000");
+    "-0xFFFFFFFF",
+    minus_one, // 32 bit overflow.
+    "-0x100000000",
+  );
   addSubParsed(
-      "-0xFFFFFFFFFFFFFF",
-      minus_one, // 56 bit overflow.
-      "-0x100000000000000");
+    "-0xFFFFFFFFFFFFFF",
+    minus_one, // 56 bit overflow.
+    "-0x100000000000000",
+  );
   addSubParsed(
-      "-0x8000000000000000",
-      minus_one, // 64 bit overflow.
-      "0x7FFFFFFFFFFFFFFF");
+    "-0x8000000000000000",
+    minus_one, // 64 bit overflow.
+    "0x7FFFFFFFFFFFFFFF",
+  );
   addSubParsed(
-      "-0x8000000", // 28 bit overflow.
-      "-0x8000000",
-      "-0x10000000");
+    "-0x8000000", // 28 bit overflow.
+    "-0x8000000",
+    "-0x10000000",
+  );
   addSubParsed(
-      "-0x80000000", // 32 bit overflow.
-      "-0x80000000",
-      "-0x100000000");
+    "-0x80000000", // 32 bit overflow.
+    "-0x80000000",
+    "-0x100000000",
+  );
   addSubParsed(
-      "-0x80000000000000", // 56 bit overflow.
-      "-0x80000000000000",
-      "-0x100000000000000");
+    "-0x80000000000000", // 56 bit overflow.
+    "-0x80000000000000",
+    "-0x100000000000000",
+  );
   addSubParsed(
-      "-0x8000000000000000", // 64 bit overflow.
-      "-0x8000000000000000",
-      "0x0");
+    "-0x8000000000000000", // 64 bit overflow.
+    "-0x8000000000000000",
+    "0x0",
+  );
 
   addSubParsed("0xB", "-0x7", "0x4");
   addSubParsed("-0xB", "-0x7", "-0x12");
@@ -128,8 +146,12 @@ testAddSub() {
   addSubParsed("0x7", "-0xB", "-0x4");
 }
 
-shiftLeftParsed(String a, int amount, String result,
-    {String? result_back_shifted}) {
+shiftLeftParsed(
+  String a,
+  int amount,
+  String result, {
+  String? result_back_shifted,
+}) {
   result_back_shifted ??= a;
   int int_a = int.parse(a);
   int int_result = int.parse(result);
@@ -165,8 +187,12 @@ testLeftShift() {
   shiftLeftParsed("0x5", 27, "0x28000000");
   shiftLeftParsed("0x5", 31, "0x280000000");
   shiftLeftParsed("0x5", 55, "0x280000000000000");
-  shiftLeftParsed("0x5", 63, "-0x8000000000000000",
-      result_back_shifted: "-0x1");
+  shiftLeftParsed(
+    "0x5",
+    63,
+    "-0x8000000000000000",
+    result_back_shifted: "-0x1",
+  );
   shiftLeftParsed("0x5", 127, zero, result_back_shifted: zero);
   shiftLeftParsed("0x8000001", 1, "0x10000002");
   shiftLeftParsed("0x80000001", 1, "0x100000002");
@@ -175,8 +201,12 @@ testLeftShift() {
   shiftLeftParsed("0x80000001", 33, "0x200000000", result_back_shifted: "0x1");
   shiftLeftParsed("0x8000000000000001", 65, zero, result_back_shifted: zero);
   shiftLeftParsed("0x7fffffffffffffff", 1, "-0x2", result_back_shifted: "-0x1");
-  shiftLeftParsed("0x7fffffffffffffff", 29, "-0x20000000",
-      result_back_shifted: "-0x1");
+  shiftLeftParsed(
+    "0x7fffffffffffffff",
+    29,
+    "-0x20000000",
+    result_back_shifted: "-0x1",
+  );
   shiftLeftParsed(minus_one, 0, minus_one);
   shiftLeftParsed("-0x1234", 0, "-0x1234");
   shiftLeftParsed(minus_one, 1, "-0x2");
@@ -188,13 +218,21 @@ testLeftShift() {
   shiftLeftParsed("-0x5", 64, zero, result_back_shifted: zero);
   shiftLeftParsed("-0x5", 27, "-0x28000000");
   shiftLeftParsed("-0x5", 31, "-0x280000000");
-  shiftLeftParsed("-0x5", 63, "-0x8000000000000000",
-      result_back_shifted: minus_one);
+  shiftLeftParsed(
+    "-0x5",
+    63,
+    "-0x8000000000000000",
+    result_back_shifted: minus_one,
+  );
   shiftLeftParsed("-0x8000001", 1, "-0x10000002");
   shiftLeftParsed("-0x80000001", 1, "-0x100000002");
   shiftLeftParsed("-0x8000001", 29, "-0x100000020000000");
-  shiftLeftParsed("-0x80000001", 33, "-0x200000000",
-      result_back_shifted: "-0x1");
+  shiftLeftParsed(
+    "-0x80000001",
+    33,
+    "-0x200000000",
+    result_back_shifted: "-0x1",
+  );
   shiftLeftParsed("-0x7fffffffffffffff", 1, "0x2", result_back_shifted: "0x1");
   shiftLeftParsed("-0x7fffffffffffffff", 65, zero, result_back_shifted: zero);
   shiftLeftParsed("-0x8000000000000000", 1, zero, result_back_shifted: zero);
@@ -286,23 +324,41 @@ testBitAnd() {
   bitAndParsed("-0x100000001", "0x3FFFFFFFF", "0x2FFFFFFFF");
   bitAndParsed("-0x100000000000000", "0xFFFFFFFFFFFFFF", "0x0");
   bitAndParsed(
-      "-0x1000000000000000", "0xFFFFFFFFFFFFFFFF", "-0x1000000000000000");
+    "-0x1000000000000000",
+    "0xFFFFFFFFFFFFFFFF",
+    "-0x1000000000000000",
+  );
   bitAndParsed("-0x300000000000000", "0xFFFFFFFFFFFFFFF", "0xD00000000000000");
   bitAndParsed(
-      "-0x3000000000000000", "0xFFFFFFFFFFFFFFFF", "-0x3000000000000000");
+    "-0x3000000000000000",
+    "0xFFFFFFFFFFFFFFFF",
+    "-0x3000000000000000",
+  );
   bitAndParsed("-0x10000000", "-0x10000000", "-0x10000000");
   bitAndParsed("-0x100000000", "-0x100000000", "-0x100000000");
   bitAndParsed(
-      "-0x100000000000000", "-0x100000000000000", "-0x100000000000000");
+    "-0x100000000000000",
+    "-0x100000000000000",
+    "-0x100000000000000",
+  );
   bitAndParsed(
-      "-0x1000000000000000", "-0x1000000000000000", "-0x1000000000000000");
+    "-0x1000000000000000",
+    "-0x1000000000000000",
+    "-0x1000000000000000",
+  );
   bitAndParsed("-0x3", "-0x2", "-0x4");
   bitAndParsed("-0x10000000", "-0x10000001", "-0x20000000");
   bitAndParsed("-0x100000000", "-0x100000001", "-0x200000000");
   bitAndParsed(
-      "-0x100000000000000", "-0x100000000000001", "-0x200000000000000");
+    "-0x100000000000000",
+    "-0x100000000000001",
+    "-0x200000000000000",
+  );
   bitAndParsed(
-      "-0x1000000000000000", "-0x1000000000000001", "-0x2000000000000000");
+    "-0x1000000000000000",
+    "-0x1000000000000001",
+    "-0x2000000000000000",
+  );
 }
 
 bitOrParsed(String a, String b, String result) {
@@ -358,7 +414,10 @@ testBitOr() {
   bitOrParsed("-0x100000000", "-0x100000000", "-0x100000000");
   bitOrParsed("-0x100000000000000", "-0x100000000000000", "-0x100000000000000");
   bitOrParsed(
-      "-0x1000000000000000", "-0x1000000000000000", "-0x1000000000000000");
+    "-0x1000000000000000",
+    "-0x1000000000000000",
+    "-0x1000000000000000",
+  );
   bitOrParsed("-0x10000000", "-0x10000001", "-0x1");
   bitOrParsed("-0x100000000", "-0x100000001", "-0x1");
   bitOrParsed("-0x100000000000000", "-0x100000000000001", "-0x1");
@@ -415,7 +474,10 @@ testBitXor() {
   bitXorParsed("-0x10000001", "0x3FFFFFFF", "-0x30000000");
   bitXorParsed("-0x100000001", "0x3FFFFFFFF", "-0x300000000");
   bitXorParsed(
-      "-0x1000000000000001", "0x3FFFFFFFFFFFFFFF", "-0x3000000000000000");
+    "-0x1000000000000001",
+    "0x3FFFFFFFFFFFFFFF",
+    "-0x3000000000000000",
+  );
   bitXorParsed("-0x100000000000000", "0xFFFFFFFFFFFFFF", "-0x1");
   bitXorParsed("-0x1000000000000000", "0xFFFFFFFFFFFFFFF", "-0x1");
   bitXorParsed("-0x300000000000000", "0xFFFFFFFFFFFFFFF", "-0xD00000000000001");
@@ -428,7 +490,10 @@ testBitXor() {
   bitXorParsed("-0x100000000", "-0x100000001", "0x1FFFFFFFF");
   bitXorParsed("-0x100000000000000", "-0x100000000000001", "0x1FFFFFFFFFFFFFF");
   bitXorParsed(
-      "-0x1000000000000000", "-0x1000000000000001", "0x1FFFFFFFFFFFFFFF");
+    "-0x1000000000000000",
+    "-0x1000000000000001",
+    "0x1FFFFFFFFFFFFFFF",
+  );
 }
 
 bitNotParsed(String a, String result) {

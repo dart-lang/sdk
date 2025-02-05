@@ -20,7 +20,7 @@ final class FixInFileProcessor {
 
   Future<List<Fix>> compute() async {
     var error = _fixContext.error;
-    var errors = _fixContext.resolvedResult.errors
+    var errors = _fixContext.unitResult.errors
         .where((e) => error.errorCode.name == e.errorCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
@@ -41,7 +41,8 @@ final class FixInFileProcessor {
         var fixContext = DartFixContext(
           instrumentationService: _fixContext.instrumentationService,
           workspace: _fixContext.workspace,
-          resolvedResult: _fixContext.resolvedResult,
+          libraryResult: _fixContext.libraryResult,
+          unitResult: _fixContext.unitResult,
           error: error,
         );
         fixState = await _fixError(fixContext, fixState, generator, error);
@@ -56,7 +57,8 @@ final class FixInFileProcessor {
           var fixContext = DartFixContext(
             instrumentationService: _fixContext.instrumentationService,
             workspace: _fixContext.workspace,
-            resolvedResult: _fixContext.resolvedResult,
+            libraryResult: _fixContext.libraryResult,
+            unitResult: _fixContext.unitResult,
             error: error,
           );
           fixState = await _fixError(fixContext, fixState, generator, error);
@@ -85,7 +87,8 @@ final class FixInFileProcessor {
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
-      resolvedResult: fixContext.resolvedResult,
+      libraryResult: fixContext.libraryResult,
+      unitResult: fixContext.unitResult,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );

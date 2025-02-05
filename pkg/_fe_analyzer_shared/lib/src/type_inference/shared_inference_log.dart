@@ -194,11 +194,7 @@ abstract interface class SharedInferenceLogWriter<
   void exitElement(Object node);
 
   /// Called when type inference has finished inferring an expression.
-  ///
-  /// [reanalyze] should be `true` if type inference will follow up by
-  /// re-inferring the same expression in a different form (and hence, it's not
-  /// necessary to assign a type to [node]).
-  void exitExpression(Object node, {bool reanalyze = false});
+  void exitExpression(Object node);
 
   /// Called when type inference has finished inferring an AST node associated
   /// with extension override syntax.
@@ -527,20 +523,14 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void exitExpression(Object node, {bool reanalyze = false}) {
+  void exitExpression(Object node) {
     checkCall(
         method: 'exitExpression',
         arguments: [node],
-        namedArguments: {if (reanalyze) 'reanalyze': reanalyze},
         expectedNode: node,
         expectedKind: StateKind.expression);
     bool typeRecorded = (state as ExpressionState).typeRecorded;
-    if (reanalyze) {
-      if (typeRecorded) {
-        fail('Tried to reanalyze after already recording a static type');
-      }
-      addEvent(new Event(message: 'WILL REANALYZE AS OTHER EXPRESSION'));
-    } else if (!typeRecorded) {
+    if (!typeRecorded) {
       fail('Failed to record a type for $state');
     }
     popState();

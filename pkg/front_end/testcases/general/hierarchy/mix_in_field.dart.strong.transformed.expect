@@ -155,11 +155,11 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
   synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
-  abstract get mixedInAbstractField() → core::int;
   abstract get extendedConcreteMixedInAbstractField() → core::int;
+  abstract get mixedInAbstractField() → core::int;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
-  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
+  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedAbstractMixedInAbstractField(core::int #externalFieldValue) → void;
 }
 class ClassMixin extends self::_ClassMixin&Super&Mixin {
@@ -174,11 +174,11 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
   synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
-  abstract get mixedInAbstractField() → core::int;
   abstract get extendedConcreteMixedInAbstractField() → core::int;
+  abstract get mixedInAbstractField() → core::int;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
-  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
+  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedAbstractMixedInAbstractField(core::int #externalFieldValue) → void;
 }
 static method main() → dynamic {}

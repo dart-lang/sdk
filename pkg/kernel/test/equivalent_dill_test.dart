@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
@@ -84,7 +85,7 @@ void main(List<String> args) {
 
 bool canRead(File dill) {
   print("Reading $dill");
-  List<int> bytes = dill.readAsBytesSync();
+  Uint8List bytes = dill.readAsBytesSync();
 
   try {
     Component component1 = new Component();

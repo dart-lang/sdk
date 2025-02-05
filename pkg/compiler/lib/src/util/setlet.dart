@@ -4,13 +4,13 @@
 
 // ignore_for_file: avoid_dynamic_calls
 
-library dart2js.util.setlet;
+library;
 
 import 'dart:collection' show SetBase;
 
 class Setlet<E> extends SetBase<E> {
-  static const _SetletMarker _MARKER = _SetletMarker();
-  static const int CAPACITY = 8;
+  static const _SetletMarker _marker = _SetletMarker();
+  static const int capacity = 8;
 
   // The setlet can be in one of four states:
   //
@@ -21,7 +21,7 @@ class Setlet<E> extends SetBase<E> {
   //
   // When the setlet is list-backed, the list in the contents field
   // may have empty slots filled with the marker value.
-  dynamic _contents = _MARKER;
+  dynamic _contents = _marker;
   dynamic _extra;
 
   Setlet();
@@ -39,7 +39,7 @@ class Setlet<E> extends SetBase<E> {
   Iterator<E> get iterator {
     if (_extra == null) {
       return _SetletSingleIterator<E>(_contents);
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _contents.iterator;
     } else {
       return _SetletListIterator<E>(_contents, _extra);
@@ -49,8 +49,8 @@ class Setlet<E> extends SetBase<E> {
   @override
   int get length {
     if (_extra == null) {
-      return (_MARKER == _contents) ? 0 : 1;
-    } else if (_MARKER == _extra) {
+      return (_marker == _contents) ? 0 : 1;
+    } else if (_marker == _extra) {
       return _contents.length;
     } else {
       return _extra;
@@ -60,8 +60,8 @@ class Setlet<E> extends SetBase<E> {
   @override
   bool get isEmpty {
     if (_extra == null) {
-      return _MARKER == _contents;
-    } else if (_MARKER == _extra) {
+      return _marker == _contents;
+    } else if (_marker == _extra) {
       return _contents.isEmpty;
     } else {
       return _extra == 0;
@@ -72,12 +72,12 @@ class Setlet<E> extends SetBase<E> {
   bool contains(Object? element) {
     if (_extra == null) {
       return _contents == element;
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _contents.contains(element);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _contents[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (candidate == element) return true;
         remaining--;
       }
@@ -88,30 +88,30 @@ class Setlet<E> extends SetBase<E> {
   @override
   bool add(E element) {
     if (_extra == null) {
-      if (_MARKER == _contents) {
+      if (_marker == _contents) {
         _contents = element;
         return true;
       } else if (_contents == element) {
         // Do nothing.
         return false;
       } else {
-        List<Object?> list = List.filled(CAPACITY, null);
+        List<Object?> list = List.filled(capacity, null);
         list[0] = _contents;
         list[1] = element;
         _contents = list;
         _extra = 2; // Two elements.
         return true;
       }
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _contents.add(element);
     } else {
       int remaining = _extra;
       int index = 0;
       int copyTo = 0;
       int copyFrom = 0;
-      while (remaining > 0 && index < CAPACITY) {
+      while (remaining > 0 && index < capacity) {
         var candidate = _contents[index++];
-        if (_MARKER == candidate) {
+        if (_marker == candidate) {
           // Keep track of the last range of empty slots in the
           // list. When we're done we'll move all the elements
           // after those empty slots down, so that adding an element
@@ -128,13 +128,13 @@ class Setlet<E> extends SetBase<E> {
         }
         remaining--;
       }
-      if (index < CAPACITY) {
+      if (index < capacity) {
         _contents[index] = element;
         _extra++;
-      } else if (_extra < CAPACITY) {
+      } else if (_extra < capacity) {
         // Move the last elements down into the last empty slots
         // so that we have empty slots after the last element.
-        while (copyFrom < CAPACITY) {
+        while (copyFrom < capacity) {
           _contents[copyTo++] = _contents[copyFrom++];
         }
         // Insert the new element as the last element.
@@ -142,12 +142,15 @@ class Setlet<E> extends SetBase<E> {
         _extra++;
         // Clear all elements after the new last elements to
         // make sure we don't keep extra stuff alive.
-        while (copyTo < CAPACITY) _contents[copyTo++] = null;
+        while (copyTo < capacity) {
+          _contents[copyTo++] = null;
+        }
       } else {
-        _contents = Set<E>()
-          ..addAll((_contents as List).cast<E>())
-          ..add(element);
-        _extra = _MARKER;
+        _contents =
+            <E>{}
+              ..addAll((_contents as List).cast<E>())
+              ..add(element);
+        _extra = _marker;
       }
       return true;
     }
@@ -155,19 +158,21 @@ class Setlet<E> extends SetBase<E> {
 
   @override
   void addAll(Iterable<E> elements) {
-    elements.forEach((each) => add(each));
+    for (var each in elements) {
+      add(each);
+    }
   }
 
   @override
   E? lookup(Object? element) {
     if (_extra == null) {
       return _contents == element ? _contents : null;
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _contents.lookup(element);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _contents[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (candidate == element) return candidate;
         remaining--;
       }
@@ -179,19 +184,19 @@ class Setlet<E> extends SetBase<E> {
   bool remove(Object? element) {
     if (_extra == null) {
       if (_contents == element) {
-        _contents = _MARKER;
+        _contents = _marker;
         return true;
       } else {
         return false;
       }
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _contents.remove(element);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _contents[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (candidate == element) {
-          _contents[i] = _MARKER;
+          _contents[i] = _marker;
           _extra--;
           return true;
         }
@@ -202,26 +207,26 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  void removeAll(Iterable<Object?> other) {
-    other.forEach(remove);
+  void removeAll(Iterable<Object?> elements) {
+    elements.forEach(remove);
   }
 
   @override
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     if (_extra == null) {
-      if (_MARKER != _contents) {
+      if (_marker != _contents) {
         if (test(_contents)) {
-          _contents = _MARKER;
+          _contents = _marker;
         }
       }
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       _contents.removeWhere(test);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _contents[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (test(candidate)) {
-          _contents[i] = _MARKER;
+          _contents[i] = _marker;
           _extra--;
         }
         remaining--;
@@ -230,7 +235,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     removeWhere((E element) => !test(element));
   }
 
@@ -241,16 +246,16 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  void forEach(void action(E element)) {
+  void forEach(void Function(E element) f) {
     if (_extra == null) {
-      if (_MARKER != _contents) action(_contents);
-    } else if (_MARKER == _extra) {
-      _contents.forEach(action);
+      if (_marker != _contents) f(_contents);
+    } else if (_marker == _extra) {
+      _contents.forEach(f);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var element = _contents[i];
-        if (_MARKER == element) continue;
-        action(element);
+        if (_marker == element) continue;
+        f(element);
         remaining--;
       }
     }
@@ -266,7 +271,7 @@ class Setlet<E> extends SetBase<E> {
 
   @override
   void clear() {
-    _contents = _MARKER;
+    _contents = _marker;
     _extra = null;
   }
 
@@ -275,19 +280,19 @@ class Setlet<E> extends SetBase<E> {
 
   @override
   Setlet<E> intersection(Set<Object?> other) =>
-      Setlet.of(this.where((e) => other.contains(e)));
+      Setlet.of(where((e) => other.contains(e)));
 
   @override
   Setlet<E> difference(Set<Object?> other) =>
-      Setlet.of(this.where((e) => !other.contains(e)));
+      Setlet.of(where((e) => !other.contains(e)));
 
   @override
   Setlet<E> toSet() {
     Setlet<E> result = Setlet<E>();
     if (_extra == null) {
       result._contents = _contents;
-    } else if (_extra == _MARKER) {
-      result._extra = _MARKER;
+    } else if (_extra == _marker) {
+      result._extra = _marker;
       result._contents = _contents.toSet();
     } else {
       result._extra = _extra;
@@ -313,12 +318,12 @@ class _SetletSingleIterator<E> implements Iterator<E> {
 
   @override
   bool moveNext() {
-    if (Setlet._MARKER == _element) {
+    if (Setlet._marker == _element) {
       _current = null;
       return false;
     }
     _current = _element;
-    _element = Setlet._MARKER;
+    _element = Setlet._marker;
     return true;
   }
 }
@@ -337,7 +342,7 @@ class _SetletListIterator<E> implements Iterator<E> {
   bool moveNext() {
     while (_remaining > 0) {
       var candidate = _list[_index++];
-      if (Setlet._MARKER != candidate) {
+      if (Setlet._marker != candidate) {
         _current = candidate as E;
         _remaining--;
         return true;

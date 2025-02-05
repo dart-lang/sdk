@@ -6,15 +6,18 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
-/// A [Refactoring] for renaming [LibraryElement]s.
+/// A [Refactoring] for renaming [LibraryElement2]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   RenameLibraryRefactoringImpl(
-      super.workspace, super.sessionHelper, LibraryElement super.element);
+    super.workspace,
+    super.sessionHelper,
+    LibraryElement2 super.element2,
+  ) : super.c2();
 
   @override
-  LibraryElement get element => super.element as LibraryElement;
+  LibraryElement2 get element2 => super.element2 as LibraryElement2;
 
   @override
   String get refactoringName {
@@ -37,6 +40,6 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    await processor.renameElement(element);
+    await processor.renameElement2(element2);
   }
 }

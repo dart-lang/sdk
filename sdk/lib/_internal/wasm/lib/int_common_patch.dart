@@ -7,6 +7,8 @@ import 'dart:_internal' show patch;
 @patch
 class int {
   @patch
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(
+    String name, {
+    int defaultValue = 0,
+  });
 }

@@ -118,6 +118,28 @@ struct PrologueInfo {
   }
 };
 
+struct InliningInfo {
+  // Maps inline_id_to_function[inline_id] -> function. Top scope
+  // function has inline_id 0. The map is populated by the inliner.
+  GrowableArray<const Function*> inline_id_to_function;
+  // Token position where inlining occurred.
+  GrowableArray<TokenPosition> inline_id_to_token_pos;
+  // For a given inlining-id(index) specifies the caller's inlining-id.
+  GrowableArray<intptr_t> caller_inline_id;
+
+  explicit InliningInfo(const Function* function) {
+    // Top scope function is at inlining id 0.
+    inline_id_to_function.Add(function);
+    // Top scope function has no caller (-1).
+    caller_inline_id.Add(-1);
+    // We do not add a token position for the top scope function to
+    // |inline_id_to_token_pos| because it is not (currently) inlined into
+    // another graph at a given token position. A side effect of this is that
+    // the length of |inline_id_to_function| and |caller_inline_id| is always
+    // larger than the length of |inline_id_to_token_pos| by one.
+  }
+};
+
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
@@ -218,6 +240,17 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
     return optimized_block_order_;
   }
+  const GrowableArray<TryEntryInstr*>& try_entries() const {
+    return try_entries_;
+  }
+  TryEntryInstr* GetTryEntryByTryIndex(intptr_t try_index) const {
+    ASSERT(try_index < try_entries_.length());
+    return try_entries_[try_index];
+  }
+  CatchBlockEntryInstr* GetCatchBlockByTryIndex(intptr_t try_index) const {
+    return GetTryEntryByTryIndex(try_index)->catch_target();
+  }
+  intptr_t max_try_index() const { return max_try_index_; }
 
   // In AOT these are guaranteed to be topologically sorted, but not in JIT.
   GrowableArray<BlockEntryInstr*>* CodegenBlockOrder();
@@ -476,6 +509,9 @@ class FlowGraph : public ZoneAllocated {
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) { inlining_id_ = value; }
 
+  InliningInfo& inlining_info() { return inlining_info_; }
+  const InliningInfo& inlining_info() const { return inlining_info_; }
+
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
 
@@ -527,9 +563,9 @@ class FlowGraph : public ZoneAllocated {
 
   // Logical-AND (for use in short-circuit diamond).
   struct LogicalAnd {
-    LogicalAnd(ComparisonInstr* x, ComparisonInstr* y) : oper1(x), oper2(y) {}
-    ComparisonInstr* oper1;
-    ComparisonInstr* oper2;
+    LogicalAnd(ConditionInstr* x, ConditionInstr* y) : oper1(x), oper2(y) {}
+    ConditionInstr* oper1;
+    ConditionInstr* oper2;
   };
 
   // Constructs a diamond control flow at the instruction, inheriting
@@ -538,7 +574,7 @@ class FlowGraph : public ZoneAllocated {
   // relation, but not the succ/pred ordering on block.
   JoinEntryInstr* NewDiamond(Instruction* instruction,
                              Instruction* inherit,
-                             ComparisonInstr* compare,
+                             ConditionInstr* condition,
                              TargetEntryInstr** block_true,
                              TargetEntryInstr** block_false);
 
@@ -654,9 +690,13 @@ class FlowGraph : public ZoneAllocated {
   void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
-                  const GrowableArray<BitVector*>& assigned_vars,
+                  VariableLivenessAnalysis& variable_liveness,
                   const GrowableArray<BitVector*>& dom_frontier,
                   GrowableArray<PhiInstr*>* live_phis);
+  void AddCatchEntryParameter(intptr_t var_index,
+                              CatchBlockEntryInstr* catch_entry);
+  void InsertCatchBlockParams(const GrowableArray<BlockEntryInstr*>& preorder,
+                              VariableLivenessAnalysis& variable_liveness);
 
   void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
@@ -728,6 +768,9 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
+  // Try entries indexed by try-index
+  GrowableArray<TryEntryInstr*> try_entries_;
+  intptr_t max_try_index_ = -1;
   ConstantInstr* constant_null_;
   ConstantInstr* constant_dead_;
 
@@ -745,7 +788,10 @@ class FlowGraph : public ZoneAllocated {
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
 
+  // Inlining related fields.
   intptr_t inlining_id_;
+  InliningInfo inlining_info_;
+
   bool should_print_;
   const bool should_omit_check_bounds_;
   uint8_t* compiler_pass_filters_ = nullptr;
@@ -794,13 +840,13 @@ class LivenessAnalysis : public ValueObject {
   // Update live-out set for the given block: live-out should contain
   // all values that are live-in for block's successors.
   // Returns true if live-out set was changed.
-  bool UpdateLiveOut(const BlockEntryInstr& instr);
+  virtual bool UpdateLiveOut(const BlockEntryInstr& instr);
 
   // Update live-in set for the given block: live-in should contain
   // all values that are live-out from the block and are not defined
   // by this block.
   // Returns true if live-in set was changed.
-  bool UpdateLiveIn(const BlockEntryInstr& instr);
+  virtual bool UpdateLiveIn(const BlockEntryInstr& instr);
 
   // Perform fix-point iteration updating live-out and live-in sets
   // for blocks until they stop changing.

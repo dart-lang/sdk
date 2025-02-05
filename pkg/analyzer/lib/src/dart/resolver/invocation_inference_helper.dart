@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -59,7 +61,6 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
-  final bool _inferenceUsingBoundsIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
@@ -71,9 +72,7 @@ class InvocationInferenceHelper {
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.generic_metadata),
-        _inferenceUsingBoundsIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.inference_using_bounds);
+            .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
   /// and the [constructorName] does not have explicit type arguments,
@@ -123,8 +122,8 @@ class InvocationInferenceHelper {
   /// Given an uninstantiated generic function type, referenced by the
   /// [identifier] in the tear-off [expression], try to infer the instantiated
   /// generic function type from the surrounding context.
-  DartType inferTearOff(Expression expression, SimpleIdentifierImpl identifier,
-      DartType tearOffType,
+  DartType inferTearOff(ExpressionImpl expression,
+      SimpleIdentifierImpl identifier, DartType tearOffType,
       {required DartType contextType}) {
     if (contextType is FunctionType && tearOffType is FunctionType) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
@@ -133,7 +132,7 @@ class InvocationInferenceHelper {
         errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         strictCasts: _resolver.analysisOptions.strictCasts,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -156,7 +155,7 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
-    required List<WhyNotPromotedGetter> whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required DartType contextType,
   }) {
     var returnType = MethodInvocationInferrer(
@@ -164,7 +163,7 @@ class InvocationInferenceHelper {
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
-      whyNotPromotedList: whyNotPromotedList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
     ).resolveInvocation(rawType: rawType);
 
     node.recordStaticType(returnType, resolver: _resolver);

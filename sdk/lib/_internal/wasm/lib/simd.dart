@@ -22,7 +22,7 @@ final class NaiveInt32x4List extends WasmTypedDataBase
   NaiveInt32x4List.externalStorage(Int32List storage) : _storage = storage;
 
   NaiveInt32x4List._slowFromList(List<Int32x4> list)
-      : _storage = Int32List(list.length * 4) {
+    : _storage = Int32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
       _storage[(i * 4) + 0] = e.x;
@@ -35,7 +35,8 @@ final class NaiveInt32x4List extends WasmTypedDataBase
   factory NaiveInt32x4List.fromList(List<Int32x4> list) {
     if (list is NaiveInt32x4List) {
       return NaiveInt32x4List.externalStorage(
-          Int32List.fromList(list._storage));
+        Int32List.fromList(list._storage),
+      );
     } else {
       return NaiveInt32x4List._slowFromList(list);
     }
@@ -74,11 +75,16 @@ final class NaiveInt32x4List extends WasmTypedDataBase
   Int32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveInt32x4List.externalStorage(
-        _storage.sublist(start * 4, stop * 4));
+      _storage.sublist(start * 4, stop * 4),
+    );
   }
 
-  void setRange(int start, int end, Iterable<Int32x4> from,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Int32x4> from, [
+    int skipCount = 0,
+  ]) {
     if (0 > start || start > end || end > length) {
       RangeError.checkValidRange(start, end, length); // Always throws.
     }
@@ -103,7 +109,7 @@ final class NaiveInt32x4List extends WasmTypedDataBase
 
 final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List {
   NaiveUnmodifiableInt32x4List.externalStorage(Int32List storage)
-      : super.externalStorage(storage);
+    : super.externalStorage(storage);
 
   @override
   void operator []=(int index, Int32x4 value) {
@@ -124,7 +130,7 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
   NaiveFloat32x4List.externalStorage(this._storage);
 
   NaiveFloat32x4List._slowFromList(List<Float32x4> list)
-      : _storage = Float32List(list.length * 4) {
+    : _storage = Float32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
       _storage[(i * 4) + 0] = e.x;
@@ -137,7 +143,8 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
   factory NaiveFloat32x4List.fromList(List<Float32x4> list) {
     if (list is NaiveFloat32x4List) {
       return NaiveFloat32x4List.externalStorage(
-          Float32List.fromList(list._storage));
+        Float32List.fromList(list._storage),
+      );
     } else {
       return NaiveFloat32x4List._slowFromList(list);
     }
@@ -176,11 +183,16 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
   Float32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveFloat32x4List.externalStorage(
-        _storage.sublist(start * 4, stop * 4));
+      _storage.sublist(start * 4, stop * 4),
+    );
   }
 
-  void setRange(int start, int end, Iterable<Float32x4> from,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Float32x4> from, [
+    int skipCount = 0,
+  ]) {
     if (0 > start || start > end || end > length) {
       RangeError.checkValidRange(start, end, length); // Always throws.
     }
@@ -191,8 +203,9 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
     final count = end - start;
     if (count == 0) return;
 
-    final List<Float32x4> fromList =
-        from.skip(skipCount).toList(growable: false);
+    final List<Float32x4> fromList = from
+        .skip(skipCount)
+        .toList(growable: false);
 
     if (fromList.length < count) {
       throw IterableElementError.tooFew();
@@ -206,7 +219,7 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
 
 final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List {
   NaiveUnmodifiableFloat32x4List.externalStorage(Float32List storage)
-      : super.externalStorage(storage);
+    : super.externalStorage(storage);
 
   @override
   void operator []=(int index, Float32x4 value) {
@@ -227,7 +240,7 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
   NaiveFloat64x2List.externalStorage(this._storage);
 
   NaiveFloat64x2List._slowFromList(List<Float64x2> list)
-      : _storage = Float64List(list.length * 2) {
+    : _storage = Float64List(list.length * 2) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
       _storage[(i * 2) + 0] = e.x;
@@ -238,7 +251,8 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
   factory NaiveFloat64x2List.fromList(List<Float64x2> list) {
     if (list is NaiveFloat64x2List) {
       return NaiveFloat64x2List.externalStorage(
-          Float64List.fromList(list._storage));
+        Float64List.fromList(list._storage),
+      );
     } else {
       return NaiveFloat64x2List._slowFromList(list);
     }
@@ -273,11 +287,16 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
   Float64x2List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveFloat64x2List.externalStorage(
-        _storage.sublist(start * 2, stop * 2));
+      _storage.sublist(start * 2, stop * 2),
+    );
   }
 
-  void setRange(int start, int end, Iterable<Float64x2> from,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Float64x2> from, [
+    int skipCount = 0,
+  ]) {
     if (0 > start || start > end || end > length) {
       RangeError.checkValidRange(start, end, length); // Always throws.
     }
@@ -288,8 +307,9 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
     final count = end - start;
     if (count == 0) return;
 
-    final List<Float64x2> fromList =
-        from.skip(skipCount).toList(growable: false);
+    final List<Float64x2> fromList = from
+        .skip(skipCount)
+        .toList(growable: false);
 
     if (fromList.length < count) {
       throw IterableElementError.tooFew();
@@ -303,7 +323,7 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
 
 final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List {
   NaiveUnmodifiableFloat64x2List.externalStorage(Float64List storage)
-      : super.externalStorage(storage);
+    : super.externalStorage(storage);
 
   @override
   void operator []=(int index, Float64x2 value) {
@@ -329,10 +349,10 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
   }
 
   NaiveFloat32x4(double x, double y, double z, double w)
-      : this.x = _truncate(x),
-        this.y = _truncate(y),
-        this.z = _truncate(z),
-        this.w = _truncate(w);
+    : this.x = _truncate(x),
+      this.y = _truncate(y),
+      this.z = _truncate(z),
+      this.w = _truncate(w);
 
   NaiveFloat32x4.splat(double v) : this(v, v, v, v);
   NaiveFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
@@ -346,13 +366,13 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
   }
 
   NaiveFloat32x4.fromFloat64x2(Float64x2 v)
-      : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
+    : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
 
   NaiveFloat32x4._doubles(double x, double y, double z, double w)
-      : this.x = _truncate(x),
-        this.y = _truncate(y),
-        this.z = _truncate(z),
-        this.w = _truncate(w);
+    : this.x = _truncate(x),
+      this.y = _truncate(y),
+      this.z = _truncate(z),
+      this.w = _truncate(w);
 
   NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
 
@@ -406,7 +426,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z < other.z;
     bool _cw = w < other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Int32x4 lessThanOrEqual(Float32x4 other) {
@@ -415,7 +439,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z <= other.z;
     bool _cw = w <= other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Int32x4 greaterThan(Float32x4 other) {
@@ -424,7 +452,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z > other.z;
     bool _cw = w > other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Int32x4 greaterThanOrEqual(Float32x4 other) {
@@ -433,7 +465,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z >= other.z;
     bool _cw = w >= other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Int32x4 equal(Float32x4 other) {
@@ -442,7 +478,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z == other.z;
     bool _cw = w == other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Int32x4 notEqual(Float32x4 other) {
@@ -451,7 +491,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cz = z != other.z;
     bool _cw = w != other.w;
     return NaiveInt32x4._truncated(
-        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
+      _cx ? -1 : 0,
+      _cy ? -1 : 0,
+      _cz ? -1 : 0,
+      _cw ? -1 : 0,
+    );
   }
 
   Float32x4 scale(double s) {
@@ -674,10 +718,14 @@ final class NaiveFloat64x2 extends WasmTypedDataBase implements Float64x2 {
   Float64x2 withY(double y) => NaiveFloat64x2._doubles(x, y);
 
   Float64x2 min(Float64x2 other) => NaiveFloat64x2._doubles(
-      x < other.x ? x : other.x, y < other.y ? y : other.y);
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+  );
 
   Float64x2 max(Float64x2 other) => NaiveFloat64x2._doubles(
-      x > other.x ? x : other.x, y > other.y ? y : other.y);
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+  );
 
   Float64x2 sqrt() => NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
 }
@@ -696,16 +744,16 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
   }
 
   NaiveInt32x4(int x, int y, int z, int w)
-      : this.x = _truncate(x),
-        this.y = _truncate(y),
-        this.z = _truncate(z),
-        this.w = _truncate(w);
+    : this.x = _truncate(x),
+      this.y = _truncate(y),
+      this.z = _truncate(z),
+      this.w = _truncate(w);
 
   NaiveInt32x4.bool(bool x, bool y, bool z, bool w)
-      : this.x = x ? -1 : 0,
-        this.y = y ? -1 : 0,
-        this.z = z ? -1 : 0,
-        this.w = w ? -1 : 0;
+    : this.x = x ? -1 : 0,
+      this.y = y ? -1 : 0,
+      this.z = z ? -1 : 0,
+      this.w = w ? -1 : 0;
 
   factory NaiveInt32x4.fromFloat32x4Bits(Float32x4 f) {
     Float32List floatList = NaiveFloat32x4._list;
@@ -719,7 +767,8 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
 
   NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
 
-  String toString() => '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
+  String toString() =>
+      '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
       '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
   Int32x4 operator |(Int32x4 other) {
@@ -889,7 +938,11 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
     intView[2] = _z;
     intView[3] = _w;
     return NaiveFloat32x4._truncated(
-        floatList[0], floatList[1], floatList[2], floatList[3]);
+      floatList[0],
+      floatList[1],
+      floatList[2],
+      floatList[3],
+    );
   }
 }
 

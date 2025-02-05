@@ -25,32 +25,35 @@ import 'dylib_utils.dart';
 final ffiTestFunctions = dlopenPlatformSpecific('ffi_test_functions');
 
 @Native<Int8 Function(Pointer<Int8>, Size)>(
-    symbol: 'TakeInt8Pointer', isLeaf: true)
+  symbol: 'TakeInt8Pointer',
+  isLeaf: true,
+)
 external int takeInt8Pointer(Pointer<Int8> pointer, int length);
 
 @Native<
-    Int8 Function(
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-      Pointer<Int8>,
-    )>(symbol: 'TakeInt8PointerMany', isLeaf: true)
+  Int8 Function(
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+    Pointer<Int8>,
+  )
+>(symbol: 'TakeInt8PointerMany', isLeaf: true)
 external int takeInt8PointerMany(
   Pointer<Int8> pointer0,
   Pointer<Int8> pointer1,
@@ -93,32 +96,35 @@ int makeExpectedResultInt8(int start, int end) {
 }
 
 @Native<Int16 Function(Pointer<Int16>, Size)>(
-    symbol: 'TakeInt16Pointer', isLeaf: true)
+  symbol: 'TakeInt16Pointer',
+  isLeaf: true,
+)
 external int takeInt16Pointer(Pointer<Int16> pointer, int length);
 
 @Native<
-    Int16 Function(
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-      Pointer<Int16>,
-    )>(symbol: 'TakeInt16PointerMany', isLeaf: true)
+  Int16 Function(
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+    Pointer<Int16>,
+  )
+>(symbol: 'TakeInt16PointerMany', isLeaf: true)
 external int takeInt16PointerMany(
   Pointer<Int16> pointer0,
   Pointer<Int16> pointer1,
@@ -161,32 +167,35 @@ int makeExpectedResultInt16(int start, int end) {
 }
 
 @Native<Int32 Function(Pointer<Int32>, Size)>(
-    symbol: 'TakeInt32Pointer', isLeaf: true)
+  symbol: 'TakeInt32Pointer',
+  isLeaf: true,
+)
 external int takeInt32Pointer(Pointer<Int32> pointer, int length);
 
 @Native<
-    Int32 Function(
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-      Pointer<Int32>,
-    )>(symbol: 'TakeInt32PointerMany', isLeaf: true)
+  Int32 Function(
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+    Pointer<Int32>,
+  )
+>(symbol: 'TakeInt32PointerMany', isLeaf: true)
 external int takeInt32PointerMany(
   Pointer<Int32> pointer0,
   Pointer<Int32> pointer1,
@@ -229,32 +238,35 @@ int makeExpectedResultInt32(int start, int end) {
 }
 
 @Native<Int64 Function(Pointer<Int64>, Size)>(
-    symbol: 'TakeInt64Pointer', isLeaf: true)
+  symbol: 'TakeInt64Pointer',
+  isLeaf: true,
+)
 external int takeInt64Pointer(Pointer<Int64> pointer, int length);
 
 @Native<
-    Int64 Function(
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-      Pointer<Int64>,
-    )>(symbol: 'TakeInt64PointerMany', isLeaf: true)
+  Int64 Function(
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+    Pointer<Int64>,
+  )
+>(symbol: 'TakeInt64PointerMany', isLeaf: true)
 external int takeInt64PointerMany(
   Pointer<Int64> pointer0,
   Pointer<Int64> pointer1,
@@ -297,32 +309,35 @@ int makeExpectedResultInt64(int start, int end) {
 }
 
 @Native<Uint8 Function(Pointer<Uint8>, Size)>(
-    symbol: 'TakeUint8Pointer', isLeaf: true)
+  symbol: 'TakeUint8Pointer',
+  isLeaf: true,
+)
 external int takeUint8Pointer(Pointer<Uint8> pointer, int length);
 
 @Native<
-    Uint8 Function(
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-      Pointer<Uint8>,
-    )>(symbol: 'TakeUint8PointerMany', isLeaf: true)
+  Uint8 Function(
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+    Pointer<Uint8>,
+  )
+>(symbol: 'TakeUint8PointerMany', isLeaf: true)
 external int takeUint8PointerMany(
   Pointer<Uint8> pointer0,
   Pointer<Uint8> pointer1,
@@ -365,32 +380,35 @@ int makeExpectedResultUint8(int start, int end) {
 }
 
 @Native<Uint16 Function(Pointer<Uint16>, Size)>(
-    symbol: 'TakeUint16Pointer', isLeaf: true)
+  symbol: 'TakeUint16Pointer',
+  isLeaf: true,
+)
 external int takeUint16Pointer(Pointer<Uint16> pointer, int length);
 
 @Native<
-    Uint16 Function(
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-      Pointer<Uint16>,
-    )>(symbol: 'TakeUint16PointerMany', isLeaf: true)
+  Uint16 Function(
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+    Pointer<Uint16>,
+  )
+>(symbol: 'TakeUint16PointerMany', isLeaf: true)
 external int takeUint16PointerMany(
   Pointer<Uint16> pointer0,
   Pointer<Uint16> pointer1,
@@ -433,32 +451,35 @@ int makeExpectedResultUint16(int start, int end) {
 }
 
 @Native<Uint32 Function(Pointer<Uint32>, Size)>(
-    symbol: 'TakeUint32Pointer', isLeaf: true)
+  symbol: 'TakeUint32Pointer',
+  isLeaf: true,
+)
 external int takeUint32Pointer(Pointer<Uint32> pointer, int length);
 
 @Native<
-    Uint32 Function(
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-      Pointer<Uint32>,
-    )>(symbol: 'TakeUint32PointerMany', isLeaf: true)
+  Uint32 Function(
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+    Pointer<Uint32>,
+  )
+>(symbol: 'TakeUint32PointerMany', isLeaf: true)
 external int takeUint32PointerMany(
   Pointer<Uint32> pointer0,
   Pointer<Uint32> pointer1,
@@ -501,32 +522,35 @@ int makeExpectedResultUint32(int start, int end) {
 }
 
 @Native<Uint64 Function(Pointer<Uint64>, Size)>(
-    symbol: 'TakeUint64Pointer', isLeaf: true)
+  symbol: 'TakeUint64Pointer',
+  isLeaf: true,
+)
 external int takeUint64Pointer(Pointer<Uint64> pointer, int length);
 
 @Native<
-    Uint64 Function(
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-      Pointer<Uint64>,
-    )>(symbol: 'TakeUint64PointerMany', isLeaf: true)
+  Uint64 Function(
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+    Pointer<Uint64>,
+  )
+>(symbol: 'TakeUint64PointerMany', isLeaf: true)
 external int takeUint64PointerMany(
   Pointer<Uint64> pointer0,
   Pointer<Uint64> pointer1,
@@ -569,32 +593,35 @@ int makeExpectedResultUint64(int start, int end) {
 }
 
 @Native<Float Function(Pointer<Float>, Size)>(
-    symbol: 'TakeFloatPointer', isLeaf: true)
+  symbol: 'TakeFloatPointer',
+  isLeaf: true,
+)
 external double takeFloatPointer(Pointer<Float> pointer, int length);
 
 @Native<
-    Float Function(
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-      Pointer<Float>,
-    )>(symbol: 'TakeFloatPointerMany', isLeaf: true)
+  Float Function(
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+    Pointer<Float>,
+  )
+>(symbol: 'TakeFloatPointerMany', isLeaf: true)
 external double takeFloatPointerMany(
   Pointer<Float> pointer0,
   Pointer<Float> pointer1,
@@ -637,32 +664,35 @@ double makeExpectedResultFloat(int start, int end) {
 }
 
 @Native<Double Function(Pointer<Double>, Size)>(
-    symbol: 'TakeDoublePointer', isLeaf: true)
+  symbol: 'TakeDoublePointer',
+  isLeaf: true,
+)
 external double takeDoublePointer(Pointer<Double> pointer, int length);
 
 @Native<
-    Double Function(
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-      Pointer<Double>,
-    )>(symbol: 'TakeDoublePointerMany', isLeaf: true)
+  Double Function(
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+    Pointer<Double>,
+  )
+>(symbol: 'TakeDoublePointerMany', isLeaf: true)
 external double takeDoublePointerMany(
   Pointer<Double> pointer0,
   Pointer<Double> pointer1,
@@ -705,32 +735,35 @@ double makeExpectedResultDouble(int start, int end) {
 }
 
 @Native<Bool Function(Pointer<Bool>, Size)>(
-    symbol: 'TakeBoolPointer', isLeaf: true)
+  symbol: 'TakeBoolPointer',
+  isLeaf: true,
+)
 external bool takeBoolPointer(Pointer<Bool> pointer, int length);
 
 @Native<
-    Bool Function(
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-      Pointer<Bool>,
-    )>(symbol: 'TakeBoolPointerMany', isLeaf: true)
+  Bool Function(
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+    Pointer<Bool>,
+  )
+>(symbol: 'TakeBoolPointerMany', isLeaf: true)
 external bool takeBoolPointerMany(
   Pointer<Bool> pointer0,
   Pointer<Bool> pointer1,

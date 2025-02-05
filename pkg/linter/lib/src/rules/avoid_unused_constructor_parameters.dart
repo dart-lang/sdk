@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
@@ -41,8 +40,8 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
           return element != null &&
               element is! FieldFormalParameterElement2 &&
               element is! SuperFormalParameterElement2 &&
-              !element.hasDeprecated &&
-              !element.name.isJustUnderscores;
+              !element.metadata2.hasDeprecated &&
+              !(element.name3 ?? '').isJustUnderscores;
         }).toSet();
 
   @override

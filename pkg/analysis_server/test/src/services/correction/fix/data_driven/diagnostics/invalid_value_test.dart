@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class InvalidValueTest extends AbstractTransformSetParserTest {
   void test_change() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -26,13 +27,14 @@ transforms:
     class: 'A'
   changes:
     - 'rename'
-''', [
-      error(TransformSetErrorCode.invalidValue, 129, 8),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 129, 8)],
+    );
   }
 
   void test_element() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -41,13 +43,14 @@ transforms:
   changes:
     - kind: 'rename'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.invalidValue, 73, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 73, 1)],
+    );
   }
 
   void test_int_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: []
 transforms:
 - title: 'Rename A'
@@ -57,13 +60,14 @@ transforms:
   changes:
     - kind: 'rename'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.invalidValue, 9, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 9, 2)],
+    );
   }
 
   void test_int_string() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 'first'
 transforms:
 - title: 'Rename A'
@@ -73,22 +77,24 @@ transforms:
   changes:
     - kind: 'rename'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.invalidValue, 9, 7),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 9, 7)],
+    );
   }
 
   void test_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms: 3
-''', [
-      error(TransformSetErrorCode.invalidValue, 23, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 23, 1)],
+    );
   }
 
   void test_string_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 0
@@ -99,13 +105,14 @@ transforms:
   changes:
     - kind: 'rename'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.invalidValue, 32, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 32, 1)],
+    );
   }
 
   void test_string_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: []
@@ -116,31 +123,34 @@ transforms:
   changes:
     - kind: 'rename'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.invalidValue, 32, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 32, 2)],
+    );
   }
 
   void test_transform() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - 'rename'
-''', [
-      error(TransformSetErrorCode.invalidValue, 25, 8),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 25, 8)],
+    );
   }
 
   void test_transformSet() {
-    assertErrors('''
+    assertErrors(
+      '''
 - 'rename'
-''', [
-      error(TransformSetErrorCode.invalidValue, 0, 11),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 0, 11)],
+    );
   }
 
   void test_valueExtractor() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -153,8 +163,8 @@ transforms:
       index: 1
       name: 'T'
       argumentValue: 'int'
-''', [
-      error(TransformSetErrorCode.invalidValue, 206, 5),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 206, 5)],
+    );
   }
 }

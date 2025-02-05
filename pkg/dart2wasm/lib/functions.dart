@@ -20,6 +20,8 @@ class FunctionCollector {
 
   // Wasm function for each Dart function
   final Map<Reference, w.BaseFunction> _functions = {};
+  // Wasm function for each function expression and local function.
+  final Map<Lambda, w.BaseFunction> _lambdas = {};
   // Names of exported functions
   final Map<Reference, String> _exports = {};
   // Selector IDs that are invoked via GDT.
@@ -129,6 +131,17 @@ class FunctionCollector {
     });
   }
 
+  w.BaseFunction getLambdaFunction(
+      Lambda lambda, Member enclosingMember, Closures enclosingMemberClosures) {
+    return _lambdas.putIfAbsent(lambda, () {
+      translator.compilationQueue.add(CompilationTask(
+          lambda.function,
+          getLambdaCodeGenerator(
+              translator, lambda, enclosingMember, enclosingMemberClosures)));
+      return lambda.function;
+    });
+  }
+
   w.FunctionType getFunctionType(Reference target) {
     // We first try to get the function type by seeing if we already
     // compiled the [target] function.
@@ -173,12 +186,17 @@ class FunctionCollector {
     if (memberName.endsWith('.')) {
       memberName = memberName.substring(0, memberName.length - 1);
     }
+
     if (target.isTypeCheckerReference) {
       if (member is Field || (member is Procedure && member.isSetter)) {
         return '$memberName setter type checker';
       } else {
         return '$memberName invocation type checker';
       }
+    }
+
+    if (member is Field) {
+      return '$memberName initializer';
     }
 
     if (target.isInitializerReference) {
@@ -268,19 +286,12 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     List<w.ValueType> arguments = _getInputTypes(
         translator, target, null, false, translator.translateType);
 
-    if (translator.constructorClosures[node.reference] == null) {
-      // We need the contexts of the constructor before generating the
-      // initializer and constructor body functions, as these functions will
-      // return/take a context argument if context must be shared between them.
-      // Generate the contexts the first time we visit a constructor.
-      Closures closures = Closures(translator, node);
-
-      closures.findCaptures(node);
-      closures.collectContexts(node);
-      closures.buildContexts();
-
-      translator.constructorClosures[node.reference] = closures;
-    }
+    // We need the contexts of the constructor before generating the initializer
+    // and constructor body functions, as these functions will return/take a
+    // context argument if context must be shared between them. Generate the
+    // contexts the first time we visit a constructor.
+    translator.constructorClosures[node.reference] ??=
+        translator.getClosures(node);
 
     if (target.isInitializerReference) {
       return _getInitializerType(node, target, arguments);
@@ -467,12 +478,11 @@ w.FunctionType _makeFunctionType(
     final isGetter = target.isImplicitGetter;
     final isSetter = target.isImplicitSetter;
     if (isGetter || isSetter) {
-      final global = translator.globals.getGlobalForStaticField(member);
-      final globalType = global.type.type;
+      final fieldType = translator.translateTypeOfField(member);
       if (isGetter) {
-        return translator.typesBuilder.defineFunction(const [], [globalType]);
+        return translator.typesBuilder.defineFunction(const [], [fieldType]);
       }
-      return translator.typesBuilder.defineFunction([globalType], const []);
+      return translator.typesBuilder.defineFunction([fieldType], const []);
     }
   }
 

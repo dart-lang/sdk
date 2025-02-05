@@ -14,6 +14,7 @@ import 'dart:typed_data';
 
 // Embedder sets this to true if the --trace-loading flag was passed on the
 // command line.
+@pragma("vm:entry-point", "set")
 bool _traceLoading = false;
 
 // Before handling an embedder entrypoint we finalize the setup of the
@@ -30,7 +31,7 @@ void _print(arg) {
   _printString(arg.toString());
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 _getPrintClosure() => _print;
 
 // The current working directory when the embedder was launched.
@@ -60,7 +61,7 @@ Map<String, Uri>? _packageMap = null;
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
 // Embedder sets this to true if we are running on Windows.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "set")
 bool _isWindows = false;
 
 // Logging from builtin.dart is prefixed with a '*'.
@@ -307,9 +308,10 @@ List _parsePackageConfig(bool traceLoading, Uri packageConfig, String data) {
     final String packageName = package['name'];
     final String? packageUri = package['packageUri'];
     final Uri resolvedRootUri = packageConfig.resolve(rootUri);
-    final Uri resolvedPackageUri = packageUri != null
-        ? resolvedRootUri.resolve(packageUri)
-        : resolvedRootUri;
+    final Uri resolvedPackageUri =
+        packageUri != null
+            ? resolvedRootUri.resolve(packageUri)
+            : resolvedRootUri;
     if (packageUri != null &&
         !'$resolvedPackageUri'.contains('$resolvedRootUri')) {
       throw 'The resolved "packageUri" is not a subdirectory of the "rootUri".';
@@ -487,7 +489,10 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
 // The embedder calls this method to initial the package resolution state.
 @pragma("vm:entry-point")
 void _Init(
-    String? packagesConfig, String workingDirectory, String? rootScript) {
+  String? packagesConfig,
+  String workingDirectory,
+  String? rootScript,
+) {
   // Register callbacks and hooks with the rest of core libraries.
   _setupHooks();
 

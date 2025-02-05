@@ -134,6 +134,83 @@ final b = new Foo.named(); // 0
     expect(target.length, 5);
   }
 
+  Future<void>
+  test_constructorInvocation_insideNullAwareElement_inList() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = [?Foo()];
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()];');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareElement_inSet() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {?Foo()};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()};');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareKey_inMap() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {?Foo(): "value"};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo():');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareValue_inMap() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {"key": ?Foo()};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()};');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
   Future<void> test_field_underscore() async {
     addTestFile('''
 class C {
@@ -266,8 +343,11 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
+    var request = _createGetNavigationRequest(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+      0,
+    );
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -364,12 +444,9 @@ f(int _) { }
   }
 
   Future<void> test_partDirective() async {
-    var partFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partFile = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part 'a.dart';
 ''');
@@ -383,13 +460,10 @@ part 'a.dart';
   }
 
   Future<void> test_partOfDirective_named() async {
-    var partOfFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partOfFile = newFile('$testPackageLibPath/a.dart', '''
 library foo;
 part 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part of foo;
 ''');
@@ -399,16 +473,13 @@ part of foo;
     assertHasRegionString('foo');
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
-    assertHasFileTarget(partOfFile.path, 8, 3); // library [[foo]]
+    assertHasFileTarget(partOfFile.path, 0, 0);
   }
 
   Future<void> test_partOfDirective_uri() async {
-    var partOfFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partOfFile = newFile('$testPackageLibPath/a.dart', '''
 part 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part of 'a.dart';
 ''');
@@ -482,8 +553,11 @@ void f() {
   }
 
   Request _createGetNavigationRequest(String file, int offset, int length) {
-    return AnalysisGetNavigationParams(file, offset, length)
-        .toRequest(requestId, clientUriConverter: server.uriConverter);
+    return AnalysisGetNavigationParams(
+      file,
+      offset,
+      length,
+    ).toRequest(requestId, clientUriConverter: server.uriConverter);
   }
 
   Future<void> _getNavigation({
@@ -504,8 +578,10 @@ void f() {
 
     var request = _createGetNavigationRequest(file.path, offset, length);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = AnalysisGetNavigationResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = AnalysisGetNavigationResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

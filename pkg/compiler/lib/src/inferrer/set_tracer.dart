@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler.src.inferrer.set_tracer;
+library;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
@@ -12,7 +12,7 @@ import 'type_graph_nodes.dart';
 /// A set of selector names that [Set] implements and which we know do not
 /// change the element type of the set or let the set escape to code that might
 /// change the element type.
-Set<String> okSetSelectorSet = Set<String>.from(const <String>[
+Set<String> okSetSelectorSet = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -61,7 +61,7 @@ Set<String> okSetSelectorSet = Set<String>.from(const <String>[
   'retainAll',
   'retainWhere',
   'union',
-]);
+};
 
 class SetTracerVisitor extends TracerVisitor {
   List<TypeInformation> inputs = <TypeInformation>[];
@@ -84,7 +84,8 @@ class SetTracerVisitor extends TracerVisitor {
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {
+    ClosureCallSiteTypeInformation info,
+  ) {
     bailout('Passed to a closure');
   }
 
@@ -93,14 +94,15 @@ class SetTracerVisitor extends TracerVisitor {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called) &&
-        called.name == Identifiers.JS) {
+        called.name == Identifiers.js) {
       bailout('Used in JS ${info.debugName}');
     }
   }
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     final selectorName = selector.name;

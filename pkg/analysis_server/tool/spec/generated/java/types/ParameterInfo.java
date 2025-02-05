@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a member that is being overridden.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ParameterInfo {
 
-  public static final ParameterInfo[] EMPTY_ARRAY = new ParameterInfo[0];
-
-  public static final List<ParameterInfo> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ParameterInfo> EMPTY_LIST = List.of();
 
   /**
    * The kind of the parameter.
@@ -68,13 +63,12 @@ public class ParameterInfo {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ParameterInfo) {
-      ParameterInfo other = (ParameterInfo) obj;
+    if (obj instanceof ParameterInfo other) {
       return
-        ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.type, type) &&
-        ObjectUtilities.equals(other.defaultValue, defaultValue);
+        Objects.equals(other.kind, kind) &&
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.type, type) &&
+        Objects.equals(other.defaultValue, defaultValue);
     }
     return false;
   }
@@ -91,10 +85,9 @@ public class ParameterInfo {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ParameterInfo> list = new ArrayList<ParameterInfo>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ParameterInfo> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -130,12 +123,12 @@ public class ParameterInfo {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(name);
-    builder.append(type);
-    builder.append(defaultValue);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      name,
+      type,
+      defaultValue
+    );
   }
 
   public JsonObject toJson() {
@@ -154,11 +147,14 @@ public class ParameterInfo {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("defaultValue=");
     builder.append(defaultValue);
     builder.append("]");

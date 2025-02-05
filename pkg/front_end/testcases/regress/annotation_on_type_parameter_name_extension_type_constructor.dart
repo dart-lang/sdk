@@ -1,0 +1,23 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+extension type FooOK<T>(int foo) {
+  FooOK.bar(T theFoo) : foo = theFoo as int;
+}
+
+extension type FooBad1(int foo) {
+  FooBad1.bar<T>(T theFoo) : foo = theFoo as int;
+}
+
+extension type FooBad2<T1>(int foo) {
+  FooBad2.bar<T2>(T1 theFoo1, T2 theFoo2) : foo = (theFoo1 as int) + (theFoo2 as int);
+}
+
+extension type FooBad3<T1>(int foo) {
+  FooBad3.bar<T2, T3>(T1 theFoo1, T2 theFoo2, T3 theFoo3) : foo = (theFoo1 as int) + (theFoo2 as int) + (theFoo3 as int);
+}
+
+extension type FooBad4<T1, T2>(int foo) {
+  FooBad4.bar<T3>(T1 theFoo1, T2 theFoo2, T3 theFoo3) : foo = (theFoo1 as int) + (theFoo2 as int) + (theFoo3 as int);
+}

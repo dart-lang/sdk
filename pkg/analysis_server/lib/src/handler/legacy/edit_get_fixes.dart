@@ -21,9 +21,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -39,12 +39,18 @@ class EditGetFixesHandler extends LegacyHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetFixesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetFixesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetFixesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     var offset = params.offset;
 
@@ -81,14 +87,17 @@ class EditGetFixesHandler extends LegacyHandler
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
-    var responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
+    var responses = await waitForResponses(
+      pluginFutures,
+      requestParameters: requestParams,
+    );
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     var converter = ResultConverter();
     for (var response in responses) {
       var result = plugin.EditGetFixesResult.fromResponse(response);
-      errorFixesList
-          .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
+      errorFixesList.addAll(
+        result.fixes.map(converter.convertAnalysisErrorFixes),
+      );
     }
     //
     // Send the response.
@@ -99,7 +108,9 @@ class EditGetFixesHandler extends LegacyHandler
   /// Compute and return the fixes associated with server-generated errors in
   /// analysis options files.
   Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
-      String file, int offset) async {
+    String file,
+    int offset,
+  ) async {
     var errorFixesList = <AnalysisErrorFixes>[];
     var resourceProvider = server.resourceProvider;
     var optionsFile = resourceProvider.getFile(file);
@@ -115,8 +126,9 @@ class EditGetFixesHandler extends LegacyHandler
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
     var analysisContext = session.analysisContext;
-    var package =
-        analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
+    var package = analysisContext.contextRoot.workspace.findPackageFor(
+      optionsFile.path,
+    );
     var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
@@ -132,7 +144,11 @@ class EditGetFixesHandler extends LegacyHandler
     }
     for (var error in errors) {
       var generator = AnalysisOptionsFixGenerator(
-          resourceProvider, error, content, options);
+        resourceProvider,
+        error,
+        content,
+        options,
+      );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
@@ -166,23 +182,26 @@ class EditGetFixesHandler extends LegacyHandler
   /// Compute and return the fixes associated with server-generated errors in
   /// Dart files.
   Future<List<AnalysisErrorFixes>> _computeDartFixes(
-      Request request, String file, int offset) async {
+    Request request,
+    String file,
+    int offset,
+  ) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var result = await server.getResolvedUnit(file);
+    var libraryResult = await server.getResolvedLibrary(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (result != null) {
-      var lineInfo = result.lineInfo;
+    if (libraryResult != null) {
+      var unitResult = libraryResult.unitWithPath(file)!;
+      var lineInfo = unitResult.lineInfo;
       var requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (var error in result.errors) {
+      for (var error in unitResult.errors) {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
-          var workspace = DartChangeWorkspace(
-            await server.currentSessions,
-          );
+          var workspace = DartChangeWorkspace(await server.currentSessions);
           var context = DartFixContext(
             instrumentationService: server.instrumentationService,
             workspace: workspace,
-            resolvedResult: result,
+            libraryResult: libraryResult,
+            unitResult: unitResult,
             error: error,
           );
 
@@ -198,14 +217,14 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content,
+              file: unitResult.content,
               'parameters': parametersFile,
             });
           }
 
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.compareFixes);
-            var serverError = newAnalysisError_fromEngine(result, error);
+            var serverError = newAnalysisError_fromEngine(unitResult, error);
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             for (var fix in fixes) {
@@ -222,7 +241,9 @@ error.errorCode: ${error.errorCode}
   /// Compute and return the fixes associated with server-generated errors in
   /// pubspec.yaml files.
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
-      String file, int offset) async {
+    String file,
+    int offset,
+  ) async {
     var errorFixesList = <AnalysisErrorFixes>[];
     var resourceProvider = server.resourceProvider;
     var pubspecFile = resourceProvider.getFile(file);
@@ -258,8 +279,12 @@ error.errorCode: ${error.errorCode}
       analysisOptions: analysisOptions,
     );
     for (var error in errors) {
-      var generator =
-          PubspecFixGenerator(resourceProvider, error, content, node);
+      var generator = PubspecFixGenerator(
+        resourceProvider,
+        error,
+        content,
+        node,
+      );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
@@ -292,7 +317,10 @@ error.errorCode: ${error.errorCode}
 
   /// Compute and return the fixes associated with server-generated errors.
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
-      Request request, String file, int offset) async {
+    Request request,
+    String file,
+    int offset,
+  ) async {
     var pathContext = server.resourceProvider.pathContext;
     if (file_paths.isDart(pathContext, file)) {
       return _computeDartFixes(request, file, offset);

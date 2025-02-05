@@ -27,19 +27,26 @@ class _Directory {
   @patch
   @pragma("vm:external-name", "Directory_Delete")
   external static _deleteNative(
-      _Namespace namespace, Uint8List rawPath, bool recursive);
+    _Namespace namespace,
+    Uint8List rawPath,
+    bool recursive,
+  );
   @patch
   @pragma("vm:external-name", "Directory_Rename")
   external static _rename(
-      _Namespace namespace, Uint8List rawPath, String newPath);
+    _Namespace namespace,
+    Uint8List rawPath,
+    String newPath,
+  );
   @patch
   @pragma("vm:external-name", "Directory_FillWithDirectoryListing")
   external static void _fillWithDirectoryListing(
-      _Namespace namespace,
-      List<FileSystemEntity> list,
-      Uint8List rawPath,
-      bool recursive,
-      bool followLinks);
+    _Namespace namespace,
+    List<FileSystemEntity> list,
+    Uint8List rawPath,
+    bool recursive,
+    bool followLinks,
+  );
 }
 
 @patch
@@ -73,7 +80,10 @@ Uri _uriBaseClosure() {
   var result = _Directory._current(_Namespace._namespace);
   if (result is OSError) {
     throw new FileSystemException._fromOSError(
-        result, "Getting current working directory failed", "");
+      result,
+      "Getting current working directory failed",
+      "",
+    );
   }
   return new Uri.directory(result as String);
 }

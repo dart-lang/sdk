@@ -128,12 +128,14 @@ class CompilerState : public ThreadStackResource {
 
   const Class& ArrayClass();
   const Class& CompoundClass();
+  const Class& ErrorClass();
   const Class& StructClass();
   const Class& TypedDataClass();
   const Class& UnionClass();
 
   const Field& CompoundOffsetInBytesField();
   const Field& CompoundTypedDataBaseField();
+  const Field& ErrorStackTraceField();
 
   const Function* function() const { return function_; }
 
@@ -182,6 +184,7 @@ class CompilerState : public ThreadStackResource {
   const Class* union_class_ = nullptr;
   const Field* compound_offset_in_bytes_field_ = nullptr;
   const Field* compound_typed_data_base_field_ = nullptr;
+  const Field* error_stack_trace_field_ = nullptr;
   const Function* typed_list_get_float32_ = nullptr;
   const Function* typed_list_set_float32_ = nullptr;
   const Function* typed_list_get_float64_ = nullptr;

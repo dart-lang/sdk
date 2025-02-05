@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';
@@ -36,7 +38,7 @@ void main() {
   lib2.addProcedure(lib2Procedure);
 
   verifyTargets(libProcedure, lib2Procedure, field, field);
-  List<int> writtenBytesFieldOriginal = serialize(lib1, lib2);
+  Uint8List writtenBytesFieldOriginal = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
   String getterCanonicalName = '${field.getterReference.canonicalName}';
@@ -83,7 +85,7 @@ void main() {
   lib1.addProcedure(setter);
 
   verifyTargets(libProcedure, lib2Procedure, getter, setter);
-  List<int> writtenBytesGetterSetter = serialize(lib1, lib2);
+  Uint8List writtenBytesGetterSetter = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the getter/setter is marked as
   // such, canonical-name-wise.
   if (getter.reference.canonicalName!.parent!.name != "@getters") {
@@ -121,7 +123,7 @@ void main() {
 
   verifyTargets(
       libProcedure, lib2Procedure, fieldReplacement, fieldReplacement);
-  List<int> writtenBytesFieldNew = serialize(lib1, lib2);
+  Uint8List writtenBytesFieldNew = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
   if (fieldReplacement.getterReference.canonicalName!.parent!.name !=
@@ -184,7 +186,7 @@ void verifyTargets(Procedure libProcedure, Procedure lib2Procedure,
   }
 }
 
-List<int> serialize(Library lib1, Library lib2) {
+Uint8List serialize(Library lib1, Library lib2) {
   Component component = new Component(libraries: [lib1, lib2])
     ..setMainMethodAndMode(
         null, false, NonNullableByDefaultCompiledMode.Strong);

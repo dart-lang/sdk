@@ -49,14 +49,19 @@ class TimerImpl implements Timer {
       }
 
       _handle = JS(
-          'int', '#.setTimeout(#, #)', global, internalCallback, milliseconds);
+        'int',
+        '#.setTimeout(#, #)',
+        global,
+        internalCallback,
+        milliseconds,
+      );
     } else {
       throw UnsupportedError("`setTimeout()` not found.");
     }
   }
 
   TimerImpl.periodic(int milliseconds, void callback(Timer timer))
-      : _once = false {
+    : _once = false {
     if (hasTimer()) {
       int start = JS<int>('!', 'Date.now()');
       int currentHotRestartIteration = dart.hotRestartIteration;

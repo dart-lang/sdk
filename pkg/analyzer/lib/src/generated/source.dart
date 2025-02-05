@@ -9,13 +9,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:path/path.dart' as path;
 
-@Deprecated("Import 'package:analyzer/source/line_info.dart'")
-export 'package:analyzer/source/line_info.dart' show LineInfo;
-@Deprecated("Import 'package:analyzer/source/source.dart'")
-export 'package:analyzer/source/source.dart';
-@Deprecated("Import 'package:analyzer/source/source_range.dart'")
-export 'package:analyzer/source/source_range.dart';
-
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.
 abstract class BasicSource extends Source {
@@ -129,8 +122,8 @@ abstract class SourceFactory {
   ///         there is no such SDK
   DartSdk? get dartSdk;
 
-  /// A table mapping package names to paths of directories containing
-  /// the package (or [null] if there is no registered package URI resolver).
+  /// A table mapping package names to paths of directories containing the
+  /// package (or `null` if there is no registered package URI resolver).
   Map<String, List<Folder>>? get packageMap;
 
   /// Return a source object representing the given absolute URI, or `null` if

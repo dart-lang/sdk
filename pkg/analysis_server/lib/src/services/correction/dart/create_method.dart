@@ -25,14 +25,14 @@ class CreateMethod extends ResolvedCorrectionProducer {
   /// (`operator ==`) method or `hashCode` getter based on the existing other
   /// half of the pair.
   CreateMethod.equalityOrHashCode({required super.context})
-      : _kind = _MethodKind.equalityOrHashCode,
-        applicability = CorrectionApplicability.acrossSingleFile;
+    : _kind = _MethodKind.equalityOrHashCode,
+      applicability = CorrectionApplicability.acrossSingleFile;
 
   /// Initializes a newly created instance that will create a method based on an
   /// invocation of an undefined method.
   CreateMethod.method({required super.context})
-      : _kind = _MethodKind.method,
-        applicability = CorrectionApplicability.singleLocation;
+    : _kind = _MethodKind.method,
+      applicability = CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_memberName];
@@ -45,9 +45,9 @@ class CreateMethod extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async => switch (_kind) {
-        _MethodKind.equalityOrHashCode => _createEqualsOrHashCode(builder),
-        _MethodKind.method => _createMethod(builder),
-      };
+    _MethodKind.equalityOrHashCode => _createEqualsOrHashCode(builder),
+    _MethodKind.method => _createMethod(builder),
+  };
 
   Future<void> _createEqualsOrHashCode(ChangeBuilder builder) async {
     var memberDecl = node.thisOrAncestorOfType<ClassMember>();
@@ -61,7 +61,8 @@ class CreateMethod extends ResolvedCorrectionProducer {
     }
 
     var classElement = classDecl.declaredFragment!.element;
-    var missingEquals = memberDecl is FieldDeclaration ||
+    var missingEquals =
+        memberDecl is FieldDeclaration ||
         (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
 
     await builder.addDartFileEdit(file, (fileBuilder) {
@@ -84,7 +85,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
           return;
         }
 
-        builder.writeOverride2(element, invokeSuper: true);
+        builder.writeOverride(element, invokeSuper: true);
       });
     });
   }
@@ -104,7 +105,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     if (target is ExtensionOverride) {
       targetFragment = target.element2.firstFragment;
       if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration2(targetFragment);
+        targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
           return;
         }
@@ -112,7 +113,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     } else if (target is Identifier && target.element is ExtensionElement2) {
       targetFragment = (target.element as ExtensionElement2).firstFragment;
       if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration2(targetFragment);
+        targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
           return;
         }
@@ -143,32 +144,34 @@ class CreateMethod extends ResolvedCorrectionProducer {
       // Prepare target ClassDeclaration.
       if (targetClassElement is MixinElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getMixinDeclaration2(fragment);
+        targetNode = await getMixinDeclaration(fragment);
       } else if (targetClassElement is ClassElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getClassDeclaration2(fragment);
+        targetNode = await getClassDeclaration(fragment);
       } else if (targetClassElement is ExtensionTypeElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getExtensionTypeDeclaration2(fragment);
+        targetNode = await getExtensionTypeDeclaration(fragment);
       }
       if (targetNode == null) {
         return;
       }
       // Maybe static.
       if (target is Identifier) {
-        staticModifier = target.element?.kind == ElementKind.CLASS ||
+        staticModifier =
+            target.element?.kind == ElementKind.CLASS ||
             target.element?.kind == ElementKind.EXTENSION_TYPE ||
             target.element?.kind == ElementKind.MIXIN;
       }
       // Use different utils.
-      var targetPath = targetFragment.libraryFragment.source.fullName;
-      var targetResolveResult =
-          await unitResult.session.getResolvedUnit(targetPath);
+      var targetPath = targetFragment.libraryFragment!.source.fullName;
+      var targetResolveResult = await unitResult.session.getResolvedUnit(
+        targetPath,
+      );
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }
     }
-    var targetSource = targetFragment?.libraryFragment.source;
+    var targetSource = targetFragment?.libraryFragment!.source;
     if (targetSource == null) {
       return;
     }
@@ -206,7 +209,4 @@ class CreateMethod extends ResolvedCorrectionProducer {
 }
 
 /// A representation of the kind of element that should be suggested.
-enum _MethodKind {
-  equalityOrHashCode,
-  method,
-}
+enum _MethodKind { equalityOrHashCode, method }

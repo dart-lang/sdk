@@ -81,10 +81,11 @@ main() {
     }
     int actual = left.compareTo(right);
     Expect.equals(
-        expectedResult,
-        actual,
-        "($left).compareTo($right) failed "
-        "(should have been $expectedResult, was $actual");
+      expectedResult,
+      actual,
+      "($left).compareTo($right) failed "
+      "(should have been $expectedResult, was $actual",
+    );
   }
 
   for (int i = 0; i < matrix.length; i++) {

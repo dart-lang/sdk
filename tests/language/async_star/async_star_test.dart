@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() async {
   asyncStart();
@@ -28,14 +28,18 @@ main() async {
 
     var log = [];
     var completer = Completer();
-    f().listen(log.add,
-        onError: (e) {
-          // Shouldn't be reached.
-          completer.complete(new Future.sync(() {
+    f().listen(
+      log.add,
+      onError: (e) {
+        // Shouldn't be reached.
+        completer.complete(
+          new Future.sync(() {
             Expect.fail("$e");
-          }));
-        },
-        onDone: () => completer.complete(null));
+          }),
+        );
+      },
+      onDone: () => completer.complete(null),
+    );
     await completer.future;
     Expect.listEquals([1, 2, 3], log, "basic2");
   }
@@ -103,9 +107,11 @@ main() async {
       throw "error";
     }
 
-    await f().handleError((e) {
-      log.add(e);
-    }).forEach(log.add);
+    await f()
+        .handleError((e) {
+          log.add(e);
+        })
+        .forEach(log.add);
     Expect.listEquals([1, "error"], log, "error");
   }
 
@@ -117,9 +123,11 @@ main() async {
       yield 3;
     }
 
-    await f().handleError((e) {
-      log.add(e);
-    }).forEach(log.add);
+    await f()
+        .handleError((e) {
+          log.add(e);
+        })
+        .forEach(log.add);
     Expect.listEquals([1, "error", 3], log, "error2");
   }
 
@@ -135,15 +143,21 @@ main() async {
 
     var completer = Completer();
     var s;
-    s = f().listen((e) {
-      log.add("+$e");
-      s.pause(Future(() {}));
-      log.add("++$e");
-    }, onError: (e) {
-      completer.complete(new Future.sync(() {
-        Expect.fail("$e");
-      }));
-    }, onDone: () => completer.complete(null));
+    s = f().listen(
+      (e) {
+        log.add("+$e");
+        s.pause(Future(() {}));
+        log.add("++$e");
+      },
+      onError: (e) {
+        completer.complete(
+          new Future.sync(() {
+            Expect.fail("$e");
+          }),
+        );
+      },
+      onDone: () => completer.complete(null),
+    );
     await completer.future;
     Expect.listEquals(["-1", "+1", "++1", "-2", "+2", "++2"], log, "pause");
   }
@@ -189,7 +203,10 @@ main() async {
       if (e == 2) break;
     }
     Expect.listEquals(
-        ["-1", "+1", "++1", "-2", "+2", "++2", "x"], log, "loop-pause-break");
+      ["-1", "+1", "++1", "-2", "+2", "++2", "x"],
+      log,
+      "loop-pause-break",
+    );
   }
   asyncEnd();
 }

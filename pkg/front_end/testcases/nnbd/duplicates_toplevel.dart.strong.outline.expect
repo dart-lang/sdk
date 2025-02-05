@@ -30,6 +30,34 @@ library;
 // int topLevelField = 1;
 //     ^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:27:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
+// void set topLevelFieldAndSetter1(int value) {
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:26:5: Context: Field 'topLevelFieldAndSetter1' with the implicit setter.
+// int topLevelFieldAndSetter1 = 1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:35:5: Error: Conflicts with setter 'topLevelFieldAndSetter2'.
+// int topLevelFieldAndSetter2 = 1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:31:10: Context: Conflicting setter 'topLevelFieldAndSetter2'.
+// void set topLevelFieldAndSetter2(int value) {
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:38:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter1'.
+// void set topLevelLateFinalFieldAndSetter1(int value) {
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:37:16: Context: Field 'topLevelLateFinalFieldAndSetter1' with the implicit setter.
+// late final int topLevelLateFinalFieldAndSetter1;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:46:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
+// late final int topLevelLateFinalFieldAndSetter2;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:42:10: Context: Conflicting setter 'topLevelLateFinalFieldAndSetter2'.
+// void set topLevelLateFinalFieldAndSetter2(int value) {
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:49:11: Error: 'topLevelDuplicateFieldAndSetter' is already declared in this scope.
 // final int topLevelDuplicateFieldAndSetter = 2;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,53 +86,19 @@ library;
 // void set topLevelDuplicateFieldAndDuplicateSetter(int value) {
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:27:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
-// void set topLevelFieldAndSetter1(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:26:5: Error: Conflicts with setter 'topLevelFieldAndSetter1'.
-// int topLevelFieldAndSetter1 = 1;
-//     ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:31:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter2'.
-// void set topLevelFieldAndSetter2(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:35:5: Error: Conflicts with setter 'topLevelFieldAndSetter2'.
-// int topLevelFieldAndSetter2 = 1;
-//     ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:38:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter1'.
-// void set topLevelLateFinalFieldAndSetter1(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:37:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter1'.
-// late final int topLevelLateFinalFieldAndSetter1;
-//                ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:42:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter2'.
-// void set topLevelLateFinalFieldAndSetter2(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:46:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
-// late final int topLevelLateFinalFieldAndSetter2;
-//                ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:74:10: Error: Conflicts with member 'topLevelMethodAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:74:10: Error: The setter conflicts with declaration 'topLevelMethodAndSetter1'.
 // void set topLevelMethodAndSetter1(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:73:5: Error: Conflicts with setter 'topLevelMethodAndSetter1'.
+//          ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:73:5: Context: Conflicting declaration 'topLevelMethodAndSetter1'.
 // int topLevelMethodAndSetter1() => 1;
-//     ^
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:78:10: Error: Conflicts with member 'topLevelMethodAndSetter2'.
-// void set topLevelMethodAndSetter2(int value) {
-//          ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:5: Error: Conflicts with setter 'topLevelMethodAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:5: Error: The declaration conflicts with setter 'topLevelMethodAndSetter2'.
 // int topLevelMethodAndSetter2() => 1;
-//     ^
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:78:10: Context: Conflicting setter 'topLevelMethodAndSetter2'.
+// void set topLevelMethodAndSetter2(int value) {
+//          ^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
 // var field = topLevelMethod;

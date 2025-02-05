@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -171,11 +173,11 @@ class NamedTypeResolver with ScopeHelpers {
   /// [enclosingClass].
   InterfaceType _inferRedirectedConstructor(InterfaceElement element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNode? nodeForTesting}) {
+      required AstNodeImpl? nodeForTesting}) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
-      var typeParameters = element.typeParameters;
+      var typeParameters = element.asElement2.typeParameters2;
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
@@ -200,7 +202,7 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  DartType _instantiateElement(NamedType node, Element element,
+  DartType _instantiateElement(NamedTypeImpl node, Element element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var nullability = _getNullability(node);
 

@@ -45,10 +45,10 @@ then
   BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
 fi
 
-PKG_FILE="${ROOT_DIR}/.packages"
+PKG_FILE="${ROOT_DIR}/.dart_tool/package_config.json"
 if [[ !(-e $PKG_FILE) ]];
 then
-  PKG_FILE="${ROOT_DIR}/.packages"
+  PKG_FILE="${ROOT_DIR}/.dart_tool/package_config.json"
 fi
 
 DART="${BUILD_DIR}/dart-sdk/bin/dart"

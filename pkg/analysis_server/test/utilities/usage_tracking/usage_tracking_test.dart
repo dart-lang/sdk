@@ -23,8 +23,10 @@ void main() {
     test('throws for wrong config', () {
       var wrongAutosnapshottingArg = 'autosnapshotting--wrong-configuration';
       expect(
-        () => parseAutoSnapshottingConfig(
-            [wrongAutosnapshottingArg, 'some other arg']),
+        () => parseAutoSnapshottingConfig([
+          wrongAutosnapshottingArg,
+          'some other arg',
+        ]),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -33,12 +35,12 @@ void main() {
 
 const _argsNoSnapshotting = [
   '--sdk=C:/b/s/w/ir/x/w/sdk/sdk/',
-  '--train-using=C:/b/s/w/ir/x/w/sdk/pkg/compiler/lib'
+  '--train-using=C:/b/s/w/ir/x/w/sdk/pkg/compiler/lib',
 ];
 const _argsWithSnapshotting = [
   _autosnapshottingArg,
   '--sdk=C:/b/s/w/ir/x/w/sdk/sdk/',
-  '--train-using=C:/b/s/w/ir/x/w/sdk/pkg/compiler/lib'
+  '--train-using=C:/b/s/w/ir/x/w/sdk/pkg/compiler/lib',
 ];
 
 // This constant is referenced in README.md for auto-snapshotting.

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
@@ -29,7 +29,7 @@ void main(List<String> args) {
   print(methodTryInline(args[0]));
   print(methodTryInline('bar'));
 }
-"""
+""",
 };
 
 main() {
@@ -39,26 +39,33 @@ main() {
 }
 
 runTest() async {
-  CompilationResult result =
-      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+  CompilationResult result = await runCompiler(
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+  );
   Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
-  void test(String name,
-      {bool expectNoInline = false, bool expectTryInline = false}) {
+  void test(
+    String name, {
+    bool expectNoInline = false,
+    bool expectTryInline = false,
+  }) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary!;
-    final method = closedWorld.elementEnvironment
-        .lookupLibraryMember(mainApp, name) as FunctionEntity;
+    final method =
+        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name)
+            as FunctionEntity;
     Expect.isNotNull(method, "Cannot find method '$name'");
     Expect.equals(
-        expectNoInline,
-        closedWorld.annotationsData.hasNoInline(method),
-        "Unexpected annotation of 'noInline' on '$method'.");
+      expectNoInline,
+      closedWorld.annotationsData.hasNoInline(method),
+      "Unexpected annotation of 'noInline' on '$method'.",
+    );
     Expect.equals(
-        expectTryInline,
-        closedWorld.annotationsData.hasTryInline(method),
-        "Unexpected annotation of 'tryInline' on '$method'.");
+      expectTryInline,
+      closedWorld.annotationsData.hasTryInline(method),
+      "Unexpected annotation of 'tryInline' on '$method'.",
+    );
   }
 
   test('method');

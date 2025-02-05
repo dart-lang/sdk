@@ -48,7 +48,9 @@ class ByteStreamClientChannelTest {
     var doneCalled = false;
     var closeCalled = false;
     // add listener so that outputSink will trigger done/close futures
-    outputLineStream.listen((_) {/* no-op */});
+    outputLineStream.listen((_) {
+      /* no-op */
+    });
     outputSink.done.then((_) {
       doneCalled = true;
     });
@@ -128,26 +130,33 @@ class ByteStreamServerChannelTest {
         .transform(LineSplitter());
     var outputSink = IOSink(outputStream);
     channel = InputOutputByteStreamServerChannel(
-        inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
+      inputStream.stream,
+      outputSink,
+      InstrumentationService.NULL_SERVICE,
+    );
     var requestStreamController = StreamController<RequestOrResponse>();
     requestStream = requestStreamController.stream;
     var errorStreamController = StreamController<Object?>();
     errorStream = errorStreamController.stream;
     var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
-    channel.requests.listen((RequestOrResponse requestOrResponse) {
-      requestStreamController.add(requestOrResponse);
-    }, onError: (error) {
-      errorStreamController.add(error);
-    }, onDone: () {
-      doneCompleter.complete();
-    });
+    channel.requests.listen(
+      (RequestOrResponse requestOrResponse) {
+        requestStreamController.add(requestOrResponse);
+      },
+      onError: (error) {
+        errorStreamController.add(error);
+      },
+      onDone: () {
+        doneCompleter.complete();
+      },
+    );
   }
 
   Future<void> test_closed() {
-    return inputSink
-        .close()
-        .then((_) => channel.closed.timeout(Duration(seconds: 1)));
+    return inputSink.close().then(
+      (_) => channel.closed.timeout(Duration(seconds: 1)),
+    );
   }
 
   Future<void> test_listen_invalidJson() {
@@ -156,11 +165,11 @@ class ByteStreamServerChannelTest {
         .flush()
         .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = JsonCodec().decode(response);
-      expect(jsonResponse, isMap);
-      expect(jsonResponse, contains('error'));
-      expect(jsonResponse['error'], isNotNull);
-    });
+          var jsonResponse = JsonCodec().decode(response);
+          expect(jsonResponse, isMap);
+          expect(jsonResponse, contains('error'));
+          expect(jsonResponse['error'], isNotNull);
+        });
   }
 
   Future<void> test_listen_invalidRequest() {
@@ -169,17 +178,17 @@ class ByteStreamServerChannelTest {
         .flush()
         .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = JsonCodec().decode(response);
-      expect(jsonResponse, isMap);
-      expect(jsonResponse, contains('error'));
-      expect(jsonResponse['error'], isNotNull);
-    });
+          var jsonResponse = JsonCodec().decode(response);
+          expect(jsonResponse, isMap);
+          expect(jsonResponse, contains('error'));
+          expect(jsonResponse['error'], isNotNull);
+        });
   }
 
   Future<void> test_listen_streamDone() {
-    return inputSink
-        .close()
-        .then((_) => doneFuture.timeout(Duration(seconds: 1)));
+    return inputSink.close().then(
+      (_) => doneFuture.timeout(Duration(seconds: 1)),
+    );
   }
 
   Future<void> test_listen_streamError() {
@@ -189,8 +198,8 @@ class ByteStreamServerChannelTest {
         .flush()
         .then((_) => errorStream.first.timeout(Duration(seconds: 1)))
         .then((var receivedError) {
-      expect(receivedError, same(error));
-    });
+          expect(receivedError, same(error));
+        });
   }
 
   Future<void> test_listen_wellFormedRequest() {
@@ -199,19 +208,19 @@ class ByteStreamServerChannelTest {
         .flush()
         .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
         .then((RequestOrResponse requestOrResponse) {
-      if (requestOrResponse is! Request) {
-        fail('Expected a Request');
-      }
-      expect(requestOrResponse.id, equals('0'));
-      expect(requestOrResponse.method, equals('server.version'));
-    });
+          if (requestOrResponse is! Request) {
+            fail('Expected a Request');
+          }
+          expect(requestOrResponse.id, equals('0'));
+          expect(requestOrResponse.method, equals('server.version'));
+        });
   }
 
   Future<void> test_sendNotification() {
     channel.sendNotification(Notification('foo'));
-    return outputLineStream.first
-        .timeout(Duration(seconds: 1))
-        .then((String notification) {
+    return outputLineStream.first.timeout(Duration(seconds: 1)).then((
+      String notification,
+    ) {
       var jsonNotification = JsonCodec().decode(notification);
       expect(jsonNotification, isMap);
       expect(jsonNotification, contains('event'));
@@ -224,9 +233,10 @@ class ByteStreamServerChannelTest {
     var outputSink = _IOSinkThatAsyncThrowsOnWrite();
 
     var channel = InputOutputByteStreamServerChannel(
-        StreamController<List<int>>().stream,
-        outputSink,
-        InstrumentationService.NULL_SERVICE);
+      StreamController<List<int>>().stream,
+      outputSink,
+      InstrumentationService.NULL_SERVICE,
+    );
 
     // Attempt to send a notification.
     channel.sendNotification(Notification('foo'));
@@ -237,9 +247,9 @@ class ByteStreamServerChannelTest {
 
   Future<void> test_sendResponse() {
     channel.sendResponse(Response('foo'));
-    return outputLineStream.first
-        .timeout(Duration(seconds: 1))
-        .then((String response) {
+    return outputLineStream.first.timeout(Duration(seconds: 1)).then((
+      String response,
+    ) {
       var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('id'));

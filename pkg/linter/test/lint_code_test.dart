@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:test/test.dart';
 
 import 'rule_test_support.dart';

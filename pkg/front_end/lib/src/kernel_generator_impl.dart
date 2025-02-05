@@ -5,6 +5,8 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -72,7 +74,8 @@ Future<InternalCompilerResult> generateKernelInternal(
     bool retainDataForTesting = false,
     Benchmarker? benchmarker,
     Instrumentation? instrumentation,
-    List<Component>? additionalDillsForTesting}) async {
+    List<Component>? additionalDillsForTesting,
+    bool allowVerificationErrorForTesting = false}) async {
   ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
@@ -149,7 +152,8 @@ Future<InternalCompilerResult> generateKernelInternal(
           buildComponent: buildComponent,
           includeOffsets: includeOffsets,
           includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
-          retainDataForTesting: retainDataForTesting);
+          retainDataForTesting: retainDataForTesting,
+          allowVerificationErrorForTesting: allowVerificationErrorForTesting);
     }
   },
       // Coverage-ignore(suite): Not run.
@@ -170,11 +174,12 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     required bool buildComponent,
     required bool includeOffsets,
     required bool includeHierarchyAndCoreTypes,
-    required bool retainDataForTesting}) async {
+    required bool retainDataForTesting,
+    required bool allowVerificationErrorForTesting}) async {
   BuildResult buildResult =
       await kernelTarget.buildOutlines(nameRoot: nameRoot);
   Component summaryComponent = buildResult.component!;
-  List<int>? summary = null;
+  Uint8List? summary = null;
   if (buildSummary) {
     // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
@@ -240,7 +245,8 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
   if (buildComponent) {
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications,
-        verify: options.verify);
+        verify: options.verify,
+        allowVerificationErrorForTesting: allowVerificationErrorForTesting);
     component = buildResult.component;
     if (options.debugDump) {
       // Coverage-ignore-block(suite): Not run.
@@ -274,7 +280,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
 class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
   @override
-  final List<int>? summary;
+  final Uint8List? summary;
 
   /// The generated component, if it was requested.
   @override

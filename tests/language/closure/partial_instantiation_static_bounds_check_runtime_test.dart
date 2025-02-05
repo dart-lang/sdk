@@ -16,16 +16,11 @@ class C<T> {
 }
 
 class D<T> extends C<T> {
-  void foo() {
-
-  }
+  void foo() {}
 }
 
 void main() {
   localFn<T extends num>(T x) {
     print(T);
   }
-
-
-
 }

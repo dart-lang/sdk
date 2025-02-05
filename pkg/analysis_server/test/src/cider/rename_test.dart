@@ -45,7 +45,7 @@ class ^Old {}
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'Old');
+    expect(refactor!.refactoringElement.element2.name3, 'Old');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -59,7 +59,7 @@ class A {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'bar');
+    expect(refactor!.refactoringElement.element2.name3, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -71,7 +71,7 @@ class A{
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name, '_val');
+    expect(refactor!.refactoringElement.element2.name3, '_val');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -81,7 +81,7 @@ void ^foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'foo');
+    expect(refactor!.refactoringElement.element2.name3, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -97,7 +97,7 @@ void f() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name, 'myLabel');
+    expect(refactor!.refactoringElement.element2.name3, 'myLabel');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -108,7 +108,7 @@ void foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'a');
+    expect(refactor!.refactoringElement.element2.name3, 'a');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -119,7 +119,7 @@ extension E on int {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'foo');
+    expect(refactor!.refactoringElement.element2.name3, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -141,7 +141,7 @@ void foo(int ^bar) {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name, 'bar');
+    expect(refactor!.refactoringElement.element2.name3, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -154,7 +154,7 @@ void f() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name, 'test');
+    expect(refactor!.refactoringElement.element2.name3, 'test');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -293,15 +293,16 @@ class TestPageState extends State<TestPage> {
       ReplaceInfo('NewPage', CharacterLocation(4, 9), 8),
       ReplaceInfo('NewPage', CharacterLocation(7, 9), 8),
       ReplaceInfo('NewPage', CharacterLocation(10, 35), 8),
-      ReplaceInfo('NewPage', CharacterLocation(3, 7), 8)
+      ReplaceInfo('NewPage', CharacterLocation(3, 7), 8),
     ]);
     expect(result.flutterWidgetRename != null, isTrue);
     expect(result.flutterWidgetRename!.name, 'NewPageState');
     expect(
-        result.flutterWidgetRename!.replacements.first.matches
-            .map((m) => m.startPosition)
-            .toList(),
-        [CharacterLocation(7, 36), CharacterLocation(10, 7)]);
+      result.flutterWidgetRename!.replacements.first.matches
+          .map((m) => m.startPosition)
+          .toList(),
+      [CharacterLocation(7, 36), CharacterLocation(10, 7)],
+    );
   }
 
   void test_rename_constructor_add() async {
@@ -658,10 +659,12 @@ void f() {
 ''', 'bar');
 
     expect(result!.replaceMatches.length, 2);
-    expect(result.replaceMatches.first.matches,
-        [ReplaceInfo('bar', CharacterLocation(3, 3), 3)]);
-    expect(result.replaceMatches[1].matches,
-        [ReplaceInfo('bar', CharacterLocation(1, 1), 3)]);
+    expect(result.replaceMatches.first.matches, [
+      ReplaceInfo('bar', CharacterLocation(3, 3), 3),
+    ]);
+    expect(result.replaceMatches[1].matches, [
+      ReplaceInfo('bar', CharacterLocation(1, 1), 3),
+    ]);
   }
 
   void test_rename_import() async {
@@ -818,10 +821,12 @@ void f() {
 }
 ''', 'bar');
     expect(result!.replaceMatches.length, 2);
-    expect(result.replaceMatches.first.matches,
-        [ReplaceInfo('bar', CharacterLocation(3, 15), 3)]);
-    expect(result.replaceMatches[1].matches,
-        [ReplaceInfo('bar', CharacterLocation(2, 3), 3)]);
+    expect(result.replaceMatches.first.matches, [
+      ReplaceInfo('bar', CharacterLocation(3, 15), 3),
+    ]);
+    expect(result.replaceMatches[1].matches, [
+      ReplaceInfo('bar', CharacterLocation(2, 3), 3),
+    ]);
   }
 
   void test_rename_parameter() async {
@@ -872,14 +877,13 @@ void f(bar a) {}
   }
 
   // Asserts that the results of the rename is the [expectedCode].
-  void _assertTestChangeResult(
-      String expectedCode, List<ReplaceInfo> changes) async {
+  void _assertTestChangeResult(String expectedCode, List<ReplaceInfo> changes) {
     var edits = <SourceEdit>[];
     for (var change in changes) {
       var offset =
           _lineInfo!.getOffsetOfLine(change.startPosition.lineNumber - 1) +
-              change.startPosition.columnNumber -
-              1;
+          change.startPosition.columnNumber -
+          1;
       edits.add(SourceEdit(offset, change.length, change.replacementText));
     }
     edits.sort((a, b) => a.offset.compareTo(b.offset));
@@ -892,9 +896,7 @@ void f(bar a) {}
   Future<CheckNameResponse?> _checkName(String content, String newName) async {
     _updateFile(content);
 
-    var canRename = await CiderRenameComputer(
-      fileResolver,
-    ).canRename2(
+    var canRename = await CiderRenameComputer(fileResolver).canRename2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,
@@ -902,12 +904,10 @@ void f(bar a) {}
     return canRename?.checkNewName(newName);
   }
 
-  Future<CanRenameResponse?> _compute(String content) async {
+  Future<CanRenameResponse?> _compute(String content) {
     _updateFile(content);
 
-    return CiderRenameComputer(
-      fileResolver,
-    ).canRename2(
+    return CiderRenameComputer(fileResolver).canRename2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,
@@ -917,9 +917,7 @@ void f(bar a) {}
   Future<RenameResponse?> _rename(String content, String newName) async {
     _updateFile(content);
 
-    var canRename = await CiderRenameComputer(
-      fileResolver,
-    ).canRename2(
+    var canRename = await CiderRenameComputer(fileResolver).canRename2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,

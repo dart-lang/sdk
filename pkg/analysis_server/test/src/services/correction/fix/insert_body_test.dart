@@ -122,10 +122,13 @@ f() {
 enum E
 ''');
     // TODO(pq): consider special casing enums to improve the insertion offset
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 enum E
  {}''',
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS);
+      errorFilter:
+          (error) =>
+              error.errorCode != CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
+    );
   }
 }

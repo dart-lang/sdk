@@ -15,13 +15,18 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchGetElementDeclarationsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var params = protocol.SearchGetElementDeclarationsParams.fromRequest(
-        request,
-        clientUriConverter: server.uriConverter);
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     protocol.ElementKind getElementKind(search.DeclarationKind kind) {
       return switch (kind) {
@@ -50,8 +55,9 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     }
 
     if (!server.options.featureSet.completion) {
-      server.sendResponse(Response.unsupportedFeature(
-          request.id, 'Completion is not enabled.'));
+      server.sendResponse(
+        Response.unsupportedFeature(request.id, 'Completion is not enabled.'),
+      );
       return;
     }
 
@@ -68,23 +74,28 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     ).compute();
 
     var declarations = workspaceSymbols.declarations;
-    var elementDeclarations = declarations.map((declaration) {
-      return protocol.ElementDeclaration(
-          declaration.name,
-          getElementKind(declaration.kind),
-          declaration.fileIndex,
-          declaration.offset,
-          declaration.line,
-          declaration.column,
-          declaration.codeOffset,
-          declaration.codeLength,
-          className: declaration.className,
-          mixinName: declaration.mixinName,
-          parameters: declaration.parameters);
-    }).toList();
+    var elementDeclarations =
+        declarations.map((declaration) {
+          return protocol.ElementDeclaration(
+            declaration.name,
+            getElementKind(declaration.kind),
+            declaration.fileIndex,
+            declaration.offset,
+            declaration.line,
+            declaration.column,
+            declaration.codeOffset,
+            declaration.codeLength,
+            className: declaration.className,
+            mixinName: declaration.mixinName,
+            parameters: declaration.parameters,
+          );
+        }).toList();
 
-    server.sendResponse(protocol.SearchGetElementDeclarationsResult(
-            elementDeclarations, workspaceSymbols.files)
-        .toResponse(request.id, clientUriConverter: server.uriConverter));
+    server.sendResponse(
+      protocol.SearchGetElementDeclarationsResult(
+        elementDeclarations,
+        workspaceSymbols.files,
+      ).toResponse(request.id, clientUriConverter: server.uriConverter),
+    );
   }
 }

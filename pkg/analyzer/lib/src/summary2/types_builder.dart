@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -148,6 +151,8 @@ class TypesBuilder {
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
+
+    _updatedAugmented(element, withClause: node.withClause);
 
     _toInferMixins[element] = _ToInferMixins(element, node.withClause);
   }
@@ -370,77 +375,77 @@ class TypesBuilder {
   }
 
   void _updatedAugmented(
-    InstanceElementImpl element, {
+    InstanceElementImpl fragment, {
     WithClause? withClause,
   }) {
     // Always schedule mixin inference for the declaration.
-    if (element.augmentationTarget == null) {
-      if (element is InterfaceElementImpl) {
-        _toInferMixins[element] = _ToInferMixins(element, withClause);
+    if (fragment.augmentationTarget == null) {
+      if (fragment is InterfaceElementImpl) {
+        _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
       }
     }
 
     // Here we merge declaration and augmentations.
     // If there are no augmentations, nothing to do.
-    var augmented = element.augmented;
-    if (augmented is! AugmentedInstanceElementImpl) {
+    var element = fragment.element;
+    if (element is! InstanceElementImpl2) {
       return;
     }
 
-    var declaration = augmented.declaration;
-    var declarationTypeParameters = declaration.typeParameters;
+    var firstFragment = element.firstFragment;
+    var firstTypeParameters = firstFragment.typeParameters;
 
-    var augmentationTypeParameters = element.typeParameters;
-    if (augmentationTypeParameters.length != declarationTypeParameters.length) {
+    var fragmentTypeParameters = fragment.typeParameters;
+    if (fragmentTypeParameters.length != firstTypeParameters.length) {
       return;
     }
 
-    var toDeclaration = Substitution.fromPairs(
-      augmentationTypeParameters,
-      declarationTypeParameters.instantiateNone(),
+    var toFirst = Substitution.fromPairs(
+      fragmentTypeParameters,
+      firstTypeParameters.instantiateNone(),
     );
 
-    var fromDeclaration = Substitution.fromPairs(
-      declarationTypeParameters,
-      augmentationTypeParameters.instantiateNone(),
+    var fromFirst = Substitution.fromPairs(
+      firstTypeParameters,
+      fragmentTypeParameters.instantiateNone(),
     );
 
     // Schedule mixing inference for augmentations.
-    if (element.augmentationTarget != null) {
-      if (element is InterfaceElementImpl && withClause != null) {
-        var toInferMixins = _toInferMixins[declaration];
+    if (fragment.augmentationTarget != null) {
+      if (fragment is InterfaceElementImpl && withClause != null) {
+        var toInferMixins = _toInferMixins[firstFragment];
         if (toInferMixins != null) {
           toInferMixins.augmentations.add(
             _ToInferMixinsAugmentation(
-              element: element,
+              element: fragment,
               withClause: withClause,
-              toDeclaration: toDeclaration,
-              fromDeclaration: fromDeclaration,
+              toDeclaration: toFirst,
+              fromDeclaration: fromFirst,
             ),
           );
         }
       }
     }
 
-    if (element is InterfaceElementImpl &&
-        declaration is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl) {
-      if (declaration.supertype == null) {
-        var elementSuperType = element.supertype;
-        if (elementSuperType != null) {
-          var superType = toDeclaration.mapInterfaceType(elementSuperType);
-          declaration.supertype = superType;
+    if (fragment is InterfaceElementImpl &&
+        firstFragment is InterfaceElementImpl &&
+        element is InterfaceElementImpl2) {
+      if (firstFragment.supertype == null) {
+        var fragmentSuperType = fragment.supertype;
+        if (fragmentSuperType != null) {
+          var superType = toFirst.mapInterfaceType(fragmentSuperType);
+          firstFragment.supertype = superType;
         }
       }
 
-      augmented.interfaces.addAll(
-        toDeclaration.mapInterfaceTypes(element.interfaces),
+      element.interfaces.addAll(
+        toFirst.mapInterfaceTypes(fragment.interfaces),
       );
     }
 
-    if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
-      augmented.superclassConstraints.addAll(
-        toDeclaration.mapInterfaceTypes(element.superclassConstraints),
+    if (fragment is MixinElementImpl && element is MixinElementImpl2) {
+      element.superclassConstraints.addAll(
+        toFirst.mapInterfaceTypes(fragment.superclassConstraints),
       );
     }
   }
@@ -534,12 +539,12 @@ class _MixinInference {
       return mixinType;
     }
 
-    List<TypeParameterElement>? typeParameters;
+    List<TypeParameterElement2>? typeParameters;
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
-    var mixinElement = mixinNode.element;
-    if (mixinElement is InterfaceElement) {
-      typeParameters = mixinElement.typeParameters;
+    var mixinElement = mixinNode.element2;
+    if (mixinElement is InterfaceElement2) {
+      typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
             .gatherMixinSupertypeConstraintsForInference(mixinElement);
@@ -550,10 +555,10 @@ class _MixinInference {
           );
         };
       }
-    } else if (mixinElement is TypeAliasElementImpl) {
-      typeParameters = mixinElement.typeParameters;
+    } else if (mixinElement is TypeAliasElementImpl2) {
+      typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
-        var rawType = mixinElement.rawType;
+        var rawType = mixinElement.aliasedType;
         if (rawType is InterfaceType) {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
@@ -591,7 +596,9 @@ class _MixinInference {
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
     var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
-      typeParameters,
+      // TODO(paulberry): make this cast unnecessary by changing the type of
+      // `typeParameters`.
+      typeParameters.cast(),
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
@@ -690,7 +697,7 @@ class _MixinsInference {
     } finally {
       element.mixinInferenceCallback = null;
       switch (element.augmented) {
-        case AugmentedInterfaceElementImpl augmented:
+        case InterfaceElementImpl2 augmented:
           augmented.mixins.addAll(declarationMixins);
       }
     }

@@ -11,8 +11,9 @@ import 'api.dart';
 import 'codegen_java.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-    'tool/spec/generated/java/AnalysisServer.java',
-    (Api api) => CodegenAnalysisServer(api));
+  'tool/spec/generated/java/AnalysisServer.java',
+  (Api api) => CodegenAnalysisServer(api),
+);
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(super.api);
@@ -46,7 +47,8 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * @param listener the listener to be added
  */''');
         writeln(
-            'public void addAnalysisServerListener(AnalysisServerListener listener);');
+          'public void addAnalysisServerListener(AnalysisServerListener listener);',
+        );
       });
 
       //
@@ -60,7 +62,8 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * @param listener the listener to be removed
  */''');
         writeln(
-            'public void removeAnalysisServerListener(AnalysisServerListener listener);');
+          'public void removeAnalysisServerListener(AnalysisServerListener listener);',
+        );
       });
 
       //
@@ -113,7 +116,8 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * @param listener the listener to be removed
  */''');
         writeln(
-            'public void removeResponseListener(ResponseListener listener);');
+          'public void removeResponseListener(ResponseListener listener);',
+        );
       });
 
       //
@@ -127,7 +131,8 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * @param listener the listener to be added
  */''');
         writeln(
-            'public void addStatusListener(AnalysisServerStatusListener listener);');
+          'public void addStatusListener(AnalysisServerStatusListener listener);',
+        );
       });
 
       //
@@ -157,14 +162,16 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
   void visitRequest(Request request) {
     var methodName = '${request.domainName}_${request.method}';
     publicMethod(methodName, () {
-      docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.write('{@code ${request.longMethod}}');
-        toHtmlVisitor.translateHtml(request.html);
-        toHtmlVisitor.javadocParams(request.params);
-        if (request.deprecated) {
-          toHtmlVisitor.p(() => toHtmlVisitor.write('@deprecated'));
-        }
-      }));
+      docComment(
+        toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.write('{@code ${request.longMethod}}');
+          toHtmlVisitor.translateHtml(request.html);
+          toHtmlVisitor.javadocParams(request.params);
+          if (request.deprecated) {
+            toHtmlVisitor.p(() => toHtmlVisitor.write('@deprecated'));
+          }
+        }),
+      );
       write('public void $methodName(');
       var arguments = <String>[];
 

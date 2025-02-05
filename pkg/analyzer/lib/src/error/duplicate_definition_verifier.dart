@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -118,8 +120,8 @@ class DuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void checkUnit(CompilationUnitImpl node) {
     var fragment = node.declaredElement!;
-    Map<String, Element> definedGetters = HashMap<String, Element>();
-    Map<String, Element> definedSetters = HashMap<String, Element>();
+    var definedGetters = <String, Element>{};
+    var definedSetters = <String, Element>{};
 
     void addWithoutChecking(CompilationUnitElement element) {
       for (PropertyAccessorElement accessor in element.accessors) {
@@ -231,9 +233,10 @@ class DuplicateDefinitionVerifier {
     if (element is PropertyInducingElement) {
       _checkDuplicateIdentifier(getterScope, identifier,
           element: element.getter!, setterScope: setterScope);
-      if (!element.isConst && !element.isFinal) {
+      var setter = element.setter;
+      if (setter != null && setter.isSynthetic) {
         _checkDuplicateIdentifier(getterScope, identifier,
-            element: element.setter!, setterScope: setterScope);
+            element: setter, setterScope: setterScope);
       }
       return;
     }
@@ -334,7 +337,7 @@ class MemberDuplicateDefinitionVerifier {
     InstanceElement fragment,
     List<ClassMember> members,
   ) {
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var constructorNames = elementContext.constructorNames;
@@ -412,7 +415,7 @@ class MemberDuplicateDefinitionVerifier {
     InstanceElement fragment,
     List<ClassMember> members,
   ) {
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var instanceGetters = elementContext.instanceGetters;
@@ -522,17 +525,18 @@ class MemberDuplicateDefinitionVerifier {
     if (element is PropertyInducingElement) {
       _checkDuplicateIdentifier(getterScope, identifier,
           element: element.getter!, setterScope: setterScope);
-      if (!element.isConst && !element.isFinal) {
+      var setter = element.setter;
+      if (setter != null && setter.isSynthetic) {
         _checkDuplicateIdentifier(getterScope, identifier,
-            element: element.setter!, setterScope: setterScope);
+            element: setter, setterScope: setterScope);
       }
       return;
     }
 
-    var name = identifier.lexeme;
-    if (element is MethodElement) {
-      name = element.name;
-    }
+    var name = switch (element) {
+      MethodElement() => element.name,
+      _ => identifier.lexeme,
+    };
 
     var previous = getterScope[name];
     if (previous != null) {
@@ -572,7 +576,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkEnum(EnumDeclaration node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
     var declarationName = declarationElement.name;
 
     var elementContext = _getElementContext(declarationElement);
@@ -646,7 +650,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkEnumStatic(EnumDeclarationImpl node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
     var declarationName = declarationElement.name;
 
     for (var accessor in fragment.accessors) {
@@ -692,7 +696,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionStatic(ExtensionDeclaration node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var instanceGetters = elementContext.instanceGetters;
@@ -733,7 +737,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredElement!;
-    var element = fragment.augmented.declaration;
+    var element = fragment.augmented.firstFragment;
     var primaryConstructorName = element.constructors.first.name;
     var representationGetter = element.representation.getter!;
     _getElementContext(element)

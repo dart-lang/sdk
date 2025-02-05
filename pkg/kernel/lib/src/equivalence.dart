@@ -4225,6 +4225,9 @@ class EquivalenceStrategy {
     if (other is! ListPattern) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkListPattern_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkListPattern_typeArgument(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4237,13 +4240,7 @@ class EquivalenceStrategy {
     if (!checkListPattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkListPattern_needsCheck(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkListPattern_lookupType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkListPattern_hasRestPattern(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkListPattern_lengthTargetReference(visitor, node, other)) {
@@ -4407,6 +4404,9 @@ class EquivalenceStrategy {
     if (other is! MapPattern) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkMapPattern_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkMapPattern_keyType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4420,9 +4420,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPattern_matchedValueType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkMapPattern_needsCheck(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkMapPattern_lookupType(visitor, node, other)) {
@@ -8321,6 +8318,11 @@ class EquivalenceStrategy {
     return checkPattern_fileOffset(visitor, node, other);
   }
 
+  bool checkListPattern_flags(
+      EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
   bool checkListPattern_typeArgument(
       EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
     return visitor.checkNodes(
@@ -8345,20 +8347,9 @@ class EquivalenceStrategy {
         node.matchedValueType, other.matchedValueType, 'matchedValueType');
   }
 
-  bool checkListPattern_needsCheck(
-      EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
-    return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
-  }
-
   bool checkListPattern_lookupType(
       EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
     return visitor.checkNodes(node.lookupType, other.lookupType, 'lookupType');
-  }
-
-  bool checkListPattern_hasRestPattern(
-      EquivalenceVisitor visitor, ListPattern node, ListPattern other) {
-    return visitor.checkValues(
-        node.hasRestPattern, other.hasRestPattern, 'hasRestPattern');
   }
 
   bool checkListPattern_lengthTargetReference(
@@ -8557,6 +8548,11 @@ class EquivalenceStrategy {
     return checkPattern_fileOffset(visitor, node, other);
   }
 
+  bool checkMapPattern_flags(
+      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
   bool checkMapPattern_keyType(
       EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
     return visitor.checkNodes(node.keyType, other.keyType, 'keyType');
@@ -8583,11 +8579,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
     return visitor.checkNodes(
         node.matchedValueType, other.matchedValueType, 'matchedValueType');
-  }
-
-  bool checkMapPattern_needsCheck(
-      EquivalenceVisitor visitor, MapPattern node, MapPattern other) {
-    return visitor.checkValues(node.needsCheck, other.needsCheck, 'needsCheck');
   }
 
   bool checkMapPattern_lookupType(

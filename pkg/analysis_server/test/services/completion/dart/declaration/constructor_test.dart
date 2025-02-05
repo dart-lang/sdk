@@ -196,7 +196,7 @@ suggestions
   }
 
   Future<void>
-      test_functionTypeContext_matchingReturnType_withTypeArguments() async {
+  test_functionTypeContext_matchingReturnType_withTypeArguments() async {
     await computeSuggestions('''
 class A<T> {
   A.named();
@@ -217,7 +217,7 @@ suggestions
   }
 
   Future<void>
-      test_functionTypeContext_matchingReturnType_withTypeArguments2() async {
+  test_functionTypeContext_matchingReturnType_withTypeArguments2() async {
     await computeSuggestions('''
 class A {}
 
@@ -240,7 +240,7 @@ suggestions
   }
 
   Future<void>
-      test_functionTypeContext_matchingReturnType_withTypeArguments_partial() async {
+  test_functionTypeContext_matchingReturnType_withTypeArguments_partial() async {
     await computeSuggestions('''
 class A<T> {
   A.named();
@@ -261,7 +261,7 @@ suggestions
   }
 
   Future<void>
-      test_functionTypeContext_matchingReturnType_withTypeArguments_withPrefix() async {
+  test_functionTypeContext_matchingReturnType_withTypeArguments_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.named();
@@ -285,7 +285,7 @@ suggestions
   }
 
   Future<void>
-      test_functionTypeContext_notMatchingReturnType_withTypeArguments() async {
+  test_functionTypeContext_notMatchingReturnType_withTypeArguments() async {
     await computeSuggestions('''
 class A<T> {
   A.named();

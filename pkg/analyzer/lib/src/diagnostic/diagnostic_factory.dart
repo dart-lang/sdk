@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
@@ -21,7 +24,7 @@ class DiagnosticFactory {
   /// as a previous [original] node in a pattern assignment.
   AnalysisError duplicateAssignmentPatternVariable({
     required Source source,
-    required PromotableElement variable,
+    required PromotableElement2 variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
@@ -30,7 +33,7 @@ class DiagnosticFactory {
       offset: duplicate.offset,
       length: duplicate.length,
       errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
-      arguments: [variable.name],
+      arguments: [variable.name3!],
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -263,8 +266,6 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
-  /// is a duplicate of the [originalKey].
   AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,
       int length, List<Object> arguments, Token previousToken) {
     var lexeme = previousToken.lexeme;
@@ -337,7 +338,7 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that the given [identifier] was referenced
+  /// Return a diagnostic indicating that the given [nameToken] was referenced
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(
     Source source, {

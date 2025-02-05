@@ -5,7 +5,6 @@
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 
 import '../../analyzer.dart';
-import '../../linter_lint_codes.dart';
 
 const _desc = r'Use secure urls in `pubspec.yaml`.';
 

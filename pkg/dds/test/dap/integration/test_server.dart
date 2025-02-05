@@ -44,9 +44,7 @@ class InProcessDapTestServer extends DapTestServer {
       stdinController.stream,
       stdoutController.sink,
       // Simulate flags based on the args to aid testing.
-      enableDds: !args.contains('--no-dds'),
       ipv6: args.contains('--ipv6'),
-      enableAuthCodes: !args.contains('--no-auth-codes'),
       test: args.contains('--test'),
       onError: onError,
     );

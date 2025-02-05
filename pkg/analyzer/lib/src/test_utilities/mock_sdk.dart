@@ -902,20 +902,38 @@ final class DartRepresentationOf {
 
 @Since('2.13')
 final class Array<T extends NativeType> extends _Compound {
-  const factory Array(int dimension1,
-      [int dimension2,
-      int dimension3,
-      int dimension4,
-      int dimension5]) = _ArraySize<T>;
+  const factory Array(
+    int dimension1, [
+    int dimension2,
+    int dimension3,
+    int dimension4,
+    int dimension5,
+  ]) = _ArraySize<T>;
 
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
 
   @Since('3.6')
-  const factory Array.variable() = _ArraySize<T>.variable;
+  const factory Array.variable([
+    int dimension2,
+    int dimension3,
+    int dimension4,
+    int dimension5,
+  ]) = _ArraySize<T>.variable;
+
+  @Since('3.7')
+  const factory Array.variableWithVariableDimension([
+    int dimension1,
+    int dimension2,
+    int dimension3,
+    int dimension4,
+    int dimension5,
+  ]) = _ArraySize<T>.variableWithVariableDimension;
 
   @Since('3.6')
-  const factory Array.variableMulti(List<int> dimensions) =
-      _ArraySize<T>.variableMulti;
+  const factory Array.variableMulti(
+    List<int> dimensions, {
+    @Since('3.7') int variableDimension,
+  }) = _ArraySize<T>.variableMulti;
 }
 
 final class _ArraySize<T extends NativeType> implements Array<T> {
@@ -927,7 +945,7 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
   final List<int>? dimensions;
 
-  final bool variableLength;
+  final int? variableDimension;
 
   const _ArraySize(
     this.dimension1, [
@@ -936,7 +954,7 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension4,
     this.dimension5,
   ])  : dimensions = null,
-        variableLength = false;
+        variableDimension = null;
 
   const _ArraySize.multi(this.dimensions)
       : dimension1 = null,
@@ -944,33 +962,48 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
         dimension3 = null,
         dimension4 = null,
         dimension5 = null,
-        variableLength = false;
-
-  static const variableLengthLength = 0;
+        variableDimension = null;
 
   const _ArraySize.variable([
     this.dimension2,
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimension1 = variableLengthLength,
+  ])  : dimension1 = 0,
         dimensions = null,
-        variableLength = true;
+        variableDimension = 0;
 
-  const _ArraySize.variableMulti(List<int> nestedDimensions)
-      : dimensions = nestedDimensions,
+  const _ArraySize.variableWithVariableDimension([
+    this.dimension1,
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimensions = null,
+        variableDimension = dimension1;
+
+  const _ArraySize.variableMulti(
+    List<int> nestedDimensions, {
+    int variableDimension = 0,
+  })  : dimensions = nestedDimensions,
         dimension1 = null,
         dimension2 = null,
         dimension3 = null,
         dimension4 = null,
         dimension5 = null,
-        variableLength = true;
+        variableDimension = variableDimension;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
 
   external T operator [](int index);
+
+  @Since('3.7')
+  external T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  });
 }
 
 @Since('2.19')
@@ -1056,6 +1089,9 @@ final class Int extends AbiSpecificInteger {
 abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
+
+typedef NativeFinalizerFunction =
+    NativeFunction<Void Function(Pointer<Void> token)>;
 
 @Since('3.0')
 abstract final class VarArgs<T extends Record> implements NativeType {}
@@ -1526,6 +1562,23 @@ extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
 extension type JSTypedArray._(TypedData _) implements JSObject {}
 
 extension type JSUint8List._(Uint8List _) implements JSTypedArray {}
+
+extension JSAnyUtilityExtension on JSAny? {
+  external bool typeofEquals(String typeString);
+
+  external bool instanceof(JSFunction constructor);
+
+  bool instanceOfString(String constructorName) => false;
+
+  @Since('3.4')
+  external bool isA<T extends JSAny?>();
+
+  external Object? dartify();
+}
+
+extension NullableObjectUtilExtension on Object? {
+  external JSAny? jsify();
+}
 ''',
     )
   ],

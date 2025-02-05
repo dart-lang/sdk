@@ -40,27 +40,6 @@ class FileSourceTest with ResourceProviderMixin {
     expect(source1 == source2, isTrue);
   }
 
-  @Deprecated('We will remove reading source content')
-  void test_fileReadMode() {
-    expect(FileSource.fileReadMode('a'), 'a');
-    expect(FileSource.fileReadMode('a\n'), 'a\n');
-    expect(FileSource.fileReadMode('ab'), 'ab');
-    expect(FileSource.fileReadMode('abc'), 'abc');
-    expect(FileSource.fileReadMode('a\nb'), 'a\nb');
-    expect(FileSource.fileReadMode('a\rb'), 'a\rb');
-    expect(FileSource.fileReadMode('a\r\nb'), 'a\r\nb');
-  }
-
-  @Deprecated('We will remove reading source content')
-  void test_fileReadMode_changed() {
-    FileSource.fileReadMode = (String s) => '${s}xyz';
-    expect(FileSource.fileReadMode('a'), 'axyz');
-    expect(FileSource.fileReadMode('a\n'), 'a\nxyz');
-    expect(FileSource.fileReadMode('ab'), 'abxyz');
-    expect(FileSource.fileReadMode('abc'), 'abcxyz');
-    FileSource.fileReadMode = (String s) => s;
-  }
-
   void test_getFullName() {
     File file = getFile("/does/not/exist.dart");
     FileSource source = FileSource(file);

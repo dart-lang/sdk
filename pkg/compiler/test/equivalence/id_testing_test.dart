@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -17,18 +17,26 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/front_end/test/id_testing/data'));
-    await checkTests(dataDir, IdTestingDataComputer(),
-        args: args, testedConfigs: [sharedConfig]);
+    Directory dataDir = Directory.fromUri(
+      Platform.script.resolve('../../../../pkg/front_end/test/id_testing/data'),
+    );
+    await checkTests(
+      dataDir,
+      IdTestingDataComputer(),
+      args: args,
+      testedConfigs: [sharedConfig],
+    );
   });
 }
 
 class IdTestingDataComputer extends DataComputer<String> {
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
@@ -37,24 +45,36 @@ class IdTestingDataComputer extends DataComputer<String> {
 
   @override
   void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
-      {required bool verbose}) {
+    Compiler compiler,
+    ClassEntity cls,
+    Map<Id, ActualData<String>> actualMap, {
+    required bool verbose,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Class node = elementMap.getClassNode(cls);
-    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .computeForClass(node);
+    IdTestingDataExtractor(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+    ).computeForClass(node);
   }
 
   @override
-  void computeLibraryData(Compiler compiler, LibraryEntity library,
-      Map<Id, ActualData<String>> actualMap,
-      {required bool verbose}) {
+  void computeLibraryData(
+    Compiler compiler,
+    LibraryEntity library,
+    Map<Id, ActualData<String>> actualMap, {
+    required bool verbose,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
-    IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .computeForLibrary(node);
+    IdTestingDataExtractor(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+    ).computeForLibrary(node);
   }
 
   @override
@@ -62,7 +82,10 @@ class IdTestingDataComputer extends DataComputer<String> {
 
   @override
   String computeErrorData(
-      Compiler compiler, Id id, List<CollectedMessage> errors) {
+    Compiler compiler,
+    Id id,
+    List<CollectedMessage> errors,
+  ) {
     return errors.map((c) => c.message!.message).join(',');
   }
 
@@ -77,9 +100,11 @@ class IdTestingDataComputer extends DataComputer<String> {
 class IdTestingDataExtractor extends IrDataExtractor<String> {
   final KernelToElementMap elementMap;
 
-  IdTestingDataExtractor(DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap, this.elementMap)
-      : super(reporter, actualMap);
+  IdTestingDataExtractor(
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this.elementMap,
+  ) : super(reporter, actualMap);
 
   @override
   String computeLibraryValue(Id id, ir.Library library) {

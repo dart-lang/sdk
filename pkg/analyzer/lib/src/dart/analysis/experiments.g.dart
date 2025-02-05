@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.6.0';
+const _currentVersion = '3.7.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -26,8 +26,10 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.digit_separators: ExperimentalFeatures.digit_separators,
   EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
   EnableString.enhanced_parts: ExperimentalFeatures.enhanced_parts,
+  EnableString.enum_shorthands: ExperimentalFeatures.enum_shorthands,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
   EnableString.generic_metadata: ExperimentalFeatures.generic_metadata,
+  EnableString.getter_setter_error: ExperimentalFeatures.getter_setter_error,
   EnableString.inference_update_1: ExperimentalFeatures.inference_update_1,
   EnableString.inference_update_2: ExperimentalFeatures.inference_update_2,
   EnableString.inference_update_3: ExperimentalFeatures.inference_update_3,
@@ -88,11 +90,17 @@ class EnableString {
   /// String to enable the experiment "enhanced-parts"
   static const String enhanced_parts = 'enhanced-parts';
 
+  /// String to enable the experiment "enum-shorthands"
+  static const String enum_shorthands = 'enum-shorthands';
+
   /// String to enable the experiment "extension-methods"
   static const String extension_methods = 'extension-methods';
 
   /// String to enable the experiment "generic-metadata"
   static const String generic_metadata = 'generic-metadata';
+
+  /// String to enable the experiment "getter-setter-error"
+  static const String getter_setter_error = 'getter-setter-error';
 
   /// String to enable the experiment "inference-update-1"
   static const String inference_update_1 = 'inference-update-1';
@@ -177,7 +185,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.augmentations,
     isExpired: IsExpired.augmentations,
     documentation: 'Augmentations - enhancing declarations from outside',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
   );
 
@@ -259,12 +267,22 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
     documentation: 'Generalize parts to be nested and have exports/imports.',
+    experimentalReleaseVersion: Version.parse('3.6.0'),
+    releaseVersion: null,
+  );
+
+  static final enum_shorthands = ExperimentalFeature(
+    index: 9,
+    enableString: EnableString.enum_shorthands,
+    isEnabledByDefault: IsEnabledByDefault.enum_shorthands,
+    isExpired: IsExpired.enum_shorthands,
+    documentation: 'Shorter dot syntax for enum values.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
 
   static final extension_methods = ExperimentalFeature(
-    index: 9,
+    index: 10,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -274,7 +292,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 10,
+    index: 11,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -284,8 +302,19 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.14.0'),
   );
 
+  static final getter_setter_error = ExperimentalFeature(
+    index: 12,
+    enableString: EnableString.getter_setter_error,
+    isEnabledByDefault: IsEnabledByDefault.getter_setter_error,
+    isExpired: IsExpired.getter_setter_error,
+    documentation:
+        'Stop reporting errors about mismatching types in a getter/setter pair.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
   static final inference_update_1 = ExperimentalFeature(
-    index: 11,
+    index: 13,
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
@@ -296,7 +325,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_2 = ExperimentalFeature(
-    index: 12,
+    index: 14,
     enableString: EnableString.inference_update_2,
     isEnabledByDefault: IsEnabledByDefault.inference_update_2,
     isExpired: IsExpired.inference_update_2,
@@ -306,7 +335,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_3 = ExperimentalFeature(
-    index: 13,
+    index: 15,
     enableString: EnableString.inference_update_3,
     isEnabledByDefault: IsEnabledByDefault.inference_update_3,
     isExpired: IsExpired.inference_update_3,
@@ -317,7 +346,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_4 = ExperimentalFeature(
-    index: 14,
+    index: 16,
     enableString: EnableString.inference_update_4,
     isEnabledByDefault: IsEnabledByDefault.inference_update_4,
     isExpired: IsExpired.inference_update_4,
@@ -327,18 +356,18 @@ class ExperimentalFeatures {
   );
 
   static final inference_using_bounds = ExperimentalFeature(
-    index: 15,
+    index: 17,
     enableString: EnableString.inference_using_bounds,
     isEnabledByDefault: IsEnabledByDefault.inference_using_bounds,
     isExpired: IsExpired.inference_using_bounds,
     documentation:
         'Use type parameter bounds more extensively in type inference.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.7.0'),
   );
 
   static final inline_class = ExperimentalFeature(
-    index: 16,
+    index: 18,
     enableString: EnableString.inline_class,
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
@@ -348,7 +377,7 @@ class ExperimentalFeatures {
   );
 
   static final macros = ExperimentalFeature(
-    index: 17,
+    index: 19,
     enableString: EnableString.macros,
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
@@ -358,7 +387,7 @@ class ExperimentalFeatures {
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
-    index: 18,
+    index: 20,
     enableString: EnableString.named_arguments_anywhere,
     isEnabledByDefault: IsEnabledByDefault.named_arguments_anywhere,
     isExpired: IsExpired.named_arguments_anywhere,
@@ -368,7 +397,7 @@ class ExperimentalFeatures {
   );
 
   static final native_assets = ExperimentalFeature(
-    index: 19,
+    index: 21,
     enableString: EnableString.native_assets,
     isEnabledByDefault: IsEnabledByDefault.native_assets,
     isExpired: IsExpired.native_assets,
@@ -378,7 +407,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 20,
+    index: 22,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -388,7 +417,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 21,
+    index: 23,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -398,7 +427,7 @@ class ExperimentalFeatures {
   );
 
   static final null_aware_elements = ExperimentalFeature(
-    index: 22,
+    index: 24,
     enableString: EnableString.null_aware_elements,
     isEnabledByDefault: IsEnabledByDefault.null_aware_elements,
     isExpired: IsExpired.null_aware_elements,
@@ -408,7 +437,7 @@ class ExperimentalFeatures {
   );
 
   static final patterns = ExperimentalFeature(
-    index: 23,
+    index: 25,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -418,7 +447,7 @@ class ExperimentalFeatures {
   );
 
   static final record_use = ExperimentalFeature(
-    index: 24,
+    index: 26,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -428,7 +457,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 25,
+    index: 27,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -438,7 +467,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 26,
+    index: 28,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -448,7 +477,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 27,
+    index: 29,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -458,7 +487,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 28,
+    index: 30,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -468,7 +497,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 29,
+    index: 31,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -478,7 +507,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 30,
+    index: 32,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -489,7 +518,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 31,
+    index: 33,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -499,7 +528,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 32,
+    index: 34,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -509,7 +538,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 33,
+    index: 35,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -519,7 +548,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 34,
+    index: 36,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -529,14 +558,14 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 35,
+    index: 37,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
     documentation:
         'Local declarations and parameters named `_` are non-binding.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.7.0'),
   );
 }
 
@@ -570,11 +599,17 @@ class IsEnabledByDefault {
   /// Default state of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
 
+  /// Default state of the experiment "enum-shorthands"
+  static const bool enum_shorthands = false;
+
   /// Default state of the experiment "extension-methods"
   static const bool extension_methods = true;
 
   /// Default state of the experiment "generic-metadata"
   static const bool generic_metadata = true;
+
+  /// Default state of the experiment "getter-setter-error"
+  static const bool getter_setter_error = false;
 
   /// Default state of the experiment "inference-update-1"
   static const bool inference_update_1 = true;
@@ -589,7 +624,7 @@ class IsEnabledByDefault {
   static const bool inference_update_4 = false;
 
   /// Default state of the experiment "inference-using-bounds"
-  static const bool inference_using_bounds = false;
+  static const bool inference_using_bounds = true;
 
   /// Default state of the experiment "inline-class"
   static const bool inline_class = true;
@@ -649,7 +684,7 @@ class IsEnabledByDefault {
   static const bool variance = false;
 
   /// Default state of the experiment "wildcard-variables"
-  static const bool wildcard_variables = false;
+  static const bool wildcard_variables = true;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -675,7 +710,7 @@ class IsExpired {
   static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "digit-separators"
-  static const bool digit_separators = false;
+  static const bool digit_separators = true;
 
   /// Expiration status of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
@@ -683,11 +718,17 @@ class IsExpired {
   /// Expiration status of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
 
+  /// Expiration status of the experiment "enum-shorthands"
+  static const bool enum_shorthands = false;
+
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = true;
 
   /// Expiration status of the experiment "generic-metadata"
   static const bool generic_metadata = true;
+
+  /// Expiration status of the experiment "getter-setter-error"
+  static const bool getter_setter_error = false;
 
   /// Expiration status of the experiment "inference-update-1"
   static const bool inference_update_1 = true;
@@ -796,12 +837,19 @@ mixin _CurrentState {
   /// Current state for the flag "enhanced-parts"
   bool get enhanced_parts => isEnabled(ExperimentalFeatures.enhanced_parts);
 
+  /// Current state for the flag "enum-shorthands"
+  bool get enum_shorthands => isEnabled(ExperimentalFeatures.enum_shorthands);
+
   /// Current state for the flag "extension-methods"
   bool get extension_methods =>
       isEnabled(ExperimentalFeatures.extension_methods);
 
   /// Current state for the flag "generic-metadata"
   bool get generic_metadata => isEnabled(ExperimentalFeatures.generic_metadata);
+
+  /// Current state for the flag "getter-setter-error"
+  bool get getter_setter_error =>
+      isEnabled(ExperimentalFeatures.getter_setter_error);
 
   /// Current state for the flag "inference-update-1"
   bool get inference_update_1 =>

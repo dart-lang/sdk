@@ -13,8 +13,8 @@
 // or while paused at a `yield`, must exit at that `yield`.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Stream<int> stream(List<String> log) async* {
   log.add("^");
@@ -30,11 +30,13 @@ Stream<int> stream(List<String> log) async* {
   }
 }
 
-Stream<int> consume(List<String> log,
-    {int breakAt = -1,
-    int yieldAt = -1,
-    int yieldStarAt = -1,
-    int pauseAt = -1}) async* {
+Stream<int> consume(
+  List<String> log, {
+  int breakAt = -1,
+  int yieldAt = -1,
+  int yieldStarAt = -1,
+  int pauseAt = -1,
+}) async* {
   // Create stream.
   var s = stream(log);
   log.add("(");
@@ -358,8 +360,10 @@ class Expects {
         buffer.writeln(es[1]); // stack trace
       }
       ;
-      buffer.writeln("Expectations failed: ${_errors.length}"
-          ", succeeded: ${_tests - _errors.length}");
+      buffer.writeln(
+        "Expectations failed: ${_errors.length}"
+        ", succeeded: ${_tests - _errors.length}",
+      );
       throw ExpectException(buffer.toString());
     }
   }

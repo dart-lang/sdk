@@ -6,31 +6,35 @@
 
 import 'dart:async';
 
-/*space*/ void f1() async* {
-  //      ^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+void f1() async* {
+  // [error column 1, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+  // ^
+  // [cfe] Functions marked 'async*' can't have return type 'void'.
 }
 
 class C {
   static void f2() async* {
     //   ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+    //        ^
+    // [cfe] Functions marked 'async*' can't have return type 'void'.
   }
 
-  /*space*/ void f3() async* {
-    //      ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  void f3() async* {
+    // [error column 3, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+    // ^
+    // [cfe] Functions marked 'async*' can't have return type 'void'.
   }
 }
 
 void main() {
-  /*space*/ void f4() async* {
-    //      ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  void f4() async* {
+    // [error column 3, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+    // ^
+    // [cfe] Functions marked 'async*' can't have return type 'void'.
   }
 
   // No function literal: It is probably not possible to infer the

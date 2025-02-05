@@ -89,12 +89,14 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       // TODO(dantup): This code may need to change/be removed depending on how
       //  we ultimately reference the macro packages/libraries.
       var physical = PhysicalResourceProvider.INSTANCE;
-      var packageRoot =
-          physical.pathContext.normalize(package_root.packageRoot);
+      var packageRoot = physical.pathContext.normalize(
+        package_root.packageRoot,
+      );
 
       for (var package in ['macros', '_macros']) {
-        var destination = resourceProvider
-            .getFolder(convertPath('$packagesRootPath/$package'));
+        var destination = resourceProvider.getFolder(
+          convertPath('$packagesRootPath/$package'),
+        );
         physical
             .getFolder(packageRoot)
             .getChildAssumingFolder(package)

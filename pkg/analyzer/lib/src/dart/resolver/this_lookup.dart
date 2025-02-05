@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -14,9 +16,11 @@ class ThisLookup {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 
-  /// Attempts to resolve an identifier with name [id] via implicit `this.`,
-  /// assuming we are trying to look up a getter.  If a matching element is
-  /// found, a [LexicalLookupResult] is returned.  Otherwise `null` is returned.
+  /// Attempts to resolve an identifier with name, `node.name`, via implicit
+  /// `this.`, assuming we are trying to look up a getter.
+  ///
+  /// If a matching element is found, a [LexicalLookupResult] is returned.
+  /// Otherwise `null` is returned.
   static LexicalLookupResult? lookupGetter(
       ResolverVisitor resolver, SimpleIdentifier node) {
     var id = node.name;
@@ -55,9 +59,11 @@ class ThisLookup {
     }
   }
 
-  /// Attempts to resolve an identifier with name [id] via implicit `this.`,
-  /// assuming we are trying to look up a setter.  If a matching element is
-  /// found, a [LexicalLookupResult] is returned.  Otherwise `null` is returned.
+  /// Attempts to resolve an identifier with name, `node.name`, via implicit
+  /// `this.`, assuming we are trying to look up a setter.
+  ///
+  /// If a matching element is found, a [LexicalLookupResult] is returned.
+  /// Otherwise `null` is returned.
   static LexicalLookupResult? lookupSetter(
       ResolverVisitor resolver, SimpleIdentifier node) {
     var id = node.name;

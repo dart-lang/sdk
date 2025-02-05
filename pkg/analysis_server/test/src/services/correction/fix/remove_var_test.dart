@@ -70,11 +70,14 @@ f() {}
     await resolveTestCode('''
 typedef F = var Function();
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 typedef F = Function();
-''', errorFilter: (error) {
-      return error.errorCode == ParserErrorCode.VAR_RETURN_TYPE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == ParserErrorCode.VAR_RETURN_TYPE;
+      },
+    );
   }
 
   Future<void> test_returnType_setter() async {

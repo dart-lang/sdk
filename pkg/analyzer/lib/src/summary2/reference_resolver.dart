@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -19,9 +21,9 @@ import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
+/// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
-/// in type annotation, and setting [LinkedNodeType]s for corresponding type
+/// in type annotation, and setting LinkedNodeTypes for corresponding type
 /// annotation nodes.
 ///
 /// Declarations that have type annotations, e.g. return types of methods, get

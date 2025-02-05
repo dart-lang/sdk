@@ -7,10 +7,13 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 typedef void FooFunction(int a, double b);
+typedef Rec = (int,);
+typedef Void = void;
 
 main() {
   Expect.throwsArgumentError(() => reflectClass(dynamic));
-  Expect.throwsArgumentError(() => reflectClass(1)); //# 01: compile-time error
-  Expect.throwsArgumentError(() => reflectClass("string")); //# 02: compile-time error
+  Expect.throwsArgumentError(() => reflectClass(Void));
+  Expect.throwsArgumentError(() => reflectClass(Never));
   Expect.throwsArgumentError(() => reflectClass(FooFunction));
+  Expect.throwsArgumentError(() => reflectClass(Rec));
 }

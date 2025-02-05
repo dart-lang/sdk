@@ -17,10 +17,10 @@ class RemoveLexeme extends ResolvedCorrectionProducer {
   final String kind;
 
   RemoveLexeme.keyword({required CorrectionProducerContext context})
-      : this._(context: context, kind: 'keyword');
+    : this._(context: context, kind: 'keyword');
 
   RemoveLexeme.modifier({required CorrectionProducerContext context})
-      : this._(context: context, kind: 'modifier');
+    : this._(context: context, kind: 'modifier');
 
   RemoveLexeme._({required super.context, required this.kind});
 

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
@@ -73,13 +72,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitGetterSetter(MethodDeclaration getter, MethodDeclaration? setter) {
     if (setter == null) return;
-    var getterElement = getter.declaredElement;
-    var setterElement = setter.declaredElement;
+    var getterElement = getter.declaredFragment?.element;
+    var setterElement = setter.declaredFragment?.element;
     if (getterElement == null || setterElement == null) return;
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&
-        getterElement.metadata.isEmpty &&
-        setterElement.metadata.isEmpty) {
+        getterElement.metadata2.annotations.isEmpty &&
+        setterElement.metadata2.annotations.isEmpty) {
       // Just flag the getter (https://github.com/dart-lang/linter/issues/2851)
       rule.reportLintForToken(getter.name);
     }

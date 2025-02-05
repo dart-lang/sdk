@@ -61,8 +61,8 @@ void g() {
     // when the data is re-generated.
     // Getters, setters and fields now all have the same relevance.
     assertOrder([
-//      suggestionWith(completion: 'g'),
-//      suggestionWith(completion: 's'),
+      //      suggestionWith(completion: 'g'),
+      //      suggestionWith(completion: 's'),
       suggestionWith(completion: 'f'),
       suggestionWith(completion: 'm'),
     ]);

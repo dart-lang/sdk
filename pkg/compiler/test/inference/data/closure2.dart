@@ -73,7 +73,8 @@ returnDyn3() {
 /*member: returnInt4:[exact=JSUInt31]*/
 returnInt4() {
   var a = 42;
-  /*[exact=JSUInt31]*/ g() {
+  /*[exact=JSUInt31]*/
+  g() {
     return a;
   }
 
@@ -84,7 +85,8 @@ returnInt4() {
 returnNum1() {
   dynamic a = 42.5;
   try {
-    /*[exact=JSUInt31]*/ g() {
+    /*[exact=JSUInt31]*/
+    g() {
       dynamic b = {};
       b = 42;
       return b;
@@ -102,9 +104,11 @@ returnIntOrNull() {
   /*moveNext: [exact=ArrayIterator]*/
   for (
       // ignore: unused_local_variable
-      var b in [42]) {
+      var b
+      in [42]) {
     int? bar = 42;
-    /*[null|exact=JSUInt31]*/ f() => bar;
+    /*[null|exact=JSUInt31]*/
+    f() => bar;
     bar = null;
     return f();
   }
@@ -115,7 +119,8 @@ returnIntOrNull() {
 class A {
   /*member: A.foo:[exact=A]*/
   foo() {
-    /*[exact=A]*/ f() => this;
+    /*[exact=A]*/
+    f() => this;
     return f();
   }
 }

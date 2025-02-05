@@ -32,15 +32,20 @@ const Matcher isDouble = TypeMatcher<double>();
 const Matcher isInt = TypeMatcher<int>();
 
 const Matcher isNotification = MatchesJsonObject(
-    'notification', {'event': isString},
-    optionalFields: {'params': isMap});
+  'notification',
+  {'event': isString},
+  optionalFields: {'params': isMap},
+);
 
 const Matcher isObject = TypeMatcher<Object>();
 
 const Matcher isString = TypeMatcher<String>();
 
-final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
-    optionalFields: {'result': anything, 'error': isRequestError});
+final Matcher isResponse = MatchesJsonObject(
+  'response',
+  {'id': isString},
+  optionalFields: {'result': anything, 'error': isRequestError},
+);
 
 Matcher isListOf(Matcher elementMatcher) => _ListOf(elementMatcher);
 
@@ -50,8 +55,13 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
 Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
-void outOfTestExpect(Object? actual, Matcher matcher,
-    {String? reason, skip, bool verbose = false}) {
+void outOfTestExpect(
+  Object? actual,
+  Matcher matcher, {
+  String? reason,
+  skip,
+  bool verbose = false,
+}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -61,8 +71,13 @@ void outOfTestExpect(Object? actual, Matcher matcher,
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
-String _defaultFailFormatter(actual, Matcher matcher, String? reason,
-    Map<Object?, Object?> matchState, bool verbose) {
+String _defaultFailFormatter(
+  actual,
+  Matcher matcher,
+  String? reason,
+  Map<Object?, Object?> matchState,
+  bool verbose,
+) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -81,12 +96,12 @@ String _defaultFailFormatter(actual, Matcher matcher, String? reason,
 typedef MatcherCreator = Matcher Function();
 
 /// Type of closures used by MatchesJsonObject to record field mismatches.
-typedef MismatchDescriber = Description Function(
-    Description mismatchDescription);
+typedef MismatchDescriber =
+    Description Function(Description mismatchDescription);
 
 /// Type of callbacks used to process notifications.
-typedef NotificationProcessor = void Function(
-    String event, Map<Object?, Object?> params);
+typedef NotificationProcessor =
+    void Function(String event, Map<Object?, Object?> params);
 
 /// Base class for analysis server integration tests.
 abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
@@ -194,14 +209,15 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   /// [sourceDirectory] is created.
   Future<void> setUp() async {
     var pathContext = resourceProvider.pathContext;
-    var tempDirectoryPath = Directory.systemTemp
-        .createTempSync('analysisServer')
-        .resolveSymbolicLinksSync();
+    var tempDirectoryPath =
+        Directory.systemTemp
+            .createTempSync('analysisServer')
+            .resolveSymbolicLinksSync();
     sourceDirectory = Directory(pathContext.join(tempDirectoryPath, 'app'))
       ..createSync();
-    packagesDirectory =
-        Directory(pathContext.join(tempDirectoryPath, 'packages'))
-          ..createSync();
+    packagesDirectory = Directory(
+      pathContext.join(tempDirectoryPath, 'packages'),
+    )..createSync();
     writeTestPackageConfig();
 
     writeTestPackageAnalysisOptionsFile(
@@ -225,9 +241,11 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     });
     await startServer();
     server.listenToOutput(dispatchNotification);
-    unawaited(server.exitCode.then((_) {
-      skipShutdown = true;
-    }));
+    unawaited(
+      server.exitCode.then((_) {
+        skipShutdown = true;
+      }),
+    );
     return serverConnected.future;
   }
 
@@ -239,11 +257,14 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      // The integer value of the exit code isn't used, but we have to return
-      // an integer to keep the typing correct.
-      return server.kill('server failed to exit').then((_) => -1);
-    });
+    return server.exitCode.timeout(
+      SHUTDOWN_TIMEOUT,
+      onTimeout: () {
+        // The integer value of the exit code isn't used, but we have to return
+        // an integer to keep the typing correct.
+        return server.kill('server failed to exit').then((_) => -1);
+      },
+    );
   }
 
   /// Convert the given [relativePath] to an absolute path, by interpreting it
@@ -251,7 +272,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   /// [relativePath] are converted to backslashes.
   String sourcePath(String relativePath) {
     return path.join(
-        sourceDirectory.path, relativePath.replaceAll('/', path.separator));
+      sourceDirectory.path,
+      relativePath.replaceAll('/', path.separator),
+    );
   }
 
   /// Send the server an 'analysis.setAnalysisRoots' command directing it to
@@ -268,10 +291,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   }
 
   /// Start [server].
-  Future<void> startServer({
-    int? diagnosticPort,
-    int? servicePort,
-  }) {
+  Future<void> startServer({int? diagnosticPort, int? servicePort}) {
     return server.start(
       dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
@@ -319,8 +339,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   }
 
   void writeTestPackageAnalysisOptionsFile(String content) {
-    String filePath =
-        path.join(testPackageRootPath, file_paths.analysisOptionsYaml);
+    String filePath = path.join(
+      testPackageRootPath,
+      file_paths.analysisOptionsYaml,
+    );
     writeFile(filePath, content);
   }
 }
@@ -350,10 +372,18 @@ class LazyMatcher implements Matcher {
   }
 
   @override
-  Description describeMismatch(Object? item, Description mismatchDescription,
-      Map<Object?, Object?> matchState, bool verbose) {
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<Object?, Object?> matchState,
+    bool verbose,
+  ) {
     return _matcher.describeMismatch(
-        item, mismatchDescription, matchState, verbose);
+      item,
+      mismatchDescription,
+      matchState,
+      verbose,
+    );
   }
 
   @override
@@ -396,8 +426,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// their expected types.
   final Map<String, Matcher>? optionalFields;
 
-  const MatchesJsonObject(this.description, this.requiredFields,
-      {this.optionalFields});
+  const MatchesJsonObject(
+    this.description,
+    this.requiredFields, {
+    this.optionalFields,
+  });
 
   @override
   Description describe(Description description) =>
@@ -414,13 +447,14 @@ class MatchesJsonObject extends _RecursiveMatcher {
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add((Description mismatchDescription) =>
-              mismatchDescription
-                  .add('is missing field ')
-                  .addDescriptionOf(key)
-                  .add(' (')
-                  .addDescriptionOf(valueMatcher)
-                  .add(')'));
+          mismatches.add(
+            (Description mismatchDescription) => mismatchDescription
+                .add('is missing field ')
+                .addDescriptionOf(key)
+                .add(' (')
+                .addDescriptionOf(valueMatcher)
+                .add(')'),
+          );
         } else {
           _checkField(key, item[key], valueMatcher, mismatches);
         }
@@ -438,23 +472,30 @@ class MatchesJsonObject extends _RecursiveMatcher {
           return;
         }
       }
-      mismatches.add((Description mismatchDescription) => mismatchDescription
-          .add('has unexpected field ')
-          .addDescriptionOf(key));
+      mismatches.add(
+        (Description mismatchDescription) => mismatchDescription
+            .add('has unexpected field ')
+            .addDescriptionOf(key),
+      );
     });
   }
 
   /// Check the type of a field called [key], having value [value], using
   /// [valueMatcher].  If it doesn't match, record a closure in [mismatches]
   /// which can describe the mismatch.
-  void _checkField(String key, value, Matcher valueMatcher,
-      List<MismatchDescriber> mismatches) {
+  void _checkField(
+    String key,
+    value,
+    Matcher valueMatcher,
+    List<MismatchDescriber> mismatches,
+  ) {
     checkSubstructure(
-        value,
-        valueMatcher,
-        mismatches,
-        (Description description) =>
-            description.add('field ').addDescriptionOf(key));
+      value,
+      valueMatcher,
+      mismatches,
+      (Description description) =>
+          description.add('field ').addDescriptionOf(key),
+    );
   }
 }
 
@@ -540,10 +581,9 @@ class Server {
   /// Start listening to output from the server, and deliver notifications to
   /// [notificationProcessor].
   void listenToOutput(NotificationProcessor notificationProcessor) {
-    _process.stdout
-        .transform(utf8.decoder)
-        .transform(LineSplitter())
-        .listen((String line) {
+    _process.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
+      String line,
+    ) {
       lastCommunicationTime = currentElapseTime;
       var trimmedLine = line.trim();
 
@@ -551,16 +591,18 @@ class Server {
       //   {"event":"server.connected","params":{...}}The Dart VM service is listening on ...
       const dartVMServiceMessage = 'The Dart VM service is listening on ';
       if (trimmedLine.contains(dartVMServiceMessage)) {
-        trimmedLine = trimmedLine
-            .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
-            .trim();
+        trimmedLine =
+            trimmedLine
+                .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
+                .trim();
       }
       const devtoolsMessage =
           'The Dart DevTools debugger and profiler is available at:';
       if (trimmedLine.contains(devtoolsMessage)) {
-        trimmedLine = trimmedLine
-            .substring(0, trimmedLine.indexOf(devtoolsMessage))
-            .trim();
+        trimmedLine =
+            trimmedLine
+                .substring(0, trimmedLine.indexOf(devtoolsMessage))
+                .trim();
       }
       if (trimmedLine.isEmpty) {
         return;
@@ -598,8 +640,10 @@ class Server {
         // params.
         outOfTestExpect(message, contains('event'));
         outOfTestExpect(message['event'], isString);
-        notificationProcessor(message['event'] as String,
-            message['params'] as Map<Object?, Object?>);
+        notificationProcessor(
+          message['event'] as String,
+          message['params'] as Map<Object?, Object?>,
+        );
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
@@ -610,10 +654,10 @@ class Server {
         .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
-      var trimmedLine = line.trim();
-      _recordStdio('ERR:  $trimmedLine');
-      _badDataFromServer('Message received on stderr', silent: true);
-    });
+          var trimmedLine = line.trim();
+          _recordStdio('ERR:  $trimmedLine');
+          _badDataFromServer('Message received on stderr', silent: true);
+        });
   }
 
   /// Send a command to the server.  An 'id' will be automatically assigned.
@@ -623,7 +667,9 @@ class Server {
   /// 'result' field from the response.  If the server acknowledges the command
   /// with an error response, the future will be completed with an error.
   Future<Map<String, Object?>?> send(
-      String method, Map<String, Object?>? params) {
+    String method,
+    Map<String, Object?>? params,
+  ) {
     var id = '${_nextId++}';
     var command = <String, Object?>{'id': id, 'method': method};
     if (params != null) {
@@ -659,18 +705,22 @@ class Server {
     String serverPath;
 
     if (useSnapshot) {
-      serverPath = path.normalize(path.join(
-          dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      serverPath = path.normalize(
+        path.join(
+          dartSdkPath,
+          'bin',
+          'snapshots',
+          'analysis_server.dart.snapshot',
+        ),
+      );
     } else {
-      var rootDir =
-          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      var rootDir = findRoot(
+        Platform.script.toFilePath(windows: Platform.isWindows),
+      );
       serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
     }
 
-    var arguments = <String>[
-      '--disable-dart-dev',
-      '--no-dds',
-    ];
+    var arguments = <String>['--disable-dart-dev', '--no-dds'];
     //
     // Add VM arguments.
     //
@@ -715,11 +765,13 @@ class Server {
       arguments,
       environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
     );
-    unawaited(_process.exitCode.then((int code) {
-      if (code != 0) {
-        _badDataFromServer('server terminated with exit code $code');
-      }
-    }));
+    unawaited(
+      _process.exitCode.then((int code) {
+        if (code != 0) {
+          _badDataFromServer('server terminated with exit code $code');
+        }
+      }),
+    );
   }
 
   /// Deal with bad data received from the server.
@@ -738,9 +790,12 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    Future.delayed(Duration(seconds: 1), expectAsync0(() {
-      fail('Bad data received from server: $details');
-    }));
+    Future.delayed(
+      Duration(seconds: 1),
+      expectAsync0(() {
+        fail('Bad data received from server: $details');
+      }),
+    );
   }
 
   /// Record a message that was exchanged with the server, and print it out if
@@ -783,14 +838,26 @@ class _ListOf extends Matcher {
       description.add('List of ').addDescriptionOf(elementMatcher);
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map<Object?, Object?> matchState, bool verbose) {
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map<Object?, Object?> matchState,
+    bool verbose,
+  ) {
     if (item is! List) {
-      return super
-          .describeMismatch(item, mismatchDescription, matchState, verbose);
+      return super.describeMismatch(
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     } else {
       return iterableMatcher.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     }
   }
 
@@ -829,17 +896,19 @@ class _MapOf extends _RecursiveMatcher {
     }
     item.forEach((key, value) {
       checkSubstructure(
-          key,
-          keyMatcher,
-          mismatches,
-          (Description description) =>
-              description.add('key ').addDescriptionOf(key));
+        key,
+        keyMatcher,
+        mismatches,
+        (Description description) =>
+            description.add('key ').addDescriptionOf(key),
+      );
       checkSubstructure(
-          value,
-          valueMatcher,
-          mismatches,
-          (Description description) =>
-              description.add('field ').addDescriptionOf(key));
+        value,
+        valueMatcher,
+        mismatches,
+        (Description description) =>
+            description.add('field ').addDescriptionOf(key),
+      );
     });
   }
 }
@@ -892,23 +961,27 @@ abstract class _RecursiveMatcher extends Matcher {
   /// the mismatch.  [describeSubstructure] is used to describe which
   /// substructure did not match.
   void checkSubstructure(
-      item,
-      Matcher matcher,
-      List<MismatchDescriber> mismatches,
-      Description Function(Description) describeSubstructure) {
+    item,
+    Matcher matcher,
+    List<MismatchDescriber> mismatches,
+    Description Function(Description) describeSubstructure,
+  ) {
     var subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
         mismatchDescription = mismatchDescription.add('contains malformed ');
         mismatchDescription = describeSubstructure(mismatchDescription);
-        mismatchDescription =
-            mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
-        var subDescription = matcher
-            .describeMismatch(item, StringDescription(), subState, false)
-            .toString();
+        mismatchDescription = mismatchDescription
+            .add(' (should be ')
+            .addDescriptionOf(matcher);
+        var subDescription =
+            matcher
+                .describeMismatch(item, StringDescription(), subState, false)
+                .toString();
         if (subDescription.isNotEmpty) {
-          mismatchDescription =
-              mismatchDescription.add('; ').add(subDescription);
+          mismatchDescription = mismatchDescription
+              .add('; ')
+              .add(subDescription);
         }
         return mismatchDescription.add(')');
       });
@@ -916,8 +989,12 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map<Object?, Object?> matchState, bool verbose) {
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map<Object?, Object?> matchState,
+    bool verbose,
+  ) {
     var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
@@ -935,8 +1012,12 @@ abstract class _RecursiveMatcher extends Matcher {
       }
       return mismatchDescription;
     } else {
-      return super
-          .describeMismatch(item, mismatchDescription, matchState, verbose);
+      return super.describeMismatch(
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     }
   }
 
@@ -957,9 +1038,10 @@ abstract class _RecursiveMatcher extends Matcher {
   void populateMismatches(item, List<MismatchDescriber> mismatches);
 
   /// Create a [MismatchDescriber] describing a mismatch with a simple string.
-  MismatchDescriber simpleDescription(String description) =>
-      (Description mismatchDescription) {
-        mismatchDescription.add(description);
-        return mismatchDescription;
-      };
+  MismatchDescriber simpleDescription(String description) => (
+    Description mismatchDescription,
+  ) {
+    mismatchDescription.add(description);
+    return mismatchDescription;
+  };
 }

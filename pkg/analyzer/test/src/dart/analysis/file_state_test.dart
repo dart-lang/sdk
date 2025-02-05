@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -36,13 +36,365 @@ main() {
     defineReflectiveTests(FileSystemStateTest);
     defineReflectiveTests(FileSystemState_BlazeWorkspaceTest);
     defineReflectiveTests(FileSystemState_PubPackageTest);
+    defineReflectiveTests(DartdocInfoTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
+class DartdocInfoTest extends PubPackageResolutionTest {
+  Future<void> expectDocumentation(
+    String templateDefinition,
+    String macroReference,
+    String expected,
+  ) async {
+    newFile(testFile.path, templateDefinition);
+
+    // Ask for the file, will extract templates.
+    fileStateFor(testFile);
+
+    // We should have templates here now.
+    var info = driverFor(testFile).dartdocDirectiveInfo;
+
+    // Apply these templates.
+    var result = info.processDartdoc('''
+/// Before macro.
+/// $macroReference
+/// After macro.''');
+    expect(result.full, '''
+Before macro.
+$expected
+After macro.''');
+  }
+
+  FileState fileStateFor(File file) {
+    return fsStateFor(file).getFileForPath(file.path);
+  }
+
+  FileSystemState fsStateFor(File file) {
+    return driverFor(file).fsState;
+  }
+
+  test_class() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+class A {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_class_getter() async {
+    var definition = '''
+class A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  String get f => '';
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_class_method() async {
+    var definition = '''
+class A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  void f() {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_class_setter() async {
+    var definition = '''
+class A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  set f(String value) {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_enum_constant() async {
+    var definition = '''
+enum E {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  one,
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_enum_member() async {
+    var definition = '''
+enum E {
+  one;
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  void f() {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extension() async {
+    var definition = '''
+class A {}
+
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+extension on A {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extension_getter() async {
+    var definition = '''
+class A {}
+
+extension on A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  String get f => '';
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extension_method() async {
+    var definition = '''
+class A {}
+
+extension on A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  void f() {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extension_setter() async {
+    var definition = '''
+class A {}
+
+extension on A {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  set f(String value) {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+extension type IdNumber(int id) {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType_getter() async {
+    var definition = '''
+extension type IdNumber(int id) {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  String get f => '';
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType_method() async {
+    var definition = '''
+extension type IdNumber(int id) {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  void f() {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType_setter() async {
+    var definition = '''
+extension type IdNumber(int id) {
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  set f(String value) {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_samePackage() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+class A {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_topLevel_function() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+void f() {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_topLevel_getter() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+String get f => '';
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_topLevel_setter() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+set f(String value) {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_topLevel_variable() async {
+    var definition = '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+var x = 0;
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+}
+
+@reflectiveTest
 class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
-  void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
+  void test_getFileForUri_hasGenerated_askGeneratedFirst() {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
     var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
@@ -70,7 +422,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     expect(writableFile2, same(generatedFile));
   }
 
-  void test_getFileForUri_hasGenerated_askWritableFirst() async {
+  void test_getFileForUri_hasGenerated_askWritableFirst() {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
     var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
@@ -98,7 +450,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     expect(writableFile2, same(generatedFile));
   }
 
-  void test_getFileForUri_nestedLib_notCanonicalUri() async {
+  void test_getFileForUri_nestedLib_notCanonicalUri() {
     var outer = getFile('$workspaceRootPath/my/outer/lib/a.dart');
     var outerUri = Uri.parse('package:my.outer/a.dart');
 
@@ -775,7 +1127,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        docImports
+        docLibraryImports
           library_3 dart:async
           library_5 dart:math
         fileKinds: library_0
@@ -2896,6 +3248,57 @@ elementFactory
 ''');
   }
 
+  test_newFile_partOfUri_cycle_importSelf() async {
+    // https://github.com/dart-lang/sdk/issues/57043
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import '';
+''');
+
+    fileStateFor(a);
+    var b_state = fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          notLibrary file_1
+      referencingFiles: file_0 file_1
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Should not recurse infinitely.
+    b_state.kind.disposeLibraryCycle();
+  }
+
   test_newFile_partOfUri_doesNotExist() async {
     var a = getFile('$testPackageLibPath/a.dart');
 
@@ -3002,6 +3405,70 @@ files
         uriFile: file_0
         library: library_7
       referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_partOfUri_duplicate() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'c.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'a.dart';
+part of 'b.dart';
+''');
+
+    fileStateFor(a);
+    fileStateFor(b);
+    fileStateFor(c);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_2
+        fileKinds: library_0 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          notPart file_2
+        fileKinds: library_1
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_0
+        library: library_0
+      referencingFiles: file_0 file_1
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3789,7 +4256,7 @@ files
       kind: partOfUriKnown_1
         uriFile: file_0
         library: library_0
-        docImports
+        docLibraryImports
           library_4 dart:async
           library_6 dart:math
       referencingFiles: file_0
@@ -3830,7 +4297,7 @@ files
       kind: partOfUriKnown_7
         uriFile: file_0
         library: library_0
-        docImports
+        docLibraryImports
           library_4 dart:async
       referencingFiles: file_0
       unlinkedKey: k02
@@ -4644,7 +5111,7 @@ class C {}
 
     fileStateFor(a);
 
-    // `c.dart` is imported by `b.dart`, so it is a dependency of `c.dart`.
+    // `c.dart` is imported by `b.dart`, so it is a dependency of `a.dart`.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart

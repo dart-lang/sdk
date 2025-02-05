@@ -4,21 +4,11 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /// [File]s are leaf [Resource]s which contain data.
 abstract class File implements Resource {
-  /// Watch for changes to this file.
-  ///
-  /// File watchers are initialized asynchronously so modifications made for a
-  /// short period after calling this getter may be lost. Use [watch()] and
-  /// await the `ready` [Future] that completes once initialization is
-  /// complete.
-  @Deprecated('Use watch() instead')
-  Stream<WatchEvent> get changes;
-
   /// Synchronously get the length of the file.
   /// Throws a [FileSystemException] if the operation fails.
   int get lengthSync;
@@ -29,10 +19,6 @@ abstract class File implements Resource {
 
   @override
   File copyTo(Folder parentFolder);
-
-  /// Create a new [Source] instance that serves this file.
-  @Deprecated('Get Source instances from analysis results')
-  Source createSource([Uri? uri]);
 
   /// Synchronously read the entire file contents as a list of bytes.
   /// Throws a [FileSystemException] if the operation fails.
@@ -85,16 +71,6 @@ class FileSystemException implements Exception {
 
 /// [Folder]s are [Resource]s which may contain files and/or other folders.
 abstract class Folder implements Resource {
-  /// Watch for changes to the files inside this folder (and in any nested
-  /// folders, including folders reachable via links).
-  ///
-  /// Folder watchers are initialized asynchronously so modifications made for a
-  /// short period after calling this getter may be lost. Use [watch()] and
-  /// await the `ready` [Future] that completes once initialization is
-  /// complete.
-  @Deprecated('Use watch() instead')
-  Stream<WatchEvent> get changes;
-
   /// Return `true` if this folder is a file system root.
   bool get isRoot;
 
@@ -174,11 +150,6 @@ abstract class Resource {
   /// Return the [Folder] that contains this resource, possibly itself if this
   /// resource is a root folder.
   Folder get parent;
-
-  /// Return the [Folder] that contains this resource, possibly itself if this
-  /// resource is a root folder.
-  @Deprecated('Use parent instead')
-  Folder get parent2;
 
   /// Return the full path to this resource.
   String get path;

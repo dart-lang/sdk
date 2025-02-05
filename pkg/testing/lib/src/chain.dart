@@ -118,6 +118,7 @@ abstract class ChainContext {
   Future<void> run(Chain suite, Set<String> selectors,
       {int shards = 1,
       int shard = 0,
+      int? limitTo,
       Logger logger = const StdoutLogger()}) async {
     assert(shards >= 1, "Invalid shards count: $shards");
     assert(0 <= shard && shard < shards,
@@ -146,6 +147,9 @@ abstract class ChainContext {
         }
       }
       descriptions = shardDescriptions;
+    }
+    if (limitTo != null && limitTo > 0 && limitTo < descriptions.length) {
+      descriptions = descriptions.sublist(0, limitTo);
     }
     Map<TestDescription, Result> unexpectedResults =
         <TestDescription, Result>{};

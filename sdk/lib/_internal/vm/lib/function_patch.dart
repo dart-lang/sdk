@@ -11,11 +11,14 @@ class Function {
   external static _apply(List<dynamic> arguments, List<dynamic> names);
 
   @patch
-  static apply(Function function, List<dynamic>? positionalArguments,
-      [Map<Symbol, dynamic>? namedArguments]) {
+  static apply(
+    Function function,
+    List<dynamic>? positionalArguments, [
+    Map<Symbol, dynamic>? namedArguments,
+  ]) {
     final int numPositionalArguments =
         1 + // Function is first implicit argument.
-            (positionalArguments?.length ?? 0);
+        (positionalArguments?.length ?? 0);
     final int numNamedArguments = namedArguments?.length ?? 0;
     final int numArguments = numPositionalArguments + numNamedArguments;
     final List arguments = List<dynamic>.filled(numArguments, null);

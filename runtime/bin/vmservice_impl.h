@@ -26,7 +26,9 @@ class VmService {
                     bool wait_for_dds_to_advertise_service,
                     bool serve_devtools,
                     bool serve_observatory,
-                    bool print_dtd) {
+                    bool print_dtd,
+                    bool should_use_resident_compiler,
+                    const char* resident_compiler_info_file_path) {
     return false;
   }
 
@@ -42,18 +44,25 @@ class VmService {
 
  private:
 #else   // defined(PRODUCT)
-  static bool Setup(const char* server_ip,
-                    intptr_t server_port,
-                    bool dev_mode_server,
-                    bool auth_codes_disabled,
-                    const char* write_service_info_filename,
-                    bool trace_loading,
-                    bool deterministic,
-                    bool enable_service_port_fallback,
-                    bool wait_for_dds_to_advertise_service,
-                    bool serve_devtools,
-                    bool serve_observatory,
-                    bool print_dtd);
+  static bool Setup(
+      const char* server_ip,
+      intptr_t server_port,
+      bool dev_mode_server,
+      bool auth_codes_disabled,
+      const char* write_service_info_filename,
+      bool trace_loading,
+      bool deterministic,
+      bool enable_service_port_fallback,
+      bool wait_for_dds_to_advertise_service,
+      bool serve_devtools,
+      bool serve_observatory,
+      bool print_dtd,
+      bool should_use_resident_compiler,
+      // If either --resident-compiler-info-file or --resident-server-info-file
+      // was supplied on the command line, the CLI argument should be forwarded
+      // as the argument to this parameter. If neither option was supplied, the
+      // argument to this parameter should be null.
+      const char* resident_compiler_info_file_path);
 
   static void SetNativeResolver();
 

@@ -4,8 +4,8 @@
 
 library jsinterop.internal_annotations_test;
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
@@ -25,15 +25,18 @@ void main() {
 }
 
 testClasses(String import1, String import2) async {
-  test(String mainSource,
-      {List<String> directlyInstantiated = const <String>[],
-      List<String> abstractlyInstantiated = const <String>[],
-      List<String> indirectlyInstantiated = const <String>[]}) async {
+  test(
+    String mainSource, {
+    List<String> directlyInstantiated = const <String>[],
+    List<String> abstractlyInstantiated = const <String>[],
+    List<String> indirectlyInstantiated = const <String>[],
+  }) async {
     String mainFile = 'sdk/tests/web/native/main.dart';
     Uri entryPoint = Uri.parse('memory:$mainFile');
-    CompilationResult result =
-        await runCompiler(entryPoint: entryPoint, memorySourceFiles: {
-      mainFile: """
+    CompilationResult result = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: {
+        mainFile: """
 import '$import1' as js1;
 import '$import2' as js2;
 
@@ -87,8 +90,9 @@ newE() => E(4);
 newF() => F(5);
 
 $mainSource
-"""
-    });
+""",
+      },
+    );
     Compiler compiler = result.compiler!;
     Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
@@ -100,12 +104,15 @@ $mainSource
     JClosedWorld world = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
-    ClassEntity Interceptor =
-        registerClass(world.commonElements.jsInterceptorClass);
-    ClassEntity JavaScriptObject =
-        registerClass(world.commonElements.jsJavaScriptObjectClass);
-    ClassEntity LegacyJavaScriptObject =
-        registerClass(world.commonElements.jsLegacyJavaScriptObjectClass);
+    ClassEntity Interceptor = registerClass(
+      world.commonElements.jsInterceptorClass,
+    );
+    ClassEntity JavaScriptObject = registerClass(
+      world.commonElements.jsJavaScriptObjectClass,
+    );
+    ClassEntity LegacyJavaScriptObject = registerClass(
+      world.commonElements.jsLegacyJavaScriptObjectClass,
+    );
     ClassEntity A = registerClass(findClass(world, 'A'));
     ClassEntity B = registerClass(findClass(world, 'B'));
     ClassEntity C = registerClass(findClass(world, 'C'));
@@ -117,9 +124,13 @@ $mainSource
 
     Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
     Expect.equals(
-        elementEnvironment.getSuperClass(JavaScriptObject), Interceptor);
-    Expect.equals(elementEnvironment.getSuperClass(LegacyJavaScriptObject),
-        JavaScriptObject);
+      elementEnvironment.getSuperClass(JavaScriptObject),
+      Interceptor,
+    );
+    Expect.equals(
+      elementEnvironment.getSuperClass(LegacyJavaScriptObject),
+      JavaScriptObject,
+    );
 
     Expect.equals(elementEnvironment.getSuperClass(A), LegacyJavaScriptObject);
     Expect.equals(elementEnvironment.getSuperClass(B), LegacyJavaScriptObject);
@@ -154,32 +165,38 @@ $mainSource
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.classHierarchy.isDirectlyInstantiated(cls),
-            "Expected $name to be directly instantiated in `${mainSource}`:"
-            "\n${world.classHierarchy.dump(cls)}");
+          world.classHierarchy.isDirectlyInstantiated(cls),
+          "Expected $name to be directly instantiated in `${mainSource}`:"
+          "\n${world.classHierarchy.dump(cls)}",
+        );
       }
       if (abstractlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.classHierarchy.isAbstractlyInstantiated(cls),
-            "Expected $name to be abstractly instantiated in `${mainSource}`:"
-            "\n${world.classHierarchy.dump(cls)}");
+          world.classHierarchy.isAbstractlyInstantiated(cls),
+          "Expected $name to be abstractly instantiated in `${mainSource}`:"
+          "\n${world.classHierarchy.dump(cls)}",
+        );
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.EXACT),
-            "Expected $name to need noSuchMethod for $nonExisting.");
+          world.needsNoSuchMethod(cls, nonExisting, ClassQuery.exact),
+          "Expected $name to need noSuchMethod for $nonExisting.",
+        );
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBCLASS),
-            "Expected $name to need noSuchMethod for $nonExisting.");
+          world.needsNoSuchMethod(cls, nonExisting, ClassQuery.subclass),
+          "Expected $name to need noSuchMethod for $nonExisting.",
+        );
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBTYPE),
-            "Expected $name to need noSuchMethod for $nonExisting.");
+          world.needsNoSuchMethod(cls, nonExisting, ClassQuery.subtype),
+          "Expected $name to need noSuchMethod for $nonExisting.",
+        );
       }
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.classHierarchy.isIndirectlyInstantiated(cls),
-            "Expected $name to be indirectly instantiated in `${mainSource}`:"
-            "\n${world.classHierarchy.dump(cls)}");
+          world.classHierarchy.isIndirectlyInstantiated(cls),
+          "Expected $name to be indirectly instantiated in `${mainSource}`:"
+          "\n${world.classHierarchy.dump(cls)}",
+        );
       }
       // Classes that are expected to be instantiated by default. `Object` and
       // `Interceptor` are base types for non-native and native types, and
@@ -187,82 +204,77 @@ $mainSource
       var instantiatedBaseClasses = [
         'Object',
         'Interceptor',
-        'JavaScriptObject'
+        'JavaScriptObject',
       ];
       if (!isInstantiated && !instantiatedBaseClasses.contains(name)) {
         Expect.isFalse(
-            world.classHierarchy.isInstantiated(cls),
-            "Expected $name to be uninstantiated in `${mainSource}`:"
-            "\n${world.classHierarchy.dump(cls)}");
+          world.classHierarchy.isInstantiated(cls),
+          "Expected $name to be uninstantiated in `${mainSource}`:"
+          "\n${world.classHierarchy.dump(cls)}",
+        );
       }
     });
   }
 
   await test('main() {}');
 
-  await test('main() => newA();', abstractlyInstantiated: [
-    'A',
-    'B',
-    'C',
-    'D'
-  ], indirectlyInstantiated: [
-    'Object',
-    'Interceptor',
-    'JavaScriptObject',
-    'LegacyJavaScriptObject'
-  ]);
+  await test(
+    'main() => newA();',
+    abstractlyInstantiated: ['A', 'B', 'C', 'D'],
+    indirectlyInstantiated: [
+      'Object',
+      'Interceptor',
+      'JavaScriptObject',
+      'LegacyJavaScriptObject',
+    ],
+  );
 
-  await test('main() => newB();', abstractlyInstantiated: [
-    'A',
-    'B',
-    'C',
-    'D'
-  ], indirectlyInstantiated: [
-    'Object',
-    'Interceptor',
-    'JavaScriptObject',
-    'LegacyJavaScriptObject'
-  ]);
+  await test(
+    'main() => newB();',
+    abstractlyInstantiated: ['A', 'B', 'C', 'D'],
+    indirectlyInstantiated: [
+      'Object',
+      'Interceptor',
+      'JavaScriptObject',
+      'LegacyJavaScriptObject',
+    ],
+  );
 
-  await test('main() => newC();', abstractlyInstantiated: [
-    'A',
-    'B',
-    'C',
-    'D'
-  ], indirectlyInstantiated: [
-    'Object',
-    'Interceptor',
-    'JavaScriptObject',
-    'LegacyJavaScriptObject'
-  ]);
+  await test(
+    'main() => newC();',
+    abstractlyInstantiated: ['A', 'B', 'C', 'D'],
+    indirectlyInstantiated: [
+      'Object',
+      'Interceptor',
+      'JavaScriptObject',
+      'LegacyJavaScriptObject',
+    ],
+  );
 
-  await test('main() => newD();', abstractlyInstantiated: [
-    'A',
-    'B',
-    'C',
-    'D'
-  ], indirectlyInstantiated: [
-    'Object',
-    'Interceptor',
-    'JavaScriptObject',
-    'LegacyJavaScriptObject'
-  ]);
+  await test(
+    'main() => newD();',
+    abstractlyInstantiated: ['A', 'B', 'C', 'D'],
+    indirectlyInstantiated: [
+      'Object',
+      'Interceptor',
+      'JavaScriptObject',
+      'LegacyJavaScriptObject',
+    ],
+  );
 
   await test('main() => newE();', directlyInstantiated: ['E']);
 
   await test('main() => newF();', directlyInstantiated: ['F']);
 
-  await test('main() => [newD(), newE()];', directlyInstantiated: [
-    'E'
-  ], abstractlyInstantiated: [
-    'A',
-    'B',
-    'C',
-    'D'
-  ], indirectlyInstantiated: [
-    'Object',
-    'Interceptor',
-    'JavaScriptObject',
-    'LegacyJavaScriptObject'
-  ]);
+  await test(
+    'main() => [newD(), newE()];',
+    directlyInstantiated: ['E'],
+    abstractlyInstantiated: ['A', 'B', 'C', 'D'],
+    indirectlyInstantiated: [
+      'Object',
+      'Interceptor',
+      'JavaScriptObject',
+      'LegacyJavaScriptObject',
+    ],
+  );
 }

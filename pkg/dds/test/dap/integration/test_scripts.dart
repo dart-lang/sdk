@@ -275,16 +275,6 @@ const isolateSpawningProgram = '''
   Future<void> _compute() async {}
 ''';
 
-/// A simple Dart script that should run with no errors and contains a comment
-/// marker '// BREAKPOINT' on a blank line where a breakpoint should be resolved
-/// to the next line.
-const simpleBreakpointResolutionProgram = '''
-  void main(List<String> args) async {
-    $breakpointMarker
-    print('Hello!');
-  }
-''';
-
 /// A simple Dart script that has a blank line before its breakpoint, used to
 /// ensure breakpoints that resolve to the same place are handled correctly.
 const simpleBreakpointWithLeadingBlankLineProgram = '''
@@ -369,22 +359,6 @@ void f() {
   debugger();
 }
 
-''';
-
-/// A simple test that should pass and contains a comment marker
-/// '// BREAKPOINT' on a blank line where a breakpoint should be resolved
-/// to the next line.
-const simpleTestBreakpointResolutionProgram = '''
-  import 'package:test/test.dart';
-
-  void main() {
-    group('group 1', () {
-      test('passing test', () {
-        $breakpointMarker
-        expect(1, equals(1));
-      });
-    });
-  }
 ''';
 
 final simpleTestBreakpointProgramWith50ExtraLines = '''

@@ -15,7 +15,7 @@ abstract class Operation {
   Future<void>? perform(Driver driver);
 }
 
-/// A [RequestOperation] sends a [JSON] request to the server.
+/// A [RequestOperation] sends a JSON request to the server.
 class RequestOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, dynamic> json;
@@ -34,27 +34,35 @@ class RequestOperation extends Operation {
     void recordResult(bool success, result) {
       var elapsed = stopwatch.elapsed;
       driver.results.record(method, elapsed, success: success);
-      driver.logger
-          .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
+      driver.logger.log(
+        Level.FINE,
+        'Response received: $method : $elapsed\n  $result',
+      );
     }
 
-    driver.send(method, converter.asMap(json['params'])).then((result) {
-      recordResult(true, result);
-      processResult(originalId, result!, stopwatch);
-    }).catchError((exception) {
-      recordResult(false, exception);
-      converter.processErrorResponse(originalId, exception);
-    });
+    driver
+        .send(method, converter.asMap(json['params']))
+        .then((result) {
+          recordResult(true, result);
+          processResult(originalId, result!, stopwatch);
+        })
+        .catchError((exception) {
+          recordResult(false, exception);
+          converter.processErrorResponse(originalId, exception);
+        });
     return null;
   }
 
   void processResult(
-      String id, Map<String, Object?> result, Stopwatch stopwatch) {
+    String id,
+    Map<String, Object?> result,
+    Stopwatch stopwatch,
+  ) {
     converter.processResponseResult(id, result);
   }
 }
 
-/// A [ResponseOperation] waits for a [JSON] response from the server.
+/// A [ResponseOperation] waits for a JSON response from the server.
 class ResponseOperation extends Operation {
   static final Duration responseTimeout = Duration(seconds: 60);
   final CommonInputConverter converter;
@@ -109,7 +117,8 @@ class ResponseOperation extends Operation {
         return text.replaceAll('\n', '\n  ');
       }
 
-      var message = 'Request:${format(requestJson)}\n'
+      var message =
+          'Request:${format(requestJson)}\n'
           'expected result:${format(expectedResult)}\n'
           'expected error:${format(expectedError)}\n'
           'but received:${format(actualResult)}';

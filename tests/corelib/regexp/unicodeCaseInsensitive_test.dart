@@ -27,7 +27,8 @@ import 'package:expect/expect.dart';
 
 void main() {
   shouldBeTrue(
-      new RegExp(r"ΣΤΙΓΜΑΣ", caseSensitive: false).hasMatch("στιγμας"));
+    new RegExp(r"ΣΤΙΓΜΑΣ", caseSensitive: false).hasMatch("στιγμας"),
+  );
   shouldBeTrue(new RegExp(r"ΔΣΔ", caseSensitive: false).hasMatch("δςδ"));
   shouldBeTrue(new RegExp(r"ς", caseSensitive: false).hasMatch("σ"));
   shouldBeTrue(new RegExp(r"σ", caseSensitive: false).hasMatch("ς"));
@@ -40,12 +41,18 @@ void main() {
   dynamic testSet(s) {
     for (var i in s) {
       for (var j in s) {
-        shouldBeTrue(new RegExp(ucs2CodePoint(i), caseSensitive: false)
-            .hasMatch(ucs2CodePoint(j)));
-        shouldBeTrue(new RegExp(
-                "[${ucs2CodePoint(i - 1)}-${ucs2CodePoint(i + 1)}]",
-                caseSensitive: false)
-            .hasMatch(ucs2CodePoint(j)));
+        shouldBeTrue(
+          new RegExp(
+            ucs2CodePoint(i),
+            caseSensitive: false,
+          ).hasMatch(ucs2CodePoint(j)),
+        );
+        shouldBeTrue(
+          new RegExp(
+            "[${ucs2CodePoint(i - 1)}-${ucs2CodePoint(i + 1)}]",
+            caseSensitive: false,
+          ).hasMatch(ucs2CodePoint(j)),
+        );
       }
     }
   }
@@ -86,9 +93,11 @@ void main() {
   shouldBeTrue(new RegExp(r"\u048b", caseSensitive: false).hasMatch("\u048b"));
   shouldBeFalse(new RegExp(r"\u048c", caseSensitive: false).hasMatch("\u048b"));
   shouldBeTrue(
-      new RegExp(r"[\u0489-\u048a]", caseSensitive: false).hasMatch("\u048b"));
+    new RegExp(r"[\u0489-\u048a]", caseSensitive: false).hasMatch("\u048b"),
+  );
   shouldBeTrue(
-      new RegExp(r"[\u048b-\u048c]", caseSensitive: false).hasMatch("\u048a"));
+    new RegExp(r"[\u048b-\u048c]", caseSensitive: false).hasMatch("\u048a"),
+  );
 
   // Test an unaligned alternating capitalization pair.
   shouldBeFalse(new RegExp(r"\u04c4", caseSensitive: false).hasMatch("\u04c5"));
@@ -100,9 +109,11 @@ void main() {
   shouldBeTrue(new RegExp(r"\u04c6", caseSensitive: false).hasMatch("\u04c6"));
   shouldBeFalse(new RegExp(r"\u04c7", caseSensitive: false).hasMatch("\u04c6"));
   shouldBeTrue(
-      new RegExp(r"[\u04c4-\u04c5]", caseSensitive: false).hasMatch("\u04c6"));
+    new RegExp(r"[\u04c4-\u04c5]", caseSensitive: false).hasMatch("\u04c6"),
+  );
   shouldBeTrue(
-      new RegExp(r"[\u04c6-\u04c7]", caseSensitive: false).hasMatch("\u04c5"));
+    new RegExp(r"[\u04c6-\u04c7]", caseSensitive: false).hasMatch("\u04c5"),
+  );
 
   var successfullyParsed = true;
 }

@@ -78,8 +78,8 @@ import 'a.dart';
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement.class_('A');
-    var result = (await helper.getElementDeclaration(element))!;
+    var element = findElement2.class_('A');
+    var result = (await helper.getElementDeclaration(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
   }
@@ -89,7 +89,7 @@ class A {}
 class A {}
 class B {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement!;
+    var element = findNode.classDeclaration('A').declaredFragment!.element;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
     expect(resolvedUnit.unit.declarations, hasLength(2));
   }

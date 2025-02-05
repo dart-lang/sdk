@@ -22,7 +22,5 @@ test() {
   s = c;
   */
 
-  new Foo<String>()
-      . /*error:COULD_NOT_INFER*/ /*@typeArgs=int*/ /*@target=Foo.method*/ method(
-          42);
+  new Foo<String>(). /*@typeArgs=String*/ /*@target=Foo.method*/ method(42);
 }

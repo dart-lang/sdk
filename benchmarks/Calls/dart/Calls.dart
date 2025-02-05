@@ -48,65 +48,93 @@ Future main() async {
   performSyncIterationPolymorphic(generateNumbersManual);
   performSyncIterationPolymorphic(generateNumbersSyncStarManyYields);
 
-  await AsyncCallBenchmark('Calls.AwaitAsyncCall', performAwaitAsyncCalls)
-      .report();
-  await AsyncCallBenchmark('Calls.AwaitAsyncCallClosureTargetPolymorphic',
-      () => performAwaitCallsClosureTargetPolymorphic(returnAsync)).report();
-  await AsyncCallBenchmark('Calls.AwaitAsyncCallInstanceTargetPolymorphic',
-      () => performAwaitAsyncCallsInstanceTargetPolymorphic(target)).report();
-
-  await AsyncCallBenchmark('Calls.AwaitFutureCall', performAwaitFutureCalls)
-      .report();
-  await AsyncCallBenchmark('Calls.AwaitFutureCallClosureTargetPolymorphic',
-      () => performAwaitCallsClosureTargetPolymorphic(returnFuture)).report();
-  await AsyncCallBenchmark('Calls.AwaitFutureCallInstanceTargetPolymorphic',
-      () => performAwaitFutureCallsInstanceTargetPolymorphic(target)).report();
-
-  await AsyncCallBenchmark('Calls.AwaitFutureOrCall', performAwaitFutureOrCalls)
-      .report();
-  await AsyncCallBenchmark('Calls.AwaitFutureOrCallClosureTargetPolymorphic',
-      () => performAwaitCallsClosureTargetPolymorphic(returnFutureOr)).report();
-  await AsyncCallBenchmark('Calls.AwaitFutureOrCallInstanceTargetPolymorphic',
-          () => performAwaitFutureOrCallsInstanceTargetPolymorphic(target))
-      .report();
   await AsyncCallBenchmark(
-          'Calls.AwaitFutureOrCallInstanceTargetPolymorphicManyAwaits',
-          () =>
-              performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target))
-      .report();
-
-  await AsyncCallBenchmark('Calls.AwaitForAsyncStarStreamPolymorphic',
-          () => performAwaitForIterationPolymorphic(generateNumbersAsyncStar))
-      .report();
+    'Calls.AwaitAsyncCall',
+    performAwaitAsyncCalls,
+  ).report();
   await AsyncCallBenchmark(
-      'Calls.AwaitForAsyncStarStreamPolymorphicManyYields',
-      () => performAwaitForIterationPolymorphic(
-          generateNumbersAsyncStarManyYields)).report();
-  await AsyncCallBenchmark('Calls.AwaitForManualStreamPolymorphic',
-          () => performAwaitForIterationPolymorphic(generateNumbersManualAsync))
-      .report();
+    'Calls.AwaitAsyncCallClosureTargetPolymorphic',
+    () => performAwaitCallsClosureTargetPolymorphic(returnAsync),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitAsyncCallInstanceTargetPolymorphic',
+    () => performAwaitAsyncCallsInstanceTargetPolymorphic(target),
+  ).report();
+
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureCall',
+    performAwaitFutureCalls,
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureCallClosureTargetPolymorphic',
+    () => performAwaitCallsClosureTargetPolymorphic(returnFuture),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureCallInstanceTargetPolymorphic',
+    () => performAwaitFutureCallsInstanceTargetPolymorphic(target),
+  ).report();
+
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureOrCall',
+    performAwaitFutureOrCalls,
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureOrCallClosureTargetPolymorphic',
+    () => performAwaitCallsClosureTargetPolymorphic(returnFutureOr),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureOrCallInstanceTargetPolymorphic',
+    () => performAwaitFutureOrCallsInstanceTargetPolymorphic(target),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitFutureOrCallInstanceTargetPolymorphicManyAwaits',
+    () => performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target),
+  ).report();
+
+  await AsyncCallBenchmark(
+    'Calls.AwaitForAsyncStarStreamPolymorphic',
+    () => performAwaitForIterationPolymorphic(generateNumbersAsyncStar),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitForAsyncStarStreamPolymorphicManyYields',
+    () =>
+        performAwaitForIterationPolymorphic(generateNumbersAsyncStarManyYields),
+  ).report();
+  await AsyncCallBenchmark(
+    'Calls.AwaitForManualStreamPolymorphic',
+    () => performAwaitForIterationPolymorphic(generateNumbersManualAsync),
+  ).report();
 
   SyncCallBenchmark('Calls.SyncCall', performSyncCalls).report();
-  SyncCallBenchmark('Calls.SyncCallClosureTarget',
-      () => performSyncCallsClosureTarget(returnSync)).report();
-  SyncCallBenchmark('Calls.SyncCallInstanceTargetPolymorphic',
-      () => performSyncCallsInstanceTargetPolymorphic(target)).report();
-
-  SyncCallBenchmark('Calls.IterableSyncStarIterablePolymorphic',
-      () => performSyncIterationPolymorphic(generateNumbersSyncStar)).report();
-  SyncCallBenchmark('Calls.IterableManualIterablePolymorphic',
-      () => performSyncIterationPolymorphic(generateNumbersManual)).report();
   SyncCallBenchmark(
-      'Calls.IterableManualIterablePolymorphicManyYields',
-      () => performSyncIterationPolymorphic(
-          generateNumbersSyncStarManyYields)).report();
+    'Calls.SyncCallClosureTarget',
+    () => performSyncCallsClosureTarget(returnSync),
+  ).report();
+  SyncCallBenchmark(
+    'Calls.SyncCallInstanceTargetPolymorphic',
+    () => performSyncCallsInstanceTargetPolymorphic(target),
+  ).report();
+
+  SyncCallBenchmark(
+    'Calls.IterableSyncStarIterablePolymorphic',
+    () => performSyncIterationPolymorphic(generateNumbersSyncStar),
+  ).report();
+  SyncCallBenchmark(
+    'Calls.IterableManualIterablePolymorphic',
+    () => performSyncIterationPolymorphic(generateNumbersManual),
+  ).report();
+  SyncCallBenchmark(
+    'Calls.IterableManualIterablePolymorphicManyYields',
+    () => performSyncIterationPolymorphic(generateNumbersSyncStarManyYields),
+  ).report();
 }
 
 @pragma('vm:never-inline')
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitCallsClosureTargetPolymorphic(
-    FutureOr<int> Function(int) fun) async {
+  FutureOr<int> Function(int) fun,
+) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await fun(i);
@@ -119,7 +147,8 @@ Future<int> performAwaitCallsClosureTargetPolymorphic(
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitAsyncCallsInstanceTargetPolymorphic(
-    Target target) async {
+  Target target,
+) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await target.returnAsync(i);
@@ -132,7 +161,8 @@ Future<int> performAwaitAsyncCallsInstanceTargetPolymorphic(
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitFutureCallsInstanceTargetPolymorphic(
-    Target target) async {
+  Target target,
+) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await target.returnFuture(i);
@@ -145,7 +175,8 @@ Future<int> performAwaitFutureCallsInstanceTargetPolymorphic(
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitFutureOrCallsInstanceTargetPolymorphic(
-    Target target) async {
+  Target target,
+) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await target.returnFutureOr(i);
@@ -194,7 +225,8 @@ Future<int> performAwaitFutureOrCalls() async {
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(
-    Target t) async {
+  Target t,
+) async {
   int sum = 0;
   int i = 0;
 
@@ -295,7 +327,8 @@ Future<int> performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(
 @pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitForIterationPolymorphic(
-    Stream<int> Function(int) fun) async {
+  Stream<int> Function(int) fun,
+) async {
   int sum = 0;
   await for (int value in fun(iterationLimitAsync)) {
     sum += value;

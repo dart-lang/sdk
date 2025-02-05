@@ -128,6 +128,15 @@ var x = [].map((x) => C(3));
 ''');
   }
 
+  test_deeplyNestedVariable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var x = (a, b) => foo(foo(b)).foo(a, b);
+}
+dynamic foo(a) => 7;
+''');
+  }
+
   test_emptyLambda() async {
     await assertNoDiagnostics(r'''
 var f = () {};
@@ -342,6 +351,24 @@ class C {
       f.toString();
     };
   }
+}
+''');
+  }
+
+  test_targetIsFinalParameter() async {
+    await assertDiagnostics(r'''
+void f(List<String> list) {
+  list.where((final e) => ((a) => e.contains(a))(e));
+}
+''', [
+      lint(55, 20),
+    ]);
+  }
+
+  test_targetIsVarParameter() async {
+    await assertNoDiagnostics(r'''
+void main(List<String> list) {
+  list.where((e) => ((a) => e.contains(a))(e));
 }
 ''');
   }

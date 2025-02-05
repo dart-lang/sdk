@@ -37,6 +37,11 @@ class ConnectToDtdHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    return await server.connectToDtd(params.uri);
+    var registerExperimentalHandlers =
+        params.registerExperimentalHandlers ?? false;
+    return await server.connectToDtd(
+      params.uri,
+      registerExperimentalHandlers: registerExperimentalHandlers,
+    );
   }
 }

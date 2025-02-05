@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 nestedForLoopWithBreakAndContinue(count) {
-  /*0@continue*/ for (int i = 0; i < count; i = i + 1) {
-    /*1@break*/ for (int j = 0; j < count; j = j + 1) {
+  /*0@continue*/
+  for (int i = 0; i < count; i = i + 1) {
+    /*1@break*/
+    for (int j = 0; j < count; j = j + 1) {
       if (i % 2 == 0) /*target=1*/ break;
     }
     if (i % 2 == 0) /*target=0*/ continue;

@@ -11,7 +11,7 @@ library functional_test_lib;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js_util.dart';
 
 @JS()

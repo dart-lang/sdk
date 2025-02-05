@@ -9,25 +9,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-class CollectingSink extends MockIOSink {
-  final StringBuffer buffer = StringBuffer();
-
-  @override
-  String toString() => buffer.toString();
-
-  String trim() => toString().trim();
-
-  @override
-  void write(obj) {
-    buffer.write(obj);
-  }
-
-  @override
-  void writeln([Object? obj = '']) {
-    buffer.writeln(obj);
-  }
-}
-
 class MockErrorType implements ErrorType {
   @override
   late String displayName;

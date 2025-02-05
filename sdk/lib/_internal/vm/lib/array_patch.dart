@@ -14,9 +14,10 @@ class List<E> {
 
   @patch
   @pragma("vm:prefer-inline")
-  factory List.filled(int length, E fill, {bool growable = false}) => growable
-      ? _GrowableList<E>.filled(length, fill)
-      : _List<E>.filled(length, fill);
+  factory List.filled(int length, E fill, {bool growable = false}) =>
+      growable
+          ? _GrowableList<E>.filled(length, fill)
+          : _List<E>.filled(length, fill);
 
   @patch
   factory List.from(Iterable elements, {bool growable = true}) {
@@ -40,8 +41,11 @@ class List<E> {
 
   @patch
   @pragma("vm:prefer-inline")
-  factory List.generate(int length, E generator(int index),
-          {bool growable = true}) =>
+  factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  }) =>
       growable
           ? _GrowableList<E>.generate(length, generator)
           : _List<E>.generate(length, generator);

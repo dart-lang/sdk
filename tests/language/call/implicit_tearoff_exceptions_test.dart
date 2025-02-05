@@ -22,7 +22,7 @@
 
 import "package:expect/expect.dart";
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class A {}
 
@@ -62,21 +62,39 @@ void testConditional() {
   // `(bTrue ? c : a)..expectStaticType<...>()`, no implicit tearoff of `c`
   // occurs, and the subexpression `bTrue ? c : a` gets assigned a static type
   // of `A`.
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bTrue ? c : a)..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bFalse ? a : c)..expectStaticType<Exactly<A>>())));
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bTrue ? c : a)..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bFalse ? a : c)..expectStaticType<Exactly<A>>()),
+    ),
+  );
 
   // Same as above, but confirm that extra parens around `c` don't change the
   // behavior.
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bTrue ? (c) : a)..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bFalse ? a : (c))..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bTrue ? ((c)) : a)..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((bFalse ? a : ((c)))..expectStaticType<Exactly<A>>())));
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bTrue ? (c) : a)..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bFalse ? a : (c))..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bTrue ? ((c)) : a)..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((bFalse ? a : ((c)))..expectStaticType<Exactly<A>>()),
+    ),
+  );
 }
 
 void testIfNull() {
@@ -90,30 +108,51 @@ void testIfNull() {
   // appropriate).  So, in
   // `(c ?? a)..expectStaticType<...>()`, no implicit tearoff of `c` occurs, and
   // the subexpression `c ?? a` gets assigned a static type of `A`.
-  Expect.throws(() => context<void Function()>(bFalse
-      ? d
-      : ((c ?? a) // ignore: dead_null_aware_expression
-        ..expectStaticType<Exactly<A>>())));
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse
+          ? d
+          : ((c ?? a) // ignore: dead_null_aware_expression
+            ..expectStaticType<Exactly<A>>()),
+    ),
+  );
 
   // In `(aq ?? c)..expectStaticType<...>()`, the situation is similar, but the
   // context for `c` is (non-nullable) `void Function()`.
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((aq ?? c)..expectStaticType<Exactly<A>>())));
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((aq ?? c)..expectStaticType<Exactly<A>>()),
+    ),
+  );
 
   // Same as above, but confirm that extra parens around `c` don't change the
   // behavior.
-  Expect.throws(() => context<void Function()>(bFalse
-      ? d
-      : (((c) ?? a) // ignore: dead_null_aware_expression
-        ..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((aq ?? (c))..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(bFalse
-      ? d
-      : ((((c)) ?? a) // ignore: dead_null_aware_expression
-        ..expectStaticType<Exactly<A>>())));
-  Expect.throws(() => context<void Function()>(
-      bFalse ? d : ((aq ?? ((c)))..expectStaticType<Exactly<A>>())));
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse
+          ? d
+          : (((c) ?? a) // ignore: dead_null_aware_expression
+            ..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((aq ?? (c))..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse
+          ? d
+          : ((((c)) ?? a) // ignore: dead_null_aware_expression
+            ..expectStaticType<Exactly<A>>()),
+    ),
+  );
+  Expect.throws(
+    () => context<void Function()>(
+      bFalse ? d : ((aq ?? ((c)))..expectStaticType<Exactly<A>>()),
+    ),
+  );
 }
 
 main() {

@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 extension AstNodeExtension on AstNode {
   /// Returns all tokens, from [beginToken] to [endToken] including.
@@ -25,17 +26,17 @@ extension AstNodeExtension on AstNode {
     return result;
   }
 
-  /// The [ExecutableElement] of the enclosing executable [AstNode].
-  ExecutableElement? get enclosingExecutableElement {
+  /// The [ExecutableElement2] of the enclosing executable [AstNode].
+  ExecutableElement2? get enclosingExecutableElement2 {
     for (var node in withParents) {
       if (node is FunctionDeclaration) {
-        return node.declaredElement;
+        return node.declaredFragment?.element;
       }
       if (node is ConstructorDeclaration) {
-        return node.declaredElement;
+        return node.declaredFragment?.element;
       }
       if (node is MethodDeclaration) {
-        return node.declaredElement;
+        return node.declaredFragment?.element;
       }
     }
     return null;
@@ -158,10 +159,11 @@ extension AstNodeNullableExtension on AstNode? {
 extension CompilationUnitExtension on CompilationUnit {
   /// Whether this [CompilationUnit] is found in a "test" directory.
   bool get inTestDir {
-    var declaredElement = this.declaredElement;
-    if (declaredElement == null) return false;
-    var pathContext = declaredElement.session.resourceProvider.pathContext;
-    var path = declaredElement.source.fullName;
+    var declaredFragment = this.declaredFragment;
+    if (declaredFragment == null) return false;
+    var pathContext =
+        declaredFragment.element.session.resourceProvider.pathContext;
+    var path = declaredFragment.source.fullName;
     return switch (pathContext.separator) {
       '/' => const [
           '/test/',
@@ -177,5 +179,15 @@ extension CompilationUnitExtension on CompilationUnit {
         ].any(path.contains),
       _ => false,
     };
+  }
+}
+
+extension VariableDeclarationExtension on VariableDeclaration {
+  FieldElementImpl2 get declaredFieldElement {
+    return declaredFragment!.element as FieldElementImpl2;
+  }
+
+  TopLevelVariableElementImpl2 get declaredTopLevelVariableElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl2;
   }
 }

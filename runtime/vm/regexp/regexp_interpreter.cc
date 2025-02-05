@@ -1,0 +1,713 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// A simple interpreter for the Irregexp byte code.
+
+#include <memory>
+#include <utility>
+
+#include "vm/heap/safepoint.h"
+#include "vm/regexp/regexp_interpreter.h"
+
+#include "platform/unicode.h"
+#include "vm/object.h"
+#include "vm/regexp/regexp_assembler.h"
+#include "vm/regexp/regexp_bytecodes.h"
+#include "vm/regexp/unibrow-inl.h"
+#include "vm/regexp/unibrow.h"
+
+namespace dart {
+
+DEFINE_FLAG(bool, trace_regexp_bytecodes, false, "trace_regexp_bytecodes");
+DEFINE_FLAG(int,
+            regexp_backtrack_stack_size_kb,
+            256,
+            "Size of backtracking stack");
+
+typedef unibrow::Mapping<unibrow::Ecma262Canonicalize> Canonicalize;
+
+template <typename Char>
+static bool BackRefMatchesNoCase(Canonicalize* interp_canonicalize,
+                                 intptr_t from,
+                                 intptr_t current,
+                                 intptr_t len,
+                                 const String& subject,
+                                 bool unicode);
+
+template <>
+bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
+                                    intptr_t from,
+                                    intptr_t current,
+                                    intptr_t len,
+                                    const String& subject,
+                                    bool unicode) {
+  Bool& ret = Bool::Handle();
+  if (unicode) {
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUTF16(
+        static_cast<uword>(subject.ptr()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
+  } else {
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUCS2(
+        static_cast<uword>(subject.ptr()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
+  }
+  return ret.value();
+}
+
+template <>
+bool BackRefMatchesNoCase<uint8_t>(Canonicalize* interp_canonicalize,
+                                   intptr_t from,
+                                   intptr_t current,
+                                   intptr_t len,
+                                   const String& subject,
+                                   bool unicode) {
+  // For Latin1 characters the unicode flag makes no difference.
+  for (int i = 0; i < len; i++) {
+    unsigned int old_char = subject.CharAt(from++);
+    unsigned int new_char = subject.CharAt(current++);
+    if (old_char == new_char) continue;
+    // Convert both characters to lower case.
+    old_char |= 0x20;
+    new_char |= 0x20;
+    if (old_char != new_char) return false;
+    // Not letters in the ASCII range and Latin-1 range.
+    if (!(old_char - 'a' <= 'z' - 'a') &&
+        !(old_char - 224 <= 254 - 224 && old_char != 247)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+#ifdef DEBUG
+static void TraceInterpreter(const uint8_t* code_base,
+                             const uint8_t* pc,
+                             int stack_depth,
+                             int current_position,
+                             uint32_t current_char,
+                             int bytecode_length,
+                             const char* bytecode_name) {
+  if (FLAG_trace_regexp_bytecodes) {
+    bool printable = (current_char < 127 && current_char >= 32);
+    const char* format =
+        printable
+            ? "pc = %02x, sp = %d, curpos = %d, curchar = %08x (%c), bc = %s"
+            : "pc = %02x, sp = %d, curpos = %d, curchar = %08x .%c., bc = %s";
+    OS::PrintErr(format, pc - code_base, stack_depth, current_position,
+                 current_char, printable ? current_char : '.', bytecode_name);
+    for (int i = 0; i < bytecode_length; i++) {
+      OS::PrintErr(", %02x", pc[i]);
+    }
+    OS::PrintErr(" ");
+    for (int i = 1; i < bytecode_length; i++) {
+      unsigned char b = pc[i];
+      if (b < 127 && b >= 32) {
+        OS::PrintErr("%c", b);
+      } else {
+        OS::PrintErr(".");
+      }
+    }
+    OS::PrintErr("\n");
+  }
+}
+
+#define BYTECODE(name)                                                         \
+  case BC_##name:                                                              \
+    TraceInterpreter(code_base, pc,                                            \
+                     static_cast<int>(backtrack_sp - backtrack_stack_base),    \
+                     current, current_char, BC_##name##_LENGTH, #name);
+#else
+#define BYTECODE(name) case BC_##name:
+#endif
+
+static int32_t Load32Aligned(const uint8_t* pc) {
+  ASSERT((reinterpret_cast<intptr_t>(pc) & 3) == 0);
+  return *reinterpret_cast<const int32_t*>(pc);
+}
+
+static int32_t Load16Aligned(const uint8_t* pc) {
+  ASSERT((reinterpret_cast<intptr_t>(pc) & 1) == 0);
+  return *reinterpret_cast<const uint16_t*>(pc);
+}
+
+// A simple abstraction over the backtracking stack used by the interpreter.
+// This backtracking stack does not grow automatically, but it ensures that the
+// the memory held by the stack is released or remembered in a cache if the
+// matching terminates.
+class BacktrackStack {
+ public:
+  BacktrackStack() {
+    memory_ = Isolate::Current()->TakeRegexpBacktrackStack();
+    // Note: using malloc here has a potential of triggering jemalloc/tcmalloc
+    // bugs which cause application to leak memory and eventually OOM.
+    // See https://github.com/dart-lang/sdk/issues/38820 and
+    // https://github.com/flutter/flutter/issues/29007 for examples.
+    // So instead we directly ask OS to provide us memory.
+    if (memory_ == nullptr) {
+      const bool executable = false;
+      const bool compressed = false;
+      const intptr_t size_in_bytes = Utils::RoundUp(
+          FLAG_regexp_backtrack_stack_size_kb * KB, VirtualMemory::PageSize());
+      memory_ = std::unique_ptr<VirtualMemory>(VirtualMemory::Allocate(
+          size_in_bytes, executable, compressed, "regexp-backtrack-stack"));
+    }
+  }
+
+  ~BacktrackStack() {
+    if (memory_ != nullptr) {
+      Isolate::Current()->CacheRegexpBacktrackStack(std::move(memory_));
+    }
+  }
+
+  bool out_of_memory() const { return memory_ == nullptr; }
+
+  int32_t* data() const {
+    return reinterpret_cast<int32_t*>(memory_->address());
+  }
+
+  intptr_t max_size() const { return memory_->size() / sizeof(int32_t); }
+
+ private:
+  std::unique_ptr<VirtualMemory> memory_;
+
+  DISALLOW_COPY_AND_ASSIGN(BacktrackStack);
+};
+
+// Returns True if success, False if failure, Null if internal exception,
+// Error if VM error needs to be propagated up the callchain.
+template <typename Char>
+static ObjectPtr RawMatch(const TypedData& bytecode,
+                          const String& subject,
+                          int32_t* registers,
+                          int32_t current,
+                          uint32_t current_char) {
+  // BacktrackStack ensures that the memory allocated for the backtracking stack
+  // is returned to the system or cached if there is no stack being cached at
+  // the moment.
+  BacktrackStack backtrack_stack;
+  if (backtrack_stack.out_of_memory()) {
+    Exceptions::ThrowOOM();
+    UNREACHABLE();
+  }
+  int32_t* backtrack_stack_base = backtrack_stack.data();
+  int32_t* backtrack_sp = backtrack_stack_base;
+  intptr_t backtrack_stack_space = backtrack_stack.max_size();
+
+  // TODO(zerny): Optimize as single instance. V8 has this as an
+  // isolate member.
+  unibrow::Mapping<unibrow::Ecma262Canonicalize> canonicalize;
+
+  intptr_t subject_length = subject.Length();
+
+#ifdef DEBUG
+  if (FLAG_trace_regexp_bytecodes) {
+    OS::PrintErr("Start irregexp bytecode interpreter\n");
+  }
+#endif
+  const auto thread = Thread::Current();
+  const uint8_t* code_base;
+  const uint8_t* pc;
+  {
+    NoSafepointScope no_safepoint;
+    code_base = reinterpret_cast<uint8_t*>(bytecode.DataAddr(0));
+    pc = code_base;
+  }
+  while (true) {
+    if (UNLIKELY(thread->HasScheduledInterrupts())) {
+      intptr_t pc_offset = pc - code_base;
+      ErrorPtr error = thread->HandleInterrupts();
+      if (error != Object::null()) {
+        // Needs to be propagated to the Dart native invoking the
+        // regex matcher.
+        return error;
+      }
+      NoSafepointScope no_safepoint;
+      code_base = reinterpret_cast<uint8_t*>(bytecode.DataAddr(0));
+      pc = code_base + pc_offset;
+    }
+    NoSafepointScope no_safepoint;
+    bool check_for_safepoint_now = false;
+    while (!check_for_safepoint_now) {
+      int32_t insn = Load32Aligned(pc);
+      switch (insn & BYTECODE_MASK) {
+        BYTECODE(BREAK)
+        UNREACHABLE();
+        return Bool::False().ptr();
+        BYTECODE(PUSH_CP)
+        if (--backtrack_stack_space < 0) {
+          return Object::null();
+        }
+        *backtrack_sp++ = current;
+        pc += BC_PUSH_CP_LENGTH;
+        break;
+        BYTECODE(PUSH_BT)
+        if (--backtrack_stack_space < 0) {
+          return Object::null();
+        }
+        *backtrack_sp++ = Load32Aligned(pc + 4);
+        pc += BC_PUSH_BT_LENGTH;
+        break;
+        BYTECODE(PUSH_REGISTER)
+        if (--backtrack_stack_space < 0) {
+          return Object::null();
+        }
+        *backtrack_sp++ = registers[insn >> BYTECODE_SHIFT];
+        pc += BC_PUSH_REGISTER_LENGTH;
+        break;
+        BYTECODE(SET_REGISTER)
+        registers[insn >> BYTECODE_SHIFT] = Load32Aligned(pc + 4);
+        pc += BC_SET_REGISTER_LENGTH;
+        break;
+        BYTECODE(ADVANCE_REGISTER)
+        registers[insn >> BYTECODE_SHIFT] += Load32Aligned(pc + 4);
+        pc += BC_ADVANCE_REGISTER_LENGTH;
+        break;
+        BYTECODE(SET_REGISTER_TO_CP)
+        registers[insn >> BYTECODE_SHIFT] = current + Load32Aligned(pc + 4);
+        pc += BC_SET_REGISTER_TO_CP_LENGTH;
+        break;
+        BYTECODE(SET_CP_TO_REGISTER)
+        current = registers[insn >> BYTECODE_SHIFT];
+        pc += BC_SET_CP_TO_REGISTER_LENGTH;
+        break;
+        BYTECODE(SET_REGISTER_TO_SP)
+        registers[insn >> BYTECODE_SHIFT] =
+            static_cast<int>(backtrack_sp - backtrack_stack_base);
+        pc += BC_SET_REGISTER_TO_SP_LENGTH;
+        break;
+        BYTECODE(SET_SP_TO_REGISTER)
+        backtrack_sp = backtrack_stack_base + registers[insn >> BYTECODE_SHIFT];
+        backtrack_stack_space =
+            backtrack_stack.max_size() -
+            static_cast<int>(backtrack_sp - backtrack_stack_base);
+        pc += BC_SET_SP_TO_REGISTER_LENGTH;
+        break;
+        BYTECODE(POP_CP)
+        backtrack_stack_space++;
+        --backtrack_sp;
+        current = *backtrack_sp;
+        pc += BC_POP_CP_LENGTH;
+        break;
+        BYTECODE(POP_BT)
+        backtrack_stack_space++;
+        --backtrack_sp;
+        pc = code_base + *backtrack_sp;
+        // This should match check cadence in JIT irregexp implementation.
+        check_for_safepoint_now = true;
+        break;
+        BYTECODE(POP_REGISTER)
+        backtrack_stack_space++;
+        --backtrack_sp;
+        registers[insn >> BYTECODE_SHIFT] = *backtrack_sp;
+        pc += BC_POP_REGISTER_LENGTH;
+        break;
+        BYTECODE(FAIL)
+        return Bool::False().ptr();
+        BYTECODE(SUCCEED)
+        return Bool::True().ptr();
+        BYTECODE(ADVANCE_CP)
+        current += insn >> BYTECODE_SHIFT;
+        pc += BC_ADVANCE_CP_LENGTH;
+        break;
+        BYTECODE(GOTO)
+        pc = code_base + Load32Aligned(pc + 4);
+        break;
+        BYTECODE(ADVANCE_CP_AND_GOTO)
+        current += insn >> BYTECODE_SHIFT;
+        pc = code_base + Load32Aligned(pc + 4);
+        break;
+        BYTECODE(CHECK_GREEDY)
+        if (current == backtrack_sp[-1]) {
+          backtrack_sp--;
+          backtrack_stack_space++;
+          pc = code_base + Load32Aligned(pc + 4);
+        } else {
+          pc += BC_CHECK_GREEDY_LENGTH;
+        }
+        break;
+        BYTECODE(LOAD_CURRENT_CHAR) {
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          if (pos < 0 || pos >= subject_length) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            current_char = subject.CharAt(pos);
+            pc += BC_LOAD_CURRENT_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(LOAD_CURRENT_CHAR_UNCHECKED) {
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          current_char = subject.CharAt(pos);
+          pc += BC_LOAD_CURRENT_CHAR_UNCHECKED_LENGTH;
+          break;
+        }
+        BYTECODE(LOAD_2_CURRENT_CHARS) {
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          if (pos + 2 > subject_length) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            Char next = subject.CharAt(pos + 1);
+            current_char =
+                subject.CharAt(pos) | (next << (kBitsPerByte * sizeof(Char)));
+            pc += BC_LOAD_2_CURRENT_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(LOAD_2_CURRENT_CHARS_UNCHECKED) {
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          Char next = subject.CharAt(pos + 1);
+          current_char =
+              subject.CharAt(pos) | (next << (kBitsPerByte * sizeof(Char)));
+          pc += BC_LOAD_2_CURRENT_CHARS_UNCHECKED_LENGTH;
+          break;
+        }
+        BYTECODE(LOAD_4_CURRENT_CHARS) {
+          ASSERT(sizeof(Char) == 1);
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          if (pos + 4 > subject_length) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            Char next1 = subject.CharAt(pos + 1);
+            Char next2 = subject.CharAt(pos + 2);
+            Char next3 = subject.CharAt(pos + 3);
+            current_char = (subject.CharAt(pos) | (next1 << 8) | (next2 << 16) |
+                            (next3 << 24));
+            pc += BC_LOAD_4_CURRENT_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(LOAD_4_CURRENT_CHARS_UNCHECKED) {
+          ASSERT(sizeof(Char) == 1);
+          int pos = current + (insn >> BYTECODE_SHIFT);
+          Char next1 = subject.CharAt(pos + 1);
+          Char next2 = subject.CharAt(pos + 2);
+          Char next3 = subject.CharAt(pos + 3);
+          current_char = (subject.CharAt(pos) | (next1 << 8) | (next2 << 16) |
+                          (next3 << 24));
+          pc += BC_LOAD_4_CURRENT_CHARS_UNCHECKED_LENGTH;
+          break;
+        }
+        BYTECODE(CHECK_4_CHARS) {
+          uint32_t c = Load32Aligned(pc + 4);
+          if (c == current_char) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_CHECK_4_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_CHAR) {
+          uint32_t c = (insn >> BYTECODE_SHIFT);
+          if (c == current_char) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            pc += BC_CHECK_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_NOT_4_CHARS) {
+          uint32_t c = Load32Aligned(pc + 4);
+          if (c != current_char) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_CHECK_NOT_4_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_NOT_CHAR) {
+          uint32_t c = (insn >> BYTECODE_SHIFT);
+          if (c != current_char) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            pc += BC_CHECK_NOT_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(AND_CHECK_4_CHARS) {
+          uint32_t c = Load32Aligned(pc + 4);
+          if (c == (current_char & Load32Aligned(pc + 8))) {
+            pc = code_base + Load32Aligned(pc + 12);
+          } else {
+            pc += BC_AND_CHECK_4_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(AND_CHECK_CHAR) {
+          uint32_t c = (insn >> BYTECODE_SHIFT);
+          if (c == (current_char & Load32Aligned(pc + 4))) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_AND_CHECK_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(AND_CHECK_NOT_4_CHARS) {
+          uint32_t c = Load32Aligned(pc + 4);
+          if (c != (current_char & Load32Aligned(pc + 8))) {
+            pc = code_base + Load32Aligned(pc + 12);
+          } else {
+            pc += BC_AND_CHECK_NOT_4_CHARS_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(AND_CHECK_NOT_CHAR) {
+          uint32_t c = (insn >> BYTECODE_SHIFT);
+          if (c != (current_char & Load32Aligned(pc + 4))) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_AND_CHECK_NOT_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(MINUS_AND_CHECK_NOT_CHAR) {
+          uint32_t c = (insn >> BYTECODE_SHIFT);
+          uint32_t minus = Load16Aligned(pc + 4);
+          uint32_t mask = Load16Aligned(pc + 6);
+          if (c != ((current_char - minus) & mask)) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_MINUS_AND_CHECK_NOT_CHAR_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_CHAR_IN_RANGE) {
+          uint32_t from = Load16Aligned(pc + 4);
+          uint32_t to = Load16Aligned(pc + 6);
+          if (from <= current_char && current_char <= to) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_CHECK_CHAR_IN_RANGE_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_CHAR_NOT_IN_RANGE) {
+          uint32_t from = Load16Aligned(pc + 4);
+          uint32_t to = Load16Aligned(pc + 6);
+          if (from > current_char || current_char > to) {
+            pc = code_base + Load32Aligned(pc + 8);
+          } else {
+            pc += BC_CHECK_CHAR_NOT_IN_RANGE_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_BIT_IN_TABLE) {
+          int mask = RegExpMacroAssembler::kTableMask;
+          uint8_t b = pc[8 + ((current_char & mask) >> kBitsPerByteLog2)];
+          int bit = (current_char & (kBitsPerByte - 1));
+          if ((b & (1 << bit)) != 0) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            pc += BC_CHECK_BIT_IN_TABLE_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_LT) {
+          uint32_t limit = (insn >> BYTECODE_SHIFT);
+          if (current_char < limit) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            pc += BC_CHECK_LT_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_GT) {
+          uint32_t limit = (insn >> BYTECODE_SHIFT);
+          if (current_char > limit) {
+            pc = code_base + Load32Aligned(pc + 4);
+          } else {
+            pc += BC_CHECK_GT_LENGTH;
+          }
+          break;
+        }
+        BYTECODE(CHECK_REGISTER_LT)
+        if (registers[insn >> BYTECODE_SHIFT] < Load32Aligned(pc + 4)) {
+          pc = code_base + Load32Aligned(pc + 8);
+        } else {
+          pc += BC_CHECK_REGISTER_LT_LENGTH;
+        }
+        break;
+        BYTECODE(CHECK_REGISTER_GE)
+        if (registers[insn >> BYTECODE_SHIFT] >= Load32Aligned(pc + 4)) {
+          pc = code_base + Load32Aligned(pc + 8);
+        } else {
+          pc += BC_CHECK_REGISTER_GE_LENGTH;
+        }
+        break;
+        BYTECODE(CHECK_REGISTER_EQ_POS)
+        if (registers[insn >> BYTECODE_SHIFT] == current) {
+          pc = code_base + Load32Aligned(pc + 4);
+        } else {
+          pc += BC_CHECK_REGISTER_EQ_POS_LENGTH;
+        }
+        break;
+        BYTECODE(CHECK_NOT_REGS_EQUAL)
+        if (registers[insn >> BYTECODE_SHIFT] ==
+            registers[Load32Aligned(pc + 4)]) {
+          pc += BC_CHECK_NOT_REGS_EQUAL_LENGTH;
+        } else {
+          pc = code_base + Load32Aligned(pc + 8);
+        }
+        break;
+        BYTECODE(CHECK_NOT_BACK_REF) {
+          int from = registers[insn >> BYTECODE_SHIFT];
+          int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+          if (from < 0 || len <= 0) {
+            pc += BC_CHECK_NOT_BACK_REF_LENGTH;
+            break;
+          }
+          if (current + len > subject_length) {
+            pc = code_base + Load32Aligned(pc + 4);
+            break;
+          } else {
+            int i;
+            for (i = 0; i < len; i++) {
+              if (subject.CharAt(from + i) != subject.CharAt(current + i)) {
+                pc = code_base + Load32Aligned(pc + 4);
+                break;
+              }
+            }
+            if (i < len) break;
+            current += len;
+          }
+          pc += BC_CHECK_NOT_BACK_REF_LENGTH;
+          break;
+        }
+        BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_UNICODE)
+        FALL_THROUGH;
+        BYTECODE(CHECK_NOT_BACK_REF_NO_CASE) {
+          const bool unicode =
+              (insn & BYTECODE_MASK) == BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE;
+          int from = registers[insn >> BYTECODE_SHIFT];
+          int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+          if (from < 0 || len <= 0) {
+            pc += BC_CHECK_NOT_BACK_REF_NO_CASE_LENGTH;
+            break;
+          }
+          if (current + len > subject_length) {
+            pc = code_base + Load32Aligned(pc + 4);
+            break;
+          } else {
+            if (BackRefMatchesNoCase<Char>(&canonicalize, from, current, len,
+                                           subject, unicode)) {
+              current += len;
+              pc += BC_CHECK_NOT_BACK_REF_NO_CASE_LENGTH;
+            } else {
+              pc = code_base + Load32Aligned(pc + 4);
+            }
+          }
+          break;
+        }
+        BYTECODE(CHECK_NOT_BACK_REF_BACKWARD) {
+          const int from = registers[insn >> BYTECODE_SHIFT];
+          const int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+          if (from < 0 || len <= 0) {
+            pc += BC_CHECK_NOT_BACK_REF_BACKWARD_LENGTH;
+            break;
+          }
+          if ((current - len) < 0) {
+            pc = code_base + Load32Aligned(pc + 4);
+            break;
+          } else {
+            // When looking behind, the string to match (if it is there) lies
+            // before the current position, so we will check the [len]
+            // characters before the current position, excluding the current
+            // position itself.
+            const int start = current - len;
+            int i;
+            for (i = 0; i < len; i++) {
+              if (subject.CharAt(from + i) != subject.CharAt(start + i)) {
+                pc = code_base + Load32Aligned(pc + 4);
+                break;
+              }
+            }
+            if (i < len) break;
+            current -= len;
+          }
+          pc += BC_CHECK_NOT_BACK_REF_BACKWARD_LENGTH;
+          break;
+        }
+        BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD)
+        FALL_THROUGH;
+        BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_BACKWARD) {
+          bool unicode = (insn & BYTECODE_MASK) ==
+                         BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD;
+          int from = registers[insn >> BYTECODE_SHIFT];
+          int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+          if (from < 0 || len <= 0) {
+            pc += BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD_LENGTH;
+            break;
+          }
+          if (current < len) {
+            pc = code_base + Load32Aligned(pc + 4);
+            break;
+          } else {
+            if (BackRefMatchesNoCase<Char>(&canonicalize, from, current - len,
+                                           len, subject, unicode)) {
+              current -= len;
+              pc += BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD_LENGTH;
+            } else {
+              pc = code_base + Load32Aligned(pc + 4);
+            }
+          }
+          break;
+        }
+        BYTECODE(CHECK_AT_START)
+        if (current == 0) {
+          pc = code_base + Load32Aligned(pc + 4);
+        } else {
+          pc += BC_CHECK_AT_START_LENGTH;
+        }
+        break;
+        BYTECODE(CHECK_NOT_AT_START) {
+          const int32_t cp_offset = insn >> BYTECODE_SHIFT;
+          if (current + cp_offset == 0) {
+            pc += BC_CHECK_NOT_AT_START_LENGTH;
+          } else {
+            pc = code_base + Load32Aligned(pc + 4);
+          }
+          break;
+        }
+        BYTECODE(SET_CURRENT_POSITION_FROM_END) {
+          int by = static_cast<uint32_t>(insn) >> BYTECODE_SHIFT;
+          if (subject_length - current > by) {
+            current = subject_length - by;
+            current_char = subject.CharAt(current - 1);
+          }
+          pc += BC_SET_CURRENT_POSITION_FROM_END_LENGTH;
+          break;
+        }
+        default:
+          UNREACHABLE();
+          break;
+      }
+    }
+  }
+}
+
+// Returns True if success, False if failure, Null if internal exception,
+// Error if VM error needs to be propagated up the callchain.
+ObjectPtr IrregexpInterpreter::Match(const TypedData& bytecode,
+                                     const String& subject,
+                                     int32_t* registers,
+                                     int32_t start_position) {
+  uint16_t previous_char = '\n';
+  if (start_position != 0) {
+    previous_char = subject.CharAt(start_position - 1);
+  }
+
+  if (subject.IsOneByteString()) {
+    return RawMatch<uint8_t>(bytecode, subject, registers, start_position,
+                             previous_char);
+  } else if (subject.IsTwoByteString()) {
+    return RawMatch<uint16_t>(bytecode, subject, registers, start_position,
+                              previous_char);
+  } else {
+    UNREACHABLE();
+    return Bool::False().ptr();
+  }
+}
+
+}  // namespace dart

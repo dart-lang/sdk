@@ -8,11 +8,10 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Handles textDocument/colorPresentation.
@@ -21,8 +20,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// using a color picker (in a location returned by textDocument/documentColor)
 /// and needs a representation of this color, including the edits to insert it
 /// into the source file.
-class DocumentColorPresentationHandler extends SharedMessageHandler<
-    ColorPresentationParams, List<ColorPresentation>> {
+class DocumentColorPresentationHandler
+    extends
+        SharedMessageHandler<ColorPresentationParams, List<ColorPresentation>> {
   /// A pattern for removing trailing zeros (and if no decimal part, the period)
   /// from numbers formatted for code.
   final _trailingZerosAndPeriodPattern = RegExp(r'\.?0+$');
@@ -67,14 +67,11 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
   /// called. This will be replaced into [editRange] and any required import
   /// statement will produce additional edits.
   ///
-  /// [label] is the visible label shown to the user and should roughly reflect
-  /// the code that will be inserted.
-  ///
   /// [invocationString] is written immediately after [colorType] in [editRange].
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement colorType,
+    required InterfaceElement2 colorType,
     required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
@@ -93,24 +90,30 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     // We can only apply changes to the same file, so filter any change from the
     // builder to only include this file, otherwise we may corrupt the users
     // source (although hopefully we don't produce edits for other files).
-    var editsForThisFile = builder.sourceChange.edits
-        .where((edit) => edit.file == unit.path)
-        .expand((edit) => edit.edits)
-        .toList();
+    var editsForThisFile =
+        builder.sourceChange.edits
+            .where((edit) => edit.file == unit.path)
+            .expand((edit) => edit.edits)
+            .toList();
 
     // LSP requires that we separate the main edit (changing the color code)
     // from anything else (imports).
-    var mainEdit =
-        editsForThisFile.singleWhere((edit) => edit.offset == editRange.offset);
-    var otherEdits =
-        editsForThisFile.where((edit) => edit.offset != editRange.offset);
+    var mainEdit = editsForThisFile.singleWhere(
+      (edit) => edit.offset == editRange.offset,
+    );
+    var otherEdits = editsForThisFile.where(
+      (edit) => edit.offset != editRange.offset,
+    );
 
     return ColorPresentation(
       label: '$typeName$invocationString',
       textEdit: toTextEdit(unit.lineInfo, mainEdit),
-      additionalTextEdits: otherEdits.isNotEmpty
-          ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
-          : null,
+      additionalTextEdits:
+          otherEdits.isNotEmpty
+              ? otherEdits
+                  .map((edit) => toTextEdit(unit.lineInfo, edit))
+                  .toList()
+              : null,
     );
   }
 
@@ -160,8 +163,10 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         return success([]);
       }
 
-      var requiresConstKeyword =
-          _willRequireConstKeyword(editRange.offset, unit);
+      var requiresConstKeyword = _willRequireConstKeyword(
+        editRange.offset,
+        unit,
+      );
       var colorValue = _colorValueForComponents(alpha, red, green, blue);
       var colorValueHex =
           '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
@@ -204,12 +209,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         includeConstKeyword: requiresConstKeyword,
       );
 
-      return success([
-        colorFromARGB,
-        colorFromRGBO,
-        colorFrom,
-        colorDefault,
-      ]);
+      return success([colorFromARGB, colorFromRGBO, colorFrom, colorDefault]);
     });
   }
 
@@ -246,14 +246,14 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       return node.isConst;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var staticElement = parent is PrefixedIdentifier
-          ? parent.staticElement
-          : node.staticElement;
-      var target = staticElement is PropertyAccessorElement
-          ? staticElement.variable2
-          : staticElement;
+      var element =
+          parent is PrefixedIdentifier ? parent.element : node.element;
 
-      return target is ConstVariableElement;
+      return switch (element) {
+        PropertyAccessorElement2(:var variable3) => variable3?.isConst ?? false,
+        VariableElement2() => element.isConst,
+        _ => false,
+      };
     } else {
       return false;
     }

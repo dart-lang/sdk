@@ -30,10 +30,10 @@ static bool PhiHasSingleUse(PhiInstr* phi, Value* use) {
 }
 
 bool BranchSimplifier::Match(JoinEntryInstr* block) {
-  // Match the pattern of a branch on a comparison whose left operand is a
+  // Match the pattern of a branch on a condition whose left operand is a
   // phi from the same block, and whose right operand is a constant.
   //
-  //   Branch(Comparison(kind, Phi, Constant))
+  //   Branch(Condition(kind, Phi, Constant))
   //
   // These are the branches produced by inlining in a test context.  Also,
   // the phi has no other uses so they can simply be eliminated.  The block
@@ -41,16 +41,16 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   // branch so the block can simply be eliminated.
   BranchInstr* branch = block->last_instruction()->AsBranch();
   ASSERT(branch != nullptr);
-  ComparisonInstr* comparison = branch->comparison();
-  if (comparison->InputCount() != 2) {
+  ConditionInstr* condition = branch->condition();
+  if (condition->InputCount() != 2) {
     return false;
   }
-  if (comparison->CanDeoptimize() || comparison->MayThrow()) {
+  if (condition->CanDeoptimize() || condition->MayThrow()) {
     return false;
   }
-  Value* left = comparison->left();
+  Value* left = condition->InputAt(0);
   PhiInstr* phi = left->definition()->AsPhi();
-  Value* right = comparison->right();
+  Value* right = condition->InputAt(1);
   ConstantInstr* constant =
       (right == nullptr) ? nullptr : right->definition()->AsConstant();
   return (phi != nullptr) && (constant != nullptr) &&
@@ -87,11 +87,11 @@ BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
                                            BranchInstr* branch,
                                            Value* new_left,
                                            Value* new_right) {
-  ComparisonInstr* comparison = branch->comparison();
-  ComparisonInstr* new_comparison =
-      comparison->CopyWithNewOperands(new_left, new_right);
+  ConditionInstr* condition = branch->condition();
+  ConditionInstr* new_condition =
+      condition->CopyWithNewOperands(new_left, new_right);
   BranchInstr* new_branch =
-      new (zone) BranchInstr(new_comparison, DeoptId::kNone);
+      new (zone) BranchInstr(new_condition, DeoptId::kNone);
   return new_branch;
 }
 
@@ -140,9 +140,10 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       JoinEntryInstr* join_true = ToJoinEntry(zone, branch->true_successor());
       JoinEntryInstr* join_false = ToJoinEntry(zone, branch->false_successor());
 
-      ComparisonInstr* comparison = branch->comparison();
-      PhiInstr* phi = comparison->left()->definition()->AsPhi();
-      ConstantInstr* constant = comparison->right()->definition()->AsConstant();
+      ConditionInstr* condition = branch->condition();
+      PhiInstr* phi = condition->InputAt(0)->definition()->AsPhi();
+      ConstantInstr* constant =
+          condition->InputAt(1)->definition()->AsConstant();
       ASSERT(constant != nullptr);
       // Copy the constant and branch and push it to all the predecessors.
       for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
@@ -161,10 +162,10 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         } else {
           // Take the environment from the branch if it has one.
           new_branch->InheritDeoptTarget(zone, branch);
-          // InheritDeoptTarget gave the new branch's comparison the same
+          // InheritDeoptTarget gave the new branch's condition the same
           // deopt id that it gave the new branch.  The id should be the
-          // deopt id of the original comparison.
-          new_branch->comparison()->SetDeoptId(*comparison);
+          // deopt id of the original condition.
+          new_branch->condition()->SetDeoptId(*condition);
           // The phi can be used in the branch's environment.  Rename such
           // uses.
           Definition* replacement = phi->InputAt(i)->definition();
@@ -249,11 +250,11 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
     JoinEntryInstr* join = block->AsJoinEntry();
 
     // Detect diamond control flow pattern which materializes a value depending
-    // on the result of the comparison:
+    // on the result of the condition:
     //
     // B_pred:
     //   ...
-    //   Branch if COMP goto (B_pred1, B_pred2)
+    //   Branch if COND goto (B_pred1, B_pred2)
     // B_pred1: -- trivial block that contains at most one definition
     //   v1 = Constant(...)
     //   goto B_block
@@ -266,7 +267,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
     // and replace it with
     //
     // Ba:
-    //   v3 = IfThenElse(COMP ? v1 : v2)
+    //   v3 = IfThenElse(COND ? v1 : v2)
     //
     if ((join != nullptr) && (join->phis() != nullptr) &&
         (join->phis()->length() == 1) && (block->PredecessorCount() == 2)) {
@@ -291,19 +292,20 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           continue;
         }
 
-        ComparisonInstr* comparison = branch->comparison();
+        ConditionInstr* condition = branch->condition();
 
         // Check if the platform supports efficient branchless IfThenElseInstr
-        // for the given combination of comparison and values flowing from
+        // for the given combination of condition and values flowing from
         // false and true paths.
-        if (IfThenElseInstr::Supports(comparison, v1, v2)) {
+        if (IfThenElseInstr::Supports(condition, v1, v2)) {
           Value* if_true = (pred1 == branch->true_successor()) ? v1 : v2;
           Value* if_false = (pred2 == branch->true_successor()) ? v1 : v2;
 
-          ComparisonInstr* new_comparison = comparison->CopyWithNewOperands(
-              comparison->left()->Copy(zone), comparison->right()->Copy(zone));
+          ConditionInstr* new_condition =
+              condition->CopyWithNewOperands(condition->InputAt(0)->Copy(zone),
+                                             condition->InputAt(1)->Copy(zone));
           IfThenElseInstr* if_then_else =
-              new (zone) IfThenElseInstr(new_comparison, if_true->Copy(zone),
+              new (zone) IfThenElseInstr(new_condition, if_true->Copy(zone),
                                          if_false->Copy(zone), DeoptId::kNone);
           flow_graph->InsertBefore(branch, if_then_else, nullptr,
                                    FlowGraph::kValue);

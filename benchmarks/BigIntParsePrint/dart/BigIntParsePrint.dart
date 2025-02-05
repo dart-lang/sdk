@@ -31,8 +31,8 @@ const requiredDigits = 11106;
 class Benchmark extends BenchmarkBase {
   final List<String> strings;
   Benchmark(String name, int bits, {bool forInt = false})
-      : strings = generateStrings(bits, forInt),
-        super(name);
+    : strings = generateStrings(bits, forInt),
+      super(name);
 
   static List<String> generateStrings(int bits, bool forInt) {
     final List<String> strings = [];
@@ -270,7 +270,9 @@ class DummyBenchmark extends BenchmarkBase {
 /// is not available.  This is to satisfy Golem's constraint that group
 /// benchmarks always produce results for the same set of series.
 BenchmarkBase Function() selectParseNativeBigIntBenchmark(
-    String name, int bits) {
+  String name,
+  int bits,
+) {
   return nativeBigInt.enabled
       ? () => ParseJsBigIntBenchmark(name, bits)
       : () => DummyBenchmark(name);
@@ -280,7 +282,9 @@ BenchmarkBase Function() selectParseNativeBigIntBenchmark(
 /// is not available.  This is to satisfy Golem's constraint that group
 /// benchmarks always produce results for the same set of series.
 BenchmarkBase Function() selectFormatNativeBigIntBenchmark(
-    String name, int bits) {
+  String name,
+  int bits,
+) {
   return nativeBigInt.enabled
       ? () => FormatJsBigIntBenchmark(name, bits)
       : () => DummyBenchmark(name);
@@ -330,10 +334,13 @@ void main() {
   ];
 
   // Warm up all benchmarks to ensure consistent behavior of shared code.
-  benchmarks.forEach((bm) => bm()
-    ..setup()
-    ..run()
-    ..run());
+  benchmarks.forEach(
+    (bm) =>
+        bm()
+          ..setup()
+          ..run()
+          ..run(),
+  );
 
   benchmarks.forEach((bm) => bm().report());
 }

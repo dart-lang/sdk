@@ -24,11 +24,16 @@ class OutputUnitDescriptor {
   const OutputUnitDescriptor(this.uri, this.member, this.name);
 }
 
-run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
-    Map<String, Set<String>> expectedOutputUnits) async {
+run(
+  Map<String, String> sourceFiles,
+  List<OutputUnitDescriptor> outputUnits,
+  Map<String, Set<String>> expectedOutputUnits,
+) async {
   OutputCollector collector = OutputCollector();
   CompilationResult result = await runCompiler(
-      memorySourceFiles: sourceFiles, outputProvider: collector);
+    memorySourceFiles: sourceFiles,
+    outputProvider: collector,
+  );
   Compiler compiler = result.compiler!;
   DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
   ProgramLookup lookup = ProgramLookup(compiler.backendStrategy);
@@ -77,8 +82,10 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
   expectedOutputUnits.forEach((String constant, Set<String> expectedSet) {
     Set<String> actualSet = actualOutputUnits[constant] ?? const <String>{};
     if (!equalSets(expectedSet, actualSet)) {
-      print("ERROR: Constant $constant found in $actualSet, expected "
-          "$expectedSet");
+      print(
+        "ERROR: Constant $constant found in $actualSet, expected "
+        "$expectedSet",
+      );
       errorsFound = true;
     }
   });

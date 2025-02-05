@@ -9,13 +9,7 @@
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 
-enum TestMode {
-  INPUT,
-  NONE,
-  ENTER,
-  DELIMITER,
-  EXIT,
-}
+enum TestMode { INPUT, NONE, ENTER, DELIMITER, EXIT }
 
 class TestCase {
   final Map<TestMode, String> data;
@@ -43,7 +37,7 @@ function(a, b) {
     TestMode.EXIT: '''
 function(a@1, b@2) {
   return null@5;
-@4}@3@0'''
+@4}@3@0''',
   }),
   TestCase({
     TestMode.NONE: '''
@@ -123,7 +117,7 @@ function() {
 function() {
   function foo@4() {
   }@5@3
-@2}@1@0'''
+@2}@1@0''',
   }),
   TestCase({
     TestMode.INPUT: """
@@ -152,15 +146,16 @@ function() {
 @2  [1@8,,@9 2@10]@7;
 @6}@1@0''',
   }),
-  TestCase({
-    TestMode.INPUT: 'a.#nameTemplate = #nameTemplate',
-    TestMode.NONE: 'a.nameValue = nameValue',
-    TestMode.ENTER: '@0@1@2a.@3nameValue = @3nameValue',
-    TestMode.DELIMITER: 'a.nameValue = nameValue',
-    TestMode.EXIT: 'a@2.nameValue@3@1 = nameValue@3@0',
-  }, {
-    'nameTemplate': 'nameValue'
-  }),
+  TestCase(
+    {
+      TestMode.INPUT: 'a.#nameTemplate = #nameTemplate',
+      TestMode.NONE: 'a.nameValue = nameValue',
+      TestMode.ENTER: '@0@1@2a.@3nameValue = @3nameValue',
+      TestMode.DELIMITER: 'a.nameValue = nameValue',
+      TestMode.EXIT: 'a@2.nameValue@3@1 = nameValue@3@0',
+    },
+    {'nameTemplate': 'nameValue'},
+  ),
 ];
 
 class FixedName extends Name {
@@ -188,8 +183,11 @@ void check(TestCase testCase) {
     Printer(options, context).visit(node);
     // TODO(johnniwinther): Remove `replaceAll(...)` when dart2js behaves as the
     // VM on newline in multiline strings.
-    Expect.equals(expectedOutput.replaceAll('\r\n', '\n'), context.getText(),
-        'Unexpected output for $code in $mode');
+    Expect.equals(
+      expectedOutput.replaceAll('\r\n', '\n'),
+      context.getText(),
+      'Unexpected output for $code in $mode',
+    );
   });
 }
 
@@ -214,7 +212,11 @@ class Context extends SimpleJavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int? delimiterPosition) {
+    Node node,
+    int startPosition,
+    int endPosition,
+    int? delimiterPosition,
+  ) {
     int value = id(node);
     if (mode == TestMode.DELIMITER && delimiterPosition != null) {
       tagMap.putIfAbsent(delimiterPosition, () => []).add(tag(value));

@@ -25,118 +25,166 @@ expectSum(aString, bString, expectedString) {
 
 main() {
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87c8de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87c8de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87bece9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87bece9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaae340aba6cb25ae8dbb531d2bc0105fa0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaae340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3740aba6cb25ae8dbb531d2bc0105fa0");
-  expectSum("d87becaa3701c97b31b5b8084f2b5b34e7857092", "1",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857093");
-  expectSum("d87becaa3701c97b31b5b8084f2b5b34e7857092", "0",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3740aba6cb25ae8dbb531d2bc0105fa0",
+  );
+  expectSum(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "1",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857093",
+  );
+  expectSum(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87b4b6a8ac2e74f9845c182e303993e0efa8184");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87b4b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87bec6a8ac2e74f9845c182e303993e0efa8184");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87bec6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87beca98ac2e74f9845c182e303993e0efa8184");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87beca98ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa36c2e74f9845c182e303993e0efa8184");
-  expectSum("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "1",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857091");
-  expectSum("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "0",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa36c2e74f9845c182e303993e0efa8184",
+  );
+  expectSum(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "1",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857091",
+  );
+  expectSum(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87b4b6a8ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87b4b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87bec6a8ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87bec6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87beca98ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87beca98ac2e74f9845c182e303993e0efa8184",
+  );
   expectSum(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa36c2e74f9845c182e303993e0efa8184");
-  expectSum("d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857091");
-  expectSum("d87becaa3701c97b31b5b8084f2b5b34e7857092", "-0",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa36c2e74f9845c182e303993e0efa8184",
+  );
+  expectSum(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-1",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857091",
+  );
+  expectSum(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-0",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87c8de9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87c8de9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87bece9e340aba6cb25ae8dbb531d2bc0105fa0");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87bece9e340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaae340aba6cb25ae8dbb531d2bc0105fa0");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaae340aba6cb25ae8dbb531d2bc0105fa0",
+  );
   expectSum(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3740aba6cb25ae8dbb531d2bc0105fa0");
-  expectSum("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857093");
-  expectSum("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "-0",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3740aba6cb25ae8dbb531d2bc0105fa0",
+  );
+  expectSum(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-1",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857093",
+  );
+  expectSum(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-0",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 }

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -17,12 +17,18 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetAvailableRefactoringsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetAvailableRefactoringsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetAvailableRefactoringsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     var offset = params.offset;
     var length = params.length;
@@ -43,18 +49,29 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         // Try EXTRACT_LOCAL_VARIABLE.
-        if (ExtractLocalRefactoring(resolvedUnit, offset, length)
-            .isAvailable()) {
+        if (ExtractLocalRefactoring(
+          resolvedUnit,
+          offset,
+          length,
+        ).isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
         // Try EXTRACT_METHOD.
-        if (ExtractMethodRefactoring(searchEngine, resolvedUnit, offset, length)
-            .isAvailable()) {
+        if (ExtractMethodRefactoring(
+          searchEngine,
+          resolvedUnit,
+          offset,
+          length,
+        ).isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_METHOD);
         }
         // Try EXTRACT_WIDGETS.
-        if (ExtractWidgetRefactoring(searchEngine, resolvedUnit, offset, length)
-            .isAvailable()) {
+        if (ExtractWidgetRefactoring(
+          searchEngine,
+          resolvedUnit,
+          offset,
+          length,
+        ).isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
       }
@@ -63,20 +80,25 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-      var element = server.getElementOfNode(node);
+      var element = server.getElementOfNode2(node);
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
-        if (element is ExecutableElement) {
+        if (element is ExecutableElement2) {
           if (ConvertMethodToGetterRefactoring(
-                  refactoringWorkspace, resolvedUnit.session, element)
-              .isAvailable()) {
+            refactoringWorkspace,
+            resolvedUnit.session,
+            element,
+          ).isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
           }
         }
         // try RENAME
-        var renameRefactoring = RenameRefactoring.create(
-            refactoringWorkspace, resolvedUnit, element);
+        var renameRefactoring = RenameRefactoring.create2(
+          refactoringWorkspace,
+          resolvedUnit,
+          element,
+        );
         if (renameRefactoring != null) {
           kinds.add(RefactoringKind.RENAME);
         }

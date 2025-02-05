@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -16,7 +19,6 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -56,7 +58,7 @@ class TypedLiteralResolver {
     ResolverVisitor resolver,
     TypeSystemImpl typeSystem,
     TypeProviderImpl typeProvider,
-    AnalysisOptionsImpl analysisOptions,
+    AnalysisOptions analysisOptions,
   ) {
     return TypedLiteralResolver._(
       resolver,
@@ -74,10 +76,6 @@ class TypedLiteralResolver {
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  bool get _inferenceUsingBoundsIsEnabled =>
-      _resolver.definingLibrary.featureSet
-          .isEnabled(Feature.inference_using_bounds);
 
   void resolveListLiteral(ListLiteralImpl node,
       {required DartType contextType}) {
@@ -429,11 +427,15 @@ class TypedLiteralResolver {
     }
   }
 
-  GenericInferrer _inferListTypeDownwards(ListLiteral node,
+  GenericInferrer _inferListTypeDownwards(ListLiteralImpl node,
       {required DartType contextType}) {
-    var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters;
-    inferenceLogWriter?.enterGenericInference(typeParameters, element.thisType);
+    var element = _typeProvider.listElement2;
+    var typeParameters = element.typeParameters2;
+    inferenceLogWriter?.enterGenericInference(
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
+        typeParameters.cast(),
+        element.thisType);
 
     return _typeSystem.setupGenericTypeInference(
       typeParameters: typeParameters,
@@ -443,7 +445,7 @@ class TypedLiteralResolver {
       errorReporter: _errorReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -493,17 +495,20 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferMapTypeDownwards(
-      SetOrMapLiteral node, DartType contextType) {
-    var element = _typeProvider.mapElement;
+      SetOrMapLiteralImpl node, DartType contextType) {
+    var element = _typeProvider.mapElement2;
     inferenceLogWriter?.enterGenericInference(
-        element.typeParameters, element.thisType);
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
+        element.typeParameters2.cast(),
+        element.thisType);
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters,
+      typeParameters: element.typeParameters2,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -598,17 +603,20 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferSetTypeDownwards(
-      SetOrMapLiteral node, DartType contextType) {
-    var element = _typeProvider.setElement;
+      SetOrMapLiteralImpl node, DartType contextType) {
+    var element = _typeProvider.setElement2;
     inferenceLogWriter?.enterGenericInference(
-        element.typeParameters, element.thisType);
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
+        element.typeParameters2.cast(),
+        element.thisType);
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters,
+      typeParameters: element.typeParameters2,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -731,7 +739,7 @@ class TypedLiteralResolver {
   DartType _toMapType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
-      SetOrMapLiteral node,
+      SetOrMapLiteralImpl node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     inferenceLogWriter?.assertGenericInferenceState(
         inProgress: inferrer != null);
@@ -781,7 +789,7 @@ class TypedLiteralResolver {
   DartType _toSetType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
-      SetOrMapLiteral node,
+      SetOrMapLiteralImpl node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     inferenceLogWriter?.assertGenericInferenceState(
         inProgress: inferrer != null);

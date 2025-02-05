@@ -15,8 +15,12 @@ import 'package:analyzer/source/line_info.dart';
 
 typedef StaticOptions = Either2<bool, DocumentSymbolOptions>;
 
-class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
-    TextDocumentDocumentSymbolResult> {
+class DocumentSymbolHandler
+    extends
+        SharedMessageHandler<
+          DocumentSymbolParams,
+          TextDocumentDocumentSymbolResult
+        > {
   DocumentSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
@@ -30,20 +34,20 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
 
   @override
   Future<ErrorOr<TextDocumentDocumentSymbolResult>> handle(
-      DocumentSymbolParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    DocumentSymbolParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
-      return success(
-        TextDocumentDocumentSymbolResult.t2([]),
-      );
+      return success(TextDocumentDocumentSymbolResult.t2([]));
     }
 
     var path = pathOfDoc(params.textDocument);
     var unit = await path.mapResult(requireResolvedUnit);
     return unit.mapResultSync(
-        (unit) => _getSymbols(clientCapabilities, unit.path, unit));
+      (unit) => _getSymbols(clientCapabilities, unit.path, unit),
+    );
   }
 
   DocumentSymbol _asDocumentSymbol(
@@ -53,9 +57,10 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
   ) {
     var codeRange = toRange(lineInfo, outline.codeOffset, outline.codeLength);
     var nameLocation = outline.element.location;
-    var nameRange = nameLocation != null
-        ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
-        : null;
+    var nameRange =
+        nameLocation != null
+            ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
+            : null;
     return DocumentSymbol(
       name: toElementName(outline.element),
       detail: outline.element.parameters,
@@ -63,9 +68,12 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       deprecated: outline.element.isDeprecated,
       range: codeRange,
       selectionRange: nameRange ?? codeRange,
-      children: outline.children
-          ?.map((child) => _asDocumentSymbol(supportedKinds, lineInfo, child))
-          .toList(),
+      children:
+          outline.children
+              ?.map(
+                (child) => _asDocumentSymbol(supportedKinds, lineInfo, child),
+              )
+              .toList(),
     );
   }
 
@@ -111,8 +119,13 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       return success(
         TextDocumentDocumentSymbolResult.t1(
           children
-              .map((child) => _asDocumentSymbol(
-                  capabilities.documentSymbolKinds, unit.lineInfo, child))
+              .map(
+                (child) => _asDocumentSymbol(
+                  capabilities.documentSymbolKinds,
+                  unit.lineInfo,
+                  child,
+                ),
+              )
               .toList(),
         ),
       );

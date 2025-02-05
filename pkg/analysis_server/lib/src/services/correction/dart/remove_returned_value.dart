@@ -32,7 +32,9 @@ class RemoveReturnedValue extends ResolvedCorrectionProducer {
     } else if (node is ExpressionFunctionBody) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-            range.startEnd(node.functionDefinition, node), '{}');
+          range.startEnd(node.functionDefinition, node),
+          '{}',
+        );
       });
     }
   }

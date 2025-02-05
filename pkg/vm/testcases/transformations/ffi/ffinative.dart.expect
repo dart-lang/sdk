@@ -144,14 +144,20 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   @#C42
   external static method _myField$Setter$FfiNative(ffi::Pointer<ffi::Void> #t0, core::bool #t1) → void;
 }
+@#C45
+@#C46
+external static method returnVoid() → void;
+@#C49
+@#C50
+external static method returnPointer(ffi::Pointer<ffi::NativeType> x) → ffi::Pointer<ffi::NativeType>;
 @#C6
 @#C8
 external static method returnIntPtr(core::int x) → core::int;
-@#C44
-@#C45
+@#C52
+@#C53
 external static method returnIntPtrLeaf(core::int x) → core::int;
-@#C48
-@#C49
+@#C56
+@#C57
 external static method returnNativeIntPtrLeaf(core::int x) → core::int;
 static method main() → void {
   self::returnIntPtr(13);
@@ -166,6 +172,8 @@ static method main() → void {
   new self::NativeClassy::•().{self::NativeClassy::blah}(){() → core::bool};
   final core::bool b = new self::NativeClassy::•().{self::NativeClassy::myField}{core::bool};
   new self::NativeClassy::•().{self::NativeClassy::myField} = !b;
+  ffi::Native::_addressOf<ffi::NativeFunction<() → ffi::Void>>(#C44);
+  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Pointer<ffi::NativeType>>>(#C48);
   ffi::Native::_addressOf<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>>(#C5);
 }
 constants  {
@@ -211,11 +219,19 @@ constants  {
   #C40 = core::pragma {name:#C7, options:#C27}
   #C41 = core::pragma {name:#C7, options:#C30}
   #C42 = core::pragma {name:#C7, options:#C32}
-  #C43 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C2, assetId:#C3, isLeaf:#C29}
-  #C44 = core::pragma {name:#C1, options:#C43}
-  #C45 = core::pragma {name:#C7, options:#C43}
-  #C46 = "returnNativeIntPtrLeaf"
-  #C47 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C46, assetId:#C3, isLeaf:#C29}
-  #C48 = core::pragma {name:#C1, options:#C47}
-  #C49 = core::pragma {name:#C7, options:#C47}
+  #C43 = "returnVoid"
+  #C44 = ffi::Native<() → ffi::Void> {symbol:#C43, assetId:#C3, isLeaf:#C4}
+  #C45 = core::pragma {name:#C1, options:#C44}
+  #C46 = core::pragma {name:#C7, options:#C44}
+  #C47 = "returnPointer"
+  #C48 = ffi::Native<(ffi::Pointer<ffi::NativeType>) → ffi::Pointer<ffi::NativeType>> {symbol:#C47, assetId:#C3, isLeaf:#C4}
+  #C49 = core::pragma {name:#C1, options:#C48}
+  #C50 = core::pragma {name:#C7, options:#C48}
+  #C51 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C2, assetId:#C3, isLeaf:#C29}
+  #C52 = core::pragma {name:#C1, options:#C51}
+  #C53 = core::pragma {name:#C7, options:#C51}
+  #C54 = "returnNativeIntPtrLeaf"
+  #C55 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C54, assetId:#C3, isLeaf:#C29}
+  #C56 = core::pragma {name:#C1, options:#C55}
+  #C57 = core::pragma {name:#C7, options:#C55}
 }

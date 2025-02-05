@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.fangorn;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -645,6 +643,7 @@ class Forest {
       bool isFinal = false,
       bool isConst = false,
       bool isInitializingFormal = false,
+      bool isSuperInitializingFormal = false,
       bool isCovariantByDeclaration = false,
       bool isLocalFunction = false,
       bool isSynthesized = false}) {
@@ -654,6 +653,7 @@ class Forest {
         isFinal: isFinal,
         isConst: isConst,
         isInitializingFormal: isInitializingFormal,
+        isSuperInitializingFormal: isSuperInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
         isSynthesized: isSynthesized,
@@ -671,8 +671,7 @@ class Forest {
 
   TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
       TypeParameter typeParameter, Library library) {
-    return new TypeParameterType.withDefaultNullabilityForLibrary(
-        typeParameter, library);
+    return new TypeParameterType.withDefaultNullability(typeParameter);
   }
 
   Expression createExpressionInvocation(

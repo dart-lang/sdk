@@ -2,16 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 /// An instance of [DependencyWalker] contains the core algorithms for
 /// walking a dependency graph and evaluating nodes in a safe order.
 abstract class DependencyWalker<NodeType extends Node<NodeType>> {
-  /// Called by [walk] to evaluate a single non-cyclical node, after
-  /// all that node's dependencies have been evaluated.
+  /// Evaluates a single non-cyclical node, after all that node's dependencies
+  /// have been evaluated.
+  ///
+  /// Should only be called by [walk].
+  @visibleForOverriding
   void evaluate(NodeType v);
 
-  /// Called by [walk] to evaluate a strongly connected component
-  /// containing one or more nodes.  All dependencies of the strongly
-  /// connected component have been evaluated.
+  /// Evaluates a strongly connected component containing one or more nodes.
+  ///
+  /// All dependencies of the strongly connected component have been evaluated.
+  /// Should only be called by [walk].
+  @visibleForOverriding
   void evaluateScc(List<NodeType> scc);
 
   /// Walk the dependency graph starting at [startingPoint], finding

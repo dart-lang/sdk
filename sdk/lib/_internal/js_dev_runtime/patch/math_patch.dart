@@ -269,13 +269,17 @@ class _JSSecureRandom implements Random {
       }
     }
     throw UnsupportedError(
-        "No source of cryptographically secure random numbers available.");
+      "No source of cryptographically secure random numbers available.",
+    );
   }
 
   /// Fill _buffer from [start] to `start + length` with random bytes.
   void _getRandomBytes(int start, int length) {
-    JS("void", "crypto.getRandomValues(#)",
-        _buffer.buffer.asUint8List(start, length));
+    JS(
+      "void",
+      "crypto.getRandomValues(#)",
+      _buffer.buffer.asUint8List(start, length),
+    );
   }
 
   @notNull

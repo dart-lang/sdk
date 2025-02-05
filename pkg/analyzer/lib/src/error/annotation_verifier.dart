@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta_meta.dart';
@@ -17,14 +19,15 @@ class AnnotationVerifier {
   final ErrorReporter _errorReporter;
 
   /// The current library.
-  final LibraryElement _currentLibrary;
+  final LibraryElement2 _currentLibrary;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
   late final bool _inPackagePublicApi = _workspacePackage != null &&
-      _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
+      _workspacePackage
+          .sourceIsInPublicApi(_currentLibrary.firstFragment.source);
 
   AnnotationVerifier(
     this._errorReporter,
@@ -115,12 +118,13 @@ class AnnotationVerifier {
   /// `@internal` annotation.
   void _checkInternal(Annotation node) {
     var parent = node.parent;
-    var parentElement = parent is Declaration ? parent.declaredElement : null;
+    var parentElement =
+        parent.ifTypeOrNull<Declaration>()?.declaredFragment?.element;
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
     if (parent is TopLevelVariableDeclaration) {
       for (var variable in parent.variables.variables) {
-        var element = variable.declaredElement as TopLevelVariableElement;
-        if (Identifier.isPrivateName(element.name)) {
+        var element = variable.declaredTopLevelVariableElement;
+        if (element.isPrivate) {
           _errorReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
@@ -129,8 +133,8 @@ class AnnotationVerifier {
       }
     } else if (parent is FieldDeclaration) {
       for (var variable in parent.fields.variables) {
-        var element = variable.declaredElement as FieldElement;
-        if (Identifier.isPrivateName(element.name)) {
+        var element = variable.declaredFieldElement;
+        if (element.isPrivate) {
           _errorReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
@@ -138,7 +142,8 @@ class AnnotationVerifier {
         }
       }
     } else if (parent is ConstructorDeclaration) {
-      var class_ = parent.declaredElement!.enclosingElement3;
+      var element = parent.declaredFragment!.element;
+      var class_ = element.enclosingElement2;
       if (class_.isPrivate || parentElementIsPrivate) {
         _errorReporter.atNode(
           node.name,
@@ -162,10 +167,10 @@ class AnnotationVerifier {
     var kinds = element.targetKinds;
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
-        var invokedElement = element.element!;
-        var name = invokedElement.name;
-        if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement3.name;
+        var invokedElement = element.element2!;
+        var name = invokedElement.name3;
+        if (invokedElement is ConstructorElement2) {
+          var className = invokedElement.enclosingElement2.name3;
           if (name!.isEmpty) {
             name = className;
           } else {
@@ -243,16 +248,16 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if its parent is not a valid target for a
   /// `@reopen` annotation.
   void _checkReopen(Annotation node) {
-    ClassElement? classElement;
-    InterfaceElement? superElement;
+    ClassElement2? classElement;
+    InterfaceElement2? superElement;
 
     var parent = node.parent;
     if (parent is ClassDeclaration) {
-      classElement = parent.declaredElement;
-      superElement = classElement?.supertype?.element;
+      classElement = parent.declaredFragment?.element;
+      superElement = classElement?.supertype?.element3;
     } else if (parent is ClassTypeAlias) {
-      classElement = parent.declaredElement;
-      superElement = classElement?.supertype?.element;
+      classElement = parent.declaredFragment?.element;
+      superElement = classElement?.supertype?.element3;
     } else {
       // If `parent` is neither of the above types, then `_checkKinds` will
       // report a warning.
@@ -262,7 +267,7 @@ class AnnotationVerifier {
     if (classElement == null) {
       return;
     }
-    if (superElement is! ClassElement) {
+    if (superElement is! ClassElement2) {
       return;
     }
     if (classElement.isFinal ||
@@ -274,7 +279,7 @@ class AnnotationVerifier {
       );
       return;
     }
-    if (classElement.library != superElement.library) {
+    if (classElement.library2 != superElement.library2) {
       _errorReporter.atNode(
         node.name,
         WarningCode.INVALID_REOPEN_ANNOTATION,
@@ -319,7 +324,7 @@ class AnnotationVerifier {
       if (name != null) {
         var parameterName = undefinedParameter is SimpleStringLiteral
             ? undefinedParameter.value
-            : undefinedParameter.staticParameterElement?.name;
+            : undefinedParameter.correspondingParameter?.name3;
         _errorReporter.atNode(
           undefinedParameter,
           WarningCode.UNDEFINED_REFERENCED_PARAMETER,
@@ -354,11 +359,10 @@ class AnnotationVerifier {
 
       if (parent is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in parent.variables.variables) {
-          var variableElement =
-              variable.declaredElement as TopLevelVariableElement;
+          var variableElement = variable.declaredTopLevelVariableElement;
 
-          var variableName = variableElement.name;
-          if (Identifier.isPrivateName(variableName)) {
+          var variableName = variableElement.name3;
+          if (variableName != null && Identifier.isPrivateName(variableName)) {
             reportInvalidAnnotation(variableName);
           }
 
@@ -369,25 +373,24 @@ class AnnotationVerifier {
         }
       } else if (parent is FieldDeclaration) {
         for (VariableDeclaration variable in parent.fields.variables) {
-          var fieldElement = variable.declaredElement as FieldElement;
+          var fieldElement = variable.declaredFieldElement;
           if (parent.isStatic && element.isVisibleForOverriding) {
             reportInvalidVisibleForOverriding();
           }
 
-          var fieldName = fieldElement.name;
-          if (Identifier.isPrivateName(fieldName)) {
+          var fieldName = fieldElement.name3;
+          if (fieldName != null && Identifier.isPrivateName(fieldName)) {
             reportInvalidAnnotation(fieldName);
           }
         }
-      } else if (parent.declaredElement != null) {
-        var declaredElement = parent.declaredElement!;
+      } else if (parent.declaredFragment?.element case var declaredElement?) {
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement3 is ExtensionTypeElement)) {
+                declaredElement.enclosingElement2 is ExtensionTypeElement2)) {
           reportInvalidVisibleForOverriding();
         }
 
-        var name = declaredElement.name;
+        var name = declaredElement.name3;
         if (name != null && Identifier.isPrivateName(name)) {
           reportInvalidAnnotation(name);
         }
@@ -425,14 +428,14 @@ class AnnotationVerifier {
         return;
     }
 
-    InterfaceElement? declaredElement;
+    InterfaceElement2? declaredElement;
     switch (containedDeclaration.parent) {
       case ClassDeclaration classDeclaration:
-        declaredElement = classDeclaration.declaredElement;
+        declaredElement = classDeclaration.declaredFragment?.element;
       case EnumDeclaration enumDeclaration:
-        declaredElement = enumDeclaration.declaredElement;
+        declaredElement = enumDeclaration.declaredFragment?.element;
       case MixinDeclaration mixinDeclaration:
-        declaredElement = mixinDeclaration.declaredElement;
+        declaredElement = mixinDeclaration.declaredFragment?.element;
       default:
         reportError();
         return;
@@ -443,7 +446,7 @@ class AnnotationVerifier {
       return;
     }
 
-    for (var annotation in declaredElement.metadata) {
+    for (var annotation in declaredElement.metadata2.annotations) {
       if (annotation.isVisibleForTemplate) {
         return;
       }

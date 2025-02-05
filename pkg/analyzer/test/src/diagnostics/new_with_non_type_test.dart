@@ -31,7 +31,7 @@ void foo() {
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: InvalidType
 ''');
   }
@@ -91,7 +91,7 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@getter::A

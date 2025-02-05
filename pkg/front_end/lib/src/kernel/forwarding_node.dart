@@ -312,8 +312,7 @@ class ForwardingNode {
               type,
               function.typeParameters
                   .map((TypeParameter parameter) =>
-                      new TypeParameterType.withDefaultNullabilityForLibrary(
-                          parameter, procedure.enclosingLibrary))
+                      new TypeParameterType.withDefaultNullability(parameter))
                   .toList());
         }
         List<Expression> positionalArguments = new List.generate(
@@ -367,8 +366,7 @@ class ForwardingNode {
         }, growable: true);
         List<DartType> typeArguments = function.typeParameters
             .map<DartType>((typeParameter) =>
-                new TypeParameterType.withDefaultNullabilityForLibrary(
-                    typeParameter, libraryBuilder.library))
+                new TypeParameterType.withDefaultNullability(typeParameter))
             .toList();
         Arguments arguments = new Arguments(positionalArguments,
             types: typeArguments, named: namedArguments);

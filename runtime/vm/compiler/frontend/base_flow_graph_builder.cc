@@ -448,16 +448,14 @@ Fragment BaseFlowGraphBuilder::GenericCheckBound() {
   // problems with JIT (even though should_omit_check_bounds() will be false
   // in JIT).
   const intptr_t deopt_id = GetNextDeoptId();
-  if (should_omit_check_bounds()) {
-    // Drop length but preserve index.
-    return DropTempsPreserveTop(/*num_temps_to_drop=*/1);
-  } else {
-    Value* index = Pop();
-    Value* length = Pop();
-    auto* instr = new (Z) GenericCheckBoundInstr(length, index, deopt_id);
-    Push(instr);
-    return Fragment(instr);
-  }
+  Value* index = Pop();
+  Value* length = Pop();
+  auto* instr = new (Z) GenericCheckBoundInstr(
+      length, index, deopt_id,
+      should_omit_check_bounds() ? GenericCheckBoundInstr::Mode::kPhantom
+                                 : GenericCheckBoundInstr::Mode::kReal);
+  Push(instr);
+  return Fragment(instr);
 }
 
 Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
@@ -469,18 +467,14 @@ Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
 
 Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed() {
   Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUntagged, kUnboxedAddress, value, DeoptId::kNone);
-  converted->mark_truncating();
+  auto converted = new (Z) IntConverterInstr(kUntagged, kUnboxedAddress, value);
   Push(converted);
   return Fragment(converted);
 }
 
 Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged() {
   Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUnboxedAddress, kUntagged, value, DeoptId::kNone);
-  converted->mark_truncating();
+  auto converted = new (Z) IntConverterInstr(kUnboxedAddress, kUntagged, value);
   Push(converted);
   return Fragment(converted);
 }
@@ -504,8 +498,7 @@ Fragment BaseFlowGraphBuilder::FloatToDouble() {
 
 Fragment BaseFlowGraphBuilder::DoubleToFloat() {
   Value* value = Pop();
-  DoubleToFloatInstr* instr = new DoubleToFloatInstr(
-      value, DeoptId::kNone, Instruction::SpeculativeMode::kNotSpeculative);
+  DoubleToFloatInstr* instr = new DoubleToFloatInstr(value, DeoptId::kNone);
   Push(instr);
   return Fragment(instr);
 }
@@ -705,8 +698,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
   Value* c_pointer = Pop();
   StoreIndexedInstr* instr = new (Z) StoreIndexedInstr(
       c_pointer, index, value, kNoStoreBarrier, index_unboxed, index_scale,
-      class_id, alignment, DeoptId::kNone, InstructionSource(),
-      Instruction::SpeculativeMode::kNotSpeculative);
+      class_id, alignment, DeoptId::kNone, InstructionSource());
   return Fragment(instr);
 }
 
@@ -848,6 +840,11 @@ TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry() {
                                   GetNextDeoptId(), GetStackDepth());
 }
 
+TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry(intptr_t try_index) {
+  return new (Z) TargetEntryInstr(AllocateBlockId(), try_index,
+                                  GetNextDeoptId(), GetStackDepth());
+}
+
 FunctionEntryInstr* BaseFlowGraphBuilder::BuildFunctionEntry(
     GraphEntryInstr* graph_entry) {
   return new (Z) FunctionEntryInstr(graph_entry, AllocateBlockId(),
@@ -862,6 +859,11 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
 JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
   return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(),
                                 GetNextDeoptId(), GetStackDepth());
+}
+
+TryEntryInstr* BaseFlowGraphBuilder::BuildTryEntry(intptr_t try_index) {
+  return new (Z) TryEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId(),
+                               GetStackDepth());
 }
 
 IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(
@@ -884,7 +886,7 @@ Fragment BaseFlowGraphBuilder::SmiRelationalOp(Token::Kind kind) {
   Value* right = Pop();
   Value* left = Pop();
   RelationalOpInstr* instr = new (Z) RelationalOpInstr(
-      InstructionSource(), kind, left, right, kSmiCid, GetNextDeoptId());
+      InstructionSource(), kind, left, right, kTagged, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
@@ -1300,8 +1302,7 @@ Fragment BaseFlowGraphBuilder::DoubleToInteger(
 
 Fragment BaseFlowGraphBuilder::UnaryDoubleOp(Token::Kind op) {
   Value* value = Pop();
-  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId(),
-                                           Instruction::kNotSpeculative);
+  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

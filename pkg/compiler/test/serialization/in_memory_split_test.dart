@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/serialization/strategies.dart';
 import 'serialization_test_helper.dart';
 import '../helpers/args_helper.dart';
@@ -17,24 +17,28 @@ main(List<String> args) {
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
     bool useDataKinds = argResults['kinds'] || argResults['debug'];
-    SerializationStrategy strategy =
-        BytesInMemorySerializationStrategy(useDataKinds: useDataKinds);
+    SerializationStrategy strategy = BytesInMemorySerializationStrategy(
+      useDataKinds: useDataKinds,
+    );
     if (argResults['object'] || argResults['debug']) {
-      strategy =
-          ObjectsInMemorySerializationStrategy(useDataKinds: useDataKinds);
+      strategy = ObjectsInMemorySerializationStrategy(
+        useDataKinds: useDataKinds,
+      );
     }
 
-    Uri entryPoint = getEntryPoint(argResults) ??
+    Uri entryPoint =
+        getEntryPoint(argResults) ??
         Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
     Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri? packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);
     await runTest(
-        entryPoint: entryPoint,
-        packageConfig: packageConfig,
-        librariesSpecificationUri: librariesSpecificationUri,
-        options: options,
-        strategy: strategy,
-        useDataKinds: useDataKinds);
+      entryPoint: entryPoint,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      options: options,
+      strategy: strategy,
+      useDataKinds: useDataKinds,
+    );
   });
 }

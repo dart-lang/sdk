@@ -31,7 +31,9 @@ main() {
 
   Expect.equals(double.infinity, double.infinity.roundToDouble());
   Expect.equals(
-      double.negativeInfinity, double.negativeInfinity.roundToDouble());
+    double.negativeInfinity,
+    double.negativeInfinity.roundToDouble(),
+  );
   Expect.isTrue(double.nan.roundToDouble().isNaN);
 
   Expect.isTrue(0.0.roundToDouble() is double);

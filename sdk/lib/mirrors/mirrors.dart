@@ -407,8 +407,11 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation throws an exception *e* (that it does not catch), this
    * method throws *e*.
    */
-  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
+  InstanceMirror invoke(
+    Symbol memberName,
+    List<dynamic> positionalArguments, [
+    Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
+  ]);
 
   /**
    * Invokes a getter and returns a mirror on the result.
@@ -598,8 +601,10 @@ abstract class ClosureMirror implements InstanceMirror {
    * If the invocation throws an exception *e* (that it does not catch), this
    * method throws *e*.
    */
-  InstanceMirror apply(List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
+  InstanceMirror apply(
+    List<dynamic> positionalArguments, [
+    Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
+  ]);
 }
 
 /**
@@ -875,8 +880,10 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *   catch), this method throws *e*.
    */
   InstanceMirror newInstance(
-      Symbol constructorName, List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
+    Symbol constructorName,
+    List<dynamic> positionalArguments, [
+    Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
+  ]);
 
   /**
    * Whether this mirror is equal to [other].

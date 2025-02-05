@@ -26,10 +26,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   MockLspServerChannel(bool printMessages) {
     if (printMessages) {
-      _serverToClient.stream
-          .listen((message) => print('<== ${jsonEncode(message)}'));
-      _clientToServer.stream
-          .listen((message) => print('==> ${jsonEncode(message)}'));
+      _serverToClient.stream.listen(
+        (message) => print('<== ${jsonEncode(message)}'),
+      );
+      _clientToServer.stream.listen(
+        (message) => print('==> ${jsonEncode(message)}'),
+      );
     }
 
     // Keep track of any errors/warnings that are sent to the user with
@@ -71,10 +73,16 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  StreamSubscription<void> listen(void Function(lsp.Message message) onMessage,
-      {Function? onError, void Function()? onDone}) {
-    return _clientToServer.stream
-        .listen(onMessage, onError: onError, onDone: onDone);
+  StreamSubscription<void> listen(
+    void Function(lsp.Message message) onMessage, {
+    Function? onError,
+    void Function()? onDone,
+  }) {
+    return _clientToServer.stream.listen(
+      onMessage,
+      onError: onError,
+      onDone: onDone,
+    );
   }
 
   @override
@@ -158,9 +166,11 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// Unlike [sendRequestToServer], this method assumes that the [request] has
   /// already been sent to the server.
   Future<lsp.ResponseMessage> waitForResponse(
-      lsp.RequestMessage request) async {
-    var response = await _serverToClient.stream.firstWhere((message) =>
-        message is lsp.ResponseMessage && message.id == request.id);
+    lsp.RequestMessage request,
+  ) async {
+    var response = await _serverToClient.stream.firstWhere(
+      (message) => message is lsp.ResponseMessage && message.id == request.id,
+    );
 
     return response as lsp.ResponseMessage;
   }
@@ -170,8 +180,11 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// to the handlers will have concrete types as constructed in tests rather
   /// than the maps as they would be (the server expects to do the conversion).
   T _convertJson<T>(
-      lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
+    lsp.ToJsonable message,
+    T Function(Map<String, dynamic>) constructor,
+  ) {
     return constructor(
-        jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>);
+      jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>,
+    );
   }
 }

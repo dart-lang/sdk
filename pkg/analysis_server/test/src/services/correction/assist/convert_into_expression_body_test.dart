@@ -44,7 +44,8 @@ class A {
 
   Future<void> test_async_noAssistWithLint() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.prefer_expression_function_bodies]);
+      lints: [LintNames.prefer_expression_function_bodies],
+    );
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class A {

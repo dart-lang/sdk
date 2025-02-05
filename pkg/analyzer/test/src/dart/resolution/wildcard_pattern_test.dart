@@ -46,7 +46,7 @@ ParenthesizedPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     name: _
     matchedValueType: int
@@ -85,7 +85,7 @@ WildcardPattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: _
   matchedValueType: dynamic
@@ -105,7 +105,7 @@ WildcardPattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: _
   matchedValueType: dynamic

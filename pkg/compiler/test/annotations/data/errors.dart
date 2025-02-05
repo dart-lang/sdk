@@ -25,12 +25,12 @@ unknown() {}
 @pragma('dart2js:noInline')
 var
 /*error: [@pragma('dart2js:noInline') annotation is only supported for methods and constructors.]*/
-    noInlineField;
+noInlineField;
 
 @pragma('dart2js:tryInline')
 var
 /*error: [@pragma('dart2js:tryInline') annotation is only supported for methods and constructors.]*/
-    tryInlineField;
+tryInlineField;
 
 @pragma('dart2js:noThrows')
 /*error: [@pragma('dart2js:noThrows') should always be combined with @pragma('dart2js:noInline').]*/

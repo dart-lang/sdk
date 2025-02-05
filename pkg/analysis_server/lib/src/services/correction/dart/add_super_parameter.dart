@@ -21,8 +21,9 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_missingCount == 1 ? '' : 's'];
@@ -32,7 +33,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+    if (!isEnabled(Feature.super_parameters)) {
       return;
     }
 
@@ -54,7 +55,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
       if (superParameter.isRequired) {
-        var name = superParameter.name;
+        var name = superParameter.name3;
         if (superParameter.isNamed) {
           if (!parameters.any((parameter) => parameter.name?.lexeme == name)) {
             missingNamedParameters.add(superParameter);
@@ -72,7 +73,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       if (parameter.isRequiredPositional) {
         if (parameter is! SuperFormalParameter ||
             i >= superPositionalParameters.length ||
-            parameter.name.lexeme != superPositionalParameters[i].name) {
+            parameter.name.lexeme != superPositionalParameters[i].name3) {
           arePositionalOrdered = false;
           break;
         }
@@ -82,9 +83,10 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
     var missingPositionalParameters = <FormalParameterElement>[];
     if (arePositionalOrdered) {
-      var index = lastPositionalParameter == null
-          ? 0
-          : parameters.indexOf(lastPositionalParameter) + 1;
+      var index =
+          lastPositionalParameter == null
+              ? 0
+              : parameters.indexOf(lastPositionalParameter) + 1;
       missingPositionalParameters = superPositionalParameters.sublist(index);
     }
 
@@ -95,8 +97,11 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       var offset = constructorDeclaration.parameters.leftParenthesis.end;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
-          _writePositional(builder, missingPositionalParameters,
-              needsInitialComma: false);
+          _writePositional(
+            builder,
+            missingPositionalParameters,
+            needsInitialComma: false,
+          );
 
           if (missingNamedParameters.isNotEmpty) {
             _writeNamed(
@@ -108,17 +113,22 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
         });
       });
     } else {
-      var lastNamedParameter =
-          parameters.lastWhereOrNull((parameter) => parameter.isNamed);
+      var lastNamedParameter = parameters.lastWhereOrNull(
+        (parameter) => parameter.isNamed,
+      );
       if (missingPositionalParameters.isNotEmpty) {
-        var offset = lastPositionalParameter == null
-            ? constructorDeclaration.parameters.leftParenthesis.end
-            : lastPositionalParameter.end;
+        var offset =
+            lastPositionalParameter == null
+                ? constructorDeclaration.parameters.leftParenthesis.end
+                : lastPositionalParameter.end;
 
         await builder.addDartFileEdit(file, (builder) {
           builder.addInsertion(offset, (builder) {
-            _writePositional(builder, missingPositionalParameters,
-                needsInitialComma: lastPositionalParameter != null);
+            _writePositional(
+              builder,
+              missingPositionalParameters,
+              needsInitialComma: lastPositionalParameter != null,
+            );
             if (lastPositionalParameter == null && lastNamedParameter != null) {
               builder.write(', ');
             }
@@ -131,11 +141,15 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
         if (lastNamedParameter != null) {
           replacementRange = SourceRange(lastNamedParameter.end, 0);
         } else if (lastPositionalParameter != null) {
-          replacementRange = range.endStart(lastPositionalParameter,
-              constructorDeclaration.parameters.rightParenthesis);
+          replacementRange = range.endStart(
+            lastPositionalParameter,
+            constructorDeclaration.parameters.rightParenthesis,
+          );
         } else {
           replacementRange = SourceRange(
-              constructorDeclaration.parameters.leftParenthesis.end, 0);
+            constructorDeclaration.parameters.leftParenthesis.end,
+            0,
+          );
         }
 
         await builder.addDartFileEdit(file, (builder) {

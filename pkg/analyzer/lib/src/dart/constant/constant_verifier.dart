@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
@@ -649,6 +651,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY) ||
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
@@ -1156,6 +1160,26 @@ class _ConstLiteralVerifier {
       }
 
       return true;
+    } else if (element is NullAwareElement) {
+      var value = verifier._evaluateAndReportError(element.value, errorCode);
+      if (value is! DartObjectImpl) return false;
+
+      var listElementType = this.listElementType;
+      if (listElementType != null) {
+        return _validateListExpression(
+            verifier._typeSystem.makeNullable(listElementType),
+            element.value,
+            value);
+      }
+
+      // If the value is `null`, skip verifying it with the set, as it won't be
+      // added as an element.
+      var setConfig = this.setConfig;
+      if (setConfig != null && !value.type.isDartCoreNull) {
+        return _validateSetExpression(setConfig, element.value, value);
+      }
+
+      return true;
     }
     throw UnsupportedError(
       'Unhandled type of collection element: ${element.runtimeType}',
@@ -1272,6 +1296,9 @@ class _ConstLiteralVerifier {
     var keyExpression = entry.key;
     var valueExpression = entry.value;
 
+    var isKeyNullAware = entry.keyQuestion != null;
+    var isValueNullAware = entry.valueQuestion != null;
+
     var keyValue = verifier._evaluateAndReportError(
       keyExpression,
       CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
@@ -1283,12 +1310,16 @@ class _ConstLiteralVerifier {
 
     if (keyValue is DartObjectImpl) {
       var keyType = keyValue.type;
+      var expectedKeyType = config.keyType;
+      if (isKeyNullAware) {
+        expectedKeyType = verifier._typeSystem.makeNullable(expectedKeyType);
+      }
 
-      if (!verifier._runtimeTypeMatch(keyValue, config.keyType)) {
+      if (!verifier._runtimeTypeMatch(keyValue, expectedKeyType)) {
         verifier._errorReporter.atNode(
           keyExpression,
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-          arguments: [keyType, config.keyType],
+          arguments: [keyType, expectedKeyType],
         );
       }
 
@@ -1301,20 +1332,32 @@ class _ConstLiteralVerifier {
         );
       }
 
-      var existingKey = config.uniqueKeys[keyValue];
-      if (existingKey != null) {
-        config.duplicateKeys[keyExpression] = existingKey;
-      } else {
-        config.uniqueKeys[keyValue] = keyExpression;
+      // Don't check the key for uniqueness if the key is null aware and is
+      // `null` or the value is null aware and is `null`, since it won't be
+      // added to the map in that case.
+      if ((!isKeyNullAware || !keyValue.type.isDartCoreNull) &&
+          (!isValueNullAware ||
+              valueValue is DartObjectImpl &&
+                  !valueValue.type.isDartCoreNull)) {
+        var existingKey = config.uniqueKeys[keyValue];
+        if (existingKey != null) {
+          config.duplicateKeys[keyExpression] = existingKey;
+        } else {
+          config.uniqueKeys[keyValue] = keyExpression;
+        }
       }
     }
 
+    var expectedValueType = config.valueType;
+    if (isValueNullAware) {
+      expectedValueType = verifier._typeSystem.makeNullable(expectedValueType);
+    }
     if (valueValue is DartObjectImpl) {
-      if (!verifier._runtimeTypeMatch(valueValue, config.valueType)) {
+      if (!verifier._runtimeTypeMatch(valueValue, expectedValueType)) {
         verifier._errorReporter.atNode(
           valueExpression,
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-          arguments: [valueValue.type, config.valueType],
+          arguments: [valueValue.type, expectedValueType],
         );
       }
     }

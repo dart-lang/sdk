@@ -16,6 +16,13 @@ abstract class Instruction implements Serializable {
   List<DefType> get usedDefTypes => const [];
 
   const Instruction();
+
+  /// Whether the instruction is a "constant instruction", as defined by the
+  /// Wasm spec.
+  ///
+  /// Constant instructions can be used in global initializers, element
+  /// segments, data segments.
+  bool get isConstant => false;
 }
 
 abstract class SingleByteInstruction extends Instruction {
@@ -27,15 +34,6 @@ abstract class SingleByteInstruction extends Instruction {
   void serialize(Serializer s) => s.writeByte(byte);
 }
 
-abstract class MultiByteInstruction extends Instruction {
-  final List<int> bytes;
-
-  const MultiByteInstruction(this.bytes);
-
-  @override
-  void serialize(Serializer s) => s.writeBytes(bytes);
-}
-
 class Unreachable extends SingleByteInstruction {
   const Unreachable() : super(0x00);
 }
@@ -44,8 +42,12 @@ class Nop extends SingleByteInstruction {
   const Nop() : super(0x01);
 }
 
-class BeginNoEffectBlock extends MultiByteInstruction {
-  const BeginNoEffectBlock() : super(const [0x02, 0x40]);
+class BeginNoEffectBlock extends Instruction {
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x02);
+    s.writeByte(0x40);
+  }
 }
 
 class BeginOneOutputBlock extends Instruction {
@@ -78,8 +80,12 @@ class BeginFunctionBlock extends Instruction {
   }
 }
 
-class BeginNoEffectLoop extends MultiByteInstruction {
-  const BeginNoEffectLoop() : super(const [0x03, 0x40]);
+class BeginNoEffectLoop extends Instruction {
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x03);
+    s.writeByte(0x40);
+  }
 }
 
 class BeginOneOutputLoop extends Instruction {
@@ -112,8 +118,12 @@ class BeginFunctionLoop extends Instruction {
   }
 }
 
-class BeginNoEffectIf extends MultiByteInstruction {
-  const BeginNoEffectIf() : super(const [0x04, 0x40]);
+class BeginNoEffectIf extends Instruction {
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x04);
+    s.writeByte(0x40);
+  }
 }
 
 class BeginOneOutputIf extends Instruction {
@@ -150,8 +160,12 @@ class Else extends SingleByteInstruction {
   const Else() : super(0x05);
 }
 
-class BeginNoEffectTry extends MultiByteInstruction {
-  const BeginNoEffectTry() : super(const [0x06, 0x40]);
+class BeginNoEffectTry extends Instruction {
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0x06);
+    s.writeByte(0x40);
+  }
 }
 
 class BeginOneOutputTry extends Instruction {
@@ -226,6 +240,9 @@ class Rethrow extends Instruction {
 
 class End extends SingleByteInstruction {
   const End() : super(0x0B);
+
+  @override
+  bool get isConstant => true;
 }
 
 class Br extends Instruction {
@@ -383,6 +400,9 @@ class GlobalGet extends Instruction {
   GlobalGet(this.global);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0x23);
     s.writeUnsigned(global.index);
@@ -432,7 +452,8 @@ class TableSize extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes([0xFC, 0x10]);
+    s.writeByte(0xFC);
+    s.writeByte(0x10);
     s.writeUnsigned(table.index);
   }
 }
@@ -598,6 +619,9 @@ class RefNull extends Instruction {
   RefNull(this.heapType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0xD0);
     s.write(heapType);
@@ -612,6 +636,9 @@ class RefFunc extends Instruction {
   final BaseFunction function;
 
   RefFunc(this.function);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -663,7 +690,8 @@ class StructGet extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x02]);
+    s.writeByte(0xFB);
+    s.writeByte(0x02);
     s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
@@ -680,7 +708,8 @@ class StructGetS extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x03]);
+    s.writeByte(0xFB);
+    s.writeByte(0x03);
     s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
@@ -697,7 +726,8 @@ class StructGetU extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x04]);
+    s.writeByte(0xFB);
+    s.writeByte(0x04);
     s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
@@ -714,7 +744,8 @@ class StructSet extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x05]);
+    s.writeByte(0xFB);
+    s.writeByte(0x05);
     s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
@@ -729,8 +760,12 @@ class StructNew extends Instruction {
   StructNew(this.structType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x00]);
+    s.writeByte(0xFB);
+    s.writeByte(0x00);
     s.write(structType);
   }
 }
@@ -744,8 +779,12 @@ class StructNewDefault extends Instruction {
   StructNewDefault(this.structType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x01]);
+    s.writeByte(0xFB);
+    s.writeByte(0x01);
     s.write(structType);
   }
 }
@@ -760,7 +799,8 @@ class ArrayGet extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x0b]);
+    s.writeByte(0xFB);
+    s.writeByte(0x0b);
     s.write(arrayType);
   }
 }
@@ -775,7 +815,8 @@ class ArrayGetS extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x0c]);
+    s.writeByte(0xFB);
+    s.writeByte(0x0c);
     s.write(arrayType);
   }
 }
@@ -790,7 +831,8 @@ class ArrayGetU extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x0d]);
+    s.writeByte(0xFB);
+    s.writeByte(0x0d);
     s.write(arrayType);
   }
 }
@@ -805,13 +847,20 @@ class ArraySet extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x0E]);
+    s.writeByte(0xFB);
+    s.writeByte(0x0E);
     s.write(arrayType);
   }
 }
 
-class ArrayLen extends MultiByteInstruction {
-  const ArrayLen() : super(const [0xFB, 0x0F]);
+class ArrayLen extends Instruction {
+  const ArrayLen();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x0F);
+  }
 }
 
 class ArrayNewFixed extends Instruction {
@@ -824,8 +873,12 @@ class ArrayNewFixed extends Instruction {
   ArrayNewFixed(this.arrayType, this.length);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x08]);
+    s.writeByte(0xFB);
+    s.writeByte(0x08);
     s.write(arrayType);
     s.writeUnsigned(length);
   }
@@ -840,8 +893,12 @@ class ArrayNew extends Instruction {
   ArrayNew(this.arrayType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x06]);
+    s.writeByte(0xFB);
+    s.writeByte(0x06);
     s.write(arrayType);
   }
 }
@@ -855,8 +912,12 @@ class ArrayNewDefault extends Instruction {
   ArrayNewDefault(this.arrayType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x07]);
+    s.writeByte(0xFB);
+    s.writeByte(0x07);
     s.write(arrayType);
   }
 }
@@ -872,7 +933,8 @@ class ArrayNewData extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x09]);
+    s.writeByte(0xFB);
+    s.writeByte(0x09);
     s.write(arrayType);
     s.writeUnsigned(data.index);
   }
@@ -889,7 +951,8 @@ class ArrayCopy extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x11]);
+    s.writeByte(0xFB);
+    s.writeByte(0x11);
     s.write(destArrayType);
     s.write(sourceArrayType);
   }
@@ -905,21 +968,40 @@ class ArrayFill extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x10]);
+    s.writeByte(0xFB);
+    s.writeByte(0x10);
     s.write(arrayType);
   }
 }
 
-class I31New extends MultiByteInstruction {
-  const I31New() : super(const [0xFB, 0x1C]);
+class I31New extends Instruction {
+  const I31New();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x1C);
+  }
 }
 
-class I31GetS extends MultiByteInstruction {
-  const I31GetS() : super(const [0xFB, 0x1D]);
+class I31GetS extends Instruction {
+  const I31GetS();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x1D);
+  }
 }
 
-class I31GetU extends MultiByteInstruction {
-  const I31GetU() : super(const [0xFB, 0x1E]);
+class I31GetU extends Instruction {
+  const I31GetU();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x1E);
+  }
 }
 
 class RefTest extends Instruction {
@@ -929,7 +1011,8 @@ class RefTest extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x15] : const [0xFB, 0x14]);
+    s.writeByte(0xFB);
+    s.writeByte(targetType.nullable ? 0x15 : 0x14);
     s.write(targetType.heapType);
   }
 }
@@ -944,7 +1027,8 @@ class RefCast extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x17] : const [0xFB, 0x16]);
+    s.writeByte(0xFB);
+    s.writeByte(targetType.nullable ? 0x17 : 0x16);
     s.write(targetType.heapType);
   }
 }
@@ -963,7 +1047,8 @@ class BrOnCast extends Instruction {
   void serialize(Serializer s) {
     int flags = (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
-    s.writeBytes(const [0xFB, 0x18]);
+    s.writeByte(0xFB);
+    s.writeByte(0x18);
     s.writeByte(flags);
     s.writeUnsigned(labelIndex);
     s.write(inputType.heapType);
@@ -985,7 +1070,8 @@ class BrOnCastFail extends Instruction {
   void serialize(Serializer s) {
     int flags = (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
-    s.writeBytes(const [0xFB, 0x19]);
+    s.writeByte(0xFB);
+    s.writeByte(0x19);
     s.writeByte(flags);
     s.writeUnsigned(labelIndex);
     s.write(inputType.heapType);
@@ -993,18 +1079,39 @@ class BrOnCastFail extends Instruction {
   }
 }
 
-class ExternInternalize extends MultiByteInstruction {
-  const ExternInternalize() : super(const [0xFB, 0x1A]);
+class ExternInternalize extends Instruction {
+  const ExternInternalize();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x1A);
+  }
+
+  @override
+  bool get isConstant => true;
 }
 
-class ExternExternalize extends MultiByteInstruction {
-  const ExternExternalize() : super(const [0xFB, 0x1B]);
+class ExternExternalize extends Instruction {
+  const ExternExternalize();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFB);
+    s.writeByte(0x1B);
+  }
+
+  @override
+  bool get isConstant => true;
 }
 
 class I32Const extends Instruction {
   final int value;
 
   I32Const(this.value);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -1019,6 +1126,9 @@ class I64Const extends Instruction {
   I64Const(this.value);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0x42);
     s.writeSigned(value);
@@ -1031,6 +1141,9 @@ class F32Const extends Instruction {
   F32Const(this.value);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0x43);
     s.writeF32(value);
@@ -1041,6 +1154,9 @@ class F64Const extends Instruction {
   final double value;
 
   F64Const(this.value);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -1561,34 +1677,82 @@ class I64Extend32S extends SingleByteInstruction {
   const I64Extend32S() : super(0xC4);
 }
 
-class I32TruncSatF32S extends MultiByteInstruction {
-  const I32TruncSatF32S() : super(const [0xFC, 0x00]);
+class I32TruncSatF32S extends Instruction {
+  const I32TruncSatF32S();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x00);
+  }
 }
 
-class I32TruncSatF32U extends MultiByteInstruction {
-  const I32TruncSatF32U() : super(const [0xFC, 0x01]);
+class I32TruncSatF32U extends Instruction {
+  const I32TruncSatF32U();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x01);
+  }
 }
 
-class I32TruncSatF64S extends MultiByteInstruction {
-  const I32TruncSatF64S() : super(const [0xFC, 0x02]);
+class I32TruncSatF64S extends Instruction {
+  const I32TruncSatF64S();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x02);
+  }
 }
 
-class I32TruncSatF64U extends MultiByteInstruction {
-  const I32TruncSatF64U() : super(const [0xFC, 0x03]);
+class I32TruncSatF64U extends Instruction {
+  const I32TruncSatF64U();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x03);
+  }
 }
 
-class I64TruncSatF32S extends MultiByteInstruction {
-  const I64TruncSatF32S() : super(const [0xFC, 0x04]);
+class I64TruncSatF32S extends Instruction {
+  const I64TruncSatF32S();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x04);
+  }
 }
 
-class I64TruncSatF32U extends MultiByteInstruction {
-  const I64TruncSatF32U() : super(const [0xFC, 0x05]);
+class I64TruncSatF32U extends Instruction {
+  const I64TruncSatF32U();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x05);
+  }
 }
 
-class I64TruncSatF64S extends MultiByteInstruction {
-  const I64TruncSatF64S() : super(const [0xFC, 0x06]);
+class I64TruncSatF64S extends Instruction {
+  const I64TruncSatF64S();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x06);
+  }
 }
 
-class I64TruncSatF64U extends MultiByteInstruction {
-  const I64TruncSatF64U() : super(const [0xFC, 0x07]);
+class I64TruncSatF64U extends Instruction {
+  const I64TruncSatF64U();
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x07);
+  }
 }

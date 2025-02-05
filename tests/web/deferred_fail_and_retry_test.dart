@@ -5,8 +5,8 @@
 // Test that when a deferred import fails to load, it is possible to retry.
 
 import "deferred_fail_and_retry_lib.dart" deferred as lib;
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "dart:js" as js;
 
 main() {

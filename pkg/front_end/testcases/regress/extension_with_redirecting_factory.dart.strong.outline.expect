@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_with_redirecting_factory.dart:6:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   factory Foo({ this.fooX }) = Foobar;
+//   ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Foo on core::String {
+}

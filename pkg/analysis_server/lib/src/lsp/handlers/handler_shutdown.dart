@@ -18,7 +18,10 @@ class ShutdownMessageHandler extends LspMessageHandler<void, void> {
 
   @override
   ErrorOr<void> handle(
-      void params, MessageInfo message, CancellationToken token) {
+    void params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     // Move to the Shutting Down state so we won't process any more
     // requests and the Exit notification will know it was a clean shutdown.
     server.messageHandler = ShuttingDownStateMessageHandler(server);

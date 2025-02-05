@@ -25,10 +25,7 @@ class G3FixesTest with ResourceProviderMixin {
   void setUp() {
     registerLintRules();
     registerBuiltInProducers();
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
   }
 
   Future<void> test_awaitOnlyFutures() async {
@@ -139,10 +136,7 @@ class C {
     );
 
     var path = convertPath('/home/test/lib/test.dart');
-    tester.updateFile(
-      path: path,
-      content: codeWithLint,
-    );
+    tester.updateFile(path: path, content: codeWithLint);
 
     var testerWithFixes = await tester.fixesForSingleLint(
       path: path,
@@ -150,10 +144,7 @@ class C {
     );
 
     var singleFix = testerWithFixes.assertSingleFix();
-    singleFix.assertFixedContentOfFile(
-      path: path,
-      fixedContent: fixedCode,
-    );
+    singleFix.assertFixedContentOfFile(path: path, fixedContent: fixedCode);
   }
 
   Future<void> _assertNoLintFix({
@@ -170,10 +161,7 @@ class C {
     );
 
     var path = convertPath('/home/test/lib/test.dart');
-    tester.updateFile(
-      path: path,
-      content: codeWithLint,
-    );
+    tester.updateFile(path: path, content: codeWithLint);
 
     var testerWithFixes = await tester.fixesForSingleLint(
       path: path,
@@ -184,16 +172,12 @@ class C {
   }
 
   void _enableLint(String lintName) {
-    _writeAnalysisOptionsFile(
-      lints: [lintName],
-    );
+    _writeAnalysisOptionsFile(lints: [lintName]);
   }
 
   /// Write an analysis options file based on the given arguments.
   // TODO(scheglov): Use AnalysisOptionsFileConfig
-  void _writeAnalysisOptionsFile({
-    List<String>? lints,
-  }) {
+  void _writeAnalysisOptionsFile({List<String>? lints}) {
     var buffer = StringBuffer();
 
     if (lints != null) {

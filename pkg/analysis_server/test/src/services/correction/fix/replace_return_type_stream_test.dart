@@ -25,13 +25,16 @@ class ReplaceReturnTypeStreamTest extends FixProcessorTest {
 import 'dart:async';
 List<int> f() async* {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:async';
 Stream<List<int>> f() async* {}
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+      },
+    );
   }
 
   Future<void> test_complexTypeName_withoutImport() async {
@@ -48,13 +51,16 @@ Stream<List<int>> f() async* {}
 import 'dart:async' as al;
 int f() async* {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:async' as al;
 al.Stream<int> f() async* {}
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+      },
+    );
   }
 
   Future<void> test_simpleTypeName_withImport() async {
@@ -62,13 +68,16 @@ al.Stream<int> f() async* {}
 import 'dart:async';
 int f() async* {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:async';
 Stream<int> f() async* {}
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+      },
+    );
   }
 
   Future<void> test_simpleTypeName_withoutImport() async {

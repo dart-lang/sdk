@@ -5,7 +5,7 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 
 part of 'experimental_flags.dart';
 
@@ -65,7 +65,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 6));
 
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
@@ -110,7 +110,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
       name: 'digit-separators',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 6),
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6));
@@ -125,6 +125,14 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag enhancedParts = const ExperimentalFlag(
       name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: const Version(3, 6));
+
+  static const ExperimentalFlag enumShorthands = const ExperimentalFlag(
+      name: 'enum-shorthands',
       isEnabledByDefault: false,
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
@@ -146,6 +154,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 14),
       experimentEnabledVersion: const Version(2, 14),
       experimentReleasedVersion: const Version(2, 14));
+
+  static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
+      name: 'getter-setter-error',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
@@ -181,11 +197,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
       name: 'inference-using-bounds',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 7),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7));
 
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',
@@ -341,11 +357,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
       name: 'wildcard-variables',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 7),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7));
 }
 
 /// Interface for accessing the global state of experimental features.
@@ -434,6 +450,10 @@ class GlobalFeatures {
   GlobalFeature get enhancedParts =>
       _enhancedParts ??= _computeGlobalFeature(ExperimentalFlag.enhancedParts);
 
+  GlobalFeature? _enumShorthands;
+  GlobalFeature get enumShorthands => _enumShorthands ??=
+      _computeGlobalFeature(ExperimentalFlag.enumShorthands);
+
   GlobalFeature? _extensionMethods;
   GlobalFeature get extensionMethods => _extensionMethods ??=
       _computeGlobalFeature(ExperimentalFlag.extensionMethods);
@@ -441,6 +461,10 @@ class GlobalFeatures {
   GlobalFeature? _genericMetadata;
   GlobalFeature get genericMetadata => _genericMetadata ??=
       _computeGlobalFeature(ExperimentalFlag.genericMetadata);
+
+  GlobalFeature? _getterSetterError;
+  GlobalFeature get getterSetterError => _getterSetterError ??=
+      _computeGlobalFeature(ExperimentalFlag.getterSetterError);
 
   GlobalFeature? _inferenceUpdate1;
   GlobalFeature get inferenceUpdate1 => _inferenceUpdate1 ??=
@@ -607,6 +631,11 @@ class LibraryFeatures {
       _enhancedParts ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.enhancedParts, canonicalUri, libraryVersion);
 
+  LibraryFeature? _enumShorthands;
+  LibraryFeature get enumShorthands =>
+      _enumShorthands ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.enumShorthands, canonicalUri, libraryVersion);
+
   LibraryFeature? _extensionMethods;
   LibraryFeature get extensionMethods =>
       _extensionMethods ??= globalFeatures._computeLibraryFeature(
@@ -616,6 +645,11 @@ class LibraryFeatures {
   LibraryFeature get genericMetadata =>
       _genericMetadata ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.genericMetadata, canonicalUri, libraryVersion);
+
+  LibraryFeature? _getterSetterError;
+  LibraryFeature get getterSetterError =>
+      _getterSetterError ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.getterSetterError, canonicalUri, libraryVersion);
 
   LibraryFeature? _inferenceUpdate1;
   LibraryFeature get inferenceUpdate1 =>
@@ -768,10 +802,14 @@ class LibraryFeatures {
         return enhancedEnums;
       case shared.ExperimentalFlag.enhancedParts:
         return enhancedParts;
+      case shared.ExperimentalFlag.enumShorthands:
+        return enumShorthands;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
         return genericMetadata;
+      case shared.ExperimentalFlag.getterSetterError:
+        return getterSetterError;
       case shared.ExperimentalFlag.inferenceUpdate1:
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
@@ -848,10 +886,14 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.enhancedEnums;
     case "enhanced-parts":
       return ExperimentalFlag.enhancedParts;
+    case "enum-shorthands":
+      return ExperimentalFlag.enumShorthands;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
+    case "getter-setter-error":
+      return ExperimentalFlag.getterSetterError;
     case "inference-update-1":
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
@@ -927,10 +969,14 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
   ExperimentalFlag.enhancedParts:
       ExperimentalFlag.enhancedParts.isEnabledByDefault,
+  ExperimentalFlag.enumShorthands:
+      ExperimentalFlag.enumShorthands.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
       ExperimentalFlag.genericMetadata.isEnabledByDefault,
+  ExperimentalFlag.getterSetterError:
+      ExperimentalFlag.getterSetterError.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate1:
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
@@ -995,8 +1041,10 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
   shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
+  shared.ExperimentalFlag.enumShorthands: ExperimentalFlag.enumShorthands,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
+  shared.ExperimentalFlag.getterSetterError: ExperimentalFlag.getterSetterError,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
   shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,

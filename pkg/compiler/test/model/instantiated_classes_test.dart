@@ -5,16 +5,19 @@
 library instantiated_classes_test;
 
 import 'dart:async';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart'
     show ClassEntity, LibraryEntity;
 import '../helpers/type_test_helper.dart';
 
 void main() {
   Future runTests() async {
-    Future test(String source, List<String> directlyInstantiatedClasses,
-        [List<String> newClasses = const <String>["Class"]]) async {
+    Future test(
+      String source,
+      List<String> directlyInstantiatedClasses, [
+      List<String> newClasses = const <String>["Class"],
+    ]) async {
       StringBuffer mainSource = StringBuffer();
       mainSource.writeln(source);
       mainSource.write('main() {\n');
@@ -25,56 +28,99 @@ void main() {
       dynamic env = await TypeEnvironment.create(mainSource.toString());
       LibraryEntity mainLibrary =
           env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
-      Iterable<ClassEntity> expectedClasses =
-          directlyInstantiatedClasses.map((String name) {
+      Iterable<ClassEntity> expectedClasses = directlyInstantiatedClasses.map((
+        String name,
+      ) {
         return env.getElement(name);
       });
       Iterable<ClassEntity> actualClasses = env
-          .compiler.resolutionWorldBuilderForTesting.directlyInstantiatedClasses
+          .compiler
+          .resolutionWorldBuilderForTesting
+          .directlyInstantiatedClasses
           .where((c) => c.library == mainLibrary);
       Expect.setEquals(
-          expectedClasses,
-          actualClasses,
-          "Instantiated classes mismatch: "
-          "Expected $expectedClasses, actual: $actualClasses");
+        expectedClasses,
+        actualClasses,
+        "Instantiated classes mismatch: "
+        "Expected $expectedClasses, actual: $actualClasses",
+      );
     }
 
     await test("class Class {}", ["Class"]);
-    await test("""abstract class A {}
-                  class Class extends A {}""", ["Class"]);
-    await test("""class A {}
-                  class Class extends A {}""", ["Class"]);
-    await test("""class A {}
+    await test(
+      """abstract class A {}
+                  class Class extends A {}""",
+      ["Class"],
+    );
+    await test(
+      """class A {}
+                  class Class extends A {}""",
+      ["Class"],
+    );
+    await test(
+      """class A {}
                   class B {}
-                  class Class extends A {}""", ["Class"]);
-    await test("""class A {}
-                  class Class implements A {}""", ["Class"]);
-    await test("""mixin A {}
-                  class Class extends Object with A {}""", ["Class"]);
-    await test("""class A {}
+                  class Class extends A {}""",
+      ["Class"],
+    );
+    await test(
+      """class A {}
+                  class Class implements A {}""",
+      ["Class"],
+    );
+    await test(
+      """mixin A {}
+                  class Class extends Object with A {}""",
+      ["Class"],
+    );
+    await test(
+      """class A {}
                   mixin B {}
                   class Class extends Object with B implements A {}""",
-        ["Class"]);
+      ["Class"],
+    );
 
-    await test("""class A {}
-                  class Class {}""", ["Class", "A"], ["Class", "A"]);
-    await test("""class A {}
-                  class Class extends A {}""", ["Class", "A"], ["Class", "A"]);
-    await test("""class A {}
-                  class Class implements A {}""", ["Class", "A"],
-        ["Class", "A"]);
-    await test("""class A {}
+    await test(
+      """class A {}
+                  class Class {}""",
+      ["Class", "A"],
+      ["Class", "A"],
+    );
+    await test(
+      """class A {}
+                  class Class extends A {}""",
+      ["Class", "A"],
+      ["Class", "A"],
+    );
+    await test(
+      """class A {}
+                  class Class implements A {}""",
+      ["Class", "A"],
+      ["Class", "A"],
+    );
+    await test(
+      """class A {}
                   class B extends A {}
-                  class Class extends B {}""", ["Class", "A"], ["Class", "A"]);
-    await test("""mixin class A {}
+                  class Class extends B {}""",
+      ["Class", "A"],
+      ["Class", "A"],
+    );
+    await test(
+      """mixin class A {}
                   class B {}
-                  class Class extends B with A {}""", ["Class", "A"],
-        ["Class", "A"]);
+                  class Class extends B with A {}""",
+      ["Class", "A"],
+      ["Class", "A"],
+    );
 
-    await test("""class A implements Class {}
+    await test(
+      """class A implements Class {}
                   class Class {
                     factory Class() = A;
-                  }""", ["A"], ["Class"]);
+                  }""",
+      ["A"],
+      ["Class"],
+    );
   }
 
   asyncTest(() async {

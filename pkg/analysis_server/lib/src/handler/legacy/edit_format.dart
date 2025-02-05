@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:dart_style/src/dart_formatter.dart';
 import 'package:dart_style/src/exceptions.dart';
@@ -17,19 +18,23 @@ class EditFormatHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditFormatHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditFormatParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditFormatParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
-    String unformattedCode;
-    try {
-      var resource = server.resourceProvider.getFile(file);
-      unformattedCode = resource.readAsStringSync();
-    } catch (e) {
+    var driver = server.getAnalysisDriver(file);
+    var unit = driver?.parseFileSync(file);
+    if (unit is! ParsedUnitResult) {
       sendResponse(Response.formatInvalidFile(request));
       return;
     }
@@ -43,17 +48,20 @@ class EditFormatHandler extends LegacyHandler {
       length = null;
     }
 
+    var unformattedCode = unit.content;
     var code = SourceCode(
       unformattedCode,
       selectionStart: start,
       selectionLength: length,
     );
 
-    var driver = server.getAnalysisDriver(file);
-    var library = await driver?.getResolvedLibrary(file);
+    var effectivePageWidth =
+        unit.analysisOptions.formatterOptions.pageWidth ?? params.lineLength;
+    var effectiveLanguageVersion = unit.unit.languageVersion.effective;
     var formatter = DartFormatter(
-        pageWidth: params.lineLength,
-        languageVersion: library.effectiveLanguageVersion);
+      pageWidth: effectivePageWidth,
+      languageVersion: effectiveLanguageVersion,
+    );
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);

@@ -5,10 +5,10 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
@@ -21,8 +21,9 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not a stand-alone fix; requires follow-up actions.
-      CorrectionApplicability.singleLocation;
+          // Not a stand-alone fix; requires follow-up actions.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_missingParameterName];
@@ -59,15 +60,16 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
     if (targetElement is ExecutableElement2 && argumentList != null) {
       // Format: "Missing required argument 'foo'."
-      var messageParts =
-          diagnostic.problemMessage.messageText(includeUrl: false).split("'");
+      var messageParts = diagnostic.problemMessage
+          .messageText(includeUrl: false)
+          .split("'");
       if (messageParts.length < 2) {
         return;
       }
       _missingParameterName = messageParts[1];
 
       var missingParameter = targetElement.formalParameters.firstWhereOrNull(
-        (p) => p.name == _missingParameterName,
+        (p) => p.name3 == _missingParameterName,
       );
       if (missingParameter == null) {
         return;
@@ -94,8 +96,10 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
 
       var codeStyleOptions = getCodeStyleOptions(unitResult.file);
-      var defaultValue = getDefaultStringParameterValue2(
-          missingParameter, codeStyleOptions.preferredQuoteForStrings);
+      var defaultValue = getDefaultStringParameterValue(
+        missingParameter,
+        codeStyleOptions.preferredQuoteForStrings,
+      );
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {

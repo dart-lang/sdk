@@ -11,8 +11,10 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 class MockClass {
   static final String str = "${int.parse('42')}";
-  static final List<int> list =
-      List<int>.filled(int.parse('3'), int.parse('42'));
+  static final List<int> list = List<int>.filled(
+    int.parse('3'),
+    int.parse('42'),
+  );
 
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
@@ -43,8 +45,16 @@ class MockClass {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
-  void use8(String a0, List<int> a1, String a2, List<int> a3, String a4,
-          List<int> a5, String a6, List<int> a7) =>
+  void use8(
+    String a0,
+    List<int> a1,
+    String a2,
+    List<int> a3,
+    String a4,
+    List<int> a5,
+    String a6,
+    List<int> a7,
+  ) =>
       a0.length +
       a1.length +
       a2.length +
@@ -310,7 +320,7 @@ Future<void> main() async {
     LiveInt1(),
     LiveInt4(),
     LiveObj2Int2(),
-    LiveObj4Int4()
+    LiveObj4Int4(),
   ];
   for (final bench in benchmarks) {
     await bench.report();

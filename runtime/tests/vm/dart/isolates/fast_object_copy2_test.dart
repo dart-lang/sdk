@@ -6,6 +6,7 @@
 // VMOptions=--enable-fast-object-copy
 // VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 // VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
+// VMOptions=--test_il_serialization
 
 import 'dart:async';
 import 'dart:ffi';

@@ -412,6 +412,7 @@ class VariableDeclarationHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kHasDeclaredInitializer = 1 << 2,
+    kIsInitializingFormal = 1 << 3,
     kIsGenericCovariantImpl = 1 << 4,
     kLate = 1 << 5,
     kRequired = 1 << 6,
@@ -420,6 +421,7 @@ class VariableDeclarationHelper {
     kSynthesized = 1 << 9,
     kHoisted = 1 << 10,
     kWildcard = 1 << 11,
+    kIsSuperInitializingFormal = 1 << 12,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -442,6 +444,12 @@ class VariableDeclarationHelper {
   bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
   bool IsHoisted() const { return (flags_ & kHoisted) != 0; }
   bool IsWildcard() const { return (flags_ & kWildcard) != 0; }
+  bool IsInitializingFormal() const {
+    return (flags_ & kIsInitializingFormal) != 0;
+  }
+  bool IsSuperInitializingFormal() const {
+    return (flags_ & kIsSuperInitializingFormal) != 0;
+  }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }

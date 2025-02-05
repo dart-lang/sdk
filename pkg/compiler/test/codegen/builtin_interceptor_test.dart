@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -26,15 +26,27 @@ foo() {
 
 main() {
   test() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    });
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    });
-    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("push(2);"));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("return 3;"));
+      },
+    );
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("return 3;"));
+      },
+    );
+    await compile(
+      TEST_THREE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("push(2);"));
+      },
+    );
   }
 
   asyncTest(() async {

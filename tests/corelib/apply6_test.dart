@@ -18,14 +18,17 @@ class A {
     g = 70,
     h = 80,
     i = 90,
-  ]) =>
-      '$a $b $c $d $e $f $g $h $i';
+  ]) => '$a $b $c $d $e $f $g $h $i';
 }
 
 String static1(a, b, {c = 30, d = 40}) => '$a $b $c $d';
 
-void test(String expected, Function function, List positional,
-    [Map<Symbol, dynamic>? named = null]) {
+void test(
+  String expected,
+  Function function,
+  List positional, [
+  Map<Symbol, dynamic>? named = null,
+]) {
   final original = List.of(positional);
 
   Expect.equals(expected, Function.apply(function, positional, named));
@@ -48,8 +51,9 @@ main() {
   test('11 22 33 44 55 66 70 80 90', a.foo, [11, 22, 33, 44, 55, 66]);
   test('11 22 33 44 55 66 77 80 90', a.foo, [11, 22, 33, 44, 55, 66, 77]);
   test('11 22 33 44 55 66 77 88 90', a.foo, [11, 22, 33, 44, 55, 66, 77, 88]);
-  test('11 22 33 44 55 66 77 88 99', a.foo,
-      [11, 22, 33, 44, 55, 66, 77, 88, 99]);
+  test('11 22 33 44 55 66 77 88 99', a.foo, [
+    11, 22, 33, 44, 55, 66, 77, 88, 99, //
+  ]);
 
   // Some unmodifiable Lists. An attempt to modify the argument would fail.
   test('11 22 33 44 55 66 77 80 90', a.foo, const [11, 22, 33, 44, 55, 66, 77]);

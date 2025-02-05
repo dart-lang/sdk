@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -22,30 +22,37 @@ main(List<String> args) {
 }
 
 runTests(List<String> args, [int? shardIndex]) {
-  runTestsCommon(args,
-      shardIndex: shardIndex,
-      shards: 2,
-      directory: 'data',
-      skip: skip,
-      options: const []);
+  runTestsCommon(
+    args,
+    shardIndex: shardIndex,
+    shards: 2,
+    directory: 'data',
+    skip: skip,
+    options: const [],
+  );
 }
 
-runTestsCommon(List<String> args,
-    {int? shardIndex,
-    required int shards,
-    required String directory,
-    required List<String> options,
-    required List<String> skip}) {
+runTestsCommon(
+  List<String> args, {
+  int? shardIndex,
+  required int shards,
+  required String directory,
+  required List<String> options,
+  required List<String> skip,
+}) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve(directory));
-    await checkTests(dataDir, const CodegenDataComputer(),
-        forUserLibrariesOnly: true,
-        args: args,
-        options: options,
-        testedConfigs: allInternalConfigs + [canaryConfig],
-        skip: skip,
-        shardIndex: shardIndex ?? 0,
-        shards: shardIndex == null ? 1 : shards);
+    await checkTests(
+      dataDir,
+      const CodegenDataComputer(),
+      forUserLibrariesOnly: true,
+      args: args,
+      options: options,
+      testedConfigs: allInternalConfigs + [canaryConfig],
+      skip: skip,
+      shardIndex: shardIndex ?? 0,
+      shards: shardIndex == null ? 1 : shards,
+    );
   });
 }
 
@@ -56,15 +63,23 @@ class CodegenDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    CodegenIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backendStrategy, closedWorld.closureDataLookup)
-        .run(definition.node);
+    CodegenIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      compiler.backendStrategy,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
@@ -78,13 +93,13 @@ class CodegenIrComputer extends IrDataExtractor<String> {
   final ClosureData _closureDataLookup;
 
   CodegenIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._backendStrategy,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._elementMap,
+    MemberEntity member,
+    this._backendStrategy,
+    this._closureDataLookup,
+  ) : super(reporter, actualMap);
 
   String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -101,8 +116,9 @@ class CodegenIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

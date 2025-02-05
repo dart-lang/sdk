@@ -14,12 +14,18 @@ class EditImportElementsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditImportElementsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditImportElementsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditImportElementsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {

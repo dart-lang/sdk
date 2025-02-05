@@ -35,7 +35,7 @@ ConstructorName
   type: NamedType
     name: B
     element: <testLibraryFragment>::@class::B
-    element2: <testLibraryFragment>::@class::B#element
+    element2: <testLibrary>::@class::B
     type: B<int>
   staticElement: ConstructorMember
     base: <testLibraryFragment>::@class::B::@constructor::new
@@ -93,7 +93,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -101,7 +101,7 @@ ConstructorDeclaration
       type: NamedType
         name: a
         element: <testLibraryFragment>::@class::a
-        element2: <testLibraryFragment>::@class::a#element
+        element2: <testLibrary>::@class::a
         type: a
       name: a
       declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
@@ -142,7 +142,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -152,7 +152,7 @@ ConstructorDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -187,7 +187,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -206,7 +206,7 @@ ConstructorDeclaration
             type: U
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<U>
     period: .
     name: SimpleIdentifier
@@ -247,7 +247,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -257,7 +257,7 @@ ConstructorDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -292,7 +292,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   period: .
   name: named
@@ -304,7 +304,7 @@ ConstructorDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     staticElement: <testLibraryFragment>::@class::A::@constructor::new
     element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -333,7 +333,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   period: .
   name: named
@@ -354,7 +354,7 @@ ConstructorDeclaration
             type: U
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<U>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
@@ -387,7 +387,7 @@ ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   period: .
   name: named
@@ -399,7 +399,7 @@ ConstructorDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     staticElement: <null>
     element: <null>

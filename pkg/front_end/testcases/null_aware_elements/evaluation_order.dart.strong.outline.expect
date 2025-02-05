@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::String log;
+static method sideEffect<T extends core::Object? = dynamic>(self::sideEffect::T% t) → self::sideEffect::T%
+  ;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use of angle brackets in a doc comment is treated as HTML by '
     'Markdown.';

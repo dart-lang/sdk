@@ -17,8 +17,9 @@ class RequestStatisticsHelper {
   final Map<String, _RequestStatistics> _statisticsMap = {};
 
   /// The [StringSink] to which performance logger should copy its output.
-  late final _ServerLogStringSink _perfLoggerStringSink =
-      _ServerLogStringSink(this);
+  late final _ServerLogStringSink _perfLoggerStringSink = _ServerLogStringSink(
+    this,
+  );
 
   /// The channel to send 'server.log' notifications to.
   ByteStreamServerChannel? _serverChannel;
@@ -46,12 +47,7 @@ class RequestStatisticsHelper {
     var id = request.id;
     var stat = _statisticsMap[id];
     if (stat != null) {
-      stat.items.add(
-        _RequestStatisticsItem(
-          name,
-          timeValue: DateTime.now(),
-        ),
-      );
+      stat.items.add(_RequestStatisticsItem(name, timeValue: DateTime.now()));
     }
   }
 
@@ -111,9 +107,7 @@ class RequestStatisticsHelper {
       return;
     }
 
-    var map = <String, Object>{
-      'event': event,
-    };
+    var map = <String, Object>{'event': event};
 
     if (event == 'analysis.highlights' ||
         event == 'analysis.implemented' ||
@@ -138,10 +132,7 @@ class RequestStatisticsHelper {
     if (_serverChannel == null) return;
 
     var method = request.method;
-    var map = <String, Object>{
-      'id': request.id,
-      'method': method,
-    };
+    var map = <String, Object>{'id': request.id, 'method': method};
 
     {
       var clientRequestTime = request.clientRequestTime;
@@ -169,17 +160,12 @@ class RequestStatisticsHelper {
     if (serverChannel == null) return;
 
     serverChannel.sendNotification(
-      Notification(
-        'server.log',
-        <String, Object>{
-          'time': DateTime.now().millisecondsSinceEpoch,
-          'kind': kind.toJson(
-            clientUriConverter: null,
-          ),
-          'data': data,
-          'sdkVersion': _sdkVersion,
-        },
-      ),
+      Notification('server.log', <String, Object>{
+        'time': DateTime.now().millisecondsSinceEpoch,
+        'kind': kind.toJson(clientUriConverter: null),
+        'data': data,
+        'sdkVersion': _sdkVersion,
+      }),
     );
   }
 }
@@ -222,10 +208,7 @@ class _RequestStatisticsItem {
   Map<String, Object> toJson() {
     var timeValue = this.timeValue;
     if (timeValue != null) {
-      return {
-        'name': name,
-        'timeValue': timeValue.millisecondsSinceEpoch,
-      };
+      return {'name': name, 'timeValue': timeValue.millisecondsSinceEpoch};
     }
     throw StateError('Unknown value: $name');
   }

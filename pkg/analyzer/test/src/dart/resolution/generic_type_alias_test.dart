@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -254,12 +254,12 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   question: ?
   element: <testLibraryFragment>::@typeAlias::G
-  element2: <testLibraryFragment>::@typeAlias::G#element
+  element2: <testLibrary>::@typeAlias::G
   type: int Function(double)?
     alias: <testLibraryFragment>::@typeAlias::G
       typeArguments
@@ -275,18 +275,18 @@ class B {}
 
 typedef F<T extends A> = B Function<U extends B>(T a, U b);
 ''');
-    var f = findElement.typeAlias('F');
-    expect(f.typeParameters, hasLength(1));
+    var f = findElement2.typeAlias('F');
+    expect(f.typeParameters2, hasLength(1));
 
-    var t = f.typeParameters[0];
-    expect(t.name, 'T');
+    var t = f.typeParameters2[0];
+    expect(t.name3, 'T');
     assertType(t.bound, 'A');
 
-    var ff = f.aliasedElement as GenericFunctionTypeElement;
-    expect(ff.typeParameters, hasLength(1));
+    var ff = f.aliasedElement2 as GenericFunctionTypeElement2;
+    expect(ff.typeParameters2, hasLength(1));
 
-    var u = ff.typeParameters[0];
-    expect(u.name, 'U');
+    var u = ff.typeParameters2[0];
+    expect(u.name3, 'U');
     assertType(u.bound, 'B');
   }
 }

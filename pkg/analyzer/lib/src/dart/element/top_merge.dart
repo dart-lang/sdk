@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -170,7 +172,7 @@ class TopMergeHelper {
       throw _TopMergeStateError(T, S, 'Different number of formal parameters');
     }
 
-    var R_parameters = <ParameterElement>[];
+    var R_parameters = <ParameterElementImpl>[];
     for (var i = 0; i < T_parameters.length; i++) {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];

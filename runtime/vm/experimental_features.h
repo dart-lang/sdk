@@ -12,6 +12,8 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  inference_using_bounds,
+  wildcard_variables,
   digit_separators,
   inference_update_3,
   inline_class,

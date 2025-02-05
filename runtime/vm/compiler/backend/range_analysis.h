@@ -14,6 +14,12 @@
 
 namespace dart {
 
+// How to interpret values with kTagged representation.
+enum class TaggedMode {
+  kTaggedNotAllowed,
+  kTaggedIsSmi,
+};
+
 class RangeBoundary : public ValueObject {
  public:
 #define FOR_EACH_RANGE_BOUNDARY_KIND(V)                                        \
@@ -24,14 +30,6 @@ class RangeBoundary : public ValueObject {
 #define KIND_DEFN(name) k##name,
   enum Kind { FOR_EACH_RANGE_BOUNDARY_KIND(KIND_DEFN) };
 #undef KIND_DEFN
-
-  enum RangeSize {
-    kRangeBoundarySmi,
-    kRangeBoundaryInt8,
-    kRangeBoundaryInt16,
-    kRangeBoundaryInt32,
-    kRangeBoundaryInt64,
-  };
 
   RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) {}
 
@@ -50,9 +48,6 @@ class RangeBoundary : public ValueObject {
     offset_ = other.offset_;
     return *this;
   }
-
-  static constexpr int64_t kMin = kMinInt64;
-  static constexpr int64_t kMax = kMaxInt64;
 
   // Construct a RangeBoundary for a constant value.
   static RangeBoundary FromConstant(int64_t val) { return RangeBoundary(val); }
@@ -79,40 +74,9 @@ class RangeBoundary : public ValueObject {
     return FromConstant(compiler::target::kSmiMax);
   }
 
-  // Construct a RangeBoundary for the constant kMin value.
-  static RangeBoundary MinConstant(RangeSize size) {
-    switch (size) {
-      case kRangeBoundarySmi:
-        return FromConstant(compiler::target::kSmiMin);
-      case kRangeBoundaryInt8:
-        return FromConstant(kMinInt8);
-      case kRangeBoundaryInt16:
-        return FromConstant(kMinInt16);
-      case kRangeBoundaryInt32:
-        return FromConstant(kMinInt32);
-      case kRangeBoundaryInt64:
-        return FromConstant(kMinInt64);
-    }
-    UNREACHABLE();
-    return FromConstant(kMinInt64);
-  }
+  static RangeBoundary MinInt64() { return FromConstant(kMinInt64); }
 
-  static RangeBoundary MaxConstant(RangeSize size) {
-    switch (size) {
-      case kRangeBoundarySmi:
-        return FromConstant(compiler::target::kSmiMax);
-      case kRangeBoundaryInt8:
-        return FromConstant(kMaxInt8);
-      case kRangeBoundaryInt16:
-        return FromConstant(kMaxInt16);
-      case kRangeBoundaryInt32:
-        return FromConstant(kMaxInt32);
-      case kRangeBoundaryInt64:
-        return FromConstant(kMaxInt64);
-    }
-    UNREACHABLE();
-    return FromConstant(kMaxInt64);
-  }
+  static RangeBoundary MaxInt64() { return FromConstant(kMaxInt64); }
 
   // Given two boundaries a and b, select one of them as c so that
   //
@@ -134,7 +98,7 @@ class RangeBoundary : public ValueObject {
   // as possible.
   static RangeBoundary JoinMin(RangeBoundary a,
                                RangeBoundary b,
-                               RangeBoundary::RangeSize size);
+                               const Range& full_range);
 
   // Given two boundaries a and b compute boundary c such that
   //
@@ -144,45 +108,29 @@ class RangeBoundary : public ValueObject {
   // as possible.
   static RangeBoundary JoinMax(RangeBoundary a,
                                RangeBoundary b,
-                               RangeBoundary::RangeSize size);
+                               const Range& full_range);
 
   // Returns true when this is a constant that is outside of Smi range.
   bool OverflowedSmi() const {
     return IsConstant() && !compiler::target::IsSmi(ConstantValue());
   }
 
-  bool Overflowed(RangeBoundary::RangeSize size) const {
+  bool Overflowed(const Range& full_range) const {
     ASSERT(IsConstant());
-    return !Equals(Clamp(size));
+    return !Equals(Clamp(full_range));
   }
 
-  // Clamp constant boundary to MinConstant/MaxConstant of the given size.
-  RangeBoundary Clamp(RangeSize size) const {
-    if (IsConstant()) {
-      const RangeBoundary range_min = RangeBoundary::MinConstant(size);
-      const RangeBoundary range_max = RangeBoundary::MaxConstant(size);
+  // Clamp constant boundary to the given [full_range].
+  RangeBoundary Clamp(const Range& full_range) const;
 
-      if (ConstantValue() <= range_min.ConstantValue()) {
-        return range_min;
-      }
-      if (ConstantValue() >= range_max.ConstantValue()) {
-        return range_max;
-      }
-    }
-
-    // If this range is a symbolic range, we do not clamp it.
-    // This could lead to some imprecision later on.
-    return *this;
+  bool IsLessOrEqual(const RangeBoundary& other) const {
+    ASSERT(other.IsConstant());
+    return IsConstant() && (ConstantValue() <= other.ConstantValue());
   }
 
-  bool IsMinimumOrBelow(RangeSize size) const {
-    return IsConstant() && (ConstantValue() <=
-                            RangeBoundary::MinConstant(size).ConstantValue());
-  }
-
-  bool IsMaximumOrAbove(RangeSize size) const {
-    return IsConstant() && (ConstantValue() >=
-                            RangeBoundary::MaxConstant(size).ConstantValue());
+  bool IsGreaterOrEqual(const RangeBoundary& other) const {
+    ASSERT(other.IsConstant());
+    return IsConstant() && (ConstantValue() >= other.ConstantValue());
   }
 
   intptr_t kind() const { return kind_; }
@@ -250,17 +198,13 @@ class RangeBoundary : public ValueObject {
 
   bool Equals(const RangeBoundary& other) const;
 
-  int64_t UpperBound(RangeSize size) const {
-    return UpperBound().Clamp(size).ConstantValue();
+  int64_t UpperBound(const Range& full_range) const {
+    return UpperBound().Clamp(full_range).ConstantValue();
   }
 
-  int64_t LowerBound(RangeSize size) const {
-    return LowerBound().Clamp(size).ConstantValue();
+  int64_t LowerBound(const Range& full_range) const {
+    return LowerBound().Clamp(full_range).ConstantValue();
   }
-
-  int64_t SmiUpperBound() const { return UpperBound(kRangeBoundarySmi); }
-
-  int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
   void Write(FlowGraphSerializer* s) const;
   explicit RangeBoundary(FlowGraphDeserializer* d);
@@ -298,12 +242,16 @@ class Range : public ZoneAllocated {
     return other->min().IsUnknown();
   }
 
-  static Range Full(RangeBoundary::RangeSize size) {
-    return Range(RangeBoundary::MinConstant(size),
-                 RangeBoundary::MaxConstant(size));
+  static Range Smi() {
+    return Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
   }
 
-  static Range Full(Representation rep);
+  static Range Int64() {
+    return Range(RangeBoundary::MinInt64(), RangeBoundary::MaxInt64());
+  }
+
+  static Range Full(Representation rep,
+                    TaggedMode tagged_mode = TaggedMode::kTaggedNotAllowed);
 
   void PrintTo(BaseTextBuffer* f) const;
   static const char* ToCString(const Range* range);
@@ -324,35 +272,35 @@ class Range : public ZoneAllocated {
   void set_max(const RangeBoundary& value) { max_ = value; }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
-    return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);
+    return ConstantMin(range, Range::Smi());
   }
 
   static RangeBoundary ConstantMaxSmi(const Range* range) {
-    return ConstantMax(range, RangeBoundary::kRangeBoundarySmi);
+    return ConstantMax(range, Range::Smi());
   }
 
   static RangeBoundary ConstantMin(const Range* range) {
-    return ConstantMin(range, RangeBoundary::kRangeBoundaryInt64);
+    return ConstantMin(range, Range::Int64());
   }
 
   static RangeBoundary ConstantMax(const Range* range) {
-    return ConstantMax(range, RangeBoundary::kRangeBoundaryInt64);
+    return ConstantMax(range, Range::Int64());
   }
 
   static RangeBoundary ConstantMin(const Range* range,
-                                   RangeBoundary::RangeSize size) {
+                                   const Range& full_range) {
     if (range == nullptr) {
-      return RangeBoundary::MinConstant(size);
+      return full_range.min();
     }
-    return range->min().LowerBound().Clamp(size);
+    return range->min().LowerBound().Clamp(full_range);
   }
 
   static RangeBoundary ConstantMax(const Range* range,
-                                   RangeBoundary::RangeSize size) {
+                                   const Range& full_range) {
     if (range == nullptr) {
-      return RangeBoundary::MaxConstant(size);
+      return full_range.max();
     }
-    return range->max().UpperBound().Clamp(size);
+    return range->max().UpperBound().Clamp(full_range);
   }
 
   // [0, +inf]
@@ -393,25 +341,21 @@ class Range : public ZoneAllocated {
                  RangeBoundary::IntersectionMax(max(), other->max()));
   }
 
-  bool Fits(RangeBoundary::RangeSize size) const {
-    return !min().LowerBound().Overflowed(size) &&
-           !max().UpperBound().Overflowed(size);
-  }
-
   // Returns true if this range fits without truncation into
   // the given representation.
-  static bool Fits(Range* range, Representation rep) {
+  static bool Fits(Range* range,
+                   Representation rep,
+                   TaggedMode tagged_mode = TaggedMode::kTaggedNotAllowed) {
     if (range == nullptr) return false;
-    if (!RepresentationUtils::IsUnboxedInteger(rep)) return false;
-    const Range& other = Range::Full(rep);
+    const Range& other = Range::Full(rep, tagged_mode);
     return range->IsWithin(&other);
   }
 
   // Clamp this to be within size.
-  void Clamp(RangeBoundary::RangeSize size);
+  void Clamp(const Range& full_range);
 
   // Clamp this to be within size and eliminate symbols.
-  void ClampToConstant(RangeBoundary::RangeSize size);
+  void ClampToConstant(const Range& full_range);
 
   static void Add(const Range* left_range,
                   const Range* right_range,
@@ -492,10 +436,6 @@ class Range : public ZoneAllocated {
 
 class RangeUtils : public AllStatic {
  public:
-  static bool Fits(Range* range, RangeBoundary::RangeSize size) {
-    return !Range::IsUnknown(range) && range->Fits(size);
-  }
-
   static bool IsWithin(const Range* range, int64_t min, int64_t max) {
     return !Range::IsUnknown(range) && range->IsWithin(min, max);
   }
@@ -530,20 +470,11 @@ class RangeUtils : public AllStatic {
 class RangeAnalysis : public ValueObject {
  public:
   explicit RangeAnalysis(FlowGraph* flow_graph)
-      : flow_graph_(flow_graph),
-        smi_range_(Range::Full(RangeBoundary::kRangeBoundarySmi)),
-        int64_range_(Range::Full(RangeBoundary::kRangeBoundaryInt64)) {}
+      : flow_graph_(flow_graph), smi_range_(Range::Smi()) {}
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
   void Analyze();
-
-  // Helper that should be used to access ranges of inputs during range
-  // inference.
-  // Returns meaningful results for uses of non-smi/non-int definitions that
-  // have smi/int as a reaching type.
-  const Range* GetSmiRange(Value* value) const;
-  const Range* GetIntRange(Value* value) const;
 
   static bool IsIntegerDefinition(Definition* defn) {
     return defn->Type()->IsInt();
@@ -599,8 +530,9 @@ class RangeAnalysis : public ValueObject {
   // Find unsatisfiable constraints and mark corresponding blocks unreachable.
   void MarkUnreachableBlocks();
 
-  // Convert mint operations that stay within int32 range into Int32 operations.
-  void NarrowMintToInt32();
+  // Convert Int64 operations that stay within Int32 range into Int32
+  // operations.
+  void NarrowInt64OperationsToInt32();
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
@@ -608,23 +540,22 @@ class RangeAnalysis : public ValueObject {
 
   Range* ConstraintRange(Token::Kind op,
                          Definition* boundary,
-                         RangeBoundary::RangeSize size);
+                         const Range& full_range);
 
   Zone* zone() const { return flow_graph_->zone(); }
 
+  const Range& smi_range() const { return smi_range_; }
+
   FlowGraph* flow_graph_;
 
-  // Range object representing full Smi range.
   Range smi_range_;
-
-  Range int64_range_;
 
   // All values that are known to be smi or mint.
   GrowableArray<Definition*> values_;
 
-  // All 64-bit binary and shift operations.
+  // All 64-bit binary operations.
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
-  GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
+  GrowableArray<ComparisonInstr*> int64_comparisons_;
 
   // All CheckArrayBound/GenericCheckBound instructions.
   GrowableArray<CheckBoundBaseInstr*> bounds_checks_;
@@ -656,6 +587,8 @@ class IntegerInstructionSelector : public ValueObject {
   bool AllUsesAreUint32Narrowing(Value* list_head);
   bool CanBecomeUint32(Definition* def);
   void Propagate();
+  bool IsUint32Use(Value* use);
+  void NarrowUint32Uses();
   Definition* ConstructReplacementFor(Definition* def);
   void ReplaceInstructions();
 

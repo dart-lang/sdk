@@ -18,7 +18,7 @@ class A<in T> {
   T method1() => throw "uncalled";
 //^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//         ^
+//  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method2(Contra<T> x) {}
@@ -30,7 +30,7 @@ class A<in T> {
   Cov<T> method3() {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//              ^
+//       ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () => throw "uncalled";
   }
@@ -50,13 +50,13 @@ class A<in T> {
   Contra<Contra<T>> method6() => (Contra<T> x) {};
 //^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                         ^
+//                  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   Cov<Cov<T>> method7() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                   ^
+//            ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () {
       return () => throw "uncalled";
@@ -66,7 +66,7 @@ class A<in T> {
   Inv<T> method8() => throw "uncalled";
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//              ^
+//       ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
   void method9(Inv<T> x) {}
@@ -78,7 +78,7 @@ class A<in T> {
   Covariant<T> method10() => throw "uncalled";
 //^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                     ^
+//             ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method11(Contravariant<T> x) {}
@@ -90,7 +90,7 @@ class A<in T> {
   Invariant<T> method12() => throw "uncalled";
 //^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                     ^
+//             ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
   void method13(Invariant<T> x) {}
@@ -114,13 +114,13 @@ class A<in T> {
   Contravariant<Contravariant<T>> method16() => Contravariant<Contravariant<T>>();
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                                        ^
+//                                ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
 //^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                                ^
+//                        ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method18<X extends T>() {}
@@ -171,7 +171,7 @@ mixin BMixin<in T> {
   T method1() => throw "uncalled";
 //^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//         ^
+//  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method2(Contra<T> x) {}
@@ -183,7 +183,7 @@ mixin BMixin<in T> {
   Cov<T> method3() {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//              ^
+//       ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () => throw "uncalled";
   }
@@ -203,13 +203,13 @@ mixin BMixin<in T> {
   Contra<Contra<T>> method6() => (Contra<T> x) {};
 //^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                         ^
+//                  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   Cov<Cov<T>> method7() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                   ^
+//            ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () {
       return () => throw "uncalled";
@@ -219,7 +219,7 @@ mixin BMixin<in T> {
   Inv<T> method8() => throw "uncalled";
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//              ^
+//       ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
   void method9(Inv<T> x) {}
@@ -231,7 +231,7 @@ mixin BMixin<in T> {
   Covariant<T> method10() => throw "uncalled";
 //^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                     ^
+//             ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method11(Contravariant<T> x) {}
@@ -243,7 +243,7 @@ mixin BMixin<in T> {
   Invariant<T> method12() => throw "uncalled";
 //^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                     ^
+//             ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
   void method13(Invariant<T> x) {}
@@ -267,13 +267,13 @@ mixin BMixin<in T> {
   Contravariant<Contravariant<T>> method16() => Contravariant<Contravariant<T>>();
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                                        ^
+//                                ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
 //^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                                ^
+//                        ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   void method18<X extends T>() {}
@@ -329,7 +329,7 @@ class B<in T> {
   Contra<A<T>> method2() {
 //^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                    ^
+//             ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     throw "uncalled";
   }

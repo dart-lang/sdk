@@ -13,6 +13,7 @@ analyzer:
 
 linter:
   rules:
+    - analyzer_use_new_elements
     - always_declare_return_types
     - avoid_unused_constructor_parameters
     - directives_ordering

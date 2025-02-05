@@ -56,8 +56,8 @@ void f() {
           {'file': testFile.path, 'offset': 34},
         ],
         'length': 9,
-        'suggestions': []
-      }
+        'suggestions': [],
+      },
     ]);
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 
@@ -27,13 +27,16 @@ void test(Foo foo) {
 
 void main() {
   asyncTest(() async {
-    await compile(TEST,
-        entry: 'entry',
-        methodName: 'test',
-        disableTypeInference: false,
-        disableInlining: false, check: (String generated) {
-      RegExp regexp = RegExp(r'=== \$');
-      Expect.equals(1, regexp.allMatches(generated).length);
-    });
+    await compile(
+      TEST,
+      entry: 'entry',
+      methodName: 'test',
+      disableTypeInference: false,
+      disableInlining: false,
+      check: (String generated) {
+        RegExp regexp = RegExp(r'=== \$');
+        Expect.equals(1, regexp.allMatches(generated).length);
+      },
+    );
   });
 }

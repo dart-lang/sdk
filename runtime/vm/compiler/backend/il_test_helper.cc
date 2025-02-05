@@ -124,11 +124,8 @@ FlowGraph* TestPipeline::RunPasses(
   // avoid running ComputeSSA on it (it will just crash).
   const bool is_ssa = (flow_graph_ != nullptr);
   if (flow_graph_ == nullptr) {
-    auto pipeline = CompilationPipeline::New(zone, function_);
-
     parsed_function_ = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
-    pipeline->ParseFunction(parsed_function_);
 
     // Extract type feedback before the graph is built, as the graph
     // builder uses it to attach it to nodes.
@@ -137,7 +134,7 @@ FlowGraph* TestPipeline::RunPasses(
       function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
     }
 
-    flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_,
+    flow_graph_ = Compiler::BuildFlowGraph(zone, parsed_function_,
                                            ic_data_array_, osr_id, optimized);
   }
 
@@ -149,14 +146,12 @@ FlowGraph* TestPipeline::RunPasses(
     BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
-  pass_state_ =
-      new CompilerPassState(thread, flow_graph_, speculative_policy_.get());
+  pass_state_ = new CompilerPassState(thread, flow_graph_);
 
   if (optimized) {
-    JitCallSpecializer jit_call_specializer(flow_graph_,
-                                            speculative_policy_.get());
+    JitCallSpecializer jit_call_specializer(flow_graph_);
     AotCallSpecializer aot_call_specializer(
-        /*precompiler=*/nullptr, flow_graph_, speculative_policy_.get());
+        /*precompiler=*/nullptr, flow_graph_);
     if (mode_ == CompilerPass::kAOT) {
       pass_state_->call_specializer = &aot_call_specializer;
     } else {
@@ -177,10 +172,8 @@ FlowGraph* TestPipeline::RunPasses(
 
 void TestPipeline::RunAdditionalPasses(
     std::initializer_list<CompilerPass::Id> passes) {
-  JitCallSpecializer jit_call_specializer(flow_graph_,
-                                          speculative_policy_.get());
-  AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph_,
-                                          speculative_policy_.get());
+  JitCallSpecializer jit_call_specializer(flow_graph_);
+  AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph_);
   if (mode_ == CompilerPass::kAOT) {
     pass_state_->call_specializer = &aot_call_specializer;
   } else {
@@ -219,23 +212,16 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   Zone* zone = thread_->zone();
   const bool optimized = true;
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
-
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   const intptr_t far_branch_level = 0;
 #else
   const intptr_t far_branch_level = 1;
 #endif
 
-  ASSERT(pass_state_->inline_id_to_function.length() ==
-         pass_state_->caller_inline_id.length());
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(&object_pool_builder, far_branch_level);
-  FlowGraphCompiler graph_compiler(
-      &assembler, flow_graph_, *parsed_function_, optimized,
-      &speculative_policy, pass_state_->inline_id_to_function,
-      pass_state_->inline_id_to_token_pos, pass_state_->caller_inline_id,
-      ic_data_array_);
+  FlowGraphCompiler graph_compiler(&assembler, flow_graph_, *parsed_function_,
+                                   optimized, ic_data_array_);
 
   graph_compiler.CompileGraph();
 

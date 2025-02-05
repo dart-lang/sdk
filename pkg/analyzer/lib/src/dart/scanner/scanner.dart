@@ -199,10 +199,7 @@ class Scanner {
       featureSet == null
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(
-              enableExtensionMethods:
-                  featureSet.isEnabled(Feature.extension_methods),
               enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-              enableNonNullable: featureSet.isEnabled(Feature.non_nullable),
               forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
             );
 }

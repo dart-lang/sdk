@@ -27,10 +27,11 @@ main() {
 
   // Function not called on empty iterable.
   test(
-      [],
-      [].expand((x) {
-        throw "not called";
-      }));
+    [],
+    [].expand((x) {
+      throw "not called";
+    }),
+  );
 
   // Creating the iterable doesn't call the function.
   [1].expand((x) {

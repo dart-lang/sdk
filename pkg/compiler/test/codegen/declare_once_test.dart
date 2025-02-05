@@ -4,7 +4,7 @@
 
 // Test that parameters keep their names in the output.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 
@@ -14,14 +14,15 @@ main() {
   // method.
   runTest() async {
     String generated = await compile(
-        'final List a = const ["bar", "baz"];'
-        'void foo() {'
-        '  for (int i = 0; i < a.length; i++) {'
-        '    print(a[i]);'
-        '  }'
-        '}',
-        entry: 'foo',
-        minify: false);
+      'final List a = const ["bar", "baz"];'
+      'void foo() {'
+      '  for (int i = 0; i < a.length; i++) {'
+      '    print(a[i]);'
+      '  }'
+      '}',
+      entry: 'foo',
+      minify: false,
+    );
     RegExp re = RegExp(r"var ");
     Expect.isTrue(re.hasMatch(generated));
     print(generated);

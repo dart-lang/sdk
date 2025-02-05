@@ -1802,8 +1802,11 @@ class ObjectInitializer extends Expression {
 class Property extends Node {
   final Expression name;
   final Expression value;
+  final bool isStatic;
+  final bool isClassProperty;
 
-  Property(this.name, this.value);
+  Property(this.name, this.value,
+      {this.isStatic = false, this.isClassProperty = false});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);
@@ -1815,7 +1818,8 @@ class Property extends Node {
   }
 
   @override
-  Property _clone() => Property(name, value);
+  Property _clone() => Property(name, value,
+      isStatic: isStatic, isClassProperty: isClassProperty);
 }
 
 // TODO(jmesserly): parser does not support this yet.
@@ -1925,9 +1929,9 @@ class ClassDeclaration extends Statement {
 class ClassExpression extends Expression {
   final Identifier name;
   final Expression? heritage;
-  final List<Method> methods;
+  final List<Property> properties;
 
-  ClassExpression(this.name, this.heritage, this.methods);
+  ClassExpression(this.name, this.heritage, this.properties);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitClassExpression(this);
@@ -1936,7 +1940,7 @@ class ClassExpression extends Expression {
   void visitChildren(NodeVisitor visitor) {
     name.accept(visitor);
     heritage?.accept(visitor);
-    for (Method element in methods) {
+    for (Property element in properties) {
       element.accept(visitor);
     }
   }
@@ -1945,7 +1949,7 @@ class ClassExpression extends Expression {
   ClassDeclaration toStatement() => ClassDeclaration(this);
 
   @override
-  ClassExpression _clone() => ClassExpression(name, heritage, methods);
+  ClassExpression _clone() => ClassExpression(name, heritage, properties);
 
   @override
   int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
@@ -1957,7 +1961,12 @@ class Method extends Node implements Property {
   final Fun function;
   final bool isGetter;
   final bool isSetter;
+
+  @override
   final bool isStatic;
+
+  @override
+  final bool isClassProperty = false;
 
   Method(this.name, this.function,
       {this.isGetter = false, this.isSetter = false, this.isStatic = false}) {
@@ -2120,6 +2129,8 @@ class InterpolatedMethod extends Expression
   bool get isSetter => throw _unsupported;
   @override
   bool get isStatic => throw _unsupported;
+  @override
+  bool get isClassProperty => throw _unsupported;
   @override
   Fun get function => throw _unsupported;
   Error get _unsupported =>
@@ -2561,13 +2572,13 @@ abstract class Transformer extends BaseVisitor<Node> {
   Node visitClassExpression(ClassExpression node) {
     final name = visit<Identifier>(node.name);
     final heritage = visitNullable<Expression>(node.heritage);
-    final methods = visitList<Method>(node.methods);
+    final properties = visitList<Property>(node.properties);
     if (isUnchanged(name, node.name) &&
         isUnchanged(heritage, node.heritage) &&
-        isUnchangedList(methods, node.methods)) {
+        isUnchangedList(properties, node.properties)) {
       return node;
     }
-    return ClassExpression(name, heritage, methods);
+    return ClassExpression(name, heritage, properties);
   }
 
   @override

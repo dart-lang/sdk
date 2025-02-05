@@ -39,6 +39,13 @@ class FlowAnalysisTestHarness extends Harness
   @override
   FlowAnalysisOperations<Var, SharedTypeView<Type>> get typeOperations =>
       typeAnalyzer.operations;
+
+  @override
+  bool isFinal(int variableKey) {
+    Var? variable = promotionKeyStore.variableForKey(variableKey);
+    if (variable != null && operations.isFinal(variable)) return true;
+    return false;
+  }
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -73,7 +80,7 @@ class _GetExpressionInfo extends Expression {
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    return new ExpressionTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -90,7 +97,7 @@ class _GetSsaNodes extends Expression {
       Harness h, SharedTypeSchemaView<Type> schema) {
     callback(SsaNodeHarness(h.flow));
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return SimpleTypeAnalysisResult(
+    return ExpressionTypeAnalysisResult(
         type: SharedTypeView(h.typeAnalyzer.nullType));
   }
 }
@@ -117,7 +124,7 @@ class _WhyNotPromoted extends Expression {
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.whyNotPromoted(this)());
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    return new ExpressionTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -140,7 +147,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
       Harness h, SharedTypeSchemaView<Type> schema) {
     callback(h.flow.whyNotPromotedImplicitThis(SharedTypeView(staticType))());
     h.irBuilder.atom('noop', Kind.expression, location: location);
-    return SimpleTypeAnalysisResult(
+    return ExpressionTypeAnalysisResult(
         type: SharedTypeView(h.typeAnalyzer.nullType));
   }
 }

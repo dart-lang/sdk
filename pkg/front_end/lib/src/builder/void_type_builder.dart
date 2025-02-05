@@ -79,13 +79,13 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Nullability computeNullability(
-          {required Map<TypeVariableBuilder, TraversalState>
-              typeVariablesTraversalState}) =>
+          {required Map<TypeParameterBuilder, TraversalState>
+              typeParametersTraversalState}) =>
       Nullability.nullable;
 
   @override
-  VarianceCalculationValue computeTypeVariableBuilderVariance(
-      NominalVariableBuilder variable,
+  VarianceCalculationValue computeTypeParameterBuilderVariance(
+      NominalParameterBuilder variable,
       {required SourceLoader sourceLoader}) {
     return VarianceCalculationValue.calculatedUnrelated;
   }
@@ -96,14 +96,14 @@ class VoidTypeBuilder extends FixedTypeBuilder {
       null;
 
   @override
-  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
       List<List<int>> edges, int index) {}
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralVariableBuilder> unboundTypeVariables,
+      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralParameterBuilder> unboundTypeParameters,
       {Variance variance = Variance.covariant}) {
     return null;
   }
@@ -114,7 +114,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool usesTypeVariables(Set<String> typeVariableNames) => false;
+  bool usesTypeParameters(Set<String> typeParameterNames) => false;
 
   @override
   List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() =>

@@ -17,7 +17,7 @@
 //
 // This test exercises both ordinary final fields and late final fields.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Main test mixin.
 mixin class M {
@@ -50,7 +50,7 @@ class C3 implements C4 {
   int? get _nonLate3 => 0;
   int? get _late3 => 0;
   // Any noSuchMethod-forwarding getter inhibits promotion, since the
-  // implementation of noSuchMethod is assumeb to not be stable. (Requires that
+  // implementation of noSuchMethod is assumed to not be stable. (Requires that
   // the class be concrete and fail to implement a part of its interface; such a
   // class is only allowed if it contains or inherits a noSuchMethod
   // declaration).

@@ -59,8 +59,8 @@ class Base extends BenchmarkBase {
 class Monomorphic extends Base {
   final Uint8List data1;
   Monomorphic(int n)
-      : data1 = Uint8List(n)..setToOnes(),
-        super('TypedDataPoly.mono.array', n);
+    : data1 = Uint8List(n)..setToOnes(),
+      super('TypedDataPoly.mono.array', n);
 
   /// An identical [sum] method appears in each benchmark so the compiler
   /// can specialize the method according to different sets of input
@@ -99,8 +99,8 @@ class Monomorphic extends Base {
 class Baseline extends Base {
   final Uint8List data1;
   Baseline(int n)
-      : data1 = Uint8List(n)..setToOnes(),
-        super('TypedDataPoly.baseline', n);
+    : data1 = Uint8List(n)..setToOnes(),
+      super('TypedDataPoly.baseline', n);
 
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
@@ -132,7 +132,7 @@ class Polymorphic1 extends Base {
   final List<int> data1;
   final List<int> data2;
   Polymorphic1._(int n, String variant, this.data1, this.data2)
-      : super('TypedDataPoly.A_V.$variant', n);
+    : super('TypedDataPoly.A_V.$variant', n);
 
   factory Polymorphic1(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
@@ -184,7 +184,7 @@ class Polymorphic2 extends Base {
   final List<int> data1;
   final List<int> data2;
   Polymorphic2._(int n, String variant, this.data1, this.data2)
-      : super('TypedDataPoly.A_UV.$variant', n);
+    : super('TypedDataPoly.A_UV.$variant', n);
 
   factory Polymorphic2(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
@@ -228,7 +228,7 @@ class Polymorphic3 extends Base {
   final List<int> data1;
   final List<int> data2;
   Polymorphic3._(int n, String variant, this.data1, this.data2)
-      : super('TypedDataPoly.A_VUV.$variant', n);
+    : super('TypedDataPoly.A_VUV.$variant', n);
   factory Polymorphic3(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
     final view1 = Uint8List.sublistView(Uint8List(n + 1)..setToOnes(), 1);
@@ -271,7 +271,7 @@ class Polymorphic4 extends Base {
   final List<int> data1;
   final List<int> data2;
   Polymorphic4._(int n, String variant, this.data1, this.data2)
-      : super('TypedDataPoly.A_UVx5.$variant', n);
+    : super('TypedDataPoly.A_UVx5.$variant', n);
 
   factory Polymorphic4(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
@@ -327,19 +327,19 @@ class Polymorphic5 extends Base {
   final List<int> data9;
   final List<int> data10;
   Polymorphic5._(
-      int n,
-      String variant,
-      this.data1,
-      this.data2,
-      this.data3,
-      this.data4,
-      this.data5,
-      this.data6,
-      this.data7,
-      this.data8,
-      this.data9,
-      this.data10)
-      : super('TypedDataPoly.mega.$variant', n);
+    int n,
+    String variant,
+    this.data1,
+    this.data2,
+    this.data3,
+    this.data4,
+    this.data5,
+    this.data6,
+    this.data7,
+    this.data8,
+    this.data9,
+    this.data10,
+  ) : super('TypedDataPoly.mega.$variant', n);
 
   factory Polymorphic5(int n, String variant) {
     final data1 = Uint8List(n)..setToOnes();
@@ -355,12 +355,36 @@ class Polymorphic5 extends Base {
     final data10 = data5.asUnmodifiableView();
 
     if (variant == 'array') {
-      return Polymorphic5._(n, variant, data1, data1, data1, data1, data1,
-          data1, data1, data1, data1, data1);
+      return Polymorphic5._(
+        n,
+        variant,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+        data1,
+      );
     }
     if (variant == 'mixed') {
-      return Polymorphic5._(n, variant, data1, data2, data3, data4, data5,
-          data6, data7, data8, data9, data10);
+      return Polymorphic5._(
+        n,
+        variant,
+        data1,
+        data2,
+        data3,
+        data4,
+        data5,
+        data6,
+        data7,
+        data8,
+        data9,
+        data10,
+      );
     }
     throw UnimplementedError('No variant "$variant"');
   }
@@ -449,8 +473,8 @@ void main(List<String> commandLineArguments) {
       Polymorphic4(length, 'view'),
       //
       Polymorphic5(length, 'array'),
-      Polymorphic5(length, 'mixed')
-    ]
+      Polymorphic5(length, 'mixed'),
+    ],
   ];
 
   // Warmup all benchmarks to ensure JIT compilers see full polymorphism.

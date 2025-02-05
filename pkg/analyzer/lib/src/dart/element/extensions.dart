@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -14,6 +16,42 @@ import 'package:meta/meta_meta.dart';
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
     return element is ExtensionTypeElement;
+  }
+}
+
+extension Element2Extension on Element2 {
+  /// Return `true` if this element is an instance member of a class or mixin.
+  ///
+  /// Only [MethodElement2]s, [GetterElement]s, and  [SetterElement]s are
+  /// supported.
+  ///
+  /// We intentionally exclude [ConstructorElement2]s - they can only be
+  /// invoked in instance creation expressions, and [FieldElement2]s - they
+  /// cannot be invoked directly and are always accessed using corresponding
+  /// [GetterElement]s or [SetterElement]s.
+  bool get isInstanceMember {
+    assert(this is! PropertyInducingElement2,
+        'Check the GetterElement or SetterElement instead');
+    var this_ = this;
+    var enclosing = this_.enclosingElement2;
+    if (enclosing is InterfaceElement2) {
+      return this_ is MethodElement2 && !this_.isStatic ||
+          this_ is GetterElement && !this_.isStatic ||
+          this_ is SetterElement && !this_.isStatic;
+    }
+    return false;
+  }
+
+  /// Whether this element is a wildcard variable.
+  bool get isWildcardVariable {
+    return name3 == '_' &&
+        (this is LocalVariableElement2 ||
+            this is PrefixElement2 ||
+            this is TypeParameterElement2 ||
+            (this is FormalParameterElement &&
+                this is! FieldFormalParameterElement2 &&
+                this is! SuperFormalParameterElement2)) &&
+        library2.hasWildcardVariablesFeatureEnabled2;
   }
 }
 
@@ -34,7 +72,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3.augmented.declaration;
+      interfaceElement = element.enclosingElement3.augmented.firstFragment;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -70,7 +108,7 @@ extension ElementExtension on Element {
   /// If this element is an augmentation, returns the declaration.
   Element get augmentedDeclaration {
     if (this case InstanceElement self) {
-      return self.augmented.declaration;
+      return self.augmented.firstFragment;
     }
     return this;
   }
@@ -167,9 +205,9 @@ extension LibraryExtension2 on LibraryElement2? {
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ParameterElementExtensions on ParameterElement {
+extension ParameterElementExtension on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({
+  ParameterElementImpl copyWith({
     DartType? type,
     ParameterKind? kind,
     bool? isCovariant,
@@ -180,6 +218,15 @@ extension ParameterElementExtensions on ParameterElement {
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
+  }
+
+  /// Returns `this`, converted to a [ParameterElementImpl] if it isn't one
+  /// already.
+  ParameterElementImpl toImpl() {
+    return switch (this) {
+      ParameterElementImpl p => p,
+      _ => copyWith(),
+    };
   }
 }
 
@@ -228,5 +275,11 @@ extension RecordTypeExtension on RecordType {
       if (position != null) return position - 1;
     }
     return null;
+  }
+}
+
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
+  bool get isWildcardVariable {
+    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }
 }

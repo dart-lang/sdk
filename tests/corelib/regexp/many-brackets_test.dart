@@ -27,7 +27,8 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-      'Test regular expression processing with many capturing brackets (200).');
+    'Test regular expression processing with many capturing brackets (200).',
+  );
 
   var count = 200;
 

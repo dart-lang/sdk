@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method isInt(core::bool b) → dynamic
+  ;
+static method isInt_late(core::bool b) → dynamic
+  ;
+static method notEqNull(core::bool b) → dynamic
+  ;
+static method notEqNull_late(core::bool b) → dynamic
+  ;

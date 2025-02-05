@@ -61,10 +61,10 @@ static field dynamic Extension|field;
 static extension-member method Extension|method() → dynamic {}
 static extension-member get Extension|getter() → dynamic
   return null;
-static extension-member set Extension|setter(dynamic _) → void {}
+static extension-member set Extension|setter(wildcard dynamic _#wc0#formal) → void {}
 static extension-member get Extension|property() → dynamic
   return null;
-static extension-member set Extension|property(dynamic _) → void {}
+static extension-member set Extension|property(wildcard dynamic _#wc1#formal) → void {}
 static method main() → dynamic {}
 static method errors() → dynamic {
   core::String s = "";

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -248,10 +250,9 @@ class FindElement extends _FindElementBase {
 
   PrefixElement prefix(String name) {
     for (var libraryFragment in unitElement.withEnclosing) {
-      for (var import_ in libraryFragment.libraryImports) {
-        var prefix = import_.prefix?.element;
-        if (prefix != null && prefix.name == name) {
-          return prefix;
+      for (var importPrefix in libraryFragment.libraryImportPrefixes) {
+        if (importPrefix.name == name) {
+          return importPrefix;
         }
       }
     }

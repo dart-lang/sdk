@@ -26,11 +26,11 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
   late final String flutterRepositoryPath;
 
   FlutterCompletionBenchmark(String protocolName, this.testConstructor)
-      : super(
-          '$protocolName-flutter',
-          'Completion benchmarks with Flutter.',
-          kind: 'group',
-        );
+    : super(
+        '$protocolName-flutter',
+        'Completion benchmarks with Flutter.',
+        kind: 'group',
+      );
 
   @override
   int get maxIterations => 1;
@@ -50,15 +50,16 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       test.debugStdio();
     }
 
-    var flutterPkgPath =
-        path.join(flutterRepositoryPath, 'packages', 'flutter');
+    var flutterPkgPath = path.join(
+      flutterRepositoryPath,
+      'packages',
+      'flutter',
+    );
 
     // Open a small directory, but with the package config that allows us
     // to analyze any file in `package:flutter`, including tests.
     var startTimer = Stopwatch()..start();
-    await test.setUp(dartSdkPath, [
-      '$flutterPkgPath/lib/src/physics',
-    ]);
+    await test.setUp(dartSdkPath, ['$flutterPkgPath/lib/src/physics']);
 
     await test.analysisFinished;
     startTimer.stop();
@@ -66,10 +67,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     var result = CompoundBenchMarkResult(id);
     result.add(
       'start',
-      BenchMarkResult(
-        'micros',
-        startTimer.elapsedMicroseconds,
-      ),
+      BenchMarkResult('micros', startTimer.elapsedMicroseconds),
     );
 
     // This is a scenario of an easy case - the file is small, less than
@@ -221,13 +219,11 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       if (insertStringGenerator != null) {
         var insertString = insertStringGenerator();
         completionOffset += insertString.length;
-        var newCode = fileContent.substring(0, prefixEnd) +
+        var newCode =
+            fileContent.substring(0, prefixEnd) +
             insertString +
             fileContent.substring(prefixEnd);
-        await test.updateFile(
-          filePath,
-          newCode,
-        );
+        await test.updateFile(filePath, newCode);
       }
 
       await test.complete(filePath, completionOffset, isWarmUp: isWarmUp);

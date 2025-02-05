@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/codegen.dart';
@@ -21,10 +21,15 @@ import '../helpers/program_lookup.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir =
-        Directory.fromUri(Platform.script.resolve('model_data'));
-    await checkTests(dataDir, const ModelDataComputer(),
-        args: args, testedConfigs: allInternalConfigs);
+    Directory dataDir = Directory.fromUri(
+      Platform.script.resolve('model_data'),
+    );
+    await checkTests(
+      dataDir,
+      const ModelDataComputer(),
+      args: args,
+      testedConfigs: allInternalConfigs,
+    );
   });
 }
 
@@ -35,15 +40,23 @@ class ModelDataComputer extends DataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    ModelIrComputer(compiler.reporter, actualMap, elementMap, member, compiler,
-            closedWorld.closureDataLookup)
-        .run(definition.node);
+    ModelIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      compiler,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
@@ -75,22 +88,84 @@ class ModelIrComputer extends IrDataExtractor<Features> {
   final ProgramLookup _programLookup;
 
   ModelIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<Features>> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      Compiler compiler,
-      this._closureDataLookup)
-      : _programLookup = ProgramLookup(compiler.backendStrategy),
-        super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<Features>> actualMap,
+    this._elementMap,
+    MemberEntity member,
+    Compiler compiler,
+    this._closureDataLookup,
+  ) : _programLookup = ProgramLookup(compiler.backendStrategy),
+      super(reporter, actualMap);
 
-  void registerCalls(Features features, String tag, js.Node node,
-      {String prefix = '', Set<js.PropertyAccess>? handledAccesses}) {
-    forEachNode(node, onCall: (js.Call node) {
-      js.Node target = undefer(node.target);
-      if (target is js.PropertyAccess) {
-        js.Node selector = undefer(target.selector);
-        bool fixedNameCall = false;
+  void registerCalls(
+    Features features,
+    String tag,
+    js.Node node, {
+    String prefix = '',
+    Set<js.PropertyAccess>? handledAccesses,
+  }) {
+    forEachNode(
+      node,
+      onCall: (js.Call node) {
+        js.Node target = undefer(node.target);
+        if (target is js.PropertyAccess) {
+          js.Node selector = undefer(target.selector);
+          bool fixedNameCall = false;
+          String? name;
+          if (selector is js.Name) {
+            name = selector.key;
+          } else if (selector is js.LiteralString) {
+            /// Call to fixed backend name, so we include the argument
+            /// values to test encoding of optional parameters in native
+            /// methods.
+            name = selector.value;
+            fixedNameCall = true;
+          }
+          if (name != null) {
+            if (fixedNameCall) {
+              String arguments = node.arguments.map(js.nodeToString).join(',');
+              features.addElement(tag, '${prefix}${name}(${arguments})');
+            } else {
+              features.addElement(
+                tag,
+                '${prefix}${name}(${node.arguments.length})',
+              );
+            }
+            handledAccesses?.add(target);
+          }
+        }
+      },
+    );
+  }
+
+  void registerAccesses(
+    Features features,
+    String tag,
+    js.Node code, {
+    String prefix = '',
+    Set<js.PropertyAccess>? handledAccesses,
+  }) {
+    forEachNode(
+      code,
+      onPropertyAccess: (js.PropertyAccess node) {
+        if (handledAccesses?.contains(node) ?? false) {
+          return;
+        }
+
+        js.Node receiver = undefer(node.receiver);
+        String? receiverName;
+        if (receiver is js.VariableUse) {
+          receiverName = receiver.name;
+          if (receiverName == receiverName.toUpperCase() &&
+              receiverName != r'$') {
+            // Skip holder access.
+            receiverName = null;
+          }
+        } else if (receiver is js.This) {
+          receiverName = 'this';
+        }
+
+        js.Node selector = undefer(node.selector);
         String? name;
         if (selector is js.Name) {
           name = selector.key;
@@ -99,57 +174,13 @@ class ModelIrComputer extends IrDataExtractor<Features> {
           /// values to test encoding of optional parameters in native
           /// methods.
           name = selector.value;
-          fixedNameCall = true;
         }
-        if (name != null) {
-          if (fixedNameCall) {
-            String arguments = node.arguments.map(js.nodeToString).join(',');
-            features.addElement(tag, '${prefix}${name}(${arguments})');
-          } else {
-            features.addElement(
-                tag, '${prefix}${name}(${node.arguments.length})');
-          }
-          handledAccesses?.add(target);
+
+        if (receiverName != null && name != null) {
+          features.addElement(tag, '${prefix}${name}');
         }
-      }
-    });
-  }
-
-  void registerAccesses(Features features, String tag, js.Node code,
-      {String prefix = '', Set<js.PropertyAccess>? handledAccesses}) {
-    forEachNode(code, onPropertyAccess: (js.PropertyAccess node) {
-      if (handledAccesses?.contains(node) ?? false) {
-        return;
-      }
-
-      js.Node receiver = undefer(node.receiver);
-      String? receiverName;
-      if (receiver is js.VariableUse) {
-        receiverName = receiver.name;
-        if (receiverName == receiverName.toUpperCase() &&
-            receiverName != r'$') {
-          // Skip holder access.
-          receiverName = null;
-        }
-      } else if (receiver is js.This) {
-        receiverName = 'this';
-      }
-
-      js.Node selector = undefer(node.selector);
-      String? name;
-      if (selector is js.Name) {
-        name = selector.key;
-      } else if (selector is js.LiteralString) {
-        /// Call to fixed backend name, so we include the argument
-        /// values to test encoding of optional parameters in native
-        /// methods.
-        name = selector.value;
-      }
-
-      if (receiverName != null && name != null) {
-        features.addElement(tag, '${prefix}${name}');
-      }
-    });
+      },
+    );
   }
 
   Features? getMemberValue(MemberEntity member) {
@@ -187,10 +218,18 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         Class cls = _programLookup.getClass(member.enclosingClass!)!;
         for (StubMethod stub in cls.callStubs) {
           if (stub.element == member) {
-            registerCalls(features, Tags.callStubCall, stub.code,
-                prefix: '${stub.name!.key}:');
-            registerAccesses(features, Tags.callStubAccesses, stub.code,
-                prefix: '${stub.name!.key}:');
+            registerCalls(
+              features,
+              Tags.callStubCall,
+              stub.code,
+              prefix: '${stub.name!.key}:',
+            );
+            registerAccesses(
+              features,
+              Tags.callStubAccesses,
+              stub.code,
+              prefix: '${stub.name!.key}:',
+            );
           }
         }
 
@@ -216,38 +255,57 @@ class ModelIrComputer extends IrDataExtractor<Features> {
 
         Set<js.PropertyAccess> handledAccesses = Set();
 
-        registerCalls(features, Tags.call, code,
-            handledAccesses: handledAccesses);
+        registerCalls(
+          features,
+          Tags.call,
+          code,
+          handledAccesses: handledAccesses,
+        );
         if (method is DartMethod) {
           for (ParameterStubMethod stub in method.parameterStubs) {
-            registerCalls(features, Tags.parameterStub, stub.code,
-                prefix: '${stub.name!.key}:', handledAccesses: handledAccesses);
+            registerCalls(
+              features,
+              Tags.parameterStub,
+              stub.code,
+              prefix: '${stub.name!.key}:',
+              handledAccesses: handledAccesses,
+            );
           }
         }
 
-        forEachNode(code, onAssignment: (js.Assignment node) {
-          final leftHandSide = undefer(node.leftHandSide);
-          if (leftHandSide is js.PropertyAccess) {
-            js.Node selector = undefer(leftHandSide.selector);
-            String? name;
-            if (selector is js.Name) {
-              name = selector.key;
-            } else if (selector is js.LiteralString) {
-              name = selector.value;
+        forEachNode(
+          code,
+          onAssignment: (js.Assignment node) {
+            final leftHandSide = undefer(node.leftHandSide);
+            if (leftHandSide is js.PropertyAccess) {
+              js.Node selector = undefer(leftHandSide.selector);
+              String? name;
+              if (selector is js.Name) {
+                name = selector.key;
+              } else if (selector is js.LiteralString) {
+                name = selector.value;
+              }
+              if (name != null) {
+                features.addElement(Tags.assignment, '${name}');
+                handledAccesses.add(leftHandSide);
+              }
             }
-            if (name != null) {
-              features.addElement(Tags.assignment, '${name}');
-              handledAccesses.add(leftHandSide);
-            }
-          }
-        });
+          },
+        );
 
-        registerAccesses(features, Tags.propertyAccess, code,
-            handledAccesses: handledAccesses);
+        registerAccesses(
+          features,
+          Tags.propertyAccess,
+          code,
+          handledAccesses: handledAccesses,
+        );
 
-        forEachNode(code, onSwitch: (js.Switch node) {
-          features.add(Tags.switchCase);
-        });
+        forEachNode(
+          code,
+          onSwitch: (js.Switch node) {
+            features.add(Tags.switchCase);
+          },
+        );
 
         return features;
       }
@@ -263,8 +321,9 @@ class ModelIrComputer extends IrDataExtractor<Features> {
   @override
   Features? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

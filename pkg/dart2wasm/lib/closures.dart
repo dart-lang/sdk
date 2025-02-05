@@ -5,12 +5,15 @@
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/transformations/type_flow/utils.dart' show UnionFind;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'code_generator.dart';
+import 'param_info.dart';
 import 'translator.dart';
 
 /// Describes the implementation of a concrete closure, including its vtable
@@ -34,8 +37,16 @@ class ClosureImplementation {
   /// The module this closure is implemented in.
   final w.ModuleBuilder module;
 
-  ClosureImplementation(this.representation, this.functions,
-      this.dynamicCallEntry, this.vtable, this.module);
+  /// [ParameterInfo] to be used when directly calling the closure.
+  final ParameterInfo directCallParamInfo;
+
+  ClosureImplementation(
+      this.representation,
+      this.functions,
+      this.dynamicCallEntry,
+      this.vtable,
+      this.module,
+      this.directCallParamInfo);
 }
 
 /// Describes the representation of closures for a particular function
@@ -60,8 +71,6 @@ class ClosureRepresentation {
 
   /// The struct type for the context of an instantiated closure.
   final w.StructType? instantiationContextStruct;
-
-  final String exportSuffix;
 
   /// Entry point functions for instantiations of this generic closure.
   final Map<w.ModuleBuilder, List<w.BaseFunction>> _instantiationTrampolines =
@@ -121,8 +130,7 @@ class ClosureRepresentation {
       this.vtableStruct,
       this.closureStruct,
       this._indexOfCombination,
-      this.instantiationContextStruct,
-      this.exportSuffix);
+      this.instantiationContextStruct);
 
   bool get isGeneric => typeCount > 0;
 
@@ -134,6 +142,8 @@ class ClosureRepresentation {
   /// The field index in the vtable struct for the function entry to use when
   /// calling the closure with the given number of positional arguments and the
   /// given set of named arguments.
+  ///
+  /// `argNames` should be sorted.
   int fieldIndexForSignature(int posArgCount, List<String> argNames) {
     if (argNames.isEmpty) {
       return vtableBaseIndex + posArgCount;
@@ -158,7 +168,9 @@ class ClosureRepresentation {
 class NameCombination implements Comparable<NameCombination> {
   final List<String> names;
 
-  NameCombination(this.names);
+  NameCombination(this.names) {
+    assert(names.isSorted(Comparable.compare));
+  }
 
   @override
   int compareTo(NameCombination other) {
@@ -265,8 +277,8 @@ class ClosureLayouter extends RecursiveVisitor {
   late final w.StructType closureBaseStruct = _makeClosureStruct(
       "#ClosureBase", _vtableBaseStructBare, translator.closureInfo.struct);
 
-  late final w.RefType typeType =
-      translator.classInfo[translator.typeClass]!.nonNullableType;
+  w.RefType get typeType => translator.types.nonNullableTypeType;
+
   late final w.RefType functionTypeType =
       translator.classInfo[translator.functionTypeClass]!.nonNullableType;
 
@@ -366,6 +378,8 @@ class ClosureLayouter extends RecursiveVisitor {
   /// Get the representation for closures with a specific signature, described
   /// by the number of type parameters, the maximum number of positional
   /// parameters and the names of named parameters.
+  ///
+  /// `names` should be sorted.
   ClosureRepresentation? getClosureRepresentation(
       int typeCount, int positionalCount, List<String> names) {
     final representations =
@@ -469,8 +483,7 @@ class ClosureLayouter extends RecursiveVisitor {
         vtableStruct,
         closureStruct,
         indexOfCombination,
-        instantiationContextStruct,
-        nameTags.join('-'));
+        instantiationContextStruct);
 
     if (typeCount > 0) {
       // The instantiation trampolines and the instantiation function can't be
@@ -710,8 +723,7 @@ class ClosureLayouter extends RecursiveVisitor {
     w.Local typeParam(int i) => instantiationFunction.locals[1 + i];
 
     // Header for the closure struct
-    b.i32_const(translator.closureInfo.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(translator.closureInfo);
 
     // Context for the instantiated closure, containing the original closure and
     // the type arguments
@@ -1006,10 +1018,20 @@ class ClosureRepresentationCluster {
 /// A local function or function expression.
 class Lambda {
   final FunctionNode functionNode;
+
+  // Note: creating a `Lambda` does not add this function to the compilation
+  // queue. Make sure to get it with `Functions.getLambdaFunction` to add it
+  // to the compilation queue.
   final w.FunctionBuilder function;
+
   final Source functionNodeSource;
 
-  Lambda(this.functionNode, this.function, this.functionNodeSource);
+  /// Index of the function within the enclosing member, based on pre-order
+  /// traversal of the member body.
+  final int index;
+
+  Lambda._(
+      this.functionNode, this.function, this.functionNodeSource, this.index);
 }
 
 /// The context for one or more closures, containing their captured variables.
@@ -1073,10 +1095,15 @@ class Context {
   Context(this.owner, this.parent, this.containsThis);
 }
 
-/// A captured variable.
+/// A captured variable or type parameter.
 class Capture {
+  /// The captured [VariableDeclaration] or [TypeParameter].
   final TreeNode variable;
+
   late final Context context;
+
+  /// The index of the captured variable or type parameter in its context
+  /// struct.
   late final int fieldIndex;
 
   /// Whether the captured variable is updated after initialization.
@@ -1086,39 +1113,79 @@ class Capture {
   /// context.
   bool written = false;
 
-  Capture(this.variable);
+  Capture(this.variable) {
+    assert(variable is VariableDeclaration || variable is TypeParameter);
+  }
 
   w.ValueType get type => context.struct.fields[fieldIndex].type.unpacked;
 }
 
-/// Compiler passes to find all captured variables and construct the context
-/// tree for a member.
+/// Information about contexts and closures of a member.
 class Closures {
   final Translator translator;
-  final Class? enclosingClass;
-  final Map<TreeNode, Capture> captures = {};
-  bool isThisCaptured = false;
-  final Map<FunctionNode, Lambda> lambdas = {};
-  late final w.RefType? nullableThisType;
 
-  // This [TreeNode] is the context owner, and can be a [FunctionNode],
-  // [Constructor], [ForStatement], [DoStatement] or a [WhileStatement].
+  /// Maps [FunctionDeclaration]s and [FunctionExpression]s in the member to
+  /// [Lambda]s.
+  final Map<FunctionNode, Lambda> lambdas = {};
+
+  /// Maps [VariableDeclaration]s and [TypeParameter]s in the member to
+  /// [Capture]s.
+  final Map<TreeNode, Capture> captures = {};
+
+  /// Maps AST nodes with contexts to their contexts.
+  ///
+  /// AST nodes that can have a context are:
+  ///
+  /// - [FunctionNode]
+  /// - [Constructor]
+  /// - [ForStatement]
+  /// - [DoStatement]
+  /// - [WhileStatement]
   final Map<TreeNode, Context> contexts = {};
+
+  /// Set of function declarations in the member that need to be compiled as
+  /// closures. These functions are used as variables. Example:
+  /// ```
+  /// void f() {
+  ///   void g () {}
+  ///   print(g);
+  /// }
+  /// ```
+  /// In the `Closures` for `f`, `g` will be in this set.
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
-  Closures(this.translator, Member member)
-      : enclosingClass = member.enclosingClass {
-    final hasThis = member is Constructor || member.isInstanceMember;
-    nullableThisType = hasThis
-        ? translator.preciseThisFor(member, nullable: true) as w.RefType
-        : null;
+  final Member _member;
+
+  /// Whether the member captures `this`. Set by [_CaptureFinder].
+  bool _isThisCaptured = false;
+
+  /// When the member is a constructor or an instance member, nullable type of
+  /// `this`.
+  final w.RefType? _nullableThisType;
+
+  /// When `findCaptures` is `false`, this does not analyze the member body and
+  /// does not populate [lambdas], [contexts], [captures], and
+  /// [closurizedFunctions]. This mode is useful in the code generators that
+  /// always have direct access to variables (instead of via a context).
+  ///
+  /// When `findCaptures` is `true`, the created [Lambda]s are also added to the
+  /// compilation queue.
+  Closures(this.translator, this._member, {required bool findCaptures})
+      : _nullableThisType = _member is Constructor || _member.isInstanceMember
+            ? translator.preciseThisFor(_member, nullable: true) as w.RefType
+            : null {
+    if (findCaptures) {
+      _findCaptures();
+      _collectContexts();
+      _buildContexts();
+    }
   }
 
-  late final w.ValueType typeType =
-      translator.classInfo[translator.typeClass]!.nonNullableType;
+  w.RefType get typeType => translator.types.nonNullableTypeType;
 
-  void findCaptures(Member member) {
-    var find = CaptureFinder(this, member);
+  void _findCaptures() {
+    final member = _member;
+    final find = _CaptureFinder(this, member);
     if (member is Constructor) {
       Class cls = member.enclosingClass;
       for (Field field in cls.fields) {
@@ -1130,62 +1197,63 @@ class Closures {
     member.accept(find);
   }
 
-  void collectContexts(TreeNode node) {
-    if (captures.isNotEmpty || isThisCaptured) {
-      node.accept(ContextCollector(this, translator.options.enableAsserts));
+  void _collectContexts() {
+    if (captures.isNotEmpty || _isThisCaptured) {
+      _member.accept(_ContextCollector(this, translator.options.enableAsserts));
     }
   }
 
-  void buildContexts() {
+  void _buildContexts() {
     // Make struct definitions
     for (Context context in contexts.values) {
-      if (!context.isEmpty) {
-        if (context.owner is Constructor) {
-          Constructor constructor = context.owner as Constructor;
-          context.struct = translator.typesBuilder
-              .defineStruct("<$constructor-constructor-context>");
-        } else if (context.owner.parent is Constructor) {
-          Constructor constructor = context.owner.parent as Constructor;
-          context.struct = translator.typesBuilder
-              .defineStruct("<$constructor-constructor-body-context>");
-        } else {
-          context.struct = translator.typesBuilder
-              .defineStruct("<context ${context.owner.location}>");
-        }
+      if (context.isEmpty) continue;
+
+      final owner = context.owner;
+      if (owner is Constructor) {
+        context.struct = translator.typesBuilder
+            .defineStruct("<$owner-constructor-context>");
+      } else if (owner.parent is Constructor) {
+        Constructor constructor = owner.parent as Constructor;
+        context.struct = translator.typesBuilder
+            .defineStruct("<$constructor-constructor-body-context>");
+      } else {
+        context.struct =
+            translator.typesBuilder.defineStruct("<context ${owner.location}>");
       }
     }
 
     // Build object layouts
     for (Context context in contexts.values) {
-      if (!context.isEmpty) {
-        w.StructType struct = context.struct;
-        if (context.parent != null) {
-          assert(!context.parent!.isEmpty);
-          struct.fields.add(w.FieldType(
-              w.RefType.def(context.parent!.struct, nullable: true)));
-        }
-        if (context.containsThis) {
-          assert(enclosingClass != null);
-          struct.fields.add(w.FieldType(nullableThisType!));
-        }
-        for (VariableDeclaration variable in context.variables) {
-          int index = struct.fields.length;
-          struct.fields.add(w.FieldType(translator
-              .translateTypeOfLocalVariable(variable)
-              .withNullability(true)));
-          captures[variable]!.fieldIndex = index;
-        }
-        for (TypeParameter parameter in context.typeParameters) {
-          int index = struct.fields.length;
-          struct.fields.add(w.FieldType(typeType.withNullability(true)));
-          captures[parameter]!.fieldIndex = index;
-        }
+      if (context.isEmpty) continue;
+
+      w.StructType struct = context.struct;
+      final parent = context.parent;
+      if (parent != null) {
+        assert(!parent.isEmpty);
+        struct.fields
+            .add(w.FieldType(w.RefType.def(parent.struct, nullable: true)));
+      }
+      if (context.containsThis) {
+        assert(_member.enclosingClass != null);
+        struct.fields.add(w.FieldType(_nullableThisType!));
+      }
+      for (VariableDeclaration variable in context.variables) {
+        int index = struct.fields.length;
+        struct.fields.add(w.FieldType(translator
+            .translateTypeOfLocalVariable(variable)
+            .withNullability(true)));
+        captures[variable]!.fieldIndex = index;
+      }
+      for (TypeParameter parameter in context.typeParameters) {
+        int index = struct.fields.length;
+        struct.fields.add(w.FieldType(typeType.withNullability(true)));
+        captures[parameter]!.fieldIndex = index;
       }
     }
   }
 }
 
-class CaptureFinder extends RecursiveVisitor {
+class _CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
 
@@ -1196,7 +1264,7 @@ class CaptureFinder extends RecursiveVisitor {
 
   int get depth => functionIsSyncStarOrAsync.length - 1;
 
-  CaptureFinder(this.closures, this.member)
+  _CaptureFinder(this.closures, this.member)
       : _currentSource =
             member.enclosingComponent!.uriToSource[member.fileUri]!;
 
@@ -1259,6 +1327,8 @@ class CaptureFinder extends RecursiveVisitor {
       if (functionIsSyncStarOrAsync[declDepth]) capture.written = true;
     } else if (variable is VariableDeclaration &&
         variable.parent is FunctionDeclaration) {
+      // Variable is for a function declaration, the function needs to be
+      // compiled as a closure.
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
     }
   }
@@ -1277,7 +1347,7 @@ class CaptureFinder extends RecursiveVisitor {
 
   void _visitThis() {
     if (depth > 0 || functionIsSyncStarOrAsync[0]) {
-      closures.isThisCaptured = true;
+      closures._isThisCaptured = true;
     }
   }
 
@@ -1344,7 +1414,10 @@ class CaptureFinder extends RecursiveVisitor {
       functionName = "$member closure $functionNodeName at ${node.location}";
     }
     final function = module.functions.define(type, functionName);
-    closures.lambdas[node] = Lambda(node, function, _currentSource);
+    final lambda =
+        Lambda._(node, function, _currentSource, closures.lambdas.length);
+    closures.lambdas[node] = lambda;
+    translator.functions.getLambdaFunction(lambda, member, closures);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
         node.asyncMarker == AsyncMarker.Async);
@@ -1365,12 +1438,12 @@ class CaptureFinder extends RecursiveVisitor {
   }
 }
 
-class ContextCollector extends RecursiveVisitor {
+class _ContextCollector extends RecursiveVisitor {
   final Closures closures;
   Context? currentContext;
   final bool enableAsserts;
 
-  ContextCollector(this.closures, this.enableAsserts);
+  _ContextCollector(this.closures, this.enableAsserts);
 
   @override
   void visitAssertStatement(AssertStatement node) {
@@ -1393,7 +1466,7 @@ class ContextCollector extends RecursiveVisitor {
     while (parent != null && parent.isEmpty) {
       parent = parent.parent;
     }
-    bool containsThis = closures.isThisCaptured && outerMost;
+    bool containsThis = closures._isThisCaptured && outerMost;
     currentContext = Context(node, parent, containsThis);
     closures.contexts[node] = currentContext!;
     node.visitChildren(this);
@@ -1438,7 +1511,7 @@ class ContextCollector extends RecursiveVisitor {
       // Some type arguments or variables have been captured by the
       // initializer list.
 
-      if (closures.isThisCaptured) {
+      if (closures._isThisCaptured) {
         // In this case, we need two contexts: a constructor context to store
         // the captured arguments/type parameters (shared by the initializer
         // and constructor body, and a separate context just for the
@@ -1467,7 +1540,7 @@ class ContextCollector extends RecursiveVisitor {
       // (node.function) for debugging purposes, and drop the
       // constructor allocator context as it is not used.
       final Context constructorBodyContext =
-          Context(node.function, null, closures.isThisCaptured);
+          Context(node.function, null, closures._isThisCaptured);
       currentContext = constructorBodyContext;
 
       node.function.body?.accept(this);

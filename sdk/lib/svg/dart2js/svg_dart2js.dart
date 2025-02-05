@@ -1,3 +1,7 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:svg library.
+
 /// Scalable Vector Graphics:
 /// Two-dimensional vector graphics with support for events and animation.
 ///
@@ -11,6 +15,7 @@
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.svg;
 
 import 'dart:async';
@@ -21,9 +26,6 @@ import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject;
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:svg library.
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31,8 +33,10 @@ import 'dart:_interceptors' show JavaScriptObject;
 
 class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
-    final Element temp =
-        document.createElementNS("http://www.w3.org/2000/svg", tag);
+    final Element temp = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      tag,
+    );
     return temp as SvgElement;
   }
 }
@@ -2998,8 +3002,11 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   factory SvgElement.tag(String tag) =>
       document.createElementNS("http://www.w3.org/2000/svg", tag) as SvgElement;
-  factory SvgElement.svg(String svg,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  factory SvgElement.svg(
+    String svg, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
     }
@@ -3011,8 +3018,11 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     } else {
       parentElement = new SvgSvgElement();
     }
-    var fragment = parentElement.createFragment(svg,
-        validator: validator, treeSanitizer: treeSanitizer);
+    var fragment = parentElement.createFragment(
+      svg,
+      validator: validator,
+      treeSanitizer: treeSanitizer,
+    );
     return fragment.nodes.where((e) => e is SvgElement).single as SvgElement;
   }
 
@@ -3044,8 +3054,11 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String? svg,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  DocumentFragment createFragment(
+    String? svg, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     if (treeSanitizer == null) {
       if (validator == null) {
         validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -3055,8 +3068,10 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
-    var fragment =
-        document.body!.createFragment(html, treeSanitizer: treeSanitizer);
+    var fragment = document.body!.createFragment(
+      html,
+      treeSanitizer: treeSanitizer,
+    );
 
     var svgFragment = new DocumentFragment();
     // The root is the <svg/> element, need to pull out the contents.
@@ -3073,8 +3088,12 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
   }
 
-  void insertAdjacentHtml(String where, String text,
-      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+  void insertAdjacentHtml(
+    String where,
+    String text, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
@@ -3519,8 +3538,10 @@ class SvgSvgElement extends GraphicsElement
 
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getIntersectionList(Rect rect, SvgElement? referenceElement)
-      native;
+  List<Node> getIntersectionList(
+    Rect rect,
+    SvgElement? referenceElement,
+  ) native;
 
   void pauseAnimations() native;
 

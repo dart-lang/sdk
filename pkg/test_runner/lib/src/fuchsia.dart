@@ -25,7 +25,7 @@ class FuchsiaEmulator {
     var args = <String>[
       "./build/fuchsia/test_env.py",
       "--out-dir=${_outDir(buildDir, mode)}",
-      "--device-spec=virtual_device_large",
+      "--device-spec=$arch-emu-large",
       "--packages=dart_test_$mode.far",
       "--logs-dir=${daemonIsolateDir!.path}"
     ];

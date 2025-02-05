@@ -45,10 +45,7 @@ linter:
     await verifyCompletions(
       analysisOptionsUri,
       content,
-      expectCompletions: [
-        'always_declare_return_types',
-        'annotate_overrides',
-      ],
+      expectCompletions: ['always_declare_return_types', 'annotate_overrides'],
       applyEditsFor: 'annotate_overrides',
       expectedContent: expected,
     );
@@ -284,11 +281,7 @@ environment:
 name: foo
   ^''';
 
-    await verifyCompletions(
-      pubspecFileUri,
-      content,
-      expectCompletions: [],
-    );
+    await verifyCompletions(pubspecFileUri, content, expectCompletions: []);
   }
 
   Future<void> test_nested_prefix() async {
@@ -414,20 +407,23 @@ dependencies:
 
     // Versions are currently only available if we've previously resolved on the
     // package name, so first complete/resolve that.
-    var newContent = (await verifyCompletions(
-      pubspecFileUri,
-      content,
-      expectCompletions: ['one: '],
-      resolve: true,
-      applyEditsFor: 'one: ',
-      openCloseFile: false,
-    ))!;
+    var newContent =
+        (await verifyCompletions(
+          pubspecFileUri,
+          content,
+          expectCompletions: ['one: '],
+          resolve: true,
+          applyEditsFor: 'one: ',
+          openCloseFile: false,
+        ))!;
     await replaceFile(222, pubspecFileUri, newContent);
 
     await verifyCompletions(
       pubspecFileUri,
       newContent.replaceFirst(
-          'one: ', 'one: ^'), // Insert caret at new location
+        'one: ',
+        'one: ^',
+      ), // Insert caret at new location
       expectCompletions: ['^1.2.3'],
       applyEditsFor: '^1.2.3',
       expectedContent: expected,
@@ -616,8 +612,10 @@ dependencies:
     await openFile(pubspecFileUri, content);
     await pumpEventQueue();
 
-    completionResults =
-        await getCompletion(pubspecFileUri, code.position.position);
+    completionResults = await getCompletion(
+      pubspecFileUri,
+      code.position.position,
+    );
     expect(completionResults.length, equals(1));
     expect(completionResults.single.label, equals('one: '));
   }

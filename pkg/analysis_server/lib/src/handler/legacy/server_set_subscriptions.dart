@@ -13,17 +13,22 @@ class ServerSetSubscriptionsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   ServerSetSubscriptionsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     try {
-      server.serverServices = ServerSetSubscriptionsParams.fromRequest(request,
-              clientUriConverter: server.uriConverter)
-          .subscriptions
-          .toSet();
-      server.requestStatistics?.isNotificationSubscribed =
-          server.serverServices.contains(ServerService.LOG);
+      server.serverServices =
+          ServerSetSubscriptionsParams.fromRequest(
+            request,
+            clientUriConverter: server.uriConverter,
+          ).subscriptions.toSet();
+      server.requestStatistics?.isNotificationSubscribed = server.serverServices
+          .contains(ServerService.LOG);
     } on RequestFailure catch (exception) {
       sendResponse(exception.response);
       return;

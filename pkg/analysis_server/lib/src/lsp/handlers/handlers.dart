@@ -22,6 +22,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:language_server_protocol/json_parsing.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
@@ -58,11 +59,15 @@ abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
 mixin Handler<T> {
   // TODO(dantup): Merge this into HandlerHelperMixin by converting to methods
   //  so T can be inferred.
-  final fileModifiedError = error<T>(ErrorCodes.ContentModified,
-      'Document was modified before operation completed');
+  final fileModifiedError = error<T>(
+    ErrorCodes.ContentModified,
+    'Document was modified before operation completed',
+  );
 
-  final serverNotInitializedError = error<T>(ErrorCodes.ServerNotInitialized,
-      'Request not valid before server is initialized');
+  final serverNotInitializedError = error<T>(
+    ErrorCodes.ServerNotInitialized,
+    'Request not valid before server is initialized',
+  );
 }
 
 /// Provides some helpers for request handlers to produce common errors or
@@ -76,17 +81,60 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   /// A [Future] that completes when both the client has finished initializing
   /// and any in-progress context rebuilds are complete.
-  Future<void> get _initializedWithContexts =>
-      Future.value(server.lspInitialized)
-          .then((_) => server.analysisContextsRebuilt);
+  Future<void> get _initializedWithContexts => Future.value(
+    server.lspInitialized,
+  ).then((_) => server.analysisContextsRebuilt);
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
-      ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
+    ServerErrorCodes.FileAnalysisFailed,
+    'Analysis failed for file',
+    path,
+  );
+
+  /// Extracts the current document version from [textDocument] if available,
+  /// or uses the version that the server has via
+  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
+  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
+    TextDocumentIdentifier textDocument,
+    String path,
+  ) {
+    return switch (textDocument) {
+      OptionalVersionedTextDocumentIdentifier() => textDocument,
+      VersionedTextDocumentIdentifier() =>
+        OptionalVersionedTextDocumentIdentifier(
+          uri: textDocument.uri,
+          version: textDocument.version,
+        ),
+      _ => server.getVersionedDocumentIdentifier(path),
+    };
+  }
+
+  bool fileHasBeenModified(String path, int? clientVersion) {
+    var serverDocumentVersion = server.getDocumentVersion(path);
+    return clientVersion != null && clientVersion != serverDocumentVersion;
+  }
 
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
-      ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
+    ServerErrorCodes.FileNotAnalyzed,
+    'File is not being analyzed',
+    path,
+  );
 
-  /// Returns whether [doc] is a user-editable document or not.
+  ErrorOr<LineInfo> getLineInfo(String path) {
+    var lineInfo = server.getLineInfo(path);
+
+    if (lineInfo == null) {
+      return error(
+        ServerErrorCodes.InvalidFilePath,
+        'Unable to obtain line information for file',
+        path,
+      );
+    } else {
+      return success(lineInfo);
+    }
+  }
+
+  /// Returns whether the file at [uri] is a user-editable document.
   ///
   /// Only editable documents have overlays and can be modified by the client.
   bool isEditableDocument(Uri uri) {
@@ -106,34 +154,42 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   /// file URI.
   ErrorOr<String> pathOfUri(Uri? uri) {
     if (uri == null) {
-      return ErrorOr<String>.error(ResponseError(
-        code: ServerErrorCodes.InvalidFilePath,
-        message: 'Document URI was not supplied',
-      ));
+      return ErrorOr<String>.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'Document URI was not supplied',
+        ),
+      );
     }
 
     // For URIs with no scheme, assume it was a relative path and provide a
     // better message than "scheme '' is not supported".
     if (uri.scheme.isEmpty) {
-      return ErrorOr<String>.error(ResponseError(
-        code: ServerErrorCodes.InvalidFilePath,
-        message: 'URI is not a valid file:// URI',
-        data: uri.toString(),
-      ));
+      return ErrorOr<String>.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'URI is not a valid file:// URI',
+          data: uri.toString(),
+        ),
+      );
     }
 
     var supportedSchemes = server.uriConverter.supportedSchemes;
     var isValidScheme = supportedSchemes.contains(uri.scheme);
     if (!isValidScheme) {
-      var supportedSchemesString = supportedSchemes.isEmpty
-          ? '(none)'
-          : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
-      return ErrorOr<String>.error(ResponseError(
-        code: ServerErrorCodes.InvalidFilePath,
-        message: "URI scheme '${uri.scheme}' is not supported. "
-            'Allowed schemes are $supportedSchemesString.',
-        data: uri.toString(),
-      ));
+      var supportedSchemesString =
+          supportedSchemes.isEmpty
+              ? '(none)'
+              : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
+      return ErrorOr<String>.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message:
+              "URI scheme '${uri.scheme}' is not supported. "
+              'Allowed schemes are $supportedSchemesString.',
+          data: uri.toString(),
+        ),
+      );
     }
     try {
       var context = server.resourceProvider.pathContext;
@@ -151,22 +207,28 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       // supported but will return `true` from `path.isAbsolute` so check for them
       // specifically.
       if (isWindows && filePath.startsWith(r'\')) {
-        return ErrorOr<String>.error(ResponseError(
-          code: ServerErrorCodes.InvalidFilePath,
-          message: 'URI does not contain an absolute file path '
-              '(missing drive letter)',
-          data: uri.toString(),
-        ));
+        return ErrorOr<String>.error(
+          ResponseError(
+            code: ServerErrorCodes.InvalidFilePath,
+            message:
+                'URI does not contain an absolute file path '
+                '(missing drive letter)',
+            data: uri.toString(),
+          ),
+        );
       }
       // Use the proper converter for the return value.
       return ErrorOr<String>.success(uriConverter.fromClientUri(uri));
     } catch (e) {
       // Even if tryParse() works and file == scheme, fromUri() can throw on
       // Windows if there are invalid characters.
-      return ErrorOr<String>.error(ResponseError(
+      return ErrorOr<String>.error(
+        ResponseError(
           code: ServerErrorCodes.InvalidFilePath,
           message: 'URI does not contain a valid file path',
-          data: uri.toString()));
+          data: uri.toString(),
+        ),
+      );
     }
   }
 
@@ -185,8 +247,10 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
         await _initializedWithContexts;
-        return requireResolvedLibrary(path,
-            waitForInProgressContextRebuilds: false);
+        return requireResolvedLibrary(
+          path,
+          waitForInProgressContextRebuilds: false,
+        );
       }
 
       // If the file was being analyzed and we got a null result, that usually
@@ -213,8 +277,10 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
         await _initializedWithContexts;
-        return requireResolvedUnit(path,
-            waitForInProgressContextRebuilds: false);
+        return requireResolvedUnit(
+          path,
+          waitForInProgressContextRebuilds: false,
+        );
       }
 
       // If the file was being analyzed and we got a null result, that usually
@@ -225,7 +291,10 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     } else if (!result.exists) {
       return error(
-          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
+        ServerErrorCodes.InvalidFilePath,
+        'File does not exist',
+        path,
+      );
     }
     return success(result);
   }
@@ -239,8 +308,10 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
         await _initializedWithContexts;
-        return requireUnresolvedUnit(path,
-            waitForInProgressContextRebuilds: false);
+        return requireUnresolvedUnit(
+          path,
+          waitForInProgressContextRebuilds: false,
+        );
       }
 
       // If the file was being analyzed and we got a null result, that usually
@@ -251,44 +322,6 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     }
     return success(result);
-  }
-}
-
-/// Provides some helpers for request handlers to produce common errors or
-/// obtain resolved results after waiting for in-progress analysis.
-mixin LspHandlerHelperMixin {
-  LspAnalysisServer get server;
-
-  /// Extracts the current document version from [textDocument] if available,
-  /// or uses the version that the server has via
-  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
-  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
-    TextDocumentIdentifier textDocument,
-    String path,
-  ) {
-    return switch (textDocument) {
-      OptionalVersionedTextDocumentIdentifier() => textDocument,
-      VersionedTextDocumentIdentifier() =>
-        OptionalVersionedTextDocumentIdentifier(
-            uri: textDocument.uri, version: textDocument.version),
-      _ => server.getVersionedDocumentIdentifier(path),
-    };
-  }
-
-  bool fileHasBeenModified(String path, int? clientVersion) {
-    var serverDocumentVersion = server.getDocumentVersion(path);
-    return clientVersion != null && clientVersion != serverDocumentVersion;
-  }
-
-  ErrorOr<LineInfo> getLineInfo(String path) {
-    var lineInfo = server.getLineInfo(path);
-
-    if (lineInfo == null) {
-      return error(ServerErrorCodes.InvalidFilePath,
-          'Unable to obtain line information for file', path);
-    } else {
-      return success(lineInfo);
-    }
   }
 }
 
@@ -314,8 +347,11 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
   }) {
     var driver = server.getAnalysisDriver(path);
     var pluginFutures = server.broadcastRequestToPlugins(params, driver);
-    return waitForResponses(pluginFutures,
-        requestParameters: params, timeout: timeout);
+    return waitForResponses(
+      pluginFutures,
+      requestParameters: params,
+      timeout: timeout,
+    );
   }
 }
 
@@ -331,6 +367,12 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
 
   /// The method that this handler can handle.
   Method get handlesMessage;
+
+  /// Whether this handler is experimental (that is, the method is currently
+  /// prefixed with 'experimental/').
+  @nonVirtual
+  bool get isExperimental =>
+      handlesMessage.toString().startsWith('experimental/');
 
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;
@@ -348,13 +390,19 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
   bool get requiresTrustedCaller;
 
   FutureOr<ErrorOr<R>> handle(
-      P params, MessageInfo message, CancellationToken token);
+    P params,
+    MessageInfo message,
+    CancellationToken token,
+  );
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message,
-      MessageInfo messageInfo, CancellationToken token) {
+  FutureOr<ErrorOr<R>> handleMessage(
+    IncomingMessage message,
+    MessageInfo messageInfo,
+    CancellationToken token,
+  ) {
     var reporter = LspJsonReporter('params');
     var paramsJson = message.params as Map<String, Object?>?;
     if (!jsonHandler.validateParams(paramsJson, reporter)) {
@@ -376,7 +424,7 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
 /// provided to a handler.
 class MessageInfo {
   /// Returns the amount of time (in milliseconds) since the client sent this
-  /// request or `null` if the client did not provide [clientRequestTime].
+  /// request or `null` if the client did not provide `clientRequestTime`.
   final int? timeSinceRequest;
 
   final OperationPerformanceImpl performance;
@@ -392,6 +440,11 @@ class MessageInfo {
   /// May be null for messages sent prior to initialization.
   final LspClientCapabilities? clientCapabilities;
 
+  /// The completer used to indicate that the handler is paused waiting on user
+  /// response. The completer, if any, is set to complete before a dialog is
+  /// shown.
+  final Completer<void>? completer;
+
   MessageInfo({
     required this.performance,
     // TODO(dantup): Consider a version of this that has a non-nullable
@@ -400,6 +453,7 @@ class MessageInfo {
     //  to run without, so it would remove a bunch of boilerplate in the others.
     required this.clientCapabilities,
     this.timeSinceRequest,
+    this.completer,
   });
 }
 
@@ -416,13 +470,13 @@ mixin PositionalArgCommandHandler {
 abstract class ServerStateMessageHandler {
   final AnalysisServer server;
   final Map<Method, MessageHandler<Object?, Object?, AnalysisServer>>
-      messageHandlers = {};
-  final CancelRequestHandler _cancelHandler;
+  messageHandlers = {};
+  final CancelRequestHandler cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
   ServerStateMessageHandler(this.server)
-      : _cancelHandler = CancelRequestHandler(server) {
-    registerHandler(_cancelHandler);
+    : cancelHandler = CancelRequestHandler(server) {
+    registerHandler(cancelHandler);
   }
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
@@ -446,19 +500,27 @@ abstract class ServerStateMessageHandler {
     // server), create a new cancellation token that will allow us to cancel
     // this request if requested. This saves some processing but the handler
     // will need to specifically check the token after `await`s.
-    cancellationToken ??= _cancelHandler.createToken(message);
+    cancellationToken ??= cancelHandler.createToken(message);
     try {
-      var result =
-          await handler.handleMessage(message, messageInfo, cancellationToken);
+      if (cancellationToken.isCancellationRequested) {
+        return cancelled(cancellationToken);
+      }
+      var result = await handler.handleMessage(
+        message,
+        messageInfo,
+        cancellationToken,
+      );
       // Do a final check before returning the result, because if the request was
       // cancelled we can save the overhead of serializing everything to JSON
       // and the client to deserializing the same in order to read the ID to see
       // that it was a request it didn't need (in the case of completions this
       // can be quite large).
       await Future.delayed(Duration.zero);
-      return cancellationToken.isCancellationRequested ? cancelled() : result;
+      return cancellationToken.isCancellationRequested
+          ? cancelled(cancellationToken)
+          : result;
     } finally {
-      _cancelHandler.clearToken(message);
+      cancelHandler.clearToken(message);
     }
   }
 
@@ -472,7 +534,8 @@ abstract class ServerStateMessageHandler {
   }
 
   void registerHandler(
-      MessageHandler<Object?, Object?, AnalysisServer> handler) {
+    MessageHandler<Object?, Object?, AnalysisServer> handler,
+  ) {
     messageHandlers[handler.handlesMessage] = handler;
   }
 

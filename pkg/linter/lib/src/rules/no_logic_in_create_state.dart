@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r"Don't put any logic in createState.";
@@ -42,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parent = node.parent;
     if (parent is! ClassDeclaration ||
-        !isStatefulWidget(parent.declaredElement)) {
+        !isStatefulWidget(parent.declaredFragment?.element)) {
       return;
     }
     var body = node.body;

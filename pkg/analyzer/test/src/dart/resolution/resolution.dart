@@ -2,23 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -46,6 +50,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
@@ -63,6 +68,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get futureElement => typeProvider.futureElement;
 
+  InheritanceManager3 get inheritanceManager {
+    var library = result.libraryElement2 as LibraryElementImpl;
+    return library.session.inheritanceManager;
+  }
+
   ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
@@ -79,8 +89,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       typeProvider.objectType.element as ClassElement;
 
   bool get strictCasts {
-    var analysisOptions = result.session.analysisContext
-        .getAnalysisOptionsForFile(result.file) as AnalysisOptionsImpl;
+    var analysisOptions =
+        result.session.analysisContext.getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
 
@@ -155,6 +165,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     if (element is Member) {
       assertSubstitution(element.substitution, substitution);
+    } else if (substitution.isNotEmpty) {
+      fail('Expected to be a Member: (${element.runtimeType}) $element');
+    }
+  }
+
+  void assertElement3(
+    Object? nodeOrElement, {
+    required Element2 declaration,
+    Map<String, String> substitution = const {},
+  }) {
+    Element2? element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement2(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element2?;
+    }
+
+    var actualDeclaration = element?.baseElement;
+    expect(actualDeclaration, same(declaration));
+
+    if (element is Member) {
+      assertSubstitution((element as Member).substitution, substitution);
     } else if (substitution.isNotEmpty) {
       fail('Expected to be a Member: (${element.runtimeType}) $element');
     }
@@ -459,6 +491,57 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  Element2? getNodeElement2(AstNode node) {
+    if (node is Annotation) {
+      return node.element2;
+    } else if (node is AssignmentExpression) {
+      return node.element;
+    } else if (node is BinaryExpression) {
+      return node.element;
+    } else if (node is ConstructorReference) {
+      return node.constructorName.element;
+    } else if (node is Declaration) {
+      return node.declaredFragment?.element;
+    } else if (node is ExtensionOverride) {
+      return node.element2;
+    } else if (node is FormalParameter) {
+      return node.declaredFragment?.element;
+    } else if (node is FunctionExpressionInvocation) {
+      return node.element;
+    } else if (node is FunctionReference) {
+      var function = node.function.unParenthesized;
+      if (function is Identifier) {
+        return function.element;
+      } else if (function is PropertyAccess) {
+        return function.propertyName.element;
+      } else if (function is ConstructorReference) {
+        return function.constructorName.element;
+      } else {
+        fail('Unsupported node: (${function.runtimeType}) $function');
+      }
+    } else if (node is Identifier) {
+      return node.element;
+    } else if (node is ImplicitCallReference) {
+      return node.element;
+    } else if (node is IndexExpression) {
+      return node.element;
+    } else if (node is InstanceCreationExpression) {
+      return node.constructorName.element;
+    } else if (node is MethodInvocation) {
+      return node.methodName.element;
+    } else if (node is PostfixExpression) {
+      return node.element;
+    } else if (node is PrefixExpression) {
+      return node.element;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.element;
+    } else if (node is NamedType) {
+      return node.element2;
+    } else {
+      fail('Unsupported node: (${node.runtimeType}) $node');
+    }
+  }
+
   ExpectedContextMessage message(File file, int offset, int length) =>
       ExpectedContextMessage(file, offset, length);
 
@@ -474,6 +557,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
   }
 
   /// Create a new file with the [path] and [content], resolve it into [result].
@@ -585,6 +669,10 @@ class _MultiplyDefinedElementMatcher extends Matcher {
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
   FindElement get findElement {
     return FindElement(unit);
+  }
+
+  FindElement2 get findElement2 {
+    return FindElement2(unit);
   }
 
   FindNode get findNode {

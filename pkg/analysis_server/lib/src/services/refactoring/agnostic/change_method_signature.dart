@@ -15,7 +15,7 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -36,12 +36,8 @@ Availability analyzeAvailability({
 
 /// Continues analysis of the selection in [available], and returns either
 /// a [ValidSelectionState], or one of [ErrorSelectionState] subtypes.
-Future<SelectionState> analyzeSelection({
-  required Available available,
-}) async {
-  return _SelectionAnalyzer(
-    available: available,
-  ).analyze();
+Future<SelectionState> analyzeSelection({required Available available}) {
+  return _SelectionAnalyzer(available: available).analyze();
 }
 
 /// Fills [builder] with changes as requested with [signatureUpdate], and
@@ -57,9 +53,7 @@ Future<ChangeStatus> computeSourceChange({
   return await _SignatureUpdater(
     selectionState: selectionState,
     signatureUpdate: signatureUpdate,
-  ).compute(
-    builder: builder,
-  );
+  ).compute(builder: builder);
 }
 
 sealed class Availability {}
@@ -67,9 +61,7 @@ sealed class Availability {}
 sealed class Available extends Availability {
   final AbstractRefactoringContext refactoringContext;
 
-  Available({
-    required this.refactoringContext,
-  });
+  Available({required this.refactoringContext});
 
   bool get hasPositionalParameters;
 
@@ -116,7 +108,7 @@ final class FormalParameterState {
   final int id;
 
   /// The element, used internally for `super` conversion.
-  final ParameterElement element;
+  final FormalParameterElement element;
 
   /// The current kind of the formal parameter.
   final FormalParameterKind kind;
@@ -250,7 +242,7 @@ final class ValidSelectionState extends SelectionState {
 
   /// The element of the target method, used to find corresponding methods
   /// in the class hierarchy.
-  final ExecutableElement element;
+  final ExecutableElement2 element;
 
   /// The current formal parameters.
   final List<FormalParameterState> formalParameters;
@@ -265,9 +257,7 @@ final class ValidSelectionState extends SelectionState {
 class _AvailabilityAnalyzer {
   final AbstractRefactoringContext refactoringContext;
 
-  _AvailabilityAnalyzer({
-    required this.refactoringContext,
-  });
+  _AvailabilityAnalyzer({required this.refactoringContext});
 
   Availability analyze() {
     var declaration = _declaration();
@@ -310,13 +300,9 @@ class _AvailabilityAnalyzer {
     }
 
     _Declaration? buildDeclaration(Declaration node) {
-      var element = node.declaredElement;
-      if (element is ExecutableElement) {
-        return _Declaration(
-          element: element,
-          node: node,
-          selected: selected,
-        );
+      var element = node.declaredFragment?.element;
+      if (element is ExecutableElement2) {
+        return _Declaration(element: element, node: node, selected: selected);
       }
       return null;
     }
@@ -387,20 +373,20 @@ class _AvailabilityAnalyzer {
   Availability _executableElement() {
     var coveringNode = refactoringContext.coveringNode;
 
-    Element? element;
+    Element2? element;
     if (coveringNode is SimpleIdentifier) {
       var invocation = coveringNode.parent;
       if (invocation is MethodInvocation &&
           invocation.methodName == coveringNode) {
-        element = invocation.methodName.staticElement;
+        element = invocation.methodName.element;
       }
     }
 
-    if (element is! ExecutableElement) {
+    if (element is! ExecutableElement2) {
       return NotAvailableNoExecutableElement();
     }
 
-    var libraryFilePath = element.librarySource.fullName;
+    var libraryFilePath = element.library2.firstFragment.source.fullName;
     if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
       return NotAvailableExternalElement();
     }
@@ -422,7 +408,7 @@ final class _AvailableWithDeclaration extends Available {
 
   @override
   bool get hasPositionalParameters {
-    return declaration.element.parameters.any((e) => e.isPositional);
+    return declaration.element.formalParameters.any((e) => e.isPositional);
   }
 
   @override
@@ -487,7 +473,7 @@ final class _AvailableWithDeclaration extends Available {
 }
 
 final class _AvailableWithExecutableElement extends Available {
-  final ExecutableElement element;
+  final ExecutableElement2 element;
 
   _AvailableWithExecutableElement({
     required super.refactoringContext,
@@ -496,13 +482,13 @@ final class _AvailableWithExecutableElement extends Available {
 
   @override
   bool get hasPositionalParameters {
-    return element.parameters.any((e) => e.isPositional);
+    return element.formalParameters.any((e) => e.isPositional);
   }
 }
 
 /// The target method declaration.
 class _Declaration {
-  final ExecutableElement element;
+  final ExecutableElement2 element;
   final AstNode node;
   final List<FormalParameter> selected;
 
@@ -518,19 +504,14 @@ final class _DeclarationFormalParameters {
   final List<FormalParameter> positional;
   final Map<String, FormalParameter> named;
 
-  _DeclarationFormalParameters({
-    required this.positional,
-    required this.named,
-  });
+  _DeclarationFormalParameters({required this.positional, required this.named});
 }
 
 /// The class that implements [analyzeSelection].
 class _SelectionAnalyzer {
   final Available available;
 
-  _SelectionAnalyzer({
-    required this.available,
-  });
+  _SelectionAnalyzer({required this.available});
 
   AbstractRefactoringContext get refactoringContext {
     return available.refactoringContext;
@@ -570,7 +551,7 @@ class _SelectionAnalyzer {
         return const UnexpectedSelectionState();
       }
 
-      var parameterElement = parameterNode.declaredElement;
+      var parameterElement = parameterNode.declaredFragment?.element;
       if (parameterElement == null) {
         return const UnexpectedSelectionState();
       }
@@ -608,17 +589,13 @@ class _SelectionAnalyzer {
           return null;
         }
 
-        return _Declaration(
-          element: element,
-          node: node,
-          selected: const [],
-        );
+        return _Declaration(element: element, node: node, selected: const []);
     }
   }
 
-  Future<AstNode?> _elementDeclaration(ExecutableElement element) async {
+  Future<AstNode?> _elementDeclaration(ExecutableElement2 element) async {
     var helper = refactoringContext.sessionHelper;
-    var nodeResult = await helper.getElementDeclaration(element);
+    var nodeResult = await helper.getElementDeclaration(element.firstFragment);
     return nodeResult?.node;
   }
 }
@@ -643,9 +620,7 @@ class _SignatureUpdater {
 
   AnalysisSessionHelper get sessionHelper => refactoringContext.sessionHelper;
 
-  Future<ChangeStatus> compute({
-    required ChangeBuilder builder,
-  }) async {
+  Future<ChangeStatus> compute({required ChangeBuilder builder}) async {
     var formalParameterStatus = validateFormalParameterUpdates();
     if (formalParameterStatus is! ChangeStatusSuccess) {
       return formalParameterStatus;
@@ -678,24 +653,27 @@ class _SignatureUpdater {
   /// a function, only the elements itself has to be updated. If the target
   /// is a class method, then every element in this class hierarchy should
   /// be updated.
-  Future<List<ExecutableElement>> computeElements() async {
+  Future<List<ExecutableElement2>> computeElements() async {
     var element = selectionState.element;
-    if (element case ClassMemberElement member) {
-      var set = await getHierarchyMembers(searchEngine, member);
-      return set.whereType<ExecutableElement>().toList();
+    switch (element) {
+      case ConstructorElement2():
+      case MethodElement2():
+        var set = await getHierarchyMembers(searchEngine, element);
+        return set.whereType<ExecutableElement2>().toList();
+      default:
+        return [element];
     }
-    return [element];
   }
 
-  /// Returns the [MethodDeclaration] for a [MethodElement].
-  Future<AstNode?> elementDeclaration(ExecutableElement element) async {
+  /// Returns the [MethodDeclaration] for a [MethodElement2].
+  Future<AstNode?> elementDeclaration(ExecutableElement2 element) async {
     var helper = sessionHelper;
-    var result = await helper.getElementDeclaration(element);
+    var result = await helper.getElementDeclaration(element.firstFragment);
     return result?.node;
   }
 
   /// Returns the [Selection] for the [reference], using the resolved unit.
-  /// Used to find [MethodInvocation]s of a [MethodElement].
+  /// Used to find [MethodInvocation]s of a [MethodElement2].
   Future<Selection?> referenceSelection(SearchMatch reference) async {
     var unitResult = await referenceUnitResult(reference);
     return unitResult?.unit.select(
@@ -705,10 +683,8 @@ class _SignatureUpdater {
   }
 
   /// Returns the resolved unit with [reference].
-  Future<ResolvedUnitResult?> referenceUnitResult(
-    SearchMatch reference,
-  ) async {
-    var element = reference.element;
+  Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
+    var element = reference.element2;
     return await sessionHelper.getResolvedUnitByElement(element);
   }
 
@@ -720,29 +696,31 @@ class _SignatureUpdater {
     required ArgumentList argumentList,
     required ChangeBuilder builder,
   }) async {
-    var formalParameters = signatureUpdate.formalParameters
-        .whereNot(excludedFormalParameters.contains)
-        .toList();
+    var formalParameters =
+        signatureUpdate.formalParameters
+            .whereNot(excludedFormalParameters.contains)
+            .toList();
 
     var frameworkStatus = await framework.writeArguments(
-      formalParameterUpdates: formalParameters.map((update) {
-        // TODO(scheglov): Maybe support adding formal parameters.
-        var existing = selectionState.formalParameters[update.id];
-        var reference = _asFrameworkFormalParameterReference(existing);
-        switch (update.kind) {
-          case FormalParameterKind.requiredPositional:
-          case FormalParameterKind.optionalPositional:
-            return framework.FormalParameterUpdateExistingPositional(
-              reference: reference,
-            );
-          case FormalParameterKind.requiredNamed:
-          case FormalParameterKind.optionalNamed:
-            return framework.FormalParameterUpdateExistingNamed(
-              reference: reference,
-              name: existing.name,
-            );
-        }
-      }).toList(),
+      formalParameterUpdates:
+          formalParameters.map((update) {
+            // TODO(scheglov): Maybe support adding formal parameters.
+            var existing = selectionState.formalParameters[update.id];
+            var reference = _asFrameworkFormalParameterReference(existing);
+            switch (update.kind) {
+              case FormalParameterKind.requiredPositional:
+              case FormalParameterKind.optionalPositional:
+                return framework.FormalParameterUpdateExistingPositional(
+                  reference: reference,
+                );
+              case FormalParameterKind.requiredNamed:
+              case FormalParameterKind.optionalNamed:
+                return framework.FormalParameterUpdateExistingNamed(
+                  reference: reference,
+                  name: existing.name,
+                );
+            }
+          }).toList(),
       removedNamedFormalParameters:
           signatureUpdate.removedNamedFormalParameters,
       trailingComma: signatureUpdate.argumentsTrailingComma,
@@ -762,10 +740,10 @@ class _SignatureUpdater {
   /// Replaces formal parameters of [element] with new code as requested
   /// by the formal parameter updates, reordering, changing kind, etc.
   Future<ChangeStatus> updateDeclaration({
-    required ExecutableElement element,
+    required ExecutableElement2 element,
     required ChangeBuilder builder,
   }) async {
-    var path = element.source.fullName;
+    var path = element.firstFragment.libraryFragment.source.fullName;
 
     var unitResult = await sessionHelper.getResolvedUnitByElement(element);
     if (unitResult == null) {
@@ -795,9 +773,7 @@ class _SignatureUpdater {
           var before = utils.getRangeText(
             range.startStart(existing, nameToken),
           );
-          var after = utils.getRangeText(
-            range.startEnd(nameToken, existing),
-          );
+          var after = utils.getRangeText(range.startEnd(nameToken, existing));
           return '${before}super.$after';
         } else {
           return utils.getNodeText(existing);
@@ -806,10 +782,7 @@ class _SignatureUpdater {
     }
 
     /// Returns the code with the `required` modifier.
-    String withRequired(
-      FormalParameter existing, {
-      required bool withSuper,
-    }) {
+    String withRequired(FormalParameter existing, {required bool withSuper}) {
       var notDefault = existing.notDefault;
       var requiredToken = notDefault.requiredKeyword;
       if (requiredToken != null) {
@@ -859,15 +832,16 @@ class _SignatureUpdater {
     for (var update in signatureUpdate.formalParameters) {
       FormalParameter? existing;
       var id = update.id;
-      var formalParameterState =
-          selectionState.formalParameters.elementAtOrNull2(id);
+      var formalParameterState = selectionState.formalParameters
+          .elementAtOrNull2(id);
       if (formalParameterState == null) {
         return ChangeStatusFailure();
       }
       var positionalIndex = formalParameterState.positionalIndex;
       if (positionalIndex != null) {
-        existing = existingFormalParameters.positional
-            .elementAtOrNull2(positionalIndex);
+        existing = existingFormalParameters.positional.elementAtOrNull2(
+          positionalIndex,
+        );
         if (existing == null) {
           return ChangeStatusFailure();
         }
@@ -890,22 +864,13 @@ class _SignatureUpdater {
               );
               requiredPositionalWrites.add(text);
             case FormalParameterKind.optionalPositional:
-              var text = withoutRequired(
-                existing,
-                withSuper: update.withSuper,
-              );
+              var text = withoutRequired(existing, withSuper: update.withSuper);
               optionalPositionalWrites.add(text);
             case FormalParameterKind.requiredNamed:
-              var text = withRequired(
-                existing,
-                withSuper: update.withSuper,
-              );
+              var text = withRequired(existing, withSuper: update.withSuper);
               namedWrites.add(text);
             case FormalParameterKind.optionalNamed:
-              var text = withoutRequired(
-                existing,
-                withSuper: update.withSuper,
-              );
+              var text = withoutRequired(existing, withSuper: update.withSuper);
               namedWrites.add(text);
           }
         default:
@@ -924,73 +889,70 @@ class _SignatureUpdater {
     });
 
     await builder.addDartFileEdit(path, (builder) {
-      builder.addReplacement(
-        range.node(formalParameterList),
-        (builder) {
-          builder.write('(');
-          var hasParameterWritten = false;
+      builder.addReplacement(range.node(formalParameterList), (builder) {
+        builder.write('(');
+        var hasParameterWritten = false;
 
-          void writeOptionalParameters({
-            required List<String> parameters,
-            required String leftSeparator,
-            required String rightSeparator,
-          }) {
-            if (parameters.isNotEmpty) {
-              if (hasParameterWritten) {
-                builder.write(', ');
-                hasParameterWritten = false;
-              }
-              builder.write(leftSeparator);
-              for (var writeParameter in parameters) {
-                if (hasParameterWritten) {
-                  builder.write(', ');
-                }
-                builder.write(writeParameter);
-                hasParameterWritten = true;
-              }
-              writeFormalParametersTrailingComma(
-                formalParameterList: formalParameterList,
-                builder: builder,
-              );
-              builder.write(rightSeparator);
-            }
-          }
-
-          // Write required positional parameters.
-          for (var writeParameter in requiredPositionalWrites) {
+        void writeOptionalParameters({
+          required List<String> parameters,
+          required String leftSeparator,
+          required String rightSeparator,
+        }) {
+          if (parameters.isNotEmpty) {
             if (hasParameterWritten) {
               builder.write(', ');
+              hasParameterWritten = false;
             }
-            builder.write(writeParameter);
-            hasParameterWritten = true;
-          }
-
-          // Maybe write the trailing comma.
-          if (requiredPositionalWrites.isNotEmpty &&
-              optionalPositionalWrites.isEmpty &&
-              namedWrites.isEmpty) {
+            builder.write(leftSeparator);
+            for (var writeParameter in parameters) {
+              if (hasParameterWritten) {
+                builder.write(', ');
+              }
+              builder.write(writeParameter);
+              hasParameterWritten = true;
+            }
             writeFormalParametersTrailingComma(
               formalParameterList: formalParameterList,
               builder: builder,
             );
+            builder.write(rightSeparator);
           }
+        }
 
-          // Write optional positional parameters.
-          writeOptionalParameters(
-            parameters: optionalPositionalWrites,
-            leftSeparator: '[',
-            rightSeparator: ']',
-          );
+        // Write required positional parameters.
+        for (var writeParameter in requiredPositionalWrites) {
+          if (hasParameterWritten) {
+            builder.write(', ');
+          }
+          builder.write(writeParameter);
+          hasParameterWritten = true;
+        }
 
-          // Write named parameters.
-          writeOptionalParameters(
-            parameters: namedWrites,
-            leftSeparator: '{',
-            rightSeparator: '}',
+        // Maybe write the trailing comma.
+        if (requiredPositionalWrites.isNotEmpty &&
+            optionalPositionalWrites.isEmpty &&
+            namedWrites.isEmpty) {
+          writeFormalParametersTrailingComma(
+            formalParameterList: formalParameterList,
+            builder: builder,
           );
-          builder.write(')');
-        },
-      );
+        }
+
+        // Write optional positional parameters.
+        writeOptionalParameters(
+          parameters: optionalPositionalWrites,
+          leftSeparator: '[',
+          rightSeparator: ']',
+        );
+
+        // Write named parameters.
+        writeOptionalParameters(
+          parameters: namedWrites,
+          leftSeparator: '{',
+          rightSeparator: '}',
+        );
+        builder.write(')');
+      });
       builder.format(range.node(formalParameterList));
     });
 
@@ -999,7 +961,7 @@ class _SignatureUpdater {
 
   /// Updates arguments of invocations of [element].
   Future<ChangeStatus> updateReferences({
-    required ExecutableElement element,
+    required ExecutableElement2 element,
     required ChangeBuilder builder,
   }) async {
     var references = await searchEngine.searchReferences(element);
@@ -1140,26 +1102,25 @@ class _SignatureUpdater {
       }
     }
 
-    var selectionPositional = selectionState.formalParameters
-        .where((state) => state.kind.isPositional)
-        .toList();
+    var selectionPositional =
+        selectionState.formalParameters
+            .where((state) => state.kind.isPositional)
+            .toList();
     if (positional.length != selectionPositional.length) {
       return null;
     }
 
     for (var i = 0; i < positional.length; i++) {
-      var positionalKind = positional[i].isRequiredPositional
-          ? FormalParameterKind.requiredPositional
-          : FormalParameterKind.optionalPositional;
+      var positionalKind =
+          positional[i].isRequiredPositional
+              ? FormalParameterKind.requiredPositional
+              : FormalParameterKind.optionalPositional;
       if (positionalKind != selectionPositional[i].kind) {
         return null;
       }
     }
 
-    return _DeclarationFormalParameters(
-      positional: positional,
-      named: named,
-    );
+    return _DeclarationFormalParameters(positional: positional, named: named);
   }
 
   /// Attempts to rewrite explicit arguments to `super()` invocation into
@@ -1177,7 +1138,7 @@ class _SignatureUpdater {
       return ChangeStatusSuccess();
     }
 
-    var parameterElementsToSuper = <ParameterElement>{};
+    var parameterElementsToSuper = <FormalParameterElement>{};
     for (var update in signatureUpdate.formalParameters) {
       if (update.kind.isNamed) {
         var existing = selectionState.formalParameters[update.id];
@@ -1187,8 +1148,8 @@ class _SignatureUpdater {
           continue;
         }
 
-        var parameterElement = argument.staticElement;
-        if (parameterElement is! ParameterElement) {
+        var parameterElement = argument.element;
+        if (parameterElement is! FormalParameterElement) {
           continue;
         }
 
@@ -1221,9 +1182,7 @@ class _SignatureUpdater {
       return ChangeStatusFailure();
     }
 
-    var selection = await analyzeSelection(
-      available: availability,
-    );
+    var selection = await analyzeSelection(available: availability);
     if (selection is! ValidSelectionState) {
       return ChangeStatusFailure();
     }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
@@ -65,7 +67,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList,
+      required super.whyNotPromotedArguments,
       required this.constructorName})
       : super._();
 
@@ -110,7 +112,7 @@ class AugmentedInvocationInferrer
     required super.node,
     required super.argumentList,
     required super.contextType,
-    required super.whyNotPromotedList,
+    required super.whyNotPromotedArguments,
   }) : super._();
 
   @override
@@ -138,7 +140,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList});
+      required super.whyNotPromotedArguments});
 
   SyntacticEntity get _errorEntity => node;
 
@@ -219,10 +221,14 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else {
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
-      inferenceLogWriter?.enterGenericInference(rawType.typeFormals, rawType);
+      inferenceLogWriter?.enterGenericInference(
+          // TODO(paulberry): make this cast unnecessary by changing `rawType`
+          // to `FunctionTypeImpl?`.
+          rawType.typeParameters.cast(),
+          rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
-        typeParameters: rawType.typeFormals,
+        typeParameters: rawType.typeParameters,
         declaredReturnType: rawType.returnType,
         contextReturnType: contextType,
         isConst: _isConst,
@@ -241,12 +247,12 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           rawType.typeFormals, inferrer.choosePreliminaryTypes());
     }
 
-    List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo =
+    List<_IdenticalArgumentInfo?>? identicalArgumentInfo =
         _isIdentical ? [] : null;
     var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: parameterMap,
-        identicalInfo: identicalInfo,
+        identicalArgumentInfo: identicalArgumentInfo,
         substitution: substitution,
         inferrer: inferrer);
     if (deferredFunctionLiterals != null) {
@@ -264,7 +270,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         }
         _resolveDeferredFunctionLiterals(
             deferredFunctionLiterals: stage,
-            identicalInfo: identicalInfo,
+            identicalArgumentInfo: identicalArgumentInfo,
             substitution: substitution,
             inferrer: inferrer);
         isFirstStage = false;
@@ -289,7 +295,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     }
     var returnType = _refineReturnType(
         InvocationInferrer.computeInvokeReturnType(invokeType));
-    _recordIdenticalInfo(identicalInfo);
+    _recordIdenticalArgumentInfo(identicalArgumentInfo);
     return returnType;
   }
 
@@ -341,7 +347,7 @@ class FunctionExpressionInvocationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -357,7 +363,7 @@ class InstanceCreationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -409,7 +415,7 @@ abstract class InvocationExpressionInferrer<
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -437,7 +443,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final Node node;
   final ArgumentListImpl argumentList;
   final DartType contextType;
-  final List<WhyNotPromotedGetter> whyNotPromotedList;
+  final List<WhyNotPromotedGetter> whyNotPromotedArguments;
 
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
@@ -446,7 +452,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       required this.node,
       required this.argumentList,
       required this.contextType,
-      required this.whyNotPromotedList});
+      required this.whyNotPromotedArguments});
 
   /// Determines whether [node] is an invocation of the core function
   /// `identical` (which needs special flow analysis treatment).
@@ -472,19 +478,25 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
-  void _recordIdenticalInfo(
-      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo) {
+  void _recordIdenticalArgumentInfo(
+      List<_IdenticalArgumentInfo?>? identicalArgumentInfo) {
     var flow = resolver.flowAnalysis.flow;
-    if (identicalInfo != null) {
-      flow?.equalityOperation_end(argumentList.parent as Expression,
-          identicalInfo[0], identicalInfo[1]);
+    if (identicalArgumentInfo != null) {
+      var leftOperandInfo = identicalArgumentInfo[0]!;
+      var rightOperandInfo = identicalArgumentInfo[1]!;
+      flow?.equalityOperation_end(
+          argumentList.parent as ExpressionImpl,
+          leftOperandInfo.expressionInfo,
+          SharedTypeView<DartType>(leftOperandInfo.staticType),
+          rightOperandInfo.expressionInfo,
+          SharedTypeView<DartType>(rightOperandInfo.staticType));
     }
   }
 
   /// Resolves any function literals that were deferred by [_visitArguments].
   void _resolveDeferredFunctionLiterals(
       {required List<_DeferredParamInfo> deferredFunctionLiterals,
-      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo,
+      List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     var flow = resolver.flowAnalysis.flow;
@@ -506,8 +518,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           argument, SharedTypeSchemaView(parameterContextType));
       argument = resolver.popRewrite()!;
       if (flow != null) {
-        identicalInfo?[deferredArgument.index] = flow.equalityOperand_end(
-            argument, SharedTypeView(argument.typeOrThrow));
+        identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
+            expressionInfo: flow.equalityOperand_end(argument),
+            staticType: argument.typeOrThrow);
       }
       if (parameter != null) {
         inferrer?.constrainArgument(
@@ -522,10 +535,10 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
       {required Map<Object, ParameterElement> parameterMap,
-      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo,
+      List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
-    assert(whyNotPromotedList.isEmpty);
+    assert(whyNotPromotedArguments.isEmpty);
     List<_DeferredParamInfo>? deferredFunctionLiterals;
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
@@ -549,11 +562,11 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           value is FunctionExpressionImpl) {
         (deferredFunctionLiterals ??= [])
             .add(_DeferredParamInfo(parameter, value, i, parameterKey));
-        identicalInfo?.add(null);
-        // The "why not promoted" list isn't really relevant for function
-        // literals because promoting a function literal doesn't even make
-        // sense.  So we store an innocuous value in the list.
-        whyNotPromotedList.add(() => const {});
+        identicalArgumentInfo?.add(null);
+        // The "why not promoted" arguments list isn't really relevant for
+        // function literals because promoting a function literal doesn't even
+        // make sense.  So we store an innocuous value in the list.
+        whyNotPromotedArguments.add(() => const {});
       } else {
         DartType parameterContextType;
         if (parameter != null) {
@@ -569,9 +582,10 @@ class InvocationInferrer<Node extends AstNodeImpl> {
             argument, SharedTypeSchemaView(parameterContextType));
         argument = resolver.popRewrite()!;
         if (flow != null) {
-          identicalInfo?.add(flow.equalityOperand_end(
-              argument, SharedTypeView(argument.typeOrThrow)));
-          whyNotPromotedList.add(flow.whyNotPromoted(argument));
+          identicalArgumentInfo?.add(_IdenticalArgumentInfo(
+              expressionInfo: flow.equalityOperand_end(argument),
+              staticType: argument.typeOrThrow));
+          whyNotPromotedArguments.add(flow.whyNotPromoted(argument));
         }
         if (parameter != null) {
           inferrer?.constrainArgument(
@@ -603,7 +617,7 @@ class MethodInvocationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -710,6 +724,20 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       return const [];
     }
   }
+}
+
+/// Information tracked by [InvocationInferrer] about an argument passed to the
+/// `identical` function in `dart:core`.
+class _IdenticalArgumentInfo {
+  /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
+  /// the argument.
+  final ExpressionInfo<SharedTypeView<DartType>>? expressionInfo;
+
+  /// The static type of the argument.
+  final DartType staticType;
+
+  _IdenticalArgumentInfo(
+      {required this.expressionInfo, required this.staticType});
 }
 
 /// Information about an invocation argument that may or may not have already

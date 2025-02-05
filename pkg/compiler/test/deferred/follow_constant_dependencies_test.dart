@@ -4,17 +4,18 @@
 
 // Test that constants depended on by other constants are correctly deferred.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   runTest() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
 
     Compiler compiler = result.compiler!;
     DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
@@ -30,23 +31,28 @@ void main() {
     }
 
     dynamic codegenWorldBuilder = compiler.codegenWorldBuilder;
-    codegenWorldBuilder.compiledConstantsForTesting
-        .forEach(addConstantWithDependencies);
+    codegenWorldBuilder.compiledConstantsForTesting.forEach(
+      addConstantWithDependencies,
+    );
     for (String stringValue in ["cA", "cB", "cC"]) {
-      final constant = allConstants.firstWhere((dynamic constant) {
-        return constant is StringConstantValue &&
-            constant.stringValue == stringValue;
-      }) as StringConstantValue;
+      final constant =
+          allConstants.firstWhere((dynamic constant) {
+                return constant is StringConstantValue &&
+                    constant.stringValue == stringValue;
+              })
+              as StringConstantValue;
       Expect.notEquals(
-          null,
-          outputUnitForConstant(constant),
-          "Constant value ${constant.toStructuredText(dartTypes)} has no "
-          "output unit.");
+        null,
+        outputUnitForConstant(constant),
+        "Constant value ${constant.toStructuredText(dartTypes)} has no "
+        "output unit.",
+      );
       Expect.notEquals(
-          mainOutputUnit,
-          outputUnitForConstant(constant),
-          "Constant value ${constant.toStructuredText(dartTypes)} "
-          "is in the main output unit.");
+        mainOutputUnit,
+        outputUnitForConstant(constant),
+        "Constant value ${constant.toStructuredText(dartTypes)} "
+        "is in the main output unit.",
+      );
     }
   }
 

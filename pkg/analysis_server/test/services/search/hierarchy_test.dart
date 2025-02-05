@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,10 +36,10 @@ class B extends A {
   B() {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    ClassMemberElement memberA = classA.constructors[0];
-    ClassMemberElement memberB = classB.constructors[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var memberA = classA.constructors2[0];
+    var memberB = classB.constructors2[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA]));
     });
@@ -65,14 +64,14 @@ class D {
   int? foo;
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    var classC = findElement.class_('C');
-    var classD = findElement.class_('D');
-    ClassMemberElement memberA = classA.fields[0];
-    ClassMemberElement memberB = classB.fields[0];
-    ClassMemberElement memberC = classC.fields[0];
-    ClassMemberElement memberD = classD.fields[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var classC = findElement2.class_('C');
+    var classD = findElement2.class_('D');
+    var memberA = classA.fields2[0];
+    var memberB = classB.fields2[0];
+    var memberC = classC.fields2[0];
+    var memberD = classD.fields2[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
@@ -100,12 +99,12 @@ class C extends B {
   static set foo(x) {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    var classC = findElement.class_('C');
-    ClassMemberElement memberA = classA.fields[0];
-    ClassMemberElement memberB = classB.fields[0];
-    ClassMemberElement memberC = classC.fields[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var classC = findElement2.class_('C');
+    var memberA = classA.fields2[0];
+    var memberB = classB.fields2[0];
+    var memberC = classC.fields2[0];
     {
       var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
@@ -129,19 +128,21 @@ class C extends B {
         sb.writeln("class X0 { void foo() { print('hello'); } }");
       } else {
         sb.writeln(
-            "class X$i extends X${i - 1} { void foo() { print('hello'); } }");
+          "class X$i extends X${i - 1} { void foo() { print('hello'); } }",
+        );
       }
     }
 
     await resolveTestCode(sb.toString());
-    var classLast = findElement.class_('X$last');
-    ClassMemberElement member =
-        classLast.methods.where((element) => element.name == 'foo').single;
+    var classLast = findElement2.class_('X$last');
+    var member =
+        classLast.methods2.where((element) => element.name3 == 'foo').single;
     OperationPerformanceImpl performance = OperationPerformanceImpl('<root>');
     var result = await performance.runAsync(
-        'getHierarchyMembers',
-        (performance) => getHierarchyMembers(searchEngine, member,
-            performance: performance));
+      'getHierarchyMembers',
+      (performance) =>
+          getHierarchyMembers(searchEngine, member, performance: performance),
+    );
     expect(result, hasLength(count));
 
     var worklist = <OperationPerformance>[];
@@ -175,16 +176,16 @@ class E extends D {
   foo() {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    var classC = findElement.class_('C');
-    var classD = findElement.class_('D');
-    var classE = findElement.class_('E');
-    ClassMemberElement memberA = classA.methods[0];
-    ClassMemberElement memberB = classB.methods[0];
-    ClassMemberElement memberC = classC.methods[0];
-    ClassMemberElement memberD = classD.methods[0];
-    ClassMemberElement memberE = classE.methods[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var classC = findElement2.class_('C');
+    var classD = findElement2.class_('D');
+    var classE = findElement2.class_('E');
+    var memberA = classA.methods2[0];
+    var memberB = classB.methods2[0];
+    var memberC = classC.methods2[0];
+    var memberD = classD.methods2[0];
+    var memberE = classE.methods2[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
@@ -234,8 +235,8 @@ class D extends B {
 }
 ''');
 
-    var methodB = findElement.method('_test', of: 'B');
-    var methodD = findElement.method('_test', of: 'D');
+    var methodB = findElement2.method('_test', of: 'B');
+    var methodD = findElement2.method('_test', of: 'D');
 
     var members = await getHierarchyMembers(searchEngine, methodB);
     expect(members, unorderedEquals([methodB, methodD]));
@@ -268,16 +269,13 @@ class D extends B {
 }
 ''');
 
-    var methodA = findElement.method('_test', of: 'A');
-    var methodB = findElement.method('_test', of: 'B');
-    var methodC = findElement.method('_test', of: 'C');
-    var methodD = findElement.method('_test', of: 'D');
+    var methodA = findElement2.method('_test', of: 'A');
+    var methodB = findElement2.method('_test', of: 'B');
+    var methodC = findElement2.method('_test', of: 'C');
+    var methodD = findElement2.method('_test', of: 'D');
 
     var members = await getHierarchyMembers(searchEngine, methodB);
-    expect(
-      members,
-      unorderedEquals([methodA, methodB, methodC, methodD]),
-    );
+    expect(members, unorderedEquals([methodA, methodB, methodC, methodD]));
   }
 
   Future<void> test_methods_static() async {
@@ -289,10 +287,10 @@ class B extends A {
   static foo() {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    ClassMemberElement memberA = classA.methods[0];
-    ClassMemberElement memberB = classB.methods[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var memberA = classA.methods2[0];
+    var memberB = classB.methods2[0];
     {
       var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
@@ -320,12 +318,12 @@ class E {
   foo() {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    var classD = findElement.class_('D');
-    ClassMemberElement memberA = classA.methods[0];
-    ClassMemberElement memberB = classB.methods[0];
-    ClassMemberElement memberD = classD.methods[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var classD = findElement2.class_('D');
+    var memberA = classA.methods2[0];
+    var memberB = classB.methods2[0];
+    var memberD = classD.methods2[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
@@ -364,14 +362,14 @@ class B extends A {
 }
 ''');
     {
-      var classA = findElement.class_('A');
+      var classA = findElement2.class_('A');
       var members = getClassMembers(classA);
-      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
+      expect(members.map((e) => e.name3), unorderedEquals(['ma1', 'ma2']));
     }
     {
-      var classB = findElement.class_('B');
+      var classB = findElement2.class_('B');
       var members = getClassMembers(classB);
-      expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
+      expect(members.map((e) => e.name3), unorderedEquals(['mb1', 'mb2']));
     }
   }
 
@@ -393,16 +391,16 @@ class E extends D {
   foo({p}) {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var classB = findElement.class_('B');
-    var classC = findElement.class_('C');
-    var classD = findElement.class_('D');
-    var classE = findElement.class_('E');
-    var parameterA = classA.methods[0].parameters[0];
-    var parameterB = classB.methods[0].parameters[0];
-    var parameterC = classC.methods[0].parameters[0];
-    var parameterD = classD.methods[0].parameters[0];
-    var parameterE = classE.methods[0].parameters[0];
+    var classA = findElement2.class_('A');
+    var classB = findElement2.class_('B');
+    var classC = findElement2.class_('C');
+    var classD = findElement2.class_('D');
+    var classE = findElement2.class_('E');
+    var parameterA = classA.methods2[0].formalParameters[0];
+    var parameterB = classB.methods2[0].formalParameters[0];
+    var parameterC = classC.methods2[0].formalParameters[0];
+    var parameterD = classD.methods2[0].formalParameters[0];
+    var parameterE = classE.methods2[0].formalParameters[0];
 
     {
       var result = await getHierarchyNamedParameters(searchEngine, parameterA);
@@ -440,8 +438,8 @@ class B extends A {
   foo() {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var parameterA = classA.methods[0].parameters[0];
+    var classA = findElement2.class_('A');
+    var parameterA = classA.methods2[0].formalParameters[0];
 
     var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
@@ -457,8 +455,8 @@ class B extends A {
   foo(p) {}
 }
 ''');
-    var classA = findElement.class_('A');
-    var parameterA = classA.methods[0].parameters[0];
+    var classA = findElement2.class_('A');
+    var parameterA = classA.methods2[0].formalParameters[0];
 
     var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
@@ -479,42 +477,44 @@ class B extends A {
 }
 ''');
     {
-      var classA = findElement.class_('A');
+      var classA = findElement2.class_('A');
       var members = getMembers(classA);
       expect(
-          members.map((e) => e.name),
-          unorderedEquals([
-            'ma1',
-            'ma2',
-            '==',
-            'toString',
-            'hashCode',
-            'noSuchMethod',
-            'runtimeType',
-            'hash',
-            'hashAll',
-            'hashAllUnordered',
-          ]));
+        members.map((e) => e.name3),
+        unorderedEquals([
+          'ma1',
+          'ma2',
+          '==',
+          'toString',
+          'hashCode',
+          'noSuchMethod',
+          'runtimeType',
+          'hash',
+          'hashAll',
+          'hashAllUnordered',
+        ]),
+      );
     }
     {
-      var classB = findElement.class_('B');
+      var classB = findElement2.class_('B');
       var members = getMembers(classB);
       expect(
-          members.map((e) => e.name),
-          unorderedEquals([
-            'mb1',
-            'mb2',
-            'ma1',
-            'ma2',
-            '==',
-            'toString',
-            'hashCode',
-            'noSuchMethod',
-            'runtimeType',
-            'hash',
-            'hashAll',
-            'hashAllUnordered',
-          ]));
+        members.map((e) => e.name3),
+        unorderedEquals([
+          'mb1',
+          'mb2',
+          'ma1',
+          'ma2',
+          '==',
+          'toString',
+          'hashCode',
+          'noSuchMethod',
+          'runtimeType',
+          'hash',
+          'hashAll',
+          'hashAllUnordered',
+        ]),
+      );
     }
   }
 }

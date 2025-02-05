@@ -5,7 +5,7 @@
 /// Test that when type inference tries to match two record types, it detects
 /// whether they have mismatched field names.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 ({T foo}) f<T>(T x) => (foo: x);
 

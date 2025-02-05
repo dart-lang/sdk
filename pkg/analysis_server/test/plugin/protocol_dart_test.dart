@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
-import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/element2.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -26,9 +26,9 @@ class ConvertElementTest extends AbstractSingleUnitTest {
 abstract class _A {}
 class B<K, V> {}''');
     {
-      var engineElement = findElement.class_('_A');
+      var engineElement = findElement2.class_('_A');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, '_A');
       expect(element.typeParameters, isNull);
@@ -42,15 +42,14 @@ class B<K, V> {}''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          Element.FLAG_ABSTRACT |
-              Element.FLAG_DEPRECATED |
-              Element.FLAG_PRIVATE);
+        element.flags,
+        Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE,
+      );
     }
     {
-      var engineElement = findElement.class_('B');
+      var engineElement = findElement2.class_('B');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, 'B');
       expect(element.typeParameters, '<K, V>');
@@ -63,9 +62,9 @@ class B<K, V> {}''');
 class A {
   const A.myConstructor(int a, [String? b]);
 }''');
-    var engineElement = findElement.constructor('myConstructor');
+    var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
     expect(element.name, 'A.myConstructor');
     expect(element.typeParameters, isNull);
@@ -90,9 +89,9 @@ class A {
   const A.myConstructor(int a, {int? b, required int c});
 }''');
 
-    var engineElement = findElement.constructor('myConstructor');
+    var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.parameters, '(int a, {required int c, int? b})');
   }
 
@@ -105,11 +104,13 @@ class A {
   const A.myConstructor(int a, {int? b, required int d, required int c});
 }''');
 
-    var engineElement = findElement.constructor('myConstructor');
+    var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
-    expect(element.parameters,
-        '(int a, {required int d, required int c, int? b})');
+    var element = convertElement2(engineElement);
+    expect(
+      element.parameters,
+      '(int a, {required int d, required int c, int? b})',
+    );
   }
 
   /// Verify parameter re-ordering for required params
@@ -122,11 +123,13 @@ class A {
   const A.myConstructor(int a, {int b, required int d, required int c, int a});
 }''');
 
-    var engineElement = findElement.constructor('myConstructor');
+    var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
-    expect(element.parameters,
-        '(int a, {required int d, required int c, int b, int a})');
+    var element = convertElement2(engineElement);
+    expect(
+      element.parameters,
+      '(int a, {required int d, required int c, int b, int a})',
+    );
   }
 
   void test_dynamic() {
@@ -147,10 +150,10 @@ class A {
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      var engineElement = findElement.enum_('_E1');
-      expect(engineElement.hasDeprecated, isTrue);
+      var engineElement = findElement2.enum_('_E1');
+      expect(engineElement.metadata2.hasDeprecated, isTrue);
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.ENUM);
       expect(element.name, '_E1');
       expect(element.typeParameters, isNull);
@@ -164,14 +167,15 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          (engineElement.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
-              Element.FLAG_PRIVATE);
+        element.flags,
+        (engineElement.metadata2.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
+            Element.FLAG_PRIVATE,
+      );
     }
     {
-      var engineElement = findElement.enum_('E2');
+      var engineElement = findElement2.enum_('E2');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.ENUM);
       expect(element.name, 'E2');
       expect(element.typeParameters, isNull);
@@ -185,9 +189,9 @@ enum E2 { three, four }''');
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      var engineElement = findElement.field('one');
+      var engineElement = findElement2.field('one');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'one');
       {
@@ -200,18 +204,18 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
-      // TODO(danrubel): determine why enum constant is not marked as deprecated
-      //engine.ClassElement classElement = engineElement.enclosingElement3;
-      //expect(classElement.isDeprecated, isTrue);
+      var classElement = engineElement.enclosingElement2;
+      expect(classElement.metadata2.hasDeprecated, isTrue);
       expect(
-          element.flags,
-          // Element.FLAG_DEPRECATED |
-          Element.FLAG_CONST | Element.FLAG_STATIC);
+        element.flags,
+        // Element.FLAG_DEPRECATED |
+        Element.FLAG_CONST | Element.FLAG_STATIC,
+      );
     }
     {
-      var engineElement = findElement.field('three');
+      var engineElement = findElement2.field('three');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'three');
       {
@@ -227,18 +231,18 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement.field('values', of: 'E2');
+      var engineElement = findElement2.field('values', of: 'E2');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'values');
       {
         var location = element.location!;
         expect(location.file, testFile.path);
-        expect(location.offset, -1);
+        expect(location.offset, 0);
         expect(location.length, 'values'.length);
         expect(location.startLine, 1);
-        expect(location.startColumn, 0);
+        expect(location.startColumn, 1);
       }
       expect(element.parameters, isNull);
       expect(element.returnType, 'List<E2>');
@@ -251,9 +255,9 @@ enum E2 { three, four }''');
 class A {
   static const myField = 42;
 }''');
-    var engineElement = findElement.field('myField');
+    var engineElement = findElement2.field('myField');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.FIELD);
     expect(element.name, 'myField');
     {
@@ -273,9 +277,9 @@ class A {
     await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
-    var engineElement = findElement.typeAlias('F');
+    var engineElement = findElement2.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
@@ -296,9 +300,9 @@ typedef F<T> = int Function(String x);
     await resolveTestCode('''
 typedef F<T> = Map<int, T>;
 ''');
-    var engineElement = findElement.typeAlias('F');
+    var engineElement = findElement2.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<out T>');
@@ -320,9 +324,9 @@ typedef F<T> = Map<int, T>;
     await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
-    var engineElement = findElement.typeAlias('F');
+    var engineElement = findElement2.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
@@ -345,9 +349,9 @@ typedef int F<T>(String x);
 class A {
   String get myGetter => 42;
 }''');
-    var engineElement = findElement.getter('myGetter');
+    var engineElement = findElement2.getter('myGetter');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
@@ -371,9 +375,9 @@ myLabel:
     break myLabel;
   }
 }''');
-    var engineElement = findElement.label('myLabel');
+    var engineElement = findElement2.label('myLabel');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
@@ -396,9 +400,9 @@ class A {
     return [];
   }
 }''');
-    var engineElement = findElement.method('myMethod');
+    var engineElement = findElement2.method('myMethod');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
@@ -419,9 +423,9 @@ class A {
 mixin A {}
 ''');
     {
-      var engineElement = findElement.mixin('A');
+      var engineElement = findElement2.mixin('A');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement2(engineElement);
       expect(element.kind, ElementKind.MIXIN);
       expect(element.name, 'A');
       expect(element.typeParameters, isNull);
@@ -443,9 +447,9 @@ mixin A {}
 class A {
   set mySetter(String x) {}
 }''');
-    var engineElement = findElement.setter('mySetter');
+    var engineElement = findElement2.setter('mySetter');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement2(engineElement);
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
@@ -466,78 +470,67 @@ class A {
 class ElementKindTest {
   void test_fromEngine() {
     expect(convertElementKind(engine.ElementKind.CLASS), ElementKind.CLASS);
-    expect(convertElementKind(engine.ElementKind.COMPILATION_UNIT),
-        ElementKind.COMPILATION_UNIT);
-    expect(convertElementKind(engine.ElementKind.CONSTRUCTOR),
-        ElementKind.CONSTRUCTOR);
-    expect(convertElementKind(engine.ElementKind.EXTENSION),
-        ElementKind.EXTENSION);
-    expect(convertElementKind(engine.ElementKind.EXTENSION_TYPE),
-        ElementKind.EXTENSION_TYPE);
+    expect(
+      convertElementKind(engine.ElementKind.COMPILATION_UNIT),
+      ElementKind.COMPILATION_UNIT,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.CONSTRUCTOR),
+      ElementKind.CONSTRUCTOR,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.EXTENSION),
+      ElementKind.EXTENSION,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.EXTENSION_TYPE),
+      ElementKind.EXTENSION_TYPE,
+    );
     expect(convertElementKind(engine.ElementKind.FIELD), ElementKind.FIELD);
     expect(
-        convertElementKind(engine.ElementKind.FUNCTION), ElementKind.FUNCTION);
-    expect(convertElementKind(engine.ElementKind.FUNCTION_TYPE_ALIAS),
-        ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(convertElementKind(engine.ElementKind.GENERIC_FUNCTION_TYPE),
-        ElementKind.FUNCTION_TYPE_ALIAS);
+      convertElementKind(engine.ElementKind.FUNCTION),
+      ElementKind.FUNCTION,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+      ElementKind.FUNCTION_TYPE_ALIAS,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.GENERIC_FUNCTION_TYPE),
+      ElementKind.FUNCTION_TYPE_ALIAS,
+    );
     expect(convertElementKind(engine.ElementKind.GETTER), ElementKind.GETTER);
     expect(convertElementKind(engine.ElementKind.LABEL), ElementKind.LABEL);
     expect(convertElementKind(engine.ElementKind.LIBRARY), ElementKind.LIBRARY);
-    expect(convertElementKind(engine.ElementKind.LOCAL_VARIABLE),
-        ElementKind.LOCAL_VARIABLE);
+    expect(
+      convertElementKind(engine.ElementKind.LOCAL_VARIABLE),
+      ElementKind.LOCAL_VARIABLE,
+    );
     expect(convertElementKind(engine.ElementKind.METHOD), ElementKind.METHOD);
-    expect(convertElementKind(engine.ElementKind.PARAMETER),
-        ElementKind.PARAMETER);
+    expect(
+      convertElementKind(engine.ElementKind.PARAMETER),
+      ElementKind.PARAMETER,
+    );
     expect(convertElementKind(engine.ElementKind.SETTER), ElementKind.SETTER);
-    expect(convertElementKind(engine.ElementKind.TOP_LEVEL_VARIABLE),
-        ElementKind.TOP_LEVEL_VARIABLE);
-    expect(convertElementKind(engine.ElementKind.TYPE_ALIAS),
-        ElementKind.TYPE_ALIAS);
-    expect(convertElementKind(engine.ElementKind.TYPE_PARAMETER),
-        ElementKind.TYPE_PARAMETER);
-  }
-
-  void test_string_constructor() {
-    expect(ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
-        ElementKind.CLASS_TYPE_ALIAS);
-    expect(ElementKind(ElementKind.COMPILATION_UNIT.name),
-        ElementKind.COMPILATION_UNIT);
-    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
-    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
-    expect(ElementKind(ElementKind.EXTENSION.name), ElementKind.EXTENSION);
-    expect(ElementKind(ElementKind.EXTENSION_TYPE.name),
-        ElementKind.EXTENSION_TYPE);
-    expect(ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
-    expect(ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
-    expect(ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
-        ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
-    expect(ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(ElementKind(ElementKind.LOCAL_VARIABLE.name),
-        ElementKind.LOCAL_VARIABLE);
-    expect(ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
-    expect(ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
-    expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
-        ElementKind.TOP_LEVEL_VARIABLE);
-    expect(ElementKind(ElementKind.TYPE_ALIAS.name), ElementKind.TYPE_ALIAS);
-    expect(ElementKind(ElementKind.TYPE_PARAMETER.name),
-        ElementKind.TYPE_PARAMETER);
-    expect(ElementKind(ElementKind.UNIT_TEST_TEST.name),
-        ElementKind.UNIT_TEST_TEST);
-    expect(ElementKind(ElementKind.UNIT_TEST_GROUP.name),
-        ElementKind.UNIT_TEST_GROUP);
-    expect(ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
-    expect(() {
-      ElementKind('no-such-kind');
-    }, throwsException);
+    expect(
+      convertElementKind(engine.ElementKind.TOP_LEVEL_VARIABLE),
+      ElementKind.TOP_LEVEL_VARIABLE,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.TYPE_ALIAS),
+      ElementKind.TYPE_ALIAS,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.TYPE_PARAMETER),
+      ElementKind.TYPE_PARAMETER,
+    );
   }
 
   void test_toString() {
     expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
-    expect(ElementKind.COMPILATION_UNIT.toString(),
-        'ElementKind.COMPILATION_UNIT');
+    expect(
+      ElementKind.COMPILATION_UNIT.toString(),
+      'ElementKind.COMPILATION_UNIT',
+    );
   }
 }

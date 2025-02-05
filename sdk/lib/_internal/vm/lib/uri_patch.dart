@@ -33,8 +33,12 @@ class _Uri {
   static bool get _isWindows => _isWindowsCached;
 
   @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  static String _uriEncode(
+    int canonicalMask,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     // First check if the text will be changed by encoding.
     int i = 0;
     if (identical(encoding, utf8) ||
@@ -44,8 +48,7 @@ class _Uri {
       // Find first character that needs encoding.
       for (; i < text.length; i++) {
         var char = text.codeUnitAt(i);
-        if (char >= 128 ||
-            canonicalTable[char >> 4] & (1 << (char & 0x0f)) == 0) {
+        if (char >= 128 || _charTables.codeUnitAt(char) & canonicalMask == 0) {
           break;
         }
       }
@@ -63,8 +66,7 @@ class _Uri {
     var bytes = encoding.encode(text);
     for (; i < bytes.length; i++) {
       int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+      if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         result.writeCharCode(byte);
       } else if (spaceToPlus && byte == _SPACE) {
         result.writeCharCode(_PLUS);
@@ -81,7 +83,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     return _makeQueryFromParametersDefault(queryParameters);
   }
 }

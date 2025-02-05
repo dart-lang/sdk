@@ -5,6 +5,8 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -40,9 +42,10 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[]}) async {
+    {List<Uri> additionalSources = const <Uri>[],
+    bool requireMain = true}) async {
   return (await kernelForProgramInternal(source, options,
-      additionalSources: additionalSources));
+      additionalSources: additionalSources, requireMain: requireMain));
 }
 
 // Coverage-ignore(suite): Not run.
@@ -109,7 +112,7 @@ Future<CompilerResult> kernelForModule(
 /// Result object for [kernelForProgram] and [kernelForModule].
 abstract class CompilerResult {
   /// The generated summary bytes, if it was requested.
-  List<int>? get summary;
+  Uint8List? get summary;
 
   /// The generated component, if it was requested.
   Component? get component;

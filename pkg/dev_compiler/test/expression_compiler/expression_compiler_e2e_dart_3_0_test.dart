@@ -230,7 +230,7 @@ void runSharedTests(
     test('second case scope', () async {
       await driver.checkScope(
           breakpointId: 'bp2',
-          expectedScope: {'a': '10', 'b': '\'20\'', 'obj': 'obj'});
+          expectedScope: {'a\$': '10', 'b\$': '\'20\'', 'obj': 'obj'});
     });
 
     test('default case scope', () async {
@@ -241,6 +241,202 @@ void runSharedTests(
       await driver.checkScope(
           breakpointId: 'bp4',
           expectedScope: {'foo': 'foo', 'one': '1', 'ten': '10', 'zero': '0'});
+    });
+  });
+
+  group('Shadowing', () {
+    // Includes similar names that could collide due to renaming scheme.
+    const shadowingSource = r'''
+    void main() {
+      String a = '1';
+      String a$ = '2';
+      String a$0 = '3';
+      String a$360 = '4';
+      if (a case Object a) {
+        a = '5$a';
+        // Breakpoint: bp1
+        print(a);
+      }
+      if (a$ case Object a$) {
+        a$ = '10${a$}';
+        print(a$);
+      }
+      if (a$ case Object a$) {
+        a$ = '6${a$}';
+        // Breakpoint: bp2
+        print(a$);
+      }
+      if (a$0 case Object a$0) {
+        a$0 = '7${a$0}';
+        // Breakpoint: bp3
+        print(a$0);
+      }
+      if (a$360 case Object a$360) {
+        a$360 = '8${a$360}';
+        // Breakpoint: bp4
+        print(a$360);
+      }
+      // Breakpoint: bp5
+      print('$a, ${a$}, ${a$0}, ${a$360}');
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, shadowingSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    group('bp1', () {
+      test('a', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp1',
+            expression: 'a.toString()',
+            expectedResult: '51');
+      });
+
+      test('a\$', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp1',
+            expression: 'a\$.toString()',
+            expectedResult: '2');
+      });
+
+      test('a\$0', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp1',
+            expression: 'a\$0.toString()',
+            expectedResult: '3');
+      });
+
+      test('a\$360', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp1',
+            expression: 'a\$360.toString()',
+            expectedResult: '4');
+      });
+    });
+
+    group('bp2', () {
+      test('a', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp2',
+            expression: 'a.toString()',
+            expectedResult: '1');
+      });
+
+      test('a\$', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp2',
+            expression: 'a\$.toString()',
+            expectedResult: '62');
+      });
+
+      test('a\$0', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp2',
+            expression: 'a\$0.toString()',
+            expectedResult: '3');
+      });
+
+      test('a\$360', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp2',
+            expression: 'a\$360.toString()',
+            expectedResult: '4');
+      });
+    });
+
+    group('bp3', () {
+      test('a', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp3',
+            expression: 'a.toString()',
+            expectedResult: '1');
+      });
+
+      test('a\$', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp3',
+            expression: 'a\$.toString()',
+            expectedResult: '2');
+      });
+
+      test('a\$0', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp3',
+            expression: 'a\$0.toString()',
+            expectedResult: '73');
+      });
+
+      test('a\$360', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp3',
+            expression: 'a\$360.toString()',
+            expectedResult: '4');
+      });
+    });
+
+    group('bp4', () {
+      test('a', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp4',
+            expression: 'a.toString()',
+            expectedResult: '1');
+      });
+
+      test('a\$', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp4',
+            expression: 'a\$.toString()',
+            expectedResult: '2');
+      });
+
+      test('a\$0', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp4',
+            expression: 'a\$0.toString()',
+            expectedResult: '3');
+      });
+
+      test('a\$360', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp4',
+            expression: 'a\$360.toString()',
+            expectedResult: '84');
+      });
+    });
+
+    group('bp5', () {
+      test('a', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp5',
+            expression: 'a.toString()',
+            expectedResult: '1');
+      });
+
+      test('a\$', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp5',
+            expression: 'a\$.toString()',
+            expectedResult: '2');
+      });
+
+      test('a\$0', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp5',
+            expression: 'a\$0.toString()',
+            expectedResult: '3');
+      });
+
+      test('a\$360', () async {
+        await driver.checkInFrame(
+            breakpointId: 'bp5',
+            expression: 'a\$360.toString()',
+            expectedResult: '4');
+      });
     });
   });
 }

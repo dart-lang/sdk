@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A label that is associated with a range of code that may be useful to render at the end of the
@@ -34,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ClosingLabel {
 
-  public static final ClosingLabel[] EMPTY_ARRAY = new ClosingLabel[0];
-
-  public static final List<ClosingLabel> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ClosingLabel> EMPTY_LIST = List.of();
 
   /**
    * The offset of the construct being labelled.
@@ -64,12 +59,11 @@ public class ClosingLabel {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ClosingLabel) {
-      ClosingLabel other = (ClosingLabel) obj;
+    if (obj instanceof ClosingLabel other) {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.label, label);
+        Objects.equals(other.label, label);
     }
     return false;
   }
@@ -85,10 +79,9 @@ public class ClosingLabel {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ClosingLabel> list = new ArrayList<ClosingLabel>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ClosingLabel> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -116,11 +109,11 @@ public class ClosingLabel {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(label);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      label
+    );
   }
 
   public JsonObject toJson() {
@@ -136,9 +129,11 @@ public class ClosingLabel {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("label=");
     builder.append(label);
     builder.append("]");

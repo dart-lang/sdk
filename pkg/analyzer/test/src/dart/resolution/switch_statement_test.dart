@@ -6,11 +6,13 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchStatementResolutionTest);
     defineReflectiveTests(SwitchStatementResolutionTest_Language219);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -65,6 +67,35 @@ SwitchStatement
           breakKeyword: break
           semicolon: ;
   rightBracket: }
+''');
+  }
+
+  test_joinedVariables_inLocalFunction() async {
+    // Note: this is an important case to test because when variables are inside
+    // a local function, their enclosing element is `null`.
+    await assertNoErrorsInCode('''
+abstract class C {
+  List<int> get values;
+}
+abstract class D {
+  List<int> get values;
+}
+test(Object o) => () {
+  switch (o) {
+    case C(:var values):
+    case D(:var values):
+      return [for (var value in values) value + 1];
+  }
+};
+''');
+
+    var node = findNode.simple('value + 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: value
+  staticElement: value@201
+  element: value@201
+  staticType: int
 ''');
   }
 
@@ -179,7 +210,7 @@ SwitchStatement
               type: NamedType
                 name: A
                 element: <testLibraryFragment>::@class::A
-                element2: <testLibraryFragment>::@class::A#element
+                element2: <testLibrary>::@class::A
                 type: A
               staticElement: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -283,7 +314,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -314,7 +345,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@75
@@ -382,7 +413,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -414,7 +445,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@87
@@ -482,7 +513,7 @@ SwitchStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
-              element2: dart:core::<fragment>::@class::int#element
+              element2: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@48
@@ -496,7 +527,7 @@ SwitchStatement
                 type: NamedType
                   name: int
                   element: dart:core::<fragment>::@class::int
-                  element2: dart:core::<fragment>::@class::int#element
+                  element2: dart:core::@class::int
                   type: int
                 name: a
                 declaredElement: a@58
@@ -532,7 +563,7 @@ SwitchStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
-              element2: dart:core::<fragment>::@class::int#element
+              element2: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@86
@@ -546,7 +577,7 @@ SwitchStatement
                 type: NamedType
                   name: int
                   element: dart:core::<fragment>::@class::int
-                  element2: dart:core::<fragment>::@class::int#element
+                  element2: dart:core::@class::int
                   type: int
                 name: a
                 declaredElement: a@96
@@ -624,7 +655,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -655,7 +686,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@81
@@ -729,7 +760,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: isFinal a@54
@@ -760,7 +791,7 @@ SwitchStatement
           type: NamedType
             name: num
             element: dart:core::<fragment>::@class::num
-            element2: dart:core::<fragment>::@class::num#element
+            element2: dart:core::@class::num
             type: num
           name: a
           declaredElement: a@81
@@ -833,7 +864,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -864,7 +895,7 @@ SwitchStatement
           type: NamedType
             name: num
             element: dart:core::<fragment>::@class::num
-            element2: dart:core::<fragment>::@class::num#element
+            element2: dart:core::@class::num
             type: num
           name: a
           declaredElement: a@75
@@ -945,7 +976,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@60
@@ -1017,7 +1048,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1096,7 +1127,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1244,7 +1275,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@61
@@ -1327,7 +1358,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48
@@ -1341,7 +1372,7 @@ SwitchStatement
           type: NamedType
             name: double
             element: dart:core::<fragment>::@class::double
-            element2: dart:core::<fragment>::@class::double#element
+            element2: dart:core::@class::double
             type: double
           name: b
           declaredElement: b@67
@@ -1355,7 +1386,7 @@ SwitchStatement
           type: NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
           name: c
           declaredElement: c@86
@@ -1423,7 +1454,7 @@ SwitchStatement
               NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -1498,7 +1529,7 @@ SwitchStatement
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@62
@@ -1577,7 +1608,7 @@ SwitchStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@48

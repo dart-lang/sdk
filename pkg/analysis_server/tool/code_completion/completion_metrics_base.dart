@@ -31,16 +31,20 @@ abstract class CompletionMetricsComputer {
 
   late ResolvedUnitResult resolvedUnitResult;
 
-  final OverlayResourceProvider provider =
-      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  final OverlayResourceProvider provider = OverlayResourceProvider(
+    PhysicalResourceProvider.INSTANCE,
+  );
 
   int overlayModificationStamp = 0;
 
   CompletionMetricsComputer(this.rootPath, this.options);
 
   /// Applies an overlay in [filePath] at [expectedCompletion].
-  Future<void> applyOverlay(AnalysisContext context, String filePath,
-      ExpectedCompletion expectedCompletion);
+  Future<void> applyOverlay(
+    AnalysisContext context,
+    String filePath,
+    ExpectedCompletion expectedCompletion,
+  );
 
   /// Compute the metrics for the files in the context [root], creating a
   /// separate context collection to prevent accumulating memory. The metrics
@@ -59,9 +63,7 @@ abstract class CompletionMetricsComputer {
 
     logger.write('Computing completions at root: ${root.root.path}\n');
 
-    var results = await resolveAnalyzedFiles(
-      context: context,
-    );
+    var results = await resolveAnalyzedFiles(context: context);
 
     logger.write('Analyzing completion suggestions...\n');
     var progress = ProgressBar(logger, results.length);
@@ -70,17 +72,16 @@ abstract class CompletionMetricsComputer {
       var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
-      var visitor =
-          ExpectedCompletionsVisitor(result, caretOffset: options.prefixLength);
+      var visitor = ExpectedCompletionsVisitor(
+        result,
+        caretOffset: options.prefixLength,
+      );
       resolvedUnitResult.unit.accept(visitor);
 
       for (var expectedCompletion in visitor.expectedCompletions) {
         await applyOverlay(context, filePath, expectedCompletion);
 
-        await computeSuggestionsAndMetrics(
-          expectedCompletion,
-          context,
-        );
+        await computeSuggestionsAndMetrics(expectedCompletion, context);
 
         await removeOverlay(context, filePath);
       }
@@ -127,8 +128,9 @@ abstract class CompletionMetricsComputer {
       }
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var result = await context.currentSession.getResolvedUnit(filePath)
-              as ResolvedUnitResult;
+          var result =
+              await context.currentSession.getResolvedUnit(filePath)
+                  as ResolvedUnitResult;
 
           var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
@@ -159,7 +161,8 @@ abstract class CompletionMetricsComputer {
   /// Given some [ResolvedUnitResult] returns the first error of high severity
   /// if such an error exists, `null` otherwise.
   static err.AnalysisError? getFirstErrorOrNull(
-      ResolvedUnitResult resolvedUnitResult) {
+    ResolvedUnitResult resolvedUnitResult,
+  ) {
     for (var error in resolvedUnitResult.errors) {
       if (error.severity == Severity.error) {
         return error;
@@ -223,9 +226,9 @@ class CompletionMetricsOptions {
   final bool printSlowestResults;
 
   CompletionMetricsOptions(ArgResults results)
-      : overlay = OverlayMode.parseFlag(results[OVERLAY] as String),
-        prefixLength = int.parse(results[PREFIX_LENGTH] as String),
-        printSlowestResults = results[PRINT_SLOWEST_RESULTS] as bool;
+    : overlay = OverlayMode.parseFlag(results[OVERLAY] as String),
+      prefixLength = int.parse(results[PREFIX_LENGTH] as String),
+      printSlowestResults = results[PRINT_SLOWEST_RESULTS] as bool;
 }
 
 enum OverlayMode {
@@ -321,8 +324,10 @@ class ProgressBar {
       return;
     }
     _tickCount++;
-    var fractionComplete =
-        math.max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
+    var fractionComplete = math.max(
+      0,
+      _tickCount * _innerWidth ~/ _totalTickCount - 1,
+    );
     // The inner space consists of hyphens, one spinner character, spaces, and a
     // percentage (8 characters).
     var hyphens = '-' * fractionComplete;

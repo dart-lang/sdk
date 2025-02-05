@@ -29,7 +29,7 @@ ExtendsClause
   superclass: NamedType
     name: dynamic
     element: dynamic@-1
-    element2: dynamic@-1
+    element2: dynamic
     type: dynamic
 ''');
   }
@@ -49,7 +49,7 @@ ExtendsClause
   superclass: NamedType
     name: E
     element: <testLibraryFragment>::@enum::E
-    element2: <testLibraryFragment>::@enum::E#element
+    element2: <testLibrary>::@enum::E
     type: E
 ''');
   }
@@ -69,7 +69,7 @@ ExtendsClause
   superclass: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
-    element2: <testLibraryFragment>::@extensionType::A#element
+    element2: <testLibrary>::@extensionType::A
     type: A
 ''');
   }
@@ -89,7 +89,7 @@ ExtendsClause
   superclass: NamedType
     name: M
     element: <testLibraryFragment>::@mixin::M
-    element2: <testLibraryFragment>::@mixin::M#element
+    element2: <testLibrary>::@mixin::M
     type: M
 ''');
   }
@@ -134,7 +134,7 @@ ExtendsClause
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@getter::v
@@ -157,7 +157,7 @@ ExtendsClause
   superclass: NamedType
     name: Never
     element: Never@-1
-    element2: Never@-1
+    element2: Never
     type: Never
 ''');
   }

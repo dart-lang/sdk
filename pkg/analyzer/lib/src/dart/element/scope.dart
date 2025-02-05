@@ -2,14 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -25,18 +29,19 @@ class ConstructorInitializerScope extends EnclosedScope {
   }
 }
 
-/// The scope that looks up elements in doc imports.
+/// The scope that looks up elements in documentation comments.
 ///
 /// Attempts to look up elements in its [innerScope] before searching
-/// through the doc imports.
-class DocImportScope with _GettersAndSetters implements Scope {
+/// through any doc imports.
+class DocumentationCommentScope with _GettersAndSetters implements Scope {
   /// The scope that will be prioritized in look ups before searching in doc
   /// imports.
   ///
   /// Will be set for each specific comment scope in the `ScopeResolverVisitor`.
   Scope innerScope;
 
-  DocImportScope(this.innerScope, List<LibraryElement> docImportLibraries) {
+  DocumentationCommentScope(
+      this.innerScope, List<LibraryElement> docImportLibraries) {
     for (var importedLibrary in docImportLibraries) {
       if (importedLibrary is LibraryElementImpl) {
         // TODO(kallentu): Handle combinators.
@@ -356,7 +361,7 @@ class LibraryFragmentScope implements Scope {
       parent: parent,
       fragment: fragment,
       noPrefixScope: PrefixScope(
-        libraryElement: fragment.library,
+        libraryFragment: fragment,
         parent: parent?.noPrefixScope,
         libraryImports: fragment.libraryImports,
         prefix: null,
@@ -372,7 +377,7 @@ class LibraryFragmentScope implements Scope {
     for (var prefix in fragment.libraryImportPrefixes) {
       _prefixElements[prefix.name] = prefix;
       prefix.scope = PrefixScope(
-        libraryElement: fragment.library,
+        libraryFragment: fragment,
         parent: _getParentPrefixScope(prefix),
         libraryImports: fragment.libraryImports,
         prefix: prefix,
@@ -515,7 +520,7 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryElementImpl libraryElement;
+  final CompilationUnitElementImpl libraryFragment;
   final PrefixScope? parent;
 
   final List<LibraryImportElementImpl> _importElements = [];
@@ -530,7 +535,7 @@ class PrefixScope implements Scope {
   ImportsTrackingOfPrefix? _importsTracking;
 
   PrefixScope({
-    required this.libraryElement,
+    required this.libraryFragment,
     required this.parent,
     required List<LibraryImportElementImpl> libraryImports,
     required PrefixElement? prefix,
@@ -560,6 +565,10 @@ class PrefixScope implements Scope {
         }
       }
     }
+  }
+
+  LibraryElementImpl get libraryElement {
+    return libraryFragment.element;
   }
 
   void importsTrackingDestroy() {
@@ -684,8 +693,7 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, other);
 
     return MultiplyDefinedElementImpl(
-      libraryElement.context,
-      libraryElement.session,
+      libraryFragment,
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
@@ -771,6 +779,11 @@ class ScopeLookupResultImpl implements ScopeLookupResult {
     required this.getter,
     required this.setter,
   });
+
+  @override
+  Element2? get getter2 => getter?.asElement2;
+  @override
+  Element2? get setter2 => setter?.asElement2;
 }
 
 class TypeParameterScope extends EnclosedScope {

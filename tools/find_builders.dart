@@ -8,7 +8,7 @@
 // Usage:
 //
 // ```
-// $ tools/find_builders.dart ffi/regress_51504_test ffi/regress_51913_test
+// $ tools/find_builders.dart ffi/regress_51504_test ffi/regress_52298_test
 // Cq-Include-Trybots: dart/try:vm-kernel-linux-debug-x64,...
 // ```
 
@@ -27,10 +27,11 @@ Future<void> main(List<String> args) async {
     for (final testName in testNames) ...await _testGetConfigurations(testName),
   });
   final configurationBuilders = await _configurationBuilders();
-  final builders = _filterBuilders(
-    {for (final config in configurations) configurationBuilders[config]!},
-  ).toList()
-    ..sort();
+  final builders =
+      _filterBuilders({
+          for (final config in configurations) configurationBuilders[config]!,
+        }).toList()
+        ..sort();
 
   final gerritTryList = builders.map((b) => '$b-try').join(',');
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
@@ -47,7 +48,7 @@ Future<List<String>> _testGetConfigurations(String testName) async {
   final object = jsonDecode(response) as Map<String, dynamic>;
   return [
     for (final result in ((object['results'] as List)).cast<Map>())
-      result['configuration']
+      result['configuration'],
   ];
 }
 
@@ -105,7 +106,8 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
     final response = await _get(requestUrl);
     final object = jsonDecode(response) as Map<String, dynamic>;
     yield* Stream.fromIterable(
-        (object['documents'] as List).cast<Map<String, dynamic>>());
+      (object['documents'] as List).cast<Map<String, dynamic>>(),
+    );
 
     nextPageToken = object['nextPageToken'];
   } while (nextPageToken != null);
@@ -114,12 +116,11 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
 Future<Map<String, String>> _configurationBuilders() async {
   return {
     await for (final document in _configurationDocuments())
-      if (document
-          case {
-            'name': String fullName,
-            'fields': {'builder': {'stringValue': String builder}}
-          })
-        fullName.split('/').last: builder
+      if (document case {
+        'name': String fullName,
+        'fields': {'builder': {'stringValue': String builder}},
+      })
+        fullName.split('/').last: builder,
   };
 }
 

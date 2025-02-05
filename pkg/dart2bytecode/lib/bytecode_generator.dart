@@ -13,7 +13,7 @@ import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart'
-    show Substitution, containsTypeVariable;
+    show Substitution, containsTypeParameter;
 import 'package:kernel/type_environment.dart'
     show StatefulStaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 
@@ -1299,7 +1299,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genPushInstantiatorAndFunctionTypeArguments(List<DartType> types) {
     final classTypeParameters = this.classTypeParameters;
     if (classTypeParameters != null &&
-        types.any((t) => containsTypeVariable(t, classTypeParameters))) {
+        types.any((t) => containsTypeParameter(t, classTypeParameters))) {
       assert(instantiatorTypeArguments != null);
       _genPushInstantiatorTypeArguments();
     } else {
@@ -1307,7 +1307,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     final functionTypeParametersSet = this.functionTypeParametersSet;
     if (functionTypeParametersSet != null &&
-        types.any((t) => containsTypeVariable(t, functionTypeParametersSet))) {
+        types.any((t) => containsTypeParameter(t, functionTypeParametersSet))) {
       _genPushFunctionTypeArguments();
     } else {
       asm.emitPushNull();
@@ -1597,6 +1597,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       final functionTypeParameters = this.functionTypeParameters =
           new List<TypeParameter>.from(enclosingFunction.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters.length;
     }
 
     if (!hasCode) {
@@ -1812,6 +1814,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
+    objectTable.numEnclosingFunctionTypeParameters = 0;
     staticTypeContext.leaveMember(node);
     enclosingClass = null;
     enclosingMember = null;
@@ -1998,7 +2001,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     // instantiate default types.
     if (isClosure &&
         defaultTypes
-            .any((t) => containsTypeVariable(t, functionTypeParametersSet!))) {
+            .any((t) => containsTypeParameter(t, functionTypeParametersSet!))) {
       asm.emitPush(locals.closureVarIndexInFrame);
       asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
       asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
@@ -2378,6 +2381,8 @@ class BytecodeGenerator extends RecursiveVisitor {
           this.functionTypeParameters ??= <TypeParameter>[];
       functionTypeParameters.addAll(function.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters.length;
     }
 
     final closures = this.closures ??= <ClosureDeclaration>[];
@@ -2416,6 +2421,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters!.length -= function.typeParameters.length;
       functionTypeParametersSet = functionTypeParameters!.toSet();
+      objectTable.numEnclosingFunctionTypeParameters =
+          functionTypeParameters!.length;
     }
 
     enclosingFunction = parentFunction;

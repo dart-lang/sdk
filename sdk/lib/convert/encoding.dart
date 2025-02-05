@@ -28,8 +28,10 @@ abstract class Encoding extends Codec<String, List<int>> {
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return decoder
         .bind(byteStream)
-        .fold(StringBuffer(),
-            (StringBuffer buffer, String string) => buffer..write(string))
+        .fold(
+          StringBuffer(),
+          (StringBuffer buffer, String string) => buffer..write(string),
+        )
         .then((StringBuffer buffer) => buffer.toString());
   }
 
@@ -66,10 +68,9 @@ abstract class Encoding extends Codec<String, List<int>> {
     "cp367": ascii,
     "csascii": ascii,
     "ascii": ascii, // This is not in the IANA official names.
-
     // UTF-8.
     "csutf8": utf8,
-    "utf-8": utf8
+    "utf-8": utf8,
   };
 
   /// Returns an [Encoding] for a named character set.

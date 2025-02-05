@@ -921,28 +921,29 @@ final class Struct2BytesInt extends Struct {
 }
 
 @Native<
-    Int16 Function(
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-      Pointer<Struct2BytesInt>,
-    )>(symbol: 'TakeStruct2BytesIntPointerMany', isLeaf: true)
+  Int16 Function(
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+    Pointer<Struct2BytesInt>,
+  )
+>(symbol: 'TakeStruct2BytesIntPointerMany', isLeaf: true)
 external int takeStruct2BytesIntPointerMany(
   Pointer<Struct2BytesInt> pointer0,
   Pointer<Struct2BytesInt> pointer1,
@@ -1023,28 +1024,29 @@ final class Union2BytesInt extends Union {
 }
 
 @Native<
-    Int16 Function(
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-      Pointer<Union2BytesInt>,
-    )>(symbol: 'TakeUnion2BytesIntPointerMany', isLeaf: true)
+  Int16 Function(
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+    Pointer<Union2BytesInt>,
+  )
+>(symbol: 'TakeUnion2BytesIntPointerMany', isLeaf: true)
 external int takeUnion2BytesIntPointerMany(
   Pointer<Union2BytesInt> pointer0,
   Pointer<Union2BytesInt> pointer1,

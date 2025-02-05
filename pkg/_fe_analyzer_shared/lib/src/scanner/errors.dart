@@ -21,7 +21,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
       // TODO(paulberry,ahe): would it make sense to replicate this behavior
-      // in fasta, or move it elsewhere in analyzer?
+      // in cfe, or move it elsewhere in analyzer?
       charOffset--;
     }
     reportError(errorCode, charOffset, arguments);

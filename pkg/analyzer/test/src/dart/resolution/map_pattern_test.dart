@@ -40,7 +40,7 @@ MapPattern
         type: NamedType
           name: String
           element: dart:core::<fragment>::@class::String
-          element2: dart:core::<fragment>::@class::String#element
+          element2: dart:core::@class::String
           type: String
         name: a
         declaredElement: a@47
@@ -105,12 +105,12 @@ MapPattern
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   leftBracket: {
@@ -327,12 +327,12 @@ MapPattern
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -421,7 +421,7 @@ MapPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@43
@@ -478,12 +478,12 @@ MapPattern
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -521,12 +521,12 @@ MapPattern
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -646,12 +646,12 @@ PatternVariableDeclaration
         NamedType
           name: bool
           element: dart:core::<fragment>::@class::bool
-          element2: dart:core::<fragment>::@class::bool#element
+          element2: dart:core::@class::bool
           type: bool
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: {
@@ -674,7 +674,7 @@ PatternVariableDeclaration
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -713,7 +713,7 @@ PatternVariableDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@28
@@ -727,7 +727,7 @@ PatternVariableDeclaration
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

@@ -18,6 +18,8 @@
 // implemented for all the primitive types we can replace the usage of
 // sstream by Utils::toString()
 #if defined(DEBUG) || defined(TESTING)
+#include <string.h>
+
 #include <sstream>
 #include <string>
 #endif
@@ -62,6 +64,9 @@ class Expect : public DynamicAssertionHelper {
 
   template <typename E, typename A>
   void NotEquals(const E& not_expected, const A& actual);
+
+  template <typename E, typename A>
+  void BitEquals(const E& expected, const A& actual);
 
   template <typename E, typename A, typename T>
   void FloatEquals(const E& expected, const A& actual, const T& tol);
@@ -124,6 +129,17 @@ void Expect::NotEquals(const E& not_expected, const A& actual) {
   ness << not_expected;
   std::string nes = ness.str();
   Fail("did not expect: <%s>", nes.c_str());
+}
+
+template <typename E, typename A>
+void Expect::BitEquals(const E& expected, const A& actual) {
+  static_assert(sizeof(E) == sizeof(A));
+  if (memcmp(&expected, &actual, sizeof(E)) == 0) return;
+  std::ostringstream ess, ass;
+  ess << expected;
+  ass << actual;
+  std::string es = ess.str(), as = ass.str();
+  Fail("expected: <%s> but was: <%s>", es.c_str(), as.c_str());
 }
 
 template <typename E, typename A, typename T>
@@ -355,6 +371,9 @@ void Expect::Null(const T p) {
 
 #define EXPECT_NE(not_expected, actual)                                        \
   dart::Expect(__FILE__, __LINE__).NotEquals((not_expected), (actual))
+
+#define EXPECT_BITEQ(expected, actual)                                         \
+  dart::Expect(__FILE__, __LINE__).BitEquals((expected), (actual))
 
 #define EXPECT_FLOAT_EQ(expected, actual, tol)                                 \
   dart::Expect(__FILE__, __LINE__).FloatEquals((expected), (actual), (tol))

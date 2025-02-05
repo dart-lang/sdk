@@ -10,6 +10,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'list_factory_specializer.dart';
+import 'util.dart';
 
 void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
@@ -208,6 +209,7 @@ class _WasmTransformer extends Transformer {
           isExternal: true,
           isSynthetic: true,
           fileUri: cls.fileUri);
+      addPragma(getTypeArguments, 'wasm:intrinsic', coreTypes);
       cls.addProcedure(getTypeArguments);
     }
     return super.visitClass(cls);
@@ -962,8 +964,8 @@ class PushPopWasmArrayTransformer {
 
   Expression _transformPopWasmArray(StaticInvocation invocation) {
     final elementType = invocation.arguments.types[0] as InterfaceType;
-    final elementTypeNullable =
-        elementType.withDeclaredNullability(Nullability.nullable);
+    final elementIsNullable =
+        elementType.nullability != Nullability.nonNullable;
 
     final positionalArguments = invocation.arguments.positional;
     assert(positionalArguments.length == 2);
@@ -991,6 +993,8 @@ class PushPopWasmArrayTransformer {
       return cloner.clone(node);
     }
 
+    final List<Statement> blockStatements = [];
+
     // length - 1
     final intSubtractType = _intSubtract.computeSignatureOrFunctionType();
     final lengthMinusOne = InstanceInvocation(InstanceAccessKind.Instance,
@@ -1008,24 +1012,28 @@ class PushPopWasmArrayTransformer {
       arrayLengthUpdate = ExpressionStatement(
           VariableSet(lengthVariableGet.variable, lengthMinusOne));
     }
+    blockStatements.add(arrayLengthUpdate);
 
     // array[length]
     final arrayGet = StaticInvocation(_wasmArrayElementGet,
-        Arguments([clone(array), clone(length)], types: [elementTypeNullable]));
+        Arguments([clone(array), clone(length)], types: [elementType]));
 
     // final temp = array[length]
     final arrayGetVariable = VariableDeclaration.forValue(arrayGet,
-        isFinal: true, type: elementTypeNullable);
+        isFinal: true, type: elementType);
+    blockStatements.add(arrayGetVariable);
 
     // array[length] = null
-    final arrayClearElement = ExpressionStatement(StaticInvocation(
-        _wasmArrayElementSet,
-        Arguments([clone(array), clone(length), NullLiteral()],
-            types: [elementTypeNullable])));
+    if (elementIsNullable) {
+      final arrayClearElement = ExpressionStatement(StaticInvocation(
+          _wasmArrayElementSet,
+          Arguments([clone(array), clone(length), NullLiteral()],
+              types: [elementType])));
+      blockStatements.add(arrayClearElement);
+    }
 
     return BlockExpression(
-        Block([arrayLengthUpdate, arrayGetVariable, arrayClearElement]),
-        VariableGet(arrayGetVariable));
+        Block(blockStatements), VariableGet(arrayGetVariable));
   }
 }
 

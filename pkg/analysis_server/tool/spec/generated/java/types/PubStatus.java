@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An indication of the current state of pub execution.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class PubStatus {
 
-  public static final PubStatus[] EMPTY_ARRAY = new PubStatus[0];
-
-  public static final List<PubStatus> EMPTY_LIST = Lists.newArrayList();
+  public static final List<PubStatus> EMPTY_LIST = List.of();
 
   /**
    * True if the server is currently running pub to produce a list of package directories.
@@ -49,8 +44,7 @@ public class PubStatus {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof PubStatus) {
-      PubStatus other = (PubStatus) obj;
+    if (obj instanceof PubStatus other) {
       return
         other.isListingPackageDirs == isListingPackageDirs;
     }
@@ -66,10 +60,9 @@ public class PubStatus {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<PubStatus> list = new ArrayList<PubStatus>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<PubStatus> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -83,9 +76,9 @@ public class PubStatus {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(isListingPackageDirs);
-    return builder.toHashCode();
+    return Objects.hash(
+      isListingPackageDirs
+    );
   }
 
   public JsonObject toJson() {

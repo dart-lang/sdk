@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -17,12 +17,16 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir =
-        Directory.fromUri(Platform.script.resolve('side_effects'));
-    await checkTests(dataDir, const SideEffectsDataComputer(),
-        args: args,
-        options: [stopAfterTypeInference],
-        testedConfigs: allInternalConfigs);
+    Directory dataDir = Directory.fromUri(
+      Platform.script.resolve('side_effects'),
+    );
+    await checkTests(
+      dataDir,
+      const SideEffectsDataComputer(),
+      args: args,
+      options: [stopAfterTypeInference],
+      testedConfigs: allInternalConfigs,
+    );
   });
 }
 
@@ -33,15 +37,21 @@ class SideEffectsDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
-            compiler.globalInference.resultsForTesting!.inferredData)
-        .run(definition.node);
+    SideEffectsIrComputer(
+      compiler.reporter,
+      actualMap,
+      closedWorld,
+      compiler.globalInference.resultsForTesting!.inferredData,
+    ).run(definition.node);
   }
 
   @override
@@ -54,11 +64,11 @@ class SideEffectsIrComputer extends IrDataExtractor<String> {
   final InferredData inferredData;
 
   SideEffectsIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this.closedWorld,
-      this.inferredData)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this.closedWorld,
+    this.inferredData,
+  ) : super(reporter, actualMap);
 
   JsToElementMap get _elementMap => closedWorld.elementMap;
   ClosureData get _closureDataLookup => closedWorld.closureDataLookup;
@@ -78,8 +88,9 @@ class SideEffectsIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

@@ -39,7 +39,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -51,7 +51,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -81,7 +81,7 @@ ExtensionOverride
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -93,7 +93,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -126,12 +126,12 @@ ExtensionOverride
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -143,7 +143,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

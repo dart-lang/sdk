@@ -106,8 +106,9 @@ class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
     }
 
     // Wrap any stray "TODO"s in message contents in ticks.
-    content =
-        content.replaceAllMapped(RegExp('TODO', caseSensitive: false), (match) {
+    content = content.replaceAllMapped(RegExp('TODO', caseSensitive: false), (
+      match,
+    ) {
       var todoText = content.substring(match.start, match.end);
       return match.start > 4 ? '`$todoText`' : todoText;
     });

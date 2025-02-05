@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -96,7 +98,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
-    var currentClass = _currentClass?.augmented.declaration;
+    var currentClass = _currentClass?.augmented.firstFragment;
     if (currentClass != null) {
       var name = Name(_libraryUri, member.name);
       return _inheritance.getOverridden2(currentClass, name) != null;

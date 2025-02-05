@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/command/command.dart';
+import 'package:dev_compiler/src/kernel/hot_reload_delta_inspector.dart';
 import 'package:dev_compiler/src/js_ast/nodes.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
@@ -23,8 +24,10 @@ import 'strong_components.dart';
 /// Produce a special bundle format for compiled JavaScript.
 ///
 /// The bundle format consists of two files: One containing all produced
-/// JavaScript modules concatenated together, and a second containing the byte
-/// offsets by module name for each JavaScript module in JSON format.
+/// JavaScript library bundles concatenated together, and a second containing
+/// the byte offsets by the synthesized library bundle name for each JavaScript
+/// library bundle in JSON format. The library bundle name is based off of a
+/// library URI from the associated component.
 ///
 /// The format is analogous to the dill and .incremental.dill in that during
 /// an incremental build, a different file is written for each which contains
@@ -49,11 +52,11 @@ class IncrementalJavaScriptBundler {
   final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
   final Map<Uri, Component> _uriToComponent = <Uri, Component>{};
-  final _importToSummary = new Map<Library, Component>.identity();
-  final _summaryToModule = new Map<Component, String>.identity();
-  final Map<Uri, String> _moduleImportForSummary = <Uri, String>{};
-  final Map<Uri, String> _moduleImportNameForSummary = <Uri, String>{};
+  final _libraryToSummary = new Map<Library, Component>.identity();
+  final _summaryToLibraryBundleName = new Map<Component, String>.identity();
+  final Map<Uri, String> _summaryToLibraryBundleJSPath = <Uri, String>{};
   final String _fileSystemScheme;
+  final HotReloadDeltaInspector _deltaInspector = new HotReloadDeltaInspector();
 
   late Component _lastFullComponent;
   late Component _currentComponent;
@@ -70,8 +73,9 @@ class IncrementalJavaScriptBundler {
       mainUri,
       _fileSystem,
     );
-    await _strongComponents.computeModules();
-    _updateSummaries(_strongComponents.modules.keys, packageConfig);
+    await _strongComponents.computeLibraryBundles();
+    _updateSummaries(
+        _strongComponents.libraryBundleImportToLibraries.keys, packageConfig);
   }
 
   /// Update the incremental bundler from a partial component and the last full
@@ -81,6 +85,13 @@ class IncrementalJavaScriptBundler {
       Component lastFullComponent,
       Uri mainUri,
       PackageConfig packageConfig) async {
+    if (canaryFeatures && _moduleFormat == ModuleFormat.ddc) {
+      // Find any potential hot reload rejections before updating the strongly
+      // connected component graph.
+      final List<String> errors = _deltaInspector.compareGenerations(
+          lastFullComponent, partialComponent);
+      if (errors.isNotEmpty) throw new Exception(errors.join('/n'));
+    }
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
     _strongComponents = new StrongComponents(
@@ -90,13 +101,14 @@ class IncrementalJavaScriptBundler {
       _fileSystem,
     );
 
-    await _strongComponents.computeModules(<Uri, Library>{
+    await _strongComponents.computeLibraryBundles(<Uri, Library>{
       for (Library library in partialComponent.libraries)
         library.importUri: library,
     });
     Set<Uri> invalidated = <Uri>{
       for (Library library in partialComponent.libraries)
-        _strongComponents.moduleAssignment[library.importUri]!,
+        _strongComponents
+            .libraryImportToLibraryBundleImport[library.importUri]!,
     };
     _updateSummaries(invalidated, packageConfig);
   }
@@ -123,10 +135,12 @@ class IncrementalJavaScriptBundler {
     }
   }
 
-  /// Update the summaries [moduleKeys].
-  void _updateSummaries(Iterable<Uri> moduleKeys, PackageConfig packageConfig) {
-    for (Uri uri in moduleKeys) {
-      final List<Library> libraries = _strongComponents.modules[uri]!.toList();
+  /// Update the summaries using the [libraryBundleImports].
+  void _updateSummaries(
+      Iterable<Uri> libraryBundleImports, PackageConfig packageConfig) {
+    for (Uri uri in libraryBundleImports) {
+      final List<Library> libraries =
+          _strongComponents.libraryBundleImportToLibraries[uri]!.toList();
       final Component summaryComponent = new Component(
         libraries: libraries,
         nameRoot: _lastFullComponent.root,
@@ -136,34 +150,33 @@ class IncrementalJavaScriptBundler {
           null, false, _currentComponent.mode);
 
       String baseName = urlForComponentUri(uri, packageConfig);
-      _moduleImportForSummary[uri] = '$baseName.lib.js';
-      _moduleImportNameForSummary[uri] = makeModuleName(baseName);
+      _summaryToLibraryBundleJSPath[uri] = '$baseName.lib.js';
+      // Library bundle loaders loads bundles by bundle names, not paths
+      String libraryBundleName = makeLibraryBundleName(baseName);
 
       _uriToComponent[uri] = summaryComponent;
-      // module loaders loads modules by modules names, not paths
-      String moduleImport = _moduleImportNameForSummary[uri]!;
 
       List<Component> oldSummaries = [];
-      for (Component summary in _summaryToModule.keys) {
-        if (_summaryToModule[summary] == moduleImport) {
+      for (Component summary in _summaryToLibraryBundleName.keys) {
+        if (_summaryToLibraryBundleName[summary] == libraryBundleName) {
           oldSummaries.add(summary);
         }
       }
       for (Component summary in oldSummaries) {
-        _summaryToModule.remove(summary);
+        _summaryToLibraryBundleName.remove(summary);
       }
-      _importToSummary
+      _libraryToSummary
           .removeWhere((key, value) => oldSummaries.contains(value));
 
       for (Library library in summaryComponent.libraries) {
-        assert(!_importToSummary.containsKey(library));
-        _importToSummary[library] = summaryComponent;
-        _summaryToModule[summaryComponent] = moduleImport;
+        assert(!_libraryToSummary.containsKey(library));
+        _libraryToSummary[library] = summaryComponent;
+        _summaryToLibraryBundleName[summaryComponent] = libraryBundleName;
       }
     }
   }
 
-  /// Compile each component into a single JavaScript module.
+  /// Compile each component into a single JavaScript library bundle.
   Future<Map<String, Compiler>> compile(
     ClassHierarchy classHierarchy,
     CoreTypes coreTypes,
@@ -179,7 +192,7 @@ class IncrementalJavaScriptBundler {
     int metadataOffset = 0;
     int symbolsOffset = 0;
     final Map<String, Map<String, List<int>>> manifest = {};
-    final Set<Uri> visited = {};
+    final Map<Uri, Compiler> visited = {};
     final Map<String, Compiler> kernel2JsCompilers = {};
 
     for (Library library in _currentComponent.libraries) {
@@ -187,25 +200,27 @@ class IncrementalJavaScriptBundler {
           library.importUri.isScheme('dart')) {
         continue;
       }
-      final Uri moduleUri =
-          _strongComponents.moduleAssignment[library.importUri]!;
-      if (visited.contains(moduleUri)) {
+      final Uri libraryBundleImport = _strongComponents
+          .libraryImportToLibraryBundleImport[library.importUri]!;
+      if (visited.containsKey(libraryBundleImport)) {
+        kernel2JsCompilers[library.importUri.toString()] =
+            visited[libraryBundleImport]!;
         continue;
       }
-      visited.add(moduleUri);
 
-      final Component summaryComponent = _uriToComponent[moduleUri]!;
+      final Component summaryComponent = _uriToComponent[libraryBundleImport]!;
 
-      // module name to use in trackLibraries
-      // use full path for tracking if module uri is not a package uri.
-      final String moduleUrl = urlForComponentUri(moduleUri, packageConfig);
-      final String moduleName = makeModuleName(moduleUrl);
+      final String componentUrl =
+          urlForComponentUri(libraryBundleImport, packageConfig);
+      // library bundle name to use in trackLibraries
+      // use full path for tracking if library bundle uri is not a package uri.
+      final String libraryBundleName = makeLibraryBundleName(componentUrl);
       final Options ddcOptions = new Options(
         sourceMap: true,
         summarizeApi: false,
         emitDebugMetadata: emitDebugMetadata,
         emitDebugSymbols: emitDebugSymbols,
-        moduleName: moduleName,
+        moduleName: libraryBundleName,
         soundNullSafety: true,
         canaryFeatures: canaryFeatures,
         moduleFormats: [_moduleFormat],
@@ -215,34 +230,36 @@ class IncrementalJavaScriptBundler {
               _currentComponent,
               classHierarchy,
               ddcOptions,
-              _importToSummary,
-              _summaryToModule,
+              _libraryToSummary,
+              _summaryToLibraryBundleName,
               coreTypes: coreTypes,
             )
           : new ProgramCompiler(
               _currentComponent,
               classHierarchy,
               ddcOptions,
-              _importToSummary,
-              _summaryToModule,
+              _libraryToSummary,
+              _summaryToLibraryBundleName,
               coreTypes: coreTypes,
             );
 
-      final Program jsModule = compiler.emitModule(summaryComponent);
+      final Program jsBundle = compiler.emitModule(summaryComponent);
 
       // Save program compiler to reuse for expression evaluation.
-      kernel2JsCompilers[moduleName] = compiler;
+      kernel2JsCompilers[library.importUri.toString()] = compiler;
+      visited[libraryBundleImport] = compiler;
 
       String? sourceMapBase;
-      if (moduleUri.isScheme('package')) {
+      if (libraryBundleImport.isScheme('package')) {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
-        // the module and make them relative to that.
-        sourceMapBase = p.dirname((packageConfig.resolve(moduleUri))!.path);
+        // the library bundle and make them relative to that.
+        sourceMapBase =
+            p.dirname((packageConfig.resolve(libraryBundleImport))!.path);
       }
 
       final JSCode code = jsProgramToCode(
-        jsModule,
+        jsBundle,
         ddcOptions.emitLibraryBundle
             ? ModuleFormat.ddcLibraryBundle
             : _moduleFormat,
@@ -250,8 +267,8 @@ class IncrementalJavaScriptBundler {
         buildSourceMap: true,
         emitDebugMetadata: emitDebugMetadata,
         emitDebugSymbols: emitDebugSymbols,
-        jsUrl: '$moduleUrl.lib.js',
-        mapUrl: '$moduleUrl.lib.js.map',
+        jsUrl: '$componentUrl.lib.js',
+        mapUrl: '$componentUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
         compiler: compiler,
@@ -272,8 +289,9 @@ class IncrementalJavaScriptBundler {
       if (emitDebugSymbols) {
         symbolsSink!.add(symbolsBytes!);
       }
-      final String moduleKey = _moduleImportForSummary[moduleUri]!;
-      manifest[moduleKey] = {
+      final String libraryBundleJSPath =
+          _summaryToLibraryBundleJSPath[libraryBundleImport]!;
+      manifest[libraryBundleJSPath] = {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
         'sourcemap': <int>[
           sourceMapOffset,
@@ -296,22 +314,20 @@ class IncrementalJavaScriptBundler {
     return kernel2JsCompilers;
   }
 
-  /// Module name used in the browser to load modules.
+  /// Library bundle name used in the browser to load library bundles.
   ///
-  /// Module names are used to load modules using module
-  /// paths maps in RequireJS, which treats names with
-  /// leading '/' or '.js' extensions specially, and tries
-  /// to load them without mapping.
-  /// Skip the leading '/' to always load modules via module
-  /// path maps.
-  String makeModuleName(String name) {
+  /// Library bundle names are used to load library bundles using library bundle
+  /// path maps in RequireJS, which treats names with leading '/' or '.js'
+  /// extensions specially, and tries to load them without mapping. Skip the
+  /// leading '/' to always load library bundles via library bundle path maps.
+  String makeLibraryBundleName(String name) {
     return name.startsWith('/') ? name.substring(1) : name;
   }
 
   /// Create component url.
   ///
-  /// Used as a server path in the browser for the module created
-  /// from the component.
+  /// Used as a server path in the browser for the library bundle created from
+  /// the component.
   String urlForComponentUri(Uri componentUri, PackageConfig packageConfig) {
     if (!componentUri.isScheme('package')) {
       return componentUri.path;

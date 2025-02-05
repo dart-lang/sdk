@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Values used only for debugging type inference.
-library compiler.src.inferrer.debug;
+library;
 
-const bool VERBOSE = false;
-const bool PRINT_SUMMARY = false;
-const bool ANOMALY_WARN = false;
-bool PRINT_GRAPH = false;
-bool PRINT_GRAPH_ALL_NODES = false; // Include useless nodes?
+const bool verbose = false;
+const bool printSummary = false;
+const bool anomalyWarn = false;
+bool printGraph = false;
+bool printGraphAllNodes = false; // Include useless nodes?

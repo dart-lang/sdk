@@ -42,27 +42,21 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    var selection = await analyzeSelection(
-      available: availability,
-    );
+    var selection = await analyzeSelection(available: availability);
 
     // This should not happen, `isAvailable()` returns `false`.
     if (selection is! ValidSelectionState) {
       return ComputeStatusFailure();
     }
 
-    var formalParameterUpdates = selection.formalParameters.map(
-      (formalParameter) {
-        var newKind = formalParameter.kind;
-        if (formalParameter.kind.isPositional) {
-          newKind = FormalParameterKind.requiredNamed;
-        }
-        return FormalParameterUpdate(
-          id: formalParameter.id,
-          kind: newKind,
-        );
-      },
-    ).toList();
+    var formalParameterUpdates =
+        selection.formalParameters.map((formalParameter) {
+          var newKind = formalParameter.kind;
+          if (formalParameter.kind.isPositional) {
+            newKind = FormalParameterKind.requiredNamed;
+          }
+          return FormalParameterUpdate(id: formalParameter.id, kind: newKind);
+        }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,
@@ -78,9 +72,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
 
     switch (status) {
       case ChangeStatusFailure():
-        return ComputeStatusFailure(
-          reason: 'Failed to compute the change.',
-        );
+        return ComputeStatusFailure(reason: 'Failed to compute the change.');
       case ChangeStatusSuccess():
         return ComputeStatusSuccess();
     }

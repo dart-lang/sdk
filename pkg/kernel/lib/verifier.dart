@@ -428,14 +428,16 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       for (Extension extension in library.extensions) {
         for (ExtensionMemberDescriptor descriptor
             in extension.memberDescriptors) {
-          Reference memberReference = descriptor.memberReference;
-          map[memberReference] = descriptor;
-          Member member = memberReference.asMember;
-          if (!member.isExtensionMember) {
-            problem(
-                member,
-                "Member $member (${descriptor}) from $extension is not marked "
-                "as an extension member.");
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionMember) {
+              problem(
+                  member,
+                  "Member $member (${descriptor}) from $extension is not "
+                  " marked as an extension member.");
+            }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
@@ -447,6 +449,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                   "Tear-off $tearOff (${descriptor}) from $extension is not "
                   "marked as an extension member.");
             }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+                extension,
+                "Both member and tear-off references are null in "
+                "the descriptor $descriptor from $extension.");
           }
         }
       }
@@ -463,14 +471,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           in library.extensionTypeDeclarations) {
         for (ExtensionTypeMemberDescriptor descriptor
             in extensionTypeDeclaration.memberDescriptors) {
-          Reference memberReference = descriptor.memberReference;
-          map[memberReference] = descriptor;
-          Member member = memberReference.asMember;
-          if (!member.isExtensionTypeMember) {
-            problem(
-                member,
-                "Member $member (${descriptor}) from $extensionTypeDeclaration "
-                "is not marked as an extension type member.");
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionTypeMember) {
+              problem(
+                  member,
+                  "Member $member (${descriptor}) from "
+                  "$extensionTypeDeclaration is not marked as an extension "
+                  "type member.");
+            }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
@@ -483,6 +494,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                   "$extensionTypeDeclaration is not marked as an extension "
                   "type member.");
             }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+                extensionTypeDeclaration,
+                "Both member and tear-off references are null in "
+                "the descriptor $descriptor from $extensionTypeDeclaration.");
           }
         }
       }
@@ -1030,10 +1047,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitStaticGet(StaticGet node) {
     enterTreeNode(node);
     visitChildren(node);
-    // Currently Constructor.hasGetter returns `false` even though fasta uses it
-    // as a getter for internal purposes:
+    // TODO(johnniwinther): Can this be deleted now?
+    // Currently Constructor.hasGetter returns `false` even though the CFE uses
+    // it as a getter for internal purposes:
     //
-    // Fasta is letting all call site of a redirecting constructor be resolved
+    // CFE is letting all call site of a redirecting constructor be resolved
     // to the real target.  In order to resolve it, it seems to add a body into
     // the redirecting-factory constructor which caches the target constructor.
     // That cache is via a `StaticGet(real-constructor)` node, which we make
@@ -1299,7 +1317,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, declaration is: '${parameter.declaration}'.");
+          " static context, declaration is: '${declaration}'.");
     }
     defaultDartType(node);
   }

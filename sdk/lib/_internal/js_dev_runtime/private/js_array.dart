@@ -46,7 +46,12 @@ class JSArray<E> extends JavaScriptObject
   /// NOTE: The name of this getter is directly tied to the result of compiling
   /// `JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY)`.
   Object get arrayRti => JS<Object>(
-      '', '#.# || #', this, _arrayRtiSymbol, TYPE_REF<JSArray<dynamic>>());
+    '',
+    '#.# || #',
+    this,
+    _arrayRtiSymbol,
+    TYPE_REF<JSArray<dynamic>>(),
+  );
 
   /// Unsupported action, only provided here to help diagnosis of an accidental
   /// attempt to set the value manually.
@@ -363,8 +368,12 @@ class JSArray<E> extends JavaScriptObject
     JS('', '#.splice(#, #)', this, start, deleteCount);
   }
 
-  void setRange(@nullCheck int start, @nullCheck int end, Iterable<E> iterable,
-      [@nullCheck int skipCount = 0]) {
+  void setRange(
+    @nullCheck int start,
+    @nullCheck int end,
+    Iterable<E> iterable, [
+    @nullCheck int skipCount = 0,
+  ]) {
     checkMutable('set range');
 
     RangeError.checkValidRange(start, end, this.length);
@@ -414,7 +423,10 @@ class JSArray<E> extends JavaScriptObject
   }
 
   void replaceRange(
-      @nullCheck int start, @nullCheck int end, Iterable<E> replacement) {
+    @nullCheck int start,
+    @nullCheck int end,
+    Iterable<E> replacement,
+  ) {
     checkGrowable('replace range');
     RangeError.checkValidRange(start, end, this.length);
     if (replacement is! EfficientLengthIterable) {
@@ -468,7 +480,9 @@ class JSArray<E> extends JavaScriptObject
     checkMutable('sort');
     if (compare == null) {
       Sort.sort(
-          this, (a, b) => Comparable.compare(a as Comparable, b as Comparable));
+        this,
+        (a, b) => Comparable.compare(a as Comparable, b as Comparable),
+      );
     } else {
       Sort.sort(this, compare);
     }
@@ -676,9 +690,9 @@ class ArrayIterator<E> implements Iterator<E> {
   E? _current;
 
   ArrayIterator(JSArray<E> iterable)
-      : _iterable = iterable,
-        _length = iterable.length,
-        _index = 0;
+    : _iterable = iterable,
+      _length = iterable.length,
+      _index = 0;
 
   E get current => _current as E;
 

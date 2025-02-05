@@ -229,7 +229,7 @@ class MacroKernelBuilder {
     required MacroFileSystem fileSystem,
     required String packageFilePath,
     required List<MacroLibrary> libraries,
-  }) async {
+  }) {
     var macroMainContent = macro.bootstrapMacroIsolate(
       {
         for (var library in libraries)

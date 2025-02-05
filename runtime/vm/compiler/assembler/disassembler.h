@@ -196,6 +196,12 @@ class Disassembler : public AllStatic {
 
   static void DisassembleStub(const char* name, const Code& code);
 
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  static void SetExtensions(ExtensionSet extensions) {
+    extensions_ = extensions;
+  }
+#endif
+
  private:
   static void DisassembleCodeHelper(const char* function_fullname,
                                     const char* function_info,
@@ -204,6 +210,10 @@ class Disassembler : public AllStatic {
 
   static constexpr int kHexadecimalBufferSize = 32;
   static constexpr int kUserReadableBufferSize = 256;
+
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  static ExtensionSet extensions_;
+#endif
 };
 
 }  // namespace dart

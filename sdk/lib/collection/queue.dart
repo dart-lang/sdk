@@ -150,7 +150,9 @@ abstract class _DoubleLinkedQueueEntry<E> {
   _DoubleLinkedQueueEntry<E>? _nextLink;
 
   void _link(
-      _DoubleLinkedQueueEntry<E>? previous, _DoubleLinkedQueueEntry<E>? next) {
+    _DoubleLinkedQueueEntry<E>? previous,
+    _DoubleLinkedQueueEntry<E>? next,
+  ) {
     _nextLink = next;
     _previousLink = previous;
     previous?._nextLink = this;
@@ -502,7 +504,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
   E? _current;
 
   _DoubleLinkedQueueIterator(DoubleLinkedQueue<E> this._queue)
-      : _nextEntry = _queue._sentinel._nextLink;
+    : _nextEntry = _queue._sentinel._nextLink;
 
   bool moveNext() {
     var nextElement = _nextEntry?._asNonSentinelEntry();
@@ -600,9 +602,9 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// If [initialCapacity] is given, prepare the queue for at least that many
   /// elements.
   ListQueue([int? initialCapacity])
-      : _head = 0,
-        _tail = 0,
-        _table = List<E?>.filled(_calculateCapacity(initialCapacity), null);
+    : _head = 0,
+      _tail = 0,
+      _table = List<E?>.filled(_calculateCapacity(initialCapacity), null);
 
   static int _calculateCapacity(int? initialCapacity) {
     if (initialCapacity == null || initialCapacity < _INITIAL_CAPACITY) {
@@ -965,10 +967,10 @@ class _ListQueueIterator<E> implements Iterator<E> {
   E? _current;
 
   _ListQueueIterator(ListQueue<E> queue)
-      : _queue = queue,
-        _end = queue._tail,
-        _modificationCount = queue._modificationCount,
-        _position = queue._head;
+    : _queue = queue,
+      _end = queue._tail,
+      _modificationCount = queue._modificationCount,
+      _position = queue._head;
 
   E get current => _current as E;
 

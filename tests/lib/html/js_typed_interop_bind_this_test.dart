@@ -8,7 +8,7 @@ library js_typed_interop_bind_this_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // This is a regression test for https://github.com/dart-lang/sdk/issues/25658
 

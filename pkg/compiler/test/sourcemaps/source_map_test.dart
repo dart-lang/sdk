@@ -7,8 +7,8 @@
 
 library test.source_map;
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -26,9 +26,10 @@ void find(String text, String substring, bool expected) {
   }
   if (!expected && found) {
     Expect.isFalse(
-        found,
-        'Unexpected "$substring" in:\n'
-        '${text.substring(text.indexOf(substring))}');
+      found,
+      'Unexpected "$substring" in:\n'
+      '${text.substring(text.indexOf(substring))}',
+    );
   }
 }
 
@@ -43,11 +44,12 @@ test({String? out, String? sourceMap, String? mapping, String? file}) async {
   }
 
   await runCompiler(
-      entryPoint: Uri.parse('memory:/main.dart'),
-      memorySourceFiles: SOURCE,
-      showDiagnostics: true,
-      outputProvider: collector,
-      options: options);
+    entryPoint: Uri.parse('memory:/main.dart'),
+    memorySourceFiles: SOURCE,
+    showDiagnostics: true,
+    outputProvider: collector,
+    options: options,
+  );
   String? jsOutput = collector.getOutput('', api.OutputType.js);
   Expect.isNotNull(jsOutput);
   if (mapping != null) {
@@ -70,14 +72,16 @@ void main() {
     await test(sourceMap: 'file:/out.js.map');
     await test(out: 'file:/out.js');
     await test(
-        out: 'file:/out.js',
-        sourceMap: 'file:/out.js.map',
-        file: 'out.js',
-        mapping: 'out.js.map');
+      out: 'file:/out.js',
+      sourceMap: 'file:/out.js.map',
+      file: 'out.js',
+      mapping: 'out.js.map',
+    );
     await test(
-        out: 'file:/dir/out.js',
-        sourceMap: 'file:/dir/out.js.map',
-        file: 'out.js',
-        mapping: 'out.js.map');
+      out: 'file:/dir/out.js',
+      sourceMap: 'file:/dir/out.js.map',
+      file: 'out.js',
+      mapping: 'out.js.map',
+    );
   });
 }

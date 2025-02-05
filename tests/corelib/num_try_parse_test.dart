@@ -29,7 +29,7 @@ const whiteSpace = const [
   "\u202f",
   "\u205f",
   "\u3000",
-  "\uFEFF"
+  "\uFEFF",
 ];
 
 void expectNumEquals(num expect, num? actual, String message) {

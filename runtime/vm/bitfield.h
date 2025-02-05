@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/globals.h"
+#include "platform/no_tsan.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 
@@ -110,6 +111,13 @@ class AtomicBitFieldContainer {
   bool TryClear() {
     T mask = ~TargetBitField::encode(true);
     T old_field = field_.fetch_and(mask, std::memory_order_relaxed);
+    return TargetBitField::decode(old_field);
+  }
+
+  template <class TargetBitField>
+  bool TryClearIgnoreRace() {
+    T mask = ~TargetBitField::encode(true);
+    T old_field = FetchAndRelaxedIgnoreRace(&field_, mask);
     return TargetBitField::decode(old_field);
   }
 

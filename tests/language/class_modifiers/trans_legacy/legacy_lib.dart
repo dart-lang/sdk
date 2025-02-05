@@ -8,7 +8,7 @@ import "dart:collection";
 
 // Pre-feature declarations which ignore platform library restrictions.
 // Used to test that feature-enabled libraries behave correctly when
-// going througn pre-feature super-declarations.
+// going through pre-feature super-declarations.
 
 // Ignoring rule against extending, implementing, mixing in and `on`-typing
 // a final declaration.
@@ -20,6 +20,7 @@ mixin LegacyMixinImplementsFinal implements MapEntry<int, int> {}
 
 enum LegacyEnumImplementsFinal implements MapEntry<int, int> {
   v;
+
   final int key = 0;
   final int value = 0;
 }
@@ -38,6 +39,7 @@ abstract class LegacyMixesInFinal2 = Object with BigInt;
 
 enum LegacyEnumMixesInFinal with BigInt {
   v;
+
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -54,6 +56,7 @@ mixin LegacyMixinImplementsBase implements LinkedList<LinkedListEntry<Never>> {}
 
 enum LegacyEnumImplementsBase implements LinkedList<LinkedListEntry<Never>> {
   v;
+
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -76,6 +79,7 @@ abstract class LegacyMixesInInterface2 = Object with Sink<int>;
 
 enum LegacyEnumMixesInInterface with Sink<int> {
   v;
+
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -88,6 +92,7 @@ abstract class LegacyMixesInNonMixin2 = Object with StreamConsumer<int>;
 
 enum LegacyEnumMixesInNonMixin with StreamConsumer<int> {
   v;
+
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 

@@ -12,11 +12,19 @@ class UnsupportedRequestHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   UnsupportedRequestHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    sendResponse(Response.unsupportedFeature(request.id,
-        'Please contact the Dart analyzer team if you need this request.'));
+    sendResponse(
+      Response.unsupportedFeature(
+        request.id,
+        'Please contact the Dart analyzer team if you need this request.',
+      ),
+    );
   }
 }

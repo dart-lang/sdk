@@ -159,21 +159,25 @@ class Translator with KernelNodes {
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
+  final Map<FunctionNode, ClosureImplementation> closureImplementations = {};
+
   // Some convenience accessors for commonly used values.
   late final ClassInfo topInfo = classes[0];
   late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
-  late final w.ArrayType typeArrayType =
-      arrayTypeForDartType(InterfaceType(typeClass, Nullability.nonNullable));
+  late final w.ArrayType typeArrayType = arrayTypeForDartType(
+      InterfaceType(typeClass, Nullability.nonNullable),
+      mutable: true);
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
           .type as w.RefType)
       .heapType as w.ArrayType;
-  late final w.ArrayType nullableObjectArrayType =
-      arrayTypeForDartType(coreTypes.objectRawType(Nullability.nullable));
+  late final w.ArrayType nullableObjectArrayType = arrayTypeForDartType(
+      coreTypes.objectRawType(Nullability.nullable),
+      mutable: true);
   late final w.RefType typeArrayTypeRef =
       w.RefType.def(typeArrayType, nullable: false);
   late final w.RefType nullableObjectArrayTypeRef =
@@ -321,6 +325,15 @@ class Translator with KernelNodes {
       _builderToOutput[module]!.moduleImportName;
 
   bool isMainModule(w.ModuleBuilder module) => _builderToOutput[module]!.isMain;
+
+  /// Maps compiled members to their [Closures], with capture information.
+  final Map<Member, Closures> _memberClosures = {};
+
+  Closures getClosures(Member member, {bool findCaptures = true}) =>
+      findCaptures
+          ? _memberClosures.putIfAbsent(
+              member, () => Closures(this, member, findCaptures: true))
+          : Closures(this, member, findCaptures: false);
 
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
       this._moduleOutputData, this.options)
@@ -472,6 +485,17 @@ class Translator with KernelNodes {
     return function.type.outputs;
   }
 
+  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector) {
+    // TODO(natebiggs): Handle dispatch to dynamic module overrideable members.
+    b.struct_get(topInfo.struct, FieldIndex.classId);
+    if (selector.offset! != 0) {
+      b.i32_const(selector.offset!);
+      b.i32_add();
+    }
+    b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
+    functions.recordSelectorUse(selector);
+  }
+
   Class classForType(DartType type) {
     return type is InterfaceType
         ? type.classNode
@@ -555,9 +579,16 @@ class Translator with KernelNodes {
       }
 
       // Wasm array?
-      if (cls.superclass == wasmArrayRefClass) {
+      if (cls == wasmArrayClass) {
         DartType elementType = type.typeArguments.single;
-        return w.RefType.def(arrayTypeForDartType(elementType),
+        return w.RefType.def(arrayTypeForDartType(elementType, mutable: true),
+            nullable: nullable);
+      }
+
+      // Immutable Wasm array?
+      if (cls == immutableWasmArrayClass) {
+        DartType elementType = type.typeArguments.single;
+        return w.RefType.def(arrayTypeForDartType(elementType, mutable: false),
             nullable: nullable);
       }
 
@@ -644,12 +675,13 @@ class Translator with KernelNodes {
     throw "Unsupported type ${type.runtimeType}";
   }
 
-  w.ArrayType arrayTypeForDartType(DartType type) {
+  w.ArrayType arrayTypeForDartType(DartType type, {required bool mutable}) {
     while (type is TypeParameterType) {
       type = type.bound;
     }
     return wasmArrayType(
-        translateStorageType(type), type.toText(defaultAstTextStrategy));
+        translateStorageType(type), type.toText(defaultAstTextStrategy),
+        mutable: mutable);
   }
 
   w.ArrayType wasmArrayType(w.StorageType type, String name,
@@ -657,7 +689,8 @@ class Translator with KernelNodes {
     final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
     return cache.putIfAbsent(
         type,
-        () => typesBuilder.defineArray("Array<$name>",
+        () => typesBuilder.defineArray(
+            "${mutable ? '' : 'Immutable'}Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
   }
 
@@ -668,7 +701,7 @@ class Translator with KernelNodes {
   /// (`anyref`, `funcref` or `externref`).
   /// This function can be called before the class info is built.
   w.ValueType translateExternalType(DartType type) {
-    bool isPotentiallyNullable = type.isPotentiallyNullable;
+    final bool isPotentiallyNullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
       if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
@@ -676,6 +709,16 @@ class Translator with KernelNodes {
       }
       if (cls == wasmExternRefClass) {
         return w.RefType.extern(nullable: isPotentiallyNullable);
+      }
+      if (cls == wasmArrayRefClass) {
+        return w.RefType.array(nullable: isPotentiallyNullable);
+      }
+      if (cls == wasmArrayClass) {
+        final elementType =
+            translateExternalStorageType(type.typeArguments.single);
+        return w.RefType.def(
+            wasmArrayType(elementType, '$elementType', mutable: true),
+            nullable: isPotentiallyNullable);
       }
       if (!isPotentiallyNullable) {
         w.StorageType? builtin = builtinTypes[cls];
@@ -689,11 +732,26 @@ class Translator with KernelNodes {
     return w.RefType.any(nullable: true);
   }
 
-  /// Creates a global reference to [f] in [module]. [f] must also be located
-  /// in [module].
-  w.Global makeFunctionRef(w.ModuleBuilder module, w.BaseFunction f) {
+  w.StorageType translateExternalStorageType(DartType type) {
+    if (type is InterfaceType) {
+      final cls = type.classNode;
+      if (isWasmType(cls)) {
+        final isNullable = type.isPotentiallyNullable;
+        final w.StorageType? builtin = builtinTypes[cls];
+        if (builtin != null) {
+          if (!isNullable) return builtin;
+          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
+          return (builtin as w.RefType).withNullability(isNullable);
+        }
+      }
+    }
+    return translateExternalType(type) as w.RefType;
+  }
+
+  /// Creates a global reference to [f] in its [w.BaseFunction.enclosingModule].
+  w.Global makeFunctionRef(w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
-      final global = module.globals.define(
+      final global = f.enclosingModule.globals.define(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
       global.initializer.ref_func(f);
       global.initializer.end();
@@ -712,12 +770,24 @@ class Translator with KernelNodes {
 
   ClosureImplementation getClosure(FunctionNode functionNode,
       w.BaseFunction target, ParameterInfo paramInfo, String name) {
+    // We compile a block multiple times in try-catch, to catch Dart exceptions
+    // and then again to catch JS exceptions. We may also ask for
+    // `ClosureImplementation` for a local function multiple times as we see
+    // direct calls to the closure (in TFA direct-call metadata). Avoid
+    // recompiling the closures in these cases by caching implementations.
+    //
+    // Note that every `FunctionNode` passed to this method will have one
+    // `ParameterInfo` for them. For local functions, the `ParameterInfo` will
+    // be the one generated by `ParameterInfo.fromLocalFunction`, for others it
+    // will be the value returned by `paramInfoForDirectCall`. So the key for
+    // this cache can be just `FunctionNode`, instead of `(FunctionNode,
+    // ParameterInfo)`.
+    final existingImplementation = closureImplementations[functionNode];
+    if (existingImplementation != null) {
+      return existingImplementation;
+    }
+
     final targetModule = target.enclosingModule;
-    // The target function takes an extra initial parameter if it's a function
-    // expression / local function (which takes a context) or a tear-off of an
-    // instance method (which takes a receiver).
-    bool takesContextOrReceiver =
-        paramInfo.member == null || paramInfo.member!.isInstanceMember;
 
     // Look up the closure representation for the signature.
     int typeCount = functionNode.typeParameters.length;
@@ -730,7 +800,7 @@ class Translator with KernelNodes {
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
     assert(target.type.inputs.length ==
-        (takesContextOrReceiver ? 1 : 0) +
+        (paramInfo.takesContextOrReceiver ? 1 : 0) +
             paramInfo.typeParamCount +
             paramInfo.positional.length +
             paramInfo.named.length);
@@ -794,7 +864,7 @@ class Translator with KernelNodes {
       compilationQueue.add(CompilationTask(
           trampoline,
           _ClosureTrampolineGenerator(this, trampoline, target, typeCount,
-              posArgCount, argNames, paramInfo, takesContextOrReceiver)));
+              posArgCount, argNames, paramInfo)));
       return trampoline;
     }
 
@@ -844,8 +914,10 @@ class Translator with KernelNodes {
     ib.struct_new(representation.vtableStruct);
     ib.end();
 
-    return ClosureImplementation(
-        representation, functions, dynamicCallEntry, vtable, targetModule);
+    final implementation = ClosureImplementation(representation, functions,
+        dynamicCallEntry, vtable, targetModule, paramInfo);
+    closureImplementations[functionNode] = implementation;
+    return implementation;
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {
@@ -1006,6 +1078,74 @@ class Translator with KernelNodes {
 
   Member? singleTarget(TreeNode node) {
     return directCallMetadata[node]?.targetMember;
+  }
+
+  /// Direct call information of a [FunctionInvocation] based on TFA's direct
+  /// call metadata.
+  SingleClosureTarget? singleClosureTarget(FunctionInvocation node,
+      ClosureRepresentation representation, StaticTypeContext typeContext) {
+    final (Member, int)? directClosureCall =
+        directCallMetadata[node]?.targetClosure;
+
+    if (directClosureCall == null) {
+      return null;
+    }
+
+    // To avoid using the `Null` class, avoid devirtualizing to `Null` members.
+    // `noSuchMethod` is also not allowed as `Null` inherits it.
+    if (directClosureCall.$1.enclosingClass == coreTypes.deprecatedNullClass ||
+        directClosureCall.$1 == objectNoSuchMethod) {
+      return null;
+    }
+
+    final member = directClosureCall.$1;
+    final closureId = directClosureCall.$2;
+
+    if (closureId == 0) {
+      // The member is called as a closure (tear-off). We'll generate a direct
+      // call to the member.
+      final lambdaDartType =
+          member.function!.computeFunctionType(Nullability.nonNullable);
+
+      // Check that type of the receiver is a subtype of
+      if (!typeEnvironment.isSubtypeOf(
+          lambdaDartType,
+          node.receiver.getStaticType(typeContext),
+          SubtypeCheckMode.withNullabilities)) {
+        return null;
+      }
+
+      return SingleClosureTarget._(
+        member,
+        paramInfoForDirectCall(member.reference),
+        signatureForDirectCall(member.reference),
+        null,
+      );
+    } else {
+      // A closure in the member is called.
+      final Closures enclosingMemberClosures =
+          getClosures(member, findCaptures: true);
+      final Lambda lambda = enclosingMemberClosures.lambdas.values
+          .firstWhere((lambda) => lambda.index == closureId - 1);
+      final FunctionType lambdaDartType =
+          lambda.functionNode.computeFunctionType(Nullability.nonNullable);
+      final w.BaseFunction lambdaFunction =
+          functions.getLambdaFunction(lambda, member, enclosingMemberClosures);
+
+      if (!typeEnvironment.isSubtypeOf(
+          lambdaDartType,
+          node.receiver.getStaticType(typeContext),
+          SubtypeCheckMode.withNullabilities)) {
+        return null;
+      }
+
+      return SingleClosureTarget._(
+        member,
+        ParameterInfo.fromLocalFunction(lambda.functionNode),
+        lambdaFunction.type,
+        lambdaFunction,
+      );
+    }
   }
 
   bool canSkipImplicitCheck(VariableDeclaration node) {
@@ -1213,6 +1353,7 @@ class Translator with KernelNodes {
     final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
 
     if (length > maxArrayNewFixedLength) {
+      assert(arrayType.elementType.mutable);
       // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
@@ -1382,17 +1523,9 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
   final int posArgCount;
   final List<String> argNames;
   final ParameterInfo paramInfo;
-  final bool takesContextOrReceiver;
 
-  _ClosureTrampolineGenerator(
-      this.translator,
-      this.trampoline,
-      this.target,
-      this.typeCount,
-      this.posArgCount,
-      this.argNames,
-      this.paramInfo,
-      this.takesContextOrReceiver);
+  _ClosureTrampolineGenerator(this.translator, this.trampoline, this.target,
+      this.typeCount, this.posArgCount, this.argNames, this.paramInfo);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -1400,7 +1533,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(returnLabel == null);
 
     int targetIndex = 0;
-    if (takesContextOrReceiver) {
+    if (paramInfo.takesContextOrReceiver) {
       w.Local receiver = trampoline.locals[0];
       b.local_get(receiver);
       translator.convertType(
@@ -1466,9 +1599,6 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     final b = function.body;
 
-    final bool takesContextOrReceiver =
-        paramInfo.member == null || paramInfo.member!.isInstanceMember;
-
     final int typeCount = functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
@@ -1488,7 +1618,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     int inputIdx = 0;
 
     // Push context or receiver
-    if (takesContextOrReceiver) {
+    if (paramInfo.takesContextOrReceiver) {
       final closureBaseType = w.RefType.def(
           translator.closureLayouter.closureBaseStruct,
           nullable: false);
@@ -1881,12 +2011,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         b.local_get(paramLocals[i]);
       }
       b.local_get(paramLocals[0]);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.i32_const(selector.offset!);
-      b.i32_add();
-      b.call_indirect(
-          signature, translator.dispatchTable.getWasmTable(b.module));
-      translator.functions.recordSelectorUse(selector);
+      translator.callDispatchTable(b, selector);
     }
 
     b.local_get(paramLocals[0]);
@@ -2088,4 +2213,25 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
       String moduleName, String importName) {
     return importingModule.tags.import(moduleName, importName, definition.type);
   }
+}
+
+class SingleClosureTarget {
+  /// When `lambdaFunction` is null, the member being directly called. Otherwise
+  /// the enclosing member of the closure being called.
+  final Member member;
+
+  /// [ParameterInfo] specifying how to compile arguments to the closure or
+  /// member.
+  final ParameterInfo paramInfo;
+
+  /// Wasm function type that goes along with the [paramInfo] for compiling
+  /// arguments.
+  final w.FunctionType signature;
+
+  /// If the callee is a local function or function expression (intead of a
+  /// member), this Wasm function for it.
+  final w.BaseFunction? lambdaFunction;
+
+  SingleClosureTarget._(
+      this.member, this.paramInfo, this.signature, this.lambdaFunction);
 }

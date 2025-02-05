@@ -12,14 +12,14 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
-typedef StaticOptions
-    = Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
 
 /// A handler for the initial "prepare" request for starting navigation with
 /// Type Hierarchy.
@@ -31,9 +31,13 @@ typedef StaticOptions
 /// The target returned by this handler will be sent back to the server for
 /// supertype/supertype items as the user navigates the type hierarchy in the
 /// client.
-class PrepareTypeHierarchyHandler extends SharedMessageHandler<
-    TypeHierarchyPrepareParams,
-    TextDocumentPrepareTypeHierarchyResult> with _TypeHierarchyUtils {
+class PrepareTypeHierarchyHandler
+    extends
+        SharedMessageHandler<
+          TypeHierarchyPrepareParams,
+          TextDocumentPrepareTypeHierarchyResult
+        >
+    with _TypeHierarchyUtils {
   PrepareTypeHierarchyHandler(super.server);
 
   @override
@@ -48,9 +52,10 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<TextDocumentPrepareTypeHierarchyResult>> handle(
-      TypeHierarchyPrepareParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TypeHierarchyPrepareParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -83,9 +88,8 @@ class TypeHierarchyRegistrations extends FeatureRegistration
   TypeHierarchyRegistrations(super.info);
 
   @override
-  ToJsonable? get options => TypeHierarchyRegistrationOptions(
-        documentSelector: dartFiles,
-      );
+  ToJsonable? get options =>
+      TypeHierarchyRegistrationOptions(documentSelector: dartFiles);
 
   @override
   Method get registrationMethod => Method.textDocument_prepareTypeHierarchy;
@@ -97,9 +101,13 @@ class TypeHierarchyRegistrations extends FeatureRegistration
   bool get supportsDynamic => clientDynamic.typeHierarchy;
 }
 
-class TypeHierarchySubtypesHandler extends SharedMessageHandler<
-    TypeHierarchySubtypesParams,
-    TypeHierarchySubtypesResult> with _TypeHierarchyUtils {
+class TypeHierarchySubtypesHandler
+    extends
+        SharedMessageHandler<
+          TypeHierarchySubtypesParams,
+          TypeHierarchySubtypesResult
+        >
+    with _TypeHierarchyUtils {
   TypeHierarchySubtypesHandler(super.server);
 
   @override
@@ -114,9 +122,10 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<TypeHierarchySubtypesResult>> handle(
-      TypeHierarchySubtypesParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TypeHierarchySubtypesParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var item = params.item;
     var data = item.data;
     var path = pathOfUri(item.uri);
@@ -132,7 +141,7 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
@@ -140,9 +149,13 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
   }
 }
 
-class TypeHierarchySupertypesHandler extends SharedMessageHandler<
-    TypeHierarchySupertypesParams,
-    TypeHierarchySupertypesResult> with _TypeHierarchyUtils {
+class TypeHierarchySupertypesHandler
+    extends
+        SharedMessageHandler<
+          TypeHierarchySupertypesParams,
+          TypeHierarchySupertypesResult
+        >
+    with _TypeHierarchyUtils {
   TypeHierarchySupertypesHandler(super.server);
 
   @override
@@ -157,9 +170,10 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<TypeHierarchySupertypesResult>> handle(
-      TypeHierarchySupertypesParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TypeHierarchySupertypesParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var item = params.item;
     var data = item.data;
     var path = pathOfUri(item.uri);
@@ -175,7 +189,7 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var anchor = _toServerAnchor(data);
       var calls = await computer.findSupertypes(location, anchor: anchor);
       var results = calls != null ? _convertItems(unit, calls) : null;
@@ -191,9 +205,9 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
     var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
-            location: ElementLocationImpl.con2(anchor.ref),
-            path: anchor.path,
-          )
+          location: ElementLocation2.decode(anchor.ref),
+          path: anchor.path,
+        )
         : null;
   }
 }
@@ -220,12 +234,13 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
       data: TypeHierarchyItemInfo(
         ref: item.location.encoding,
-        anchor: anchor != null
-            ? TypeHierarchyAnchor(
-                ref: anchor.location.encoding,
-                path: anchor.path,
-              )
-            : null,
+        anchor:
+            anchor != null
+                ? TypeHierarchyAnchor(
+                  ref: anchor.location.encoding,
+                  path: anchor.path,
+                )
+                : null,
       ),
     );
   }
@@ -254,23 +269,18 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// Converts multiple server [type_hierarchy.TypeHierarchyItem] to an LSP
   /// [TypeHierarchyItem].
   ///
-  /// Reads [LineInfo]s from [unit.session], caching them for items in the same
+  /// Reads [LineInfo]s from `unit.session`, caching them for items in the same
   /// file.
   List<TypeHierarchyItem> _convertItems(
     ResolvedUnitResult unit,
     List<type_hierarchy.TypeHierarchyRelatedItem> items,
   ) {
     var session = unit.session;
-    var lineInfoCache = <String, LineInfo?>{
-      unit.path: unit.lineInfo,
-    };
+    var lineInfoCache = <String, LineInfo?>{unit.path: unit.lineInfo};
     var results = convert(
       items,
-      (type_hierarchy.TypeHierarchyRelatedItem item) => _convertItem(
-        session,
-        lineInfoCache,
-        item,
-      ),
+      (type_hierarchy.TypeHierarchyRelatedItem item) =>
+          _convertItem(session, lineInfoCache, item),
     );
     return results.toList();
   }

@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -187,11 +187,12 @@ main(List<String> args) {
 
     runTest({required bool useIr}) async {
       CompilationResult result = await runCompiler(
-          entryPoint: Uri.parse('memory:$pathPrefix/main.dart'),
-          memorySourceFiles: source,
-          packageConfig: packageConfig,
-          librariesSpecificationUri: librariesSpecificationUri,
-          options: options);
+        entryPoint: Uri.parse('memory:$pathPrefix/main.dart'),
+        memorySourceFiles: source,
+        packageConfig: packageConfig,
+        librariesSpecificationUri: librariesSpecificationUri,
+        options: options,
+      );
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler!;
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -201,9 +202,12 @@ main(List<String> args) {
           frontendStrategy.irAnnotationDataForTesting;
 
       void testAll(NativeData nativeData) {
-        void testMember(String idPrefix, ir.Member member,
-            {required bool implicitJsInteropMember,
-            required bool implicitNativeMember}) {
+        void testMember(
+          String idPrefix,
+          ir.Member member, {
+          required bool implicitJsInteropMember,
+          required bool implicitNativeMember,
+        }) {
           if (memberIsIgnorable(member)) return;
           String memberId = '$idPrefix::${member.name.text}';
           MemberEntity memberEntity = elementMap.getMember(member);
@@ -225,77 +229,85 @@ main(List<String> args) {
 
           if (useIr) {
             Expect.equals(
-                expectedJsInteropMemberName,
-                annotationData.getJsInteropMemberName(member),
-                "Unexpected js interop member name from IR for $member, "
-                "id: $memberId");
+              expectedJsInteropMemberName,
+              annotationData.getJsInteropMemberName(member),
+              "Unexpected js interop member name from IR for $member, "
+              "id: $memberId",
+            );
 
             Expect.equals(
-                expectedNativeMemberName,
-                annotationData.getNativeMemberName(member),
-                "Unexpected js interop member name from IR for $member, "
-                "id: $memberId");
+              expectedNativeMemberName,
+              annotationData.getNativeMemberName(member),
+              "Unexpected js interop member name from IR for $member, "
+              "id: $memberId",
+            );
 
-            List<PragmaAnnotationData> pragmaAnnotations =
-                annotationData.getMemberPragmaAnnotationData(member);
+            List<PragmaAnnotationData> pragmaAnnotations = annotationData
+                .getMemberPragmaAnnotationData(member);
             Set<String> pragmaNames =
                 pragmaAnnotations.map((d) => d.name).toSet();
-            Expect.setEquals(expectedPragmaNames, pragmaNames,
-                "Unexpected pragmas from IR for $member, " "id: $memberId");
+            Expect.setEquals(
+              expectedPragmaNames,
+              pragmaNames,
+              "Unexpected pragmas from IR for $member, "
+              "id: $memberId",
+            );
 
-            List<String> createsAnnotations =
-                annotationData.getCreatesAnnotations(member);
+            List<String> createsAnnotations = annotationData
+                .getCreatesAnnotations(member);
             Expect.equals(
-                expectedCreatesText,
-                createsAnnotations.isEmpty
-                    ? null
-                    : createsAnnotations.join(','),
-                "Unexpected create annotations from IR for $member, "
-                "id: $memberId");
+              expectedCreatesText,
+              createsAnnotations.isEmpty ? null : createsAnnotations.join(','),
+              "Unexpected create annotations from IR for $member, "
+              "id: $memberId",
+            );
 
-            List<String> returnsAnnotations =
-                annotationData.getReturnsAnnotations(member);
+            List<String> returnsAnnotations = annotationData
+                .getReturnsAnnotations(member);
             Expect.equals(
-                expectedReturnsText,
-                returnsAnnotations.isEmpty
-                    ? null
-                    : returnsAnnotations.join(','),
-                "Unexpected returns annotations from IR for $member, "
-                "id: $memberId");
+              expectedReturnsText,
+              returnsAnnotations.isEmpty ? null : returnsAnnotations.join(','),
+              "Unexpected returns annotations from IR for $member, "
+              "id: $memberId",
+            );
           }
 
           bool isJsInteropMember =
               (implicitJsInteropMember && member.isExternal) ||
-                  expectedJsInteropMemberName != null;
+              expectedJsInteropMemberName != null;
           Expect.equals(
-              isJsInteropMember,
-              nativeData.isJsInteropMember(memberEntity),
-              "Unexpected js interop member result from native data for $member, "
-              "id: $memberId");
+            isJsInteropMember,
+            nativeData.isJsInteropMember(memberEntity),
+            "Unexpected js interop member result from native data for $member, "
+            "id: $memberId",
+          );
           Expect.equals(
-              isJsInteropMember
-                  ? expectedJsInteropMemberName ?? memberEntity.name
-                  : null,
-              nativeData.getJsInteropMemberName(memberEntity),
-              "Unexpected js interop member name from native data for $member, "
-              "id: $memberId");
+            isJsInteropMember
+                ? expectedJsInteropMemberName ?? memberEntity.name
+                : null,
+            nativeData.getJsInteropMemberName(memberEntity),
+            "Unexpected js interop member name from native data for $member, "
+            "id: $memberId",
+          );
 
           bool isNativeMember =
               implicitNativeMember || expectedNativeMemberName != null;
           Expect.equals(
-              isNativeMember || isJsInteropMember,
-              nativeData.isNativeMember(memberEntity),
-              "Unexpected native member result from native data for $member, "
-              "id: $memberId");
+            isNativeMember || isJsInteropMember,
+            nativeData.isNativeMember(memberEntity),
+            "Unexpected native member result from native data for $member, "
+            "id: $memberId",
+          );
           Expect.equals(
-              isNativeMember
-                  ? expectedNativeMemberName ?? memberEntity.name
-                  : (isJsInteropMember
-                      ? expectedJsInteropMemberName ?? memberEntity.name
-                      : null),
-              nativeData.getFixedBackendName(memberEntity),
-              "Unexpected fixed backend name from native data for $member, "
-              "id: $memberId");
+            isNativeMember
+                ? expectedNativeMemberName ?? memberEntity.name
+                : (isJsInteropMember
+                    ? expectedJsInteropMemberName ?? memberEntity.name
+                    : null),
+            nativeData.getFixedBackendName(memberEntity),
+            "Unexpected fixed backend name from native data for $member, "
+            "id: $memberId",
+          );
 
           if (expectedCreatesText != null) {
             String createsText;
@@ -311,10 +323,11 @@ main(List<String> args) {
                   .join(',');
             }
             Expect.equals(
-                expectedCreatesText,
-                createsText,
-                "Unexpected create annotations from native data for $member, "
-                "id: $memberId");
+              expectedCreatesText,
+              createsText,
+              "Unexpected create annotations from native data for $member, "
+              "id: $memberId",
+            );
           }
 
           if (expectedReturnsText != null) {
@@ -331,10 +344,11 @@ main(List<String> args) {
                   .join(',');
             }
             Expect.equals(
-                expectedReturnsText,
-                returnsText,
-                "Unexpected returns annotations from native data for $member, "
-                "id: $memberId");
+              expectedReturnsText,
+              returnsText,
+              "Unexpected returns annotations from native data for $member, "
+              "id: $memberId",
+            );
           }
 
           List<PragmaAnnotationData> pragmaAnnotations = frontendStrategy
@@ -343,10 +357,11 @@ main(List<String> args) {
           Set<String> pragmaNames =
               pragmaAnnotations.map((d) => d.name).toSet();
           Expect.setEquals(
-              expectedPragmaNames,
-              pragmaNames,
-              "Unexpected pragmas from modular strategy for $member, "
-              "id: $memberId");
+            expectedPragmaNames,
+            pragmaNames,
+            "Unexpected pragmas from modular strategy for $member, "
+            "id: $memberId",
+          );
         }
 
         for (ir.Library library in component.libraries) {
@@ -358,18 +373,21 @@ main(List<String> args) {
                 expectedJsInteropLibraryNames[libraryId];
             if (useIr) {
               Expect.equals(
-                  expectedJsInteropLibraryName,
-                  annotationData.getJsInteropLibraryName(library),
-                  "Unexpected js library name from IR for $library");
+                expectedJsInteropLibraryName,
+                annotationData.getJsInteropLibraryName(library),
+                "Unexpected js library name from IR for $library",
+              );
             }
             Expect.equals(
-                expectedJsInteropLibraryName != null,
-                nativeData.isJsInteropLibrary(libraryEntity),
-                "Unexpected js library result from native data for $library");
+              expectedJsInteropLibraryName != null,
+              nativeData.isJsInteropLibrary(libraryEntity),
+              "Unexpected js library result from native data for $library",
+            );
             Expect.equals(
-                expectedJsInteropLibraryName,
-                nativeData.getJsInteropLibraryName(libraryEntity),
-                "Unexpected js library name from native data for $library");
+              expectedJsInteropLibraryName,
+              nativeData.getJsInteropLibraryName(libraryEntity),
+              "Unexpected js library name from native data for $library",
+            );
 
             for (ir.Class cls in library.classes) {
               String clsId = '$libraryId::${cls.name}';
@@ -378,71 +396,93 @@ main(List<String> args) {
               String? expectedNativeClassName = expectedNativeClassNames[clsId];
               if (useIr) {
                 Expect.equals(
-                    expectedNativeClassName,
-                    annotationData.getNativeClassName(cls),
-                    "Unexpected native class name from IR for $cls");
+                  expectedNativeClassName,
+                  annotationData.getNativeClassName(cls),
+                  "Unexpected native class name from IR for $cls",
+                );
               }
-              bool isNativeClass = nativeData.isNativeClass(classEntity) &&
+              bool isNativeClass =
+                  nativeData.isNativeClass(classEntity) &&
                   !nativeData.isJsInteropClass(classEntity);
               String? nativeDataClassName;
               if (isNativeClass) {
-                nativeDataClassName =
-                    nativeData.getNativeTagsOfClass(classEntity).join(',');
+                nativeDataClassName = nativeData
+                    .getNativeTagsOfClass(classEntity)
+                    .join(',');
                 if (nativeData.hasNativeTagsForcedNonLeaf(classEntity)) {
                   nativeDataClassName += ',!nonleaf';
                 }
               }
-              Expect.equals(expectedNativeClassName != null, isNativeClass,
-                  "Unexpected native class result from native data for $cls");
+              Expect.equals(
+                expectedNativeClassName != null,
+                isNativeClass,
+                "Unexpected native class result from native data for $cls",
+              );
 
-              Expect.equals(expectedNativeClassName, nativeDataClassName,
-                  "Unexpected native class name from native data for $cls");
+              Expect.equals(
+                expectedNativeClassName,
+                nativeDataClassName,
+                "Unexpected native class name from native data for $cls",
+              );
 
               String? expectedJsInteropClassName =
                   expectedJsInteropClassNames[clsId];
               if (useIr) {
                 Expect.equals(
-                    expectedJsInteropClassName,
-                    annotationData.getJsInteropClassName(cls),
-                    "Unexpected js class name from IR for $cls");
+                  expectedJsInteropClassName,
+                  annotationData.getJsInteropClassName(cls),
+                  "Unexpected js class name from IR for $cls",
+                );
               }
               Expect.equals(
-                  expectedJsInteropClassName != null,
-                  nativeData.isJsInteropClass(classEntity),
-                  "Unexpected js class result from native data for $cls");
+                expectedJsInteropClassName != null,
+                nativeData.isJsInteropClass(classEntity),
+                "Unexpected js class result from native data for $cls",
+              );
               Expect.equals(
-                  expectedJsInteropClassName,
-                  nativeData.getJsInteropClassName(classEntity),
-                  "Unexpected js class name from native data for $cls");
+                expectedJsInteropClassName,
+                nativeData.getJsInteropClassName(classEntity),
+                "Unexpected js class name from native data for $cls",
+              );
 
               bool expectedAnonymousJsInteropClass =
                   expectedAnonymousJsInteropClasses.contains(clsId);
               if (useIr) {
                 Expect.equals(
-                    expectedAnonymousJsInteropClass,
-                    annotationData.isAnonymousJsInteropClass(cls),
-                    "Unexpected js anonymous class result from IR for $cls");
+                  expectedAnonymousJsInteropClass,
+                  annotationData.isAnonymousJsInteropClass(cls),
+                  "Unexpected js anonymous class result from IR for $cls",
+                );
               }
               Expect.equals(
-                  expectedAnonymousJsInteropClass,
-                  nativeData.isAnonymousJsInteropClass(classEntity),
-                  "Unexpected js anonymous class result from native data for "
-                  "$cls");
+                expectedAnonymousJsInteropClass,
+                nativeData.isAnonymousJsInteropClass(classEntity),
+                "Unexpected js anonymous class result from native data for "
+                "$cls",
+              );
 
               for (ir.Member member in cls.members) {
-                testMember(clsId, member,
-                    implicitJsInteropMember:
-                        nativeData.isJsInteropClass(classEntity),
-                    implicitNativeMember: member is! ir.Constructor &&
-                        !isTearOffLowering(member) &&
-                        nativeData.isNativeClass(classEntity) &&
-                        !nativeData.isJsInteropClass(classEntity));
+                testMember(
+                  clsId,
+                  member,
+                  implicitJsInteropMember: nativeData.isJsInteropClass(
+                    classEntity,
+                  ),
+                  implicitNativeMember:
+                      member is! ir.Constructor &&
+                      !isTearOffLowering(member) &&
+                      nativeData.isNativeClass(classEntity) &&
+                      !nativeData.isJsInteropClass(classEntity),
+                );
               }
             }
             for (ir.Member member in library.members) {
-              testMember(libraryId, member,
-                  implicitJsInteropMember: expectedJsInteropLibraryName != null,
-                  implicitNativeMember: false);
+              testMember(
+                libraryId,
+                member,
+                implicitJsInteropMember: expectedJsInteropLibraryName != null,
+                implicitNativeMember: false,
+              );
             }
           }
         }

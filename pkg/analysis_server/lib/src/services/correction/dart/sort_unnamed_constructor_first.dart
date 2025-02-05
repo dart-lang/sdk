@@ -58,9 +58,10 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       builder.addDeletion(moveRange);
 
       var firstIndex = members.indexOf(firstConstructor);
-      var tokenBeforeFirst = firstIndex != 0
-          ? members[firstIndex - 1].endToken
-          : clazz.leftBracket;
+      var tokenBeforeFirst =
+          firstIndex != 0
+              ? members[firstIndex - 1].endToken
+              : clazz.leftBracket;
       builder.addSimpleInsertion(
         tokenBeforeFirst.end,
         utils.getRangeText(moveRange),

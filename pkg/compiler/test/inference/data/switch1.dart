@@ -16,6 +16,7 @@ foo(int /*[subclass=JSInt]*/ x) {
   return a;
 }
 
-/*member: main:[null]*/ main() {
+/*member: main:[null]*/
+main() {
   foo(new DateTime.now(). /*[exact=DateTime]*/ millisecondsSinceEpoch);
 }

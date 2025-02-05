@@ -19,13 +19,16 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   late int replacementLength;
   List<CompletionSuggestion> suggestions = [];
 
-  void assertHasResult(CompletionSuggestionKind kind, String completion,
-      {bool isDeprecated = false,
-      bool isPotential = false,
-      int? selectionOffset,
-      int? replacementOffset,
-      int? replacementLength,
-      ElementKind? elementKind}) {
+  void assertHasResult(
+    CompletionSuggestionKind kind,
+    String completion, {
+    bool isDeprecated = false,
+    bool isPotential = false,
+    int? selectionOffset,
+    int? replacementOffset,
+    int? replacementLength,
+    ElementKind? elementKind,
+  }) {
     CompletionSuggestion? cs;
     for (var s in suggestions) {
       if (elementKind != null && s.element?.kind != elementKind) {
@@ -60,9 +63,11 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   }
 
   void assertNoResult(String completion, {ElementKind? elementKind}) {
-    if (suggestions.any((cs) =>
-        cs.completion == completion &&
-        (elementKind == null || cs.element?.kind == elementKind))) {
+    if (suggestions.any(
+      (cs) =>
+          cs.completion == completion &&
+          (elementKind == null || cs.element?.kind == elementKind),
+    )) {
       fail('did not expect completion: $completion');
     }
   }
@@ -108,18 +113,17 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = CompletionGetSuggestions2Result.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     replacementOffset = result.replacementOffset;
     replacementLength = result.replacementLength;
     suggestions = result.suggestions;
   }
 
   Future<void> getTestCodeSuggestions(String content) {
-    return getCodeSuggestions(
-      path: testFile.path,
-      content: content,
-    );
+    return getCodeSuggestions(path: testFile.path, content: content);
   }
 
   @override

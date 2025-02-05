@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -105,62 +105,86 @@ main() {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': source});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
 
-    void check(String className,
-        {required bool hasMethod,
-        bool isAbstract = false,
-        String? declaringClass}) {
-      assert(!hasMethod || declaringClass != null,
-          'declaringClass must be provided if hasMethod = true');
-      MemberEntity? member =
-          findClassMemberOrNull(closedWorld, className, 'method');
+    void check(
+      String className, {
+      required bool hasMethod,
+      bool isAbstract = false,
+      String? declaringClass,
+    }) {
+      assert(
+        !hasMethod || declaringClass != null,
+        'declaringClass must be provided if hasMethod = true',
+      );
+      MemberEntity? member = findClassMemberOrNull(
+        closedWorld,
+        className,
+        'method',
+      );
       if (hasMethod) {
         Expect.isNotNull(
-            member, "Missing member 'method' in class '$className'.");
-        Expect.equals(isAbstract, member!.isAbstract,
-            "Unexpected abstract-ness on method $member.");
+          member,
+          "Missing member 'method' in class '$className'.",
+        );
+        Expect.equals(
+          isAbstract,
+          member!.isAbstract,
+          "Unexpected abstract-ness on method $member.",
+        );
         ClassEntity cls = findClass(closedWorld, declaringClass!);
         if (cls != member.enclosingClass) {
-          print("Unexpected declaring class $member. "
-              "Found ${member.enclosingClass}, expected $cls.");
+          print(
+            "Unexpected declaring class $member. "
+            "Found ${member.enclosingClass}, expected $cls.",
+          );
         }
         Expect.equals(
-            cls,
-            member.enclosingClass,
-            "Unexpected declaring class $member. "
-            "Found ${member.enclosingClass}, expected $cls.");
+          cls,
+          member.enclosingClass,
+          "Unexpected declaring class $member. "
+          "Found ${member.enclosingClass}, expected $cls.",
+        );
         late DartType type;
         if (member.isFunction) {
-          type = closedWorld.elementEnvironment
-              .getFunctionType(member as FunctionEntity)
-              .returnType;
+          type =
+              closedWorld.elementEnvironment
+                  .getFunctionType(member as FunctionEntity)
+                  .returnType;
         } else if (member.isGetter) {
-          type = closedWorld.elementEnvironment
-              .getFunctionType(member as FunctionEntity)
-              .returnType;
+          type =
+              closedWorld.elementEnvironment
+                  .getFunctionType(member as FunctionEntity)
+                  .returnType;
         } else if (member.isSetter) {
-          type = closedWorld.elementEnvironment
-              .getFunctionType(member as FunctionEntity)
-              .parameterTypes
-              .first;
+          type =
+              closedWorld.elementEnvironment
+                  .getFunctionType(member as FunctionEntity)
+                  .parameterTypes
+                  .first;
         }
         type = type.withoutNullability;
-        Expect.isTrue(type is TypeVariableType,
-            "Unexpected member type for $member: $type");
+        Expect.isTrue(
+          type is TypeVariableType,
+          "Unexpected member type for $member: $type",
+        );
         TypeVariableType typeVariable = type as TypeVariableType;
         Expect.equals(
-            cls,
-            typeVariable.element.typeDeclaration,
-            "Unexpected type declaration for $typeVariable for $member. "
-            "Expected $cls, found ${typeVariable.element.typeDeclaration}.");
+          cls,
+          typeVariable.element.typeDeclaration,
+          "Unexpected type declaration for $typeVariable for $member. "
+          "Expected $cls, found ${typeVariable.element.typeDeclaration}.",
+        );
       } else {
-        Expect.isNull(member,
-            "Unexpected member 'method' in class '$className': $member.");
+        Expect.isNull(
+          member,
+          "Unexpected member 'method' in class '$className': $member.",
+        );
       }
     }
 

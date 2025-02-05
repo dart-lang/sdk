@@ -7,10 +7,6 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -18,10 +14,13 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+library;
 
-class CompileTimeErrorCode extends AnalyzerErrorCode {
+import "package:analyzer/error/error.dart";
+
+class CompileTimeErrorCode extends ErrorCode {
   ///  No parameters.
   static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
@@ -70,14 +69,31 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the member
   ///  1: the names of the declaring extensions
-  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
-      CompileTimeErrorCode(
+  static const CompileTimeErrorCode
+      AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE = CompileTimeErrorCode(
     'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
     "A member named '{0}' is defined in {1}, and none are more specific.",
     correctionMessage:
         "Try using an extension override to specify the extension you want to "
         "be chosen.",
     hasPublishedDocs: true,
+    uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the first declaring extension
+  ///  2: the names of the second declaring extension
+  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO =
+      CompileTimeErrorCode(
+    'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
+    "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
+        "specific.",
+    correctionMessage:
+        "Try using an extension override to specify the extension you want to "
+        "be chosen.",
+    hasPublishedDocs: true,
+    uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
   );
 
   ///  Parameters:
@@ -727,7 +743,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type parameter and the extension in "
         "which the type parameter is defined.",
     correctionMessage:
-        "Try renaming either the type variaparameterble or the extension.",
+        "Try renaming either the type parameter or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   );
@@ -1008,6 +1024,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'CONST_EVAL_METHOD_INVOCATION',
     "Methods can't be invoked in constant expressions.",
+  );
+
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 == e2".
+  static const CompileTimeErrorCode CONST_EVAL_PRIMITIVE_EQUALITY =
+      CompileTimeErrorCode(
+    'CONST_EVAL_PRIMITIVE_EQUALITY',
+    "In constant expressions, operands of the equality operator must have "
+        "primitive equality.",
   );
 
   ///  Parameters:
@@ -6044,13 +6069,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
-class StaticWarningCode extends AnalyzerErrorCode {
+class StaticWarningCode extends ErrorCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
     'DEAD_NULL_AWARE_EXPRESSION',
     "The left operand can't be null, so the right operand is never executed.",
     correctionMessage: "Try removing the operator and the right operand.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_ELEMENT = StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The element can't be null, so the null-aware operator '?' is unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_MAP_ENTRY_KEY =
+      StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The map entry key can't be null, so the null-aware operator '?' is "
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_MAP_ENTRY_VALUE =
+      StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The map entry value can't be null, so the null-aware operator '?' is "
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
   );
 
   ///  Parameters:
@@ -6142,7 +6198,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
 
-class WarningCode extends AnalyzerErrorCode {
+class WarningCode extends ErrorCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected function return type
@@ -7248,10 +7304,10 @@ class WarningCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   ///
-  ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
-  ///  some cases of constructor tearoff features (like `List<int>.filled;`).
-  ///  Other constructor tearoff cases are not realized until resolution
-  ///  (like `List.filled;`).
+  ///  There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
+  ///  catches some cases of constructor tearoff features (like
+  ///  `List<int>.filled;`). Other constructor tearoff cases are not realized
+  ///  until resolution (like `List.filled;`).
   static const WarningCode SDK_VERSION_CONSTRUCTOR_TEAROFFS = WarningCode(
     'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
     "Tearing off a constructor requires the 'constructor-tearoffs' language "
@@ -7584,11 +7640,10 @@ class WarningCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the parameter that is declared but not used
   static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
-    'UNUSED_ELEMENT',
+    'UNUSED_ELEMENT_PARAMETER',
     "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
     hasPublishedDocs: true,
-    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
   ///  Parameters:

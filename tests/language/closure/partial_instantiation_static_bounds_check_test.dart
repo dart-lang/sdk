@@ -16,7 +16,7 @@ class D<T> extends C<T> {
   void foo() {
     void Function(int) k = instanceFn;
     //                     ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'dynamic Function<S extends T>(S)'.
   }
 }
@@ -28,10 +28,10 @@ void main() {
 
   void Function(String) k0 = localFn;
   //                         ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Null Function<T extends num>(T)'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'Null Function(num)' can't be assigned to a variable of type 'void Function(String)'.
   void Function(String) k1 = topFn;
   //                         ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'dynamic Function<T extends num>(T)'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'dynamic Function(num)' can't be assigned to a variable of type 'void Function(String)'.
 }

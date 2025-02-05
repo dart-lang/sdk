@@ -12,7 +12,7 @@ import 'package:testing/testing.dart' as testing;
 import 'presubmit_helper.dart';
 import 'test/deps_git_test.dart' as deps_test;
 import 'test/compile_and_lint_impl.dart' show runCompileAndLintTest;
-import 'test/fasta/messages_suite.dart' as messages_suite;
+import 'test/messages_suite.dart' as messages_suite;
 import 'test/lint_suite.dart' as lint_suite;
 import 'test/spelling_test_not_src_suite.dart' as spelling_test_not_src;
 import 'test/spelling_test_src_suite.dart' as spelling_test_src;
@@ -88,8 +88,8 @@ Then run that file through your debugger or similar.
               const ["-DfastOnly=true"],
               messages_suite.createContext,
               me: work.repoDir
-                  .resolve("pkg/front_end/test/fasta/messages_suite.dart"),
-              configurationPath: "../../testing.json",
+                  .resolve("pkg/front_end/test/messages_suite.dart"),
+              configurationPath: "../testing.json",
               logger: logger,
             );
             return !logger.gotFailure;

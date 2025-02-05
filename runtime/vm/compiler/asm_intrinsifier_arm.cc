@@ -1558,7 +1558,7 @@ static void TryAllocateString(Assembler* assembler,
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));
-    __ str(R3, FieldAddress(R0, target::Object::tags_offset()));  // Store tags.
+    __ InitializeHeader(R3, R0);
   }
 
   // Set the length field using the saved length (R8).

@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'src/compiler.dart';
@@ -53,12 +54,11 @@ enum Diagnostic {
   /// For example, consider a duplicated definition. The compiler first emits a
   /// message about the duplicated definition, then emits an info message about
   /// the location of the existing definition.
-  context('context'),
-  ;
+  context('context');
 
   /// An [int] representation of this kind. The ordinals are designed
   /// to be used as bitsets.
-  int get ordinal => 2 << this.index;
+  int get ordinal => 2 << index;
 
   /// The name of this kind.
   final String name;
@@ -76,7 +76,7 @@ enum Diagnostic {
 enum InputKind {
   /// Data is read as UTF8 either as a [String] or a zero-terminated
   /// `List<int>`.
-  UTF8,
+  utf8,
 
   /// Data is read as bytes in a `List<int>`.
   binary,
@@ -108,8 +108,10 @@ abstract class CompilerInput {
   /// zero-terminated list of encoded bytes. If the input kind is
   /// `InputKind.binary` the resulting list is the raw bytes from the input
   /// source.
-  Future<Input<Uint8List>> readFromUri(Uri uri,
-      {InputKind inputKind = InputKind.UTF8});
+  Future<Input<Uint8List>> readFromUri(
+    Uri uri, {
+    InputKind inputKind = InputKind.utf8,
+  });
 
   /// Register that [uri] should be an `InputKind.UTF8` input with the
   /// given [source] of contents.
@@ -210,8 +212,14 @@ abstract class CompilerDiagnostics {
   /// Experimental: [code] gives access to an id for the messages. Currently it
   /// is the [Message] used to create the diagnostic, if available, from which
   /// the [MessageKind] is accessible.
-  void report(Message? code, Uri? uri, int? begin, int? end, String text,
-      Diagnostic kind);
+  void report(
+    Message? code,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String text,
+    Diagnostic kind,
+  );
 }
 
 /// Information resulting from the compilation.
@@ -231,8 +239,11 @@ class CompilationResult {
   /// This is used to speed up batch mode.
   final fe.InitializedCompilerState? kernelInitializedCompilerState;
 
-  CompilationResult(this.compiler,
-      {this.isSuccess = true, this.kernelInitializedCompilerState});
+  CompilationResult(
+    this.compiler, {
+    this.isSuccess = true,
+    this.kernelInitializedCompilerState,
+  });
 }
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
@@ -248,15 +259,22 @@ class CompilationResult {
 /// is invoked at least once with `kind == Diagnostic.ERROR` or
 /// `kind == Diagnostic.CRASH`.
 Future<CompilationResult> compile(
-    CompilerOptions compilerOptions,
-    CompilerInput compilerInput,
-    CompilerDiagnostics compilerDiagnostics,
-    CompilerOutput compilerOutput) {
+  CompilerOptions compilerOptions,
+  CompilerInput compilerInput,
+  CompilerDiagnostics compilerDiagnostics,
+  CompilerOutput compilerOutput,
+) {
   var compiler = Compiler(
-      compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
+    compilerInput,
+    compilerOutput,
+    compilerDiagnostics,
+    compilerOptions,
+  );
   return compiler.run().then((bool success) {
-    return CompilationResult(compiler,
-        isSuccess: success,
-        kernelInitializedCompilerState: compiler.initializedCompilerState);
+    return CompilationResult(
+      compiler,
+      isSuccess: success,
+      kernelInitializedCompilerState: compiler.initializedCompilerState,
+    );
   });
 }

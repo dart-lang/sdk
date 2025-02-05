@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r"Don't use wildcard parameters or variables.";

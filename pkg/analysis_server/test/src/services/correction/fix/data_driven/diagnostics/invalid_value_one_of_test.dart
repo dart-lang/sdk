@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class InvalidValueOneOfTest extends AbstractTransformSetParserTest {
   void test_changeKind() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -26,13 +27,14 @@ transforms:
     class: 'A'
   changes:
     - kind: 'invalid'
-''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 135, 9),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValueOneOf, 135, 9)],
+    );
   }
 
   void test_valueKind() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -49,8 +51,8 @@ transforms:
         variables:
           x:
             kind: 'invalid'
-''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 279, 9),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValueOneOf, 279, 9)],
+    );
   }
 }

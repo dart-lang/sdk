@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -42,31 +42,47 @@ foo(a, b) {
 
 main() {
   runTests() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp(getIntTypeCheck(anyIdentifier));
-      Iterator<Match> matches = regexp.allMatches(generated).iterator;
-      checkNumberOfMatches(matches, 0);
-      Expect.isTrue(generated
-          .contains(new RegExp(r'return a \? [$A-Z]+\.foo\(2\) : b;')));
-    });
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp("foo\\(1\\)");
-      Iterator<Match> matches = regexp.allMatches(generated).iterator;
-      checkNumberOfMatches(matches, 1);
-    });
-    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp(getNumberTypeCheck('a'));
-      Expect.isTrue(regexp.hasMatch(generated));
-      regexp = RegExp(getNumberTypeCheck('b'));
-      Expect.isTrue(regexp.hasMatch(generated));
-    });
-    await compile(TEST_THREE_WITH_BAILOUT, entry: 'foo',
-        check: (String generated) {
-      RegExp regexp = RegExp(getNumberTypeCheck('a'));
-      Expect.isTrue(regexp.hasMatch(generated));
-      regexp = RegExp(getNumberTypeCheck('b'));
-      Expect.isTrue(regexp.hasMatch(generated));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp(getIntTypeCheck(anyIdentifier));
+        Iterator<Match> matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 0);
+        Expect.isTrue(
+          generated.contains(new RegExp(r'return a \? [$A-Z]+\.foo\(2\) : b;')),
+        );
+      },
+    );
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp("foo\\(1\\)");
+        Iterator<Match> matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 1);
+      },
+    );
+    await compile(
+      TEST_THREE,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp(getNumberTypeCheck('a'));
+        Expect.isTrue(regexp.hasMatch(generated));
+        regexp = RegExp(getNumberTypeCheck('b'));
+        Expect.isTrue(regexp.hasMatch(generated));
+      },
+    );
+    await compile(
+      TEST_THREE_WITH_BAILOUT,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp(getNumberTypeCheck('a'));
+        Expect.isTrue(regexp.hasMatch(generated));
+        regexp = RegExp(getNumberTypeCheck('b'));
+        Expect.isTrue(regexp.hasMatch(generated));
+      },
+    );
   }
 
   asyncTest(() async {

@@ -2,10 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class C<T> extends Object
-  with Malformed // //# 01: compile-time error
-  with T //         //# 02: compile-time error
-  with T<int> //    //# 03: compile-time error
-{}
+class C1<T> extends Object with Malformed {}
+//    ^
+// [cfe] The type 'Malformed' can't be mixed in.
+//                              ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+// [cfe] Type 'Malformed' not found.
 
-main() => new C<C>();
+class C2<T> extends Object with T {}
+//    ^
+// [cfe] The type 'T' can't be mixed in.
+//                              ^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+// [cfe] The type variable 'T' can't be used as supertype.
+
+class C3<T> extends Object with T<int> {}
+//    ^
+// [cfe] The type 'T<int>' can't be mixed in.
+//                              ^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+//                              ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Can't use type arguments with type variable 'T'.
+
+void main() {}

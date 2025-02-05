@@ -1,0 +1,7 @@
+enum Foo {
+  a,
+  b;
+
+  const Foo();
+  const Foo();
+}

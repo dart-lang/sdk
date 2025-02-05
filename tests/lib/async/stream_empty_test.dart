@@ -5,7 +5,7 @@
 // Test empty stream.
 import "package:expect/expect.dart";
 import "dart:async";
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 main() async {
   await asyncTest(() async {
@@ -52,7 +52,7 @@ Future<void> emptyTest(Stream<int> s, bool broadcast) async {
 
   StreamSubscription<int> sub =
       s.listen(unreachable, onError: unreachable, onDone: checker.check);
-  // Type parameter of subscription repspects stream.
+  // Type parameter of subscription respects stream.
   // Not a `StreamSubscription<Never>`.
   Expect.isFalse(sub is StreamSubscription<String>);
 

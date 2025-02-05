@@ -6,8 +6,8 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -52,10 +52,14 @@ deferredTest2() async {
   dynamic shared = lookupLibrary("memory:shared.dart");
   var a = env.lookupClass(shared, "A")!;
 
-  Expect.equals("OutputUnit(1, {import(def: deferred)})",
-      outputUnitForClass(a).toString());
-  Expect.equals("OutputUnit(1, {import(def: deferred)})",
-      outputUnitForClassType(a).toString());
+  Expect.equals(
+    "OutputUnit(1, {import(def: deferred)})",
+    outputUnitForClass(a).toString(),
+  );
+  Expect.equals(
+    "OutputUnit(1, {import(def: deferred)})",
+    outputUnitForClassType(a).toString(),
+  );
 }
 
 deferredTest3() async {
@@ -90,8 +94,10 @@ deferredTest4() async {
   dynamic shared = lookupLibrary("memory:shared.dart");
   var a = env.lookupClass(shared, "A")!;
 
-  Expect.equals("OutputUnit(1, {import(def: deferred)})",
-      outputUnitForClass(a).toString());
+  Expect.equals(
+    "OutputUnit(1, {import(def: deferred)})",
+    outputUnitForClass(a).toString(),
+  );
   Expect.equals(mainOutputUnit, outputUnitForClassType(a));
 }
 
@@ -108,13 +114,15 @@ deferredTest5() async {
   dynamic shared = lookupLibrary("memory:shared.dart");
   var a = env.lookupClass(shared, "A")!;
   Expect.equals(
-      "OutputUnit(4, {import(def2: deferred), import(def3: deferred)})",
-      outputUnitForClass(a).toString());
+    "OutputUnit(4, {import(def2: deferred), import(def3: deferred)})",
+    outputUnitForClass(a).toString(),
+  );
   Expect.equals(
-      "OutputUnit(2, {import(def1: deferred), "
-      "import(def2: deferred), "
-      "import(def3: deferred)})",
-      outputUnitForClassType(a).toString());
+    "OutputUnit(2, {import(def1: deferred), "
+    "import(def2: deferred), "
+    "import(def3: deferred)})",
+    outputUnitForClassType(a).toString(),
+  );
 }
 
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.

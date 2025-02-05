@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Put a single newline at end of file.';
 
@@ -36,7 +35,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredFragment?.source.contents.data;
+    assert(context.currentUnit?.unit == node);
+    var content = context.currentUnit?.content;
     if (content != null &&
         content.isNotEmpty &&
         // TODO(srawlins): Re-implement this check without iterating over

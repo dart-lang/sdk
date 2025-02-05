@@ -31,7 +31,10 @@ extension RangeFactoryExtensions on RangeFactory {
   ///
   /// See [nodeWithComments].
   SourceRange nodeInListWithComments<T extends AstNode>(
-      LineInfo lineInfo, NodeList<T> list, T node) {
+    LineInfo lineInfo,
+    NodeList<T> list,
+    T node,
+  ) {
     // TODO(brianwilkerson): Improve the name and signature of this method and
     //  make it part of the API of either `RangeFactory` or
     //  `DartFileEditBuilder`. The implementation currently assumes that the
@@ -48,8 +51,11 @@ extension RangeFactoryExtensions on RangeFactory {
       // If there's only one item in the list, then delete everything including
       // any leading or trailing comments, including any trailing comma.
       var leading = _leadingComment(lineInfo, node.beginToken);
-      var trailing =
-          trailingComment(lineInfo, node.endToken, returnComma: true);
+      var trailing = trailingComment(
+        lineInfo,
+        node.endToken,
+        returnComma: true,
+      );
       return startEnd(leading, trailing.token);
     }
     var index = list.indexOf(node);
@@ -68,10 +74,15 @@ extension RangeFactoryExtensions on RangeFactory {
       // the end of the previous item, after the comma and any trailing comment,
       // to the end of this item, also after the comma and any trailing comment.
       var previousTrailingComment = trailingComment(
-          lineInfo, list[index - 1].endToken,
-          returnComma: false);
-      var thisTrailingComment = trailingComment(lineInfo, node.endToken,
-          returnComma: previousTrailingComment.includesComma);
+        lineInfo,
+        list[index - 1].endToken,
+        returnComma: false,
+      );
+      var thisTrailingComment = trailingComment(
+        lineInfo,
+        node.endToken,
+        returnComma: previousTrailingComment.includesComma,
+      );
       var previousToken = previousTrailingComment.token;
       if (!previousTrailingComment.includesComma &&
           thisTrailingComment.includesComma) {
@@ -87,7 +98,9 @@ extension RangeFactoryExtensions on RangeFactory {
   /// Return a list of the ranges that cover all of the elements in the [list]
   /// whose index is in the list of [indexes].
   List<SourceRange> nodesInList<T extends AstNode>(
-      NodeList<T> list, List<int> indexes) {
+    NodeList<T> list,
+    List<int> indexes,
+  ) {
     var ranges = <SourceRange>[];
     var indexRanges = IndexRange.contiguousSubRanges(indexes);
     if (indexRanges.length == 1) {
@@ -100,7 +113,8 @@ extension RangeFactoryExtensions on RangeFactory {
     for (var indexRange in indexRanges) {
       if (indexRange.lower == 0) {
         ranges.add(
-            startStart(list[indexRange.lower], list[indexRange.upper + 1]));
+          startStart(list[indexRange.lower], list[indexRange.upper + 1]),
+        );
       } else {
         ranges.add(endEnd(list[indexRange.lower - 1], list[indexRange.upper]));
       }
@@ -127,8 +141,11 @@ extension RangeFactoryExtensions on RangeFactory {
 
     var thisLeadingComment =
         isFirstItem ? beginToken : _leadingComment(lineInfo, beginToken);
-    var thisTrailingComment =
-        trailingComment(lineInfo, node.endToken, returnComma: false);
+    var thisTrailingComment = trailingComment(
+      lineInfo,
+      node.endToken,
+      returnComma: false,
+    );
 
     return startEnd(thisLeadingComment, thisTrailingComment.token);
   }
@@ -143,11 +160,15 @@ extension RangeFactoryExtensions on RangeFactory {
   /// If [returnComma] is `true` and there is a comma after the
   /// [token], then the comma will be returned when the [token] would have been.
   ///
-  TokenWithOptionalComma trailingComment(LineInfo lineInfo, Token token,
-      {required bool returnComma}) {
+  TokenWithOptionalComma trailingComment(
+    LineInfo lineInfo,
+    Token token, {
+    required bool returnComma,
+  }) {
     var lastToken = token;
     var nextToken = lastToken.next!;
-    var includesComma = nextToken.type == TokenType.COMMA &&
+    var includesComma =
+        nextToken.type == TokenType.COMMA &&
         _shouldIncludeCommentsAfterComma(lineInfo, nextToken);
     // There are comments after the comma that follows token, which are probably
     // meant to apply to token, so we must actually proceed with nextToken

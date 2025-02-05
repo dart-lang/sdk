@@ -11,8 +11,8 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/source/line_info.dart';
 
-typedef StaticOptions
-    = Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>;
 
 class FoldingHandler
     extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
@@ -25,8 +25,11 @@ class FoldingHandler
       FoldingRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<FoldingRange>>> handle(
+    FoldingRangeParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
@@ -62,17 +65,24 @@ class FoldingHandler
       var pluginResults = notificationManager.folding.getResults(path);
       partialResults.addAll(pluginResults);
 
-      var regions =
-          notificationManager.merger.mergeFoldingRegions(partialResults);
+      var regions = notificationManager.merger.mergeFoldingRegions(
+        partialResults,
+      );
 
       // Ensure sorted by offset for when looking for overlapping ranges in
       // line mode below.
       regions.sort((r1, r2) => r1.offset.compareTo(r2.offset));
 
-      var foldingRanges = regions
-          .map((region) =>
-              _toFoldingRange(lineInfo!, region, lineOnly: lineFoldingOnly))
-          .toList();
+      var foldingRanges =
+          regions
+              .map(
+                (region) => _toFoldingRange(
+                  lineInfo!,
+                  region,
+                  lineOnly: lineFoldingOnly,
+                ),
+              )
+              .toList();
 
       // When in line-only mode, ranges that end on the same line that another
       // ranges starts should be truncated to be on the line before (and if this
@@ -121,8 +131,11 @@ class FoldingHandler
     }
   }
 
-  FoldingRange _toFoldingRange(LineInfo lineInfo, FoldingRegion region,
-      {required bool lineOnly}) {
+  FoldingRange _toFoldingRange(
+    LineInfo lineInfo,
+    FoldingRegion region, {
+    required bool lineOnly,
+  }) {
     var range = toRange(lineInfo, region.offset, region.length);
     return FoldingRange(
       startLine: range.start.line,

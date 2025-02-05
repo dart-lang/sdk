@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -16,7 +16,7 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
   return runTests<String>(dataDir,
@@ -37,10 +37,12 @@ class _NullabilityDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    var unitElement = unit.declaredElement!;
+    var unitElement = unit.declaredFragment!;
     _NullabilityDataExtractor(
-            unitElement.source.uri, actualMap, unitElement.library.typeSystem)
-        .run(unit);
+      unitElement.source.uri,
+      actualMap,
+      unitElement.element.typeSystem,
+    ).run(unit);
   }
 }
 
@@ -54,10 +56,11 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
     if (node is SimpleIdentifier &&
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
-      var element = node.staticElement;
-      if (element is LocalVariableElement || element is ParameterElement) {
+      var element = node.element;
+      if (element is LocalVariableElement2 ||
+          element is FormalParameterElement) {
         var promotedType = _readType(node);
-        var declaredType = (element as VariableElement).type;
+        var declaredType = (element as VariableElement2).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isPotentiallyNullable(declaredType) &&

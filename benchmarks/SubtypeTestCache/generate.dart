@@ -22,7 +22,7 @@ const List<int> assertionCounts = [
   250,
   500,
   750,
-  1000
+  1000,
 ];
 
 void generateBenchmarkClassesAndUtilities(IOSink output) {
@@ -151,7 +151,10 @@ const instances = <dynamic>[
 
 void main() {
   final dartFilePath = path.join(
-      path.dirname(Platform.script.path), 'dart', '$benchmarkName.dart');
+    path.dirname(Platform.script.path),
+    'dart',
+    '$benchmarkName.dart',
+  );
   final dartSink = File(dartFilePath).openWrite();
   generateBenchmarkClassesAndUtilities(dartSink);
   dartSink..flush();

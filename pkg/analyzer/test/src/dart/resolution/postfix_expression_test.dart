@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -11,8 +12,40 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InferenceUpdate4Test);
     defineReflectiveTests(PostfixExpressionResolutionTest);
   });
+}
+
+@reflectiveTest
+class InferenceUpdate4Test extends PubPackageResolutionTest {
+  @override
+  List<String> get experiments {
+    return [
+      ...super.experiments,
+      Feature.inference_update_4.enableString,
+    ];
+  }
+
+  test_isExpression_notPromoted() async {
+    await assertNoErrorsInCode('''
+f() {
+  num x = 2;
+  if ((x++) is int) {
+    x;
+  }
+}
+''');
+    var nonPromotedIdentifier = findNode.simple('x;');
+    assertResolvedNodeText(nonPromotedIdentifier, r'''
+SimpleIdentifier
+  token: x
+  staticElement: x@12
+  element: x@12
+  staticType: num
+''');
+    assertType(nonPromotedIdentifier, 'num');
+  }
 }
 
 @reflectiveTest
@@ -365,10 +398,10 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: dart:core::<fragment>::@class::int
-  readElement2: dart:core::<fragment>::@class::int#element
+  readElement2: dart:core::@class::int
   readType: InvalidType
   writeElement: dart:core::<fragment>::@class::int
-  writeElement2: dart:core::<fragment>::@class::int#element
+  writeElement2: dart:core::@class::int
   writeType: InvalidType
   staticElement: <null>
   element: <null>
@@ -554,7 +587,7 @@ PostfixExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1165,7 +1198,7 @@ PostfixExpression
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
-      element: <testLibraryFragment>::@function::f#element
+      element: <testLibrary>::@function::f
       staticType: T Function<T>(T)
     argumentList: ArgumentList
       leftParenthesis: (

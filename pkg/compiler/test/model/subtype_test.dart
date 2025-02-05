@@ -5,9 +5,9 @@
 library subtype_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/type_test_helper.dart';
 
@@ -30,18 +30,31 @@ Future runTests() async {
   await testStrongModeSubtyping();
 }
 
-void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
-    bool expectSubtype) {
-  Expect.equals(expectSubtype, env.isSubtype(subtype, supertype),
-      '$subtype <: $supertype');
+void testTypes(
+  TypeEnvironment env,
+  DartType subtype,
+  DartType supertype,
+  bool expectSubtype,
+) {
+  Expect.equals(
+    expectSubtype,
+    env.isSubtype(subtype, supertype),
+    '$subtype <: $supertype',
+  );
   if (expectSubtype) {
-    Expect.isTrue(env.isPotentialSubtype(subtype, supertype),
-        '$subtype <: $supertype (potential)');
+    Expect.isTrue(
+      env.isPotentialSubtype(subtype, supertype),
+      '$subtype <: $supertype (potential)',
+    );
   }
 }
 
 void testElementTypes(
-    TypeEnvironment env, String subname, String supername, bool expectSubtype) {
+  TypeEnvironment env,
+  String subname,
+  String supername,
+  bool expectSubtype,
+) {
   DartType subtype = env.getElementType(subname);
   DartType supertype = env.getElementType(supername);
   testTypes(env, subtype, supertype, expectSubtype);
@@ -358,29 +371,38 @@ const List<FunctionTypeData> functionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('int', 'int__int_int', '(int i1, int i2)'),
   const FunctionTypeData('void', 'inline_void_', '(void Function() f)'),
   const FunctionTypeData(
-      'void', 'inline_void__int', '(void Function(int i) f)'),
+    'void',
+    'inline_void__int',
+    '(void Function(int i) f)',
+  ),
 ];
 
 Future testFunctionSubtyping() async {
   await TypeEnvironment.create(
-          createMethods(functionTypesData, additionalData: """
+    createMethods(
+      functionTypesData,
+      additionalData: """
   main() {
     ${createUses(functionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then(functionSubtypingHelper);
+  """,
+    ),
+    expectNoErrors: true,
+  ).then(functionSubtypingHelper);
 }
 
 Future testTypedefSubtyping() async {
   await TypeEnvironment.create(
-          createTypedefs(functionTypesData, additionalData: """
+    createTypedefs(
+      functionTypesData,
+      additionalData: """
   main() {
     ${createUses(functionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then(functionSubtypingHelper);
+  """,
+    ),
+    expectNoErrors: true,
+  ).then(functionSubtypingHelper);
 }
 
 functionSubtypingHelper(TypeEnvironment env) {
@@ -438,42 +460,58 @@ functionSubtypingHelper(TypeEnvironment env) {
 
 const List<FunctionTypeData> optionalFunctionTypesData =
     const <FunctionTypeData>[
-  const FunctionTypeData('void', 'void_', '()'),
-  const FunctionTypeData('void', 'void__int', '(int i)'),
-  const FunctionTypeData('void', 'void___int', '([int? i])'),
-  const FunctionTypeData('void', 'void___int2', '([int? i])'),
-  const FunctionTypeData('void', 'void___Object', '([Object? o])'),
-  const FunctionTypeData('void', 'void__int__int', '(int i1, [int? i2])'),
-  const FunctionTypeData('void', 'void__int__int2', '(int i1, [int? i2])'),
-  const FunctionTypeData(
-      'void', 'void__int__int_int', '(int i1, [int? i2, int? i3])'),
-  const FunctionTypeData('void', 'void___double', '(double d)'),
-  const FunctionTypeData('void', 'void___int_int', '([int? i1, int? i2])'),
-  const FunctionTypeData(
-      'void', 'void___int_int_int', '([int? i1, int? i2, int? i3])'),
-  const FunctionTypeData('void', 'void___Object_int', '([Object? o, int? i])'),
-];
+      const FunctionTypeData('void', 'void_', '()'),
+      const FunctionTypeData('void', 'void__int', '(int i)'),
+      const FunctionTypeData('void', 'void___int', '([int? i])'),
+      const FunctionTypeData('void', 'void___int2', '([int? i])'),
+      const FunctionTypeData('void', 'void___Object', '([Object? o])'),
+      const FunctionTypeData('void', 'void__int__int', '(int i1, [int? i2])'),
+      const FunctionTypeData('void', 'void__int__int2', '(int i1, [int? i2])'),
+      const FunctionTypeData(
+        'void',
+        'void__int__int_int',
+        '(int i1, [int? i2, int? i3])',
+      ),
+      const FunctionTypeData('void', 'void___double', '(double d)'),
+      const FunctionTypeData('void', 'void___int_int', '([int? i1, int? i2])'),
+      const FunctionTypeData(
+        'void',
+        'void___int_int_int',
+        '([int? i1, int? i2, int? i3])',
+      ),
+      const FunctionTypeData(
+        'void',
+        'void___Object_int',
+        '([Object? o, int? i])',
+      ),
+    ];
 
 Future testFunctionSubtypingOptional() async {
   await TypeEnvironment.create(
-          createMethods(optionalFunctionTypesData, additionalData: """
+    createMethods(
+      optionalFunctionTypesData,
+      additionalData: """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then((env) => functionSubtypingOptionalHelper(env));
+  """,
+    ),
+    expectNoErrors: true,
+  ).then((env) => functionSubtypingOptionalHelper(env));
 }
 
 Future testTypedefSubtypingOptional() async {
   await TypeEnvironment.create(
-          createTypedefs(optionalFunctionTypesData, additionalData: """
+    createTypedefs(
+      optionalFunctionTypesData,
+      additionalData: """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then((env) => functionSubtypingOptionalHelper(env));
+  """,
+    ),
+    expectNoErrors: true,
+  ).then((env) => functionSubtypingOptionalHelper(env));
 }
 
 functionSubtypingOptionalHelper(TypeEnvironment env) {
@@ -529,7 +567,10 @@ const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'void___a_double', '({double? a})'),
   const FunctionTypeData('void', 'void___a_int_b_int', '({int? a, int? b})'),
   const FunctionTypeData(
-      'void', 'void___a_int_b_int_c_int', '({int? a, int? b, int? c})'),
+    'void',
+    'void___a_int_b_int_c_int',
+    '({int? a, int? b, int? c})',
+  ),
   const FunctionTypeData('void', 'void___a_int_c_int', '({int? a, int? c})'),
   const FunctionTypeData('void', 'void___b_int_c_int', '({int? b, int? c})'),
   const FunctionTypeData('void', 'void___c_int', '({int? c})'),
@@ -537,24 +578,30 @@ const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
 
 Future testFunctionSubtypingNamed() async {
   await TypeEnvironment.create(
-          createMethods(namedFunctionTypesData, additionalData: """
+    createMethods(
+      namedFunctionTypesData,
+      additionalData: """
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then((env) => functionSubtypingNamedHelper(env));
+  """,
+    ),
+    expectNoErrors: true,
+  ).then((env) => functionSubtypingNamedHelper(env));
 }
 
 Future testTypedefSubtypingNamed() async {
   await TypeEnvironment.create(
-          createTypedefs(namedFunctionTypesData, additionalData: """
+    createTypedefs(
+      namedFunctionTypesData,
+      additionalData: """
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """),
-          expectNoErrors: true)
-      .then((env) => functionSubtypingNamedHelper(env));
+  """,
+    ),
+    expectNoErrors: true,
+  ).then((env) => functionSubtypingNamedHelper(env));
 }
 
 functionSubtypingNamedHelper(TypeEnvironment env) {
@@ -757,8 +804,10 @@ Future testStrongModeSubtyping() async {
     DartType dynamic_ = env['dynamic'];
     DartType void_ = env['void'];
     DartType Function_ = env['Function'];
-    DartType ClassWithCallType =
-        env.getMemberType('call', ClassWithCall.element);
+    DartType ClassWithCallType = env.getMemberType(
+      'call',
+      ClassWithCall.element,
+    );
 
     InterfaceType List_top = env.commonElements.listType(top);
     InterfaceType List_dynamic = env.commonElements.listType(dynamic_);

@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
@@ -104,6 +107,17 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element) {
+    checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return _driver.getParsedLibraryByUri(element.uri);
+  }
+
+  @override
   SomeParsedUnitResult getParsedUnit(String path) {
     checkConsistency();
     return _driver.parseFileSync(path);
@@ -126,6 +140,19 @@ class AnalysisSessionImpl implements AnalysisSession {
     }
 
     return await _driver.getResolvedLibraryByUri(element.source.uri);
+  }
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement2 element,
+  ) async {
+    checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return await _driver.getResolvedLibraryByUri(element.uri);
   }
 
   @override

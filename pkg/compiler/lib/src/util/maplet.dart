@@ -4,15 +4,15 @@
 
 // ignore_for_file: avoid_dynamic_calls
 
-library dart2js.util.maplet;
+library;
 
 import 'dart:collection' show MapBase, IterableBase;
 
 class Maplet<K, V> extends MapBase<K, V> {
-  static const _MapletMarker _MARKER = _MapletMarker();
-  static const int CAPACITY = 8;
+  static const _MapletMarker _marker = _MapletMarker();
+  static const int capacity = 8;
 
-// The maplet can be in one of four states:
+  // The maplet can be in one of four states:
   //
   //   * Empty          (extra: null,   key: marker, value: null)
   //   * Single element (extra: null,   key: key,    value: value)
@@ -24,7 +24,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   // the keys and they may contain markers for deleted elements. After
   // the keys there are [CAPACITY] entries for the values.
 
-  dynamic _key = _MARKER;
+  dynamic _key = _marker;
   V? _value;
   dynamic _extra;
 
@@ -39,8 +39,8 @@ class Maplet<K, V> extends MapBase<K, V> {
   @override
   bool get isEmpty {
     if (_extra == null) {
-      return _MARKER == _key;
-    } else if (_MARKER == _extra) {
+      return _marker == _key;
+    } else if (_marker == _extra) {
       return _key.isEmpty;
     } else {
       return _extra == 0;
@@ -50,8 +50,8 @@ class Maplet<K, V> extends MapBase<K, V> {
   @override
   int get length {
     if (_extra == null) {
-      return (_MARKER == _key) ? 0 : 1;
-    } else if (_MARKER == _extra) {
+      return (_marker == _key) ? 0 : 1;
+    } else if (_marker == _extra) {
       return _key.length;
     } else {
       return _extra as int;
@@ -62,12 +62,12 @@ class Maplet<K, V> extends MapBase<K, V> {
   bool containsKey(Object? key) {
     if (_extra == null) {
       return _key == key;
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _key.containsKey(key);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _key[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (candidate == key) return true;
         remaining--;
       }
@@ -79,13 +79,13 @@ class Maplet<K, V> extends MapBase<K, V> {
   V? operator [](Object? key) {
     if (_extra == null) {
       return (_key == key) ? _value : null;
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _key[key];
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _key[i];
-        if (_MARKER == candidate) continue;
-        if (candidate == key) return _key[i + CAPACITY];
+        if (_marker == candidate) continue;
+        if (candidate == key) return _key[i + capacity];
         remaining--;
       }
       return null;
@@ -95,31 +95,31 @@ class Maplet<K, V> extends MapBase<K, V> {
   @override
   void operator []=(K key, V value) {
     if (_extra == null) {
-      if (_MARKER == _key) {
+      if (_marker == _key) {
         _key = key;
         _value = value;
       } else if (_key == key) {
         _value = value;
       } else {
-        List<Object?> list = List.filled(CAPACITY * 2, null);
+        List<Object?> list = List.filled(capacity * 2, null);
         list[0] = _key;
         list[1] = key;
-        list[CAPACITY] = _value;
-        list[CAPACITY + 1] = value;
+        list[capacity] = _value;
+        list[capacity + 1] = value;
         _key = list;
         _value = null;
         _extra = 2; // Two elements.
       }
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       _key[key] = value;
     } else {
       int remaining = _extra;
       int index = 0;
       int copyTo = 0;
       int copyFrom = 0;
-      while (remaining > 0 && index < CAPACITY) {
+      while (remaining > 0 && index < capacity) {
         var candidate = _key[index];
-        if (_MARKER == candidate) {
+        if (_marker == candidate) {
           // Keep track of the last range of empty slots in the
           // list. When we're done we'll move all the elements
           // after those empty slots down, so that adding an element
@@ -131,7 +131,7 @@ class Maplet<K, V> extends MapBase<K, V> {
             copyFrom = index + 1;
           }
         } else if (candidate == key) {
-          _key[CAPACITY + index] = value;
+          _key[capacity + index] = value;
           return;
         } else {
           // Skipped an element that didn't match.
@@ -139,37 +139,37 @@ class Maplet<K, V> extends MapBase<K, V> {
         }
         index++;
       }
-      if (index < CAPACITY) {
+      if (index < capacity) {
         _key[index] = key;
-        _key[CAPACITY + index] = value;
+        _key[capacity + index] = value;
         _extra++;
-      } else if (_extra < CAPACITY) {
+      } else if (_extra < capacity) {
         // Move the last elements down into the last empty slots
         // so that we have empty slots after the last element.
-        while (copyFrom < CAPACITY) {
+        while (copyFrom < capacity) {
           _key[copyTo] = _key[copyFrom];
-          _key[CAPACITY + copyTo] = _key[CAPACITY + copyFrom];
+          _key[capacity + copyTo] = _key[capacity + copyFrom];
           copyTo++;
           copyFrom++;
         }
         // Insert the new element as the last element.
         _key[copyTo] = key;
-        _key[CAPACITY + copyTo] = value;
+        _key[capacity + copyTo] = value;
         copyTo++;
         // Add one to the length encoded in the extra field.
         _extra++;
         // Clear all elements after the new last elements to
         // make sure we don't keep extra stuff alive.
-        while (copyTo < CAPACITY) {
-          _key[copyTo] = _key[CAPACITY + copyTo] = null;
+        while (copyTo < capacity) {
+          _key[copyTo] = _key[capacity + copyTo] = null;
           copyTo++;
         }
       } else {
-        var map = Map<K, V>();
+        var map = <K, V>{};
         forEach((eachKey, eachValue) => map[eachKey] = eachValue);
         map[key] = value;
         _key = map;
-        _extra = _MARKER;
+        _extra = _marker;
       }
     }
   }
@@ -178,20 +178,20 @@ class Maplet<K, V> extends MapBase<K, V> {
   V? remove(Object? key) {
     if (_extra == null) {
       if (_key != key) return null;
-      _key = _MARKER;
+      _key = _marker;
       V? result = _value;
       _value = null;
       return result;
-    } else if (_MARKER == _extra) {
+    } else if (_marker == _extra) {
       return _key.remove(key);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _key[i];
-        if (_MARKER == candidate) continue;
+        if (_marker == candidate) continue;
         if (candidate == key) {
-          int valueIndex = CAPACITY + i;
+          int valueIndex = capacity + i;
           var result = _key[valueIndex];
-          _key[i] = _MARKER;
+          _key[i] = _marker;
           _key[valueIndex] = null;
           _extra--;
           return result;
@@ -203,16 +203,16 @@ class Maplet<K, V> extends MapBase<K, V> {
   }
 
   @override
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     if (_extra == null) {
-      if (_MARKER != _key) action(_key, _value as V);
-    } else if (_MARKER == _extra) {
+      if (_marker != _key) action(_key, _value as V);
+    } else if (_marker == _extra) {
       _key.forEach(action);
     } else {
-      for (int remaining = _extra, i = 0; remaining > 0 && i < CAPACITY; i++) {
+      for (int remaining = _extra, i = 0; remaining > 0 && i < capacity; i++) {
         var candidate = _key[i];
-        if (_MARKER == candidate) continue;
-        action(candidate, _key[CAPACITY + i]);
+        if (_marker == candidate) continue;
+        action(candidate, _key[capacity + i]);
         remaining--;
       }
     }
@@ -220,7 +220,7 @@ class Maplet<K, V> extends MapBase<K, V> {
 
   @override
   void clear() {
-    _key = _MARKER;
+    _key = _marker;
     _value = _extra = null;
   }
 
@@ -241,7 +241,7 @@ class _MapletKeyIterable<K> extends IterableBase<K> {
   Iterator<K> get iterator {
     if (maplet._extra == null) {
       return _MapletSingleIterator<K>(maplet._key);
-    } else if (Maplet._MARKER == maplet._extra) {
+    } else if (Maplet._marker == maplet._extra) {
       return maplet._key.keys.iterator;
     } else {
       return _MapletListIterator<K>(maplet._key, maplet._extra);
@@ -260,12 +260,12 @@ class _MapletSingleIterator<K> implements Iterator<K> {
 
   @override
   bool moveNext() {
-    if (Maplet._MARKER == _element) {
+    if (Maplet._marker == _element) {
       _current = null;
       return false;
     }
     _current = _element;
-    _element = Maplet._MARKER;
+    _element = Maplet._marker;
     return true;
   }
 }
@@ -285,7 +285,7 @@ class _MapletListIterator<K> implements Iterator<K> {
   bool moveNext() {
     while (_remaining > 0) {
       var candidate = _list[_index++];
-      if (Maplet._MARKER != candidate) {
+      if (Maplet._marker != candidate) {
         _current = candidate as K;
         _remaining--;
         return true;

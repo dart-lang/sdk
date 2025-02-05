@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/leak_detector_visitor.dart';
 
 const _desc = r'Cancel instances of `dart:async` `StreamSubscription`.';

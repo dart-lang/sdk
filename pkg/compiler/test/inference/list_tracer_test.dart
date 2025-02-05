@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
@@ -252,7 +252,9 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
   checkType('listSetInNonFinalField', commonMasks.numType);
   checkType(
-      'listWithChangedLength', (commonMasks.uint31Type as TypeMask).nullable());
+    'listWithChangedLength',
+    (commonMasks.uint31Type as TypeMask).nullable(),
+  );
 
   checkType('listPassedToClosure', commonMasks.dynamicType);
   checkType('listReturnedFromClosure', commonMasks.dynamicType);

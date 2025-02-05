@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Testing that the reserved word `void` is allowed to occur as a type, not
 // just as a return type.
 
@@ -44,7 +40,7 @@ void m2(void x, {void y}) => null;
 A<void> m3(A<void>? x, [A<void>? y]) => new A<void>(null);
 A<void> m4(A<void>? x, {A<void>? y}) => new A<void>(null);
 
-class B<S, T> implements A<void> {
+mixin B<S, T> implements A<void> {
   void get t => null;
 }
 

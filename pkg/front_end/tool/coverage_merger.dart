@@ -267,8 +267,6 @@ CoverageInfo _process(
   CompilationUnitEnd ast = getAST(
     rawBytes,
     includeComments: true,
-    enableExtensionMethods: true,
-    enableNonNullable: true,
     enableTripleShift: true,
     allowPatterns: true,
     lineStarts: lineStarts,
@@ -1481,6 +1479,15 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
       }
     }
     super.visitPatternEnd(node);
+  }
+
+  @override
+  void visitSwitchExpressionBlockEnd(SwitchExpressionBlockEnd node) {
+    super.visitSwitchExpressionBlockEnd(node);
+    // Sometimes the endToken is reported as being a position we can hit.
+    // Ignore it!
+    _collector.ignoredStartEnd.addIntervalIncludingEnd(
+        node.endToken.charOffset, node.endToken.charEnd);
   }
 
   @override

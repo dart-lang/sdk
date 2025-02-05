@@ -1,0 +1,23 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_02.dart:7:5: Error: 'foo' is already declared in this scope.
+// int foo = 42;
+//     ^^^
+// pkg/front_end/testcases/regress/ambiguous_builder_02.dart:5:5: Context: Previous declaration of 'foo'.
+// int foo = 42;
+//     ^^^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_02.dart:6:2: Error: Can't use 'foo' because it is declared more than once.
+// @foo.foo
+//  ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_02.dart:6:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// @foo.foo
+//  ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int foo;

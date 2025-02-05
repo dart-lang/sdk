@@ -2,26 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/best_practices_verifier.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
 /// more easily shared between the two visitors that do the majority of error
 /// reporting (ResolverVisitor and ErrorVerifier).
 mixin ErrorDetectionHelpers {
   ErrorReporter get errorReporter;
+
+  InheritanceManager3 get inheritance;
 
   bool get strictCasts;
 
@@ -51,9 +58,6 @@ mixin ErrorDetectionHelpers {
   /// Verify that the given [argument] can be assigned to its corresponding
   /// parameter.
   ///
-  /// This method corresponds to
-  /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
-  ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
@@ -61,7 +65,7 @@ mixin ErrorDetectionHelpers {
           whyNotPromoted}) {
     _checkForArgumentTypeNotAssignableForArgument(
       argument: argument is NamedExpression ? argument.expression : argument,
-      parameter: argument.staticParameterElement,
+      parameter: argument.correspondingParameter,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,
     );
@@ -166,7 +170,7 @@ mixin ErrorDetectionHelpers {
   /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
   /// [CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
-      ConstructorFieldInitializer initializer, FieldElement fieldElement,
+      ConstructorFieldInitializer initializer, FieldElement2 fieldElement,
       {required bool isConstConstructor,
       required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
           whyNotPromoted}) {
@@ -256,13 +260,13 @@ mixin ErrorDetectionHelpers {
 
   void checkIndexExpressionIndex(
     Expression index, {
-    required ExecutableElement? readElement,
-    required ExecutableElement? writeElement,
+    required ExecutableElement2? readElement,
+    required ExecutableElement2? writeElement,
     required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
         whyNotPromoted,
   }) {
-    if (readElement is MethodElement) {
-      var parameters = readElement.parameters;
+    if (readElement is MethodElement2) {
+      var parameters = readElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
@@ -273,8 +277,8 @@ mixin ErrorDetectionHelpers {
       }
     }
 
-    if (writeElement is MethodElement) {
-      var parameters = writeElement.parameters;
+    if (writeElement is MethodElement2) {
+      var parameters = writeElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
@@ -287,9 +291,9 @@ mixin ErrorDetectionHelpers {
   }
 
   /// Computes the appropriate set of context messages to report along with an
-  /// error that may have occurred because [expression] was not type promoted.
+  /// error that may have occurred because an expression was not type promoted.
   ///
-  /// If [expression] is `null`, it means the expression that was not type
+  /// If the expression is `null`, it means the expression that was not type
   /// promoted was an implicit `this`.
   ///
   /// [errorEntity] is the entity whose location will be associated with the
@@ -309,7 +313,7 @@ mixin ErrorDetectionHelpers {
   /// > Let `e` be an expression whose static type is an interface type that has
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
-  MethodElement? getImplicitCallMethod(
+  MethodElement2? getImplicitCallMethod(
       DartType type, DartType context, SyntacticEntity errorNode) {
     var visitedTypes = {type};
     while (type is TypeParameterType) {
@@ -326,8 +330,15 @@ mixin ErrorDetectionHelpers {
     if (typeSystem.acceptsFunctionType(context) &&
         type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
-      return type.lookUpMethod2(
-          FunctionElement.CALL_METHOD_NAME, type.element.library);
+      return inheritance
+          .getMember3(
+            type,
+            Name.forLibrary(
+              type.element3.library2,
+              MethodElement2.CALL_METHOD_NAME,
+            ),
+          )
+          .ifTypeOrNull();
     } else {
       return null;
     }
@@ -335,10 +346,10 @@ mixin ErrorDetectionHelpers {
 
   /// Return the variable element represented by the given [expression], or
   /// `null` if there is no such element.
-  VariableElement? getVariableElement(Expression? expression) {
+  VariableElement2? getVariableElement(Expression? expression) {
     if (expression is Identifier) {
-      var element = expression.staticElement;
-      if (element is VariableElement) {
+      var element = expression.element;
+      if (element is VariableElement2) {
         return element;
       }
     }
@@ -347,7 +358,7 @@ mixin ErrorDetectionHelpers {
 
   void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
-    required ParameterElement? parameter,
+    required FormalParameterElement? parameter,
     required bool promoteParameterToNullable,
     Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
         whyNotPromoted,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../common.dart';
@@ -95,10 +96,12 @@ class LateOutputUnitDataBuilder {
   /// Registers [newEntity] to be emitted in the same output unit as
   /// [existingEntity];
   void registerColocatedMembers(
-      MemberEntity existingEntity, MemberEntity newEntity) {
+    MemberEntity existingEntity,
+    MemberEntity newEntity,
+  ) {
     assert(!_outputUnitData._memberToUnit.containsKey(newEntity));
-    _outputUnitData._memberToUnit[newEntity] =
-        _outputUnitData.outputUnitForMember(existingEntity);
+    _outputUnitData._memberToUnit[newEntity] = _outputUnitData
+        .outputUnitForMember(existingEntity);
   }
 }
 
@@ -128,66 +131,84 @@ class OutputUnitData {
   final Map<ImportEntity, ImportDescription> deferredImportDescriptions;
 
   OutputUnitData(
-      this.isProgramSplit,
-      this.mainOutputUnit,
-      this._classToUnit,
-      this._classTypeToUnit,
-      this._memberToUnit,
-      this._localFunctionToUnit,
-      this._constantToUnit,
-      this.outputUnits,
-      this.importDeferName,
-      this.deferredImportDescriptions);
+    this.isProgramSplit,
+    this.mainOutputUnit,
+    this._classToUnit,
+    this._classTypeToUnit,
+    this._memberToUnit,
+    this._localFunctionToUnit,
+    this._constantToUnit,
+    this.outputUnits,
+    this.importDeferName,
+    this.deferredImportDescriptions,
+  );
 
   // Creates J-world data from the K-world data.
   factory OutputUnitData.from(
-      OutputUnitData other,
-      LibraryEntity convertLibrary(LibraryEntity library),
-      Map<ClassEntity, OutputUnit> Function(
-              Map<ClassEntity, OutputUnit>, Map<Local, OutputUnit>)
-          convertClassMap,
-      Map<MemberEntity, OutputUnit> Function(
-              Map<MemberEntity, OutputUnit>, Map<Local, OutputUnit>)
-          convertMemberMap,
-      Map<ConstantValue, OutputUnit> Function(Map<ConstantValue, OutputUnit>)
-          convertConstantMap) {
-    Map<ClassEntity, OutputUnit> classToUnit =
-        convertClassMap(other._classToUnit, other._localFunctionToUnit);
-    Map<ClassEntity, OutputUnit> classTypeToUnit =
-        convertClassMap(other._classTypeToUnit, other._localFunctionToUnit);
-    Map<MemberEntity, OutputUnit> memberToUnit =
-        convertMemberMap(other._memberToUnit, other._localFunctionToUnit);
-    Map<ConstantValue, OutputUnit> constantToUnit =
-        convertConstantMap(other._constantToUnit);
+    OutputUnitData other,
+    LibraryEntity Function(LibraryEntity library) convertLibrary,
+    Map<ClassEntity, OutputUnit> Function(
+      Map<ClassEntity, OutputUnit>,
+      Map<Local, OutputUnit>,
+    )
+    convertClassMap,
+    Map<MemberEntity, OutputUnit> Function(
+      Map<MemberEntity, OutputUnit>,
+      Map<Local, OutputUnit>,
+    )
+    convertMemberMap,
+    Map<ConstantValue, OutputUnit> Function(Map<ConstantValue, OutputUnit>)
+    convertConstantMap,
+  ) {
+    Map<ClassEntity, OutputUnit> classToUnit = convertClassMap(
+      other._classToUnit,
+      other._localFunctionToUnit,
+    );
+    Map<ClassEntity, OutputUnit> classTypeToUnit = convertClassMap(
+      other._classTypeToUnit,
+      other._localFunctionToUnit,
+    );
+    Map<MemberEntity, OutputUnit> memberToUnit = convertMemberMap(
+      other._memberToUnit,
+      other._localFunctionToUnit,
+    );
+    Map<ConstantValue, OutputUnit> constantToUnit = convertConstantMap(
+      other._constantToUnit,
+    );
     Map<ImportEntity, ImportDescription> deferredImportDescriptions = {};
-    other.deferredImportDescriptions
-        .forEach((ImportEntity import, ImportDescription description) {
+    other.deferredImportDescriptions.forEach((
+      ImportEntity import,
+      ImportDescription description,
+    ) {
       deferredImportDescriptions[import] = ImportDescription.internal(
-          description.importingUri,
-          description.prefix,
-          convertLibrary(description.importingLibrary));
+        description.importingUri,
+        description.prefix,
+        convertLibrary(description.importingLibrary),
+      );
     });
 
     return OutputUnitData(
-        other.isProgramSplit,
-        other.mainOutputUnit,
-        classToUnit,
-        classTypeToUnit,
-        memberToUnit,
-        // Local functions only make sense in the K-world model.
-        const {},
-        constantToUnit,
-        other.outputUnits,
-        other.importDeferName,
-        deferredImportDescriptions);
+      other.isProgramSplit,
+      other.mainOutputUnit,
+      classToUnit,
+      classTypeToUnit,
+      memberToUnit,
+      // Local functions only make sense in the K-world model.
+      const {},
+      constantToUnit,
+      other.outputUnits,
+      other.importDeferName,
+      deferredImportDescriptions,
+    );
   }
 
   /// Deserializes an [OutputUnitData] object from [source].
   factory OutputUnitData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
-    List<OutputUnit> outputUnits =
-        source.readList(source.readOutputUnitReference);
+    List<OutputUnit> outputUnits = source.readList(
+      source.readOutputUnitReference,
+    );
     OutputUnit mainOutputUnit = outputUnits[source.readInt()];
 
     Map<ClassEntity, OutputUnit> classToUnit = source.readClassMap(() {
@@ -196,35 +217,42 @@ class OutputUnitData {
     Map<ClassEntity, OutputUnit> classTypeToUnit = source.readClassMap(() {
       return outputUnits[source.readInt()];
     });
-    Map<MemberEntity, OutputUnit> memberToUnit =
-        source.readMemberMap((MemberEntity member) {
+    Map<MemberEntity, OutputUnit> memberToUnit = source.readMemberMap((
+      MemberEntity member,
+    ) {
       return outputUnits[source.readInt()];
     });
     Map<ConstantValue, OutputUnit> constantToUnit = source.readConstantMap(() {
       return outputUnits[source.readInt()];
     });
-    Map<ImportEntity, String> importDeferName =
-        source.readImportMap(source.readString);
-    Map<ImportEntity, ImportDescription> deferredImportDescriptions =
-        source.readImportMap(() {
-      String importingUri = source.readString();
-      String prefix = source.readString();
-      LibraryEntity importingLibrary = source.readLibrary();
-      return ImportDescription.internal(importingUri, prefix, importingLibrary);
-    });
+    Map<ImportEntity, String> importDeferName = source.readImportMap(
+      source.readString,
+    );
+    Map<ImportEntity, ImportDescription> deferredImportDescriptions = source
+        .readImportMap(() {
+          String importingUri = source.readString();
+          String prefix = source.readString();
+          LibraryEntity importingLibrary = source.readLibrary();
+          return ImportDescription.internal(
+            importingUri,
+            prefix,
+            importingLibrary,
+          );
+        });
     source.end(tag);
     return OutputUnitData(
-        isProgramSplit,
-        mainOutputUnit,
-        classToUnit,
-        classTypeToUnit,
-        memberToUnit,
-        // Local functions only make sense in the K-world model.
-        const {},
-        constantToUnit,
-        outputUnits,
-        importDeferName,
-        deferredImportDescriptions);
+      isProgramSplit,
+      mainOutputUnit,
+      classToUnit,
+      classTypeToUnit,
+      memberToUnit,
+      // Local functions only make sense in the K-world model.
+      const {},
+      constantToUnit,
+      outputUnits,
+      importDeferName,
+      deferredImportDescriptions,
+    );
   }
 
   /// Serializes this [OutputUnitData] to [sink].
@@ -243,16 +271,19 @@ class OutputUnitData {
     sink.writeClassMap(_classTypeToUnit, (OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]!);
     });
-    sink.writeMemberMap(_memberToUnit,
-        (MemberEntity member, OutputUnit outputUnit) {
+    sink.writeMemberMap(_memberToUnit, (
+      MemberEntity member,
+      OutputUnit outputUnit,
+    ) {
       sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeConstantMap(_constantToUnit, (OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeImportMap(importDeferName, sink.writeString);
-    sink.writeImportMap(deferredImportDescriptions,
-        (ImportDescription importDescription) {
+    sink.writeImportMap(deferredImportDescriptions, (
+      ImportDescription importDescription,
+    ) {
       sink.writeString(importDescription.importingUri);
       sink.writeString(importDescription.prefix);
       sink.writeLibrary(importDescription.importingLibrary);
@@ -337,7 +368,9 @@ class OutputUnitData {
   /// import a library `C`, then even though elements from `A` and `C` end up in
   /// different output units, there is a non-deferred path between `A` and `C`.
   bool hasOnlyNonDeferredImportPathsToConstant(
-      MemberEntity from, ConstantValue to) {
+    MemberEntity from,
+    ConstantValue to,
+  ) {
     OutputUnit outputUnitFrom = outputUnitForMember(from);
     OutputUnit outputUnitTo = outputUnitForConstant(to);
     if (outputUnitTo == mainOutputUnit) return true;
@@ -365,7 +398,8 @@ class OutputUnitData {
     if (!isProgramSplit) return;
     OutputUnit unit = constant.unit;
     assert(
-        _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
+      _constantToUnit[constant] == null || _constantToUnit[constant] == unit,
+    );
     _constantToUnit[constant] = unit;
   }
 
@@ -394,23 +428,31 @@ class ImportDescription {
   final LibraryEntity importingLibrary;
 
   ImportDescription.internal(
-      this.importingUri, this.prefix, this.importingLibrary);
+    this.importingUri,
+    this.prefix,
+    this.importingLibrary,
+  );
 
   ImportDescription(
-      ImportEntity import, LibraryEntity importingLibrary, Uri mainLibraryUri)
-      : this.internal(
-            fe.relativizeUri(
-                mainLibraryUri, importingLibrary.canonicalUri, false),
-            import.name!,
-            importingLibrary);
+    ImportEntity import,
+    LibraryEntity importingLibrary,
+    Uri mainLibraryUri,
+  ) : this.internal(
+        fe.relativizeUri(mainLibraryUri, importingLibrary.canonicalUri, false),
+        import.name!,
+        importingLibrary,
+      );
 }
 
 /// Returns the filename for the output-unit named [name].
 ///
-/// The filename is of the form "<main output file>_<name>.part.js".
-/// If [addExtension] is false, the ".part.js" suffix is left out.
-String deferredPartFileName(CompilerOptions options, String name,
-    {bool addExtension = true}) {
+/// The filename is of the form `<main output file>_<name>.part.js`.
+/// If [addExtension] is false, the `.part.js` suffix is left out.
+String deferredPartFileName(
+  CompilerOptions options,
+  String name, {
+  bool addExtension = true,
+}) {
   assert(name != "");
   String outPath = options.outputUri != null ? options.outputUri!.path : "out";
   String outName = outPath.substring(outPath.lastIndexOf('/') + 1);

@@ -6,8 +6,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Future foo1() async {
   return 3;
@@ -17,16 +17,13 @@ Future<int> foo2() async {
   return 3;
 }
 
-
 foo3() async {
   return "String";
 }
 
-
 foo4() async {
   return "String";
 }
-
 
 foo5() async {
   return 3;
@@ -37,7 +34,6 @@ Future<int> foo6() async {
   return new Future<int>.value(3);
 }
 
-
 foo7() async {
   return new Future<int>.value(3);
 }
@@ -45,20 +41,16 @@ foo7() async {
 Iterable<int> foo8() sync* {
   yield 1;
   // Can only have valueless return in sync* functions.
-  return
-
-      ;
+  return;
 }
 
 Stream<int> foo9() async* {
   yield 1;
   // Can only have valueless return in async* functions.
-  return
-
-      ;
+  return;
 }
 
-test() async {
+Future test() async {
   Expect.equals(3, await foo1());
   Expect.equals(3, await foo2());
   Expect.equals("String", await foo3());

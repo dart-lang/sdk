@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart' as protocol;
@@ -10,19 +12,26 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The handler for the `search.findElementReferences` request.
 class SearchFindElementReferencesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchFindElementReferencesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
-    var params = protocol.SearchFindElementReferencesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = protocol.SearchFindElementReferencesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
@@ -46,9 +55,17 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     // search elements
     if (element != null) {
       var computer = ElementReferencesComputer(searchEngine);
-      var results = await computer.compute(element, params.includePotential);
-      sendSearchResults(protocol.SearchResultsParams(
-          searchId, results.map(newSearchResult_fromMatch).toList(), true));
+      var results = await computer.compute(
+        element.asElement2!,
+        params.includePotential,
+      );
+      sendSearchResults(
+        protocol.SearchResultsParams(
+          searchId,
+          results.map(newSearchResult_fromMatch).toList(),
+          true,
+        ),
+      );
     }
   }
 }

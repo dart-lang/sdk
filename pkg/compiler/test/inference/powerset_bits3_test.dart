@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/powersets/powersets.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -73,26 +73,25 @@ main() {
   retainDataForTesting = true;
 
   runTests() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': CODE
-    }, options: [
-      '--experimental-powersets',
-    ]);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': CODE},
+      options: ['--experimental-powersets'],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
     final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;
 
-    checkInterceptor(String name, {AbstractBool result = AbstractBool.True}) {
+    checkInterceptor(String name, {AbstractBool result = AbstractBool.true_}) {
       var element = findMember(closedWorld, name);
       final value = results.resultOfMember(element).type as PowersetValue;
       Expect.equals(powersetDomain.isInterceptor(value), result);
     }
 
-    checkInterceptor('sink', result: AbstractBool.False);
+    checkInterceptor('sink', result: AbstractBool.false_);
     checkInterceptor('sink2');
-    checkInterceptor('sink3', result: AbstractBool.Maybe);
+    checkInterceptor('sink3', result: AbstractBool.maybe);
   }
 
   asyncTest(() async {

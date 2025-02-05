@@ -14,8 +14,10 @@ final class EVP_MD extends Opaque {}
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final EVP_sha1 = ffiTestFunctions.lookupFunction<Pointer<EVP_MD> Function(),
-    Pointer<EVP_MD> Function()>('LargePointer');
+final EVP_sha1 = ffiTestFunctions
+    .lookupFunction<Pointer<EVP_MD> Function(), Pointer<EVP_MD> Function()>(
+      'LargePointer',
+    );
 
 main() {
   int result = EVP_sha1().address;

@@ -26,14 +26,16 @@ void foo(Object o) {
 ''');
 
     var toStringSuggestion = suggestionWith(
-        completion: 'toString',
-        element: ElementKind.METHOD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'toString',
+      element: ElementKind.METHOD,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     var noSuchMethodSuggestion = suggestionWith(
-        completion: 'noSuchMethod',
-        element: ElementKind.METHOD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'noSuchMethod',
+      element: ElementKind.METHOD,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     assertOrder([toStringSuggestion, noSuchMethodSuggestion]);
   }
@@ -46,14 +48,16 @@ class C {
 ''');
 
     var toStringSuggestion = suggestionWith(
-        completion: 'toString',
-        element: ElementKind.METHOD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'toString',
+      element: ElementKind.METHOD,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     var noSuchMethodSuggestion = suggestionWith(
-        completion: 'noSuchMethod',
-        element: ElementKind.METHOD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'noSuchMethod',
+      element: ElementKind.METHOD,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     assertOrder([noSuchMethodSuggestion, toStringSuggestion]);
   }

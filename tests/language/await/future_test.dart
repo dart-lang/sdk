@@ -5,8 +5,8 @@
 // VMOptions=
 // VMOptions=--optimization-counter-threshold=20
 
+import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 import 'dart:async';
 
@@ -165,9 +165,11 @@ awaitNestedDoWhile(int i, int j) async {
 awaitFor() async {
   var asyncInc = (p) async => p + 1;
   var k = 0;
-  for (int j = (await bar(0)), i = (await bar(1));
-      j < (await bar(5));
-      j = (await asyncInc(j)), i = (await asyncInc(i))) {
+  for (
+    int j = (await bar(0)), i = (await bar(1));
+    j < (await bar(5));
+    j = (await asyncInc(j)), i = (await asyncInc(i))
+  ) {
     k += i;
     k += j;
   }
@@ -183,7 +185,7 @@ awaitForIn() async {
   return k;
 }
 
-test() async {
+Future test() async {
   var result;
   for (int i = 0; i < 10; i++) {
     result = await foo();

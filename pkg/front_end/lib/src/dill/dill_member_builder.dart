@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.dill_member_builder;
-
 import 'package:kernel/ast.dart'
     show
         Annotatable,
@@ -15,35 +13,39 @@ import 'package:kernel/ast.dart'
         Procedure,
         ProcedureKind,
         ProcedureStubKind;
+import 'package:kernel/canonical_name.dart';
 
-import '../base/modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
-import '../base/problems.dart' show unhandled;
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
+import 'dill_class_builder.dart';
+import 'dill_library_builder.dart';
 
 abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
-  final int modifiers;
-
-  DillMemberBuilder(Member member, Builder parent)
-      : modifiers = computeModifiers(member),
-        super(parent, member.fileUri, member.fileOffset);
+  final DillLibraryBuilder libraryBuilder;
 
   @override
+  final DeclarationBuilder? declarationBuilder;
+
+  DillMemberBuilder(this.libraryBuilder, this.declarationBuilder);
+
   Member get member;
 
   @override
-  Iterable<Member> get exportedMembers => [member];
+  int get fileOffset => member.fileOffset;
 
   @override
-  String get debugName => "DillMemberBuilder";
+  Uri get fileUri => member.fileUri;
+
+  @override
+  Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
   String get name => member.name.text;
@@ -54,7 +56,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   bool get isConstructor => member is Constructor;
 
-  @override
   ProcedureKind? get kind {
     final Member member = this.member;
     return member is Procedure
@@ -78,6 +79,13 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
+
+  @override
+  bool get isAbstract => member.isAbstract;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExternal => member.isExternal;
 
   @override
   bool get isSynthetic {
@@ -118,7 +126,8 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   @override
   final Field field;
 
-  DillFieldBuilder(this.field, Builder parent) : super(field, parent);
+  DillFieldBuilder(this.field, super.libraryBuilder,
+      [super.declarationBuilder]);
 
   @override
   Member get member => field;
@@ -127,17 +136,40 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   Member? get readTarget => field;
 
   @override
+  Reference get readTargetReference => field.getterReference;
+
+  @override
   Member? get writeTarget => isAssignable ? field : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Member? get invokeTarget => field;
+  Reference? get writeTargetReference => field.setterReference;
+
+  @override
+  Member? get invokeTarget => null;
+
+  @override
+  Reference? get invokeTargetReference => null;
 
   @override
   bool get isField => true;
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => field.isConst;
+
+  @override
+  bool get isStatic => field.isStatic;
+
+  @override
+  Iterable<Reference> get exportedMemberReferences =>
+      [field.getterReference, if (field.hasSetter) field.setterReference!];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -145,20 +177,34 @@ abstract class DillProcedureBuilder extends DillMemberBuilder
   @override
   final Procedure procedure;
 
-  DillProcedureBuilder(this.procedure, Builder parent)
-      : super(procedure, parent);
+  DillProcedureBuilder(this.procedure, super.libraryBuilder,
+      [super.declarationBuilder]);
 
   @override
   ProcedureKind get kind => procedure.kind;
 
   @override
   FunctionNode get function => procedure.function;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => procedure.isConst;
+
+  @override
+  bool get isStatic => procedure.isStatic;
+
+  @override
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillGetterBuilder extends DillProcedureBuilder {
-  DillGetterBuilder(Procedure procedure, Builder parent)
-      : assert(procedure.kind == ProcedureKind.Getter),
-        super(procedure, parent);
+  DillGetterBuilder(super.procedure, super.libraryBuilder,
+      [super.declarationBuilder])
+      : assert(procedure.kind == ProcedureKind.Getter);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 
   @override
   Member get member => procedure;
@@ -167,18 +213,32 @@ class DillGetterBuilder extends DillProcedureBuilder {
   Member get readTarget => procedure;
 
   @override
+  Reference get readTargetReference => procedure.reference;
+
+  @override
   // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 }
 
 class DillSetterBuilder extends DillProcedureBuilder {
-  DillSetterBuilder(Procedure procedure, Builder parent)
-      : assert(procedure.kind == ProcedureKind.Setter),
-        super(procedure, parent);
+  DillSetterBuilder(super.procedure, super.libraryBuilder,
+      [super.declarationBuilder])
+      : assert(procedure.kind == ProcedureKind.Setter);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 
   @override
   Member get member => procedure;
@@ -186,19 +246,32 @@ class DillSetterBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Member? get readTarget => null;
+
+  @override
+  Reference? get readTargetReference => null;
 
   @override
   Member get writeTarget => procedure;
 
   @override
+  Reference get writeTargetReference => procedure.reference;
+
+  @override
   // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => null;
+
+  @override
+  Reference? get invokeTargetReference => null;
 }
 
 class DillMethodBuilder extends DillProcedureBuilder {
-  DillMethodBuilder(Procedure procedure, Builder parent)
-      : assert(procedure.kind == ProcedureKind.Method),
-        super(procedure, parent);
+  DillMethodBuilder(super.procedure, super.libraryBuilder,
+      [super.declarationBuilder])
+      : assert(procedure.kind == ProcedureKind.Method);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -207,18 +280,31 @@ class DillMethodBuilder extends DillProcedureBuilder {
   Member get readTarget => procedure;
 
   @override
-  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => procedure.reference;
+
+  @override
   Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 }
 
 class DillOperatorBuilder extends DillProcedureBuilder {
-  DillOperatorBuilder(Procedure procedure, Builder parent)
-      : assert(procedure.kind == ProcedureKind.Operator),
-        super(procedure, parent);
+  DillOperatorBuilder(super.procedure, super.libraryBuilder,
+      [super.declarationBuilder])
+      : assert(procedure.kind == ProcedureKind.Operator);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -229,18 +315,34 @@ class DillOperatorBuilder extends DillProcedureBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 }
 
 class DillFactoryBuilder extends DillProcedureBuilder {
   final Procedure? _factoryTearOff;
 
-  DillFactoryBuilder(Procedure procedure, this._factoryTearOff, Builder parent)
-      : super(procedure, parent);
+  DillFactoryBuilder(super.procedure, this._factoryTearOff,
+      super.libraryBuilder, DillClassBuilder super.declarationBuilder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -250,10 +352,22 @@ class DillFactoryBuilder extends DillProcedureBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => (_factoryTearOff ?? procedure).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 }
 
 class DillConstructorBuilder extends DillMemberBuilder
@@ -261,9 +375,12 @@ class DillConstructorBuilder extends DillMemberBuilder
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
-  DillConstructorBuilder(
-      this.constructor, this._constructorTearOff, Builder parent)
-      : super(constructor, parent);
+  DillConstructorBuilder(this.constructor, this._constructorTearOff,
+      super.libraryBuilder, ClassBuilder super.declarationBuilder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   FunctionNode get function => constructor.function;
@@ -276,10 +393,31 @@ class DillConstructorBuilder extends DillMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Constructor get invokeTarget => constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => constructor.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => constructor.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
 }
 
 class DillClassMember extends BuilderClassMember {
@@ -367,26 +505,4 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
-}
-
-int computeModifiers(Member member) {
-  int modifier = member.isAbstract ? abstractMask : 0;
-  modifier |= member.isExternal ? externalMask : 0;
-  if (member is Field) {
-    modifier |= member.isConst ? constMask : 0;
-    modifier |= member.isFinal ? finalMask : 0;
-    modifier |= member.isLate ? lateMask : 0;
-    modifier |= member.isStatic ? staticMask : 0;
-  } else if (member is Procedure) {
-    modifier |= member.isConst ? constMask : 0;
-    modifier |= member.isStatic ? staticMask : 0;
-  } else if (member is Constructor) {
-    modifier |= member.isConst ? constMask : 0;
-  } else {
-    // Coverage-ignore-block(suite): Not run.
-    dynamic parent = member.parent;
-    unhandled("${member.runtimeType}", "computeModifiers", member.fileOffset,
-        Uri.base.resolve(parent.fileUri));
-  }
-  return modifier;
 }

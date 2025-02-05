@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -65,7 +67,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -120,7 +122,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
-        element: <testLibraryFragment>::@function::foo#element
+        element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -162,7 +164,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
-        element: <testLibraryFragment>::@function::foo#element
+        element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -197,7 +199,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
-        element: <testLibraryFragment>::@function::foo#element
+        element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -248,7 +250,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -299,7 +301,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -353,7 +355,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
-        element: <testLibraryFragment>::@function::foo#element
+        element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -404,7 +406,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -862,8 +864,83 @@ var v = () sync* {
     _assertReturnType('() sync* {', 'Iterable<int>');
   }
 
+  test_targetBoundedByFunctionType_argumentTypeMismatch() async {
+    await assertErrorsInCode(r'''
+int test<T extends int Function(int)>(T Function() createT) {
+  return createT()('');
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2),
+    ]);
+
+    var node = findNode.functionExpressionInvocation("('')");
+    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
+  function: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: createT
+      staticElement: <testLibraryFragment>::@function::test::@parameter::createT
+      element: <testLibraryFragment>::@function::test::@parameter::createT#element
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    element: <null>
+    staticInvokeType: T Function()
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_targetBoundedByFunctionType_ok() async {
+    await assertNoErrorsInCode(r'''
+int test<T extends int Function(int)>(T Function() createT) {
+  return createT()(0);
+}
+''');
+
+    var node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
+  function: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: createT
+      staticElement: <testLibraryFragment>::@function::test::@parameter::createT
+      element: <testLibraryFragment>::@function::test::@parameter::createT#element
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    element: <null>
+    staticInvokeType: T Function()
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
   void _assertReturnType(String search, String expected) {
-    var element = findNode.functionExpression(search).declaredElement!;
+    var node = findNode.functionExpression(search);
+    var element = node.declaredFragment!.element;
     assertType(element.returnType, expected);
   }
 }

@@ -85,7 +85,7 @@ static void TryCatchOptimizerTest(
   // Finally run TryCatchAnalyzer on the graph (in AOT mode).
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);
 
-  EXPECT_EQ(1, graph->graph_entry()->catch_entries().length());
+  EXPECT_EQ(1, graph->try_entries().length());
   auto scope = graph->parsed_function().scope();
 
   GrowableArray<LocalVariable*> env;
@@ -104,7 +104,7 @@ static void TryCatchOptimizerTest(
     }
   }
 
-  CatchBlockEntryInstr* catch_entry = graph->graph_entry()->catch_entries()[0];
+  CatchBlockEntryInstr* catch_entry = graph->GetCatchBlockByTryIndex(0);
 
   // We should only synchronize state for variables from the synchronized list.
   for (auto defn : *catch_entry->initial_definitions()) {
@@ -1281,47 +1281,44 @@ main() {
   /* Flow graph to match:
 
   4:     CheckStackOverflow:8(stack=0, loop=0)
-  5:     ParallelMove rax <- S+2
-  6:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 62] nullcheck)
-  8:     v312 <- Unbox:14(v2 T{_Double}) T{_Double}
- 10:     ParallelMove xmm1 <- C
- 10:     v221 <- BinaryDoubleOp:22(+, v341, v312) T{_Double}
- 11:     ParallelMove DS-7 <- xmm1
- 12:     ParallelMove xmm2 <- C
- 12:     v227 <- BinaryDoubleOp:34(+, v342, v312) T{_Double}
- 13:     ParallelMove DS-6 <- xmm2
- 14:     v333 <- Box(v221) T{_Double}
- 15:     ParallelMove S-4 <- rax
- 16:     v334 <- Box(v227) T{_Double}
- 17:     ParallelMove S-3 <- rcx
- 18:     ParallelMove xmm0 <- xmm1
- 18:     v15 <- BinaryDoubleOp:28(+, v221, v227) T{_Double}
- 19:     ParallelMove rbx <- C, r10 <- C, DS-5 <- xmm0
- 20:     v17 <- CreateArray:30(v0, v16) T{_List}
- 21:     ParallelMove rcx <- rax
- 22:     StoreIndexed(v17, v5, v18, NoStoreBarrier)
- 24:     StoreIndexed(v17, v6, v6, NoStoreBarrier)
- 26:     StoreIndexed(v17, v3, v20, NoStoreBarrier)
- 28:     StoreIndexed(v17, v21, v7, NoStoreBarrier)
- 30:     StoreIndexed(v17, v23, v24, NoStoreBarrier)
- 32:     StoreIndexed(v17, v25, v8, NoStoreBarrier)
- 34:     StoreIndexed(v17, v27, v20, NoStoreBarrier)
- 36:     StoreIndexed(v17, v28, v9, NoStoreBarrier)
- 38:     StoreIndexed(v17, v30, v31, NoStoreBarrier)
- 39:     ParallelMove rax <- S-4
- 40:     StoreIndexed(v17, v32, v333, NoStoreBarrier)
- 42:     StoreIndexed(v17, v34, v20, NoStoreBarrier)
- 43:     ParallelMove rax <- S-3
- 44:     StoreIndexed(v17, v35, v334, NoStoreBarrier)
- 46:     StoreIndexed(v17, v37, v38, NoStoreBarrier)
- 47:     ParallelMove xmm0 <- DS-5
- 48:     v335 <- Box(v15) T{_Double}
- 49:     ParallelMove rdx <- rcx, rax <- rax
- 50:     StoreIndexed(v17, v39, v335)
- 52:     MoveArgument(v17)
- 54:     v40 <- StaticCall:44( _interpolate@0150898<0> v17,
-            recognized_kind = StringBaseInterpolate) T{String?}
- 56:     Return:48(v40)
+  5:     ParallelMove rax <- fp[2]
+  6:     v291 <- Unbox:14(v2) double
+  8:     ParallelMove xmm2 <- C
+  8:     v208 <- BinaryDoubleOp:22(+, v297 T{_Double}, v291 T{_Double}) double
+  9:     ParallelMove fp[-5] f64 <- xmm2
+ 10:     v214 <- BinaryDoubleOp:34(+, v291 T{_Double}, v298 T{_Double}) double
+ 11:     ParallelMove fp[-4] f64 <- xmm1
+ 12:     ParallelMove xmm0 <- xmm2
+ 12:     v15 <- BinaryDoubleOp:28(+, v208 T{_Double}, v214 T{_Double}) double
+ 13:     ParallelMove rbx <- C, r10 <- C, fp[-3] f64 <- xmm0
+ 14:     v17 <- CreateArray:30(v0, v16) T{_List}
+ 15:     ParallelMove rcx <- rax
+ 16:     StoreIndexed([_List] v17, v5, v18, NoStoreBarrier)
+ 18:     StoreIndexed([_List] v17, v6, v6, NoStoreBarrier)
+ 20:     StoreIndexed([_List] v17, v3, v20, NoStoreBarrier)
+ 22:     StoreIndexed([_List] v17, v21, v7, NoStoreBarrier)
+ 24:     StoreIndexed([_List] v17, v23, v24, NoStoreBarrier)
+ 26:     StoreIndexed([_List] v17, v25, v8 T{_Double}, NoStoreBarrier)
+ 28:     StoreIndexed([_List] v17, v27, v20, NoStoreBarrier)
+ 30:     StoreIndexed([_List] v17, v28, v9 T{_Double}, NoStoreBarrier)
+ 32:     StoreIndexed([_List] v17, v30, v31, NoStoreBarrier)
+ 33:     ParallelMove xmm0 <- fp[-5] f64
+ 34:     v295 <- Box(v208 T{_Double}) T{_Double}
+ 35:     ParallelMove rdx <- rcx, rax <- rax
+ 36:     StoreIndexed([_List] v17, v32, v295 T{_Double})
+ 38:     StoreIndexed([_List] v17, v34, v20, NoStoreBarrier)
+ 39:     ParallelMove xmm0 <- fp[-4] f64
+ 40:     v296 <- Box(v214 T{_Double}) T{_Double}
+ 41:     ParallelMove rdx <- rcx, rax <- rax
+ 42:     StoreIndexed([_List] v17, v35, v296 T{_Double})
+ 44:     StoreIndexed([_List] v17, v37, v38, NoStoreBarrier)
+ 45:     ParallelMove xmm0 <- fp[-3] f64
+ 46:     v292 <- Box(v15) T{_Double}
+ 47:     ParallelMove rdx <- rcx, rax <- rax
+ 48:     StoreIndexed([_List] v17, v39, v292 T{_Double})
+ 50:     MoveArgument(sp[0] <- v17)
+ 52:     v40 <- StaticCall:44( _interpolate@0150898<0> v17, recognized_kind = StringBaseInterpolate) T{String}
+ 54:     DartReturn:48(v40)
 */
 
   CreateArrayInstr* create_array = nullptr;
@@ -1337,8 +1334,6 @@ main() {
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
       kMatchAndMoveBinaryDoubleOp,
-      kMatchAndMoveBox,
-      kMatchAndMoveBox,
       kMatchAndMoveBinaryDoubleOp,
       {kMatchAndMoveCreateArray, &create_array},
       kMatchAndMoveStoreIndexed,
@@ -1350,8 +1345,10 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
@@ -1483,6 +1480,7 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
     @pragma("vm:never-inline")
     dynamic use(v) {}
 
+    @pragma("vm:entry-point", "call")
     void test() {
       A a = new A(foo(1), foo(2));
       use(a);
@@ -1592,37 +1590,6 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
     for (auto instr : block->instructions()) {
       EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow() ||
                                  it.previous()->IsFunctionEntry());
-    }
-  }
-}
-
-ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
-  const char* kScript = R"(
-    import 'dart:typed_data';
-
-    @pragma('vm:unsafe:no-bounds-checks')
-    @pragma('vm:prefer-inline')
-    int foo(Uint8List list) {
-      int result = 0;
-      for (int i = 0; i < 10; i++) {
-        result = list[i];
-      }
-      return result;
-    }
-
-    int test(Uint8List list) {
-      return foo(list);
-    }
-  )";
-
-  const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  const auto& function = Function::Handle(GetFunction(root_library, "test"));
-
-  TestPipeline pipeline(function, CompilerPass::kAOT);
-  auto flow_graph = pipeline.RunPasses({});
-  for (auto block : flow_graph->postorder()) {
-    for (auto instr : block->instructions()) {
-      EXPECT_PROPERTY(instr, !it.IsCheckBoundBase());
     }
   }
 }
@@ -1772,10 +1739,12 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
           return x is int;
         }
 
+        @pragma("vm:entry-point", "call")
         bool %s() {
           return %s(0xABCC);
         }
 
+        @pragma("vm:entry-point", "call")
         bool %s() {
           return %s(1.0);
         }
@@ -1971,6 +1940,7 @@ ISOLATE_UNIT_TEST_CASE(Ffi_StructSinking) {
         external int a;
       }
 
+      @pragma('vm:entry-point')
       int test(int addr) =>
         Pointer<S>.fromAddress(addr)[0].a;
       )";

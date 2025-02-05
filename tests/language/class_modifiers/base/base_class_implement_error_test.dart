@@ -12,9 +12,9 @@ abstract base class AOutside implements BaseClass {}
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base class BOutside implements BaseClass {
-//                             ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
+  //                           ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+  // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
   int foo = 1;
 }
 
@@ -22,3 +22,4 @@ enum EnumOutside implements ClassForEnum { x }
 //                          ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'ClassForEnum' can't be implemented outside of its library because it's a base class.
+

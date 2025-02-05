@@ -29,8 +29,15 @@ class ResultMergerTest {
     AnalysisError createError(int offset) {
       var severity = AnalysisErrorSeverity.ERROR;
       var type = AnalysisErrorType.HINT;
-      var location =
-          Location('test.dart', offset, 2, 3, 4, endLine: 5, endColumn: 6);
+      var location = Location(
+        'test.dart',
+        offset,
+        2,
+        3,
+        4,
+        endLine: 5,
+        endColumn: 6,
+      );
       return AnalysisError(severity, type, location, '', '');
     }
 
@@ -52,13 +59,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeAnalysisErrorFixes([
-            [fix1, fix2],
-            [fix3, fix4],
-            [fix5],
-            []
-          ]),
-          unorderedEquals([fix1, fix2and3, fix4, fix5]));
+        merger.mergeAnalysisErrorFixes([
+          [fix1, fix2],
+          [fix3, fix4],
+          [fix5],
+          [],
+        ]),
+        unorderedEquals([fix1, fix2and3, fix4, fix5]),
+      );
     }
 
     runTest();
@@ -69,8 +77,15 @@ class ResultMergerTest {
     AnalysisError createError(int offset) {
       var severity = AnalysisErrorSeverity.ERROR;
       var type = AnalysisErrorType.HINT;
-      var location =
-          Location('test.dart', offset, 2, 3, 4, endLine: 5, endColumn: 6);
+      var location = Location(
+        'test.dart',
+        offset,
+        2,
+        3,
+        4,
+        endLine: 5,
+        endColumn: 6,
+      );
       return AnalysisError(severity, type, location, '', '');
     }
 
@@ -81,13 +96,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeAnalysisErrors([
-            [error1, error2],
-            [error3],
-            [],
-            [error4]
-          ]),
-          unorderedEquals([error1, error2, error3, error4]));
+        merger.mergeAnalysisErrors([
+          [error1, error2],
+          [error3],
+          [],
+          [error4],
+        ]),
+        unorderedEquals([error1, error2, error3, error4]),
+      );
     }
 
     runTest();
@@ -96,8 +112,15 @@ class ResultMergerTest {
 
   void test_mergeCompletionSuggestions() {
     CompletionSuggestion createSuggestion(String completion) =>
-        CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, 50,
-            completion, 0, 3, false, false);
+        CompletionSuggestion(
+          CompletionSuggestionKind.IDENTIFIER,
+          50,
+          completion,
+          0,
+          3,
+          false,
+          false,
+        );
 
     var suggestion1 = createSuggestion('a');
     var suggestion2 = createSuggestion('b');
@@ -106,13 +129,13 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeCompletionSuggestions([
-            [suggestion1],
-            [suggestion2, suggestion3, suggestion4],
-            []
-          ]),
-          unorderedEquals(
-              [suggestion1, suggestion2, suggestion3, suggestion4]));
+        merger.mergeCompletionSuggestions([
+          [suggestion1],
+          [suggestion2, suggestion3, suggestion4],
+          [],
+        ]),
+        unorderedEquals([suggestion1, suggestion2, suggestion3, suggestion4]),
+      );
     }
 
     runTest();
@@ -129,13 +152,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeFoldingRegions([
-            [region1, region2],
-            [],
-            [region3],
-            [region4, region5]
-          ]),
-          unorderedEquals([region1, region2, region3, region4]));
+        merger.mergeFoldingRegions([
+          [region1, region2],
+          [],
+          [region3],
+          [region4, region5],
+        ]),
+        unorderedEquals([region1, region2, region3, region4]),
+      );
     }
 
     runTest();
@@ -151,13 +175,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeHighlightRegions([
-            [region1, region2],
-            [],
-            [region3],
-            [region4]
-          ]),
-          unorderedEquals([region1, region2, region3, region4]));
+        merger.mergeHighlightRegions([
+          [region1, region2],
+          [],
+          [region3],
+          [region4],
+        ]),
+        unorderedEquals([region1, region2, region3, region4]),
+      );
     }
 
     runTest();
@@ -166,8 +191,16 @@ class ResultMergerTest {
 
   void test_mergeNavigation() {
     NavigationTarget target(int fileIndex, int offset) {
-      return NavigationTarget(ElementKind.CLASS, fileIndex, offset, 1, 0, 0,
-          codeOffset: offset, codeLength: 1);
+      return NavigationTarget(
+        ElementKind.CLASS,
+        fileIndex,
+        offset,
+        1,
+        0,
+        0,
+        codeOffset: offset,
+        codeLength: 1,
+      );
     }
 
     //
@@ -182,10 +215,11 @@ class ResultMergerTest {
     var region2_1 = NavigationRegion(30, 4, [2]);
     var region2_2 = NavigationRegion(40, 4, [3]);
     var params1 = AnalysisNavigationParams(
-        'a.dart',
-        [region1_1, region1_2, region2_1, region2_2],
-        [target1_1, target1_2, target2_1, target2_2],
-        ['one.dart', 'two.dart']);
+      'a.dart',
+      [region1_1, region1_2, region2_1, region2_2],
+      [target1_1, target1_2, target2_1, target2_2],
+      ['one.dart', 'two.dart'],
+    );
     //
     // Create the parameters from the second plugin.
     //
@@ -202,31 +236,33 @@ class ResultMergerTest {
     var region3_1 = NavigationRegion(60, 4, [2]);
     var region3_2 = NavigationRegion(70, 4, [3]);
     var params2 = AnalysisNavigationParams(
-        'a.dart',
-        [region2_3, region2_4, region2_5, region3_1, region3_2],
-        [target2_3, target2_4, target3_1, target3_2],
-        ['two.dart', 'three.dart']);
-    var expected = AnalysisNavigationParams('a.dart', [
-      region1_1,
-      region1_2,
-      region2_1,
-      NavigationRegion(40, 4, [3, 5]), // union of region2_2 and region2_4
-      NavigationRegion(50, 4, [4]), // region2_5
-      NavigationRegion(60, 4, [5]), // region3_1
-      NavigationRegion(70, 4, [6]), // region3_2
-    ], [
-      target1_1,
-      target1_2,
-      target2_1,
-      target2_2,
-      target(1, 5), // target2_4
-      target(2, 6), // target3_1
-      target(2, 7), // target3_2
-    ], [
-      'one.dart',
-      'two.dart',
-      'three.dart'
-    ]);
+      'a.dart',
+      [region2_3, region2_4, region2_5, region3_1, region3_2],
+      [target2_3, target2_4, target3_1, target3_2],
+      ['two.dart', 'three.dart'],
+    );
+    var expected = AnalysisNavigationParams(
+      'a.dart',
+      [
+        region1_1,
+        region1_2,
+        region2_1,
+        NavigationRegion(40, 4, [3, 5]), // union of region2_2 and region2_4
+        NavigationRegion(50, 4, [4]), // region2_5
+        NavigationRegion(60, 4, [5]), // region3_1
+        NavigationRegion(70, 4, [6]), // region3_2
+      ],
+      [
+        target1_1,
+        target1_2,
+        target2_1,
+        target2_2,
+        target(1, 5), // target2_4
+        target(2, 6), // target3_1
+        target(2, 7), // target3_2
+      ],
+      ['one.dart', 'two.dart', 'three.dart'],
+    );
 
     void runTest() {
       expect(merger.mergeNavigation([params1, params2]), expected);
@@ -252,13 +288,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeOccurrences([
-            [occurrence1, occurrence2],
-            [],
-            [occurrence3, occurrence4],
-            [occurrence5, occurrence6]
-          ]),
-          unorderedEquals([result1, result2, result3]));
+        merger.mergeOccurrences([
+          [occurrence1, occurrence2],
+          [],
+          [occurrence3, occurrence4],
+          [occurrence5, occurrence6],
+        ]),
+        unorderedEquals([result1, result2, result3]),
+      );
     }
 
     runTest();
@@ -290,8 +327,14 @@ class ResultMergerTest {
     //
     var outline1_1 = Outline(element1_1, 0, 0, 0, 0, children: []);
     var outline1_2 = Outline(element1_2, 0, 0, 0, 0, children: []);
-    var outline1 =
-        Outline(element1, 0, 0, 0, 0, children: [outline1_1, outline1_2]);
+    var outline1 = Outline(
+      element1,
+      0,
+      0,
+      0,
+      0,
+      children: [outline1_1, outline1_2],
+    );
     //
     // Same top level element, common child.
     //
@@ -306,12 +349,30 @@ class ResultMergerTest {
     var outline2_2 = Outline(element2_2, 0, 0, 0, 0, children: []);
     var outline3_1 = Outline(element3_1, 0, 0, 0, 0, children: []);
     var outline3_2 = Outline(element3_2, 0, 0, 0, 0, children: []);
-    var outline2 =
-        Outline(element2, 0, 0, 0, 0, children: [outline2_1, outline2_2]);
-    var outline3 =
-        Outline(element2, 0, 0, 0, 0, children: [outline3_1, outline3_2]);
-    var outline2and3 = Outline(element2, 0, 0, 0, 0,
-        children: [outline2_1, outline2_2, outline3_2]);
+    var outline2 = Outline(
+      element2,
+      0,
+      0,
+      0,
+      0,
+      children: [outline2_1, outline2_2],
+    );
+    var outline3 = Outline(
+      element2,
+      0,
+      0,
+      0,
+      0,
+      children: [outline3_1, outline3_2],
+    );
+    var outline2and3 = Outline(
+      element2,
+      0,
+      0,
+      0,
+      0,
+      children: [outline2_1, outline2_2, outline3_2],
+    );
     //
     // Unique, contributed from second plugin.
     //
@@ -323,12 +384,13 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeOutline([
-            [outline1, outline2],
-            [],
-            [outline3, outline4]
-          ]),
-          unorderedEquals([outline1, outline2and3, outline4]));
+        merger.mergeOutline([
+          [outline1, outline2],
+          [],
+          [outline3, outline4],
+        ]),
+        unorderedEquals([outline1, outline2and3, outline4]),
+      );
     }
 
     runTest();
@@ -343,13 +405,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergePrioritizedSourceChanges([
-            [kind3, kind2],
-            [],
-            [kind4],
-            [kind1]
-          ]),
-          unorderedEquals([kind1, kind2, kind3, kind4]));
+        merger.mergePrioritizedSourceChanges([
+          [kind3, kind2],
+          [],
+          [kind4],
+          [kind1],
+        ]),
+        unorderedEquals([kind1, kind2, kind3, kind4]),
+      );
     }
 
     runTest();
@@ -361,8 +424,10 @@ class ResultMergerTest {
     RefactoringFeedback feedback2 = ConvertGetterToMethodFeedback();
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(feedback1));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(feedback1),
+      );
     }
 
     runTest();
@@ -374,8 +439,10 @@ class ResultMergerTest {
     RefactoringFeedback feedback2 = ConvertMethodToGetterFeedback();
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(feedback1));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(feedback1),
+      );
     }
 
     runTest();
@@ -383,25 +450,31 @@ class ResultMergerTest {
   }
 
   void
-      test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_addEverything() {
+  test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_addEverything() {
     var names1 = <String>['a', 'b', 'c'];
     var offsets1 = <int>[10, 20];
     var lengths1 = <int>[4, 5];
     var coveringOffsets1 = <int>[100, 150, 200];
     var coveringLengths1 = <int>[200, 100, 20];
     RefactoringFeedback feedback1 = ExtractLocalVariableFeedback(
-        names1, offsets1, lengths1,
-        coveringExpressionOffsets: coveringOffsets1,
-        coveringExpressionLengths: coveringLengths1);
+      names1,
+      offsets1,
+      lengths1,
+      coveringExpressionOffsets: coveringOffsets1,
+      coveringExpressionLengths: coveringLengths1,
+    );
     var names2 = <String>['c', 'd'];
     var offsets2 = <int>[30];
     var lengths2 = <int>[6];
     var coveringOffsets2 = <int>[210];
     var coveringLengths2 = <int>[5];
     RefactoringFeedback feedback2 = ExtractLocalVariableFeedback(
-        names2, offsets2, lengths2,
-        coveringExpressionOffsets: coveringOffsets2,
-        coveringExpressionLengths: coveringLengths2);
+      names2,
+      offsets2,
+      lengths2,
+      coveringExpressionOffsets: coveringOffsets2,
+      coveringExpressionLengths: coveringLengths2,
+    );
     var resultNames = <String>['a', 'b', 'c', 'd'];
     var resultOffsets = List<int>.from(offsets1)..addAll(offsets2);
     var resultLengths = List<int>.from(lengths1)..addAll(lengths2);
@@ -410,13 +483,18 @@ class ResultMergerTest {
     var resultCoveringLengths = List<int>.from(coveringLengths1)
       ..addAll(coveringLengths2);
     RefactoringFeedback result = ExtractLocalVariableFeedback(
-        resultNames, resultOffsets, resultLengths,
-        coveringExpressionOffsets: resultCoveringOffsets,
-        coveringExpressionLengths: resultCoveringLengths);
+      resultNames,
+      resultOffsets,
+      resultLengths,
+      coveringExpressionOffsets: resultCoveringOffsets,
+      coveringExpressionLengths: resultCoveringLengths,
+    );
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(result));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(result),
+      );
     }
 
     runTest();
@@ -424,31 +502,42 @@ class ResultMergerTest {
   }
 
   void
-      test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_addOffsetsAndLengths() {
+  test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_addOffsetsAndLengths() {
     var names1 = <String>['a', 'b', 'c'];
     var offsets1 = <int>[10, 20];
     var lengths1 = <int>[4, 5];
     var coveringOffsets1 = <int>[100, 150, 200];
     var coveringLengths1 = <int>[200, 100, 20];
     RefactoringFeedback feedback1 = ExtractLocalVariableFeedback(
-        names1, offsets1, lengths1,
-        coveringExpressionOffsets: coveringOffsets1,
-        coveringExpressionLengths: coveringLengths1);
+      names1,
+      offsets1,
+      lengths1,
+      coveringExpressionOffsets: coveringOffsets1,
+      coveringExpressionLengths: coveringLengths1,
+    );
     var names2 = <String>[];
     var offsets2 = <int>[30];
     var lengths2 = <int>[6];
-    RefactoringFeedback feedback2 =
-        ExtractLocalVariableFeedback(names2, offsets2, lengths2);
+    RefactoringFeedback feedback2 = ExtractLocalVariableFeedback(
+      names2,
+      offsets2,
+      lengths2,
+    );
     var resultOffsets = List<int>.from(offsets1)..addAll(offsets2);
     var resultLengths = List<int>.from(lengths1)..addAll(lengths2);
     RefactoringFeedback result = ExtractLocalVariableFeedback(
-        names1, resultOffsets, resultLengths,
-        coveringExpressionOffsets: coveringOffsets1,
-        coveringExpressionLengths: coveringLengths1);
+      names1,
+      resultOffsets,
+      resultLengths,
+      coveringExpressionOffsets: coveringOffsets1,
+      coveringExpressionLengths: coveringLengths1,
+    );
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(result));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(result),
+      );
     }
 
     runTest();
@@ -456,25 +545,36 @@ class ResultMergerTest {
   }
 
   void
-      test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_noCoverings() {
+  test_mergeRefactoringFeedbacks_extractLocalVariableFeedback_noCoverings() {
     var names1 = <String>['a', 'b', 'c'];
     var offsets1 = <int>[10, 20];
     var lengths1 = <int>[4, 5];
-    RefactoringFeedback feedback1 =
-        ExtractLocalVariableFeedback(names1, offsets1, lengths1);
+    RefactoringFeedback feedback1 = ExtractLocalVariableFeedback(
+      names1,
+      offsets1,
+      lengths1,
+    );
     var names2 = <String>[];
     var offsets2 = <int>[30];
     var lengths2 = <int>[6];
-    RefactoringFeedback feedback2 =
-        ExtractLocalVariableFeedback(names2, offsets2, lengths2);
+    RefactoringFeedback feedback2 = ExtractLocalVariableFeedback(
+      names2,
+      offsets2,
+      lengths2,
+    );
     var resultOffsets = List<int>.from(offsets1)..addAll(offsets2);
     var resultLengths = List<int>.from(lengths1)..addAll(lengths2);
-    RefactoringFeedback result =
-        ExtractLocalVariableFeedback(names1, resultOffsets, resultLengths);
+    RefactoringFeedback result = ExtractLocalVariableFeedback(
+      names1,
+      resultOffsets,
+      resultLengths,
+    );
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(result));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(result),
+      );
     }
 
     runTest();
@@ -490,31 +590,50 @@ class ResultMergerTest {
     var parameters1 = <RefactoringMethodParameter>[];
     var offsets1 = <int>[10, 20];
     var lengths1 = <int>[4, 5];
-    RefactoringFeedback feedback1 = ExtractMethodFeedback(offset1, length1,
-        returnType1, names1, canCreateGetter1, parameters1, offsets1, lengths1);
+    RefactoringFeedback feedback1 = ExtractMethodFeedback(
+      offset1,
+      length1,
+      returnType1,
+      names1,
+      canCreateGetter1,
+      parameters1,
+      offsets1,
+      lengths1,
+    );
     var names2 = <String>['c', 'd'];
     var canCreateGetter2 = true;
     var parameters2 = <RefactoringMethodParameter>[];
     var offsets2 = <int>[30];
     var lengths2 = <int>[6];
     RefactoringFeedback feedback2 = ExtractMethodFeedback(
-        0, 0, '', names2, canCreateGetter2, parameters2, offsets2, lengths2);
+      0,
+      0,
+      '',
+      names2,
+      canCreateGetter2,
+      parameters2,
+      offsets2,
+      lengths2,
+    );
     var resultNames = <String>['a', 'b', 'c', 'd'];
     var resultOffsets = List<int>.from(offsets1)..addAll(offsets2);
     var resultLengths = List<int>.from(lengths1)..addAll(lengths2);
     RefactoringFeedback result = ExtractMethodFeedback(
-        offset1,
-        length1,
-        returnType1,
-        resultNames,
-        false,
-        parameters1,
-        resultOffsets,
-        resultLengths);
+      offset1,
+      length1,
+      returnType1,
+      resultNames,
+      false,
+      parameters1,
+      resultOffsets,
+      resultLengths,
+    );
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(result));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(result),
+      );
     }
 
     runTest();
@@ -527,8 +646,10 @@ class ResultMergerTest {
     RefactoringFeedback result = InlineLocalVariableFeedback('a', 5);
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(result));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(result),
+      );
     }
 
     runTest();
@@ -540,8 +661,10 @@ class ResultMergerTest {
     RefactoringFeedback feedback2 = InlineMethodFeedback('a', false);
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(feedback1));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(feedback1),
+      );
     }
 
     runTest();
@@ -553,8 +676,10 @@ class ResultMergerTest {
     RefactoringFeedback feedback2 = MoveFileFeedback();
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(feedback1));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(feedback1),
+      );
     }
 
     runTest();
@@ -566,8 +691,10 @@ class ResultMergerTest {
     RefactoringFeedback feedback2 = RenameFeedback(20, 0, '', '');
 
     void runTest() {
-      expect(merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-          equals(feedback1));
+      expect(
+        merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+        equals(feedback1),
+      );
     }
 
     runTest();
@@ -583,13 +710,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeRefactoringKinds([
-            [kind1, kind2],
-            [kind3],
-            [],
-            [kind4, kind5]
-          ]),
-          unorderedEquals([kind1, kind2, kind3, kind4]));
+        merger.mergeRefactoringKinds([
+          [kind1, kind2],
+          [kind3],
+          [],
+          [kind4, kind5],
+        ]),
+        unorderedEquals([kind1, kind2, kind3, kind4]),
+      );
     }
 
     runTest();
@@ -610,43 +738,66 @@ class ResultMergerTest {
     var optionsProblems1 = <RefactoringProblem>[problem3];
     var finalProblems1 = <RefactoringProblem>[problem4];
     RefactoringFeedback feedback1 = RenameFeedback(10, 0, '', '');
-    var edit1 = SourceFileEdit('file1.dart', 11, edits: <SourceEdit>[
-      SourceEdit(12, 2, 'w', id: 'e1'),
-      SourceEdit(13, 3, 'x'),
-    ]);
+    var edit1 = SourceFileEdit(
+      'file1.dart',
+      11,
+      edits: <SourceEdit>[
+        SourceEdit(12, 2, 'w', id: 'e1'),
+        SourceEdit(13, 3, 'x'),
+      ],
+    );
     var change1 = SourceChange('c1', edits: <SourceFileEdit>[edit1]);
     var potentialEdits1 = <String>['e1'];
     var result1 = EditGetRefactoringResult(
-        initialProblems1, optionsProblems1, finalProblems1,
-        feedback: feedback1, change: change1, potentialEdits: potentialEdits1);
+      initialProblems1,
+      optionsProblems1,
+      finalProblems1,
+      feedback: feedback1,
+      change: change1,
+      potentialEdits: potentialEdits1,
+    );
     var initialProblems2 = <RefactoringProblem>[problem5];
     var optionsProblems2 = <RefactoringProblem>[];
     var finalProblems2 = <RefactoringProblem>[problem6];
     RefactoringFeedback feedback2 = RenameFeedback(20, 0, '', '');
-    var edit2 = SourceFileEdit('file2.dart', 21, edits: <SourceEdit>[
-      SourceEdit(12, 2, 'y', id: 'e2'),
-      SourceEdit(13, 3, 'z'),
-    ]);
+    var edit2 = SourceFileEdit(
+      'file2.dart',
+      21,
+      edits: <SourceEdit>[
+        SourceEdit(12, 2, 'y', id: 'e2'),
+        SourceEdit(13, 3, 'z'),
+      ],
+    );
     var change2 = SourceChange('c2', edits: <SourceFileEdit>[edit2]);
     var potentialEdits2 = <String>['e2'];
     var result2 = EditGetRefactoringResult(
-        initialProblems2, optionsProblems2, finalProblems2,
-        feedback: feedback2, change: change2, potentialEdits: potentialEdits2);
+      initialProblems2,
+      optionsProblems2,
+      finalProblems2,
+      feedback: feedback2,
+      change: change2,
+      potentialEdits: potentialEdits2,
+    );
     var mergedInitialProblems = <RefactoringProblem>[
       problem1,
       problem2,
-      problem5
+      problem5,
     ];
     var mergedOptionsProblems = <RefactoringProblem>[problem3];
     var mergedFinalProblems = <RefactoringProblem>[problem4, problem6];
-    var mergedChange =
-        SourceChange('c1', edits: <SourceFileEdit>[edit1, edit2]);
+    var mergedChange = SourceChange(
+      'c1',
+      edits: <SourceFileEdit>[edit1, edit2],
+    );
     var mergedPotentialEdits = <String>['e1', 'e2'];
     var mergedResult = EditGetRefactoringResult(
-        mergedInitialProblems, mergedOptionsProblems, mergedFinalProblems,
-        feedback: merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
-        change: mergedChange,
-        potentialEdits: mergedPotentialEdits);
+      mergedInitialProblems,
+      mergedOptionsProblems,
+      mergedFinalProblems,
+      feedback: merger.mergeRefactoringFeedbacks([feedback1, feedback2]),
+      change: mergedChange,
+      potentialEdits: mergedPotentialEdits,
+    );
 
     void runTest() {
       expect(merger.mergeRefactorings([result1, result2]), mergedResult);
@@ -664,13 +815,14 @@ class ResultMergerTest {
 
     void runTest() {
       expect(
-          merger.mergeSourceChanges([
-            [kind1, kind2],
-            [],
-            [kind3],
-            [kind4]
-          ]),
-          unorderedEquals([kind1, kind2, kind3, kind4]));
+        merger.mergeSourceChanges([
+          [kind1, kind2],
+          [],
+          [kind3],
+          [kind4],
+        ]),
+        unorderedEquals([kind1, kind2, kind3, kind4]),
+      );
     }
 
     runTest();

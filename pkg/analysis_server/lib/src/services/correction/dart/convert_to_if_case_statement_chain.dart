@@ -15,8 +15,9 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind =>
@@ -83,19 +84,16 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
         if (members.length != 1) {
           return null;
         }
-        result.add(
-          _DefaultGroup(
-            statements: group.statements,
-          ),
-        );
+        result.add(_DefaultGroup(statements: group.statements));
         continue;
       }
 
       // We expect only `SwitchPatternCase`s.
-      var guardedPatterns = members
-          .whereType<SwitchPatternCase>()
-          .map((e) => e.guardedPattern)
-          .toList();
+      var guardedPatterns =
+          members
+              .whereType<SwitchPatternCase>()
+              .map((e) => e.guardedPattern)
+              .toList();
       if (guardedPatterns.length != members.length) {
         return null;
       }
@@ -158,37 +156,27 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
 }
 
 class _DefaultGroup extends _Group {
-  _DefaultGroup({
-    required super.statements,
-  });
+  _DefaultGroup({required super.statements});
 }
 
 sealed class _Group {
   final List<Statement> statements;
 
-  _Group({
-    required this.statements,
-  });
+  _Group({required this.statements});
 }
 
 /// Joined [Pattern]s, without `when`, before statements.
 class _JoinedCaseGroup extends _Group {
   final List<DartPattern> patterns;
 
-  _JoinedCaseGroup({
-    required this.patterns,
-    required super.statements,
-  });
+  _JoinedCaseGroup({required this.patterns, required super.statements});
 }
 
 /// A single [GuardedPattern] before statements.
 class _SingleCaseGroup extends _Group {
   final GuardedPattern guardedPattern;
 
-  _SingleCaseGroup({
-    required this.guardedPattern,
-    required super.statements,
-  });
+  _SingleCaseGroup({required this.guardedPattern, required super.statements});
 }
 
 extension on List<GuardedPattern> {

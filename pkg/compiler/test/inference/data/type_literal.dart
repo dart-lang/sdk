@@ -19,6 +19,8 @@ typeLiteralToString() => (Object). /*invoke: [exact=_Type]*/ toString();
 typeLiteralSubstring() {
   String name = (List). /*invoke: [exact=_Type]*/ toString();
   name = name. /*invoke: [exact=JSString]*/ substring(
-      0, name. /*invoke: [exact=JSString]*/ indexOf('<'));
+    0,
+    name. /*invoke: [exact=JSString]*/ indexOf('<'),
+  );
   return name;
 }

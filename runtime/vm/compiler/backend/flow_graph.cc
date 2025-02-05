@@ -68,8 +68,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
-      captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
+      inlining_info_(&parsed_function.function()),
       should_print_(false),
       should_omit_check_bounds_(
           dart::ShouldOmitCheckBoundsIn(parsed_function.function())) {
@@ -349,6 +349,8 @@ void FlowGraph::DiscoverBlocks() {
   postorder_.Clear();
   reverse_postorder_.Clear();
   parent_.Clear();
+  try_entries_.Clear();
+  max_try_index_ = -1;
 
   GrowableArray<BlockTraversalState> block_stack;
   graph_entry_->DiscoverBlock(nullptr, &preorder_, &parent_);
@@ -376,7 +378,17 @@ void FlowGraph::DiscoverBlocks() {
   // Create an array of blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
-    reverse_postorder_.Add(postorder_[block_count - i - 1]);
+    auto block = postorder_[block_count - i - 1];
+    reverse_postorder_.Add(block);
+
+    if (auto try_entry = block->AsTryEntry()) {
+      const intptr_t index = try_entry->try_index();
+      // Try-entries are not coming in ascending order.
+      // There might be gaps in try_index after optimizations
+      try_entries_.EnsureLength(index + 1, nullptr);
+      ASSERT(try_entries_[index] == nullptr);
+      try_entries_[index] = try_entry;
+    }
   }
 
   ResetLoopHierarchy();
@@ -395,6 +407,7 @@ void FlowGraph::MergeBlocks() {
     BlockEntryInstr* last_merged_block = nullptr;
     while (auto goto_instr = last->AsGoto()) {
       JoinEntryInstr* successor = goto_instr->successor();
+      if (successor->IsTryEntry()) break;
       if (successor->PredecessorCount() > 1) break;
       if (block->try_index() != successor->try_index()) break;
 
@@ -620,11 +633,15 @@ bool FlowGraph::ShouldOmitCheckBoundsIn(const Function& caller) {
 static Definition* CreateCheckBound(Zone* zone,
                                     Definition* length,
                                     Definition* index,
-                                    intptr_t deopt_id) {
+                                    intptr_t deopt_id,
+                                    bool omit_check) {
   Value* val1 = new (zone) Value(length);
   Value* val2 = new (zone) Value(index);
   if (CompilerState::Current().is_aot()) {
-    return new (zone) GenericCheckBoundInstr(val1, val2, deopt_id);
+    return new (zone) GenericCheckBoundInstr(
+        val1, val2, deopt_id,
+        omit_check ? GenericCheckBoundInstr::Mode::kPhantom
+                   : GenericCheckBoundInstr::Mode::kReal);
   }
   return new (zone) CheckArrayBoundInstr(val1, val2, deopt_id);
 }
@@ -634,10 +651,9 @@ Instruction* FlowGraph::AppendCheckBound(Instruction* cursor,
                                          Definition** index,
                                          intptr_t deopt_id,
                                          Environment* env) {
-  if (!ShouldOmitCheckBoundsIn(env->function())) {
-    *index = CreateCheckBound(zone(), length, *index, deopt_id);
-    cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
-  }
+  *index = CreateCheckBound(zone(), length, *index, deopt_id,
+                            ShouldOmitCheckBoundsIn(env->function()));
+  cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
   return cursor;
 }
 
@@ -800,23 +816,33 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
     // We have to permute postorder into preorder.
     assigned_vars_.Clear();
 
+    BitVector* temp = new (zone()) BitVector(zone(), variable_count_);
     const intptr_t block_count = flow_graph_->preorder().length();
     for (intptr_t i = 0; i < block_count; i++) {
       BlockEntryInstr* block = flow_graph_->preorder()[i];
-      // All locals are assigned inside a try{} block.
-      // This is a safe approximation and workaround to force insertion of
-      // phis for stores that appear non-live because of the way catch-blocks
-      // are connected to the graph: They normally are dominated by the
-      // try-entry, but are direct successors of the graph entry in our flow
-      // graph.
-      // TODO(fschneider): Improve this approximation by better modeling the
-      // actual data flow to reduce the number of redundant phis.
       BitVector* kill = GetKillSet(block);
+      BitVector* live_assignments = GetLiveOutSet(block);
       if (block->InsideTryBlock()) {
-        kill->SetAll();
-      } else {
-        kill->Intersect(GetLiveOutSet(block));
+        // For blocks inside try we also need to consider variables
+        // which are live in for the corresponding catch block due
+        // to an implicit edge.
+        temp->CopyFrom(live_assignments);
+        auto catch_block =
+            flow_graph_->GetCatchBlockByTryIndex(block->try_index());
+        temp->AddAll(GetLiveInSet(catch_block));
+        live_assignments = temp;
       }
+
+      if (auto block_with_initial_defs = block->AsBlockEntryWithInitialDefs()) {
+        for (auto initial_def :
+             *block_with_initial_defs->initial_definitions()) {
+          if (auto initial_def_param = initial_def->AsParameter()) {
+            kill->Add(initial_def_param->env_index());
+          }
+        }
+      }
+
+      kill->Intersect(live_assignments);
       assigned_vars_.Add(kill);
     }
 
@@ -853,6 +879,8 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
 
  private:
   virtual void ComputeInitialSets();
+  virtual bool UpdateLiveOut(const BlockEntryInstr& block);
+  virtual bool UpdateLiveIn(const BlockEntryInstr& block);
 
   const FlowGraph* flow_graph_;
   GrowableArray<BitVector*> assigned_vars_;
@@ -864,21 +892,11 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
   BitVector* last_loads = new (zone()) BitVector(zone(), variable_count_);
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
+    const bool inside_try = block->InsideTryBlock();
 
     BitVector* kill = kill_[i];
     BitVector* live_in = live_in_[i];
     last_loads->Clear();
-
-    // There is an implicit use (load-local) of every local variable at each
-    // call inside a try{} block and every call has an implicit control-flow
-    // to the catch entry. As an approximation we mark all locals as live
-    // inside try{}.
-    // TODO(fschneider): Improve this approximation, since not all local
-    // variable stores actually reach a call.
-    if (block->InsideTryBlock()) {
-      live_in->SetAll();
-      continue;
-    }
 
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
@@ -889,7 +907,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
         const intptr_t index = flow_graph_->EnvIndex(&load->local());
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
         live_in->Add(index);
-        if (!last_loads->Contains(index)) {
+        if (!inside_try && !last_loads->Contains(index)) {
           last_loads->Add(index);
           load->mark_last();
         }
@@ -900,13 +918,22 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       if (store != nullptr) {
         const intptr_t index = flow_graph_->EnvIndex(&store->local());
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
+
         if (kill->Contains(index)) {
           if (!live_in->Contains(index)) {
-            store->mark_dead();
+            // Not marking dead if it potentially flows into catch block.
+            if (!inside_try) {
+              store->mark_dead();
+            }
           }
         } else {
           if (!live_in->Contains(index)) {
-            store->mark_last();
+            // Not marking stores as last in try-blocks so that they
+            // won't be eliminated based on live-in/live-out information
+            // for try blocks and catch blocks.
+            if (!inside_try) {
+              store->mark_last();
+            }
           }
           kill->Add(index);
         }
@@ -919,12 +946,10 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
     // to the kill set.
     const bool is_function_entry = block->IsFunctionEntry();
     const bool is_osr_entry = block->IsOsrEntry();
-    const bool is_catch_block_entry = block->IsCatchBlockEntry();
-    if (is_function_entry || is_osr_entry || is_catch_block_entry) {
+    if (is_function_entry || is_osr_entry) {
       const intptr_t parameter_count =
-          (is_osr_entry || is_catch_block_entry)
-              ? flow_graph_->variable_count()
-              : flow_graph_->num_direct_parameters();
+          is_osr_entry ? flow_graph_->variable_count()
+                       : flow_graph_->num_direct_parameters();
       for (intptr_t i = 0; i < parameter_count; ++i) {
         live_in->Remove(i);
         kill->Add(i);
@@ -938,6 +963,24 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       }
     }
   }
+}
+
+bool VariableLivenessAnalysis::UpdateLiveIn(const BlockEntryInstr& block) {
+  bool changed = LivenessAnalysis::UpdateLiveIn(block);
+  if (block.InsideTryBlock()) {
+    BitVector* live_in = live_in_[block.postorder_number()];
+    CatchBlockEntryInstr* catch_block =
+        flow_graph_->GetCatchBlockByTryIndex(block.try_index());
+    auto catch_live_in = live_in_[catch_block->postorder_number()];
+    if (live_in->AddAll(catch_live_in)) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+bool VariableLivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
+  return LivenessAnalysis::UpdateLiveOut(block) || block.InsideTryBlock();
 }
 
 void FlowGraph::ComputeSSA(
@@ -970,8 +1013,9 @@ void FlowGraph::ComputeSSA(
 
   GrowableArray<PhiInstr*> live_phis;
 
-  InsertPhis(preorder_, variable_liveness.ComputeAssignedVars(),
-             dominance_frontier, &live_phis);
+  InsertCatchBlockParams(preorder_, variable_liveness);
+  // Inserted catch block parameters add to the set of assigned variables.
+  InsertPhis(preorder_, variable_liveness, dominance_frontier, &live_phis);
 
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
@@ -1099,9 +1143,11 @@ void FlowGraph::CompressPath(intptr_t start_index,
 }
 
 void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
-                           const GrowableArray<BitVector*>& assigned_vars,
+                           VariableLivenessAnalysis& variable_liveness,
                            const GrowableArray<BitVector*>& dom_frontier,
                            GrowableArray<PhiInstr*>* live_phis) {
+  const auto& assigned_vars = variable_liveness.ComputeAssignedVars();
+
   const intptr_t block_count = preorder.length();
   // Map preorder block number to the highest variable index that has a phi
   // in that block.  Use it to avoid inserting multiple phis for the same
@@ -1138,6 +1184,14 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
            !it.Done(); it.Advance()) {
         int index = it.Current();
         if (has_already[index] < var_index) {
+          if (!always_live && !variable_liveness.GetLiveInSet(preorder[index])
+                                   ->Contains(var_index)) {
+            // Avoid inserting Phis for variables which are not
+            // live into the join block. Such Phis instructions can not
+            // have real uses: they correspond to dead variables which can
+            // be pruned from the environment (e.g. by RenameRecursive).
+            continue;
+          }
           JoinEntryInstr* join = preorder[index]->AsJoinEntry();
           ASSERT(join != nullptr);
           PhiInstr* phi = join->InsertPhi(
@@ -1155,6 +1209,208 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
       }
     }
   }
+}
+
+static Location EnvIndexToStackLocation(intptr_t num_direct_parameters,
+                                        intptr_t env_index) {
+  return Location::StackSlot(
+      compiler::target::frame_layout.FrameSlotForVariableIndex(
+          num_direct_parameters - env_index),
+      FPREG);
+}
+
+void FlowGraph::AddCatchEntryParameter(intptr_t var_index,
+                                       CatchBlockEntryInstr* catch_entry) {
+  Location loc;
+  Representation param_rep = kTagged;
+  const intptr_t raw_exception_var_envindex =
+      catch_entry->raw_exception_var() != nullptr
+          ? EnvIndex(catch_entry->raw_exception_var())
+          : -1;
+  const intptr_t raw_stacktrace_var_envindex =
+      catch_entry->raw_stacktrace_var() != nullptr
+          ? EnvIndex(catch_entry->raw_stacktrace_var())
+          : -1;
+
+  if (raw_exception_var_envindex == var_index) {
+    loc = LocationExceptionLocation();
+  } else if (raw_stacktrace_var_envindex == var_index) {
+    loc = LocationStackTraceLocation();
+  } else {
+    // Catch params will get their own stack slots separate
+    // from parameters and spill slots.
+    // All catch entries are reusing same stack slots.
+    loc = EnvIndexToStackLocation(
+        num_direct_parameters(),
+        variable_count() + catch_entry->initial_definitions()->length());
+  }
+  auto param = new (Z) ParameterInstr(
+      catch_entry, /*env_index=*/var_index,
+      /*param_index=*/ParameterInstr::kNotFunctionParameter, loc, param_rep);
+  AddToInitialDefinitions(catch_entry, param);
+}
+
+void FlowGraph::InsertCatchBlockParams(
+    const GrowableArray<BlockEntryInstr*>& preorder,
+    VariableLivenessAnalysis& variable_liveness) {
+  // Parameters at CatchBlockEntry serve the same function as Phis at Joins.
+  //
+  // They represent a merge between versions of a variable which arrive on
+  // different control flow edges. For Joins these are explicit control flow
+  // edges between blocks, for CatchBlockEntry these are implicit edges
+  // from throwing instructions covered by this catch block.
+  // Consider two blocks A and B. If the block A has an assignment into a
+  // variable V and there is a path from A to B: B0 = A, B1, B2, ..., Bn = B
+  // such that B{i+1} is a successor of B{i} and B{i} does not dominate B{i+1}
+  // then B needs a Phi function or Parameter corresponding
+  // to the variable V. (for the purposes of shortening the definition we
+  // consider catch entry to be an immediate successor of a block
+  // that it covers).
+  //
+  // Now let us consider two distinct cases:
+  // 1) normal flow graph for a function
+  // 2) OSR relinked flow graph.
+  //
+  // In the first case we have the property that if a path B0, ..., Bn ends up
+  // in the CatchEntry and none of Bi is CatchEntry then this path either fully
+  // contained within the corresponding try block or crosses into the try
+  // block via TryEntry. This property means that if a block A contains an
+  // assignment to a variable V then this assignment can only induce
+  // a Parameter instruction in the surrounding catches (if any).
+  //
+  // This property does hold for the OSR relinked graph because all TryEntry
+  // blocks are lifted up to the graph entry. That means there can exist paths
+  // from a block with an assignment to a variable which itself is not
+  // covered by a try/catch to the catch block which do not cross through
+  // the try entry. This means when inserting Parameter instructions for OSR
+  // relinked graph we can't limit insertion using a list of variables assigned
+  // inside blocks covered by catch and instead we should insert parameters for
+  // all live variables.
+  //
+  // Note: if we computed dominance frontier treating catch block entries as
+  // successors to blocks they cover then we could combine Parameter and Phi
+  // insertion into a single pass algorithm and remove distinction between
+  // OSR and non-OSR case.
+  intptr_t fixed_slot_count = Utils::Maximum(
+      graph_entry_->fixed_slot_count(),
+      (IsCompiledForOsr() ? osr_variable_count() : variable_count()) -
+          num_direct_parameters());
+  if (IsCompiledForOsr()) {
+    for (auto try_entry : try_entries_) {
+      if (try_entry == nullptr) {
+        continue;
+      }
+      auto catch_entry = try_entry->catch_target();
+      const auto exception_var_index =
+          EnvIndex(catch_entry->raw_exception_var());
+      const auto stacktrace_var_index =
+          EnvIndex(catch_entry->raw_stacktrace_var());
+      for (intptr_t var_index = 0, n = variable_count(); var_index < n;
+           ++var_index) {
+        const bool always_live = !FLAG_prune_dead_locals ||
+                                 IsImmortalVariable(var_index) ||
+                                 var_index == exception_var_index ||
+                                 var_index == stacktrace_var_index;
+
+        if (!always_live &&
+            !variable_liveness.GetLiveInSet(catch_entry)->Contains(var_index)) {
+          // Avoid inserting Parameter for variables which are not
+          // live into the catch block. Such Parameter instructions can not
+          // have real uses: they correspond to dead variables which can
+          // be pruned from the environment (e.g. by RenameRecursive).
+          continue;
+        }
+        AddCatchEntryParameter(var_index, catch_entry);
+      }
+    }
+  } else {
+    const auto& assigned_vars = variable_liveness.ComputeAssignedVars();
+
+    const intptr_t block_count = preorder.length();
+    // Map preorder block number to the highest variable index that has an
+    // assignment in that block.  Use it to avoid inserting multiple parameters
+    // for the same variable.
+    GrowableArray<intptr_t> has_already(block_count);
+    // Map preorder block number to the highest variable index for which the
+    // block went on the worklist.  Use it to avoid adding the same block to
+    // the worklist more than once for the same variable.
+    GrowableArray<intptr_t> work(block_count);
+
+    // Initialize has_already and work.
+    has_already.EnsureLength(block_count, -1);
+    work.EnsureLength(block_count, -1);
+
+    for (auto try_entry : try_entries_) {
+      if (try_entry == nullptr) {
+        continue;
+      }
+      auto catch_block = try_entry->catch_target();
+
+      AddCatchEntryParameter(EnvIndex(catch_block->raw_exception_var()),
+                             catch_block);
+      AddCatchEntryParameter(EnvIndex(catch_block->raw_stacktrace_var()),
+                             catch_block);
+    }
+
+    if (try_entries_.length() == 0) {
+      return;
+    }
+
+    GrowableArray<BlockEntryInstr*> worklist;
+    // Look at every variable in turn.
+    for (intptr_t var_index = 0; var_index < variable_count(); ++var_index) {
+      const bool always_live =
+          !FLAG_prune_dead_locals || IsImmortalVariable(var_index);
+
+      // Add to the worklist each block containing an assignment to this
+      // variable.
+      for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
+        if (assigned_vars[block_index]->Contains(var_index)) {
+          work[block_index] = var_index;
+          worklist.Add(preorder[block_index]);
+        }
+      }
+
+      while (!worklist.is_empty()) {
+        BlockEntryInstr* current = worklist.RemoveLast();
+        if (current->InsideTryBlock()) {
+          intptr_t try_index = current->try_index();
+          CatchBlockEntryInstr* catch_entry =
+              GetCatchBlockByTryIndex(try_index);
+          intptr_t catch_entry_index = catch_entry->preorder_number();
+          if (has_already[catch_entry_index] < var_index) {
+            if (!always_live && !variable_liveness.GetLiveInSet(catch_entry)
+                                     ->Contains(var_index)) {
+              // Avoid inserting Parameter for variables which are not
+              // live into the catch block. Such Parameter instructions can not
+              // have real uses: they correspond to dead variables which can
+              // be pruned from the environment (e.g. by RenameRecursive).
+              continue;
+            }
+            AddCatchEntryParameter(var_index, catch_entry);
+            has_already[catch_entry_index] = var_index;
+            if (work[catch_entry_index] < var_index) {
+              work[catch_entry_index] = var_index;
+              worklist.Add(catch_entry);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Count how many catch parameter slots are needed across the whole program.
+  int catch_entries_slots = 0;
+  for (intptr_t i = 0; i < try_entries_.length(); i++) {
+    if (try_entries_[i] == nullptr) {
+      continue;
+    }
+    CatchBlockEntryInstr* catch_entry = try_entries_[i]->catch_target();
+    if (catch_entry->initial_definitions()->length() > catch_entries_slots) {
+      catch_entries_slots = catch_entry->initial_definitions()->length();
+    }
+  }
+  graph_entry_->set_fixed_slot_count(fixed_slot_count + catch_entries_slots);
 }
 
 void FlowGraph::CreateCommonConstants() {
@@ -1190,10 +1446,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   env.FillWith(constant_dead(), 0, num_direct_parameters());
   env.FillWith(constant_null(), num_direct_parameters(), num_stack_locals());
 
-  if (entry->catch_entries().is_empty()) {
-    ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
-                                               : entry->SuccessorCount() == 1);
-  }
+  ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
+                                             : entry->SuccessorCount() == 1);
 
   // For OSR on a non-empty stack, insert synthetic phis on every joining entry.
   // These phis are synthetic since they are not driven by live variable
@@ -1328,14 +1582,6 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
   }
 }
 
-static Location EnvIndexToStackLocation(intptr_t num_direct_parameters,
-                                        intptr_t env_index) {
-  return Location::StackSlot(
-      compiler::target::frame_layout.FrameSlotForVariableIndex(
-          num_direct_parameters - env_index),
-      FPREG);
-}
-
 void FlowGraph::PopulateEnvironmentFromOsrEntry(
     OsrEntryInstr* osr_entry,
     GrowableArray<Definition*>* env) {
@@ -1361,56 +1607,12 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
 void FlowGraph::PopulateEnvironmentFromCatchEntry(
     CatchBlockEntryInstr* catch_entry,
     GrowableArray<Definition*>* env) {
-  const intptr_t raw_exception_var_envindex =
-      catch_entry->raw_exception_var() != nullptr
-          ? EnvIndex(catch_entry->raw_exception_var())
-          : -1;
-  const intptr_t raw_stacktrace_var_envindex =
-      catch_entry->raw_stacktrace_var() != nullptr
-          ? EnvIndex(catch_entry->raw_stacktrace_var())
-          : -1;
-
-  // Add real definitions for all locals and parameters.
-  ASSERT(variable_count() == env->length());
-  intptr_t additional_slots = 0;
-  for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
-    // Local variables will arive on the stack while exception and
-    // stack trace will be passed in fixed registers.
-    Location loc;
-    if (raw_exception_var_envindex == i) {
-      loc = LocationExceptionLocation();
-    } else if (raw_stacktrace_var_envindex == i) {
-      loc = LocationStackTraceLocation();
-    } else {
-      if (i < num_direct_parameters()) {
-        const auto [param_loc, param_rep] = GetDirectParameterInfoAt(i);
-        if (param_rep == kTagged && param_loc.IsStackSlot()) {
-          loc = param_loc;
-        } else {
-          // We can not reuse parameter location for synchronization purposes
-          // because it is either a register location or it is untagged
-          // location. This means we need to allocate additional slot
-          // for synchronization above slots reserved for other variables.
-          loc = EnvIndexToStackLocation(num_direct_parameters(),
-                                        n + additional_slots);
-          additional_slots++;
-        }
-      } else {
-        loc = EnvIndexToStackLocation(num_direct_parameters(), i);
-      }
-    }
-    auto param = new (Z) ParameterInstr(
-        catch_entry, /*env_index=*/i,
-        /*param_index=*/ParameterInstr::kNotFunctionParameter, loc, kTagged);
-
-    AllocateSSAIndex(param);  // New SSA temp.
-    (*env)[i] = param;
-    AddToInitialDefinitions(catch_entry, param);
+  for (auto initial_def : *catch_entry->initial_definitions()) {
+    auto initial_def_param = initial_def->AsParameter();
+    ASSERT(initial_def_param != nullptr);
+    AllocateSSAIndex(initial_def_param);
+    (*env)[initial_def_param->env_index()] = initial_def_param;
   }
-
-  graph_entry_->set_fixed_slot_count(Utils::Maximum(
-      graph_entry_->fixed_slot_count(),
-      variable_count() - num_direct_parameters() + additional_slots));
 }
 
 void FlowGraph::AttachEnvironment(Instruction* instr,
@@ -1463,23 +1665,27 @@ void FlowGraph::RenameRecursive(
     PopulateEnvironmentFromCatchEntry(catch_entry, env);
   }
 
-  if (!block_entry->IsGraphEntry() &&
-      !block_entry->IsBlockEntryWithInitialDefs()) {
-    // Prune non-live variables at block entry by replacing their environment
-    // slots with null.
-    BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
-    for (intptr_t i = 0; i < variable_count(); i++) {
-      // TODO(fschneider): Make sure that live_in always contains the
-      // CurrentContext variable to avoid the special case here.
-      if (FLAG_prune_dead_locals && !live_in->Contains(i) &&
-          !IsImmortalVariable(i)) {
-        (*env)[i] = constant_dead();
+  if (FLAG_prune_dead_locals) {
+    if (!block_entry->IsBlockEntryWithInitialDefs() ||
+        block_entry->IsCatchBlockEntry()) {
+      // Prune non-live variables at block entry by replacing their environment
+      // slots with null.
+      BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
+      for (intptr_t i = 0; i < variable_count(); i++) {
+        // TODO(fschneider): Make sure that live_in always contains the
+        // CurrentContext variable to avoid the special case here.
+        if (!live_in->Contains(i) && !IsImmortalVariable(i)) {
+          (*env)[i] = constant_dead();
+        }
       }
     }
   }
 
-  // Attach environment to the block entry.
-  AttachEnvironment(block_entry, env);
+  if (!block_entry->IsCatchBlockEntry()) {
+    // Attach environment to the block entry.
+    // No environment is needed for catch entry.
+    AttachEnvironment(block_entry, env);
+  }
 
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
@@ -1549,12 +1755,6 @@ void FlowGraph::RenameRecursive(
         if (FLAG_prune_dead_locals &&
             variable_liveness->IsLastLoad(block_entry, load)) {
           (*env)[index] = constant_dead();
-        }
-
-        // Record captured parameters so that they can be skipped when
-        // emitting sync code inside optimized try-blocks.
-        if (load->local().is_captured_parameter()) {
-          captured_parameters_->Add(index);
         }
 
         if (phi != nullptr) {
@@ -1670,23 +1870,44 @@ void FlowGraph::RenameRecursive(
     // the right stack items.
     const intptr_t stack_depth = block->stack_depth();
     ASSERT(stack_depth >= 0);
+    if (block->IsCatchBlockEntry()) {
+      // Truncate stack-temporary variables from the environment.
+      // Such temps won't be available in the catch block because
+      // no catch-moves are generated for them, they should not be used inside
+      // catch-block or after it.
+      // When [try] and [catch] flow merges we make provisions (few lines below)
+      // to adjust environment for possible expression stack differences.
+      new_env.SetLength(variable_count());
+    }
     if (set_stack) {
       ASSERT(variable_count() == new_env.length());
       new_env.FillWith(constant_dead(), variable_count(), stack_depth);
     } else if (!block->last_instruction()->IsTailCall()) {
-      // Assert environment integrity otherwise.
+      if (IsCompiledForOsr() && block_entry->IsTryEntry() &&
+          block_entry->stack_depth() > 0 && stack_depth == 0) {
+        // Allow control flow merges with empty expression stack
+        // after try blocks in case of OSR.
+        new_env.SetLength(variable_count());
+      }
+
       ASSERT((variable_count() + stack_depth) == new_env.length());
     }
     RenameRecursive(block, &new_env, live_phis, variable_liveness,
                     inlining_parameters);
   }
 
-  // 4. Process successor block. We have edge-split form, so that only blocks
-  // with one successor can have a join block as successor.
-  if ((block_entry->last_instruction()->SuccessorCount() == 1) &&
-      block_entry->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+  // 4. Process successor block. We have edge-split form, so that join block
+  // can be the only successor for a block. Blocks with more than one successor
+  // can't have joins among those successors.
+  // Only exception is TryEntry, which has two successors, but catch_entry is
+  // special successor, never a join.
+  if (((block_entry->last_instruction()->SuccessorCount() == 1) &&
+       block_entry->last_instruction()->SuccessorAt(0)->IsJoinEntry()) ||
+      block_entry->IsTryEntry()) {
     JoinEntryInstr* successor =
-        block_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+        block_entry->IsTryEntry()
+            ? block_entry->AsTryEntry()->try_body()
+            : (block_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry());
     intptr_t pred_index = successor->IndexOfPredecessor(block_entry);
     ASSERT(pred_index >= 0);
     if (successor->phis() != nullptr) {
@@ -1748,7 +1969,7 @@ void FlowGraph::ValidatePhis() {
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   // Augment live_phis with those that have implicit real used at
   // potentially throwing instructions if there is a try-catch in this graph.
-  if (!graph_entry()->catch_entries().is_empty()) {
+  if (!try_entries().is_empty()) {
     for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
       JoinEntryInstr* join = it.Current()->AsJoinEntry();
       if (join == nullptr) continue;
@@ -1968,34 +2189,18 @@ void FlowGraph::InsertConversion(Representation from,
   } else {
     insert_before = use->instruction();
   }
-  const Instruction::SpeculativeMode speculative_mode =
-      use->instruction()->SpeculativeModeOfInput(use->use_index());
-  Instruction* deopt_target = nullptr;
-  if (speculative_mode == Instruction::kGuardInputs || to == kUnboxedInt32) {
-    deopt_target = insert_before;
-  }
 
   Definition* converted = nullptr;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
-    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        new (Z) IntConverterInstr(from, to, use->CopyWithType(), deopt_id);
+    converted = new (Z) IntConverterInstr(from, to, use->CopyWithType());
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&
              CanConvertInt64ToDouble()) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
+    converted = new Int64ToDoubleInstr(use->CopyWithType(), DeoptId::kNone);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        UnboxInstr::Create(to, use->CopyWithType(), deopt_id, speculative_mode);
+    converted = UnboxInstr::Create(to, use->CopyWithType(), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
   } else if ((to == kPairOfTagged) && (from == kTagged)) {
@@ -2039,23 +2244,16 @@ void FlowGraph::InsertConversion(Representation from,
     // trigger a deoptimization if executed. See #12417 for a discussion.
     // If the use is not speculative, then this code should be unreachable.
     // Insert Stop for a graceful error and aid unreachable code elimination.
-    if (speculative_mode == Instruction::kNotSpeculative) {
-      StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
-      InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
-    }
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
+    StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
+    InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
     use->BindTo(boxed);
     InsertBefore(insert_before, boxed, nullptr, FlowGraph::kValue);
-    converted = UnboxInstr::Create(to, new (Z) Value(boxed), deopt_id,
-                                   speculative_mode);
+    converted = UnboxInstr::Create(to, new (Z) Value(boxed), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   }
   ASSERT(converted != nullptr);
-  InsertBefore(insert_before, converted,
-               (deopt_target != nullptr) ? deopt_target->env() : nullptr,
-               FlowGraph::kValue);
+  InsertBefore(insert_before, converted, nullptr, FlowGraph::kValue);
   if (is_environment_use) {
     use->BindToEnvironment(converted);
   } else {
@@ -2197,10 +2395,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         // If all the inputs are unboxed integers but with different
         // representations, then pick a representation based on the range
         // of values that flow into the phi node.
-        new_representation =
-            RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                ? kUnboxedInt32
-                : kUnboxedInt64;
+        new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                 ? kUnboxedInt32
+                                 : kUnboxedInt64;
       }
 
       // Decide if it is worth to unbox an boxed integer phi.
@@ -2222,10 +2419,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
 
         if (has_unboxed_incoming_value && flows_into_unboxed_use) {
-          new_representation =
-              RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                  ? kUnboxedInt32
-                  : kUnboxedInt64;
+          new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                   ? kUnboxedInt32
+                                   : kUnboxedInt64;
         }
 #endif
       }
@@ -2333,15 +2529,6 @@ void FlowGraph::SelectRepresentations() {
        i++) {
     InsertConversionsFor((*graph_entry()->initial_definitions())[i]);
   }
-  for (intptr_t i = 0; i < graph_entry()->SuccessorCount(); ++i) {
-    auto successor = graph_entry()->SuccessorAt(i);
-    if (auto entry = successor->AsBlockEntryWithInitialDefs()) {
-      auto& initial_definitions = *entry->initial_definitions();
-      for (intptr_t j = 0; j < initial_definitions.length(); j++) {
-        InsertConversionsFor(initial_definitions[j]);
-      }
-    }
-  }
 
   // Process all normal definitions and insert conversions when needed (depends
   // on phi unboxing decision above).
@@ -2356,6 +2543,14 @@ void FlowGraph::SelectRepresentations() {
         InsertConversionsFor(phi);
       }
     }
+    if (auto entry_with_initial_defs = entry->AsBlockEntryWithInitialDefs()) {
+      auto& initial_definitions =
+          *entry_with_initial_defs->initial_definitions();
+      for (intptr_t j = 0; j < initial_definitions.length(); j++) {
+        InsertConversionsFor(initial_definitions[j]);
+      }
+    }
+
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Definition* def = it.Current()->AsDefinition();
       if (def != nullptr) {
@@ -2489,13 +2684,6 @@ bool FlowGraph::Canonicalize() {
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
-        if (current->HasUnmatchedInputRepresentations() &&
-            (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-          // Can't canonicalize this instruction until all conversions for its
-          // speculative inputs are inserted.
-          continue;
-        }
-
         Definition* replacement = current->Canonicalize(this);
         ASSERT(replacement != nullptr);
         RELEASE_ASSERT(unmatched_representations_allowed() ||
@@ -2509,13 +2697,6 @@ bool FlowGraph::Canonicalize() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations() &&
-          (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-        // Can't canonicalize this instruction until all conversions for its
-        // speculative inputs are inserted.
-        continue;
-      }
-
       Instruction* replacement = current->Canonicalize(this);
 
       if (replacement != current) {
@@ -2675,7 +2856,8 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
       Definition* definition = instr_it.Current()->AsDefinition();
       // CheckArrayBound instructions have their own mechanism for ensuring
       // proper dependencies, so we don't rewrite those here.
-      if (definition != nullptr && !definition->IsCheckArrayBound()) {
+      if (definition != nullptr && !definition->IsCheckArrayBound() &&
+          !definition->IsGenericCheckBound()) {
         Value* redefined = definition->RedefinedValue();
         if (redefined != nullptr) {
           if (!definition->HasSSATemp()) {
@@ -2797,9 +2979,10 @@ void FlowGraph::TryMergeTruncDivMod(
             kSmiCid);
 
         // Replace with TruncDivMod.
-        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
-            curr_instr->left()->CopyWithType(),
-            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
+        TruncDivModInstr* div_mod =
+            new (Z) TruncDivModInstr(curr_instr->left()->CopyWithType(),
+                                     curr_instr->right()->CopyWithType(),
+                                     curr_instr->DeoptimizationTarget());
         curr_instr->ReplaceWith(div_mod, nullptr);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();
@@ -2851,9 +3034,9 @@ static GotoInstr* NewGoto(FlowGraph* graph,
 }
 
 static BranchInstr* NewBranch(FlowGraph* graph,
-                              ComparisonInstr* cmp,
+                              ConditionInstr* cond,
                               Instruction* inherit) {
-  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, DeoptId::kNone);
+  BranchInstr* bra = new (graph->zone()) BranchInstr(cond, DeoptId::kNone);
   bra->InheritDeoptTarget(graph->zone(), inherit);
   return bra;
 }
@@ -2874,7 +3057,7 @@ static BranchInstr* NewBranch(FlowGraph* graph,
 //
 JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
                                       Instruction* inherit,
-                                      ComparisonInstr* compare,
+                                      ConditionInstr* condition,
                                       TargetEntryInstr** b_true,
                                       TargetEntryInstr** b_false) {
   BlockEntryInstr* entry = instruction->GetBlock();
@@ -2884,7 +3067,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   JoinEntryInstr* join = NewJoin(this, inherit);
   GotoInstr* gotot = NewGoto(this, join, inherit);
   GotoInstr* gotof = NewGoto(this, join, inherit);
-  BranchInstr* bra = NewBranch(this, compare, inherit);
+  BranchInstr* bra = NewBranch(this, condition, inherit);
 
   instruction->AppendInstruction(bra);
   entry->set_last_instruction(bra);

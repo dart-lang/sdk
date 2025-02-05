@@ -111,7 +111,7 @@ test7() {
 class A8 {
   /*member: A8.x8:[empty]*/
   x8(/*Union([exact=JSString], [exact=JsLinkedHashMap])*/ p) =>
-      /*invoke: [exact=A8]*/ x8("x");
+  /*invoke: [exact=A8]*/ x8("x");
 }
 
 /*member: test8:[null]*/
@@ -121,11 +121,13 @@ test8() {
 
 /*member: A9.:[exact=A9]*/
 class A9 {
-  /*member: A9.x9:[empty]*/ x9(
-          /*[exact=JSUInt31]*/ p1,
-          /*Union([exact=JSString], [exact=JSUInt31])*/ p2,
-          /*Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/ p3) =>
-      /*invoke: [exact=A9]*/ x9(p1, "x", {});
+  /*member: A9.x9:[empty]*/
+  x9(
+    /*[exact=JSUInt31]*/ p1,
+    /*Union([exact=JSString], [exact=JSUInt31])*/ p2,
+    /*Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/ p3,
+  ) =>
+  /*invoke: [exact=A9]*/ x9(p1, "x", {});
 }
 
 /*member: test9:[null]*/
@@ -135,9 +137,11 @@ test9() {
 
 /*member: A10.:[exact=A10]*/
 class A10 {
-  /*member: A10.x10:[empty]*/ x10(/*[exact=JSUInt31]*/ p1,
-          /*[exact=JSUInt31]*/ p2) => /*invoke: [exact=A10]*/
-      x10(p1, p2);
+  /*member: A10.x10:[empty]*/
+  x10(
+    /*[exact=JSUInt31]*/ p1,
+    /*[exact=JSUInt31]*/ p2,
+  ) => /*invoke: [exact=A10]*/ x10(p1, p2);
 }
 
 /*member: test10:[null]*/
@@ -148,9 +152,10 @@ test10() {
 /*member: A11.:[exact=A11]*/
 class A11 {
   /*member: A11.x11:[empty]*/
-  x11(/*[exact=JSUInt31]*/ p1,
-          /*[exact=JSUInt31]*/ p2) => /*invoke: [exact=A11]*/
-      x11(p1, p2);
+  x11(
+    /*[exact=JSUInt31]*/ p1,
+    /*[exact=JSUInt31]*/ p2,
+  ) => /*invoke: [exact=A11]*/ x11(p1, p2);
 }
 
 /*member: f11:[null]*/
@@ -167,9 +172,11 @@ test11() {
 /*member: A12.:[exact=A12]*/
 class A12 {
   /*member: A12.x12:[empty]*/
-  x12(/*Union([exact=JSString], [exact=JSUInt31])*/ p1,
-          /*Union([exact=JSString], [exact=JSUInt31])*/ p2) =>
-      /*invoke: [exact=A12]*/ x12(1, 2);
+  x12(
+    /*Union([exact=JSString], [exact=JSUInt31])*/ p1,
+    /*Union([exact=JSString], [exact=JSUInt31])*/ p2,
+  ) =>
+  /*invoke: [exact=A12]*/ x12(1, 2);
 }
 
 /*member: test12:[null]*/
@@ -180,9 +187,10 @@ test12() {
 /*member: A13.:[exact=A13]*/
 class A13 {
   /*member: A13.x13:[exact=JSUInt31]*/
-  x13(/*Value([exact=JSString], value: "x")*/ p1,
-          [/*[exact=JSUInt31]*/ p2 = 1]) =>
-      1;
+  x13(
+    /*Value([exact=JSString], value: "x")*/ p1, [
+    /*[exact=JSUInt31]*/ p2 = 1,
+  ]) => 1;
 }
 
 /*member: test13:[null]*/
@@ -209,8 +217,10 @@ test14() {
 /*member: A15.:[exact=A15]*/
 class A15 {
   /*member: A15.x15:[exact=JSUInt31]*/
-  x15(/*[exact=JSUInt31]*/ p1,
-      [/*Value([exact=JSString], value: "s")*/ p2 = "s"]) {
+  x15(
+    /*[exact=JSUInt31]*/ p1, [
+    /*Value([exact=JSString], value: "s")*/ p2 = "s",
+  ]) {
     p2. /*Value([exact=JSString], value: "s")*/ length;
     return 1;
   }
@@ -224,9 +234,10 @@ test15() {
 /*member: A16.:[exact=A16]*/
 class A16 {
   /*member: A16.x16:[exact=JSUInt31]*/
-  x16(/*Value([exact=JSString], value: "x")*/ p1,
-          [/*[exact=JSBool]*/ p2 = true]) =>
-      1;
+  x16(
+    /*Value([exact=JSString], value: "x")*/ p1, [
+    /*[exact=JSBool]*/ p2 = true,
+  ]) => 1;
 }
 
 /*member: f16:[empty]*/
@@ -242,9 +253,11 @@ test16() {
 /*member: A17.:[exact=A17]*/
 class A17 {
   /*member: A17.x17:[exact=JSUInt31]*/
-  x17(/*[exact=JSUInt31]*/ p1,
-          [/*[exact=JSUInt31]*/ p2 = 1, /*[exact=JSString]*/ p3 = "s"]) =>
-      1;
+  x17(
+    /*[exact=JSUInt31]*/ p1, [
+    /*[exact=JSUInt31]*/ p2 = 1,
+    /*[exact=JSString]*/ p3 = "s",
+  ]) => 1;
 }
 
 /*member: test17:[null]*/
@@ -265,9 +278,11 @@ test17() {
 /*member: A18.:[exact=A18]*/
 class A18 {
   /*member: A18.x18:[exact=JSUInt31]*/
-  x18(/*[exact=JSUInt31]*/ p1,
-          [/*[exact=JSBool]*/ p2 = 1, /*[exact=JSNumNotInt]*/ p3 = "s"]) =>
-      1;
+  x18(
+    /*[exact=JSUInt31]*/ p1, [
+    /*[exact=JSBool]*/ p2 = 1,
+    /*[exact=JSNumNotInt]*/ p3 = "s",
+  ]) => 1;
 }
 
 /*member: test18:[null]*/
@@ -283,9 +298,11 @@ test18() {
 /*member: A19.:[exact=A19]*/
 class A19 {
   /*member: A19.x19:[empty]*/
-  x19(/*Union([exact=JSString], [exact=JSUInt31])*/ p1,
-          /*Union([exact=JSString], [exact=JSUInt31])*/ p2) =>
-      /*invoke: [subclass=A19]*/ x19(p1, p2);
+  x19(
+    /*Union([exact=JSString], [exact=JSUInt31])*/ p1,
+    /*Union([exact=JSString], [exact=JSUInt31])*/ p2,
+  ) =>
+  /*invoke: [subclass=A19]*/ x19(p1, p2);
 }
 
 /*member: B19.:[exact=B19]*/

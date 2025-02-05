@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use rethrow to rethrow a caught exception.';
 
@@ -42,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element != null) {
       var catchClause = node.thisOrAncestorOfType<CatchClause>();
       var exceptionParameter =
-          catchClause?.exceptionParameter?.declaredElement?.canonicalElement;
+          catchClause?.exceptionParameter?.declaredElement2;
       if (element == exceptionParameter) {
         rule.reportLint(node);
       }

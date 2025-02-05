@@ -7,7 +7,8 @@ class MyClass {
 
   @pragma('dart2js:noInline')
   set internalSetter(int v) {
-    /*7:MyClass.internalSetter*/ throw "error";
+    /*7:MyClass.internalSetter*/
+    throw "error";
   }
 }
 
@@ -25,7 +26,8 @@ extension Ext on MyClass {
 
   @pragma('dart2js:noInline')
   set propertyA(int v) {
-    /*4:Ext.propertyA*/ propertyB;
+    /*4:Ext.propertyA*/
+    propertyB;
   }
 
   @pragma('dart2js:noInline')

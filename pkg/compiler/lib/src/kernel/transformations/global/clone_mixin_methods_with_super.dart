@@ -30,15 +30,21 @@ void transformClass(Class cls) {
   CloneVisitorWithMembers? cloneVisitor;
   for (var field in mixedInClass.mixin.fields) {
     if (field.containsSuperCalls) {
-      cloneVisitor ??= MixinApplicationCloner(cls,
-          typeSubstitution: getSubstitutionMap(mixedInType));
+      cloneVisitor ??= MixinApplicationCloner(
+        cls,
+        typeSubstitution: getSubstitutionMap(mixedInType),
+      );
       // TODO(jensj): Provide a "referenceFrom" if we need to support
       // the incremental compiler.
       ensureExistingProcedureMaps();
       Procedure? existingGetter = existingNonSetters[field.name];
       Procedure? existingSetter = existingSetters[field.name];
       Field clone = cloneVisitor.cloneField(
-          field, null, existingGetter?.reference, existingSetter?.reference);
+        field,
+        null,
+        existingGetter?.reference,
+        existingSetter?.reference,
+      );
       cls.addField(clone);
       clone.transformerFlags = field.transformerFlags;
       if (existingGetter != null) {
@@ -52,19 +58,24 @@ void transformClass(Class cls) {
   }
   for (var procedure in mixedInClass.mixin.procedures) {
     if (procedure.containsSuperCalls) {
-      cloneVisitor ??= MixinApplicationCloner(cls,
-          typeSubstitution: getSubstitutionMap(mixedInType));
+      cloneVisitor ??= MixinApplicationCloner(
+        cls,
+        typeSubstitution: getSubstitutionMap(mixedInType),
+      );
       // TODO(jensj): Provide a "referenceFrom" if we need to support
       // the incremental compiler.
       ensureExistingProcedureMaps();
-      Procedure? existingProcedure = procedure.kind == ProcedureKind.Setter
-          ? existingSetters[procedure.name]
-          : existingNonSetters[procedure.name];
+      Procedure? existingProcedure =
+          procedure.kind == ProcedureKind.Setter
+              ? existingSetters[procedure.name]
+              : existingNonSetters[procedure.name];
       if (existingProcedure != null) {
         cls.procedures.remove(existingProcedure);
       }
-      Procedure clone =
-          cloneVisitor.cloneProcedure(procedure, existingProcedure?.reference);
+      Procedure clone = cloneVisitor.cloneProcedure(
+        procedure,
+        existingProcedure?.reference,
+      );
       cls.addProcedure(clone);
       clone.transformerFlags = procedure.transformerFlags;
       continue;

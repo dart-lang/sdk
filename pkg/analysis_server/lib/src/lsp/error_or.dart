@@ -3,10 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 
-ErrorOr<R> cancelled<R>() =>
-    error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+ErrorOr<R> cancelled<R>([CancellationToken? token]) {
+  var code = ErrorCodes.RequestCancelled;
+  var reason = 'Request was cancelled';
+
+  if (token is CancelableToken) {
+    if (token.cancellationCode case var cancellationCode?) {
+      code = ErrorCodes(cancellationCode);
+    }
+    if (token.cancellationReason case var cancellationReason?) {
+      reason = cancellationReason;
+    }
+  }
+
+  return error(code, reason);
+}
 
 ErrorOr<R> error<R>(ErrorCodes code, String message, [String? data]) =>
     ErrorOr<R>.error(ResponseError(code: code, message: message, data: data));
@@ -39,20 +53,15 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
     return isError ? error : null;
   }
 
-  /// Returns true if this object is an error, false if it is a result. Prefer
-  /// [mapResult] instead of checking this flag if [errors] will simply be
-  /// propagated as-is.
-  bool get isError => map(
-        (_) => true,
-        (_) => false,
-      );
+  /// Returns `true` if this object is an error, `false` if it is a result.
+  ///
+  /// Prefer [mapResult] instead of checking this flag if the errors will simply
+  /// be propagated as-is.
+  bool get isError => map((_) => true, (_) => false);
 
   /// Returns true if this object is aa result, false if it is an error. Prefer
   /// [ifResult] or [mapResult] instead to read/operate on errors.
-  bool get isResult => map(
-        (_) => false,
-        (_) => true,
-      );
+  bool get isResult => map((_) => false, (_) => true);
 
   /// Returns the result or throws if this object is an error. Check [isError]
   /// before accessing [result]. It is valid for this to return null is the
@@ -115,7 +124,8 @@ extension ErrorOrRecord2Extension<T1, T2> on (ErrorOr<T1>, ErrorOr<T2>) {
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
-      Future<ErrorOr<R>> Function(T1, T2) f) async {
+    Future<ErrorOr<R>> Function(T1, T2) f,
+  ) async {
     if ($1.isError) {
       return failure($1);
     }
@@ -137,11 +147,8 @@ extension ErrorOrRecord2Extension<T1, T2> on (ErrorOr<T1>, ErrorOr<T2>) {
   }
 }
 
-extension ErrorOrRecord3Extension<T1, T2, T3> on (
-  ErrorOr<T1>,
-  ErrorOr<T2>,
-  ErrorOr<T3>
-) {
+extension ErrorOrRecord3Extension<T1, T2, T3>
+    on (ErrorOr<T1>, ErrorOr<T2>, ErrorOr<T3>) {
   void ifResults(void Function(T1, T2, T3) f) {
     if ($1.isError || $2.isError || $3.isError) {
       return;
@@ -152,7 +159,8 @@ extension ErrorOrRecord3Extension<T1, T2, T3> on (
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
-      Future<ErrorOr<R>> Function(T1, T2, T3) f) async {
+    Future<ErrorOr<R>> Function(T1, T2, T3) f,
+  ) async {
     if ($1.isError) {
       return failure($1);
     }
@@ -180,12 +188,8 @@ extension ErrorOrRecord3Extension<T1, T2, T3> on (
   }
 }
 
-extension ErrorOrRecord4Extension<T1, T2, T3, T4> on (
-  ErrorOr<T1>,
-  ErrorOr<T2>,
-  ErrorOr<T3>,
-  ErrorOr<T4>
-) {
+extension ErrorOrRecord4Extension<T1, T2, T3, T4>
+    on (ErrorOr<T1>, ErrorOr<T2>, ErrorOr<T3>, ErrorOr<T4>) {
   void ifResults(void Function(T1, T2, T3, T4) f) {
     if ($1.isError || $2.isError || $3.isError || $4.isError) {
       return;
@@ -196,7 +200,8 @@ extension ErrorOrRecord4Extension<T1, T2, T3, T4> on (
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
-      Future<ErrorOr<R>> Function(T1, T2, T3, T4) f) async {
+    Future<ErrorOr<R>> Function(T1, T2, T3, T4) f,
+  ) async {
     if ($1.isError) {
       return failure($1);
     }

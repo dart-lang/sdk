@@ -158,6 +158,7 @@ Future<void> main(List<String> args) async {
     Uri.parse("package:kernel/ast.dart"),
     "Library",
     ["fileUri"],
+    expectToAlwaysFind: true,
   ));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
@@ -167,6 +168,7 @@ Future<void> main(List<String> args) async {
         Uri.parse("package:kernel/ast.dart"),
         "Library",
         ["fileUri", "libraryIdForTesting"],
+        expectToAlwaysFind: true,
       ),
     ],
     throwOnPossibleLeak: true,

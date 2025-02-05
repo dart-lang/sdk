@@ -179,6 +179,7 @@ void defineCompileTests() {
       ],
     );
     expect(result.stderr, contains('Compile Dart'));
+    expect(result.stderr, isNot(contains('js-dev')));
     expect(result.exitCode, 64);
   });
 
@@ -198,6 +199,7 @@ void defineCompileTests() {
     expect(result.stdout, contains('jit-snapshot'));
     expect(result.stdout, contains('kernel'));
     expect(result.stdout, contains('js'));
+    expect(result.stderr, isNot(contains('js-dev')));
     expect(result.stdout, contains('aot-snapshot'));
     expect(result.stdout, contains('exe'));
     expect(result.exitCode, 0);
@@ -209,6 +211,7 @@ void defineCompileTests() {
       ['compile', '--help', '--verbose'],
     );
     expect(result.stdout, contains('Compile Dart'));
+    expect(result.stdout, isNot(contains('js-dev')));
     expect(
       result.stdout,
       contains(
@@ -602,6 +605,35 @@ void defineCompileTests() {
     expect(contents.contains('2: foo'), true);
   });
 
+  test('Compile JS DDC', () async {
+    final p = project(mainSrc: '''
+        void main() {
+          print('1: ' + const String.fromEnvironment('foo'));
+          print('2: ' + const String.fromEnvironment('bar'));
+        }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'main.js'));
+
+    final result = await p.run([
+      'compile',
+      'js-dev',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      '-o',
+      outFile,
+      inFile,
+    ]);
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    final file = File(outFile);
+    expect(file.existsSync(), true, reason: 'File not found: $outFile');
+
+    final contents = file.readAsStringSync();
+    expect(contents.contains('"1: " + "bar"'), true);
+    expect(contents.contains('"2: " + "foo"'), true);
+  });
+
   test('Compile exe with error', () async {
     final p = project(mainSrc: '''
 void main() {
@@ -926,6 +958,28 @@ void main() {
       [
         'compile',
         'js',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  }, skip: isRunningOnIA32);
+
+  test('Compile JS DDC with sound null safety', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'js-dev',
         '-o',
         outFile,
         inFile,

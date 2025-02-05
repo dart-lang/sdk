@@ -6,15 +6,23 @@ part of 'declaration_builders.dart';
 
 abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
+  @override
+  final LibraryBuilder parent;
+
+  @override
+  final int fileOffset;
+
+  @override
+  final String name;
+
   final DartType type;
 
   @override
   final Uri fileUri;
 
   BuiltinTypeDeclarationBuilder(
-      String name, this.type, LibraryBuilder compilationUnit, int charOffset)
-      : fileUri = compilationUnit.fileUri,
-        super(null, 0, name, compilationUnit, charOffset);
+      this.name, this.type, this.parent, this.fileOffset)
+      : fileUri = parent.fileUri;
 
   @override
   DartType buildAliasedType(
@@ -41,7 +49,4 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullability);
   }
-
-  @override
-  String get debugName => "BuiltinTypeDeclarationBuilder";
 }

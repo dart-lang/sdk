@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 import 'utils.dart';
 
@@ -14,14 +14,17 @@ class NotAStream {
   }
 }
 
-StreamTransformer getErrors =
-    StreamTransformer.fromHandlers(handleData: (data, sink) {
-  fail('Unexpected value');
-}, handleError: (e, s, sink) {
-  sink.add(e);
-}, handleDone: (sink) {
-  sink.close();
-});
+StreamTransformer getErrors = StreamTransformer.fromHandlers(
+  handleData: (data, sink) {
+    fail('Unexpected value');
+  },
+  handleError: (e, s, sink) {
+    sink.add(e);
+  },
+  handleDone: (sink) {
+    sink.close();
+  },
+);
 
 // Obscuring identity function.
 id(x) {
@@ -73,8 +76,11 @@ main() {
 
     var completer = Completer();
     var list = [];
-    f().listen(list.add,
-        onError: (v) => list.add('$v'), onDone: completer.complete);
+    f().listen(
+      list.add,
+      onError: (v) => list.add('$v'),
+      onDone: completer.complete,
+    );
     return completer.future.whenComplete(() {
       expect(list, equals([1, '2']));
     });

@@ -47,6 +47,13 @@ Future<void> testMacroBuild(List<String> commands) async {
 
   final dartSdkPath = Directory.current.path;
   final dartPath = Platform.resolvedExecutable;
+  final dartAotPath = p.absolute(dartSdkOutDirectory, 'dart-sdk/bin',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+
+  if (!File(dartAotPath).existsSync()) {
+    fail('This test is not supported on SDK configurations that do not have '
+        'an AOT runtime');
+  }
 
   // TODO(davidmorgan): run on more platforms.
   final configuration = String.fromEnvironment('test_runner.configuration');
@@ -72,6 +79,7 @@ runner to ensure they are built and not stale:
     }
     final commandParts = command
         .replaceAll(r'$DART_SDK', dartSdkPath)
+        .replaceAll(r'$DARTAOTRUNTIME', dartAotPath)
         .replaceAll(r'$DART', dartPath)
         .split(' ')
         .map((c) => c.replaceAll(r'$SPACE', ' '))

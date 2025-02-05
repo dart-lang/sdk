@@ -32,8 +32,9 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
   /// The result of the last prepareTypeHierarchy call.
   TypeHierarchyItem? prepareResult;
 
-  late final dartCodeUri =
-      pathContext.toUri(convertPath('/sdk/lib/core/core.dart'));
+  late final dartCodeUri = pathContext.toUri(
+    convertPath('/sdk/lib/core/core.dart'),
+  );
 
   /// Matches a [TypeHierarchyItem] for [Object].
   Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
@@ -67,19 +68,20 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
     String? detail,
     required Range selectionRange,
     required Range range,
-  }) =>
-      TypeMatcher<TypeHierarchyItem>()
-          .having((e) => e.name, 'name', name)
-          .having((e) => e.uri, 'uri', uri)
-          .having((e) => e.kind, 'kind', SymbolKind.Class)
-          .having((e) => e.detail, 'detail', detail)
-          .having((e) => e.selectionRange, 'selectionRange', selectionRange)
-          .having((e) => e.range, 'range', range);
+  }) => TypeMatcher<TypeHierarchyItem>()
+      .having((e) => e.name, 'name', name)
+      .having((e) => e.uri, 'uri', uri)
+      .having((e) => e.kind, 'kind', SymbolKind.Class)
+      .having((e) => e.detail, 'detail', detail)
+      .having((e) => e.selectionRange, 'selectionRange', selectionRange)
+      .having((e) => e.range, 'range', range);
 
   /// Parses [content] and calls 'textDocument/prepareTypeHierarchy' at the
   /// marked location.
-  Future<void> _prepareTypeHierarchy(String content,
-      {String? otherContent}) async {
+  Future<void> _prepareTypeHierarchy(
+    String content, {
+    String? otherContent,
+  }) async {
     code = TestCode.parse(content);
     newFile(mainFilePath, code.code);
 
@@ -165,15 +167,16 @@ import 'main.dart';
 ''';
     await _fetchSubtypes(content, otherContent: otherContent);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'MyClass2',
-            otherFileUri,
-            range: otherCode.ranges[0].range,
-            selectionRange: otherCode.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          otherFileUri,
+          range: otherCode.ranges[0].range,
+          selectionRange: otherCode.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_augment_extends() async {
@@ -190,15 +193,16 @@ augment class C extends MyClass1 {}
 ''';
     await _fetchSubtypes(content, otherContent: augmentation);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'C',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'C',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_extends() async {
@@ -208,15 +212,16 @@ class MyCla^ss1 {}
 ''';
     await _fetchSubtypes(content);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'MyClass2',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_implements() async {
@@ -228,21 +233,22 @@ class MyCla^ss1 {}
 ''';
     await _fetchSubtypes(content);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'MyClass2',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-          _isItem(
-            'E1',
-            mainFileUri,
-            range: code.ranges[2].range,
-            selectionRange: code.ranges[3].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+        _isItem(
+          'E1',
+          mainFileUri,
+          range: code.ranges[2].range,
+          selectionRange: code.ranges[3].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_implements_extensionType() async {
@@ -253,15 +259,16 @@ extension type E^1(A a) {}
 ''';
     await _fetchSubtypes(content);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'E2',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'E2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_on() async {
@@ -271,15 +278,16 @@ class MyCla^ss1 {}
 ''';
     await _fetchSubtypes(content);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'MyMixin1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'MyMixin1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_with() async {
@@ -289,15 +297,16 @@ mixin MyMi^xin1 {}
 ''';
     await _fetchSubtypes(content);
     expect(
-        subtypes,
-        equals([
-          _isItem(
-            'MyClass1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   /// Parses [content], calls 'textDocument/prepareTypeHierarchy' at the
@@ -323,15 +332,16 @@ class MyCla^ss2 extends MyClass1 {}
 ''';
     await _fetchSupertypes(content, otherContent: otherContent);
     expect(
-        supertypes,
-        equals([
-          _isItem(
-            'MyClass1',
-            otherFileUri,
-            range: otherCode.ranges[0].range,
-            selectionRange: otherCode.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          otherFileUri,
+          range: otherCode.ranges[0].range,
+          selectionRange: otherCode.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_augment_extends() async {
@@ -348,15 +358,16 @@ augment class Cs extends MyClass1 {}
 ''';
     await _fetchSupertypes(content, otherContent: augmentation);
     expect(
-        supertypes,
-        equals([
-          _isItem(
-            'MyClass1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_extends() async {
@@ -366,15 +377,16 @@ class MyCla^ss2 extends MyClass1 {}
 ''';
     await _fetchSupertypes(content);
     expect(
-        supertypes,
-        equals([
-          _isItem(
-            'MyClass1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_extensionType() async {
@@ -386,21 +398,22 @@ extension type E^2(A a) implements B, E1 {}
 ''';
     await _fetchSupertypes(content);
     expect(
-        supertypes,
-        equals([
-          _isItem(
-            'B',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-          _isItem(
-            'E1',
-            mainFileUri,
-            range: code.ranges[2].range,
-            selectionRange: code.ranges[3].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isItem(
+          'B',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+        _isItem(
+          'E1',
+          mainFileUri,
+          range: code.ranges[2].range,
+          selectionRange: code.ranges[3].range,
+        ),
+      ]),
+    );
   }
 
   /// Ensure that type arguments flow across multiple levels of the tree.
@@ -420,9 +433,10 @@ class ^E extends D {}
     while (item != null) {
       names.add(item.name);
       var supertypes = await typeHierarchySupertypes(item);
-      item = (supertypes != null && supertypes.isNotEmpty)
-          ? supertypes.single
-          : null;
+      item =
+          (supertypes != null && supertypes.isNotEmpty)
+              ? supertypes.single
+              : null;
     }
 
     // Check for substituted type args.
@@ -443,16 +457,17 @@ class MyCla^ss2 implements MyClass1 {}
 ''';
     await _fetchSupertypes(content);
     expect(
-        supertypes,
-        equals([
-          _isObject,
-          _isItem(
-            'MyClass1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isObject,
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_on() async {
@@ -462,15 +477,16 @@ mixin MyMix^in1 on MyClass1 {}
 ''';
     await _fetchSupertypes(content);
     expect(
-        supertypes,
-        equals([
-          _isItem(
-            'MyClass1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   Future<void> test_with() async {
@@ -480,16 +496,17 @@ class MyCla^ss1 with MyMixin1 {}
 ''';
     await _fetchSupertypes(content);
     expect(
-        supertypes,
-        equals([
-          _isObject,
-          _isItem(
-            'MyMixin1',
-            mainFileUri,
-            range: code.ranges[0].range,
-            selectionRange: code.ranges[1].range,
-          ),
-        ]));
+      supertypes,
+      equals([
+        _isObject,
+        _isItem(
+          'MyMixin1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
   }
 
   /// Parses [content], calls 'textDocument/prepareTypeHierarchy' at the

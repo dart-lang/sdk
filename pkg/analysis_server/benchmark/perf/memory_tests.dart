@@ -49,8 +49,12 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
     int offset, {
     required bool isWarmUp,
   }) async {
-    await _test.sendCompletionGetSuggestions2(filePath, offset, 100,
-        timeout: isWarmUp ? 60 * 1000 : 0);
+    await _test.sendCompletionGetSuggestions2(
+      filePath,
+      offset,
+      100,
+      timeout: isWarmUp ? 60 * 1000 : 0,
+    );
   }
 
   @override
@@ -61,8 +65,9 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
 
   @override
   Future<void> openFile(String filePath, String contents) async {
-    await _test
-        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+    await _test.sendAnalysisUpdateContent({
+      filePath: AddContentOverlay(contents),
+    });
     await _test.sendAnalysisSetPriorityFiles([filePath]);
   }
 
@@ -84,7 +89,8 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
 
 /// Base class for analysis server memory usage tests.
 class AnalysisServerMemoryUsageTest
-    extends AbstractAnalysisServerIntegrationTest with ServerMemoryUsageMixin {
+    extends AbstractAnalysisServerIntegrationTest
+    with ServerMemoryUsageMixin {
   /// Send the server an 'analysis.setAnalysisRoots' command directing it to
   /// analyze [sourceDirectory].
   Future<void> setAnalysisRoot() =>
@@ -163,8 +169,11 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   @override
   Future<void> openFile(String filePath, String contents) {
     _fileContents[filePath] = contents;
-    return _test.openFile(Uri.file(filePath), contents,
-        version: _fileVersion++);
+    return _test.openFile(
+      Uri.file(filePath),
+      contents,
+      version: _fileVersion++,
+    );
   }
 
   @override
@@ -177,7 +186,8 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
     setWorkDoneProgressSupport();
     setCompletionItemSnippetSupport();
     setCompletionItemKinds(
-        LspClientCapabilities.defaultSupportedCompletionKinds.toList());
+      LspClientCapabilities.defaultSupportedCompletionKinds.toList(),
+    );
 
     _test.dartSdkPath = dartSdkPath;
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
@@ -246,8 +256,9 @@ mixin ServerMemoryUsageMixin {
     for (var isolateGroupRef
         in isolateGroupsRefs.cast<Map<Object?, Object?>>()) {
       var isolateGroupMemoryUsage = await service.call(
-          'getIsolateGroupMemoryUsage',
-          {'isolateGroupId': isolateGroupRef['id']});
+        'getIsolateGroupMemoryUsage',
+        {'isolateGroupId': isolateGroupRef['id']},
+      );
       var heapUsage = isolateGroupMemoryUsage['heapUsage'] as int;
       var externalUsage = isolateGroupMemoryUsage['externalUsage'] as int;
       total += heapUsage + externalUsage;
@@ -269,8 +280,10 @@ class ServiceProtocol {
     socket.listen(_handleMessage);
   }
 
-  Future<Map<Object?, Object?>> call(String method,
-      [Map<Object?, Object?> args = const {}]) {
+  Future<Map<Object?, Object?>> call(
+    String method, [
+    Map<Object?, Object?> args = const {},
+  ]) {
     var id = '${++_id}';
     var completer = Completer<Map<Object?, Object?>>();
     _completers[id] = completer;

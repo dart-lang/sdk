@@ -67,10 +67,14 @@ class ExpectedError {
   final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
-  ExpectedError(this.code, this.offset, this.length,
-      {this.message,
-      this.messageContains,
-      this.expectedContextMessages = const <ExpectedContextMessage>[]});
+  ExpectedError(
+    this.code,
+    this.offset,
+    this.length, {
+    this.message,
+    this.messageContains,
+    this.expectedContextMessages = const <ExpectedContextMessage>[],
+  });
 
   /// Return `true` if the [error] matches this description of what the state
   /// of the [error] is expected to be.
@@ -156,8 +160,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       var matchFound = false;
       var expectedIndex = 0;
       while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
+        if (unmatchedExpected[expectedIndex].matches(
+          unmatchedActual[actualIndex],
+        )) {
           matchFound = true;
           unmatchedActual.removeAt(actualIndex);
           unmatchedExpected.removeAt(expectedIndex);
@@ -244,8 +249,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Assert that the number of errors that have been gathered matches the
   /// number of [expectedErrorCodes] and that they have the expected error
   /// codes. The order in which the errors were gathered is ignored.
-  void assertErrorsWithCodes(
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  void assertErrorsWithCodes([
+    List<ErrorCode> expectedErrorCodes = const <ErrorCode>[],
+  ]) {
     var buffer = StringBuffer();
     //
     // Compute the expected number of each type of error.
@@ -348,10 +354,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
-      fail('Expected $expectedErrorCount errors '
-          'and $expectedWarningCount warnings, '
-          'found $actualErrorCount errors '
-          'and $actualWarningCount warnings');
+      fail(
+        'Expected $expectedErrorCount errors '
+        'and $expectedWarningCount warnings, '
+        'found $actualErrorCount errors '
+        'and $actualWarningCount warnings',
+      );
     }
   }
 

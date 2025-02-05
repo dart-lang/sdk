@@ -68,6 +68,7 @@ import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
+import 'convert_related_to_cascade_test.dart' as convert_related_to_cascade;
 import 'convert_to_block_function_body_test.dart'
     as convert_to_block_function_body;
 import 'convert_to_boolean_expression_test.dart'
@@ -131,6 +132,7 @@ import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
 import 'format_file_test.dart' as format_file;
 import 'ignore_diagnostic_test.dart' as ignore_error;
+import 'import_library_hide_test.dart' as import_library_hide;
 import 'import_library_prefix_test.dart' as import_library_prefix;
 import 'import_library_project_test.dart' as import_library_project;
 import 'import_library_sdk_test.dart' as import_library_sdk;
@@ -138,6 +140,7 @@ import 'import_library_show_test.dart' as import_library_show;
 import 'inline_invocation_test.dart' as inline_invocation;
 import 'inline_typedef_test.dart' as inline_typedef;
 import 'insert_body_test.dart' as insert_body;
+import 'insert_on_keyword_test.dart' as insert_on_keyword;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_conditional_on_debug_mode_test.dart'
@@ -291,6 +294,8 @@ import 'split_multiple_declarations_test.dart'
 import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
+import 'use_different_division_operator_test.dart'
+    as use_different_division_operator;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
@@ -356,6 +361,7 @@ void main() {
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
+    convert_related_to_cascade.main();
     convert_to_block_function_body.main();
     convert_to_boolean_expression.main();
     convert_to_cascade.main();
@@ -410,6 +416,7 @@ void main() {
     fix_processor_map.main();
     format_file.main();
     ignore_error.main();
+    import_library_hide.main();
     import_library_prefix.main();
     import_library_project.main();
     import_library_sdk.main();
@@ -417,6 +424,7 @@ void main() {
     inline_invocation.main();
     inline_typedef.main();
     insert_body.main();
+    insert_on_keyword.main();
     insert_semicolon.main();
     make_class_abstract.main();
     make_conditional_on_debug_mode.main();
@@ -549,6 +557,7 @@ void main() {
     surround_with_parentheses.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
+    use_different_division_operator.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();
     use_is_not_empty.main();

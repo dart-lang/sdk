@@ -15,6 +15,14 @@ Future<void> main(List<String> args) async {
     return doLeak();
   }
 
+  await findsExpectedLeakData();
+  await doesNotThrowsWhenNotFindingIfShouldNotAlwaysBeFound();
+  await throwsWhenNotFindingWhatShouldAlwaysBeFound();
+
+  print("Done!");
+}
+
+Future<void> findsExpectedLeakData() async {
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(
     new helper.Interest(
@@ -37,6 +45,7 @@ Future<void> main(List<String> args) async {
         Platform.script,
         "LeakMe",
         ["unique", "forPrettyPrinting"],
+        expectToAlwaysFind: true,
       ),
       new helper.Interest(
         Platform.script,
@@ -78,8 +87,96 @@ Future<void> main(List<String> args) async {
         "vs\n\n"
         "- ${leakData.join("\n- ")}";
   }
+}
 
-  print("Done!");
+Future<void> doesNotThrowsWhenNotFindingIfShouldNotAlwaysBeFound() async {
+  List<helper.Interest> interests = <helper.Interest>[];
+  interests.add(
+    // A class called "LeakMeSpellingError" doesn't exist. But we don't say we
+    // expect to find it so it doesn't throw.
+    new helper.Interest(
+      Platform.script,
+      "LeakMeSpellingError",
+      ["unique"],
+    ),
+  );
+  LeakFinderTest heapHelper = new LeakFinderTest(
+    interests: interests,
+    prettyPrints: const [],
+    throwOnPossibleLeak: false,
+  );
+
+  List<({dynamic error, StackTrace st})> errors =
+      await runAndGetErrors(() async {
+    await heapHelper.start(
+      [
+        "--enable-asserts",
+        Platform.script.toString(),
+        "--leak",
+      ],
+      stderrReceiver: (s) {},
+      stdoutReceiver: (s) {},
+    );
+    return heapHelper.completer.future;
+  });
+
+  // Run is now over. Verify we got the wanted error.
+  if (errors.length != 0) {
+    throw "Expected 0 error, got ${errors.length}: $errors";
+  }
+}
+
+Future<void> throwsWhenNotFindingWhatShouldAlwaysBeFound() async {
+  List<helper.Interest> interests = <helper.Interest>[];
+  interests.add(
+    // Expect to find a class called "LeakMeSpellingError" --- but it doesn't
+    // exist so it won't. It should thus throw because "expectToAlwaysFind" is
+    // true.
+    new helper.Interest(
+      Platform.script,
+      "LeakMeSpellingError",
+      ["unique"],
+      expectToAlwaysFind: true,
+    ),
+  );
+  LeakFinderTest heapHelper = new LeakFinderTest(
+    interests: interests,
+    prettyPrints: const [],
+    throwOnPossibleLeak: false,
+  );
+
+  List<({dynamic error, StackTrace st})> errors =
+      await runAndGetErrors(() async {
+    await heapHelper.start(
+      [
+        "--enable-asserts",
+        Platform.script.toString(),
+        "--leak",
+      ],
+      stderrReceiver: (s) {},
+      stdoutReceiver: (s) {},
+    );
+    return heapHelper.completer.future;
+  });
+
+  // Run is now over. Verify we got the wanted error.
+  if (errors.length != 1 ||
+      !errors[0].error.toString().contains("Expected to find, but didn't")) {
+    throw "Expected 1 error, got ${errors.length}: $errors";
+  }
+}
+
+Future<List<({dynamic error, StackTrace st})>> runAndGetErrors(
+    Future Function() f) async {
+  List<({dynamic error, StackTrace st})> errors = [];
+  await runZoned(() {
+    return f();
+  }, zoneSpecification: ZoneSpecification(
+    handleUncaughtError: (self, parent, zone, error, stackTrace) {
+      errors.add((error: error, st: stackTrace));
+    },
+  ));
+  return errors;
 }
 
 void doLeak() {

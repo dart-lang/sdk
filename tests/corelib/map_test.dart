@@ -57,7 +57,7 @@ void main() {
 
   // NaN maps need to have nullable value types because the forEach method
   // cannot look up the value and therefore might find `null` instead of the
-  // actuall value. See MapMixin.forEach in dart:collection/maps.dart
+  // actual value. See MapMixin.forEach in dart:collection/maps.dart
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String?>());
   testNaNKeys(new HashMap());
@@ -74,25 +74,45 @@ void main() {
   testIdentityMap(new LinkedHashMap.identity());
   testIdentityMap(new HashMap(equals: identical, hashCode: identityHashCode));
   testIdentityMap(
-      new LinkedHashMap(equals: identical, hashCode: identityHashCode));
-  testIdentityMap(new HashMap(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
-  testIdentityMap(new LinkedHashMap(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+    new LinkedHashMap(equals: identical, hashCode: identityHashCode),
+  );
+  testIdentityMap(
+    new HashMap(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
+  testIdentityMap(
+    new LinkedHashMap(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
 
-  testCustomMap(new HashMap(
-      equals: myEquals,
-      hashCode: myHashCode,
-      isValidKey: (v) => v is Customer));
-  testCustomMap(new LinkedHashMap(
-      equals: myEquals,
-      hashCode: myHashCode,
-      isValidKey: (v) => v is Customer));
   testCustomMap(
-      new HashMap<Customer, dynamic>(equals: myEquals, hashCode: myHashCode));
+    new HashMap(
+      equals: myEquals,
+      hashCode: myHashCode,
+      isValidKey: (v) => v is Customer,
+    ),
+  );
+  testCustomMap(
+    new LinkedHashMap(
+      equals: myEquals,
+      hashCode: myHashCode,
+      isValidKey: (v) => v is Customer,
+    ),
+  );
+  testCustomMap(
+    new HashMap<Customer, dynamic>(equals: myEquals, hashCode: myHashCode),
+  );
 
-  testCustomMap(new LinkedHashMap<Customer, dynamic>(
-      equals: myEquals, hashCode: myHashCode));
+  testCustomMap(
+    new LinkedHashMap<Customer, dynamic>(
+      equals: myEquals,
+      hashCode: myHashCode,
+    ),
+  );
 
   testIterationOrder(new LinkedHashMap());
   testIterationOrder(new LinkedHashMap.identity());
@@ -101,24 +121,39 @@ void main() {
 
   testOtherKeys(new SplayTreeMap<int, int>());
   testOtherKeys(
-      new SplayTreeMap<int, int>((int a, int b) => a - b, (v) => v is int));
+    new SplayTreeMap<int, int>((int a, int b) => a - b, (v) => v is int),
+  );
   testOtherKeys(new SplayTreeMap((int a, int b) => a - b, (v) => v is int));
   testOtherKeys(new HashMap<int, int>());
   testOtherKeys(new HashMap<int, int>.identity());
-  testOtherKeys(new HashMap<int, int>(
-      hashCode: (v) => v.hashCode, isValidKey: (v) => v is int));
-  testOtherKeys(new HashMap(
+  testOtherKeys(
+    new HashMap<int, int>(
+      hashCode: (v) => v.hashCode,
+      isValidKey: (v) => v is int,
+    ),
+  );
+  testOtherKeys(
+    new HashMap(
       equals: (int x, int y) => x == y,
       hashCode: (int v) => v.hashCode,
-      isValidKey: (v) => v is int));
+      isValidKey: (v) => v is int,
+    ),
+  );
   testOtherKeys(new LinkedHashMap<int, int>());
   testOtherKeys(new LinkedHashMap<int, int>.identity());
-  testOtherKeys(new LinkedHashMap<int, int>(
-      hashCode: (v) => v.hashCode, isValidKey: (v) => v is int));
-  testOtherKeys(new LinkedHashMap(
+  testOtherKeys(
+    new LinkedHashMap<int, int>(
+      hashCode: (v) => v.hashCode,
+      isValidKey: (v) => v is int,
+    ),
+  );
+  testOtherKeys(
+    new LinkedHashMap(
       equals: (int x, int y) => x == y,
       hashCode: (int v) => v.hashCode,
-      isValidKey: (v) => v is int));
+      isValidKey: (v) => v is int,
+    ),
+  );
   testOtherKeys(new MapBaseMap<int, int>());
   testOtherKeys(new MapMixinMap<int, int>());
 
@@ -130,18 +165,26 @@ void main() {
   testTypeAnnotations(new LinkedHashMap());
   testTypeAnnotations(new HashMap(equals: identical));
   testTypeAnnotations(new LinkedHashMap(equals: identical));
-  testTypeAnnotations(new HashMap(
+  testTypeAnnotations(
+    new HashMap(
       equals: (int a, int b) => a == b,
       hashCode: (int a) => a.hashCode,
-      isValidKey: (a) => a is int));
-  testTypeAnnotations(new LinkedHashMap(
+      isValidKey: (a) => a is int,
+    ),
+  );
+  testTypeAnnotations(
+    new LinkedHashMap(
       equals: (int a, int b) => a == b,
       hashCode: (int a) => a.hashCode,
-      isValidKey: (a) => a is int));
+      isValidKey: (a) => a is int,
+    ),
+  );
 
   testFrom();
 
   testLazyKeysValueEntries();
+
+  testRegressions47852();
 }
 
 void test<K, V>(Map<K, V> map) {
@@ -150,8 +193,17 @@ void test<K, V>(Map<K, V> map) {
     testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
   } else {
     map.clear();
-    testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
-        "value7", "value8");
+    testMap(
+      map,
+      "value1",
+      "value2",
+      "value3",
+      "value4",
+      "value5",
+      "value6",
+      "value7",
+      "value8",
+    );
   }
 }
 
@@ -164,7 +216,16 @@ void testLinkedHashMap() {
 }
 
 void testMap<K, V>(
-    Map<K, V> typedMap, key1, key2, key3, key4, key5, key6, key7, key8) {
+  Map<K, V> typedMap,
+  key1,
+  key2,
+  key3,
+  key4,
+  key5,
+  key6,
+  key7,
+  key8,
+) {
   dynamic map = typedMap;
   int value1 = 10;
   int value2 = 20;
@@ -478,7 +539,7 @@ void testWeirdStringKeys(Map map) {
     '__proto__',
     '__count__',
     '__parent__',
-    ''
+    '',
   ];
   Expect.isTrue(map.isEmpty);
   for (var key in weirdKeys) {
@@ -501,7 +562,7 @@ void testNumericKeys(Map map) {
     double.negativeInfinity,
     0,
     0.0,
-    -0.0
+    -0.0,
   ];
 
   Expect.isTrue(map.isEmpty);
@@ -829,8 +890,17 @@ bool myEquals(Customer a, Customer b) => a.secondId == b.secondId;
 void testIterationOrder(Map map) {
   var order = ['0', '6', '4', '2', '7', '9', '7', '1', '2', '5', '3'];
   for (int i = 0; i < order.length; i++) map[order[i]] = i;
-  Expect.listEquals(
-      map.keys.toList(), ['0', '6', '4', '2', '7', '9', '1', '5', '3']);
+  Expect.listEquals(map.keys.toList(), [
+    '0',
+    '6',
+    '4',
+    '2',
+    '7',
+    '9',
+    '1',
+    '5',
+    '3',
+  ]);
   Expect.listEquals(map.values.toList(), [0, 1, 2, 8, 6, 5, 7, 9, 10]);
 }
 
@@ -920,9 +990,7 @@ class TestKeyIterator<K> implements Iterator<K> {
   final int _modCount;
   int _index = 0;
   var _current;
-  TestKeyIterator(map)
-      : _map = map,
-        _modCount = map._modCount;
+  TestKeyIterator(map) : _map = map, _modCount = map._modCount;
   bool moveNext() {
     if (_modCount != _map._modCount) {
       throw new ConcurrentModificationError(_map);
@@ -983,7 +1051,7 @@ void testFrom() {
   for (var map in [
     {},
     {1: 1},
-    {1: 2, 3: 4, 5: 6, 7: 8}
+    {1: 2, 3: 4, 5: 6, 7: 8},
   ]) {
     expectMap(map, new Map.from(map));
     expectMap(map, new HashMap.from(map));
@@ -1063,7 +1131,9 @@ void testLazyKeysValueEntries() {
   // doesn't guarantee one.)
   const mapSize = 129;
   void testWithKeyType<K extends Comparable<Object>>(
-      String keyTypeName, K Function(int) toKey) {
+    String keyTypeName,
+    K Function(int) toKey,
+  ) {
     void testWithMap(String mapType, Map<K, int> map) {
       // This test does a lot of linear work per element, so too large
       // mapSize makes it slow.
@@ -1099,8 +1169,9 @@ void testLazyKeysValueEntries() {
         );
         {
           // No `operator==` on `MapEntry`.
-          var currentEntries = entries.map((x) => x).toList()
-            ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          var currentEntries =
+              entries.map((x) => x).toList()
+                ..sort((e1, e2) => e1.value.compareTo(e2.value));
           for (var j = 0; j <= i; j++) {
             var currentEntry = currentEntries[j];
             Expect.equals(toKey(j), currentEntry.key, testName);
@@ -1135,8 +1206,9 @@ void testLazyKeysValueEntries() {
         );
         {
           // No `operator==` on `MapEntry`.
-          var currentEntries = entries.map((x) => x).toList()
-            ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          var currentEntries =
+              entries.map((x) => x).toList()
+                ..sort((e1, e2) => e1.value.compareTo(e2.value));
           for (var j = i + 1; j < mapSize; j++) {
             var currentEntry = currentEntries[j - i - 1];
             Expect.equals(toKey(j), currentEntry.key, testName);
@@ -1170,4 +1242,18 @@ class Key implements Comparable<Key> {
   int get hashCode => id.hashCode ^ 1023;
   bool operator ==(Object other) => other is Key && id == other.id;
   int compareTo(Key other) => id.compareTo(other.id);
+}
+
+void testRegressions47852() {
+  // Bug in dev-compiler's putIfAbsent.
+  // https://dartbug.com/47852
+
+  var map = {};
+  var key = DateTime.now(); // Overrides Object.==/hashCode
+  var wasAbsent = false;
+  map.putIfAbsent(key, () {
+    wasAbsent = true;
+    Expect.isFalse(map.containsKey(key));
+  });
+  Expect.isTrue(wasAbsent);
 }

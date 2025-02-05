@@ -357,7 +357,7 @@ suggestions
   }
 
   Future<void>
-      test_propertyAccess_afterFunctionInvocation_doesNotMatch_partial() async {
+  test_propertyAccess_afterFunctionInvocation_doesNotMatch_partial() async {
     await computeSuggestions('''
 extension E<T extends num> on List<T> {
   bool a0(int b0, int c0) {}
@@ -379,7 +379,7 @@ suggestions
   }
 
   Future<void>
-      test_propertyAccess_afterIdentifier_doesNotMatch_partial() async {
+  test_propertyAccess_afterIdentifier_doesNotMatch_partial() async {
     await computeSuggestions('''
 extension E<T extends num> on List<T> {
   bool a0(int b0, int c0) {}
@@ -439,7 +439,7 @@ suggestions
   }
 
   Future<void>
-      test_propertyAccess_afterLiteral_doesNotMatch_generic_partial() async {
+  test_propertyAccess_afterLiteral_doesNotMatch_generic_partial() async {
     await computeSuggestions('''
 extension E<T extends num> on List<T> {
   bool a0(int b0, int c0) {}
@@ -539,7 +539,7 @@ suggestions
       'hashCode',
       'noSuchMethod',
       'runtimeType',
-      'toString'
+      'toString',
     };
     await computeSuggestions('''
 extension E on int {

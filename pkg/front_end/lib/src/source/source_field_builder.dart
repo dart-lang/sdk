@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.field_builder;
-
+import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -13,14 +12,17 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/modifier.dart' show covariantMask, hasInitializerMask, lateMask;
+import '../base/modifiers.dart' show Modifiers;
+import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart' show LookupScope;
+import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -31,7 +33,9 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
+import '../kernel/macro/metadata.dart';
 import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/name_scheme.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -42,7 +46,7 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
-    implements FieldBuilder, InferredTypeListener, Inferable {
+    implements FieldBuilder, InferredTypeListener, Inferable, PropertyBuilder {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -51,8 +55,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
-  @override
-  final int modifiers;
+  final Modifiers modifiers;
 
   late FieldEncoding _fieldEncoding;
 
@@ -61,6 +64,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   final TypeBuilder type;
 
   Token? _constInitializerToken;
+
+  shared.Expression? _initializerExpression;
 
   /// Whether the body of this field has been built.
   ///
@@ -75,25 +80,37 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   final bool isTopLevel;
 
+  final bool isPrimaryConstructorField;
+
+  @override
   final bool isSynthesized;
 
   /// If `true`, this field builder is for the field corresponding to an enum
   /// element.
   final bool isEnumElement;
 
+  @override
+  final DeclarationBuilder? declarationBuilder;
+
+  final int nameOffset;
+
+  @override
+  final Uri fileUri;
+
   SourceFieldBuilder(
-      this.metadata,
-      this.type,
-      this.name,
-      this.modifiers,
-      this.isTopLevel,
-      this.libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      NameScheme fieldNameScheme,
-      {Reference? fieldReference,
+      {required this.metadata,
+      required this.type,
+      required this.name,
+      required this.modifiers,
+      required this.isTopLevel,
+      required this.isPrimaryConstructorField,
+      required this.libraryBuilder,
+      required this.declarationBuilder,
+      required this.fileUri,
+      required this.nameOffset,
+      required int endOffset,
+      required NameScheme nameScheme,
+      Reference? fieldReference,
       Reference? fieldGetterReference,
       Reference? fieldSetterReference,
       Reference? lateIsSetFieldReference,
@@ -106,17 +123,17 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.isSynthesized = false,
       this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
-        _memberName = fieldNameScheme.getDeclaredName(name),
-        super(declarationBuilder ?? libraryBuilder, fileUri, charOffset) {
+        _memberName = nameScheme.getDeclaredName(name) {
     type.registerInferredTypeListener(this);
 
-    bool isInstanceMember = fieldNameScheme.isInstanceMember;
+    bool isInstanceMember = nameScheme.isInstanceMember;
 
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
     // non-nullable fields since they can be assigned from legacy code.
     late_lowering.IsSetStrategy isSetStrategy =
         late_lowering.computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
+      // Coverage-ignore-block(suite): Not run.
       assert(fieldReference == null);
       assert(lateIsSetFieldReference == null);
       assert(lateIsSetGetterReference == null);
@@ -127,18 +144,20 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       _fieldEncoding = new AbstractOrExternalFieldEncoding(
           this,
           name,
-          fieldNameScheme,
+          nameScheme,
           fileUri,
-          charOffset,
-          charEndOffset,
+          nameOffset,
+          endOffset,
           fieldGetterReference,
           fieldSetterReference,
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
           isCovariantByDeclaration: isCovariantByDeclaration);
-    } else if (fieldNameScheme.isExtensionTypeMember &&
-        fieldNameScheme.isInstanceMember) {
+    } else if (nameScheme.isExtensionTypeMember &&
+        // Coverage-ignore(suite): Not run.
+        nameScheme.isInstanceMember) {
+      // Coverage-ignore-block(suite): Not run.
       assert(fieldReference == null);
       assert(fieldSetterReference == null);
       assert(lateIsSetFieldReference == null);
@@ -146,133 +165,151 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateIsSetSetterReference == null);
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
-      _fieldEncoding = new RepresentationFieldEncoding(
-          this,
-          name,
-          fieldNameScheme,
-          fileUri,
-          charOffset,
-          charEndOffset,
-          fieldGetterReference);
+      if (isPrimaryConstructorField) {
+        _fieldEncoding = new RepresentationFieldEncoding(this, name, nameScheme,
+            fileUri, nameOffset, endOffset, fieldGetterReference);
+      } else {
+        // Field on a extension type. Encode as abstract.
+        // TODO(johnniwinther): Should we have an erroneous flag on such
+        // members?
+        _fieldEncoding = new AbstractOrExternalFieldEncoding(
+            this,
+            name,
+            nameScheme,
+            fileUri,
+            nameOffset,
+            endOffset,
+            fieldGetterReference,
+            fieldSetterReference,
+            isAbstract: true,
+            isExternal: false,
+            isFinal: isFinal,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isForcedExtension: true);
+      }
     } else if (isLate &&
+        // Coverage-ignore(suite): Not run.
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
             isFinal: isFinal,
             isStatic: !isInstanceMember)) {
+      // Coverage-ignore-block(suite): Not run.
       assert(!isEnumElement, "Unexpected late enum element");
       if (hasInitializer) {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              charOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              charOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         }
       } else {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithoutInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              charOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithoutInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              charOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         }
       }
     } else if (libraryBuilder
             .loader.target.backendTarget.useStaticFieldLowering &&
         !isInstanceMember &&
         !isConst &&
+        // Coverage-ignore(suite): Not run.
         hasInitializer) {
+      // Coverage-ignore-block(suite): Not run.
       assert(!isEnumElement, "Unexpected non-const enum element");
       if (isFinal) {
         _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
-            name,
-            fieldNameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+            name: name,
+            nameScheme: nameScheme,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            endOffset: endOffset,
+            fieldReference: fieldReference,
+            fieldGetterReference: fieldGetterReference,
+            fieldSetterReference: fieldSetterReference,
+            lateIsSetFieldReference: lateIsSetFieldReference,
+            lateIsSetGetterReference: lateIsSetGetterReference,
+            lateIsSetSetterReference: lateIsSetSetterReference,
+            lateGetterReference: lateGetterReference,
+            lateSetterReference: lateSetterReference,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSetStrategy: isSetStrategy);
       } else {
         _fieldEncoding = new LateFieldWithInitializerEncoding(
-            name,
-            fieldNameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+            name: name,
+            nameScheme: nameScheme,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            endOffset: endOffset,
+            fieldReference: fieldReference,
+            fieldGetterReference: fieldGetterReference,
+            fieldSetterReference: fieldSetterReference,
+            lateIsSetFieldReference: lateIsSetFieldReference,
+            lateIsSetGetterReference: lateIsSetGetterReference,
+            lateIsSetSetterReference: lateIsSetSetterReference,
+            lateGetterReference: lateGetterReference,
+            lateSetterReference: lateSetterReference,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSetStrategy: isSetStrategy);
       }
     } else {
       assert(lateIsSetFieldReference == null);
@@ -281,7 +318,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
       _fieldEncoding = new RegularFieldEncoding(
-          name, fieldNameScheme, fileUri, charOffset, charEndOffset,
+          name: name,
+          nameScheme: nameScheme,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          endOffset: endOffset,
           isFinal: isFinal,
           isConst: isConst,
           isLate: isLate,
@@ -293,7 +334,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     }
 
     if (type is InferableTypeBuilder) {
-      if (!hasInitializer && isStatic) {
+      if (!hasInitializer &&
+          // Coverage-ignore(suite): Not run.
+          isStatic) {
+        // Coverage-ignore-block(suite): Not run.
         // A static field without type and initializer will always be inferred
         // to have type `dynamic`.
         type.registerInferredType(const DynamicType());
@@ -308,11 +352,56 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  int get fileOffset => nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAugmentation => modifiers.isAugment;
+
+  @override
+  bool get isExternal => modifiers.isExternal;
+
+  @override
+  bool get isAbstract => modifiers.isAbstract;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionTypeDeclaredInstanceField =>
+      isExtensionTypeInstanceMember && !isPrimaryConstructorField;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
+  bool get isFinal => modifiers.isFinal;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAugment => modifiers.isAugment;
+
+  @override
+  Builder get parent =>
+      declarationBuilder ?? // Coverage-ignore(suite): Not run.
+      libraryBuilder;
+
+  @override
   Name get memberName => _memberName.name;
 
   bool _typeEnsured = false;
   Set<ClassMember>? _overrideDependencies;
 
+  // Coverage-ignore(suite): Not run.
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
@@ -325,7 +414,14 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void _ensureType(ClassMembersBuilder membersBuilder) {
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
-      membersBuilder.inferFieldType(this, _overrideDependencies!);
+      // Coverage-ignore-block(suite): Not run.
+      membersBuilder.inferFieldType(declarationBuilder as SourceClassBuilder,
+          type, _overrideDependencies!,
+          name: fullNameForErrors,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          nameLength: fullNameForErrors.length,
+          isAssignable: isAssignable);
       _overrideDependencies = null;
     } else {
       type.build(libraryBuilder, TypeUse.fieldType,
@@ -335,19 +431,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  Member get member => _fieldEncoding.field;
-
-  @override
-  String get debugName => "FieldBuilder";
-
-  @override
   bool get isField => true;
 
-  bool get isLate => (modifiers & lateMask) != 0;
+  @override
+  bool get isLate => modifiers.isLate;
 
-  bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
+  bool get isCovariantByDeclaration => modifiers.isCovariant;
 
-  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
+  @override
+  bool get hasInitializer => modifiers.hasInitializer;
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
@@ -356,37 +448,40 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     hasBodyBeenBuilt = true;
     if (!hasInitializer &&
         initializer != null &&
+        // Coverage-ignore(suite): Not run.
         initializer is! NullLiteral &&
         // Coverage-ignore(suite): Not run.
         !isConst &&
         // Coverage-ignore(suite): Not run.
         !isFinal) {
       internalProblem(
-          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
+          messageInternalProblemAlreadyInitialized, fileOffset, fileUri);
     }
     _fieldEncoding.createBodies(coreTypes, initializer);
   }
 
-  /// Builds the field initializers for each field used to encode this field
-  /// using the [fileOffset] for the created nodes and [value] as the initial
-  /// field value.
+  @override
+  // Coverage-ignore(suite): Not run.
   List<Initializer> buildInitializer(int fileOffset, Expression value,
       {required bool isSynthetic}) {
     return _fieldEncoding.createInitializer(fileOffset, value,
         isSynthetic: isSynthetic);
   }
 
-  /// Creates the AST node for this field as the default initializer.
+  @override
+  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     _fieldEncoding.buildImplicitDefaultValue();
   }
 
-  /// Create the [Initializer] for the implicit initialization of this field
-  /// in a constructor.
+  @override
+  // Coverage-ignore(suite): Not run.
   Initializer buildImplicitInitializer() {
     return _fieldEncoding.buildImplicitInitializer();
   }
 
+  @override
+  // Coverage-ignore(suite): Not run.
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     return _fieldEncoding.buildErroneousInitializer(effect, value,
@@ -396,6 +491,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   bool get isAssignable {
     if (isConst) return false;
+    // Coverage-ignore(suite): Not run.
     if (isFinal) {
       if (isLate) {
         return !hasInitializer;
@@ -412,15 +508,30 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Member get readTarget => _fieldEncoding.readTarget;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _fieldEncoding.readTargetReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget {
     return isAssignable ? _fieldEncoding.writeTarget : null;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _fieldEncoding.writeTargetReference;
+
+  @override
   Member get invokeTarget => readTarget;
 
   @override
-  Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => _fieldEncoding.readTargetReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences =>
+      _fieldEncoding.exportedReferenceMembers;
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
@@ -436,15 +547,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _fieldEncoding.build(libraryBuilder, this);
   }
 
-  @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new FieldBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember);
   }
 
   @override
@@ -457,54 +561,62 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,
-          createBodyBuilderContext(
-              inOutlineBuildingPhase: true,
-              inMetadata: true,
-              inConstFields: false),
+          createBodyBuilderContext(),
           libraryBuilder,
           fileUri,
-          declarationBuilder?.scope ?? libraryBuilder.scope);
+          declarationBuilder?.scope ?? // Coverage-ignore(suite): Not run.
+              libraryBuilder.scope);
     }
 
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
     if ((isConst ||
+            // Coverage-ignore(suite): Not run.
             (isFinal &&
                 !isStatic &&
                 isClassMember &&
                 classBuilder!.declaresConstConstructor)) &&
         _constInitializerToken != null) {
+      // Coverage-ignore-block(suite): Not run.
+      Token initializerToken = _constInitializerToken!;
       LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              scope,
-              fileUri);
+              libraryBuilder, createBodyBuilderContext(), scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
           .inferFieldInitializer(bodyBuilder, fieldType,
-              bodyBuilder.parseFieldInitializer(_constInitializerToken!))
+              bodyBuilder.parseFieldInitializer(initializerToken))
           .expression;
       buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations();
+      if (computeSharedExpressionForTesting) {
+        _initializerExpression = parseFieldInitializer(libraryBuilder.loader,
+            initializerToken, libraryBuilder.importUri, fileUri, scope);
+      }
     }
     _constInitializerToken = null;
   }
 
   // Coverage-ignore(suite): Not run.
+  shared.Expression? get initializerExpression => _initializerExpression;
+
+  // Coverage-ignore(suite): Not run.
   bool get hasOutlineExpressionsBuilt => _constInitializerToken == null;
 
+  @override
   DartType get fieldType => _fieldEncoding.type;
 
+  @override
   void set fieldType(DartType value) {
     _fieldEncoding.type = value;
-    if (!isFinal && !isConst && parent is ClassBuilder) {
+    if (!isFinal &&
+        !isConst &&
+        // Coverage-ignore(suite): Not run.
+        parent is ClassBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       Class enclosingClass = classBuilder!.cls;
       if (enclosingClass.typeParameters.isNotEmpty) {
         IncludesTypeParametersNonCovariantly needsCheckVisitor =
@@ -526,13 +638,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     inferType(hierarchy);
   }
 
+  @override
   DartType inferType(ClassHierarchyBase hierarchy) {
     if (fieldType is! InferredType) {
+      // Coverage-ignore-block(suite): Not run.
       // We have already inferred a type.
       return fieldType;
     }
 
-    return libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset,
+    return libraryBuilder.loader.withUriForCrashReporting(fileUri, fileOffset,
         () {
       InferredType implicitFieldType = fieldType as InferredType;
       DartType inferredType = implicitFieldType.computeType(hierarchy);
@@ -555,6 +669,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         }
         if (needsCheckVisitor != null) {
           if (fieldType.accept(needsCheckVisitor)) {
+            // Coverage-ignore-block(suite): Not run.
             _fieldEncoding.setGenericCovariantImpl();
           }
         }
@@ -568,6 +683,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     fieldType = type;
   }
 
+  // Coverage-ignore(suite): Not run.
   DartType get builtType => fieldType;
 
   List<ClassMember>? _localMembers;
@@ -582,16 +698,41 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       _localSetters ??= _fieldEncoding.getLocalSetters(this);
 
   @override
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
-    sourceClassBuilder.checkVarianceInField(
-        this, typeEnvironment, sourceClassBuilder.cls.typeParameters);
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    TypeBuilder? fieldType = type;
+    if (fieldType is! OmittedTypeBuilder) {
+      context.reportInboundReferenceIssuesForType(fieldType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
+    }
+    return 0;
   }
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
-    library.checkTypesInField(this, typeEnvironment);
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    sourceClassBuilder.checkVarianceInField(typeEnvironment,
+        fieldType: fieldType,
+        isInstanceMember: isClassInstanceMember,
+        hasSetter: isAssignable,
+        isCovariantByDeclaration: isCovariantByDeclaration,
+        fileUri: fileUri,
+        fileOffset: fileOffset);
+  }
+
+  @override
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    library.checkTypesInField(typeEnvironment,
+        isInstanceMember: isDeclarationInstanceMember,
+        isLate: isLate,
+        isExternal: isExternal,
+        hasInitializer: hasInitializer,
+        fieldType: fieldType,
+        name: name,
+        nameLength: name.length,
+        nameOffset: fileOffset,
+        fileUri: fileUri);
   }
 
   @override
@@ -635,17 +776,29 @@ abstract class FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
+  /// The [Member] built during [SourceFieldBuilder.buildOutlineExpressions].
+  Member get builtMember;
+
   /// Returns the members that holds the field annotations.
   Iterable<Annotatable> get annotatables;
 
   /// Returns the member used to read the field value.
   Member get readTarget;
 
+  /// Returns the reference used to read the field value.
+  Reference get readTargetReference;
+
   /// Returns the member used to write to the field.
   Member? get writeTarget;
 
-  /// Returns the generated members that are visible through exports.
-  Iterable<Member> get exportedMembers;
+  /// Returns the reference used to write to the field.
+  Reference? get writeTargetReference;
+
+  /// Returns the references to the generated members that are visible through
+  /// exports.
+  ///
+  /// This is the getter reference, and, if available, the setter reference.
+  Iterable<Reference> get exportedReferenceMembers;
 
   /// Creates the members necessary for this field encoding.
   ///
@@ -670,9 +823,13 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   late final Field _field;
 
-  RegularFieldEncoding(String name, NameScheme nameScheme, Uri fileUri,
-      int charOffset, int charEndOffset,
-      {required bool isFinal,
+  RegularFieldEncoding(
+      {required String name,
+      required NameScheme nameScheme,
+      required Uri fileUri,
+      required int nameOffset,
+      required int endOffset,
+      required bool isFinal,
       required bool isConst,
       required bool isLate,
       required bool hasInitializer,
@@ -691,7 +848,9 @@ class RegularFieldEncoding implements FieldEncoding {
             fieldReference: fieldReference,
             getterReference: getterReference,
             isEnumElement: isEnumElement)
-        : new Field.mutable(dummyName,
+        :
+        // Coverage-ignore(suite): Not run.
+        new Field.mutable(dummyName,
             isFinal: isFinal,
             isLate: isLate,
             fileUri: fileUri,
@@ -702,8 +861,8 @@ class RegularFieldEncoding implements FieldEncoding {
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
         .attachMember(_field);
     _field
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
   }
 
   @override
@@ -722,6 +881,7 @@ class RegularFieldEncoding implements FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<Initializer> createInitializer(int fileOffset, Expression value,
       {required bool isSynthetic}) {
     return <Initializer>[
@@ -736,16 +896,19 @@ class RegularFieldEncoding implements FieldEncoding {
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
     _field..isCovariantByDeclaration = fieldBuilder.isCovariantByDeclaration;
     if (fieldBuilder.isExtensionMember) {
+      // Coverage-ignore-block(suite): Not run.
       _field
         ..isStatic = true
         ..isExtensionMember = true;
     } else if (fieldBuilder.isExtensionTypeMember) {
+      // Coverage-ignore-block(suite): Not run.
       _field
         ..isStatic = fieldBuilder.isStatic
         ..isExtensionTypeMember = true;
     } else {
-      bool isInstanceMember =
-          !fieldBuilder.isStatic && !fieldBuilder.isTopLevel;
+      bool isInstanceMember = !fieldBuilder.isStatic &&
+          // Coverage-ignore(suite): Not run.
+          !fieldBuilder.isTopLevel;
       _field
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
@@ -765,6 +928,7 @@ class RegularFieldEncoding implements FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void setGenericCovariantImpl() {
     if (_field.hasSetter) {
       _field.isCovariantByClass = true;
@@ -775,16 +939,30 @@ class RegularFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
+  Member get builtMember => _field;
+
+  @override
   Iterable<Annotatable> get annotatables => [_field];
 
   @override
   Member get readTarget => _field;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _field.getterReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member get writeTarget => _field;
 
   @override
-  Iterable<Member> get exportedMembers => [_field];
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _field.setterReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedReferenceMembers =>
+      [_field.getterReference, if (_field.hasSetter) _field.setterReference!];
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
@@ -795,22 +973,27 @@ class RegularFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       fieldBuilder.isAssignable
-          ? <ClassMember>[
+          ?
+          // Coverage-ignore(suite): Not run.
+          <ClassMember>[
               new SourceFieldMember(fieldBuilder, ClassMemberKind.Setter)
             ]
           : const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     _field.initializer = new NullLiteral()..parent = _field;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Initializer buildImplicitInitializer() {
     return new FieldInitializer(_field, new NullLiteral())..isSynthetic = true;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
     return new ShadowInvalidFieldInitializer(type, value, effect)
@@ -830,11 +1013,13 @@ class SourceFieldMember extends BuilderClassMember {
   SourceFieldMember(this.memberBuilder, this.memberKind);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void inferType(ClassMembersBuilder membersBuilder) {
     memberBuilder._ensureType(membersBuilder);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     memberBuilder.registerOverrideDependency(overriddenMembers);
   }
@@ -854,6 +1039,7 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= forSetter
         ? new Covariance.fromMember(getMember(membersBuilder),
@@ -862,6 +1048,7 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSourceDeclaration => true;
 
   @override
@@ -869,10 +1056,13 @@ class SourceFieldMember extends BuilderClassMember {
 
   @override
   bool isSameDeclaration(ClassMember other) {
-    return other is SourceFieldMember && memberBuilder == other.memberBuilder;
+    return other is SourceFieldMember &&
+        // Coverage-ignore(suite): Not run.
+        memberBuilder == other.memberBuilder;
   }
 }
 
+// Coverage-ignore(suite): Not run.
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
   final String name;
   final int fileOffset;
@@ -901,23 +1091,23 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   bool _forceIncludeIsSetField;
 
   AbstractLateFieldEncoding(
-      this.name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : fileOffset = charOffset,
-        fileEndOffset = charEndOffset,
+      {required this.name,
+      required NameScheme nameScheme,
+      required Uri fileUri,
+      required int nameOffset,
+      required int endOffset,
+      required Reference? fieldReference,
+      required Reference? fieldGetterReference,
+      required Reference? fieldSetterReference,
+      required Reference? lateIsSetFieldReference,
+      required Reference? lateIsSetGetterReference,
+      required Reference? lateIsSetSetterReference,
+      required Reference? lateGetterReference,
+      required Reference? lateSetterReference,
+      required bool isCovariantByDeclaration,
+      required late_lowering.IsSetStrategy isSetStrategy})
+      : fileOffset = nameOffset,
+        fileEndOffset = endOffset,
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
@@ -926,8 +1116,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fieldReference: fieldReference,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference)
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset
       ..isInternalImplementation = true;
     nameScheme
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: true)
@@ -944,8 +1134,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             fieldReference: lateIsSetFieldReference,
             getterReference: lateIsSetGetterReference,
             setterReference: lateIsSetSetterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset
           ..isInternalImplementation = true;
         nameScheme
             .getFieldMemberName(FieldNameType.IsSetField, name,
@@ -957,16 +1147,16 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         dummyName,
         ProcedureKind.Getter,
         new FunctionNode(null)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset,
         fileUri: fileUri,
         reference: lateGetterReference)
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
         .attachMember(_lateGetter);
-    _lateSetter = _createSetter(fileUri, charOffset, lateSetterReference,
+    _lateSetter = _createSetter(fileUri, nameOffset, lateSetterReference,
         isCovariantByDeclaration: isCovariantByDeclaration);
     if (_lateSetter != null) {
       nameScheme
@@ -1032,7 +1222,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   ///
   /// If [needsPromotion] is `true`, the field will be read through a `let`
   /// expression that promotes the expression to [_type]. This is needed for a
-  /// sound encoding of fields with type variable type of undetermined
+  /// sound encoding of fields with type parameter type of undetermined
   /// nullability.
   Expression _createFieldRead({bool needsPromotion = false}) {
     assert(_type != null, "Type has not been computed for field $name.");
@@ -1053,7 +1243,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     if (field.isStatic) {
       return new StaticGet(field)..fileOffset = fileOffset;
     } else {
-      // No substitution needed for the result type, since any type variables
+      // No substitution needed for the result type, since any type parameters
       // in there are also in scope at the access site.
       return new InstanceGet(InstanceAccessKind.Instance,
           new ThisExpression()..fileOffset = fileOffset, field.name,
@@ -1135,6 +1325,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
+  Member get builtMember => _field;
+
+  @override
   Iterable<Annotatable> get annotatables {
     List<Annotatable> list = [_lateGetter];
     if (_lateSetter != null) {
@@ -1147,14 +1340,20 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Member get readTarget => _lateGetter;
 
   @override
+  Reference get readTargetReference => _lateGetter.reference;
+
+  @override
   Member? get writeTarget => _lateSetter;
 
   @override
-  Iterable<Member> get exportedMembers {
+  Reference? get writeTargetReference => _lateSetter?.reference;
+
+  @override
+  Iterable<Reference> get exportedReferenceMembers {
     if (_lateSetter != null) {
-      return [_lateGetter, _lateSetter!];
+      return [_lateGetter.reference, _lateSetter!.reference];
     }
-    return [_lateGetter];
+    return [_lateGetter.reference];
   }
 
   @override
@@ -1169,7 +1368,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
     } else if (isExtensionTypeMember) {
-      // Coverage-ignore-block(suite): Not run.
       _field
         ..isStatic = fieldBuilder.isStatic
         ..isExtensionTypeMember = true;
@@ -1274,6 +1472,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
+  // Coverage-ignore(suite): Not run.
   Statement _createSetterBody(
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
@@ -1290,6 +1489,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
 
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
+  // Coverage-ignore(suite): Not run.
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
@@ -1318,76 +1518,46 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate, LateWithoutInitializer {
   LateFieldWithoutInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 }
 
+// Coverage-ignore(suite): Not run.
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate {
   LateFieldWithInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1421,40 +1591,25 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with LateWithoutInitializer {
   LateFinalFieldWithoutInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createSetterBody(
@@ -1474,39 +1629,24 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   LateFinalFieldWithInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1530,7 +1670,6 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Statement _createSetterBody(
           CoreTypes coreTypes, String name, VariableDeclaration parameter) =>
       throw new UnsupportedError(
@@ -1553,6 +1692,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _SynthesizedFieldClassMember implements ClassMember {
   final SourceFieldBuilder fieldBuilder;
   final _SynthesizedFieldMemberKind _kind;
@@ -1622,7 +1762,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   DeclarationBuilder get declarationBuilder => fieldBuilder.declarationBuilder!;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isObjectMember(ClassBuilder objectClass) {
     return declarationBuilder == objectClass;
   }
@@ -1652,7 +1791,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Name get name => _name;
 
   @override
-  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = declarationBuilder.fullNameForErrors;
@@ -1666,7 +1804,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Uri get fileUri => fieldBuilder.fileUri;
 
   @override
-  int get charOffset => fieldBuilder.charOffset;
+  int get charOffset => fieldBuilder.fileOffset;
 
   @override
   bool get isAbstract => _member.isAbstract;
@@ -1678,7 +1816,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError("$runtimeType.declarations");
 
@@ -1704,6 +1841,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isExtensionTypeMember => fieldBuilder.isExtensionTypeMember;
 }
 
+// Coverage-ignore(suite): Not run.
 class AbstractOrExternalFieldEncoding implements FieldEncoding {
   final SourceFieldBuilder _fieldBuilder;
   final bool isAbstract;
@@ -1720,18 +1858,19 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       String name,
       NameScheme nameScheme,
       Uri fileUri,
-      int charOffset,
-      int charEndOffset,
+      int nameOffset,
+      int endOffset,
       Reference? getterReference,
       Reference? setterReference,
       {required this.isAbstract,
       required this.isExternal,
       required bool isFinal,
-      required bool isCovariantByDeclaration})
-      : _isExtensionInstanceMember = isExternal &&
+      required bool isCovariantByDeclaration,
+      bool isForcedExtension = false})
+      : _isExtensionInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionMember &&
             nameScheme.isInstanceMember,
-        _isExtensionTypeInstanceMember = isExternal &&
+        _isExtensionTypeInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionTypeMember &&
             nameScheme.isInstanceMember {
     if (_isExtensionInstanceMember || _isExtensionTypeInstanceMember) {
@@ -1740,13 +1879,13 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: [
             new VariableDeclaration(syntheticThisName)
-              ..fileOffset = charOffset
+              ..fileOffset = nameOffset
               ..isLowered = true
           ]),
           fileUri: fileUri,
           reference: getterReference)
-        ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset;
+        ..fileOffset = nameOffset
+        ..fileEndOffset = endOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_getter);
@@ -1754,24 +1893,24 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
-              ..fileOffset = charOffset;
+              ..fileOffset = nameOffset;
         _setter = new Procedure(
             dummyName,
             ProcedureKind.Method,
             new FunctionNode(null,
                 positionalParameters: [
                   new VariableDeclaration(syntheticThisName)
-                    ..fileOffset = charOffset
+                    ..fileOffset = nameOffset
                     ..isLowered = true,
                   parameter
                 ],
                 returnType: const VoidType())
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+              ..fileOffset = nameOffset
+              ..fileEndOffset = endOffset,
             fileUri: fileUri,
             reference: setterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset;
         nameScheme
             .getProcedureMemberName(ProcedureKind.Setter, name)
             .attachMember(_setter!);
@@ -1780,8 +1919,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       _getter = new Procedure(
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
           fileUri: fileUri, reference: getterReference)
-        ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset;
+        ..fileOffset = nameOffset
+        ..fileEndOffset = endOffset;
       nameScheme
           .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
           .attachMember(_getter);
@@ -1789,18 +1928,18 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
-              ..fileOffset = charOffset;
+              ..fileOffset = nameOffset;
         _setter = new Procedure(
             dummyName,
             ProcedureKind.Setter,
             new FunctionNode(null,
                 positionalParameters: [parameter], returnType: const VoidType())
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+              ..fileOffset = nameOffset
+              ..fileEndOffset = endOffset,
             fileUri: fileUri,
             reference: setterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset;
         nameScheme
             .getFieldMemberName(FieldNameType.Setter, name, isSynthesized: true)
             .attachMember(_setter!);
@@ -1873,7 +2012,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         Procedure? setter = _setter;
         if (setter != null) {
           if (setter.kind == ProcedureKind.Method) {
-            // Coverage-ignore-block(suite): Not run.
             setter.function.positionalParameters[1].type = value;
           } else {
             setter.function.positionalParameters.first.type = value;
@@ -1948,7 +2086,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void setGenericCovariantImpl() {
     _setter!.function.positionalParameters.first.isCovariantByClass = true;
   }
@@ -1957,6 +2094,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Field get field {
     throw new UnsupportedError("ExternalFieldEncoding.field");
   }
+
+  @override
+  Member get builtMember => _getter;
 
   @override
   Iterable<Annotatable> get annotatables {
@@ -1971,14 +2111,20 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Member get readTarget => _getter;
 
   @override
+  Reference get readTargetReference => _getter.reference;
+
+  @override
   Member? get writeTarget => _setter;
 
   @override
-  Iterable<Member> get exportedMembers {
+  Reference? get writeTargetReference => _setter?.reference;
+
+  @override
+  Iterable<Reference> get exportedReferenceMembers {
     if (_setter != null) {
-      return [_getter, _setter!];
+      return [_getter.reference, _setter!.reference];
     }
-    return [_getter];
+    return [_getter.reference];
   }
 
   @override
@@ -2020,10 +2166,12 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
-    throw new UnsupportedError("$runtimeType.buildDuplicatedInitializer");
+    return new ShadowInvalidFieldInitializer(type, value, effect)
+      ..fileOffset = fileOffset;
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// The encoding of an extension type declaration representation field.
 class RepresentationFieldEncoding implements FieldEncoding {
   final SourceFieldBuilder _fieldBuilder;
@@ -2111,18 +2259,25 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
+  Member get builtMember => _getter;
+
+  @override
   Iterable<Annotatable> get annotatables => [_getter];
 
   @override
   Member get readTarget => _getter;
 
   @override
-  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _getter.reference;
+
+  @override
   Member? get writeTarget => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [_getter];
+  Reference? get writeTargetReference => null;
+
+  @override
+  Iterable<Reference> get exportedReferenceMembers => [_getter.reference];
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
@@ -2141,7 +2296,6 @@ class RepresentationFieldEncoding implements FieldEncoding {
       const <ClassMember>[];
 
   @override
-  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     // Not needed.
   }

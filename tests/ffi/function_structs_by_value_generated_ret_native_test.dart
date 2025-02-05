@@ -77,9 +77,13 @@ void testReturnStruct1ByteIntNative() {
 }
 
 @Native<Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8)>(
-    symbol: 'ReturnStruct3BytesHomogeneousUint8')
+  symbol: 'ReturnStruct3BytesHomogeneousUint8',
+)
 external Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8Native(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Smaller than word size return value on all architectures.
 void testReturnStruct3BytesHomogeneousUint8Native() {
@@ -101,9 +105,12 @@ void testReturnStruct3BytesHomogeneousUint8Native() {
 }
 
 @Native<Struct3BytesInt2ByteAligned Function(Int16, Int8)>(
-    symbol: 'ReturnStruct3BytesInt2ByteAligned')
+  symbol: 'ReturnStruct3BytesInt2ByteAligned',
+)
 external Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedNative(
-    int a0, int a1);
+  int a0,
+  int a1,
+);
 
 /// Smaller than word size return value on all architectures.
 /// With alignment rules taken into account size is 4 bytes.
@@ -123,9 +130,12 @@ void testReturnStruct3BytesInt2ByteAlignedNative() {
 }
 
 @Native<Struct4BytesHomogeneousInt16 Function(Int16, Int16)>(
-    symbol: 'ReturnStruct4BytesHomogeneousInt16')
+  symbol: 'ReturnStruct4BytesHomogeneousInt16',
+)
 external Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16Native(
-    int a0, int a1);
+  int a0,
+  int a1,
+);
 
 /// Word size return value on 32 bit architectures..
 void testReturnStruct4BytesHomogeneousInt16Native() {
@@ -144,10 +154,25 @@ void testReturnStruct4BytesHomogeneousInt16Native() {
 }
 
 @Native<
-    Struct7BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8, Uint8, Uint8,
-        Uint8, Uint8)>(symbol: 'ReturnStruct7BytesHomogeneousUint8')
+  Struct7BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct7BytesHomogeneousUint8')
 external Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8Native(
-    int a0, int a1, int a2, int a3, int a4, int a5, int a6);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+);
 
 /// Non-wordsize return value.
 void testReturnStruct7BytesHomogeneousUint8Native() {
@@ -167,8 +192,15 @@ void testReturnStruct7BytesHomogeneousUint8Native() {
   a5 = 6;
   a6 = 7;
 
-  final result =
-      returnStruct7BytesHomogeneousUint8Native(a0, a1, a2, a3, a4, a5, a6);
+  final result = returnStruct7BytesHomogeneousUint8Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -182,9 +214,13 @@ void testReturnStruct7BytesHomogeneousUint8Native() {
 }
 
 @Native<Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8)>(
-    symbol: 'ReturnStruct7BytesInt4ByteAligned')
+  symbol: 'ReturnStruct7BytesInt4ByteAligned',
+)
 external Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedNative(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Non-wordsize return value.
 /// With alignment rules taken into account size is 8 bytes.
@@ -207,7 +243,8 @@ void testReturnStruct7BytesInt4ByteAlignedNative() {
 }
 
 @Native<Struct8BytesInt Function(Int16, Int16, Int32)>(
-    symbol: 'ReturnStruct8BytesInt')
+  symbol: 'ReturnStruct8BytesInt',
+)
 external Struct8BytesInt returnStruct8BytesIntNative(int a0, int a1, int a2);
 
 /// Return value in integer registers on many architectures.
@@ -230,9 +267,12 @@ void testReturnStruct8BytesIntNative() {
 }
 
 @Native<Struct8BytesHomogeneousFloat Function(Float, Float)>(
-    symbol: 'ReturnStruct8BytesHomogeneousFloat')
+  symbol: 'ReturnStruct8BytesHomogeneousFloat',
+)
 external Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloatNative(
-    double a0, double a1);
+  double a0,
+  double a1,
+);
 
 /// Return value in FP registers on many architectures.
 void testReturnStruct8BytesHomogeneousFloatNative() {
@@ -251,9 +291,13 @@ void testReturnStruct8BytesHomogeneousFloatNative() {
 }
 
 @Native<Struct8BytesMixed Function(Float, Int16, Int16)>(
-    symbol: 'ReturnStruct8BytesMixed')
+  symbol: 'ReturnStruct8BytesMixed',
+)
 external Struct8BytesMixed returnStruct8BytesMixedNative(
-    double a0, int a1, int a2);
+  double a0,
+  int a1,
+  int a2,
+);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct8BytesMixedNative() {
@@ -275,18 +319,29 @@ void testReturnStruct8BytesMixedNative() {
 }
 
 @Native<
-    Struct9BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8)>(symbol: 'ReturnStruct9BytesHomogeneousUint8')
+  Struct9BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct9BytesHomogeneousUint8')
 external Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8Native(
-    int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -313,7 +368,16 @@ void testReturnStruct9BytesHomogeneousUint8Native() {
   a8 = 9;
 
   final result = returnStruct9BytesHomogeneousUint8Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -329,9 +393,10 @@ void testReturnStruct9BytesHomogeneousUint8Native() {
 }
 
 @Native<Struct9BytesInt4Or8ByteAligned Function(Int64, Int8)>(
-    symbol: 'ReturnStruct9BytesInt4Or8ByteAligned')
+  symbol: 'ReturnStruct9BytesInt4Or8ByteAligned',
+)
 external Struct9BytesInt4Or8ByteAligned
-    returnStruct9BytesInt4Or8ByteAlignedNative(int a0, int a1);
+returnStruct9BytesInt4Or8ByteAlignedNative(int a0, int a1);
 
 /// Return value in two integer registers on x64.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -351,9 +416,10 @@ void testReturnStruct9BytesInt4Or8ByteAlignedNative() {
 }
 
 @Native<Struct12BytesHomogeneousFloat Function(Float, Float, Float)>(
-    symbol: 'ReturnStruct12BytesHomogeneousFloat')
+  symbol: 'ReturnStruct12BytesHomogeneousFloat',
+)
 external Struct12BytesHomogeneousFloat
-    returnStruct12BytesHomogeneousFloatNative(double a0, double a1, double a2);
+returnStruct12BytesHomogeneousFloatNative(double a0, double a1, double a2);
 
 /// Return value in FPU registers, but does not use all registers on arm hardfp
 /// and arm64.
@@ -376,10 +442,15 @@ void testReturnStruct12BytesHomogeneousFloatNative() {
 }
 
 @Native<Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float)>(
-    symbol: 'ReturnStruct16BytesHomogeneousFloat')
+  symbol: 'ReturnStruct16BytesHomogeneousFloat',
+)
 external Struct16BytesHomogeneousFloat
-    returnStruct16BytesHomogeneousFloatNative(
-        double a0, double a1, double a2, double a3);
+returnStruct16BytesHomogeneousFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+);
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void testReturnStruct16BytesHomogeneousFloatNative() {
@@ -404,7 +475,8 @@ void testReturnStruct16BytesHomogeneousFloatNative() {
 }
 
 @Native<Struct16BytesMixed Function(Double, Int64)>(
-    symbol: 'ReturnStruct16BytesMixed')
+  symbol: 'ReturnStruct16BytesMixed',
+)
 external Struct16BytesMixed returnStruct16BytesMixedNative(double a0, int a1);
 
 /// Return value split over FP and integer register in x64.
@@ -424,9 +496,14 @@ void testReturnStruct16BytesMixedNative() {
 }
 
 @Native<Struct16BytesMixed2 Function(Float, Float, Float, Int32)>(
-    symbol: 'ReturnStruct16BytesMixed2')
+  symbol: 'ReturnStruct16BytesMixed2',
+)
 external Struct16BytesMixed2 returnStruct16BytesMixed2Native(
-    double a0, double a1, double a2, int a3);
+  double a0,
+  double a1,
+  double a2,
+  int a3,
+);
 
 /// Return value split over FP and integer register in x64.
 /// The integer register contains half float half int.
@@ -452,7 +529,8 @@ void testReturnStruct16BytesMixed2Native() {
 }
 
 @Native<Struct17BytesInt Function(Int64, Int64, Int8)>(
-    symbol: 'ReturnStruct17BytesInt')
+  symbol: 'ReturnStruct17BytesInt',
+)
 external Struct17BytesInt returnStruct17BytesIntNative(int a0, int a1, int a2);
 
 /// Return value returned in preallocated space passed by pointer on most ABIs.
@@ -477,47 +555,50 @@ void testReturnStruct17BytesIntNative() {
 }
 
 @Native<
-    Struct19BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8)>(symbol: 'ReturnStruct19BytesHomogeneousUint8')
+  Struct19BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct19BytesHomogeneousUint8')
 external Struct19BytesHomogeneousUint8
-    returnStruct19BytesHomogeneousUint8Native(
-        int a0,
-        int a1,
-        int a2,
-        int a3,
-        int a4,
-        int a5,
-        int a6,
-        int a7,
-        int a8,
-        int a9,
-        int a10,
-        int a11,
-        int a12,
-        int a13,
-        int a14,
-        int a15,
-        int a16,
-        int a17,
-        int a18);
+returnStruct19BytesHomogeneousUint8Native(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -563,8 +644,27 @@ void testReturnStruct19BytesHomogeneousUint8Native() {
   a17 = 18;
   a18 = 19;
 
-  final result = returnStruct19BytesHomogeneousUint8Native(a0, a1, a2, a3, a4,
-      a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18);
+  final result = returnStruct19BytesHomogeneousUint8Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+  );
 
   print("result = $result");
 
@@ -590,11 +690,16 @@ void testReturnStruct19BytesHomogeneousUint8Native() {
 }
 
 @Native<
-    Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32,
-        Int32)>(symbol: 'ReturnStruct20BytesHomogeneousInt32')
+  Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32)
+>(symbol: 'ReturnStruct20BytesHomogeneousInt32')
 external Struct20BytesHomogeneousInt32
-    returnStruct20BytesHomogeneousInt32Native(
-        int a0, int a1, int a2, int a3, int a4);
+returnStruct20BytesHomogeneousInt32Native(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Return value too big to go in cpu registers on arm64.
 void testReturnStruct20BytesHomogeneousInt32Native() {
@@ -622,11 +727,16 @@ void testReturnStruct20BytesHomogeneousInt32Native() {
 }
 
 @Native<
-    Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float,
-        Float)>(symbol: 'ReturnStruct20BytesHomogeneousFloat')
+  Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float)
+>(symbol: 'ReturnStruct20BytesHomogeneousFloat')
 external Struct20BytesHomogeneousFloat
-    returnStruct20BytesHomogeneousFloatNative(
-        double a0, double a1, double a2, double a3, double a4);
+returnStruct20BytesHomogeneousFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 void testReturnStruct20BytesHomogeneousFloatNative() {
@@ -654,11 +764,15 @@ void testReturnStruct20BytesHomogeneousFloatNative() {
 }
 
 @Native<
-    Struct32BytesHomogeneousDouble Function(Double, Double, Double,
-        Double)>(symbol: 'ReturnStruct32BytesHomogeneousDouble')
+  Struct32BytesHomogeneousDouble Function(Double, Double, Double, Double)
+>(symbol: 'ReturnStruct32BytesHomogeneousDouble')
 external Struct32BytesHomogeneousDouble
-    returnStruct32BytesHomogeneousDoubleNative(
-        double a0, double a1, double a2, double a3);
+returnStruct32BytesHomogeneousDoubleNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+);
 
 /// Return value in FPU registers on arm64.
 void testReturnStruct32BytesHomogeneousDoubleNative() {
@@ -683,11 +797,22 @@ void testReturnStruct32BytesHomogeneousDoubleNative() {
 }
 
 @Native<
-    Struct40BytesHomogeneousDouble Function(Double, Double, Double, Double,
-        Double)>(symbol: 'ReturnStruct40BytesHomogeneousDouble')
+  Struct40BytesHomogeneousDouble Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+  )
+>(symbol: 'ReturnStruct40BytesHomogeneousDouble')
 external Struct40BytesHomogeneousDouble
-    returnStruct40BytesHomogeneousDoubleNative(
-        double a0, double a1, double a2, double a3, double a4);
+returnStruct40BytesHomogeneousDoubleNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Return value too big to go in FPU registers on arm64.
 void testReturnStruct40BytesHomogeneousDoubleNative() {
@@ -715,265 +840,268 @@ void testReturnStruct40BytesHomogeneousDoubleNative() {
 }
 
 @Native<
-    Struct1024BytesHomogeneousUint64 Function(
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64)>(symbol: 'ReturnStruct1024BytesHomogeneousUint64')
+  Struct1024BytesHomogeneousUint64 Function(
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+  )
+>(symbol: 'ReturnStruct1024BytesHomogeneousUint64')
 external Struct1024BytesHomogeneousUint64
-    returnStruct1024BytesHomogeneousUint64Native(
-        int a0,
-        int a1,
-        int a2,
-        int a3,
-        int a4,
-        int a5,
-        int a6,
-        int a7,
-        int a8,
-        int a9,
-        int a10,
-        int a11,
-        int a12,
-        int a13,
-        int a14,
-        int a15,
-        int a16,
-        int a17,
-        int a18,
-        int a19,
-        int a20,
-        int a21,
-        int a22,
-        int a23,
-        int a24,
-        int a25,
-        int a26,
-        int a27,
-        int a28,
-        int a29,
-        int a30,
-        int a31,
-        int a32,
-        int a33,
-        int a34,
-        int a35,
-        int a36,
-        int a37,
-        int a38,
-        int a39,
-        int a40,
-        int a41,
-        int a42,
-        int a43,
-        int a44,
-        int a45,
-        int a46,
-        int a47,
-        int a48,
-        int a49,
-        int a50,
-        int a51,
-        int a52,
-        int a53,
-        int a54,
-        int a55,
-        int a56,
-        int a57,
-        int a58,
-        int a59,
-        int a60,
-        int a61,
-        int a62,
-        int a63,
-        int a64,
-        int a65,
-        int a66,
-        int a67,
-        int a68,
-        int a69,
-        int a70,
-        int a71,
-        int a72,
-        int a73,
-        int a74,
-        int a75,
-        int a76,
-        int a77,
-        int a78,
-        int a79,
-        int a80,
-        int a81,
-        int a82,
-        int a83,
-        int a84,
-        int a85,
-        int a86,
-        int a87,
-        int a88,
-        int a89,
-        int a90,
-        int a91,
-        int a92,
-        int a93,
-        int a94,
-        int a95,
-        int a96,
-        int a97,
-        int a98,
-        int a99,
-        int a100,
-        int a101,
-        int a102,
-        int a103,
-        int a104,
-        int a105,
-        int a106,
-        int a107,
-        int a108,
-        int a109,
-        int a110,
-        int a111,
-        int a112,
-        int a113,
-        int a114,
-        int a115,
-        int a116,
-        int a117,
-        int a118,
-        int a119,
-        int a120,
-        int a121,
-        int a122,
-        int a123,
-        int a124,
-        int a125,
-        int a126,
-        int a127);
+returnStruct1024BytesHomogeneousUint64Native(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+  int a19,
+  int a20,
+  int a21,
+  int a22,
+  int a23,
+  int a24,
+  int a25,
+  int a26,
+  int a27,
+  int a28,
+  int a29,
+  int a30,
+  int a31,
+  int a32,
+  int a33,
+  int a34,
+  int a35,
+  int a36,
+  int a37,
+  int a38,
+  int a39,
+  int a40,
+  int a41,
+  int a42,
+  int a43,
+  int a44,
+  int a45,
+  int a46,
+  int a47,
+  int a48,
+  int a49,
+  int a50,
+  int a51,
+  int a52,
+  int a53,
+  int a54,
+  int a55,
+  int a56,
+  int a57,
+  int a58,
+  int a59,
+  int a60,
+  int a61,
+  int a62,
+  int a63,
+  int a64,
+  int a65,
+  int a66,
+  int a67,
+  int a68,
+  int a69,
+  int a70,
+  int a71,
+  int a72,
+  int a73,
+  int a74,
+  int a75,
+  int a76,
+  int a77,
+  int a78,
+  int a79,
+  int a80,
+  int a81,
+  int a82,
+  int a83,
+  int a84,
+  int a85,
+  int a86,
+  int a87,
+  int a88,
+  int a89,
+  int a90,
+  int a91,
+  int a92,
+  int a93,
+  int a94,
+  int a95,
+  int a96,
+  int a97,
+  int a98,
+  int a99,
+  int a100,
+  int a101,
+  int a102,
+  int a103,
+  int a104,
+  int a105,
+  int a106,
+  int a107,
+  int a108,
+  int a109,
+  int a110,
+  int a111,
+  int a112,
+  int a113,
+  int a114,
+  int a115,
+  int a116,
+  int a117,
+  int a118,
+  int a119,
+  int a120,
+  int a121,
+  int a122,
+  int a123,
+  int a124,
+  int a125,
+  int a126,
+  int a127,
+);
 
 /// Test 1kb struct.
 void testReturnStruct1024BytesHomogeneousUint64Native() {
@@ -1236,134 +1364,135 @@ void testReturnStruct1024BytesHomogeneousUint64Native() {
   a127 = 128;
 
   final result = returnStruct1024BytesHomogeneousUint64Native(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39,
-      a40,
-      a41,
-      a42,
-      a43,
-      a44,
-      a45,
-      a46,
-      a47,
-      a48,
-      a49,
-      a50,
-      a51,
-      a52,
-      a53,
-      a54,
-      a55,
-      a56,
-      a57,
-      a58,
-      a59,
-      a60,
-      a61,
-      a62,
-      a63,
-      a64,
-      a65,
-      a66,
-      a67,
-      a68,
-      a69,
-      a70,
-      a71,
-      a72,
-      a73,
-      a74,
-      a75,
-      a76,
-      a77,
-      a78,
-      a79,
-      a80,
-      a81,
-      a82,
-      a83,
-      a84,
-      a85,
-      a86,
-      a87,
-      a88,
-      a89,
-      a90,
-      a91,
-      a92,
-      a93,
-      a94,
-      a95,
-      a96,
-      a97,
-      a98,
-      a99,
-      a100,
-      a101,
-      a102,
-      a103,
-      a104,
-      a105,
-      a106,
-      a107,
-      a108,
-      a109,
-      a110,
-      a111,
-      a112,
-      a113,
-      a114,
-      a115,
-      a116,
-      a117,
-      a118,
-      a119,
-      a120,
-      a121,
-      a122,
-      a123,
-      a124,
-      a125,
-      a126,
-      a127);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+    a40,
+    a41,
+    a42,
+    a43,
+    a44,
+    a45,
+    a46,
+    a47,
+    a48,
+    a49,
+    a50,
+    a51,
+    a52,
+    a53,
+    a54,
+    a55,
+    a56,
+    a57,
+    a58,
+    a59,
+    a60,
+    a61,
+    a62,
+    a63,
+    a64,
+    a65,
+    a66,
+    a67,
+    a68,
+    a69,
+    a70,
+    a71,
+    a72,
+    a73,
+    a74,
+    a75,
+    a76,
+    a77,
+    a78,
+    a79,
+    a80,
+    a81,
+    a82,
+    a83,
+    a84,
+    a85,
+    a86,
+    a87,
+    a88,
+    a89,
+    a90,
+    a91,
+    a92,
+    a93,
+    a94,
+    a95,
+    a96,
+    a97,
+    a98,
+    a99,
+    a100,
+    a101,
+    a102,
+    a103,
+    a104,
+    a105,
+    a106,
+    a107,
+    a108,
+    a109,
+    a110,
+    a111,
+    a112,
+    a113,
+    a114,
+    a115,
+    a116,
+    a117,
+    a118,
+    a119,
+    a120,
+    a121,
+    a122,
+    a123,
+    a124,
+    a125,
+    a126,
+    a127,
+  );
 
   print("result = $result");
 
@@ -1498,9 +1627,12 @@ void testReturnStruct1024BytesHomogeneousUint64Native() {
 }
 
 @Native<Struct3BytesPackedInt Function(Int8, Int16)>(
-    symbol: 'ReturnStruct3BytesPackedInt')
+  symbol: 'ReturnStruct3BytesPackedInt',
+)
 external Struct3BytesPackedInt returnStruct3BytesPackedIntNative(
-    int a0, int a1);
+  int a0,
+  int a1,
+);
 
 /// Small struct with mis-aligned member.
 void testReturnStruct3BytesPackedIntNative() {
@@ -1519,9 +1651,15 @@ void testReturnStruct3BytesPackedIntNative() {
 }
 
 @Native<Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8)>(
-    symbol: 'ReturnStruct8BytesPackedInt')
+  symbol: 'ReturnStruct8BytesPackedInt',
+)
 external Struct8BytesPackedInt returnStruct8BytesPackedIntNative(
-    int a0, int a1, int a2, int a3, int a4);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Struct with mis-aligned member.
 void testReturnStruct8BytesPackedIntNative() {
@@ -1549,9 +1687,12 @@ void testReturnStruct8BytesPackedIntNative() {
 }
 
 @Native<Struct9BytesPackedMixed Function(Uint8, Double)>(
-    symbol: 'ReturnStruct9BytesPackedMixed')
+  symbol: 'ReturnStruct9BytesPackedMixed',
+)
 external Struct9BytesPackedMixed returnStruct9BytesPackedMixedNative(
-    int a0, double a1);
+  int a0,
+  double a1,
+);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -1587,7 +1728,8 @@ void testReturnUnion4BytesMixedNative() {
 }
 
 @Native<Union8BytesNestedFloat Function(Double)>(
-    symbol: 'ReturnUnion8BytesNestedFloat')
+  symbol: 'ReturnUnion8BytesNestedFloat',
+)
 external Union8BytesNestedFloat returnUnion8BytesNestedFloatNative(double a0);
 
 /// Returning a floating point only union.
@@ -1604,9 +1746,11 @@ void testReturnUnion8BytesNestedFloatNative() {
 }
 
 @Native<Union9BytesNestedInt Function(Struct8BytesInt)>(
-    symbol: 'ReturnUnion9BytesNestedInt')
+  symbol: 'ReturnUnion9BytesNestedInt',
+)
 external Union9BytesNestedInt returnUnion9BytesNestedIntNative(
-    Struct8BytesInt a0);
+  Struct8BytesInt a0,
+);
 
 /// Returning a mixed-size union.
 void testReturnUnion9BytesNestedIntNative() {
@@ -1629,9 +1773,11 @@ void testReturnUnion9BytesNestedIntNative() {
 }
 
 @Native<Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)>(
-    symbol: 'ReturnUnion16BytesNestedFloat')
+  symbol: 'ReturnUnion16BytesNestedFloat',
+)
 external Union16BytesNestedFloat returnUnion16BytesNestedFloatNative(
-    Struct8BytesHomogeneousFloat a0);
+  Struct8BytesHomogeneousFloat a0,
+);
 
 /// Returning union with homogenous floats.
 void testReturnUnion16BytesNestedFloatNative() {

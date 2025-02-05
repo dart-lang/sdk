@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `ColoredBox`.';

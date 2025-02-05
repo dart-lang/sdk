@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' show enabledAsserts;
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 import 'dart:async';
 
@@ -37,7 +37,7 @@ class C {
 
 dummy() => 1;
 
-staticMembers() async {
+Future staticMembers() async {
   var a = C.staticField + await dummy();
   Expect.equals(a, 2);
   var f = (C.staticField = 1) + await dummy();
@@ -48,7 +48,8 @@ staticMembers() async {
   Expect.equals(c, 2);
   var d = C.staticFoo(2) + await dummy();
   Expect.equals(d, 3);
-  var e = C.staticField +
+  var e =
+      C.staticField +
       C.staticGetter +
       (C.staticSetter = 1) +
       C.staticFoo(1) +
@@ -56,7 +57,7 @@ staticMembers() async {
   Expect.equals(e, 5);
 }
 
-topLevelMembers() async {
+Future topLevelMembers() async {
   var a = globalVariable + await dummy();
   Expect.equals(a, 2);
   var b = topLevelGetter + await dummy();
@@ -65,7 +66,8 @@ topLevelMembers() async {
   Expect.equals(c, 2);
   var d = topLevelFoo(1) + await dummy();
   Expect.equals(d, 2);
-  var e = globalVariable +
+  var e =
+      globalVariable +
       topLevelGetter +
       (topLevelSetter = 1) +
       topLevelFoo(1) +
@@ -73,7 +75,7 @@ topLevelMembers() async {
   Expect.equals(e, 5);
 }
 
-instanceMembers() async {
+Future instanceMembers() async {
   var inst = new C();
   var a = inst.field + await dummy();
   Expect.equals(a, 2);
@@ -83,7 +85,8 @@ instanceMembers() async {
   Expect.equals(c, 2);
   var d = inst.foo(1) + await dummy();
   Expect.equals(d, 2);
-  var e = inst.field +
+  var e =
+      inst.field +
       inst.getter +
       (inst.setter = 1) +
       inst.foo(1) +
@@ -91,7 +94,7 @@ instanceMembers() async {
   Expect.equals(e, 5);
 }
 
-others() async {
+Future others() async {
   var a = "${globalVariable} ${await dummy()} " + await "someString";
   Expect.equals(a, "1 1 someString");
   var c = new C();
@@ -104,7 +107,7 @@ others() async {
   Expect.equals(e, 2);
 }
 
-conditionals() async {
+Future conditionals() async {
   var a = false;
   var b = true;
   var c = (a || b) || await dummy();
@@ -118,7 +121,7 @@ conditionals() async {
   } catch (e) {}
 }
 
-asserts() async {
+Future asserts() async {
   for (final FutureOr<T> Function<T>(T) func in <dynamic>[id, future]) {
     assert(await func(true));
     assert(id(true) as bool, await func("message"));
@@ -133,7 +136,7 @@ asserts() async {
   }
 }
 
-controlFlow() async {
+Future controlFlow() async {
   for (final FutureOr<T> Function<T>(T) func in <dynamic>[id, future]) {
     // For.
     var c = 0;
@@ -194,16 +197,12 @@ controlFlow() async {
         Expect.fail("unreachable");
     }
     // Return.
-    Expect.equals(
-        42,
-        await () async {
-          return await func(42);
-        }());
-    Expect.equals(
-        42,
-        await () async {
-          return func(42);
-        }());
+    Expect.equals(42, await () async {
+      return await func(42);
+    }());
+    Expect.equals(42, await () async {
+      return func(42);
+    }());
     // Yield.
     Stream<int> testStream1() async* {
       yield await func(42);

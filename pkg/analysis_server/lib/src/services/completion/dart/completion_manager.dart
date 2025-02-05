@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+library;
+
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
@@ -9,6 +13,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -17,7 +22,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -76,6 +81,10 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
+  /// Whether the number of suggestions initallly computed was greater than the
+  /// `maxSuggestions` for a given request, and they were truncated to fit.
+  bool isTruncated = false;
+
   DartCompletionManager({
     required this.budget,
     this.listener,
@@ -95,6 +104,12 @@ class DartCompletionManager {
     request.checkAborted();
 
     var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
+
+    // Don't suggest in comments.
+    if (request.target.isCommentText) {
+      return collector;
+    }
+
     try {
       var selection = request.unit.select(offset: request.offset, length: 0);
       if (selection == null) {
@@ -105,38 +120,59 @@ class DartCompletionManager {
       var matcher =
           targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
-      var operations = performance.run(
-        'InScopeCompletionPass',
-        (performance) {
-          var pass = InScopeCompletionPass(
-            state: state,
-            collector: collector,
-            skipImports: skipImports,
-            suggestOverrides: suggestOverrides,
-            suggestUris: suggestUris,
-          );
-          pass.computeSuggestions();
-          state.request.collectorLocationName = collector.completionLocation;
-          return pass.notImportedOperations;
-        },
-      );
+      var operations = performance.run('InScopeCompletionPass', (performance) {
+        var pass = InScopeCompletionPass(
+          state: state,
+          collector: collector,
+          skipImports: skipImports,
+          suggestOverrides: suggestOverrides,
+          suggestUris: suggestUris,
+        );
+        pass.computeSuggestions();
+        state.request.collectorLocationName = collector.completionLocation;
+        return pass.notImportedOperations;
+      });
 
       request.checkAborted();
       if (operations.isNotEmpty && notImportedSuggestions != null) {
-        await performance.runAsync(
-          'NotImportedCompletionPass',
-          (performance) async {
-            await NotImportedCompletionPass(
-                    state: state, collector: collector, operations: operations)
-                .computeSuggestions(performance: performance);
-          },
-        );
+        await performance.runAsync('NotImportedCompletionPass', (
+          performance,
+        ) async {
+          await NotImportedCompletionPass(
+            state: state,
+            collector: collector,
+            operations: operations,
+          ).computeSuggestions(performance: performance);
+        });
       }
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
       throw AbortCompletion();
     }
+    return collector;
+  }
+
+  /// Return a suggestion collector containing a finalized list of suggestions.
+  Future<SuggestionCollector> computeFinalizedCandidateSuggestions({
+    required int maxSuggestions,
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
+  }) async {
+    var collector = await computeCandidateSuggestions(
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+    );
+
+    var notImportedSuggestions = this.notImportedSuggestions;
+
+    if (notImportedSuggestions != null && collector.isIncomplete) {
+      notImportedSuggestions.isIncomplete = true;
+    }
+    // Compute relevance, sort and truncate list.
+    isTruncated = collector.suggestions.length > maxSuggestions;
+    collector.finalize(RelevanceComputer(request, listener));
     return collector;
   }
 
@@ -160,16 +196,23 @@ class DartCompletionManager {
     }
 
     var collector = await computeCandidateSuggestions(
-        maxSuggestions: maxSuggestions,
-        performance: performance,
-        request: request,
-        suggestOverrides: enableOverrideContributor,
-        suggestUris: enableUriContributor);
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+      suggestOverrides: enableOverrideContributor,
+      suggestUris: enableUriContributor,
+    );
 
-    var builder =
-        SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    await builder.suggestFromCandidates(collector.suggestions,
-        collector.preferConstants, collector.completionLocation);
+    var builder = SuggestionBuilder(
+      request,
+      useFilter: useFilter,
+      listener: listener,
+    );
+    await builder.suggestFromCandidates(
+      collector.suggestions,
+      collector.preferConstants,
+      collector.completionLocation,
+    );
 
     var notImportedSuggestions = this.notImportedSuggestions;
 
@@ -195,18 +238,19 @@ class DartCompletionRequest {
   /// context, or `null` if the context does not impose any type.
   final DartType? contextType;
 
-  /// Return the object used to resolve macros in Dartdoc comments.
-  final DartdocDirectiveInfo dartdocDirectiveInfo;
+  /// Return the object used to compute documentation for elements and resolve
+  /// macros in Dartdoc comments.
+  final DartDocumentationComputer documentationComputer;
 
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
 
   /// The library element of the file in which completion is requested.
-  final LibraryElement libraryElement;
+  final LibraryElement2 libraryElement;
 
   /// The library fragment of the file in which completion is requested.
-  final CompilationUnitElement libraryFragment;
+  final LibraryFragment libraryFragment;
 
   /// Return the offset within the source at which the completion is being
   /// requested.
@@ -229,10 +273,11 @@ class DartCompletionRequest {
   /// Return the source in which the completion is being requested.
   final Source source;
 
-  /// Return the completion target.  This determines what part of the parse tree
-  /// will receive the newly inserted text.
-  /// At a minimum, all declarations in the completion scope in [target.unit]
-  /// will be resolved if they can be resolved.
+  /// The completion target.
+  ///
+  /// This determines what part of the parse tree will receive the newly
+  /// inserted text. At a minimum, all declarations in the completion scope in
+  /// `target.unit` will be resolved if they can be resolved.
   final CompletionTarget target;
 
   /// The compilation unit in which completion is being requested.
@@ -254,7 +299,7 @@ class DartCompletionRequest {
     required FileState fileState,
     required String filePath,
     required String fileContent,
-    required CompilationUnitElement unitElement,
+    required LibraryFragment libraryFragment,
     required AstNode enclosingNode,
     required int offset,
     required CompilationUnit unit,
@@ -263,7 +308,7 @@ class DartCompletionRequest {
   }) {
     var target = CompletionTarget.forOffset(enclosingNode, offset);
 
-    var libraryElement = unitElement.library;
+    var libraryElement = libraryFragment.element;
     var featureComputer = FeatureComputer(
       libraryElement.typeSystem,
       libraryElement.typeProvider,
@@ -284,16 +329,18 @@ class DartCompletionRequest {
       completionPreference: completionPreference,
       content: fileContent,
       contextType: contextType,
-      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      documentationComputer: DartDocumentationComputer(
+        dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      ),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
-      libraryFragment: unitElement,
+      libraryFragment: libraryFragment,
       offset: offset,
       opType: opType,
       fileState: fileState,
       path: filePath,
       replacementRange: target.computeReplacementRange(offset),
-      source: unitElement.source,
+      source: libraryFragment.source,
       target: target,
       unit: unit,
     );
@@ -311,7 +358,7 @@ class DartCompletionRequest {
       fileState: resolvedUnit.fileState,
       filePath: resolvedUnit.path,
       fileContent: resolvedUnit.content,
-      unitElement: resolvedUnit.unit.declaredElement!,
+      libraryFragment: resolvedUnit.libraryFragment,
       enclosingNode: resolvedUnit.unit,
       offset: offset,
       unit: resolvedUnit.unit,
@@ -325,7 +372,7 @@ class DartCompletionRequest {
     required this.completionPreference,
     required this.content,
     required this.contextType,
-    required this.dartdocDirectiveInfo,
+    required this.documentationComputer,
     required this.featureComputer,
     required this.libraryElement,
     required this.libraryFragment,
@@ -457,7 +504,7 @@ class DartCompletionRequest {
   }
 }
 
-/// Information provided by [NotImportedContributor] in addition to suggestions.
+/// Information provided by [CompletionHandler]s in addition to suggestions.
 class NotImportedSuggestions {
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.

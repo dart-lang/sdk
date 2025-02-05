@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.crash;
-
 import 'dart:convert' show jsonEncode;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
@@ -67,7 +65,10 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     await stderr.flush();
   }
 
-  if (hasCrashed) return new Future<T>.error(error, trace);
+  if (hasCrashed) {
+    // Coverage-ignore-block(suite): Not run.
+    return new Future<T>.error(error, trace);
+  }
   if (error is Crash) {
     // Coverage-ignore-block(suite): Not run.
     trace = error.trace ?? trace;
@@ -80,7 +81,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
   hasCrashed = true;
   Map<String, dynamic> data = <String, dynamic>{};
   data["type"] = "crash";
-  data["client"] = "package:fasta";
+  data["client"] = "package:cfe";
   if (uri != null) data["uri"] = "$uri";
   if (charOffset != null) data["offset"] = charOffset;
   data["error"] = safeToString(error);
@@ -139,7 +140,9 @@ Future<T> withCrashReporting<T>(
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
-    if (e is Crash && e._hasBeenReported) {
+    if (e is Crash &&
+        // Coverage-ignore(suite): Not run.
+        e._hasBeenReported) {
       rethrow;
     }
     UriOffset? uriOffset = currentUriOffset();

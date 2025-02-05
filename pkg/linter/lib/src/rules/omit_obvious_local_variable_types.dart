@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/obvious_types.dart';
 
 const _desc = r'Omit obvious type annotations for local variables.';
@@ -17,7 +16,7 @@ class OmitObviousLocalVariableTypes extends LintRule {
       : super(
           name: LintNames.omit_obvious_local_variable_types,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

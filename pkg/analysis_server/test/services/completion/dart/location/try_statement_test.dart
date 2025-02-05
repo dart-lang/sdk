@@ -303,7 +303,7 @@ suggestions
   }
 
   Future<void>
-      test_afterCatchClause_beforeVariableDeclaration_withoutOn() async {
+  test_afterCatchClause_beforeVariableDeclaration_withoutOn() async {
     await computeSuggestions('''
 void f() {try {} catch (e) {} ^ Foo foo;}
 ''');

@@ -14,7 +14,7 @@ class DateUtils {
     'Thursday',
     'Friday',
     'Saturday',
-    'Sunday'
+    'Sunday',
   ];
 
   static const YESTERDAY = 'Yesterday';
@@ -50,7 +50,7 @@ class DateUtils {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     int month = months.indexOf(parts[2], 0) + 1;
     if (month < 0) {
@@ -73,8 +73,15 @@ class DateUtils {
     int zoneOffset = int.parse(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    DateTime result =
-        DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+    DateTime result = DateTime.utc(
+      year,
+      month,
+      day,
+      hours,
+      minutes,
+      seconds,
+      0,
+    );
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(Duration(hours: zoneOffset));
     // Then render it as a local time
@@ -115,13 +122,14 @@ class DateUtils {
     }
 
     return DateTime(
-        int.parse(date[0]),
-        int.parse(date[1]),
-        int.parse(date[2]),
-        int.parse(time[0]),
-        int.parse(time[1]),
-        int.parse(seconds[0]),
-        milliseconds);
+      int.parse(date[0]),
+      int.parse(date[1]),
+      int.parse(date[2]),
+      int.parse(time[0]),
+      int.parse(time[1]),
+      int.parse(seconds[0]),
+      milliseconds,
+    );
   }
 
   /// A date/time formatter that takes into account the current date/time:
@@ -138,12 +146,15 @@ class DateUtils {
 
     final now = DateTime.now();
     if (datesAreEqual(then, now)) {
-      return toHourMinutesString(Duration(
+      return toHourMinutesString(
+        Duration(
           days: 0,
           hours: then.hour,
           minutes: then.minute,
           seconds: then.second,
-          milliseconds: then.millisecond));
+          milliseconds: then.millisecond,
+        ),
+      );
     }
 
     final today = DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
@@ -197,8 +208,9 @@ class DateUtils {
       return "0$n";
     }
 
-    String mm =
-        twoDigits(duration.inMinutes.remainder(Duration.minutesPerHour));
+    String mm = twoDigits(
+      duration.inMinutes.remainder(Duration.minutesPerHour),
+    );
     return "$hours:$mm $a";
   }
 }

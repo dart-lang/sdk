@@ -9,7 +9,7 @@ library static_function_test;
 import 'dart:io';
 import 'dart:isolate';
 import 'static_function_lib.dart' as lib;
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 void function(SendPort port) {

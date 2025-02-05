@@ -40,9 +40,7 @@ class Point<T extends num> {
   ///
   /// **Legacy:** New usages of [Point] are discouraged.
   /// To learn more, check out the [Point] class API docs.
-  const Point(T x, T y)
-      : this.x = x,
-        this.y = y;
+  const Point(T x, T y) : this.x = x, this.y = y;
 
   String toString() => 'Point($x, $y)';
 

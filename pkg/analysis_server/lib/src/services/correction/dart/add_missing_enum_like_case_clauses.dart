@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -15,8 +16,9 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
@@ -34,7 +36,11 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         return;
       }
       var classElement = expressionType.element3;
-      var className = classElement.name;
+      var className = classElement.name3;
+      if (className == null) {
+        return;
+      }
+
       var caseNames = _caseNames(node);
       var missingNames = _constantNames(classElement)
         ..removeWhere((e) => caseNames.contains(e));
@@ -47,28 +53,30 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
         builder.insertCaseClauseAtEnd(
-            switchKeyword: node.switchKeyword,
-            rightParenthesis: node.rightParenthesis,
-            leftBracket: node.leftBracket,
-            rightBracket: node.rightBracket, (builder) {
-          for (var name in missingNames) {
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write('case ');
-            builder.write(className);
-            builder.write('.');
-            builder.write(name);
-            builder.writeln(':');
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write(singleIndent);
-            builder.writeln('// TODO: Handle this case.');
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write(singleIndent);
-            builder.writeln('break;');
-          }
-        });
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket,
+          (builder) {
+            for (var name in missingNames) {
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write('case ');
+              builder.write(className);
+              builder.write('.');
+              builder.write(name);
+              builder.writeln(':');
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write(singleIndent);
+              builder.writeln('// TODO: Handle this case.');
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write(singleIndent);
+              builder.writeln('break;');
+            }
+          },
+        );
       });
     }
   }
@@ -83,7 +91,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            caseNames.add(element.name);
+            caseNames.addIfNotNull(element.name3);
           }
         } else if (expression is PropertyAccess) {
           caseNames.add(expression.propertyName.name);
@@ -106,7 +114,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (field.type != type) {
         continue;
       }
-      constantNames.add(field.name);
+      constantNames.addIfNotNull(field.name3);
     }
     return constantNames;
   }

@@ -287,7 +287,7 @@ class ClassLookup {
 // TODO(johnniwinther): Update this to include all files in the cfe, and not
 //  only those reachable from 'compiler.dart'.
 final List<Uri> cfeOnlyEntryPoints = [
-  Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart')
+  Uri.base.resolve('pkg/front_end/tool/compile.dart')
 ];
 
 /// Filter function used to only analyze cfe source code.
@@ -309,7 +309,7 @@ bool cfeOnly(Uri uri) {
 // TODO(johnniwinther): Update this to include all files in cfe and backends,
 //  and not only those reachable from these entry points.
 List<Uri> cfeAndBackendsEntryPoints = [
-  Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart'),
+  Uri.base.resolve('pkg/front_end/tool/compile.dart'),
   Uri.base.resolve('pkg/vm/lib/kernel_front_end.dart'),
   Uri.base.resolve('pkg/compiler/lib/src/dart2js.dart'),
   Uri.base.resolve('pkg/dev_compiler/bin/dartdevc.dart'),

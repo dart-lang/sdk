@@ -47,9 +47,11 @@ void main() {
 
   assertThrows(() => RegExp("\\p{Age=V8_0}", unicode: true));
   assertDoesNotThrow(
-      () => RegExp("\\p{General_Category=Letter}", unicode: true));
+    () => RegExp("\\p{General_Category=Letter}", unicode: true),
+  );
   assertDoesNotThrow(() => RegExp("\\p{gc=L}", unicode: true));
   assertThrows(
-      () => RegExp("\\p{General_Category_Mask=Letter}", unicode: true));
+    () => RegExp("\\p{General_Category_Mask=Letter}", unicode: true),
+  );
   assertThrows(() => RegExp("\\p{gcm=L}", unicode: true));
 }

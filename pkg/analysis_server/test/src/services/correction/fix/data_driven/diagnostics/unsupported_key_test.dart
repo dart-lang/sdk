@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class UnsupportedKeyTest extends AbstractTransformSetParserTest {
   void test_rename() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -29,8 +30,8 @@ transforms:
     - kind: 'rename'
       oldName: 'A'
       newName: 'B'
-''', [
-      error(TransformSetErrorCode.unsupportedKey, 156, 7),
-    ]);
+''',
+      [error(TransformSetErrorCode.unsupportedKey, 156, 7)],
+    );
   }
 }

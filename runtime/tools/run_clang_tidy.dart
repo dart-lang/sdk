@@ -52,7 +52,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Iout/DebugX64/gen/third_party/perfetto/build_config',
     '-DTARGET_ARCH_$arch',
     '-DTESTING',
-    '-std=c++17',
+    '-std=c++20',
     '-x',
     'c++',
   ];
@@ -132,7 +132,7 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/vm/os_thread_linux.h',
   'runtime/vm/os_thread_macos.h',
   'runtime/vm/os_thread_win.h',
-  'runtime/vm/regexp_assembler_bytecode_inl.h',
+  'runtime/vm/regexp/regexp_assembler_bytecode_inl.h',
   'runtime/vm/simulator_arm.h',
   'runtime/vm/simulator_arm64.h',
   'runtime/vm/simulator_riscv.h',

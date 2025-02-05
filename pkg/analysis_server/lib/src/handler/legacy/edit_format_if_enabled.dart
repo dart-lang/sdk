@@ -20,7 +20,11 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditFormatIfEnabledHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   /// Format the given [file] with the given [languageVersion].
   ///
@@ -33,8 +37,8 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     var code = SourceCode(originalContent);
 
     var formatter = DartFormatter(
-        languageVersion:
-            languageVersion ?? DartFormatter.latestLanguageVersion);
+      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+    );
 
     var formatResult = formatter.formatSource(code);
     var formattedContent = formatResult.text;
@@ -51,8 +55,10 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = EditFormatIfEnabledParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditFormatIfEnabledParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var collection = AnalysisContextCollectionImpl(
       includedPaths: params.directories,
       resourceProvider: server.resourceProvider,
@@ -68,8 +74,10 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
   /// Format all of the Dart files in the given [context] whose associated
   /// `codeStyleOptions` enable formatting, adding the edits to the list of
   /// [sourceFileEdits].
-  Future<void> _formatInContext(DriverBasedAnalysisContext context,
-      List<SourceFileEdit> sourceFileEdits) async {
+  Future<void> _formatInContext(
+    DriverBasedAnalysisContext context,
+    List<SourceFileEdit> sourceFileEdits,
+  ) async {
     var pathContext = context.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
       // Skip anything but .dart files.
@@ -86,11 +94,14 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
         try {
           var library = await context.driver.getResolvedLibrary(filePath);
           var languageVersion = library.effectiveLanguageVersion;
-          var sourceEdits =
-              formatFile(resource, languageVersion: languageVersion);
+          var sourceEdits = formatFile(
+            resource,
+            languageVersion: languageVersion,
+          );
           if (sourceEdits.isNotEmpty) {
-            sourceFileEdits
-                .add(SourceFileEdit(filePath, 0, edits: sourceEdits));
+            sourceFileEdits.add(
+              SourceFileEdit(filePath, 0, edits: sourceEdits),
+            );
           }
         } catch (exception) {
           // Ignore files that can't be formatted.

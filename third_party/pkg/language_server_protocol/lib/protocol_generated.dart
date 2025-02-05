@@ -676,7 +676,7 @@ bool _canParseBoolSemanticTokensClientCapabilitiesRequestsRange(
   return true;
 }
 
-bool _canParseBoolSemanticTokensOptionsFull(
+bool _canParseBoolSemanticTokensFullDelta(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -693,9 +693,9 @@ bool _canParseBoolSemanticTokensOptionsFull(
     }
     if ((!nullCheck || value != null) &&
         (value is! bool &&
-            !SemanticTokensOptionsFull.canParse(value, reporter))) {
+            !SemanticTokensFullDelta.canParse(value, reporter))) {
       reporter.reportError(
-          'must be of type Either2<bool, SemanticTokensOptionsFull>');
+          'must be of type Either2<bool, SemanticTokensFullDelta>');
       return false;
     }
   } finally {
@@ -920,6 +920,111 @@ bool _canParseClientCapabilities(
   return true;
 }
 
+bool _canParseClientCodeActionKindOptions(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ClientCodeActionKindOptions.canParse(value, reporter)) {
+      reporter.reportError('must be of type ClientCodeActionKindOptions');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseClientCompletionItemOptionsKind(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ClientCompletionItemOptionsKind.canParse(value, reporter)) {
+      reporter.reportError('must be of type ClientCompletionItemOptionsKind');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseClientInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ClientInfo.canParse(value, reporter)) {
+      reporter.reportError('must be of type ClientInfo');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseClientSemanticTokensRequestOptions(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ClientSemanticTokensRequestOptions.canParse(value, reporter)) {
+      reporter
+          .reportError('must be of type ClientSemanticTokensRequestOptions');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseCodeActionClientCapabilities(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -1071,33 +1176,6 @@ bool _canParseCodeActionKind(
     if ((!nullCheck || value != null) &&
         !CodeActionKind.canParse(value, reporter)) {
       reporter.reportError('must be of type CodeActionKind');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
-bool _canParseCodeActionLiteralSupportCodeActionKind(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CodeActionLiteralSupportCodeActionKind.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type CodeActionLiteralSupportCodeActionKind');
       return false;
     }
   } finally {
@@ -1340,34 +1418,6 @@ bool _canParseCompletionClientCapabilitiesCompletionItem(
   return true;
 }
 
-bool _canParseCompletionClientCapabilitiesCompletionItemKind(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionClientCapabilitiesCompletionItemKind.canParse(
-            value, reporter)) {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesCompletionItemKind');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseCompletionClientCapabilitiesCompletionList(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -1421,7 +1471,7 @@ bool _canParseCompletionContext(
   return true;
 }
 
-bool _canParseCompletionItemEditRangeRange(
+bool _canParseCompletionItemDefaults(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -1437,10 +1487,8 @@ bool _canParseCompletionItemEditRangeRange(
       return false;
     }
     if ((!nullCheck || value != null) &&
-        (!CompletionItemEditRange.canParse(value, reporter) &&
-            !Range.canParse(value, reporter))) {
-      reporter.reportError(
-          'must be of type Either2<CompletionItemEditRange, Range>');
+        !CompletionItemDefaults.canParse(value, reporter)) {
+      reporter.reportError('must be of type CompletionItemDefaults');
       return false;
     }
   } finally {
@@ -1606,32 +1654,6 @@ bool _canParseCompletionItemTagSupport(
   return true;
 }
 
-bool _canParseCompletionListItemDefaults(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionListItemDefaults.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionListItemDefaults');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseCompletionOptions(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -1650,32 +1672,6 @@ bool _canParseCompletionOptions(
     if ((!nullCheck || value != null) &&
         !CompletionOptions.canParse(value, reporter)) {
       reporter.reportError('must be of type CompletionOptions');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
-bool _canParseCompletionOptionsCompletionItem(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionOptionsCompletionItem.canParse(value, reporter)) {
-      reporter.reportError('must be of type CompletionOptionsCompletionItem');
       return false;
     }
   } finally {
@@ -2293,6 +2289,34 @@ bool _canParseDocumentSymbolClientCapabilitiesTagSupport(
   return true;
 }
 
+bool _canParseEditRangeWithInsertReplaceRange(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (!EditRangeWithInsertReplace.canParse(value, reporter) &&
+            !Range.canParse(value, reporter))) {
+      reporter.reportError(
+          'must be of type Either2<EditRangeWithInsertReplace, Range>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseExecuteCommandClientCapabilities(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2810,58 +2834,6 @@ bool _canParseImplementationClientCapabilities(
     if ((!nullCheck || value != null) &&
         !ImplementationClientCapabilities.canParse(value, reporter)) {
       reporter.reportError('must be of type ImplementationClientCapabilities');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
-bool _canParseInitializeParamsClientInfo(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !InitializeParamsClientInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type InitializeParamsClientInfo');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
-bool _canParseInitializeResultServerInfo(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !InitializeResultServerInfo.canParse(value, reporter)) {
-      reporter.reportError('must be of type InitializeResultServerInfo');
       return false;
     }
   } finally {
@@ -4352,7 +4324,7 @@ bool _canParseListSymbolTag(
 }
 
 bool
-    _canParseListTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+    _canParseListTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
         Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
         {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -4370,8 +4342,9 @@ bool
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> ||
             value.any((item) =>
-                !TextDocumentContentChangeEvent1.canParse(item, reporter) &&
-                !TextDocumentContentChangeEvent2.canParse(item, reporter)))) {
+                !TextDocumentContentChangePartial.canParse(item, reporter) &&
+                !TextDocumentContentChangeWholeDocument.canParse(
+                    item, reporter)))) {
       reporter
           .reportError('must be of type List<TextDocumentContentChangeEvent>');
       return false;
@@ -4382,7 +4355,7 @@ bool
   return true;
 }
 
-bool _canParseListTextDocumentFilterWithScheme(
+bool _canParseListTextDocumentFilterScheme(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -4400,9 +4373,8 @@ bool _canParseListTextDocumentFilterWithScheme(
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> ||
             value.any((item) =>
-                !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
-      reporter
-          .reportError('must be of type List<TextDocumentFilterWithScheme>');
+                !TextDocumentFilterScheme.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<TextDocumentFilterScheme>');
       return false;
     }
   } finally {
@@ -5681,33 +5653,6 @@ bool _canParseSemanticTokensClientCapabilities(
   return true;
 }
 
-bool _canParseSemanticTokensClientCapabilitiesRequests(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !SemanticTokensClientCapabilitiesRequests.canParse(value, reporter)) {
-      reporter.reportError(
-          'must be of type SemanticTokensClientCapabilitiesRequests');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseSemanticTokensLegend(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -5815,7 +5760,7 @@ bool _canParseServerCapabilities(
   return true;
 }
 
-bool _canParseServerCapabilitiesWorkspace(
+bool _canParseServerCompletionItemOptions(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -5831,8 +5776,34 @@ bool _canParseServerCapabilitiesWorkspace(
       return false;
     }
     if ((!nullCheck || value != null) &&
-        !ServerCapabilitiesWorkspace.canParse(value, reporter)) {
-      reporter.reportError('must be of type ServerCapabilitiesWorkspace');
+        !ServerCompletionItemOptions.canParse(value, reporter)) {
+      reporter.reportError('must be of type ServerCompletionItemOptions');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseServerInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ServerInfo.canParse(value, reporter)) {
+      reporter.reportError('must be of type ServerInfo');
       return false;
     }
   } finally {
@@ -6395,7 +6366,7 @@ bool _canParseTextEdit(
   return true;
 }
 
-bool _canParseTraceValues(
+bool _canParseTraceValue(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -6411,8 +6382,8 @@ bool _canParseTraceValues(
       return false;
     }
     if ((!nullCheck || value != null) &&
-        !TraceValues.canParse(value, reporter)) {
-      reporter.reportError('must be of type TraceValues');
+        !TraceValue.canParse(value, reporter)) {
+      reporter.reportError('must be of type TraceValue');
       return false;
     }
   } finally {
@@ -6867,6 +6838,32 @@ bool _canParseWorkspaceFoldersServerCapabilities(
   return true;
 }
 
+bool _canParseWorkspaceOptions(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !WorkspaceOptions.canParse(value, reporter)) {
+      reporter.reportError('must be of type WorkspaceOptions');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseWorkspaceSymbolClientCapabilities(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -7239,14 +7236,14 @@ Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>
           : throw '$value was not one of (bool, SemanticTokensClientCapabilitiesRequestsRange)';
 }
 
-Either2<bool, SemanticTokensOptionsFull> _eitherBoolSemanticTokensOptionsFull(
+Either2<bool, SemanticTokensFullDelta> _eitherBoolSemanticTokensFullDelta(
     Object? value) {
   return value is bool
       ? Either2.t1(value)
-      : SemanticTokensOptionsFull.canParse(value, nullLspJsonReporter)
+      : SemanticTokensFullDelta.canParse(value, nullLspJsonReporter)
           ? Either2.t2(
-              SemanticTokensOptionsFull.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (bool, SemanticTokensOptionsFull)';
+              SemanticTokensFullDelta.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SemanticTokensFullDelta)';
 }
 
 Either2<bool, SemanticTokensOptionsRange> _eitherBoolSemanticTokensOptionsRange(
@@ -7307,16 +7304,6 @@ Either2<bool, WorkspaceSymbolOptions> _eitherBoolWorkspaceSymbolOptions(
           : throw '$value was not one of (bool, WorkspaceSymbolOptions)';
 }
 
-Either2<CompletionItemEditRange, Range> _eitherCompletionItemEditRangeRange(
-    Object? value) {
-  return CompletionItemEditRange.canParse(value, nullLspJsonReporter)
-      ? Either2.t1(
-          CompletionItemEditRange.fromJson(value as Map<String, Object?>))
-      : Range.canParse(value, nullLspJsonReporter)
-          ? Either2.t2(Range.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (CompletionItemEditRange, Range)';
-}
-
 Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>
     _eitherCreateFileDeleteFileRenameFileTextDocumentEdit(Object? value) {
   return CreateFile.canParse(value, nullLspJsonReporter)
@@ -7339,6 +7326,16 @@ Either2<DiagnosticOptions, DiagnosticRegistrationOptions>
           ? Either2.t2(DiagnosticRegistrationOptions.fromJson(
               value as Map<String, Object?>))
           : throw '$value was not one of (DiagnosticOptions, DiagnosticRegistrationOptions)';
+}
+
+Either2<EditRangeWithInsertReplace, Range>
+    _eitherEditRangeWithInsertReplaceRange(Object? value) {
+  return EditRangeWithInsertReplace.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          EditRangeWithInsertReplace.fromJson(value as Map<String, Object?>))
+      : Range.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(Range.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (EditRangeWithInsertReplace, Range)';
 }
 
 Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>
@@ -7481,16 +7478,18 @@ Either2<LspPattern, RelativePattern> _eitherStringRelativePattern(
           : throw '$value was not one of (LspPattern, RelativePattern)';
 }
 
-Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>
-    _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+Either2<TextDocumentContentChangePartial,
+        TextDocumentContentChangeWholeDocument>
+    _eitherTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
         Object? value) {
-  return TextDocumentContentChangeEvent1.canParse(value, nullLspJsonReporter)
-      ? Either2.t1(TextDocumentContentChangeEvent1.fromJson(
+  return TextDocumentContentChangePartial.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(TextDocumentContentChangePartial.fromJson(
           value as Map<String, Object?>))
-      : TextDocumentContentChangeEvent2.canParse(value, nullLspJsonReporter)
-          ? Either2.t2(TextDocumentContentChangeEvent2.fromJson(
+      : TextDocumentContentChangeWholeDocument.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(TextDocumentContentChangeWholeDocument.fromJson(
               value as Map<String, Object?>))
-          : throw '$value was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)';
+          : throw '$value was not one of (TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument)';
 }
 
 Either2<TextDocumentSyncKind, TextDocumentSyncOptions>
@@ -7541,6 +7540,8 @@ typedef CallHierarchyOutgoingCallsResult = List<CallHierarchyOutgoingCall>?;
 /// An identifier to refer to a change annotation stored with a workspace edit.
 typedef ChangeAnnotationIdentifier = String;
 
+typedef CodeActionLiteralSupportCodeActionKind = ClientCodeActionKindOptions;
+
 /// The declaration of a symbol representation as one or many [Location].
 typedef Declaration = Either2<List<Location>, Location>;
 
@@ -7589,7 +7590,7 @@ typedef DocumentFilter
 /// 'json', pattern: '**∕tsconfig.json' }]`;
 ///
 /// The use of a string as a document filter is deprecated @since 3.16.0.
-typedef DocumentSelector = List<TextDocumentFilterWithScheme>;
+typedef DocumentSelector = List<TextDocumentFilterScheme>;
 
 /// The glob pattern. Either a string pattern or a relative pattern.
 ///
@@ -7634,7 +7635,7 @@ typedef NotebookDocumentFilter = Either3<NotebookDocumentFilter1,
     NotebookDocumentFilter2, NotebookDocumentFilter3>;
 
 typedef PrepareRenameResult
-    = Either3<PlaceholderAndRange, PrepareRenameResult2, Range>;
+    = Either3<PrepareRenamePlaceholder, PrepareRenameResult2, Range>;
 
 typedef ProgressToken = Either2<int, String>;
 
@@ -7661,8 +7662,11 @@ typedef TextDocumentCompletionResult
 
 /// An event describing a change to a text document. If only a text is provided
 /// it is considered to be the full content of the document.
-typedef TextDocumentContentChangeEvent
-    = Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>;
+typedef TextDocumentContentChangeEvent = Either2<
+    TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>;
+
+typedef TextDocumentContentChangeEvent2
+    = TextDocumentContentChangeWholeDocument;
 
 /// Result for a request to resolve the type definition locations of a symbol at
 /// a given text document position. The request's parameter is of type
@@ -7716,7 +7720,7 @@ typedef TextDocumentDocumentSymbolResult
 ///
 /// @since 3.17.0
 typedef TextDocumentFilter = Either3<TextDocumentFilter1,
-    TextDocumentFilterWithScheme, TextDocumentFilter3>;
+    TextDocumentFilterScheme, TextDocumentFilter3>;
 
 /// Result for a request to provide folding ranges in a document. The request's
 /// parameter is of type [FoldingRangeParams], the response is of type
@@ -8979,7 +8983,7 @@ class CallHierarchyRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -9028,7 +9032,7 @@ class CallHierarchyRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -9049,7 +9053,7 @@ class CallHierarchyRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -9352,6 +9356,274 @@ class ClientCapabilities implements ToJsonable {
       textDocument: textDocument,
       window: window,
       workspace: workspace,
+    );
+  }
+}
+
+class ClientCodeActionKindOptions implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ClientCodeActionKindOptions.canParse,
+    ClientCodeActionKindOptions.fromJson,
+  );
+
+  /// The code action kind values the client supports. When this property exists
+  /// the client also guarantees that it will handle values outside its set
+  /// gracefully and falls back to a default value when unknown.
+  final List<CodeActionKind> valueSet;
+
+  ClientCodeActionKindOptions({
+    required this.valueSet,
+  });
+
+  @override
+  int get hashCode => lspHashCode(valueSet);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClientCodeActionKindOptions &&
+        other.runtimeType == ClientCodeActionKindOptions &&
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseListCodeActionKind(obj, reporter, 'valueSet',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ClientCodeActionKindOptions');
+      return false;
+    }
+  }
+
+  static ClientCodeActionKindOptions fromJson(Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
+    return ClientCodeActionKindOptions(
+      valueSet: valueSet,
+    );
+  }
+}
+
+class ClientCompletionItemOptionsKind implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ClientCompletionItemOptionsKind.canParse,
+    ClientCompletionItemOptionsKind.fromJson,
+  );
+
+  /// The completion item kind values the client supports. When this property
+  /// exists the client also guarantees that it will handle values outside its
+  /// set gracefully and falls back to a default value when unknown.
+  ///
+  /// If this property is not present the client only supports the completion
+  /// items kinds from `Text` to `Reference` as defined in the initial version
+  /// of the protocol.
+  final List<CompletionItemKind>? valueSet;
+
+  ClientCompletionItemOptionsKind({
+    this.valueSet,
+  });
+
+  @override
+  int get hashCode => lspHashCode(valueSet);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClientCompletionItemOptionsKind &&
+        other.runtimeType == ClientCompletionItemOptionsKind &&
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (valueSet != null) {
+      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseListCompletionItemKind(obj, reporter, 'valueSet',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ClientCompletionItemOptionsKind');
+      return false;
+    }
+  }
+
+  static ClientCompletionItemOptionsKind fromJson(Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>?)
+        ?.map((item) => CompletionItemKind.fromJson(item as int))
+        .toList();
+    return ClientCompletionItemOptionsKind(
+      valueSet: valueSet,
+    );
+  }
+}
+
+class ClientInfo implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ClientInfo.canParse,
+    ClientInfo.fromJson,
+  );
+
+  /// The name of the client as defined by the client.
+  final String name;
+
+  /// The client's version as defined by the client.
+  final String? version;
+
+  ClientInfo({
+    required this.name,
+    this.version,
+  });
+  @override
+  int get hashCode => Object.hash(
+        name,
+        version,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClientInfo &&
+        other.runtimeType == ClientInfo &&
+        name == other.name &&
+        version == other.version;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['name'] = name;
+    if (version != null) {
+      result['version'] = version;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'version',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ClientInfo');
+      return false;
+    }
+  }
+
+  static ClientInfo fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
+    return ClientInfo(
+      name: name,
+      version: version,
+    );
+  }
+}
+
+class ClientSemanticTokensRequestOptions implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ClientSemanticTokensRequestOptions.canParse,
+    ClientSemanticTokensRequestOptions.fromJson,
+  );
+
+  /// The client will send the `textDocument/semanticTokens/full` request if the
+  /// server provides a corresponding handler.
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>? full;
+
+  /// The client will send the `textDocument/semanticTokens/range` request if
+  /// the server provides a corresponding handler.
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>? range;
+
+  ClientSemanticTokensRequestOptions({
+    this.full,
+    this.range,
+  });
+  @override
+  int get hashCode => Object.hash(
+        full,
+        range,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClientSemanticTokensRequestOptions &&
+        other.runtimeType == ClientSemanticTokensRequestOptions &&
+        full == other.full &&
+        range == other.range;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (full != null) {
+      result['full'] = full;
+    }
+    if (range != null) {
+      result['range'] = range;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseBoolSemanticTokensClientCapabilitiesRequestsFull(
+          obj, reporter, 'full',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseBoolSemanticTokensClientCapabilitiesRequestsRange(
+          obj, reporter, 'range',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter
+          .reportError('must be of type ClientSemanticTokensRequestOptions');
+      return false;
+    }
+  }
+
+  static ClientSemanticTokensRequestOptions fromJson(
+      Map<String, Object?> json) {
+    final fullJson = json['full'];
+    final full = fullJson == null
+        ? null
+        : _eitherBoolSemanticTokensClientCapabilitiesRequestsFull(fullJson);
+    final rangeJson = json['range'];
+    final range = rangeJson == null
+        ? null
+        : _eitherBoolSemanticTokensClientCapabilitiesRequestsRange(rangeJson);
+    return ClientSemanticTokensRequestOptions(
+      full: full,
+      range: range,
     );
   }
 }
@@ -9750,7 +10022,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   );
 
   /// The code action kind is support with the following value set.
-  final CodeActionLiteralSupportCodeActionKind codeActionKind;
+  final ClientCodeActionKindOptions codeActionKind;
 
   CodeActionClientCapabilitiesCodeActionLiteralSupport({
     required this.codeActionKind,
@@ -9779,7 +10051,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseCodeActionLiteralSupportCodeActionKind(
+      return _canParseClientCodeActionKindOptions(
           obj, reporter, 'codeActionKind',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -9792,7 +10064,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   static CodeActionClientCapabilitiesCodeActionLiteralSupport fromJson(
       Map<String, Object?> json) {
     final codeActionKindJson = json['codeActionKind'];
-    final codeActionKind = CodeActionLiteralSupportCodeActionKind.fromJson(
+    final codeActionKind = ClientCodeActionKindOptions.fromJson(
         codeActionKindJson as Map<String, Object?>);
     return CodeActionClientCapabilitiesCodeActionLiteralSupport(
       codeActionKind: codeActionKind,
@@ -10091,64 +10363,6 @@ class CodeActionKind implements ToJsonable {
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
 }
 
-class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CodeActionLiteralSupportCodeActionKind.canParse,
-    CodeActionLiteralSupportCodeActionKind.fromJson,
-  );
-
-  /// The code action kind values the client supports. When this property exists
-  /// the client also guarantees that it will handle values outside its set
-  /// gracefully and falls back to a default value when unknown.
-  final List<CodeActionKind> valueSet;
-
-  CodeActionLiteralSupportCodeActionKind({
-    required this.valueSet,
-  });
-
-  @override
-  int get hashCode => lspHashCode(valueSet);
-
-  @override
-  bool operator ==(Object other) {
-    return other is CodeActionLiteralSupportCodeActionKind &&
-        other.runtimeType == CodeActionLiteralSupportCodeActionKind &&
-        const DeepCollectionEquality().equals(valueSet, other.valueSet);
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      return _canParseListCodeActionKind(obj, reporter, 'valueSet',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type CodeActionLiteralSupportCodeActionKind');
-      return false;
-    }
-  }
-
-  static CodeActionLiteralSupportCodeActionKind fromJson(
-      Map<String, Object?> json) {
-    final valueSetJson = json['valueSet'];
-    final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => CodeActionKind.fromJson(item as String))
-        .toList();
-    return CodeActionLiteralSupportCodeActionKind(
-      valueSet: valueSet,
-    );
-  }
-}
-
 /// Provider options for a [CodeActionRequest].
 class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -10389,7 +10603,7 @@ class CodeActionRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a code
   /// action.
@@ -10451,7 +10665,7 @@ class CodeActionRegistrationOptions
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -10476,7 +10690,7 @@ class CodeActionRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -10903,7 +11117,7 @@ class CodeLensRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// Code lens has a resolve provider as well.
   @override
@@ -10951,7 +11165,7 @@ class CodeLensRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -10972,7 +11186,7 @@ class CodeLensRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -11526,7 +11740,7 @@ class CompletionClientCapabilities implements ToJsonable {
   /// The client supports the following `CompletionItem` specific capabilities.
   final CompletionClientCapabilitiesCompletionItem? completionItem;
 
-  final CompletionClientCapabilitiesCompletionItemKind? completionItemKind;
+  final ClientCompletionItemOptionsKind? completionItemKind;
 
   /// The client supports the following `CompletionList` specific capabilities.
   ///
@@ -11610,7 +11824,7 @@ class CompletionClientCapabilities implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionClientCapabilitiesCompletionItemKind(
+      if (!_canParseClientCompletionItemOptionsKind(
           obj, reporter, 'completionItemKind',
           allowsUndefined: true, allowsNull: false)) {
         return false;
@@ -11644,7 +11858,7 @@ class CompletionClientCapabilities implements ToJsonable {
         : null;
     final completionItemKindJson = json['completionItemKind'];
     final completionItemKind = completionItemKindJson != null
-        ? CompletionClientCapabilitiesCompletionItemKind.fromJson(
+        ? ClientCompletionItemOptionsKind.fromJson(
             completionItemKindJson as Map<String, Object?>)
         : null;
     final completionListJson = json['completionList'];
@@ -11907,70 +12121,6 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       resolveSupport: resolveSupport,
       snippetSupport: snippetSupport,
       tagSupport: tagSupport,
-    );
-  }
-}
-
-class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionClientCapabilitiesCompletionItemKind.canParse,
-    CompletionClientCapabilitiesCompletionItemKind.fromJson,
-  );
-
-  /// The completion item kind values the client supports. When this property
-  /// exists the client also guarantees that it will handle values outside its
-  /// set gracefully and falls back to a default value when unknown.
-  ///
-  /// If this property is not present the client only supports the completion
-  /// items kinds from `Text` to `Reference` as defined in the initial version
-  /// of the protocol.
-  final List<CompletionItemKind>? valueSet;
-
-  CompletionClientCapabilitiesCompletionItemKind({
-    this.valueSet,
-  });
-
-  @override
-  int get hashCode => lspHashCode(valueSet);
-
-  @override
-  bool operator ==(Object other) {
-    return other is CompletionClientCapabilitiesCompletionItemKind &&
-        other.runtimeType == CompletionClientCapabilitiesCompletionItemKind &&
-        const DeepCollectionEquality().equals(valueSet, other.valueSet);
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (valueSet != null) {
-      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      return _canParseListCompletionItemKind(obj, reporter, 'valueSet',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesCompletionItemKind');
-      return false;
-    }
-  }
-
-  static CompletionClientCapabilitiesCompletionItemKind fromJson(
-      Map<String, Object?> json) {
-    final valueSetJson = json['valueSet'];
-    final valueSet = (valueSetJson as List<Object?>?)
-        ?.map((item) => CompletionItemKind.fromJson(item as int))
-        .toList();
-    return CompletionClientCapabilitiesCompletionItemKind(
-      valueSet: valueSet,
     );
   }
 }
@@ -12555,39 +12705,82 @@ class CompletionItem implements ToJsonable {
   }
 }
 
-class CompletionItemEditRange implements ToJsonable {
+class CompletionItemDefaults implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    CompletionItemEditRange.canParse,
-    CompletionItemEditRange.fromJson,
+    CompletionItemDefaults.canParse,
+    CompletionItemDefaults.fromJson,
   );
 
-  final Range insert;
+  /// A default commit character set.
+  ///
+  /// @since 3.17.0
+  final List<String>? commitCharacters;
 
-  final Range replace;
+  /// A default data value.
+  ///
+  /// @since 3.17.0
+  final LSPAny data;
 
-  CompletionItemEditRange({
-    required this.insert,
-    required this.replace,
+  /// A default edit range.
+  ///
+  /// @since 3.17.0
+  final Either2<EditRangeWithInsertReplace, Range>? editRange;
+
+  /// A default insert text format.
+  ///
+  /// @since 3.17.0
+  final InsertTextFormat? insertTextFormat;
+
+  /// A default insert text mode.
+  ///
+  /// @since 3.17.0
+  final InsertTextMode? insertTextMode;
+  CompletionItemDefaults({
+    this.commitCharacters,
+    this.data,
+    this.editRange,
+    this.insertTextFormat,
+    this.insertTextMode,
   });
   @override
   int get hashCode => Object.hash(
-        insert,
-        replace,
+        lspHashCode(commitCharacters),
+        data,
+        editRange,
+        insertTextFormat,
+        insertTextMode,
       );
 
   @override
   bool operator ==(Object other) {
-    return other is CompletionItemEditRange &&
-        other.runtimeType == CompletionItemEditRange &&
-        insert == other.insert &&
-        replace == other.replace;
+    return other is CompletionItemDefaults &&
+        other.runtimeType == CompletionItemDefaults &&
+        const DeepCollectionEquality()
+            .equals(commitCharacters, other.commitCharacters) &&
+        data == other.data &&
+        editRange == other.editRange &&
+        insertTextFormat == other.insertTextFormat &&
+        insertTextMode == other.insertTextMode;
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['insert'] = insert.toJson();
-    result['replace'] = replace.toJson();
+    if (commitCharacters != null) {
+      result['commitCharacters'] = commitCharacters;
+    }
+    if (data != null) {
+      result['data'] = data;
+    }
+    if (editRange != null) {
+      result['editRange'] = editRange;
+    }
+    if (insertTextFormat != null) {
+      result['insertTextFormat'] = insertTextFormat?.toJson();
+    }
+    if (insertTextMode != null) {
+      result['insertTextMode'] = insertTextMode?.toJson();
+    }
     return result;
   }
 
@@ -12596,26 +12789,51 @@ class CompletionItemEditRange implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseRange(obj, reporter, 'insert',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseListString(obj, reporter, 'commitCharacters',
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseRange(obj, reporter, 'replace',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseEditRangeWithInsertReplaceRange(obj, reporter, 'editRange',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseInsertTextMode(obj, reporter, 'insertTextMode',
+          allowsUndefined: true, allowsNull: false);
     } else {
-      reporter.reportError('must be of type CompletionItemEditRange');
+      reporter.reportError('must be of type CompletionItemDefaults');
       return false;
     }
   }
 
-  static CompletionItemEditRange fromJson(Map<String, Object?> json) {
-    final insertJson = json['insert'];
-    final insert = Range.fromJson(insertJson as Map<String, Object?>);
-    final replaceJson = json['replace'];
-    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
-    return CompletionItemEditRange(
-      insert: insert,
-      replace: replace,
+  static CompletionItemDefaults fromJson(Map<String, Object?> json) {
+    final commitCharactersJson = json['commitCharacters'];
+    final commitCharacters = (commitCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final dataJson = json['data'];
+    final data = dataJson;
+    final editRangeJson = json['editRange'];
+    final editRange = editRangeJson == null
+        ? null
+        : _eitherEditRangeWithInsertReplaceRange(editRangeJson);
+    final insertTextFormatJson = json['insertTextFormat'];
+    final insertTextFormat = insertTextFormatJson != null
+        ? InsertTextFormat.fromJson(insertTextFormatJson as int)
+        : null;
+    final insertTextModeJson = json['insertTextMode'];
+    final insertTextMode = insertTextModeJson != null
+        ? InsertTextMode.fromJson(insertTextModeJson as int)
+        : null;
+    return CompletionItemDefaults(
+      commitCharacters: commitCharacters,
+      data: data,
+      editRange: editRange,
+      insertTextFormat: insertTextFormat,
+      insertTextMode: insertTextMode,
     );
   }
 }
@@ -12964,7 +13182,7 @@ class CompletionList implements ToJsonable {
   /// support for this via the `completionList.itemDefaults` capability.
   ///
   /// @since 3.17.0
-  final CompletionListItemDefaults? itemDefaults;
+  final CompletionItemDefaults? itemDefaults;
 
   /// The completion items.
   final List<CompletionItem> items;
@@ -13009,7 +13227,7 @@ class CompletionList implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionListItemDefaults(obj, reporter, 'itemDefaults',
+      if (!_canParseCompletionItemDefaults(obj, reporter, 'itemDefaults',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -13026,7 +13244,7 @@ class CompletionList implements ToJsonable {
     final isIncomplete = isIncompleteJson as bool;
     final itemDefaultsJson = json['itemDefaults'];
     final itemDefaults = itemDefaultsJson != null
-        ? CompletionListItemDefaults.fromJson(
+        ? CompletionItemDefaults.fromJson(
             itemDefaultsJson as Map<String, Object?>)
         : null;
     final itemsJson = json['items'];
@@ -13037,139 +13255,6 @@ class CompletionList implements ToJsonable {
       isIncomplete: isIncomplete,
       itemDefaults: itemDefaults,
       items: items,
-    );
-  }
-}
-
-class CompletionListItemDefaults implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionListItemDefaults.canParse,
-    CompletionListItemDefaults.fromJson,
-  );
-
-  /// A default commit character set.
-  ///
-  /// @since 3.17.0
-  final List<String>? commitCharacters;
-
-  /// A default data value.
-  ///
-  /// @since 3.17.0
-  final LSPAny data;
-
-  /// A default edit range.
-  ///
-  /// @since 3.17.0
-  final Either2<CompletionItemEditRange, Range>? editRange;
-
-  /// A default insert text format.
-  ///
-  /// @since 3.17.0
-  final InsertTextFormat? insertTextFormat;
-
-  /// A default insert text mode.
-  ///
-  /// @since 3.17.0
-  final InsertTextMode? insertTextMode;
-  CompletionListItemDefaults({
-    this.commitCharacters,
-    this.data,
-    this.editRange,
-    this.insertTextFormat,
-    this.insertTextMode,
-  });
-  @override
-  int get hashCode => Object.hash(
-        lspHashCode(commitCharacters),
-        data,
-        editRange,
-        insertTextFormat,
-        insertTextMode,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is CompletionListItemDefaults &&
-        other.runtimeType == CompletionListItemDefaults &&
-        const DeepCollectionEquality()
-            .equals(commitCharacters, other.commitCharacters) &&
-        data == other.data &&
-        editRange == other.editRange &&
-        insertTextFormat == other.insertTextFormat &&
-        insertTextMode == other.insertTextMode;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (commitCharacters != null) {
-      result['commitCharacters'] = commitCharacters;
-    }
-    if (data != null) {
-      result['data'] = data;
-    }
-    if (editRange != null) {
-      result['editRange'] = editRange;
-    }
-    if (insertTextFormat != null) {
-      result['insertTextFormat'] = insertTextFormat?.toJson();
-    }
-    if (insertTextMode != null) {
-      result['insertTextMode'] = insertTextMode?.toJson();
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseListString(obj, reporter, 'commitCharacters',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseCompletionItemEditRangeRange(obj, reporter, 'editRange',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      return _canParseInsertTextMode(obj, reporter, 'insertTextMode',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type CompletionListItemDefaults');
-      return false;
-    }
-  }
-
-  static CompletionListItemDefaults fromJson(Map<String, Object?> json) {
-    final commitCharactersJson = json['commitCharacters'];
-    final commitCharacters = (commitCharactersJson as List<Object?>?)
-        ?.map((item) => item as String)
-        .toList();
-    final dataJson = json['data'];
-    final data = dataJson;
-    final editRangeJson = json['editRange'];
-    final editRange = editRangeJson == null
-        ? null
-        : _eitherCompletionItemEditRangeRange(editRangeJson);
-    final insertTextFormatJson = json['insertTextFormat'];
-    final insertTextFormat = insertTextFormatJson != null
-        ? InsertTextFormat.fromJson(insertTextFormatJson as int)
-        : null;
-    final insertTextModeJson = json['insertTextMode'];
-    final insertTextMode = insertTextModeJson != null
-        ? InsertTextMode.fromJson(insertTextModeJson as int)
-        : null;
-    return CompletionListItemDefaults(
-      commitCharacters: commitCharacters,
-      data: data,
-      editRange: editRange,
-      insertTextFormat: insertTextFormat,
-      insertTextMode: insertTextMode,
     );
   }
 }
@@ -13195,7 +13280,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// The server supports the following `CompletionItem` specific capabilities.
   ///
   /// @since 3.17.0
-  final CompletionOptionsCompletionItem? completionItem;
+  final ServerCompletionItemOptions? completionItem;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
@@ -13273,8 +13358,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionOptionsCompletionItem(
-          obj, reporter, 'completionItem',
+      if (!_canParseServerCompletionItemOptions(obj, reporter, 'completionItem',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -13304,7 +13388,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
         .toList();
     final completionItemJson = json['completionItem'];
     final completionItem = completionItemJson != null
-        ? CompletionOptionsCompletionItem.fromJson(
+        ? ServerCompletionItemOptions.fromJson(
             completionItemJson as Map<String, Object?>)
         : null;
     final resolveProviderJson = json['resolveProvider'];
@@ -13321,64 +13405,6 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       resolveProvider: resolveProvider,
       triggerCharacters: triggerCharacters,
       workDoneProgress: workDoneProgress,
-    );
-  }
-}
-
-class CompletionOptionsCompletionItem implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionOptionsCompletionItem.canParse,
-    CompletionOptionsCompletionItem.fromJson,
-  );
-
-  /// The server has support for completion item label details (see also
-  /// `CompletionItemLabelDetails`) when receiving a completion item in a
-  /// resolve call.
-  ///
-  /// @since 3.17.0
-  final bool? labelDetailsSupport;
-
-  CompletionOptionsCompletionItem({
-    this.labelDetailsSupport,
-  });
-
-  @override
-  int get hashCode => labelDetailsSupport.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    return other is CompletionOptionsCompletionItem &&
-        other.runtimeType == CompletionOptionsCompletionItem &&
-        labelDetailsSupport == other.labelDetailsSupport;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (labelDetailsSupport != null) {
-      result['labelDetailsSupport'] = labelDetailsSupport;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      return _canParseBool(obj, reporter, 'labelDetailsSupport',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type CompletionOptionsCompletionItem');
-      return false;
-    }
-  }
-
-  static CompletionOptionsCompletionItem fromJson(Map<String, Object?> json) {
-    final labelDetailsSupportJson = json['labelDetailsSupport'];
-    final labelDetailsSupport = labelDetailsSupportJson as bool?;
-    return CompletionOptionsCompletionItem(
-      labelDetailsSupport: labelDetailsSupport,
     );
   }
 }
@@ -13540,12 +13566,12 @@ class CompletionRegistrationOptions
   ///
   /// @since 3.17.0
   @override
-  final CompletionOptionsCompletionItem? completionItem;
+  final ServerCompletionItemOptions? completionItem;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
@@ -13630,12 +13656,11 @@ class CompletionRegistrationOptions
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionOptionsCompletionItem(
-          obj, reporter, 'completionItem',
+      if (!_canParseServerCompletionItemOptions(obj, reporter, 'completionItem',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -13663,13 +13688,13 @@ class CompletionRegistrationOptions
         .toList();
     final completionItemJson = json['completionItem'];
     final completionItem = completionItemJson != null
-        ? CompletionOptionsCompletionItem.fromJson(
+        ? ServerCompletionItemOptions.fromJson(
             completionItemJson as Map<String, Object?>)
         : null;
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -14352,7 +14377,7 @@ class DeclarationRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -14401,7 +14426,7 @@ class DeclarationRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -14422,7 +14447,7 @@ class DeclarationRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -14692,7 +14717,7 @@ class DefinitionRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -14731,7 +14756,7 @@ class DefinitionRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -14748,7 +14773,7 @@ class DefinitionRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -15401,7 +15426,7 @@ class DiagnosticRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -15479,7 +15504,7 @@ class DiagnosticRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -15512,7 +15537,7 @@ class DiagnosticRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -16048,7 +16073,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+      if (!_canParseListTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
           obj, reporter, 'contentChanges',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -16066,7 +16091,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
     final contentChangesJson = json['contentChanges'];
     final contentChanges = (contentChangesJson as List<Object?>)
         .map((item) =>
-            _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+            _eitherTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
                 item))
         .toList();
     final textDocumentJson = json['textDocument'];
@@ -16933,7 +16958,7 @@ class DocumentColorRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -16982,7 +17007,7 @@ class DocumentColorRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -17003,7 +17028,7 @@ class DocumentColorRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -17457,7 +17482,7 @@ class DocumentFormattingRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -17496,7 +17521,7 @@ class DocumentFormattingRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -17515,7 +17540,7 @@ class DocumentFormattingRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -17873,7 +17898,7 @@ class DocumentHighlightRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -17912,7 +17937,7 @@ class DocumentHighlightRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -17931,7 +17956,7 @@ class DocumentHighlightRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -18304,7 +18329,7 @@ class DocumentLinkRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// Document links have a resolve provider as well.
   @override
@@ -18352,7 +18377,7 @@ class DocumentLinkRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -18373,7 +18398,7 @@ class DocumentLinkRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -18637,7 +18662,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// A character on which formatting should be triggered, like `{`.
   @override
@@ -18685,7 +18710,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -18708,7 +18733,7 @@ class DocumentOnTypeFormattingRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final firstTriggerCharacterJson = json['firstTriggerCharacter'];
     final firstTriggerCharacter = firstTriggerCharacterJson as String;
@@ -18957,7 +18982,7 @@ class DocumentRangeFormattingRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -18996,7 +19021,7 @@ class DocumentRangeFormattingRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -19015,7 +19040,7 @@ class DocumentRangeFormattingRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -19646,7 +19671,7 @@ class DocumentSymbolRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
@@ -19697,7 +19722,7 @@ class DocumentSymbolRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -19718,7 +19743,7 @@ class DocumentSymbolRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final labelJson = json['label'];
     final label = labelJson as String?;
@@ -19728,6 +19753,71 @@ class DocumentSymbolRegistrationOptions
       documentSelector: documentSelector,
       label: label,
       workDoneProgress: workDoneProgress,
+    );
+  }
+}
+
+class EditRangeWithInsertReplace implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    EditRangeWithInsertReplace.canParse,
+    EditRangeWithInsertReplace.fromJson,
+  );
+
+  final Range insert;
+
+  final Range replace;
+
+  EditRangeWithInsertReplace({
+    required this.insert,
+    required this.replace,
+  });
+  @override
+  int get hashCode => Object.hash(
+        insert,
+        replace,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is EditRangeWithInsertReplace &&
+        other.runtimeType == EditRangeWithInsertReplace &&
+        insert == other.insert &&
+        replace == other.replace;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['insert'] = insert.toJson();
+    result['replace'] = replace.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseRange(obj, reporter, 'insert',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseRange(obj, reporter, 'replace',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type EditRangeWithInsertReplace');
+      return false;
+    }
+  }
+
+  static EditRangeWithInsertReplace fromJson(Map<String, Object?> json) {
+    final insertJson = json['insert'];
+    final insert = Range.fromJson(insertJson as Map<String, Object?>);
+    final replaceJson = json['replace'];
+    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
+    return EditRangeWithInsertReplace(
+      insert: insert,
+      replace: replace,
     );
   }
 }
@@ -21783,7 +21873,7 @@ class FoldingRangeRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -21832,7 +21922,7 @@ class FoldingRangeRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -21853,7 +21943,7 @@ class FoldingRangeRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -22611,7 +22701,7 @@ class HoverRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -22650,7 +22740,7 @@ class HoverRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -22667,7 +22757,7 @@ class HoverRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -22937,7 +23027,7 @@ class ImplementationRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -22986,7 +23076,7 @@ class ImplementationRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -23007,7 +23097,7 @@ class ImplementationRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -23068,7 +23158,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   /// Information about the client
   ///
   /// @since 3.15.0
-  final InitializeParamsClientInfo? clientInfo;
+  final ClientInfo? clientInfo;
 
   /// User provided initialization options.
   final LSPAny initializationOptions;
@@ -23100,7 +23190,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final DocumentUri? rootUri;
 
   /// The initial trace setting. If omitted trace is disabled ('off').
-  final TraceValues? trace;
+  final TraceValue? trace;
 
   /// An optional token that a server can use to report work done progress.
   @override
@@ -23197,7 +23287,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseInitializeParamsClientInfo(obj, reporter, 'clientInfo',
+      if (!_canParseClientInfo(obj, reporter, 'clientInfo',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -23217,7 +23307,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           allowsUndefined: false, allowsNull: true)) {
         return false;
       }
-      if (!_canParseTraceValues(obj, reporter, 'trace',
+      if (!_canParseTraceValue(obj, reporter, 'trace',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -23239,8 +23329,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         ClientCapabilities.fromJson(capabilitiesJson as Map<String, Object?>);
     final clientInfoJson = json['clientInfo'];
     final clientInfo = clientInfoJson != null
-        ? InitializeParamsClientInfo.fromJson(
-            clientInfoJson as Map<String, Object?>)
+        ? ClientInfo.fromJson(clientInfoJson as Map<String, Object?>)
         : null;
     final initializationOptionsJson = json['initializationOptions'];
     final initializationOptions = initializationOptionsJson;
@@ -23255,7 +23344,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         rootUriJson != null ? Uri.parse(rootUriJson as String) : null;
     final traceJson = json['trace'];
     final trace =
-        traceJson != null ? TraceValues.fromJson(traceJson as String) : null;
+        traceJson != null ? TraceValue.fromJson(traceJson as String) : null;
     final workDoneTokenJson = json['workDoneToken'];
     final workDoneToken =
         workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
@@ -23278,75 +23367,6 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   }
 }
 
-class InitializeParamsClientInfo implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    InitializeParamsClientInfo.canParse,
-    InitializeParamsClientInfo.fromJson,
-  );
-
-  /// The name of the client as defined by the client.
-  final String name;
-
-  /// The client's version as defined by the client.
-  final String? version;
-
-  InitializeParamsClientInfo({
-    required this.name,
-    this.version,
-  });
-  @override
-  int get hashCode => Object.hash(
-        name,
-        version,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is InitializeParamsClientInfo &&
-        other.runtimeType == InitializeParamsClientInfo &&
-        name == other.name &&
-        version == other.version;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['name'] = name;
-    if (version != null) {
-      result['version'] = version;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'version',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type InitializeParamsClientInfo');
-      return false;
-    }
-  }
-
-  static InitializeParamsClientInfo fromJson(Map<String, Object?> json) {
-    final nameJson = json['name'];
-    final name = nameJson as String;
-    final versionJson = json['version'];
-    final version = versionJson as String?;
-    return InitializeParamsClientInfo(
-      name: name,
-      version: version,
-    );
-  }
-}
-
 /// The result returned from an initialize request.
 class InitializeResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -23360,7 +23380,7 @@ class InitializeResult implements ToJsonable {
   /// Information about the server.
   ///
   /// @since 3.15.0
-  final InitializeResultServerInfo? serverInfo;
+  final ServerInfo? serverInfo;
 
   InitializeResult({
     required this.capabilities,
@@ -23399,7 +23419,7 @@ class InitializeResult implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseInitializeResultServerInfo(obj, reporter, 'serverInfo',
+      return _canParseServerInfo(obj, reporter, 'serverInfo',
           allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type InitializeResult');
@@ -23413,81 +23433,11 @@ class InitializeResult implements ToJsonable {
         ServerCapabilities.fromJson(capabilitiesJson as Map<String, Object?>);
     final serverInfoJson = json['serverInfo'];
     final serverInfo = serverInfoJson != null
-        ? InitializeResultServerInfo.fromJson(
-            serverInfoJson as Map<String, Object?>)
+        ? ServerInfo.fromJson(serverInfoJson as Map<String, Object?>)
         : null;
     return InitializeResult(
       capabilities: capabilities,
       serverInfo: serverInfo,
-    );
-  }
-}
-
-class InitializeResultServerInfo implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    InitializeResultServerInfo.canParse,
-    InitializeResultServerInfo.fromJson,
-  );
-
-  /// The name of the server as defined by the server.
-  final String name;
-
-  /// The server's version as defined by the server.
-  final String? version;
-
-  InitializeResultServerInfo({
-    required this.name,
-    this.version,
-  });
-  @override
-  int get hashCode => Object.hash(
-        name,
-        version,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is InitializeResultServerInfo &&
-        other.runtimeType == InitializeResultServerInfo &&
-        name == other.name &&
-        version == other.version;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['name'] = name;
-    if (version != null) {
-      result['version'] = version;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'version',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type InitializeResultServerInfo');
-      return false;
-    }
-  }
-
-  static InitializeResultServerInfo fromJson(Map<String, Object?> json) {
-    final nameJson = json['name'];
-    final name = nameJson as String;
-    final versionJson = json['version'];
-    final version = versionJson as String?;
-    return InitializeResultServerInfo(
-      name: name,
-      version: version,
     );
   }
 }
@@ -24144,7 +24094,7 @@ class InlayHintRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -24203,7 +24153,7 @@ class InlayHintRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -24228,7 +24178,7 @@ class InlayHintRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -24694,7 +24644,7 @@ class InlineValueRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -24743,7 +24693,7 @@ class InlineValueRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -24764,7 +24714,7 @@ class InlineValueRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -25388,7 +25338,7 @@ class LinkedEditingRangeRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -25437,7 +25387,7 @@ class LinkedEditingRangeRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -25460,7 +25410,7 @@ class LinkedEditingRangeRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -26868,7 +26818,7 @@ class MonikerRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -26907,7 +26857,7 @@ class MonikerRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -26924,7 +26874,7 @@ class MonikerRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -27671,7 +27621,7 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+      if (!_canParseListTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
           obj, reporter, 'changes',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -27690,7 +27640,7 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
     final changesJson = json['changes'];
     final changes = (changesJson as List<Object?>)
         .map((item) =>
-            _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+            _eitherTextDocumentContentChangePartialTextDocumentContentChangeWholeDocument(
                 item))
         .toList();
     final documentJson = json['document'];
@@ -28912,71 +28862,6 @@ class PartialResultParams implements ToJsonable {
   }
 }
 
-class PlaceholderAndRange implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    PlaceholderAndRange.canParse,
-    PlaceholderAndRange.fromJson,
-  );
-
-  final String placeholder;
-
-  final Range range;
-
-  PlaceholderAndRange({
-    required this.placeholder,
-    required this.range,
-  });
-  @override
-  int get hashCode => Object.hash(
-        placeholder,
-        range,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is PlaceholderAndRange &&
-        other.runtimeType == PlaceholderAndRange &&
-        placeholder == other.placeholder &&
-        range == other.range;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['placeholder'] = placeholder;
-    result['range'] = range.toJson();
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'placeholder',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type PlaceholderAndRange');
-      return false;
-    }
-  }
-
-  static PlaceholderAndRange fromJson(Map<String, Object?> json) {
-    final placeholderJson = json['placeholder'];
-    final placeholder = placeholderJson as String;
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return PlaceholderAndRange(
-      placeholder: placeholder,
-      range: range,
-    );
-  }
-}
-
 /// Position in a text document expressed as zero-based line and character
 /// offset. Prior to 3.17 the offsets were always based on a UTF-16 string
 /// representation. So a string of the form `a𐐀b` the character offset of the
@@ -29204,6 +29089,71 @@ class PrepareRenameParams
       position: position,
       textDocument: textDocument,
       workDoneToken: workDoneToken,
+    );
+  }
+}
+
+class PrepareRenamePlaceholder implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    PrepareRenamePlaceholder.canParse,
+    PrepareRenamePlaceholder.fromJson,
+  );
+
+  final String placeholder;
+
+  final Range range;
+
+  PrepareRenamePlaceholder({
+    required this.placeholder,
+    required this.range,
+  });
+  @override
+  int get hashCode => Object.hash(
+        placeholder,
+        range,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is PrepareRenamePlaceholder &&
+        other.runtimeType == PrepareRenamePlaceholder &&
+        placeholder == other.placeholder &&
+        range == other.range;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['placeholder'] = placeholder;
+    result['range'] = range.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'placeholder',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type PrepareRenamePlaceholder');
+      return false;
+    }
+  }
+
+  static PrepareRenamePlaceholder fromJson(Map<String, Object?> json) {
+    final placeholderJson = json['placeholder'];
+    final placeholder = placeholderJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    return PrepareRenamePlaceholder(
+      placeholder: placeholder,
+      range: range,
     );
   }
 }
@@ -30082,7 +30032,7 @@ class ReferenceRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   @override
   final bool? workDoneProgress;
@@ -30121,7 +30071,7 @@ class ReferenceRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -30138,7 +30088,7 @@ class ReferenceRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -31237,7 +31187,7 @@ class RenameRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
   ///
@@ -31287,7 +31237,7 @@ class RenameRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -31308,7 +31258,7 @@ class RenameRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final prepareProviderJson = json['prepareProvider'];
     final prepareProvider = prepareProviderJson as bool?;
@@ -31810,7 +31760,7 @@ class SelectionRangeRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -31859,7 +31809,7 @@ class SelectionRangeRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -31880,7 +31830,7 @@ class SelectionRangeRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -32044,7 +31994,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// set to true but the server only provides a range provider the client might
   /// not render a minimap correctly or might even decide to not show any
   /// semantic tokens at all.
-  final SemanticTokensClientCapabilitiesRequests requests;
+  final ClientSemanticTokensRequestOptions requests;
 
   /// Whether the client allows the server to actively cancel a semantic token
   /// request, e.g. supports returning LSPErrorCodes.ServerCancelled. If a
@@ -32148,7 +32098,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseSemanticTokensClientCapabilitiesRequests(
+      if (!_canParseClientSemanticTokensRequestOptions(
           obj, reporter, 'requests',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -32183,7 +32133,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
     final overlappingTokenSupportJson = json['overlappingTokenSupport'];
     final overlappingTokenSupport = overlappingTokenSupportJson as bool?;
     final requestsJson = json['requests'];
-    final requests = SemanticTokensClientCapabilitiesRequests.fromJson(
+    final requests = ClientSemanticTokensRequestOptions.fromJson(
         requestsJson as Map<String, Object?>);
     final serverCancelSupportJson = json['serverCancelSupport'];
     final serverCancelSupport = serverCancelSupportJson as bool?;
@@ -32205,87 +32155,6 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       serverCancelSupport: serverCancelSupport,
       tokenModifiers: tokenModifiers,
       tokenTypes: tokenTypes,
-    );
-  }
-}
-
-class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesRequests.canParse,
-    SemanticTokensClientCapabilitiesRequests.fromJson,
-  );
-
-  /// The client will send the `textDocument/semanticTokens/full` request if the
-  /// server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>? full;
-
-  /// The client will send the `textDocument/semanticTokens/range` request if
-  /// the server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>? range;
-
-  SemanticTokensClientCapabilitiesRequests({
-    this.full,
-    this.range,
-  });
-  @override
-  int get hashCode => Object.hash(
-        full,
-        range,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is SemanticTokensClientCapabilitiesRequests &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRequests &&
-        full == other.full &&
-        range == other.range;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (full != null) {
-      result['full'] = full;
-    }
-    if (range != null) {
-      result['range'] = range;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseBoolSemanticTokensClientCapabilitiesRequestsFull(
-          obj, reporter, 'full',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      return _canParseBoolSemanticTokensClientCapabilitiesRequestsRange(
-          obj, reporter, 'range',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type SemanticTokensClientCapabilitiesRequests');
-      return false;
-    }
-  }
-
-  static SemanticTokensClientCapabilitiesRequests fromJson(
-      Map<String, Object?> json) {
-    final fullJson = json['full'];
-    final full = fullJson == null
-        ? null
-        : _eitherBoolSemanticTokensClientCapabilitiesRequestsFull(fullJson);
-    final rangeJson = json['range'];
-    final range = rangeJson == null
-        ? null
-        : _eitherBoolSemanticTokensClientCapabilitiesRequestsRange(rangeJson);
-    return SemanticTokensClientCapabilitiesRequests(
-      full: full,
-      range: range,
     );
   }
 }
@@ -32703,6 +32572,60 @@ class SemanticTokensEdit implements ToJsonable {
   }
 }
 
+class SemanticTokensFullDelta implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokensFullDelta.canParse,
+    SemanticTokensFullDelta.fromJson,
+  );
+
+  /// The server supports deltas for full documents.
+  final bool? delta;
+
+  SemanticTokensFullDelta({
+    this.delta,
+  });
+
+  @override
+  int get hashCode => delta.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is SemanticTokensFullDelta &&
+        other.runtimeType == SemanticTokensFullDelta &&
+        delta == other.delta;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (delta != null) {
+      result['delta'] = delta;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseBool(obj, reporter, 'delta',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type SemanticTokensFullDelta');
+      return false;
+    }
+  }
+
+  static SemanticTokensFullDelta fromJson(Map<String, Object?> json) {
+    final deltaJson = json['delta'];
+    final delta = deltaJson as bool?;
+    return SemanticTokensFullDelta(
+      delta: delta,
+    );
+  }
+}
+
 /// @since 3.16.0
 class SemanticTokensLegend implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -32784,7 +32707,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   );
 
   /// Server supports providing semantic tokens for a full document.
-  final Either2<bool, SemanticTokensOptionsFull>? full;
+  final Either2<bool, SemanticTokensFullDelta>? full;
 
   /// The legend used by the server
   final SemanticTokensLegend legend;
@@ -32839,7 +32762,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseBoolSemanticTokensOptionsFull(obj, reporter, 'full',
+      if (!_canParseBoolSemanticTokensFullDelta(obj, reporter, 'full',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -32864,9 +32787,8 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       return SemanticTokensRegistrationOptions.fromJson(json);
     }
     final fullJson = json['full'];
-    final full = fullJson == null
-        ? null
-        : _eitherBoolSemanticTokensOptionsFull(fullJson);
+    final full =
+        fullJson == null ? null : _eitherBoolSemanticTokensFullDelta(fullJson);
     final legendJson = json['legend'];
     final legend =
         SemanticTokensLegend.fromJson(legendJson as Map<String, Object?>);
@@ -32881,60 +32803,6 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       legend: legend,
       range: range,
       workDoneProgress: workDoneProgress,
-    );
-  }
-}
-
-class SemanticTokensOptionsFull implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SemanticTokensOptionsFull.canParse,
-    SemanticTokensOptionsFull.fromJson,
-  );
-
-  /// The server supports deltas for full documents.
-  final bool? delta;
-
-  SemanticTokensOptionsFull({
-    this.delta,
-  });
-
-  @override
-  int get hashCode => delta.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    return other is SemanticTokensOptionsFull &&
-        other.runtimeType == SemanticTokensOptionsFull &&
-        delta == other.delta;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (delta != null) {
-      result['delta'] = delta;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      return _canParseBool(obj, reporter, 'delta',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type SemanticTokensOptionsFull');
-      return false;
-    }
-  }
-
-  static SemanticTokensOptionsFull fromJson(Map<String, Object?> json) {
-    final deltaJson = json['delta'];
-    final delta = deltaJson as bool?;
-    return SemanticTokensOptionsFull(
-      delta: delta,
     );
   }
 }
@@ -33242,11 +33110,11 @@ class SemanticTokensRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// Server supports providing semantic tokens for a full document.
   @override
-  final Either2<bool, SemanticTokensOptionsFull>? full;
+  final Either2<bool, SemanticTokensFullDelta>? full;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -33319,12 +33187,12 @@ class SemanticTokensRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
       }
-      if (!_canParseBoolSemanticTokensOptionsFull(obj, reporter, 'full',
+      if (!_canParseBoolSemanticTokensFullDelta(obj, reporter, 'full',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -33352,12 +33220,11 @@ class SemanticTokensRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final fullJson = json['full'];
-    final full = fullJson == null
-        ? null
-        : _eitherBoolSemanticTokensOptionsFull(fullJson);
+    final full =
+        fullJson == null ? null : _eitherBoolSemanticTokensFullDelta(fullJson);
     final idJson = json['id'];
     final id = idJson as String?;
     final legendJson = json['legend'];
@@ -33652,7 +33519,7 @@ class ServerCapabilities implements ToJsonable {
       typeHierarchyProvider;
 
   /// Workspace specific server capabilities.
-  final ServerCapabilitiesWorkspace? workspace;
+  final WorkspaceOptions? workspace;
 
   /// The server provides workspace symbol support.
   final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
@@ -34043,7 +33910,7 @@ class ServerCapabilities implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseServerCapabilitiesWorkspace(obj, reporter, 'workspace',
+      if (!_canParseWorkspaceOptions(obj, reporter, 'workspace',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -34215,8 +34082,7 @@ class ServerCapabilities implements ToJsonable {
             typeHierarchyProviderJson);
     final workspaceJson = json['workspace'];
     final workspace = workspaceJson != null
-        ? ServerCapabilitiesWorkspace.fromJson(
-            workspaceJson as Map<String, Object?>)
+        ? WorkspaceOptions.fromJson(workspaceJson as Map<String, Object?>)
         : null;
     final workspaceSymbolProviderJson = json['workspaceSymbolProvider'];
     final workspaceSymbolProvider = workspaceSymbolProviderJson == null
@@ -34262,49 +34128,38 @@ class ServerCapabilities implements ToJsonable {
   }
 }
 
-class ServerCapabilitiesWorkspace implements ToJsonable {
+class ServerCompletionItemOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    ServerCapabilitiesWorkspace.canParse,
-    ServerCapabilitiesWorkspace.fromJson,
+    ServerCompletionItemOptions.canParse,
+    ServerCompletionItemOptions.fromJson,
   );
 
-  /// The server is interested in notifications/requests for operations on
-  /// files.
+  /// The server has support for completion item label details (see also
+  /// `CompletionItemLabelDetails`) when receiving a completion item in a
+  /// resolve call.
   ///
-  /// @since 3.16.0
-  final FileOperationOptions? fileOperations;
+  /// @since 3.17.0
+  final bool? labelDetailsSupport;
 
-  /// The server supports workspace folder.
-  ///
-  /// @since 3.6.0
-  final WorkspaceFoldersServerCapabilities? workspaceFolders;
-
-  ServerCapabilitiesWorkspace({
-    this.fileOperations,
-    this.workspaceFolders,
+  ServerCompletionItemOptions({
+    this.labelDetailsSupport,
   });
+
   @override
-  int get hashCode => Object.hash(
-        fileOperations,
-        workspaceFolders,
-      );
+  int get hashCode => labelDetailsSupport.hashCode;
 
   @override
   bool operator ==(Object other) {
-    return other is ServerCapabilitiesWorkspace &&
-        other.runtimeType == ServerCapabilitiesWorkspace &&
-        fileOperations == other.fileOperations &&
-        workspaceFolders == other.workspaceFolders;
+    return other is ServerCompletionItemOptions &&
+        other.runtimeType == ServerCompletionItemOptions &&
+        labelDetailsSupport == other.labelDetailsSupport;
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    if (fileOperations != null) {
-      result['fileOperations'] = fileOperations?.toJson();
-    }
-    if (workspaceFolders != null) {
-      result['workspaceFolders'] = workspaceFolders?.toJson();
+    if (labelDetailsSupport != null) {
+      result['labelDetailsSupport'] = labelDetailsSupport;
     }
     return result;
   }
@@ -34314,33 +34169,88 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseFileOperationOptions(obj, reporter, 'fileOperations',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      return _canParseWorkspaceFoldersServerCapabilities(
-          obj, reporter, 'workspaceFolders',
+      return _canParseBool(obj, reporter, 'labelDetailsSupport',
           allowsUndefined: true, allowsNull: false);
     } else {
-      reporter.reportError('must be of type ServerCapabilitiesWorkspace');
+      reporter.reportError('must be of type ServerCompletionItemOptions');
       return false;
     }
   }
 
-  static ServerCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
-    final fileOperationsJson = json['fileOperations'];
-    final fileOperations = fileOperationsJson != null
-        ? FileOperationOptions.fromJson(
-            fileOperationsJson as Map<String, Object?>)
-        : null;
-    final workspaceFoldersJson = json['workspaceFolders'];
-    final workspaceFolders = workspaceFoldersJson != null
-        ? WorkspaceFoldersServerCapabilities.fromJson(
-            workspaceFoldersJson as Map<String, Object?>)
-        : null;
-    return ServerCapabilitiesWorkspace(
-      fileOperations: fileOperations,
-      workspaceFolders: workspaceFolders,
+  static ServerCompletionItemOptions fromJson(Map<String, Object?> json) {
+    final labelDetailsSupportJson = json['labelDetailsSupport'];
+    final labelDetailsSupport = labelDetailsSupportJson as bool?;
+    return ServerCompletionItemOptions(
+      labelDetailsSupport: labelDetailsSupport,
+    );
+  }
+}
+
+class ServerInfo implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ServerInfo.canParse,
+    ServerInfo.fromJson,
+  );
+
+  /// The name of the server as defined by the server.
+  final String name;
+
+  /// The server's version as defined by the server.
+  final String? version;
+
+  ServerInfo({
+    required this.name,
+    this.version,
+  });
+  @override
+  int get hashCode => Object.hash(
+        name,
+        version,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is ServerInfo &&
+        other.runtimeType == ServerInfo &&
+        name == other.name &&
+        version == other.version;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['name'] = name;
+    if (version != null) {
+      result['version'] = version;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'version',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ServerInfo');
+      return false;
+    }
+  }
+
+  static ServerInfo fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
+    return ServerInfo(
+      name: name,
+      version: version,
     );
   }
 }
@@ -34351,7 +34261,7 @@ class SetTraceParams implements ToJsonable {
     SetTraceParams.fromJson,
   );
 
-  final TraceValues value;
+  final TraceValue value;
 
   SetTraceParams({
     required this.value,
@@ -34379,7 +34289,7 @@ class SetTraceParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseTraceValues(obj, reporter, 'value',
+      return _canParseTraceValue(obj, reporter, 'value',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type SetTraceParams');
@@ -34389,7 +34299,7 @@ class SetTraceParams implements ToJsonable {
 
   static SetTraceParams fromJson(Map<String, Object?> json) {
     final valueJson = json['value'];
-    final value = TraceValues.fromJson(valueJson as String);
+    final value = TraceValue.fromJson(valueJson as String);
     return SetTraceParams(
       value: value,
     );
@@ -35536,7 +35446,7 @@ class SignatureHelpRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// List of characters that re-trigger signature help.
   ///
@@ -35600,7 +35510,7 @@ class SignatureHelpRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -35625,7 +35535,7 @@ class SignatureHelpRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final retriggerCharactersJson = json['retriggerCharacters'];
     final retriggerCharacters = (retriggerCharactersJson as List<Object?>?)
@@ -36188,7 +36098,7 @@ class TextDocumentChangeRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// How documents are synced to the server.
   final TextDocumentSyncKind syncKind;
@@ -36225,7 +36135,7 @@ class TextDocumentChangeRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -36244,7 +36154,7 @@ class TextDocumentChangeRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final syncKindJson = json['syncKind'];
     final syncKind = TextDocumentSyncKind.fromJson(syncKindJson as int);
@@ -36910,10 +36820,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 }
 
-class TextDocumentContentChangeEvent1 implements ToJsonable {
+class TextDocumentContentChangePartial implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TextDocumentContentChangeEvent1.canParse,
-    TextDocumentContentChangeEvent1.fromJson,
+    TextDocumentContentChangePartial.canParse,
+    TextDocumentContentChangePartial.fromJson,
   );
 
   /// The range of the document that changed.
@@ -36926,7 +36836,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   /// The new text for the provided range.
   final String text;
-  TextDocumentContentChangeEvent1({
+  TextDocumentContentChangePartial({
     required this.range,
     this.rangeLength,
     required this.text,
@@ -36940,8 +36850,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    return other is TextDocumentContentChangeEvent1 &&
-        other.runtimeType == TextDocumentContentChangeEvent1 &&
+    return other is TextDocumentContentChangePartial &&
+        other.runtimeType == TextDocumentContentChangePartial &&
         range == other.range &&
         rangeLength == other.rangeLength &&
         text == other.text;
@@ -36974,19 +36884,19 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       return _canParseString(obj, reporter, 'text',
           allowsUndefined: false, allowsNull: false);
     } else {
-      reporter.reportError('must be of type TextDocumentContentChangeEvent1');
+      reporter.reportError('must be of type TextDocumentContentChangePartial');
       return false;
     }
   }
 
-  static TextDocumentContentChangeEvent1 fromJson(Map<String, Object?> json) {
+  static TextDocumentContentChangePartial fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final rangeLengthJson = json['rangeLength'];
     final rangeLength = rangeLengthJson as int?;
     final textJson = json['text'];
     final text = textJson as String;
-    return TextDocumentContentChangeEvent1(
+    return TextDocumentContentChangePartial(
       range: range,
       rangeLength: rangeLength,
       text: text,
@@ -36994,16 +36904,16 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   }
 }
 
-class TextDocumentContentChangeEvent2 implements ToJsonable {
+class TextDocumentContentChangeWholeDocument implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TextDocumentContentChangeEvent2.canParse,
-    TextDocumentContentChangeEvent2.fromJson,
+    TextDocumentContentChangeWholeDocument.canParse,
+    TextDocumentContentChangeWholeDocument.fromJson,
   );
 
   /// The new text of the whole document.
   final String text;
 
-  TextDocumentContentChangeEvent2({
+  TextDocumentContentChangeWholeDocument({
     required this.text,
   });
 
@@ -37012,8 +36922,8 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    return other is TextDocumentContentChangeEvent2 &&
-        other.runtimeType == TextDocumentContentChangeEvent2 &&
+    return other is TextDocumentContentChangeWholeDocument &&
+        other.runtimeType == TextDocumentContentChangeWholeDocument &&
         text == other.text;
   }
 
@@ -37032,15 +36942,17 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
       return _canParseString(obj, reporter, 'text',
           allowsUndefined: false, allowsNull: false);
     } else {
-      reporter.reportError('must be of type TextDocumentContentChangeEvent2');
+      reporter.reportError(
+          'must be of type TextDocumentContentChangeWholeDocument');
       return false;
     }
   }
 
-  static TextDocumentContentChangeEvent2 fromJson(Map<String, Object?> json) {
+  static TextDocumentContentChangeWholeDocument fromJson(
+      Map<String, Object?> json) {
     final textJson = json['text'];
     final text = textJson as String;
-    return TextDocumentContentChangeEvent2(
+    return TextDocumentContentChangeWholeDocument(
       text: text,
     );
   }
@@ -37294,10 +37206,10 @@ class TextDocumentFilter3 implements ToJsonable {
   }
 }
 
-class TextDocumentFilterWithScheme implements ToJsonable {
+class TextDocumentFilterScheme implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TextDocumentFilterWithScheme.canParse,
-    TextDocumentFilterWithScheme.fromJson,
+    TextDocumentFilterScheme.canParse,
+    TextDocumentFilterScheme.fromJson,
   );
 
   /// A language id, like `typescript`.
@@ -37308,7 +37220,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
 
   /// A Uri [Uri.scheme], like `file` or `untitled`.
   final String scheme;
-  TextDocumentFilterWithScheme({
+  TextDocumentFilterScheme({
     this.language,
     this.pattern,
     required this.scheme,
@@ -37322,8 +37234,8 @@ class TextDocumentFilterWithScheme implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    return other is TextDocumentFilterWithScheme &&
-        other.runtimeType == TextDocumentFilterWithScheme &&
+    return other is TextDocumentFilterScheme &&
+        other.runtimeType == TextDocumentFilterScheme &&
         language == other.language &&
         pattern == other.pattern &&
         scheme == other.scheme;
@@ -37358,19 +37270,19 @@ class TextDocumentFilterWithScheme implements ToJsonable {
       return _canParseString(obj, reporter, 'scheme',
           allowsUndefined: false, allowsNull: false);
     } else {
-      reporter.reportError('must be of type TextDocumentFilterWithScheme');
+      reporter.reportError('must be of type TextDocumentFilterScheme');
       return false;
     }
   }
 
-  static TextDocumentFilterWithScheme fromJson(Map<String, Object?> json) {
+  static TextDocumentFilterScheme fromJson(Map<String, Object?> json) {
     final languageJson = json['language'];
     final language = languageJson as String?;
     final patternJson = json['pattern'];
     final pattern = patternJson as String?;
     final schemeJson = json['scheme'];
     final scheme = schemeJson as String;
-    return TextDocumentFilterWithScheme(
+    return TextDocumentFilterScheme(
       language: language,
       pattern: pattern,
       scheme: scheme,
@@ -37655,7 +37567,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   TextDocumentRegistrationOptions({
     this.documentSelector,
@@ -37684,7 +37596,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseListTextDocumentFilterWithScheme(
+      return _canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true);
     } else {
@@ -37794,7 +37706,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     return TextDocumentRegistrationOptions(
       documentSelector: documentSelector,
@@ -37844,7 +37756,7 @@ class TextDocumentSaveRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The client is supposed to include the content on save.
   @override
@@ -37884,7 +37796,7 @@ class TextDocumentSaveRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -37903,7 +37815,7 @@ class TextDocumentSaveRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final includeTextJson = json['includeText'];
     final includeText = includeTextJson as bool?;
@@ -38277,25 +38189,25 @@ class TokenFormat implements ToJsonable {
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
 }
 
-class TraceValues implements ToJsonable {
+class TraceValue implements ToJsonable {
   /// Trace messages only.
-  static const Messages = TraceValues._('messages');
+  static const Messages = TraceValue._('messages');
 
   /// Turn tracing off.
-  static const Off = TraceValues._('off');
+  static const Off = TraceValue._('off');
 
   /// Verbose message tracing.
-  static const Verbose = TraceValues._('verbose');
+  static const Verbose = TraceValue._('verbose');
 
   final String _value;
-  const TraceValues.fromJson(this._value);
-  const TraceValues._(this._value);
+  const TraceValue.fromJson(this._value);
+  const TraceValue._(this._value);
   @override
   int get hashCode => _value.hashCode;
 
   @override
   bool operator ==(Object other) =>
-      other is TraceValues && other._value == _value;
+      other is TraceValue && other._value == _value;
 
   @override
   String toJson() => _value;
@@ -38573,7 +38485,7 @@ class TypeDefinitionRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -38622,7 +38534,7 @@ class TypeDefinitionRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -38643,7 +38555,7 @@ class TypeDefinitionRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -39051,7 +38963,7 @@ class TypeHierarchyRegistrationOptions
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   @override
-  final List<TextDocumentFilterWithScheme>? documentSelector;
+  final List<TextDocumentFilterScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -39100,7 +39012,7 @@ class TypeHierarchyRegistrationOptions
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListTextDocumentFilterWithScheme(
+      if (!_canParseListTextDocumentFilterScheme(
           obj, reporter, 'documentSelector',
           allowsUndefined: false, allowsNull: true)) {
         return false;
@@ -39121,7 +39033,7 @@ class TypeHierarchyRegistrationOptions
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) =>
-            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
+            TextDocumentFilterScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -41893,6 +41805,89 @@ class WorkspaceFullDocumentDiagnosticReport
       resultId: resultId,
       uri: uri,
       version: version,
+    );
+  }
+}
+
+class WorkspaceOptions implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    WorkspaceOptions.canParse,
+    WorkspaceOptions.fromJson,
+  );
+
+  /// The server is interested in notifications/requests for operations on
+  /// files.
+  ///
+  /// @since 3.16.0
+  final FileOperationOptions? fileOperations;
+
+  /// The server supports workspace folder.
+  ///
+  /// @since 3.6.0
+  final WorkspaceFoldersServerCapabilities? workspaceFolders;
+
+  WorkspaceOptions({
+    this.fileOperations,
+    this.workspaceFolders,
+  });
+  @override
+  int get hashCode => Object.hash(
+        fileOperations,
+        workspaceFolders,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is WorkspaceOptions &&
+        other.runtimeType == WorkspaceOptions &&
+        fileOperations == other.fileOperations &&
+        workspaceFolders == other.workspaceFolders;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (fileOperations != null) {
+      result['fileOperations'] = fileOperations?.toJson();
+    }
+    if (workspaceFolders != null) {
+      result['workspaceFolders'] = workspaceFolders?.toJson();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseFileOperationOptions(obj, reporter, 'fileOperations',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseWorkspaceFoldersServerCapabilities(
+          obj, reporter, 'workspaceFolders',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type WorkspaceOptions');
+      return false;
+    }
+  }
+
+  static WorkspaceOptions fromJson(Map<String, Object?> json) {
+    final fileOperationsJson = json['fileOperations'];
+    final fileOperations = fileOperationsJson != null
+        ? FileOperationOptions.fromJson(
+            fileOperationsJson as Map<String, Object?>)
+        : null;
+    final workspaceFoldersJson = json['workspaceFolders'];
+    final workspaceFolders = workspaceFoldersJson != null
+        ? WorkspaceFoldersServerCapabilities.fromJson(
+            workspaceFoldersJson as Map<String, Object?>)
+        : null;
+    return WorkspaceOptions(
+      fileOperations: fileOperations,
+      workspaceFolders: workspaceFolders,
     );
   }
 }

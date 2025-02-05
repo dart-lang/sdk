@@ -55,7 +55,7 @@ class AddDigitSeparatorsTest extends AssistProcessorTest {
   }
 
   Future<void>
-      test_doubleScientific_manyDigitsInExponential_withFractional() async {
+  test_doubleScientific_manyDigitsInExponential_withFractional() async {
     await resolveTestCode('var i = /*caret*/1.2e34567;');
     await assertHasAssist('var i = 1.2e34_567;');
   }

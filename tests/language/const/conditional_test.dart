@@ -71,23 +71,20 @@ const cond3b = nonConst ? const0 : nonConst;
 const cond4 = zeroConst ? const0 : const1;
 //            ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
-//            ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 const cond4a = zeroConst ? nonConst : const1;
 //             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
-//             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 //                         ^
 // [cfe] Not a constant expression.
 const cond4b = zeroConst ? const0 : nonConst;
 //             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
-//             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 //                                  ^
 // [cfe] Not a constant expression.
 

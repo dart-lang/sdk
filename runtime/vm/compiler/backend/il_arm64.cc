@@ -253,7 +253,17 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                          (unboxed_inputs() ? 0 : kSmiTagShift);
   if (FLAG_target_memory_sanitizer) {
-    __ PushPair(length_reg, dest_reg);
+    __ Push(length_reg);
+    if (!unboxed_inputs()) {
+      __ ExtendNonNegativeSmi(length_reg);
+    }
+    if (shift < 0) {
+      __ AsrImmediate(length_reg, length_reg, -shift);
+    } else {
+      __ LslImmediate(length_reg, length_reg, shift);
+    }
+    __ MsanUnpoison(dest_reg, length_reg);
+    __ Pop(length_reg);
   }
   if (reversed) {
     // Verify that the overlap actually exists by checking to see if
@@ -297,19 +307,6 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
-
-  if (FLAG_target_memory_sanitizer) {
-    __ PopPair(length_reg, dest_reg);
-    if (!unboxed_inputs()) {
-      __ ExtendNonNegativeSmi(length_reg);
-    }
-    if (shift < 0) {
-      __ AsrImmediate(length_reg, length_reg, -shift);
-    } else {
-      __ LslImmediate(length_reg, length_reg, shift);
-    }
-    __ MsanUnpoison(dest_reg, length_reg);
-  }
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -573,8 +570,8 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  comparison()->InitializeLocationSummary(zone, opt);
-  return comparison()->locs();
+  condition()->InitializeLocationSummary(zone, opt);
+  return condition()->locs();
 }
 
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -585,10 +582,10 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   // Emit comparison code. This must not overwrite the result register.
-  // IfThenElseInstr::Supports() should prevent EmitComparisonCode from using
+  // IfThenElseInstr::Supports() should prevent EmitConditionCode from using
   // the labels or returning an invalid condition.
   BranchLabels labels = {nullptr, nullptr, nullptr};
-  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  Condition true_condition = condition()->EmitConditionCode(compiler, labels);
   ASSERT(true_condition != kInvalidCondition);
 
   const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
@@ -907,54 +904,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-static Condition TokenKindToIntCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQ;
-    case Token::kNE:
-      return NE;
-    case Token::kLT:
-      return LT;
-    case Token::kGT:
-      return GT;
-    case Token::kLTE:
-      return LE;
-    case Token::kGTE:
-      return GE;
-    default:
-      UNREACHABLE();
-      return VS;
-  }
-}
-
-static Condition FlipCondition(Condition condition) {
-  switch (condition) {
-    case EQ:
-      return EQ;
-    case NE:
-      return NE;
-    case LT:
-      return GT;
-    case LE:
-      return GE;
-    case GT:
-      return LT;
-    case GE:
-      return LE;
-    case CC:
-      return HI;
-    case LS:
-      return CS;
-    case HI:
-      return CC;
-    case CS:
-      return LS;
-    default:
-      UNREACHABLE();
-      return EQ;
-  }
-}
-
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
@@ -1007,30 +956,17 @@ static void EmitCbzTbz(Register reg,
 }
 
 static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
-                                     LocationSummary* locs,
+                                     const LocationSummary& locs,
                                      Token::Kind kind,
                                      BranchLabels labels) {
-  Location left = locs->in(0);
-  Location right = locs->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
+  Location left = locs.in(0);
+  Location right = locs.in(1);
 
-  Condition true_condition = TokenKindToIntCondition(kind);
-  if (left.IsConstant() || right.IsConstant()) {
-    // Ensure constant is on the right.
-    ConstantInstr* constant = nullptr;
-    if (left.IsConstant()) {
-      constant = left.constant_instruction();
-      Location tmp = right;
-      right = left;
-      left = tmp;
-      true_condition = FlipCondition(true_condition);
-    } else {
-      constant = right.constant_instruction();
-    }
-
-    ASSERT(constant->representation() == kTagged);
+  Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
+  if (right.IsConstant()) {
     int64_t value;
-    if (compiler::HasIntegerValue(constant->value(), &value) && (value == 0) &&
+    if (compiler::HasIntegerValue(right.constant(), &value) && (value == 0) &&
         CanUseCbzTbzForComparison(compiler, left.reg(), true_condition,
                                   labels)) {
       EmitCbzTbz(left.reg(), compiler, true_condition, labels,
@@ -1044,62 +980,52 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-// Similar to ComparisonInstr::EmitComparisonCode, may either:
+// Similar to ConditionInstr::EmitConditionCode, may either:
 //   - emit comparison code and return a valid condition in which case the
 //     caller is expected to emit a branch to the true label based on that
 //     condition (or a branch to the false label on the opposite condition).
 //   - emit comparison code with a branch directly to the labels and return
 //     kInvalidCondition.
-static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
-                                       LocationSummary* locs,
-                                       Token::Kind kind,
-                                       BranchLabels labels) {
-  Location left = locs->in(0);
-  Location right = locs->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
+static Condition EmitUnboxedIntComparisonOp(FlowGraphCompiler* compiler,
+                                            const LocationSummary& locs,
+                                            Token::Kind kind,
+                                            Representation rep,
+                                            BranchLabels labels) {
+  Location left = locs.in(0);
+  Location right = locs.in(1);
+  ASSERT((rep == kUnboxedInt64) || (rep == kUnboxedInt32) ||
+         (rep == kUnboxedUint32));
+  const compiler::OperandSize size =
+      (rep == kUnboxedInt64) ? compiler::kEightBytes : compiler::kFourBytes;
 
-  Condition true_condition = TokenKindToIntCondition(kind);
-  if (left.IsConstant() || right.IsConstant()) {
-    // Ensure constant is on the right.
-    ConstantInstr* constant = nullptr;
-    if (left.IsConstant()) {
-      constant = left.constant_instruction();
-      Location tmp = right;
-      right = left;
-      left = tmp;
-      true_condition = FlipCondition(true_condition);
-    } else {
-      constant = right.constant_instruction();
+  Condition true_condition = TokenKindToIntCondition(
+      kind, RepresentationUtils::IsUnsignedInteger(rep));
+  if (right.IsConstant()) {
+    int64_t value;
+    const bool ok = compiler::HasIntegerValue(right.constant(), &value);
+    RELEASE_ASSERT(ok);
+    if (value == 0 && CanUseCbzTbzForComparison(compiler, left.reg(),
+                                                true_condition, labels)) {
+      EmitCbzTbz(left.reg(), compiler, true_condition, labels, size);
+      return kInvalidCondition;
     }
-
-    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
-      int64_t value;
-      const bool ok = compiler::HasIntegerValue(constant->value(), &value);
-      RELEASE_ASSERT(ok);
-      if (value == 0 && CanUseCbzTbzForComparison(compiler, left.reg(),
-                                                  true_condition, labels)) {
-        EmitCbzTbz(left.reg(), compiler, true_condition, labels,
-                   compiler::kEightBytes);
-        return kInvalidCondition;
-      }
-      __ CompareImmediate(left.reg(), value);
-    } else {
-      UNREACHABLE();
-    }
+    __ CompareImmediate(left.reg(), value, size);
   } else {
-    __ CompareRegisters(left.reg(), right.reg());
+    ASSERT(left.reg() != CSP);
+    __ cmp(left.reg(), compiler::Operand(right.reg()), size);
   }
   return true_condition;
 }
 
 static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
-                                                LocationSummary* locs,
+                                                const LocationSummary& locs,
                                                 Token::Kind kind,
                                                 BranchLabels labels) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  const Register left = locs->in(0).reg();
-  const Register right = locs->in(1).reg();
-  const Condition true_condition = TokenKindToIntCondition(kind);
+  const Register left = locs.in(0).reg();
+  const Register right = locs.in(1).reg();
+  const Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
   compiler::Label* equal_result =
       (true_condition == EQ) ? labels.true_label : labels.false_label;
   compiler::Label* not_equal_result =
@@ -1124,65 +1050,29 @@ static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
-  if (operation_cid() == kDoubleCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (is_null_aware()) {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+  } else if (input_representation() == kUnboxedDouble) {
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
+  } else {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
-  if (operation_cid() == kSmiCid || operation_cid() == kMintCid ||
-      operation_cid() == kIntegerCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    if (is_null_aware()) {
-      locs->set_in(0, Location::RequiresRegister());
-      locs->set_in(1, Location::RequiresRegister());
-    } else {
-      locs->set_in(0, LocationRegisterOrConstant(left()));
-      // Only one input can be a constant operand. The case of two constant
-      // operands should be handled by constant propagation.
-      // Only right can be a stack slot.
-      locs->set_in(1, locs->in(0).IsConstant()
-                          ? Location::RequiresRegister()
-                          : LocationRegisterOrConstant(right()));
-    }
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
-  }
-  UNREACHABLE();
-  return nullptr;
-}
-
-static Condition TokenKindToDoubleCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQ;
-    case Token::kNE:
-      return NE;
-    case Token::kLT:
-      return LT;
-    case Token::kGT:
-      return GT;
-    case Token::kLTE:
-      return LE;
-    case Token::kGTE:
-      return GE;
-    default:
-      UNREACHABLE();
-      return VS;
-  }
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
-                                        LocationSummary* locs,
-                                        BranchLabels labels,
-                                        Token::Kind kind) {
-  const VRegister left = locs->in(0).fpu_reg();
-  const VRegister right = locs->in(1).fpu_reg();
+                                        const LocationSummary& locs,
+                                        Token::Kind kind,
+                                        BranchLabels labels) {
+  const VRegister left = locs.in(0).fpu_reg();
+  const VRegister right = locs.in(1).fpu_reg();
 
   switch (kind) {
     case Token::kEQ:
@@ -1209,19 +1099,23 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   }
 }
 
-Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                   BranchLabels labels) {
+Condition EqualityCompareInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                                  BranchLabels labels) {
   if (is_null_aware()) {
-    ASSERT(operation_cid() == kMintCid);
-    return EmitNullAwareInt64ComparisonOp(compiler, locs(), kind(), labels);
+    return EmitNullAwareInt64ComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
-  } else if (operation_cid() == kMintCid || operation_cid() == kIntegerCid) {
-    return EmitInt64ComparisonOp(compiler, locs(), kind(), labels);
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+    case kUnboxedInt64:
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedIntComparisonOp(compiler, *locs(), kind(),
+                                        input_representation(), labels);
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -1238,8 +1132,8 @@ LocationSummary* TestIntInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return locs;
 }
 
-Condition TestIntInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                           BranchLabels labels) {
+Condition TestIntInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                          BranchLabels labels) {
   const Register left = locs()->in(0).reg();
   Location right = locs()->in(1);
   const auto operand_size = representation_ == kTagged ? compiler::kObjectBytes
@@ -1307,7 +1201,7 @@ void TestIntInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 
   // Otherwise use shared implementation.
-  ComparisonInstr::EmitBranchCode(compiler, branch);
+  ConditionInstr::EmitBranchCode(compiler, branch);
 }
 
 LocationSummary* TestCidsInstr::MakeLocationSummary(Zone* zone,
@@ -1322,8 +1216,8 @@ LocationSummary* TestCidsInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                            BranchLabels labels) {
+Condition TestCidsInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                           BranchLabels labels) {
   ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
   const Register val_reg = locs()->in(0).reg();
   const Register cid_reg = locs()->temp(0).reg();
@@ -1368,40 +1262,33 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
-  if (operation_cid() == kDoubleCid) {
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresFpuRegister());
-    summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_out(0, Location::RequiresRegister());
-    return summary;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (input_representation() == kUnboxedDouble) {
+    locs->set_in(0, Location::RequiresFpuRegister());
+    locs->set_in(1, Location::RequiresFpuRegister());
+  } else {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
-  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, LocationRegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    summary->set_in(1, summary->in(0).IsConstant()
-                           ? Location::RequiresRegister()
-                           : LocationRegisterOrConstant(right()));
-    summary->set_out(0, Location::RequiresRegister());
-    return summary;
-  }
-
-  UNREACHABLE();
-  return nullptr;
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
-Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) {
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
-  } else if (operation_cid() == kMintCid) {
-    return EmitInt64ComparisonOp(compiler, locs(), kind(), labels);
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
+Condition RelationalOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                               BranchLabels labels) {
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+    case kUnboxedInt64:
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedIntComparisonOp(compiler, *locs(), kind(),
+                                        input_representation(), labels);
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -2861,10 +2748,6 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(this);
-  if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
-  }
-
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
@@ -2873,6 +2756,10 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
+
+  if (HasParallelMove()) {
+    parallel_move()->EmitNativeCode(compiler);
+  }
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
@@ -3062,7 +2949,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   const Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -3078,7 +2964,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       const intptr_t max_right =
           compiler::target::kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
+          !shift_left->IsShiftCountInRange(max_right - 1);
       if (right_needs_check) {
         __ CompareObject(right, Smi::ZoneHandle(Smi::New(max_right)));
         __ b(deopt, CS);
@@ -3090,10 +2976,10 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
+      !shift_left->IsShiftCountInRange(Smi::kBits - 1);
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      if (!RangeUtils::IsPositive(right_range)) {
+      if (!shift_left->RightOperandIsPositive()) {
         ASSERT(shift_left->CanDeoptimize());
         __ CompareObjectRegisters(right, ZR);
         __ b(deopt, MI);
@@ -3140,7 +3026,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
     summary->set_in(0, Location::RequiresRegister());
-    if (RightIsPowerOfTwoConstant()) {
+    if (RightOperandIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant));
     } else {
@@ -3360,7 +3246,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ cbz(deopt, right, compiler::kObjectBytes);
       }
@@ -3369,7 +3255,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(TMP, right);
 
       __ sdiv(result, temp, TMP, compiler::kObjectBytes);
-      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+      if (RightOperandCanBeMinusOne()) {
         // Check the corner case of dividing the 'MIN_SMI' with -1, in which
         // case we cannot tag the result.
 #if !defined(DART_COMPRESSED_POINTERS)
@@ -3383,7 +3269,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ cbz(deopt, right, compiler::kObjectBytes);
       }
@@ -3427,7 +3313,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #else
       const intptr_t kCountLimit = 0x1F;
 #endif
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit);
         __ CompareObjectRegisters(TMP, TMP2);
         __ csel(TMP, TMP2, TMP, GT);
@@ -3447,7 +3333,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const intptr_t kCountLimit = 0x3F;
       COMPILE_ASSERT(kCountLimit + 1 == kBitsPerInt64);
       compiler::Label done;
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit);
         __ CompareRegisters(TMP, TMP2);
         __ csel(result, ZR, result, GT);
@@ -3838,32 +3724,16 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
-  } else if (!CanDeoptimize()) {
-    // Type information is not conclusive, but range analysis found
-    // the value to be in int64 range. Therefore it must be a smi
-    // or mint value.
-    ASSERT(is_truncating());
-    compiler::Label done;
-    __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
-    __ LoadFieldFromOffset(out, value, Mint::value_offset());
-    __ Bind(&done);
   } else {
     compiler::Label done;
     __ SmiUntag(out, value);
     __ BranchIfSmi(value, &done);
-    __ CompareClassId(value, kMintCid);
-    __ b(deopt, NE);
+    if (CanDeoptimize()) {
+      __ CompareClassId(value, kMintCid);
+      __ b(deopt, NE);
+    }
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
     __ Bind(&done);
-  }
-
-  // TODO(vegorov): as it is implemented right now truncating unboxing would
-  // leave "garbage" in the higher word.
-  if (!is_truncating() && (deopt != nullptr)) {
-    ASSERT(representation() == kUnboxedInt32);
-    __ cmp(out, compiler::Operand(out, SXTW, 0));
-    __ b(deopt, NE);
   }
 }
 
@@ -3916,8 +3786,8 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) {
+Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                               BranchLabels labels) {
   ASSERT(compiler->is_optimizing());
   const VRegister value = locs()->in(0).fpu_reg();
   const bool is_negated = kind() != Token::kEQ;
@@ -4444,26 +4314,24 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  if (result_cid() == kDoubleCid) {
+  if (representation() == kUnboxedDouble) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    // Reuse the left register so that code can be made shorter.
-    summary->set_out(0, Location::SameAsFirstInput());
+    summary->set_out(0, Location::RequiresFpuRegister());
     return summary;
   }
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kUnboxedInt64);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  // Reuse the left register so that code can be made shorter.
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4471,54 +4339,23 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
   const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
-  if (result_cid() == kDoubleCid) {
-    compiler::Label done, returns_nan, are_equal;
+  if (representation() == kUnboxedDouble) {
     const VRegister left = locs()->in(0).fpu_reg();
     const VRegister right = locs()->in(1).fpu_reg();
     const VRegister result = locs()->out(0).fpu_reg();
-    __ fcmpd(left, right);
-    __ b(&returns_nan, VS);
-    __ b(&are_equal, EQ);
-    const Condition double_condition =
-        is_min ? TokenKindToDoubleCondition(Token::kLTE)
-               : TokenKindToDoubleCondition(Token::kGTE);
-    ASSERT(left == result);
-    __ b(&done, double_condition);
-    __ fmovdd(result, right);
-    __ b(&done);
-
-    __ Bind(&returns_nan);
-    __ LoadDImmediate(result, NAN);
-    __ b(&done);
-
-    __ Bind(&are_equal);
-    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
-    // -0.0 or 0.0 respectively.
-    // Check for negative left value (get the sign bit):
-    // - min -> left is negative ? left : right.
-    // - max -> left is negative ? right : left
-    // Check the sign bit.
-    __ fmovrd(TMP, left);  // Sign bit is in bit 63 of TMP.
-    __ CompareImmediate(TMP, 0);
     if (is_min) {
-      ASSERT(left == result);
-      __ b(&done, LT);
-      __ fmovdd(result, right);
+      __ vmind(result, left, right);
     } else {
-      __ b(&done, GE);
-      __ fmovdd(result, right);
-      ASSERT(left == result);
+      __ vmaxd(result, left, right);
     }
-    __ Bind(&done);
     return;
   }
 
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kUnboxedInt64);
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   const Register result = locs()->out(0).reg();
-  __ CompareObjectRegisters(left, right);
-  ASSERT(result == left);
+  __ CompareRegisters(left, right);
   if (is_min) {
     __ csel(result, right, left, GT);
   } else {
@@ -5155,14 +4992,14 @@ void HashIntegerOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  comparison()->InitializeLocationSummary(zone, opt);
+  condition()->InitializeLocationSummary(zone, opt);
   // Branches don't produce a result.
-  comparison()->locs()->set_out(0, Location::NoLocation());
-  return comparison()->locs();
+  condition()->locs()->set_out(0, Location::NoLocation());
+  return condition()->locs();
 }
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  comparison()->EmitBranchCode(compiler, this);
+  condition()->EmitBranchCode(compiler, this);
 }
 
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
@@ -5386,14 +5223,12 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  public:
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
                       Register divisor,
-                      Range* divisor_range,
                       Register tmp,
                       Register out)
       : ThrowErrorSlowPathCode(instruction,
                                kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
-        divisor_range_(divisor_range),
         tmp_(tmp),
         out_(out),
         adjust_sign_label_() {}
@@ -5415,18 +5250,18 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
     //   out += divisor;
     if (has_adjust_sign()) {
       __ Bind(adjust_sign_label());
-      if (RangeUtils::Overlaps(divisor_range_, -1, 1)) {
+      if (instruction()->AsBinaryInt64Op()->RightOperandIsPositive()) {
+        // Always positive.
+        __ add(out_, out_, compiler::Operand(divisor_));
+      } else if (instruction()->AsBinaryInt64Op()->RightOperandIsNegative()) {
+        // Always negative.
+        __ sub(out_, out_, compiler::Operand(divisor_));
+      } else {
         // General case.
         __ CompareRegisters(divisor_, ZR);
         __ sub(tmp_, out_, compiler::Operand(divisor_));
         __ add(out_, out_, compiler::Operand(divisor_));
         __ csel(out_, tmp_, out_, LT);
-      } else if (divisor_range_->IsPositive()) {
-        // Always positive.
-        __ add(out_, out_, compiler::Operand(divisor_));
-      } else {
-        // Always negative.
-        __ sub(out_, out_, compiler::Operand(divisor_));
       }
       __ b(exit_label());
     }
@@ -5434,7 +5269,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
 
   const char* name() override { return "int64 divide"; }
 
-  bool has_divide_by_zero() { return RangeUtils::CanBeZero(divisor_range_); }
+  bool has_divide_by_zero() {
+    return instruction()->AsBinaryInt64Op()->RightOperandCanBeZero();
+  }
 
   bool has_adjust_sign() { return is_mod_; }
 
@@ -5448,7 +5285,6 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  private:
   bool is_mod_;
   Register divisor_;
-  Range* divisor_range_;
   Register tmp_;
   Register out_;
   compiler::Label adjust_sign_label_;
@@ -5513,9 +5349,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   }
 
   // Prepare a slow path.
-  Range* right_range = instruction->right()->definition()->range();
   Int64DivideSlowPath* slow_path =
-      new (Z) Int64DivideSlowPath(instruction, right, right_range, tmp, out);
+      new (Z) Int64DivideSlowPath(instruction, right, tmp, out);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -5545,10 +5380,10 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
+  const intptr_t kNumInputs = 2;
   switch (op_kind()) {
     case Token::kMOD:
     case Token::kTRUNCDIV: {
-      const intptr_t kNumInputs = 2;
       const intptr_t kNumTemps = (op_kind() == Token::kMOD) ? 1 : 0;
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
@@ -5560,8 +5395,20 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       }
       return summary;
     }
+    case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR: {
+      const intptr_t kNumTemps = 0;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+      summary->set_in(0, Location::RequiresRegister());
+      summary->set_in(1, RightOperandIsPositive()
+                             ? LocationRegisterOrConstant(right())
+                             : Location::RequiresRegister());
+      summary->set_out(0, Location::RequiresRegister());
+      return summary;
+    }
     default: {
-      const intptr_t kNumInputs = 2;
       const intptr_t kNumTemps = 0;
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -5575,8 +5422,13 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!can_overflow());
-  ASSERT(!CanDeoptimize());
+  if ((op_kind() == Token::kSHL) || (op_kind() == Token::kSHR) ||
+      (op_kind() == Token::kUSHR)) {
+    EmitShiftInt64(compiler);
+    return;
+  }
 
+  ASSERT(!CanDeoptimize());
   const Register left = locs()->in(0).reg();
   const Location right = locs()->in(1);
   const Register out = locs()->out(0).reg();
@@ -5654,7 +5506,12 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                                      Register left,
                                      const Object& right) {
   const int64_t shift = Integer::Cast(right).Value();
-  ASSERT(shift >= 0);
+  if (shift < 0) {
+    // The compiler sometimes fails to eliminate unreachable code.
+    __ Stop("Unreachable shift");
+    return;
+  }
+
   switch (op_kind) {
     case Token::kSHR: {
       __ AsrImmediate(out, left,
@@ -5705,7 +5562,12 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
                                       Register left,
                                       const Object& right) {
   const int64_t shift = Integer::Cast(right).Value();
-  ASSERT(shift >= 0);
+  if (shift < 0) {
+    // The compiler sometimes fails to eliminate unreachable code.
+    __ Stop("Unreachable shift");
+    return;
+  }
+
   if (shift >= 32) {
     __ LoadImmediate(out, 0);
   } else {
@@ -5743,7 +5605,7 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
+  explicit ShiftInt64OpSlowPath(BinaryInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
                                kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
@@ -5758,7 +5620,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
     compiler::Label throw_error;
     __ tbnz(&throw_error, right, kBitsPerWord - 1);
 
-    switch (instruction()->AsShiftInt64Op()->op_kind()) {
+    switch (instruction()->AsBinaryInt64Op()->op_kind()) {
       case Token::kSHR:
         __ AsrImmediate(out, left, kBitsPerWord - 1);
         break;
@@ -5784,21 +5646,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
-LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? LocationRegisterOrConstant(right())
-                         : Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryInt64OpInstr::EmitShiftInt64(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   ASSERT(!can_overflow());
@@ -5827,161 +5675,23 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register left = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(!can_overflow());
+void BinaryUint32OpInstr::EmitShiftUint32(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
 
   if (locs()->in(1).IsConstant()) {
-    EmitShiftInt64ByConstant(compiler, op_kind(), out, left,
-                             locs()->in(1).constant());
+    EmitShiftUint32ByConstant(compiler, op_kind(), out, left,
+                              locs()->in(1).constant());
   } else {
     // Code for a variable shift amount.
-    Register shift = locs()->in(1).reg();
-
-    // Untag shift count.
-    __ SmiUntag(TMP, shift);
-    shift = TMP;
-
-    // Deopt if shift is larger than 63 or less than 0 (or not a smi).
-    if (!IsShiftCountInRange()) {
-      ASSERT(CanDeoptimize());
-      compiler::Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-
-      __ CompareImmediate(shift, kShiftCountLimit);
-      __ b(deopt, HI);
-    }
-
-    EmitShiftInt64ByRegister(compiler, op_kind(), out, left, shift);
-  }
-}
-
-class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
- public:
-  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
-      : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
-
-  const char* name() override { return "uint32 shift"; }
-
-  void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) override {
-    const Register right = instruction()->locs()->in(1).reg();
-
-    // Can't pass unboxed int64 value directly to runtime call, as all
-    // arguments are expected to be tagged (boxed).
-    // The unboxed int64 argument is passed through a dedicated slot in Thread.
-    // TODO(dartbug.com/33549): Clean this up when unboxed values
-    // could be passed as arguments.
-    __ str(right,
-           compiler::Address(
-               THR, compiler::target::Thread::unboxed_runtime_arg_offset()));
-  }
-};
-
-LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? LocationRegisterOrConstant(right())
-                         : Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
-
-  if (locs()->in(1).IsConstant()) {
-    EmitShiftUint32ByConstant(compiler, op_kind(), out, left,
-                              locs()->in(1).constant());
-  } else {
-    // Code for a variable shift amount (or constant that throws).
     const Register right = locs()->in(1).reg();
-    const bool shift_count_in_range =
-        IsShiftCountInRange(kUint32ShiftCountLimit);
-
-    // Jump to a slow path if shift count is negative.
-    if (!shift_count_in_range) {
-      ShiftUint32OpSlowPath* slow_path = new (Z) ShiftUint32OpSlowPath(this);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ tbnz(slow_path->entry_label(), right, kBitsPerWord - 1);
-    }
 
     EmitShiftUint32ByRegister(compiler, op_kind(), out, left, right);
 
-    if (!shift_count_in_range) {
+    if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
       // If shift value is > 31, return zero.
-      __ CompareImmediate(right, 31);
-      __ csel(out, out, ZR, LE);
-    }
-  }
-}
-
-LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void SpeculativeShiftUint32OpInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
-
-  if (locs()->in(1).IsConstant()) {
-    EmitShiftUint32ByConstant(compiler, op_kind(), out, left,
-                              locs()->in(1).constant());
-  } else {
-    Register right = locs()->in(1).reg();
-    const bool shift_count_in_range =
-        IsShiftCountInRange(kUint32ShiftCountLimit);
-
-    __ SmiUntag(TMP, right);
-    right = TMP;
-
-    // Jump to a slow path if shift count is negative.
-    if (!shift_count_in_range) {
-      // Deoptimize if shift count is negative.
-      ASSERT(CanDeoptimize());
-      compiler::Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-
-      __ tbnz(deopt, right, compiler::target::kSmiBits + 1);
-    }
-
-    EmitShiftUint32ByRegister(compiler, op_kind(), out, left, right);
-
-    if (!shift_count_in_range) {
-      // If shift value is > 31, return zero.
-      __ CompareImmediate(right, 31, compiler::kObjectBytes);
-      __ csel(out, out, ZR, LE);
+      __ CompareImmediate(right, 31, compiler::kFourBytes);
+      __ csel(out, out, ZR, UNSIGNED_LESS_EQUAL);
     }
   }
 }
@@ -6019,37 +5729,70 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1, LocationRegisterOrConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  compiler::Operand r = compiler::Operand(right);
+  if ((op_kind() == Token::kSHL) || (op_kind() == Token::kSHR) ||
+      (op_kind() == Token::kUSHR)) {
+    EmitShiftUint32(compiler);
+    return;
+  }
   Register out = locs()->out(0).reg();
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-      __ and_(out, left, r);
-      break;
-    case Token::kBIT_OR:
-      __ orr(out, left, r);
-      break;
-    case Token::kBIT_XOR:
-      __ eor(out, left, r);
-      break;
-    case Token::kADD:
-      __ addw(out, left, r);
-      break;
-    case Token::kSUB:
-      __ subw(out, left, r);
-      break;
-    case Token::kMUL:
-      __ mulw(out, left, right);
-      break;
-    default:
-      UNREACHABLE();
+  Register left = locs()->in(0).reg();
+  if (locs()->in(1).IsConstant()) {
+    int64_t right;
+    const bool ok = compiler::HasIntegerValue(locs()->in(1).constant(), &right);
+    RELEASE_ASSERT(ok);
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ AndImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kBIT_OR:
+        __ OrImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kBIT_XOR:
+        __ XorImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kADD:
+        __ AddImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kSUB:
+        __ AddImmediate(out, left, -right, compiler::kFourBytes);
+        break;
+      case Token::kMUL:
+        __ MulImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    Register right = locs()->in(1).reg();
+    compiler::Operand r = compiler::Operand(right);
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ and_(out, left, r);
+        break;
+      case Token::kBIT_OR:
+        __ orr(out, left, r);
+        break;
+      case Token::kBIT_XOR:
+        __ eor(out, left, r);
+        break;
+      case Token::kADD:
+        __ addw(out, left, r);
+        break;
+      case Token::kSUB:
+        __ subw(out, left, r);
+        break;
+      case Token::kMUL:
+        __ mulw(out, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
@@ -6083,7 +5826,6 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   if (from() == kUntagged || to() == kUntagged) {
     ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
            (from() == kUnboxedIntPtr && to() == kUntagged));
-    ASSERT(!CanDeoptimize());
   } else if (from() == kUnboxedInt64) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
   } else if (to() == kUnboxedInt64) {
@@ -6093,11 +5835,7 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
     ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
   }
   summary->set_in(0, Location::RequiresRegister());
-  if (CanDeoptimize()) {
-    summary->set_out(0, Location::RequiresRegister());
-  } else {
-    summary->set_out(0, Location::SameAsFirstInput());
-  }
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -6114,41 +5852,20 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
-  compiler::Label* deopt =
-      !CanDeoptimize()
-          ? nullptr
-          : compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
-    if (CanDeoptimize()) {
-      __ tbnz(deopt, value,
-              31);  // If sign bit is set it won't fit in a uint32.
-    }
     if (out != value) {
       __ mov(out, value);  // For positive values the bits are the same.
     }
   } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
-    if (CanDeoptimize()) {
-      __ tbnz(deopt, value,
-              31);  // If high bit is set it won't fit in an int32.
-    }
     if (out != value) {
       __ mov(out, value);  // For 31 bit values the bits are the same.
     }
   } else if (from() == kUnboxedInt64) {
     if (to() == kUnboxedInt32) {
-      if (is_truncating() || out != value) {
-        __ sxtw(out, value);  // Signed extension 64->32.
-      }
+      __ sxtw(out, value);  // Signed extension 64->32.
     } else {
       ASSERT(to() == kUnboxedUint32);
-      if (is_truncating() || out != value) {
-        __ uxtw(out, value);  // Unsigned extension 64->32.
-      }
-    }
-    if (CanDeoptimize()) {
-      ASSERT(to() == kUnboxedInt32);
-      __ cmp(out, compiler::Operand(value));
-      __ b(deopt, NE);  // Value cannot be held in Int32, deopt.
+      __ uxtw(out, value);  // Unsigned extension 64->32.
     }
   } else if (to() == kUnboxedInt64) {
     if (from() == kUnboxedUint32) {
@@ -6325,12 +6042,8 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, LocationRegisterOrConstant(left()));
-  // Only one of the inputs can be a constant. Choose register if the first one
-  // is a constant.
-  locs->set_in(1, locs->in(0).IsConstant()
-                      ? Location::RequiresRegister()
-                      : LocationRegisterOrConstant(right()));
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
@@ -6352,10 +6065,10 @@ Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
   }
 }
 
-void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
-  Condition true_condition = EmitComparisonCode(compiler, labels);
+  Condition true_condition = EmitConditionCode(compiler, labels);
 
   const Register result = this->locs()->out(0).reg();
   if (is_true.IsLinked() || is_false.IsLinked()) {
@@ -6370,7 +6083,7 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result, Bool::True());
     __ Bind(&done);
   } else {
-    // If EmitComparisonCode did not use the labels and just returned
+    // If EmitConditionCode did not use the labels and just returned
     // a condition we can avoid the branch and use conditional loads.
     ASSERT(true_condition != kInvalidCondition);
     __ LoadObject(TMP, Bool::True());
@@ -6379,10 +6092,10 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                     BranchInstr* branch) {
+void ConditionInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                    BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
-  Condition true_condition = EmitComparisonCode(compiler, labels);
+  Condition true_condition = EmitConditionCode(compiler, labels);
   if (true_condition != kInvalidCondition) {
     EmitBranchOnCondition(compiler, true_condition, labels);
   }

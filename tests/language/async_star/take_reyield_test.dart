@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 expectList(actualStream, expectedList) {
   return actualStream.toList().then((v) {
@@ -23,6 +23,11 @@ main() {
   }
 
   asyncStart();
-  expectList(fivePartialSums(makeStream(10)), [0, 1, 3, 6, 10])
-      .then(asyncSuccess);
+  expectList(fivePartialSums(makeStream(10)), [
+    0,
+    1,
+    3,
+    6,
+    10,
+  ]).then(asyncSuccess);
 }

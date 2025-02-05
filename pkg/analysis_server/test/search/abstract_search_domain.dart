@@ -29,8 +29,13 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
     findResult(kind, testFile.path, offset, length, false);
   }
 
-  void findResult(SearchResultKind kind, String file, int offset, int length,
-      bool expected) {
+  void findResult(
+    SearchResultKind kind,
+    String file,
+    int offset,
+    int length,
+    bool expected,
+  ) {
     for (var result in results) {
       var location = result.location;
       if (result.kind == kind &&
@@ -46,28 +51,33 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
     }
     if (expected) {
       fail(
-          'Not found: "search" kind=$kind offset=$offset length=$length\nin\n${results.join('\n')}');
+        'Not found: "search" kind=$kind offset=$offset length=$length\nin\n${results.join('\n')}',
+      );
     }
   }
 
   String getPathString(List<Element> path) {
-    return path.map((Element element) {
-      var kindName = element.kind.name;
-      var name = element.name;
-      if (name.isEmpty) {
-        return kindName;
-      } else {
-        return '$kindName $name';
-      }
-    }).join('\n');
+    return path
+        .map((Element element) {
+          var kindName = element.kind.name;
+          var name = element.name;
+          if (name.isEmpty) {
+            return kindName;
+          } else {
+            return '$kindName $name';
+          }
+        })
+        .join('\n');
   }
 
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
-      var params = SearchResultsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = SearchResultsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       var id = params.id;
       var resultSet = _resultSets[id];
       if (resultSet == null) {

@@ -14,8 +14,8 @@ class SHA256Bench extends BenchmarkBase {
   List<int> data;
 
   SHA256Bench()
-      : data = List<int>.generate(size, (i) => i % 256, growable: false),
-        super('SHA256');
+    : data = List<int>.generate(size, (i) => i % 256, growable: false),
+      super('SHA256');
 
   @override
   void run() {

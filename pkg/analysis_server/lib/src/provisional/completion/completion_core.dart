@@ -21,7 +21,4 @@ class AbortCompletion {}
 ///
 /// This value should generally be provided based on the default behaviour of
 /// a given client/protocol (or could take user preferences into account).
-enum CompletionPreference {
-  insert,
-  replace,
-}
+enum CompletionPreference { insert, replace }

@@ -22,7 +22,7 @@ main() {
     1000000000,
     3037000500, // Smallest integer with square over 2^63.
     4000000000,
-    0x7FFFFFFFFFFFF000 + 0xFFC
+    0x7FFFFFFFFFFFF000 + 0xFFC,
   ]) {
     // On 'web' platforms skip values outside web number safe range.
     if (mBase == mBase + 1) continue;

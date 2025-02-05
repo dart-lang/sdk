@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -1129,7 +1131,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement3;
-      if (enclosing is ClassElement && enclosing.isMixinApplication) {
+      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
             .singleOrNull;

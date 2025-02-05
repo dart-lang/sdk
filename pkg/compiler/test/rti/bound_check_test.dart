@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/d8_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -48,9 +48,10 @@ TypeError: The type argument 'A' is not a subtype of the type variable bound 'B'
 main(List<String> args) {
   asyncTest(() async {
     await runWithD8(
-        memorySourceFiles: {'main.dart': SOURCE1},
-        expectedOutput: OUTPUT1,
-        printJs: args.contains('-v'),
-        options: ['--libraries-spec=$sdkLibrariesSpecificationUri']);
+      memorySourceFiles: {'main.dart': SOURCE1},
+      expectedOutput: OUTPUT1,
+      printJs: args.contains('-v'),
+      options: ['--libraries-spec=$sdkLibrariesSpecificationUri'],
+    );
   });
 }

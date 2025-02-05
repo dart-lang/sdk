@@ -4,8 +4,8 @@
 
 // Regression test for issue 23058.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class A {
   var x = new B();

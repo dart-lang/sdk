@@ -24,8 +24,8 @@ dev_dependencies:
   analyzer_utilities: any
   args: any
   cli_util: any
-  glob: any
   http: any
   lints: any
   test: any
+  test_descriptor: any
   test_reflective_loader: any

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -9,12 +11,12 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
-import 'package:analyzer/src/task/inference_error.dart';
-import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -178,7 +180,7 @@ class _InitializerInference {
 
     _toInfer.add(element);
 
-    var node = _linker.getLinkingNode(element) as VariableDeclaration;
+    var node = _linker.getLinkingNode(element) as VariableDeclarationImpl;
     element.typeInference = _PropertyInducingElementTypeInference(_linker,
         _inferring, _unitElement, _scope, element, node, _libraryBuilder);
   }
@@ -200,7 +202,7 @@ class _PropertyInducingElementTypeInference
   final CompilationUnitElementImpl _unitElement;
   final Scope _scope;
   final PropertyInducingElementImpl _element;
-  final VariableDeclaration _node;
+  final VariableDeclarationImpl _node;
 
   _PropertyInducingElementTypeInference(
       this._linker,
@@ -254,7 +256,7 @@ class _PropertyInducingElementTypeInference
     var enclosingInterfaceElement = enclosingElement
         .ifTypeOrNull<InterfaceElement>()
         ?.augmented
-        .declaration;
+        .firstFragment;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

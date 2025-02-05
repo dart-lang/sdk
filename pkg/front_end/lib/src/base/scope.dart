@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.scope;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -15,17 +13,18 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-//import '../kernel/body_builder.dart' show JumpTarget;
-import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_method_builder.dart';
+import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -353,12 +352,12 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   Builder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
-    if (typeVariableBuilders == null) return parent;
+      LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
+    if (typeParameterBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
-      if (typeVariableBuilder.isWildcard) continue;
-      map[typeVariableBuilder.name] = typeVariableBuilder;
+    for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
+      if (typeParameterBuilder.isWildcard) continue;
+      map[typeParameterBuilder.name] = typeParameterBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
@@ -540,12 +539,12 @@ abstract class ProblemBuilder extends BuilderImpl {
   final Builder builder;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
 
-  ProblemBuilder(this.name, this.builder, this.charOffset, this.fileUri);
+  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
 
   @override
   bool get hasProblem => true;
@@ -564,10 +563,6 @@ class AccessErrorBuilder extends ProblemBuilder {
 
   @override
   Builder? get parent => builder.parent;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => builder.isFinal;
 
   @override
   bool get isField => builder.isField;
@@ -642,7 +637,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => throw new UnsupportedError('$runtimeType.member');
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -654,7 +649,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -662,7 +665,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => const [];
+  Reference? get invokeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => const [];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => throw new UnsupportedError("$runtimeType.isProperty");
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -675,6 +686,14 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isAbstract => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
 
   @override
   bool get isConflictingSetter => false;
@@ -702,11 +721,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
     throw new UnsupportedError('$runtimeType.library');
   }
 
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => null;
-
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
@@ -728,6 +742,14 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultTypes.");
+    return 0;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localMembers => const <ClassMember>[];
 
   @override
@@ -743,8 +765,8 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
@@ -756,15 +778,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    throw new UnsupportedError(
-        '$runtimeType.bodyBuilderContextForAnnotations}');
   }
 
   @override
@@ -1147,10 +1160,10 @@ abstract class MergedScope<T extends Builder> {
           context = messageNonAugmentationMemberConflictCause;
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri,
             context: [
               context.withLocation(existingBuilder.fileUri!,
-                  existingBuilder.charOffset, name.length)
+                  existingBuilder.fileOffset, name.length)
             ]);
       }
     } else {
@@ -1179,7 +1192,7 @@ abstract class MergedScope<T extends Builder> {
               templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
       } else {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
@@ -1187,7 +1200,7 @@ abstract class MergedScope<T extends Builder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newBuilder.charOffset,
+              newBuilder.fileOffset,
               noLength,
               newBuilder.fileUri);
         }
@@ -1349,13 +1362,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri,
               context: [
                 messageNonAugmentationConstructorConflictCause.withLocation(
                     existingConstructor.fileUri!,
-                    existingConstructor.charOffset,
+                    existingConstructor.fileOffset,
                     noLength)
               ]);
         }
@@ -1369,7 +1382,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         } else {
@@ -1388,7 +1401,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         }
@@ -1474,7 +1487,7 @@ extension on Builder {
     // TODO(johnniwinther): Handle all cases here.
   }
 
-  bool _hasPatchAnnotation(List<MetadataBuilder>? metadata) {
+  bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
     if (metadata == null) {
       return false;
     }
@@ -1494,8 +1507,13 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceExtensionTypeDeclarationBuilder) {
-      // Coverage-ignore-block(suite): Not run.
+    } else if (self is SourcePropertyBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceMethodBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

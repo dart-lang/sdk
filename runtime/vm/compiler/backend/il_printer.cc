@@ -93,6 +93,10 @@ class IlTestPrinter : public AllStatic {
         writer->CloseArray();
       }
     }
+    if (auto try_entry = block->AsTryEntry()) {
+      writer->PrintProperty("tryBody", try_entry->try_body()->block_id());
+      writer->PrintProperty("catches", try_entry->catch_target()->block_id());
+    }
     writer->OpenArray("is");
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
@@ -132,7 +136,7 @@ class IlTestPrinter : public AllStatic {
     }
     writer->PrintProperty("o", instr->DebugName());
     if (auto branch = instr->AsBranch()) {
-      PrintInstruction(writer, branch->comparison(), "cc");
+      PrintInstruction(writer, branch->condition(), "cc");
     } else {
       if (instr->InputCount() != 0) {
         writer->OpenArray("i");
@@ -181,7 +185,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   WriteDescriptor<ShortName##Instr>(#ShortName);
 
-      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION);
 
 #undef DECLARE_VISIT_INSTRUCTION
     }
@@ -870,7 +874,7 @@ void StrictCompareInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void TestCidsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  left()->PrintTo(f);
+  value()->PrintTo(f);
   f->Printf(" %s [", Token::Str(kind()));
   intptr_t length = cid_results().length();
   for (intptr_t i = 0; i < length; i += 2) {
@@ -888,7 +892,7 @@ void TestCidsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void TestRangeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  left()->PrintTo(f);
+  value()->PrintTo(f);
   f->Printf(" %s [%" Pd "-%" Pd "]", kind() == Token::kIS ? "in" : "not in",
             lower_, upper_);
 }
@@ -966,7 +970,7 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void IfThenElseInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  comparison()->PrintOperandsTo(f);
+  condition()->PrintOperandsTo(f);
   f->Printf(" ? %" Pd " : %" Pd, if_true_, if_false_);
 }
 
@@ -994,11 +998,6 @@ void InstanceOfInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(kind()));
-  if (SpeculativeModeOfInputs() == kGuardInputs) {
-    f->AddString("[guard-inputs], ");
-  } else {
-    f->AddString("[non-speculative], ");
-  }
   left()->PrintTo(f);
   f->AddString(", ");
   right()->PrintTo(f);
@@ -1214,7 +1213,7 @@ void CheckClassInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void CheckConditionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  comparison()->PrintOperandsTo(f);
+  condition()->PrintOperandsTo(f);
 }
 
 void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1302,21 +1301,15 @@ void PhiInstr::PrintTo(BaseTextBuffer* f) const {
 }
 
 void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (is_truncating()) {
-    f->AddString("[tr], ");
-  }
-  if (SpeculativeModeOfInputs() == kGuardInputs) {
-    f->AddString("[guard-inputs], ");
-  } else {
-    f->AddString("[non-speculative], ");
+  if (value_mode() == ValueMode::kCheckType) {
+    f->AddString("[check-type], ");
   }
   Definition::PrintOperandsTo(f);
 }
 
 void IntConverterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s->%s%s, ", RepresentationUtils::ToCString(from()),
-            RepresentationUtils::ToCString(to()),
-            is_truncating() ? "[tr]" : "");
+  f->Printf("%s->%s, ", RepresentationUtils::ToCString(from()),
+            RepresentationUtils::ToCString(to()));
   Definition::PrintOperandsTo(f);
 }
 
@@ -1458,9 +1451,41 @@ void NativeParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   marshaller_.NativeLocationOfNativeParameter(def_index_).PrintTo(f);
 }
 
+void TryEntryInstr::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("B%" Pd "[try_entry try_idx %" Pd "]:%" Pd " try_body:[B%" Pd
+            "] catches:[B%" Pd "] pred(",
+            block_id(), try_index(), GetDeoptId(), try_body_->block_id(),
+            catch_target_->block_id());
+
+  for (intptr_t i = 0; i < PredecessorCount(); ++i) {
+    if (i > 0) f->AddString(", ");
+    f->Printf("B%" Pd, PredecessorAt(i)->block_id());
+  }
+  f->AddString(")");
+  if (phis() != nullptr) {
+    f->AddString(" {");
+    for (intptr_t i = 0; i < phis()->length(); ++i) {
+      if ((*phis())[i] == nullptr) continue;
+      f->AddString("\n      ");
+      (*phis())[i]->PrintTo(f);
+    }
+    f->AddString("\n}");
+  }
+
+  if (HasParallelMove()) {
+    f->AddString(" ");
+    parallel_move()->PrintTo(f);
+  }
+}
+
 void CatchBlockEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
-  f->Printf("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
-            block_id(), try_index(), catch_try_index());
+  if (try_index() != kInvalidTryIndex) {
+    f->Printf("B%" Pd "[catch catch_try_index %" Pd " try_idx %" Pd "]",
+              block_id(), catch_try_index(), try_index());
+  } else {
+    f->Printf("B%" Pd "[catch catch_try_index %" Pd "]", block_id(),
+              catch_try_index());
+  }
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);
@@ -1606,6 +1631,13 @@ void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+void GenericCheckBoundInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  if (IsPhantom()) {
+    f->AddString(", phantom");
+  }
+}
+
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {
   if (HasParallelMove()) {
     parallel_move()->PrintTo(f);
@@ -1631,7 +1663,7 @@ void IndirectGotoInstr::PrintTo(BaseTextBuffer* f) const {
 void BranchInstr::PrintTo(BaseTextBuffer* f) const {
   f->Printf("%s ", DebugName());
   f->AddString("if ");
-  comparison()->PrintTo(f);
+  condition()->PrintTo(f);
 
   f->Printf(" goto (%" Pd ", %" Pd ")", true_successor()->block_id(),
             false_successor()->block_id());

@@ -33,8 +33,11 @@ void f() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "The name 'res' is already used in the scope.");
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "The name 'res' is already used in the scope.",
+    );
   }
 
   Future<void> test_checkFinalConditions_sameVariable_before() async {
@@ -47,8 +50,11 @@ void f() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "The name 'res' is already used in the scope.");
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "The name 'res' is already used in the scope.",
+    );
   }
 
   Future<void> test_checkInitialCondition_false_outOfRange_length() async {
@@ -83,12 +89,15 @@ void f() {
     _createRefactoringWithSuffix('v', ' = 1;');
     // check conditions
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract the left-hand side of an assignment.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'Cannot extract the left-hand side of an assignment.',
+    );
   }
 
   Future<void>
-      test_checkInitialConditions_namePartOfDeclaration_function() async {
+  test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
 void f() {
   void foo() {}
@@ -97,13 +106,16 @@ void f() {
     _createRefactoringWithSuffix('foo', '()');
     // check conditions
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Expression must be selected to activate this refactoring.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'Expression must be selected to activate this refactoring.',
+    );
   }
 
   Future<void>
-      test_checkInitialConditions_namePartOfDeclaration_variable() async {
+  test_checkInitialConditions_namePartOfDeclaration_variable() async {
     await indexTestUnit('''
 void f() {
   int vvv = 0;
@@ -112,9 +124,12 @@ void f() {
     _createRefactoringWithSuffix('vvv', ' = 0;');
     // check conditions
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Expression must be selected to activate this refactoring.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'Expression must be selected to activate this refactoring.',
+    );
   }
 
   Future<void> test_checkInitialConditions_noExpression() async {
@@ -135,13 +150,17 @@ int a = 1 + 2;
     _createRefactoringForString('1 + 2');
     // check conditions
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'An expression inside a function must be selected '
-            'to activate this refactoring.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'An expression inside a function must be selected '
+          'to activate this refactoring.',
+    );
   }
 
   Future<void>
-      test_checkInitialConditions_stringSelection_leadingQuote() async {
+  test_checkInitialConditions_stringSelection_leadingQuote() async {
     await indexTestUnit('''
 void f() {
   var vvv = 'abc';
@@ -158,7 +177,7 @@ void f() {
   }
 
   Future<void>
-      test_checkInitialConditions_stringSelection_trailingQuote() async {
+  test_checkInitialConditions_stringSelection_trailingQuote() async {
     await indexTestUnit('''
 void f() {
   var vvv = 'abc';
@@ -183,8 +202,11 @@ void f() {
     _createRefactoringForString('print');
     // check conditions
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract the void expression.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'Cannot extract the void expression.',
+    );
   }
 
   Future<void> test_checkName() async {
@@ -198,8 +220,10 @@ void f() {
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be empty.');
+      refactoring.checkName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'Variable name must not be empty.',
+    );
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
@@ -218,8 +242,10 @@ void res() {}
     await refactoring.checkInitialConditions();
     refactoring.name = 'res';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
-        expectedMessage: "The name 'res' is already used in the scope.");
+      refactoring.checkName(),
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "The name 'res' is already used in the scope.",
+    );
   }
 
   Future<void> test_checkName_conflict_withOtherLocal() async {
@@ -233,8 +259,10 @@ void f() {
     await refactoring.checkInitialConditions();
     refactoring.name = 'res';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
-        expectedMessage: "The name 'res' is already used in the scope.");
+      refactoring.checkName(),
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "The name 'res' is already used in the scope.",
+    );
   }
 
   Future<void> test_checkName_conflict_withTypeName() async {
@@ -250,8 +278,10 @@ class Res {}
     await refactoring.checkInitialConditions();
     refactoring.name = 'Res';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
-        expectedMessage: "The name 'Res' is already used in the scope.");
+      refactoring.checkName(),
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "The name 'Res' is already used in the scope.",
+    );
   }
 
   /// Check we don't fail with "The name 'x' is already used in the scope." for
@@ -438,8 +468,12 @@ void f() {
     // check conditions
     await refactoring.checkInitialConditions();
     var subExpressions = _getCoveringExpressions();
-    expect(subExpressions,
-        ['bbb', 'bbb * 2', 'aaa + bbb * 2', 'aaa + bbb * 2 + 3']);
+    expect(subExpressions, [
+      'bbb',
+      'bbb * 2',
+      'aaa + bbb * 2',
+      'aaa + bbb * 2 + 3',
+    ]);
   }
 
   Future<void> test_coveringExpressions_inArgumentList() async {
@@ -546,7 +580,7 @@ void f() {
   }
 
   Future<void>
-      test_coveringExpressions_skip_constructorName_typeArgument() async {
+  test_coveringExpressions_skip_constructorName_typeArgument() async {
     await indexTestUnit('''
 class A<T> {}
 void f() {
@@ -726,8 +760,10 @@ void f() {
     _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
     // check guesses
     await refactoring.checkInitialConditions();
-    expect(refactoring.names,
-        unorderedEquals(['selectedItem', 'item', 'my', 'treeItem']));
+    expect(
+      refactoring.names,
+      unorderedEquals(['selectedItem', 'item', 'my', 'treeItem']),
+    );
   }
 
   Future<void> test_guessNames_stringPart() async {
@@ -796,7 +832,8 @@ void f() {
 
   Future<void> test_lint_alwaysSpecifyTypes_final() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.always_specify_types, LintNames.prefer_final_locals]);
+      lints: [LintNames.always_specify_types, LintNames.prefer_final_locals],
+    );
     await indexTestUnit('''
 void f() {
   print(1 + 2);
@@ -940,7 +977,10 @@ void f() {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [38, 61, 87], names: ['object', 'i']);
+      length: 3,
+      offsets: [38, 61, 87],
+      names: ['object', 'i'],
+    );
   }
 
   Future<void> test_occurrences_disableOccurrences() async {
@@ -1033,7 +1073,10 @@ void f(int x) {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [69, 94, 112], names: ['object', 'i']);
+      length: 3,
+      offsets: [69, 94, 112],
+      names: ['object', 'i'],
+    );
   }
 
   Future<void> test_occurrences_inSwitchPatternCase() async {
@@ -1059,7 +1102,10 @@ void f(int x) {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [53, 78, 96], names: ['object', 'i']);
+      length: 3,
+      offsets: [53, 78, 96],
+      names: ['object', 'i'],
+    );
   }
 
   Future<void> test_occurrences_singleExpression() async {
@@ -1157,8 +1203,10 @@ void f() {
     _createRefactoringWithSuffix('foo()', '; // marker');
     // check offsets
     await refactoring.checkInitialConditions();
-    expect(refactoring.offsets,
-        unorderedEquals([findOffset('foo();'), findOffset('foo( );')]));
+    expect(
+      refactoring.offsets,
+      unorderedEquals([findOffset('foo();'), findOffset('foo( );')]),
+    );
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
@@ -1239,7 +1287,10 @@ void f() {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [33, 55, 61], names: ['y']);
+      length: 3,
+      offsets: [33, 55, 61],
+      names: ['y'],
+    );
   }
 
   Future<void> test_singleExpression_inExpressionBody_ofFunction() async {
@@ -1257,7 +1308,10 @@ foo(Point p) {
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [21, 41, 47], names: ['x', 'i']);
+      length: 3,
+      offsets: [21, 41, 47],
+      names: ['x', 'i'],
+    );
   }
 
   Future<void> test_singleExpression_inExpressionBody_ofMethod() async {
@@ -1279,7 +1333,10 @@ class A {
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [35, 57, 63], names: ['x', 'i']);
+      length: 3,
+      offsets: [35, 57, 63],
+      names: ['x', 'i'],
+    );
   }
 
   Future<void> test_singleExpression_inIfElseIf() async {
@@ -1351,7 +1408,10 @@ void f(int x) {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [69, 94], names: ['object', 'i']);
+      length: 3,
+      offsets: [69, 94],
+      names: ['object', 'i'],
+    );
   }
 
   Future<void> test_singleExpression_inSwitchPatternCase() async {
@@ -1375,7 +1435,10 @@ void f(int x) {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [53, 78], names: ['object', 'i']);
+      length: 3,
+      offsets: [53, 78],
+      names: ['object', 'i'],
+    );
   }
 
   Future<void> test_singleExpression_leadingNotWhitespace() async {
@@ -1561,7 +1624,10 @@ void f() {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [17, 38], names: ['object', 's']);
+      length: 3,
+      offsets: [17, 38],
+      names: ['object', 's'],
+    );
   }
 
   Future<void> test_stringLiteralPart() async {
@@ -1587,9 +1653,12 @@ void f() {
 
   Future<void> _assertInitialConditions_fatal_selection() async {
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Expression must be selected to activate this refactoring.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'Expression must be selected to activate this refactoring.',
+    );
   }
 
   void _assertSingleLinkedEditGroup({
@@ -1597,13 +1666,14 @@ void f() {
     required List<int> offsets,
     required List<String> names,
   }) {
-    var positions =
-        offsets.map((offset) => {'file': testFile.path, 'offset': offset});
+    var positions = offsets.map(
+      (offset) => {'file': testFile.path, 'offset': offset},
+    );
     var suggestions = names.map((name) => {'value': name, 'kind': 'VARIABLE'});
     var expected = <String, dynamic>{
       'length': length,
       'positions': positions.toList(),
-      'suggestions': suggestions.toList()
+      'suggestions': suggestions.toList(),
     };
     _assertSingleLinkedEditGroupJson(json.encode(expected));
   }
@@ -1624,8 +1694,11 @@ void f() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring =
-        ExtractLocalRefactoringImpl(testAnalysisResult, offset, length);
+    refactoring = ExtractLocalRefactoringImpl(
+      testAnalysisResult,
+      offset,
+      length,
+    );
     refactoring.name = 'res';
   }
 

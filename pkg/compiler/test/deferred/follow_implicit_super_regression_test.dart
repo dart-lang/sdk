@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart' as dart2js;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   runTest() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
     dart2js.Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var elementEnvironment = closedWorld.elementEnvironment;

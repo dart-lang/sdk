@@ -33,8 +33,8 @@ exhaustiveC(C c) => /*
  type=C
 */switch (c) { C(: num _a) /*space=C(_a: num)*/=> 0, }
 
-nonExhaustiveA(C c) => /*analyzer.
+nonExhaustiveC(C c) => /*
  error=non-exhaustive:C(_a: double()),
  fields={_a:num},
  type=C
-*/switch (c) { C(: int _a) /*analyzer.space=C(_a: int)*/=> 0, }
+*/switch (c) { C(: int _a) /*space=C(_a: int)*/=> 0, }

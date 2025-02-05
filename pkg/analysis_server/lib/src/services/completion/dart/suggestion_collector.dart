@@ -90,6 +90,7 @@ class SuggestionCollector {
   /// - Truncate the list of suggestions.
   void finalize(RelevanceComputer computer) {
     // Compute a relevance score for each of the suggestions.
+    computer.completionLocation = completionLocation;
     for (var candidate in suggestions) {
       candidate.relevanceScore = computer.computeRelevance(candidate);
     }

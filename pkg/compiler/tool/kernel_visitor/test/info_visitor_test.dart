@@ -5,7 +5,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-import "package:expect/minitest.dart"; // ignore: deprecated_member_use
+import "package:expect/legacy/minitest.dart"; // ignore: deprecated_member_use
 import 'package:front_end/src/api_unstable/dart2js.dart';
 import "package:kernel/kernel.dart";
 import "package:path/path.dart" as path;
@@ -20,9 +20,10 @@ void runTests(MetricsVisitor visitor) {
   test("Class B does call super", () {
     Expect.equals(visitor.classInfo["B"]!.invokesSuper, true);
 
-    var callingMethod = visitor.classInfo["B"]!.methods
-        .where((m) => m.name == "testSuper")
-        .toList()[0];
+    var callingMethod =
+        visitor.classInfo["B"]!.methods
+            .where((m) => m.name == "testSuper")
+            .toList()[0];
     Expect.equals(callingMethod.invokesSuper, true);
   });
 
@@ -65,31 +66,40 @@ void runTests(MetricsVisitor visitor) {
 
   test("Class G extends A but fails to override getValue()", () {
     Expect.equals(
-        visitor.classInfo["G"]!.notOverriddenMethods.contains("getValue"),
-        true);
+      visitor.classInfo["G"]!.notOverriddenMethods.contains("getValue"),
+      true,
+    );
   });
 }
 
 void main() async {
   // Compile Dill
   var scriptDirectory = path.dirname(Platform.script.path);
-  var pkgDirectory =
-      path.dirname(path.dirname(path.dirname(path.dirname(scriptDirectory))));
+  var pkgDirectory = path.dirname(
+    path.dirname(path.dirname(path.dirname(scriptDirectory))),
+  );
   var compilePath = path.canonicalize(
-      path.join(pkgDirectory, "front_end", "tool", "_fasta", "compile.dart"));
-  var testClassesPath =
-      path.canonicalize(path.join(scriptDirectory, "test_classes.dart"));
-  var ddcOutlinePath = path.canonicalize(path.join(
-      computePlatformBinariesLocation().toFilePath(), "ddc_outline.dill"));
-  var dillPath =
-      path.canonicalize(path.join(scriptDirectory, "test_classes.dill"));
+    path.join(pkgDirectory, "front_end", "tool", "compile.dart"),
+  );
+  var testClassesPath = path.canonicalize(
+    path.join(scriptDirectory, "test_classes.dart"),
+  );
+  var ddcOutlinePath = path.canonicalize(
+    path.join(
+      computePlatformBinariesLocation().toFilePath(),
+      "ddc_outline.dill",
+    ),
+  );
+  var dillPath = path.canonicalize(
+    path.join(scriptDirectory, "test_classes.dill"),
+  );
 
   var result = await Process.run(Platform.resolvedExecutable, [
     compilePath,
     "--target=dartdevc",
-    "--platform=${ddcOutlinePath}",
-    "-o=${dillPath}",
-    testClassesPath
+    "--platform=$ddcOutlinePath",
+    "-o=$dillPath",
+    testClassesPath,
   ]);
 
   if (result.exitCode != 0) {
@@ -98,7 +108,7 @@ void main() async {
 
   // Dill compiled from test_classes.dart using ddc.
   var component = loadComponentFromBinary(dillPath);
-  var visitor = MetricsVisitor(["file:${testClassesPath}"]);
+  var visitor = MetricsVisitor(["file:$testClassesPath"]);
 
   component.accept(visitor);
 

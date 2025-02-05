@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 
 class RemoveComparison extends ResolvedCorrectionProducer {
   @override
@@ -23,13 +23,13 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_COMPARISON].
   RemoveComparison({required super.context})
-      : fixKind = DartFixKind.REMOVE_COMPARISON,
-        multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
+    : fixKind = DartFixKind.REMOVE_COMPARISON,
+      multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_TYPE_CHECK].
   RemoveComparison.typeCheck({required super.context})
-      : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
-        multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
+    : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
+      multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
 
   @override
   CorrectionApplicability get applicability =>
@@ -141,10 +141,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     Future<void> replaceWithBlock(Block replacement) async {
       var text = utils.getRangeText(
         utils.getLinesRange(
-          range.endStart(
-            replacement.leftBracket,
-            replacement.rightBracket,
-          ),
+          range.endStart(replacement.leftBracket, replacement.rightBracket),
         ),
       );
       var unIndented = indentLeft(text);
@@ -191,10 +188,12 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Use the [builder] to add an edit to delete the operator and given
-  /// [operand] from the [binary] expression.
+  /// Adds an edit with [builder] to delete the operator and [node] from the
+  /// [binary] expression (where [node] is assumed to be one of the operands).
   Future<void> _removeOperatorAndOperand(
-      ChangeBuilder builder, BinaryExpression binary) async {
+    ChangeBuilder builder,
+    BinaryExpression binary,
+  ) async {
     SourceRange operatorAndOperand;
     if (binary.leftOperand == node) {
       operatorAndOperand = range.startStart(node, binary.rightOperand);

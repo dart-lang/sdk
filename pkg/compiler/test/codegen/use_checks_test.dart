@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -27,7 +27,9 @@ main() {
   runTest() async {
     var options = [Flags.enableCheckedMode];
     var result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, options: options);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: options,
+    );
     var compiler = result.compiler!;
     var element =
         compiler.backendClosedWorldForTesting!.elementEnvironment.mainFunction!;

@@ -6,7 +6,7 @@
 // expression, that promotion isn't over-applied to uses of the field within
 // subsequent cascades.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   D get d => D(E()); // Unstable

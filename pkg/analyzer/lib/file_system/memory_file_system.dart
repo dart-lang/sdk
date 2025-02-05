@@ -7,8 +7,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
@@ -52,7 +50,8 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   pathos.Context get pathContext => _pathContext;
 
-  /// Convert the given posix [path] to conform to this provider's path context.
+  /// Converts the given posix [filePath] to conform to this provider's path
+  /// context.
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
@@ -354,13 +353,6 @@ class _MemoryFile extends _MemoryResource implements File {
     return destination;
   }
 
-  @Deprecated('Get Source instances from analysis results')
-  @override
-  Source createSource([Uri? uri]) {
-    uri ??= provider.pathContext.toUri(path);
-    return FileSource(this, uri);
-  }
-
   @override
   void delete() {
     provider.deleteFile(path);
@@ -595,9 +587,6 @@ abstract class _MemoryResource implements Resource {
   }
 
   @override
-  Folder get parent2 => parent;
-
-  @override
   String get shortName => provider.pathContext.basename(path);
 
   @override
@@ -617,7 +606,7 @@ abstract class _MemoryResource implements Resource {
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).
   ///
-  /// If [provider.delayWatcherInitialization] is not `null`, this method will
+  /// If `provider.delayWatcherInitialization` is not `null`, this method will
   /// wait for this amount of time before it starts capturing/streaming events
   /// to simulate the delay that occurs when initializing a real file system
   /// watcher.

@@ -61,7 +61,9 @@ void main() {
 }
 
 @Native<Struct1ByteInt Function(Int8)>(
-    symbol: 'ReturnStruct1ByteInt', isLeaf: true)
+  symbol: 'ReturnStruct1ByteInt',
+  isLeaf: true,
+)
 external Struct1ByteInt returnStruct1ByteIntNativeLeaf(int a0);
 
 /// Smallest struct with data.
@@ -78,9 +80,11 @@ void testReturnStruct1ByteIntNativeLeaf() {
 }
 
 @Native<Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8)>(
-    symbol: 'ReturnStruct3BytesHomogeneousUint8', isLeaf: true)
+  symbol: 'ReturnStruct3BytesHomogeneousUint8',
+  isLeaf: true,
+)
 external Struct3BytesHomogeneousUint8
-    returnStruct3BytesHomogeneousUint8NativeLeaf(int a0, int a1, int a2);
+returnStruct3BytesHomogeneousUint8NativeLeaf(int a0, int a1, int a2);
 
 /// Smaller than word size return value on all architectures.
 void testReturnStruct3BytesHomogeneousUint8NativeLeaf() {
@@ -102,9 +106,11 @@ void testReturnStruct3BytesHomogeneousUint8NativeLeaf() {
 }
 
 @Native<Struct3BytesInt2ByteAligned Function(Int16, Int8)>(
-    symbol: 'ReturnStruct3BytesInt2ByteAligned', isLeaf: true)
+  symbol: 'ReturnStruct3BytesInt2ByteAligned',
+  isLeaf: true,
+)
 external Struct3BytesInt2ByteAligned
-    returnStruct3BytesInt2ByteAlignedNativeLeaf(int a0, int a1);
+returnStruct3BytesInt2ByteAlignedNativeLeaf(int a0, int a1);
 
 /// Smaller than word size return value on all architectures.
 /// With alignment rules taken into account size is 4 bytes.
@@ -124,9 +130,11 @@ void testReturnStruct3BytesInt2ByteAlignedNativeLeaf() {
 }
 
 @Native<Struct4BytesHomogeneousInt16 Function(Int16, Int16)>(
-    symbol: 'ReturnStruct4BytesHomogeneousInt16', isLeaf: true)
+  symbol: 'ReturnStruct4BytesHomogeneousInt16',
+  isLeaf: true,
+)
 external Struct4BytesHomogeneousInt16
-    returnStruct4BytesHomogeneousInt16NativeLeaf(int a0, int a1);
+returnStruct4BytesHomogeneousInt16NativeLeaf(int a0, int a1);
 
 /// Word size return value on 32 bit architectures..
 void testReturnStruct4BytesHomogeneousInt16NativeLeaf() {
@@ -145,17 +153,26 @@ void testReturnStruct4BytesHomogeneousInt16NativeLeaf() {
 }
 
 @Native<
-    Struct7BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8)>(symbol: 'ReturnStruct7BytesHomogeneousUint8', isLeaf: true)
+  Struct7BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct7BytesHomogeneousUint8', isLeaf: true)
 external Struct7BytesHomogeneousUint8
-    returnStruct7BytesHomogeneousUint8NativeLeaf(
-        int a0, int a1, int a2, int a3, int a4, int a5, int a6);
+returnStruct7BytesHomogeneousUint8NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+);
 
 /// Non-wordsize return value.
 void testReturnStruct7BytesHomogeneousUint8NativeLeaf() {
@@ -175,8 +192,15 @@ void testReturnStruct7BytesHomogeneousUint8NativeLeaf() {
   a5 = 6;
   a6 = 7;
 
-  final result =
-      returnStruct7BytesHomogeneousUint8NativeLeaf(a0, a1, a2, a3, a4, a5, a6);
+  final result = returnStruct7BytesHomogeneousUint8NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -190,9 +214,11 @@ void testReturnStruct7BytesHomogeneousUint8NativeLeaf() {
 }
 
 @Native<Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8)>(
-    symbol: 'ReturnStruct7BytesInt4ByteAligned', isLeaf: true)
+  symbol: 'ReturnStruct7BytesInt4ByteAligned',
+  isLeaf: true,
+)
 external Struct7BytesInt4ByteAligned
-    returnStruct7BytesInt4ByteAlignedNativeLeaf(int a0, int a1, int a2);
+returnStruct7BytesInt4ByteAlignedNativeLeaf(int a0, int a1, int a2);
 
 /// Non-wordsize return value.
 /// With alignment rules taken into account size is 8 bytes.
@@ -215,9 +241,14 @@ void testReturnStruct7BytesInt4ByteAlignedNativeLeaf() {
 }
 
 @Native<Struct8BytesInt Function(Int16, Int16, Int32)>(
-    symbol: 'ReturnStruct8BytesInt', isLeaf: true)
+  symbol: 'ReturnStruct8BytesInt',
+  isLeaf: true,
+)
 external Struct8BytesInt returnStruct8BytesIntNativeLeaf(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Return value in integer registers on many architectures.
 void testReturnStruct8BytesIntNativeLeaf() {
@@ -239,9 +270,11 @@ void testReturnStruct8BytesIntNativeLeaf() {
 }
 
 @Native<Struct8BytesHomogeneousFloat Function(Float, Float)>(
-    symbol: 'ReturnStruct8BytesHomogeneousFloat', isLeaf: true)
+  symbol: 'ReturnStruct8BytesHomogeneousFloat',
+  isLeaf: true,
+)
 external Struct8BytesHomogeneousFloat
-    returnStruct8BytesHomogeneousFloatNativeLeaf(double a0, double a1);
+returnStruct8BytesHomogeneousFloatNativeLeaf(double a0, double a1);
 
 /// Return value in FP registers on many architectures.
 void testReturnStruct8BytesHomogeneousFloatNativeLeaf() {
@@ -260,9 +293,14 @@ void testReturnStruct8BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<Struct8BytesMixed Function(Float, Int16, Int16)>(
-    symbol: 'ReturnStruct8BytesMixed', isLeaf: true)
+  symbol: 'ReturnStruct8BytesMixed',
+  isLeaf: true,
+)
 external Struct8BytesMixed returnStruct8BytesMixedNativeLeaf(
-    double a0, int a1, int a2);
+  double a0,
+  int a1,
+  int a2,
+);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct8BytesMixedNativeLeaf() {
@@ -284,19 +322,30 @@ void testReturnStruct8BytesMixedNativeLeaf() {
 }
 
 @Native<
-    Struct9BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8)>(symbol: 'ReturnStruct9BytesHomogeneousUint8', isLeaf: true)
+  Struct9BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct9BytesHomogeneousUint8', isLeaf: true)
 external Struct9BytesHomogeneousUint8
-    returnStruct9BytesHomogeneousUint8NativeLeaf(
-        int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8);
+returnStruct9BytesHomogeneousUint8NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -323,7 +372,16 @@ void testReturnStruct9BytesHomogeneousUint8NativeLeaf() {
   a8 = 9;
 
   final result = returnStruct9BytesHomogeneousUint8NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -339,9 +397,11 @@ void testReturnStruct9BytesHomogeneousUint8NativeLeaf() {
 }
 
 @Native<Struct9BytesInt4Or8ByteAligned Function(Int64, Int8)>(
-    symbol: 'ReturnStruct9BytesInt4Or8ByteAligned', isLeaf: true)
+  symbol: 'ReturnStruct9BytesInt4Or8ByteAligned',
+  isLeaf: true,
+)
 external Struct9BytesInt4Or8ByteAligned
-    returnStruct9BytesInt4Or8ByteAlignedNativeLeaf(int a0, int a1);
+returnStruct9BytesInt4Or8ByteAlignedNativeLeaf(int a0, int a1);
 
 /// Return value in two integer registers on x64.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -361,10 +421,11 @@ void testReturnStruct9BytesInt4Or8ByteAlignedNativeLeaf() {
 }
 
 @Native<Struct12BytesHomogeneousFloat Function(Float, Float, Float)>(
-    symbol: 'ReturnStruct12BytesHomogeneousFloat', isLeaf: true)
+  symbol: 'ReturnStruct12BytesHomogeneousFloat',
+  isLeaf: true,
+)
 external Struct12BytesHomogeneousFloat
-    returnStruct12BytesHomogeneousFloatNativeLeaf(
-        double a0, double a1, double a2);
+returnStruct12BytesHomogeneousFloatNativeLeaf(double a0, double a1, double a2);
 
 /// Return value in FPU registers, but does not use all registers on arm hardfp
 /// and arm64.
@@ -387,10 +448,16 @@ void testReturnStruct12BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float)>(
-    symbol: 'ReturnStruct16BytesHomogeneousFloat', isLeaf: true)
+  symbol: 'ReturnStruct16BytesHomogeneousFloat',
+  isLeaf: true,
+)
 external Struct16BytesHomogeneousFloat
-    returnStruct16BytesHomogeneousFloatNativeLeaf(
-        double a0, double a1, double a2, double a3);
+returnStruct16BytesHomogeneousFloatNativeLeaf(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+);
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void testReturnStruct16BytesHomogeneousFloatNativeLeaf() {
@@ -415,9 +482,13 @@ void testReturnStruct16BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<Struct16BytesMixed Function(Double, Int64)>(
-    symbol: 'ReturnStruct16BytesMixed', isLeaf: true)
+  symbol: 'ReturnStruct16BytesMixed',
+  isLeaf: true,
+)
 external Struct16BytesMixed returnStruct16BytesMixedNativeLeaf(
-    double a0, int a1);
+  double a0,
+  int a1,
+);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct16BytesMixedNativeLeaf() {
@@ -436,9 +507,15 @@ void testReturnStruct16BytesMixedNativeLeaf() {
 }
 
 @Native<Struct16BytesMixed2 Function(Float, Float, Float, Int32)>(
-    symbol: 'ReturnStruct16BytesMixed2', isLeaf: true)
+  symbol: 'ReturnStruct16BytesMixed2',
+  isLeaf: true,
+)
 external Struct16BytesMixed2 returnStruct16BytesMixed2NativeLeaf(
-    double a0, double a1, double a2, int a3);
+  double a0,
+  double a1,
+  double a2,
+  int a3,
+);
 
 /// Return value split over FP and integer register in x64.
 /// The integer register contains half float half int.
@@ -464,9 +541,14 @@ void testReturnStruct16BytesMixed2NativeLeaf() {
 }
 
 @Native<Struct17BytesInt Function(Int64, Int64, Int8)>(
-    symbol: 'ReturnStruct17BytesInt', isLeaf: true)
+  symbol: 'ReturnStruct17BytesInt',
+  isLeaf: true,
+)
 external Struct17BytesInt returnStruct17BytesIntNativeLeaf(
-    int a0, int a1, int a2);
+  int a0,
+  int a1,
+  int a2,
+);
 
 /// Return value returned in preallocated space passed by pointer on most ABIs.
 /// Is non word size on purpose, to test that structs are rounded up to word size
@@ -490,47 +572,50 @@ void testReturnStruct17BytesIntNativeLeaf() {
 }
 
 @Native<
-    Struct19BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8)>(symbol: 'ReturnStruct19BytesHomogeneousUint8', isLeaf: true)
+  Struct19BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  )
+>(symbol: 'ReturnStruct19BytesHomogeneousUint8', isLeaf: true)
 external Struct19BytesHomogeneousUint8
-    returnStruct19BytesHomogeneousUint8NativeLeaf(
-        int a0,
-        int a1,
-        int a2,
-        int a3,
-        int a4,
-        int a5,
-        int a6,
-        int a7,
-        int a8,
-        int a9,
-        int a10,
-        int a11,
-        int a12,
-        int a13,
-        int a14,
-        int a15,
-        int a16,
-        int a17,
-        int a18);
+returnStruct19BytesHomogeneousUint8NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -576,8 +661,27 @@ void testReturnStruct19BytesHomogeneousUint8NativeLeaf() {
   a17 = 18;
   a18 = 19;
 
-  final result = returnStruct19BytesHomogeneousUint8NativeLeaf(a0, a1, a2, a3,
-      a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18);
+  final result = returnStruct19BytesHomogeneousUint8NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+  );
 
   print("result = $result");
 
@@ -603,11 +707,16 @@ void testReturnStruct19BytesHomogeneousUint8NativeLeaf() {
 }
 
 @Native<
-    Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32,
-        Int32)>(symbol: 'ReturnStruct20BytesHomogeneousInt32', isLeaf: true)
+  Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32)
+>(symbol: 'ReturnStruct20BytesHomogeneousInt32', isLeaf: true)
 external Struct20BytesHomogeneousInt32
-    returnStruct20BytesHomogeneousInt32NativeLeaf(
-        int a0, int a1, int a2, int a3, int a4);
+returnStruct20BytesHomogeneousInt32NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Return value too big to go in cpu registers on arm64.
 void testReturnStruct20BytesHomogeneousInt32NativeLeaf() {
@@ -623,8 +732,13 @@ void testReturnStruct20BytesHomogeneousInt32NativeLeaf() {
   a3 = 4;
   a4 = -5;
 
-  final result =
-      returnStruct20BytesHomogeneousInt32NativeLeaf(a0, a1, a2, a3, a4);
+  final result = returnStruct20BytesHomogeneousInt32NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -636,11 +750,16 @@ void testReturnStruct20BytesHomogeneousInt32NativeLeaf() {
 }
 
 @Native<
-    Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float,
-        Float)>(symbol: 'ReturnStruct20BytesHomogeneousFloat', isLeaf: true)
+  Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float)
+>(symbol: 'ReturnStruct20BytesHomogeneousFloat', isLeaf: true)
 external Struct20BytesHomogeneousFloat
-    returnStruct20BytesHomogeneousFloatNativeLeaf(
-        double a0, double a1, double a2, double a3, double a4);
+returnStruct20BytesHomogeneousFloatNativeLeaf(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 void testReturnStruct20BytesHomogeneousFloatNativeLeaf() {
@@ -656,8 +775,13 @@ void testReturnStruct20BytesHomogeneousFloatNativeLeaf() {
   a3 = 4.0;
   a4 = -5.0;
 
-  final result =
-      returnStruct20BytesHomogeneousFloatNativeLeaf(a0, a1, a2, a3, a4);
+  final result = returnStruct20BytesHomogeneousFloatNativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -669,11 +793,15 @@ void testReturnStruct20BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<
-    Struct32BytesHomogeneousDouble Function(Double, Double, Double,
-        Double)>(symbol: 'ReturnStruct32BytesHomogeneousDouble', isLeaf: true)
+  Struct32BytesHomogeneousDouble Function(Double, Double, Double, Double)
+>(symbol: 'ReturnStruct32BytesHomogeneousDouble', isLeaf: true)
 external Struct32BytesHomogeneousDouble
-    returnStruct32BytesHomogeneousDoubleNativeLeaf(
-        double a0, double a1, double a2, double a3);
+returnStruct32BytesHomogeneousDoubleNativeLeaf(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+);
 
 /// Return value in FPU registers on arm64.
 void testReturnStruct32BytesHomogeneousDoubleNativeLeaf() {
@@ -698,11 +826,22 @@ void testReturnStruct32BytesHomogeneousDoubleNativeLeaf() {
 }
 
 @Native<
-    Struct40BytesHomogeneousDouble Function(Double, Double, Double, Double,
-        Double)>(symbol: 'ReturnStruct40BytesHomogeneousDouble', isLeaf: true)
+  Struct40BytesHomogeneousDouble Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+  )
+>(symbol: 'ReturnStruct40BytesHomogeneousDouble', isLeaf: true)
 external Struct40BytesHomogeneousDouble
-    returnStruct40BytesHomogeneousDoubleNativeLeaf(
-        double a0, double a1, double a2, double a3, double a4);
+returnStruct40BytesHomogeneousDoubleNativeLeaf(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Return value too big to go in FPU registers on arm64.
 void testReturnStruct40BytesHomogeneousDoubleNativeLeaf() {
@@ -718,8 +857,13 @@ void testReturnStruct40BytesHomogeneousDoubleNativeLeaf() {
   a3 = 4.0;
   a4 = -5.0;
 
-  final result =
-      returnStruct40BytesHomogeneousDoubleNativeLeaf(a0, a1, a2, a3, a4);
+  final result = returnStruct40BytesHomogeneousDoubleNativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -731,265 +875,268 @@ void testReturnStruct40BytesHomogeneousDoubleNativeLeaf() {
 }
 
 @Native<
-    Struct1024BytesHomogeneousUint64 Function(
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64,
-        Uint64)>(symbol: 'ReturnStruct1024BytesHomogeneousUint64', isLeaf: true)
+  Struct1024BytesHomogeneousUint64 Function(
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+    Uint64,
+  )
+>(symbol: 'ReturnStruct1024BytesHomogeneousUint64', isLeaf: true)
 external Struct1024BytesHomogeneousUint64
-    returnStruct1024BytesHomogeneousUint64NativeLeaf(
-        int a0,
-        int a1,
-        int a2,
-        int a3,
-        int a4,
-        int a5,
-        int a6,
-        int a7,
-        int a8,
-        int a9,
-        int a10,
-        int a11,
-        int a12,
-        int a13,
-        int a14,
-        int a15,
-        int a16,
-        int a17,
-        int a18,
-        int a19,
-        int a20,
-        int a21,
-        int a22,
-        int a23,
-        int a24,
-        int a25,
-        int a26,
-        int a27,
-        int a28,
-        int a29,
-        int a30,
-        int a31,
-        int a32,
-        int a33,
-        int a34,
-        int a35,
-        int a36,
-        int a37,
-        int a38,
-        int a39,
-        int a40,
-        int a41,
-        int a42,
-        int a43,
-        int a44,
-        int a45,
-        int a46,
-        int a47,
-        int a48,
-        int a49,
-        int a50,
-        int a51,
-        int a52,
-        int a53,
-        int a54,
-        int a55,
-        int a56,
-        int a57,
-        int a58,
-        int a59,
-        int a60,
-        int a61,
-        int a62,
-        int a63,
-        int a64,
-        int a65,
-        int a66,
-        int a67,
-        int a68,
-        int a69,
-        int a70,
-        int a71,
-        int a72,
-        int a73,
-        int a74,
-        int a75,
-        int a76,
-        int a77,
-        int a78,
-        int a79,
-        int a80,
-        int a81,
-        int a82,
-        int a83,
-        int a84,
-        int a85,
-        int a86,
-        int a87,
-        int a88,
-        int a89,
-        int a90,
-        int a91,
-        int a92,
-        int a93,
-        int a94,
-        int a95,
-        int a96,
-        int a97,
-        int a98,
-        int a99,
-        int a100,
-        int a101,
-        int a102,
-        int a103,
-        int a104,
-        int a105,
-        int a106,
-        int a107,
-        int a108,
-        int a109,
-        int a110,
-        int a111,
-        int a112,
-        int a113,
-        int a114,
-        int a115,
-        int a116,
-        int a117,
-        int a118,
-        int a119,
-        int a120,
-        int a121,
-        int a122,
-        int a123,
-        int a124,
-        int a125,
-        int a126,
-        int a127);
+returnStruct1024BytesHomogeneousUint64NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+  int a19,
+  int a20,
+  int a21,
+  int a22,
+  int a23,
+  int a24,
+  int a25,
+  int a26,
+  int a27,
+  int a28,
+  int a29,
+  int a30,
+  int a31,
+  int a32,
+  int a33,
+  int a34,
+  int a35,
+  int a36,
+  int a37,
+  int a38,
+  int a39,
+  int a40,
+  int a41,
+  int a42,
+  int a43,
+  int a44,
+  int a45,
+  int a46,
+  int a47,
+  int a48,
+  int a49,
+  int a50,
+  int a51,
+  int a52,
+  int a53,
+  int a54,
+  int a55,
+  int a56,
+  int a57,
+  int a58,
+  int a59,
+  int a60,
+  int a61,
+  int a62,
+  int a63,
+  int a64,
+  int a65,
+  int a66,
+  int a67,
+  int a68,
+  int a69,
+  int a70,
+  int a71,
+  int a72,
+  int a73,
+  int a74,
+  int a75,
+  int a76,
+  int a77,
+  int a78,
+  int a79,
+  int a80,
+  int a81,
+  int a82,
+  int a83,
+  int a84,
+  int a85,
+  int a86,
+  int a87,
+  int a88,
+  int a89,
+  int a90,
+  int a91,
+  int a92,
+  int a93,
+  int a94,
+  int a95,
+  int a96,
+  int a97,
+  int a98,
+  int a99,
+  int a100,
+  int a101,
+  int a102,
+  int a103,
+  int a104,
+  int a105,
+  int a106,
+  int a107,
+  int a108,
+  int a109,
+  int a110,
+  int a111,
+  int a112,
+  int a113,
+  int a114,
+  int a115,
+  int a116,
+  int a117,
+  int a118,
+  int a119,
+  int a120,
+  int a121,
+  int a122,
+  int a123,
+  int a124,
+  int a125,
+  int a126,
+  int a127,
+);
 
 /// Test 1kb struct.
 void testReturnStruct1024BytesHomogeneousUint64NativeLeaf() {
@@ -1252,134 +1399,135 @@ void testReturnStruct1024BytesHomogeneousUint64NativeLeaf() {
   a127 = 128;
 
   final result = returnStruct1024BytesHomogeneousUint64NativeLeaf(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39,
-      a40,
-      a41,
-      a42,
-      a43,
-      a44,
-      a45,
-      a46,
-      a47,
-      a48,
-      a49,
-      a50,
-      a51,
-      a52,
-      a53,
-      a54,
-      a55,
-      a56,
-      a57,
-      a58,
-      a59,
-      a60,
-      a61,
-      a62,
-      a63,
-      a64,
-      a65,
-      a66,
-      a67,
-      a68,
-      a69,
-      a70,
-      a71,
-      a72,
-      a73,
-      a74,
-      a75,
-      a76,
-      a77,
-      a78,
-      a79,
-      a80,
-      a81,
-      a82,
-      a83,
-      a84,
-      a85,
-      a86,
-      a87,
-      a88,
-      a89,
-      a90,
-      a91,
-      a92,
-      a93,
-      a94,
-      a95,
-      a96,
-      a97,
-      a98,
-      a99,
-      a100,
-      a101,
-      a102,
-      a103,
-      a104,
-      a105,
-      a106,
-      a107,
-      a108,
-      a109,
-      a110,
-      a111,
-      a112,
-      a113,
-      a114,
-      a115,
-      a116,
-      a117,
-      a118,
-      a119,
-      a120,
-      a121,
-      a122,
-      a123,
-      a124,
-      a125,
-      a126,
-      a127);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+    a40,
+    a41,
+    a42,
+    a43,
+    a44,
+    a45,
+    a46,
+    a47,
+    a48,
+    a49,
+    a50,
+    a51,
+    a52,
+    a53,
+    a54,
+    a55,
+    a56,
+    a57,
+    a58,
+    a59,
+    a60,
+    a61,
+    a62,
+    a63,
+    a64,
+    a65,
+    a66,
+    a67,
+    a68,
+    a69,
+    a70,
+    a71,
+    a72,
+    a73,
+    a74,
+    a75,
+    a76,
+    a77,
+    a78,
+    a79,
+    a80,
+    a81,
+    a82,
+    a83,
+    a84,
+    a85,
+    a86,
+    a87,
+    a88,
+    a89,
+    a90,
+    a91,
+    a92,
+    a93,
+    a94,
+    a95,
+    a96,
+    a97,
+    a98,
+    a99,
+    a100,
+    a101,
+    a102,
+    a103,
+    a104,
+    a105,
+    a106,
+    a107,
+    a108,
+    a109,
+    a110,
+    a111,
+    a112,
+    a113,
+    a114,
+    a115,
+    a116,
+    a117,
+    a118,
+    a119,
+    a120,
+    a121,
+    a122,
+    a123,
+    a124,
+    a125,
+    a126,
+    a127,
+  );
 
   print("result = $result");
 
@@ -1514,9 +1662,13 @@ void testReturnStruct1024BytesHomogeneousUint64NativeLeaf() {
 }
 
 @Native<Struct3BytesPackedInt Function(Int8, Int16)>(
-    symbol: 'ReturnStruct3BytesPackedInt', isLeaf: true)
+  symbol: 'ReturnStruct3BytesPackedInt',
+  isLeaf: true,
+)
 external Struct3BytesPackedInt returnStruct3BytesPackedIntNativeLeaf(
-    int a0, int a1);
+  int a0,
+  int a1,
+);
 
 /// Small struct with mis-aligned member.
 void testReturnStruct3BytesPackedIntNativeLeaf() {
@@ -1535,9 +1687,16 @@ void testReturnStruct3BytesPackedIntNativeLeaf() {
 }
 
 @Native<Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8)>(
-    symbol: 'ReturnStruct8BytesPackedInt', isLeaf: true)
+  symbol: 'ReturnStruct8BytesPackedInt',
+  isLeaf: true,
+)
 external Struct8BytesPackedInt returnStruct8BytesPackedIntNativeLeaf(
-    int a0, int a1, int a2, int a3, int a4);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Struct with mis-aligned member.
 void testReturnStruct8BytesPackedIntNativeLeaf() {
@@ -1565,9 +1724,13 @@ void testReturnStruct8BytesPackedIntNativeLeaf() {
 }
 
 @Native<Struct9BytesPackedMixed Function(Uint8, Double)>(
-    symbol: 'ReturnStruct9BytesPackedMixed', isLeaf: true)
+  symbol: 'ReturnStruct9BytesPackedMixed',
+  isLeaf: true,
+)
 external Struct9BytesPackedMixed returnStruct9BytesPackedMixedNativeLeaf(
-    int a0, double a1);
+  int a0,
+  double a1,
+);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -1587,7 +1750,9 @@ void testReturnStruct9BytesPackedMixedNativeLeaf() {
 }
 
 @Native<Union4BytesMixed Function(Uint32)>(
-    symbol: 'ReturnUnion4BytesMixed', isLeaf: true)
+  symbol: 'ReturnUnion4BytesMixed',
+  isLeaf: true,
+)
 external Union4BytesMixed returnUnion4BytesMixedNativeLeaf(int a0);
 
 /// Returning a mixed integer/float union.
@@ -1604,9 +1769,12 @@ void testReturnUnion4BytesMixedNativeLeaf() {
 }
 
 @Native<Union8BytesNestedFloat Function(Double)>(
-    symbol: 'ReturnUnion8BytesNestedFloat', isLeaf: true)
+  symbol: 'ReturnUnion8BytesNestedFloat',
+  isLeaf: true,
+)
 external Union8BytesNestedFloat returnUnion8BytesNestedFloatNativeLeaf(
-    double a0);
+  double a0,
+);
 
 /// Returning a floating point only union.
 void testReturnUnion8BytesNestedFloatNativeLeaf() {
@@ -1622,9 +1790,12 @@ void testReturnUnion8BytesNestedFloatNativeLeaf() {
 }
 
 @Native<Union9BytesNestedInt Function(Struct8BytesInt)>(
-    symbol: 'ReturnUnion9BytesNestedInt', isLeaf: true)
+  symbol: 'ReturnUnion9BytesNestedInt',
+  isLeaf: true,
+)
 external Union9BytesNestedInt returnUnion9BytesNestedIntNativeLeaf(
-    Struct8BytesInt a0);
+  Struct8BytesInt a0,
+);
 
 /// Returning a mixed-size union.
 void testReturnUnion9BytesNestedIntNativeLeaf() {
@@ -1647,9 +1818,12 @@ void testReturnUnion9BytesNestedIntNativeLeaf() {
 }
 
 @Native<Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)>(
-    symbol: 'ReturnUnion16BytesNestedFloat', isLeaf: true)
+  symbol: 'ReturnUnion16BytesNestedFloat',
+  isLeaf: true,
+)
 external Union16BytesNestedFloat returnUnion16BytesNestedFloatNativeLeaf(
-    Struct8BytesHomogeneousFloat a0);
+  Struct8BytesHomogeneousFloat a0,
+);
 
 /// Returning union with homogenous floats.
 void testReturnUnion16BytesNestedFloatNativeLeaf() {

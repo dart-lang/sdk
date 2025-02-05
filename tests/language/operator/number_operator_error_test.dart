@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test the new context type rules for number operators,
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 // as modified by Null Safety
 void main() {

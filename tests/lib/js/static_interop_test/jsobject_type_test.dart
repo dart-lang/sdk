@@ -9,7 +9,7 @@ library jsobject_type_test;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 external void eval(String code);

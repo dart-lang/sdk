@@ -17,13 +17,11 @@ get await => 4;
 test0() async {
   var x = await 7;
   Expect.equals(7, x);
-
 }
 
 test1() async {
   var x = await 9;
   Expect.equals(9, x);
-
 }
 
 // For functions that are not declared with the async modifier we allow await to
@@ -32,13 +30,11 @@ test1() async {
 test2() {
   var y = await;
   Expect.equals(4, y);
-
 }
 
 test3() {
   var await = 3;
   Expect.equals(3, await);
-
 }
 
 main() {

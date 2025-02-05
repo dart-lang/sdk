@@ -116,19 +116,14 @@ abstract base class Union extends _Compound implements SizedNativeType {
   /// Creates a view on a [TypedData] or [Pointer].
   ///
   /// Used in [UnionPointer.ref], FFI calls, and FFI callbacks.
-  Union._fromTypedDataBase(
-    super._typedDataBase,
-    super._offsetInBytes,
-  ) : super._fromTypedDataBase();
+  Union._fromTypedDataBase(super._typedDataBase, super._offsetInBytes)
+    : super._fromTypedDataBase();
 
   /// Creates a view on [typedData].
   ///
   /// The length in bytes of [typedData] must at least be [sizeInBytes].
   ///
   /// Used in the `external` public constructor of [Union].
-  Union._fromTypedData(
-    super.typedData,
-    super.offset,
-    super.sizeInBytes,
-  ) : super._fromTypedData();
+  Union._fromTypedData(super.typedData, super.offset, super.sizeInBytes)
+    : super._fromTypedData();
 }

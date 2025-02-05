@@ -4,9 +4,9 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/yaml.dart';
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
@@ -27,33 +27,30 @@ class ErrorConfig {
   /// will create a processor config that turns `missing_return` warnings into
   /// errors.
   ErrorConfig(YamlNode? codeMap) {
-    _processMap(codeMap);
-  }
-
-  void _process(String? code, Object action) {
-    code = toUpperCase(code);
-    var actionStr = toLowerCase(action);
-    if (AnalyzerOptions.ignoreSynonyms.contains(actionStr)) {
-      processors.add(ErrorProcessor.ignore(code!));
-    } else {
-      var severity = _toSeverity(actionStr);
-      if (severity != null) {
-        processors.add(ErrorProcessor(code!, severity));
-      }
+    if (codeMap is YamlMap) {
+      _processMap(codeMap);
     }
   }
 
-  void _processMap(YamlNode? codes) {
-    if (codes is YamlMap) {
-      codes.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          _process(k.value as String?, v.valueOrThrow);
+  void _processMap(YamlMap codes) {
+    codes.nodes.forEach((k, v) {
+      if (k is YamlScalar && v is YamlScalar) {
+        var code = k.value;
+        if (code is! String) return;
+
+        code = code.toUpperCase();
+        var action = v.value.toString().toLowerCase();
+        if (AnalysisOptionsFile.ignoreSynonyms.contains(action)) {
+          processors.add(ErrorProcessor.ignore(code));
+        } else {
+          var severity = severityMap[action];
+          if (severity != null) {
+            processors.add(ErrorProcessor(code, severity));
+          }
         }
-      });
-    }
+      }
+    });
   }
-
-  ErrorSeverity? _toSeverity(String? severity) => severityMap[severity];
 }
 
 /// Process errors by filtering or changing associated [ErrorSeverity].
@@ -82,28 +79,23 @@ class ErrorProcessor {
   ///
   /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
   /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
+  @visibleForTesting
   bool appliesTo(AnalysisError error) =>
       code == error.errorCode.name ||
       code == error.errorCode.name.toUpperCase();
 
-  /// Return an error processor associated in the [analysisOptions] for the
+  @override
+  String toString() => "ErrorProcessor[code='$code', severity=$severity]";
+
+  /// Returns an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.
   static ErrorProcessor? getProcessor(
-      AnalysisOptions? analysisOptions, AnalysisError error) {
-    if (analysisOptions == null) {
-      return null;
-    }
-
-    // Let the user configure how specific errors are processed.
-    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
-
-    // Add the strong mode processor.
-    processors = processors.toList();
-    for (var processor in processors) {
-      if (processor.appliesTo(error)) {
-        return processor;
-      }
-    }
-    return null;
+    // TODO(srawlins): Make `analysisOptions` non-nullable, in a breaking
+    // change release.
+    AnalysisOptions? analysisOptions,
+    AnalysisError error,
+  ) {
+    return analysisOptions?.errorProcessors
+        .firstWhereOrNull((processor) => processor.appliesTo(error));
   }
 }

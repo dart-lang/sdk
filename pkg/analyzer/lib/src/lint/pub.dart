@@ -143,7 +143,7 @@ class PSEntry {
   PSEntry(this.key, this.value);
 
   @override
-  String toString() => '${key != null ? ('$key: ') : ''}$value';
+  String toString() => '${key != null ? '$key: ' : ''}$value';
 }
 
 /// Representation of environment in `pubspec.yaml`.
@@ -199,7 +199,7 @@ abstract class PSGitRepo {
   ///   foo:
   ///     git:       https://github.com/example/example
   /// ```
-  /// Then [token] and [url.key] will be the same object.
+  /// Then [token] and `url.key` will be the same object.
   PSEntry? get url;
 }
 

@@ -13,7 +13,7 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
-main(List<String> args) async {
+main(List<String> args) {
   Directory dataDir = Directory.fromUri(
       Platform.script.resolve('../../../_fe_analyzer_shared/test/flow_analysis/'
           'why_not_promoted/data'));
@@ -38,11 +38,9 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String?>> actualMap) {
-    var flowResult =
-        testingData.uriToFlowAnalysisData[unit.declaredElement!.source.uri]!;
-    _WhyNotPromotedDataExtractor(
-            unit.declaredElement!.source.uri, actualMap, flowResult)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
+    _WhyNotPromotedDataExtractor(unitUri, actualMap, flowResult).run(unit);
   }
 }
 

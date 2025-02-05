@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -43,18 +45,6 @@ abstract class TypeSystem {
   /// Instantiate the given [element] with default type arguments.
   InterfaceType instantiateInterfaceToBounds({
     required InterfaceElement element,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Instantiate the given generic element using the type arguments that
-  /// correspond to the bounds of its type parameters.
-  ///
-  /// One and only one of [classElement] or [typeAliasElement] must
-  /// be provided.
-  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
-  DartType instantiateToBounds2({
-    ClassElement? classElement,
-    TypeAliasElement? typeAliasElement,
     required NullabilitySuffix nullabilitySuffix,
   });
 

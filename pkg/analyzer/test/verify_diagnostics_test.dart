@@ -112,6 +112,8 @@ class DocumentationValidator {
     // Doesn't produce a lint for the second example, even though the analyzer
     // does when the example is pasted into a file.
     'LintCode.prefer_inlined_adds_single',
+    // No mock 'test' package, no good library annotations in 'meta'.
+    'LintCode.library_annotations',
     // Produces an unused import diagnostic.
     'LintCode.library_prefixes',
     // Produces an unused element diagnostic.

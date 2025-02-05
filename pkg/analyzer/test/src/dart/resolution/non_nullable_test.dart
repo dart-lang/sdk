@@ -51,13 +51,25 @@ class C {
   F? f;
 }
 ''');
-    assertType(findElement.field('f').type, 'T Function<T>(int, T)?');
-  }
 
-  test_library_typeProvider_typeSystem() async {
-    await resolveTestCode('');
-    var testLibrary = result.libraryElement;
-    assertType(testLibrary.typeProvider.intType, 'int');
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: NamedType
+      name: F
+      question: ?
+      element: <testLibraryFragment>::@typeAlias::F
+      element2: <testLibrary>::@typeAlias::F
+      type: T Function<T>(int, T)?
+        alias: <testLibraryFragment>::@typeAlias::F
+    variables
+      VariableDeclaration
+        name: f
+        declaredElement: <testLibraryFragment>::@class::C::@field::f
+  semicolon: ;
+  declaredElement: <null>
+''');
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {
@@ -208,7 +220,7 @@ m<T extends Function>() {
 ''');
 // Do not assert no test errors. Deliberately invokes nullable type.
     var invocation = findNode.functionExpressionInvocation('first()');
-    assertType(invocation.function, 'Function?');
+    assertType(invocation.function, 'T?');
   }
 
   test_mixin_hierarchy() async {
@@ -229,9 +241,68 @@ void f1(void p1()) {}
 void f2(void p2()?) {}
 void f3({void p3()?}) {}
 ''');
-    assertType(findElement.parameter('p1').type, 'void Function()');
-    assertType(findElement.parameter('p2').type, 'void Function()?');
-    assertType(findElement.parameter('p3').type, 'void Function()?');
+
+    var p1 = findNode.formalParameterList('p1');
+    assertResolvedNodeText(p1, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FunctionTypedFormalParameter
+    returnType: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    name: p1
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: <testLibraryFragment>::@function::f1::@parameter::p1
+      type: void Function()
+  rightParenthesis: )
+''');
+
+    var p2 = findNode.formalParameterList('p2');
+    assertResolvedNodeText(p2, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FunctionTypedFormalParameter
+    returnType: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    name: p2
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: <testLibraryFragment>::@function::f2::@parameter::p2
+      type: void Function()?
+  rightParenthesis: )
+''');
+
+    var p3 = findNode.formalParameterList('p3');
+    assertResolvedNodeText(p3, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FunctionTypedFormalParameter
+      returnType: NamedType
+        name: void
+        element: <null>
+        element2: <null>
+        type: void
+      name: p3
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+        type: void Function()?
+    declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+      type: void Function()?
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   test_parameter_functionTyped_fieldFormal() async {
@@ -245,9 +316,74 @@ class A {
   A.f3({void this.f3()?});
 }
 ''');
-    assertType(findElement.parameter('f1').type, 'void Function()');
-    assertType(findElement.parameter('f2').type, 'void Function()?');
-    assertType(findElement.parameter('f3').type, 'void Function()?');
+
+    var f1 = findNode.formalParameterList('f1()');
+    assertResolvedNodeText(f1, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FieldFormalParameter
+    type: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    thisKeyword: this
+    period: .
+    name: f1
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: <testLibraryFragment>::@class::A::@constructor::f1::@parameter::f1
+      type: void Function()
+  rightParenthesis: )
+''');
+
+    var f2 = findNode.formalParameterList('f2()');
+    assertResolvedNodeText(f2, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FieldFormalParameter
+    type: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    thisKeyword: this
+    period: .
+    name: f2
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@parameter::f2
+      type: void Function()?
+  rightParenthesis: )
+''');
+
+    var f3 = findNode.formalParameterList('f3()');
+    assertResolvedNodeText(f3, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FieldFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        element2: <null>
+        type: void
+      thisKeyword: this
+      period: .
+      name: f3
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+        type: void Function()?
+    declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+      type: void Function()?
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   test_parameter_functionTyped_local() async {
@@ -262,9 +398,68 @@ f() {
       error(WarningCode.UNUSED_ELEMENT, 37, 2),
       error(WarningCode.UNUSED_ELEMENT, 62, 2),
     ]);
-    assertType(findElement.parameter('p1').type, 'void Function()');
-    assertType(findElement.parameter('p2').type, 'void Function()?');
-    assertType(findElement.parameter('p3').type, 'void Function()?');
+
+    var p1 = findNode.formalParameterList('p1');
+    assertResolvedNodeText(p1, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FunctionTypedFormalParameter
+    returnType: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    name: p1
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: f1@13::@parameter::p1
+      type: void Function()
+  rightParenthesis: )
+''');
+
+    var p2 = findNode.formalParameterList('p2');
+    assertResolvedNodeText(p2, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: FunctionTypedFormalParameter
+    returnType: NamedType
+      name: void
+      element: <null>
+      element2: <null>
+      type: void
+    name: p2
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredElement: f2@37::@parameter::p2
+      type: void Function()?
+  rightParenthesis: )
+''');
+
+    var p3 = findNode.formalParameterList('p3');
+    assertResolvedNodeText(p3, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FunctionTypedFormalParameter
+      returnType: NamedType
+        name: void
+        element: <null>
+        element2: <null>
+        type: void
+      name: p3
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      declaredElement: f3@62::@parameter::p3
+        type: void Function()?
+    declaredElement: f3@62::@parameter::p3
+      type: void Function()?
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   test_parameter_genericFunctionType() async {

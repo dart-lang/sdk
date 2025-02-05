@@ -10,24 +10,26 @@ part of "async_patch.dart";
 /// definitions to users.
 class _JSEventLoop {
   /// Schedule a callback from JS via `setTimeout`.
-  static int _setTimeout(double ms, dynamic Function() callback) => JS<double>(
-          r"""(ms, c) =>
+  static int _setTimeout(double ms, dynamic Function() callback) =>
+      JS<double>(
+        r"""(ms, c) =>
               setTimeout(() => dartInstance.exports.$invokeCallback(c),ms)""",
-          ms,
-          callback)
-      .toInt();
+        ms,
+        callback,
+      ).toInt();
 
   /// Cancel a callback scheduled with `setTimeout`.
   static void _clearTimeout(int handle) =>
       JS<void>(r"""(handle) => clearTimeout(handle)""", handle.toDouble());
 
   /// Schedule a periodic callback from JS via `setInterval`.
-  static int _setInterval(double ms, dynamic Function() callback) => JS<double>(
-          r"""(ms, c) =>
+  static int _setInterval(double ms, dynamic Function() callback) =>
+      JS<double>(
+        r"""(ms, c) =>
           setInterval(() => dartInstance.exports.$invokeCallback(c), ms)""",
-          ms,
-          callback)
-      .toInt();
+        ms,
+        callback,
+      ).toInt();
 
   /// Cancel a callback scheduled with `setInterval`.
   static void _clearInterval(int handle) =>
@@ -35,9 +37,10 @@ class _JSEventLoop {
 
   /// Schedule a callback from JS via `queueMicrotask`.
   static void _queueMicrotask(dynamic Function() callback) => JS<void>(
-      r"""(c) =>
+    r"""(c) =>
               queueMicrotask(() => dartInstance.exports.$invokeCallback(c))""",
-      callback);
+    callback,
+  );
 
   /// JS `Date.now()`, returns the number of milliseconds elapsed since the
   /// epoch.
@@ -53,7 +56,9 @@ class Timer {
 
   @patch
   static Timer _createPeriodicTimer(
-      Duration duration, void callback(Timer timer)) {
+    Duration duration,
+    void callback(Timer timer),
+  ) {
     return _PeriodicTimer(duration, callback);
   }
 }
@@ -70,9 +75,9 @@ abstract class _Timer implements Timer {
   bool get isActive => _handle != null;
 
   _Timer(Duration duration)
-      : _milliseconds = duration.inMilliseconds,
-        _tick = 0,
-        _handle = null {
+    : _milliseconds = duration.inMilliseconds,
+      _tick = 0,
+      _handle = null {
     _schedule();
   }
 

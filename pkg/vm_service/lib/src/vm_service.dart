@@ -1857,7 +1857,7 @@ class VmService {
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/dart-developer/dart-developer-library.html.
   Future<Response> callServiceExtension(String method,
       {String? isolateId, Map<String, dynamic>? args}) {
     if (args == null && isolateId == null) {
@@ -2023,6 +2023,10 @@ class VmService {
   Future _processRequest(Map<String, dynamic> json) async {
     final result = await _routeRequest(
         json['method'], json['params'] ?? <String, dynamic>{});
+    if (_disposed) {
+      // The service has disappeared. Don't try to send the response.
+      return;
+    }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
     String message = jsonEncode(result);
@@ -3201,8 +3205,10 @@ class CodeRef extends ObjRef {
   /*CodeKind*/ String? kind;
 
   /// This code object's corresponding function.
+  ///
+  /// [function] can be one of [FuncRef] or [NativeFunction].
   @optional
-  FuncRef? function;
+  dynamic function;
 
   CodeRef({
     this.name,
@@ -3216,8 +3222,8 @@ class CodeRef extends ObjRef {
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
-    function =
-        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
+    function = createServiceObject(
+        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
   }
 
   @override
@@ -3257,9 +3263,11 @@ class Code extends Obj implements CodeRef {
   /*CodeKind*/ String? kind;
 
   /// This code object's corresponding function.
+  ///
+  /// [function] can be one of [FuncRef] or [NativeFunction].
   @optional
   @override
-  FuncRef? function;
+  dynamic function;
 
   Code({
     this.name,
@@ -3273,8 +3281,8 @@ class Code extends Obj implements CodeRef {
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
-    function =
-        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
+    function = createServiceObject(
+        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
   }
 
   @override

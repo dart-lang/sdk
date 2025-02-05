@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use valid regular expression syntax.';
 
@@ -38,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.constructorName.element?.enclosingElement2;
     if (element == null) return;
 
-    if (element.name == 'RegExp' && (element.library2?.isDartCore ?? false)) {
+    if (element.name3 == 'RegExp' && element.library2.isDartCore) {
       var args = node.argumentList.arguments;
       if (args.isEmpty) return;
 

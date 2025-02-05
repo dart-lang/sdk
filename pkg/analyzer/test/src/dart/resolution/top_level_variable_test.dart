@@ -36,7 +36,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
-      element: <testLibraryFragment>::@function::f#element
+      element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -47,7 +47,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -106,7 +106,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
-      element: <testLibraryFragment>::@function::f#element
+      element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -117,7 +117,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -163,10 +163,10 @@ VariableDeclaration
     await resolveTestCode('''
 var v = 0;
 ''');
-    var getter = findElement.topGet('v');
+    var getter = findElement2.topGet('v');
     expect(getter.session, result.session);
 
-    var setter = findElement.topSet('v');
+    var setter = findElement2.topSet('v');
     expect(setter.session, result.session);
   }
 
@@ -174,27 +174,27 @@ var v = 0;
     await resolveTestCode('''
 var v = 0;
 ''');
-    assertType(findElement.topVar('v').type, 'int');
+    assertType(findElement2.topVar('v').type, 'int');
   }
 
   test_type_inferred_Never() async {
     await resolveTestCode('''
 var v = throw 42;
 ''');
-    assertType(findElement.topVar('v').type, 'Never');
+    assertType(findElement2.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
     await resolveTestCode('''
 var v;
 ''');
-    assertType(findElement.topVar('v').type, 'dynamic');
+    assertType(findElement2.topVar('v').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
     await resolveTestCode('''
 var v = null;
 ''');
-    assertType(findElement.topVar('v').type, 'dynamic');
+    assertType(findElement2.topVar('v').type, 'dynamic');
   }
 }

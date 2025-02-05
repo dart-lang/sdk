@@ -319,7 +319,9 @@ void testReplaceAll() {
 
   // Test with the replaced string at the end.
   Expect.equals(
-      "toABtoCDtoEto", "fromABfromCDfromEfrom".replaceAll("from", "to"));
+    "toABtoCDtoEto",
+    "fromABfromCDfromEfrom".replaceAll("from", "to"),
+  );
 
   // Test when there are no occurrence of the string to replace.
   Expect.equals("ABC", "ABC".replaceAll("from", "to"));
@@ -388,7 +390,7 @@ void testRepeat() {
     "\u2028",
     "abcdef\u2028",
     "\u{10002}",
-    "abcdef\u{10002}"
+    "abcdef\u{10002}",
   ];
   List<int> counts = [
     0,
@@ -411,7 +413,7 @@ void testRepeat() {
     17,
     127,
     128,
-    129
+    129,
   ];
   void testRepeat(str, repeat) {
     String expect;

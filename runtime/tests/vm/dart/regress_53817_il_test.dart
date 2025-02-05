@@ -41,9 +41,7 @@ void matchIL$createAndIterate(FlowGraph graph) {
             [
               'i' << match.Phi('i+1', match.any),
               match.CheckStackOverflow(),
-              if (is32BitConfiguration)
-                'i_ext' << match.IntConverter('i', from: 'int32', to: 'int64'),
-              match.Branch(match.RelationalOp(match.any, match.any, kind: '>='),
+              match.Branch(match.RelationalOp('i', match.any, kind: '>='),
                   ifTrue: 'loop_exit', ifFalse: 'loop_body'),
             ].withoutWildcards),
     'loop_exit' <<

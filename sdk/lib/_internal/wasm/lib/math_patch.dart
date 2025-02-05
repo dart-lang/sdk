@@ -5,6 +5,7 @@
 import "dart:_internal" show mix64, patch;
 import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:js_interop";
+import "dart:_wasm";
 
 /// There are no parts of this patch library.
 
@@ -113,7 +114,7 @@ double asin(num x) => _asin(x.toDouble());
 @patch
 double atan(num x) => _atan(x.toDouble());
 @patch
-double sqrt(num x) => _sqrt(x.toDouble());
+double sqrt(num x) => x.toDouble().sqrt();
 @patch
 double exp(num x) => _exp(x.toDouble());
 @patch
@@ -133,8 +134,6 @@ external double _acos(double x);
 external double _asin(double x);
 @pragma("wasm:import", "Math.atan")
 external double _atan(double x);
-@pragma("wasm:import", "Math.sqrt")
-external double _sqrt(double x);
 @pragma("wasm:import", "Math.exp")
 external double _exp(double x);
 @pragma("wasm:import", "Math.log")
@@ -190,7 +189,12 @@ class _Random implements Random {
   int nextInt(int max) {
     if (max <= 0 || max > _POW2_32) {
       throw new RangeError.range(
-          max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+        max,
+        1,
+        _POW2_32,
+        "max",
+        "Must be positive and <= 2^32",
+      );
     }
     if ((max & -max) == max) {
       // Fast case for powers of two.
@@ -273,8 +277,11 @@ class _SecureRandom implements Random {
 
   // Return count bytes of entropy as an integer; count <= 8.
   int _getBytes(int count) {
-    final JSUint8ArrayImpl bufferView =
-        JSUint8ArrayImpl.view(_buffer.buffer, 0, count);
+    final JSUint8ArrayImpl bufferView = JSUint8ArrayImpl.view(
+      _buffer.buffer,
+      0,
+      count,
+    );
 
     final JSUint8Array bufferViewJS = bufferView.toJS;
     _jsCrypto.getRandomValues(bufferViewJS);
@@ -289,7 +296,12 @@ class _SecureRandom implements Random {
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(
-        max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+      max,
+      1,
+      _POW2_32,
+      "max",
+      "Must be positive and <= 2^32",
+    );
     final byteCount =
         ((max - 1).bitLength + 7) >> 3; // Divide number of bits by 8, round up.
     if (byteCount == 0) {

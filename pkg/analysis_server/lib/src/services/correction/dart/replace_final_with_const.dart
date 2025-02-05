@@ -50,10 +50,7 @@ class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
 
           await builder.addDartFileEdit(file, (builder) {
             builder.addDeletion(
-              range.startStart(
-                constToken!,
-                constToken.next!,
-              ),
+              range.startStart(constToken!, constToken.next!),
             );
           });
         }

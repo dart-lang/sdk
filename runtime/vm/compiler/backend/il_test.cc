@@ -62,6 +62,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
 
       Container<int> x = Container<int>();
 
+      @pragma("vm:entry-point", "call")
       foo() {
         for (int i = 0; i < 10; ++i) {
           x[i] = i;
@@ -217,10 +218,10 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
     v0 = builder.AddParameter(0, initial);
     v0->set_range(Range(RangeBoundary::FromConstant(min_value),
                         RangeBoundary::FromConstant(max_value)));
-    auto conv1 = builder.AddDefinition(new IntConverterInstr(
-        initial, intermediate, new Value(v0), S.GetNextDeoptId()));
-    auto conv2 = builder.AddDefinition(new IntConverterInstr(
-        intermediate, initial, new Value(conv1), S.GetNextDeoptId()));
+    auto conv1 = builder.AddDefinition(
+        new IntConverterInstr(initial, intermediate, new Value(v0)));
+    auto conv2 = builder.AddDefinition(
+        new IntConverterInstr(intermediate, initial, new Value(conv1)));
     ret = builder.AddReturn(new Value(conv2));
   }
 
@@ -357,8 +358,9 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
         new Value(H.flow_graph()->constant_null()),
         /* dst_name */ String::Handle(String::New("not-null")),
         S.GetNextDeoptId()));
-    unbox = builder.AddDefinition(new UnboxInt64Instr(
-        new Value(cast), S.GetNextDeoptId(), BoxInstr::kGuardInputs));
+    unbox = builder.AddDefinition(
+        new UnboxInt64Instr(new Value(cast), S.GetNextDeoptId(),
+                            UnboxInstr::ValueMode::kCheckType));
 
     builder.AddInstruction(new StoreIndexedInstr(
         new Value(int64_array), new Value(index), new Value(unbox),
@@ -372,7 +374,7 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
   H.FinishGraph();
 
   FlowGraphTypePropagator::Propagate(H.flow_graph());
-  EXPECT(!unbox->ComputeCanDeoptimize());
+  EXPECT(unbox->ComputeCanDeoptimize());
 
   H.flow_graph()->Canonicalize();
   EXPECT(!unbox->ComputeCanDeoptimize());
@@ -417,7 +419,7 @@ static void TestNullAwareEqualityCompareCanonicalization(
 
     compare = builder.AddDefinition(new EqualityCompareInstr(
         InstructionSource(), Token::kEQ, new Value(box0), new Value(box1),
-        kMintCid, S.GetNextDeoptId(), /*null_aware=*/true));
+        kTagged, S.GetNextDeoptId(), /*null_aware=*/true));
     builder.AddReturn(new Value(compare));
   }
 
@@ -430,6 +432,8 @@ static void TestNullAwareEqualityCompareCanonicalization(
   H.flow_graph()->Canonicalize();
 
   EXPECT(compare->is_null_aware() == !allow_representation_change);
+  EXPECT(compare->input_representation() ==
+         (allow_representation_change ? kUnboxedInt64 : kTagged));
 }
 
 ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_EqualityCompare) {
@@ -686,6 +690,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   auto kScript = R"(
     import 'dart:ffi';
 
+    @pragma("vm:entry-point", "call")
     int myFunction() {
       return 100;
     }
@@ -723,8 +728,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
                            FlowGraph::kValue);
   auto load_thread_value = Value(load_thread_instr);
 
-  auto* const convert_instr = new (zone) IntConverterInstr(
-      kUntagged, kUnboxedAddress, &load_thread_value, DeoptId::kNone);
+  auto* const convert_instr = new (zone)
+      IntConverterInstr(kUntagged, kUnboxedAddress, &load_thread_value);
   flow_graph->InsertBefore(return_instr, convert_instr, nullptr,
                            FlowGraph::kValue);
   auto convert_value = Value(convert_instr);
@@ -777,6 +782,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
       return increment();
     }
 
+    @pragma("vm:entry-point", "call")
     int multipleIncrement() {
       int returnValue = 0;
       for(int i = 0; i < 10; i++) {
@@ -885,8 +891,7 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
         kUnboxedIntPtr, kUntagged,
         new (Z) Value(flow_graph->GetConstant(
             Integer::Handle(Z, Integer::NewCanonical(native_entry)),
-            kUnboxedIntPtr)),
-        DeoptId::kNone);
+            kUnboxedIntPtr)));
     flow_graph->InsertBefore(static_call, load_entry_point, /*env=*/nullptr,
                              FlowGraph::kValue);
 
@@ -941,6 +946,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
     void placeholder() {}
 
     // Will call the "doFfiCall" and exercise its code.
+    @pragma("vm:entry-point", "call")
     bool invokeDoFfiCall() {
       final double result = doFfiCall(1, 2, 3, 1.0, 2.0, 3.0);
       if (result != (2 + 3 + 4 + 2.0 + 3.0 + 4.0)) {
@@ -969,6 +975,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
     typedef NT = Void Function();
     typedef DT = void Function();
     Pointer<NativeFunction<NT>> ptr = Pointer.fromAddress(0);
+    @pragma("vm:entry-point", "call")
     DT getFfiTrampolineClosure() => ptr.asFunction(isLeaf:true);
   )";
 
@@ -1214,11 +1221,11 @@ static void TestRepresentationChangeDuringCanonicalization(
         new Value(array), Slot::Array_length(), InstructionSource()));
 
     unbox = builder.AddDefinition(new UnboxInt64Instr(
-        new Value(load), DeoptId::kNone, Instruction::kNotSpeculative));
+        new Value(load), DeoptId::kNone, UnboxInstr::ValueMode::kHasValidType));
 
     add = builder.AddDefinition(new BinaryInt64OpInstr(
         Token::kADD, new Value(unbox), new Value(H.IntConstant(1)),
-        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+        S.GetNextDeoptId()));
 
     Definition* box = builder.AddDefinition(new BoxInt64Instr(new Value(add)));
 
@@ -1811,12 +1818,12 @@ static const Function& BuildTestIntFunction(
                                 ? H.IntConstant(immediate_mask.value(), rep)
                                 : builder.AddParameter(1);
           if (rep != lhs->representation()) {
-            lhs =
-                builder.AddUnboxInstr(kUnboxedInt64, lhs, /*is_checked=*/false);
+            lhs = builder.AddUnboxInstr(kUnboxedInt64, lhs,
+                                        UnboxInstr::ValueMode::kHasValidType);
           }
           if (rep != rhs->representation()) {
-            rhs =
-                builder.AddUnboxInstr(kUnboxedInt64, rhs, /*is_checked=*/false);
+            rhs = builder.AddUnboxInstr(kUnboxedInt64, rhs,
+                                        UnboxInstr::ValueMode::kHasValidType);
           }
 
           auto comparison = new TestIntInstr(

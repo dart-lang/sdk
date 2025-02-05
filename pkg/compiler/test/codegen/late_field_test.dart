@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_DIRECT = r"""
@@ -41,12 +41,14 @@ int test(Foo foo) {
 """;
 
 Future check(String test, {String entry = 'test'}) {
-  return compile(test,
-      entry: entry,
-      methodName: 'test',
-      check: checkerForAbsentPresent(test),
-      disableTypeInference: false,
-      disableInlining: false);
+  return compile(
+    test,
+    entry: entry,
+    methodName: 'test',
+    check: checkerForAbsentPresent(test),
+    disableTypeInference: false,
+    disableInlining: false,
+  );
 }
 
 void main() {

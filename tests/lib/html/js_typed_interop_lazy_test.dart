@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 @JS()
 library js_typed_interop_lazy_test;
 
@@ -9,7 +12,7 @@ import 'dart:html';
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS('someProperty')
 external get foo;
@@ -101,7 +104,7 @@ main() {
   group('lazy class', () {
     test('type literal', () {
       // Fine because we can determine the class literals are equal without
-      // having to determine what (non-existant) JS type they correspond to.
+      // having to determine what (non-existent) JS type they correspond to.
       var x = LazyClass;
       var y = LazyClass;
       expect(x == y, isTrue);
@@ -191,7 +194,7 @@ baz.LazyClass = function LazyClass(a) {
   group('nested lazy class', () {
     test('type literal', () {
       // Fine because we can determine the class literals are equal without
-      // having to determine what (non-existant) JS type they correspond to.
+      // having to determine what (non-existent) JS type they correspond to.
       var x = NestedLazyClass;
       var y = NestedLazyClass;
       expect(x == y, isTrue);

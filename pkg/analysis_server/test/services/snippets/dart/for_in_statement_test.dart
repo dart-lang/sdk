@@ -56,15 +56,15 @@ void f() {
           {'file': testFile.path, 'offset': 22},
         ],
         'length': 7,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 33},
         ],
         'length': 10,
-        'suggestions': []
-      }
+        'suggestions': [],
+      },
     ]);
   }
 }

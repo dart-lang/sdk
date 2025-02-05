@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/element2.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -58,19 +58,19 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRange(
       SourceRange range, ElementKind targetKind, Location targetLocation,
-      {analyzer.Element? targetElement}) {
+      {analyzer.Fragment? targetFragment}) {
     addRegion(range.offset, range.length, targetKind, targetLocation,
-        targetElement: targetElement);
+        targetFragment: targetFragment);
   }
 
   @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation,
-      {analyzer.Element? targetElement}) {
+      {analyzer.Fragment? targetFragment}) {
     var range = SourceRange(offset, length);
     // add new target
     var targets = regionMap.putIfAbsent(range, () => <int>[]);
-    var targetIndex = _addTarget(targetKind, targetLocation, targetElement);
+    var targetIndex = _addTarget(targetKind, targetLocation, targetFragment);
     targets.add(targetIndex);
   }
 
@@ -95,7 +95,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   }
 
   int _addTarget(
-      ElementKind kind, Location location, analyzer.Element? element) {
+      ElementKind kind, Location location, analyzer.Fragment? fragment) {
     var pair = Pair<ElementKind, Location>(kind, location);
     var index = targetMap[pair];
     if (index == null) {
@@ -106,8 +106,8 @@ class NavigationCollectorImpl implements NavigationCollector {
           location.length, location.startLine, location.startColumn);
       targets.add(target);
       targetMap[pair] = index;
-      if (element != null) {
-        targetsToUpdate.add(TargetToUpdate(element, target));
+      if (fragment != null) {
+        targetsToUpdate.add(TargetToUpdate(fragment, target));
       }
     }
     return index;
@@ -118,8 +118,8 @@ class NavigationCollectorImpl implements NavigationCollector {
 ///
 /// If code location feature is enabled, we update [target] using [element].
 class TargetToUpdate {
-  final analyzer.Element element;
+  final analyzer.Fragment fragment;
   final NavigationTarget target;
 
-  TargetToUpdate(this.element, this.target);
+  TargetToUpdate(this.fragment, this.target);
 }

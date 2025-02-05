@@ -212,96 +212,175 @@ void main() {
   assertFalse(RegExp(r"\u{12345}", unicode: true).hasMatch("\udf45"));
 
   // Multi-character atom.
-  assertTrue(RegExp(r"\u{12345}\u{23456}", unicode: true)
-      .hasMatch("a\u{12345}\u{23456}b"));
-  assertTrue(RegExp(r"\u{12345}\u{23456}", unicode: true)
-      .hasMatch("b\u{12345}\u{23456}c"));
-  assertFalse(RegExp(r"\u{12345}\u{23456}", unicode: true)
-      .hasMatch("a\udf45\u{23456}b"));
-  assertFalse(RegExp(r"\u{12345}\u{23456}", unicode: true)
-      .hasMatch("b\udf45\u{23456}c"));
+  assertTrue(
+    RegExp(
+      r"\u{12345}\u{23456}",
+      unicode: true,
+    ).hasMatch("a\u{12345}\u{23456}b"),
+  );
+  assertTrue(
+    RegExp(
+      r"\u{12345}\u{23456}",
+      unicode: true,
+    ).hasMatch("b\u{12345}\u{23456}c"),
+  );
+  assertFalse(
+    RegExp(r"\u{12345}\u{23456}", unicode: true).hasMatch("a\udf45\u{23456}b"),
+  );
+  assertFalse(
+    RegExp(r"\u{12345}\u{23456}", unicode: true).hasMatch("b\udf45\u{23456}c"),
+  );
 
   // Disjunction.
-  assertTrue(RegExp(r"\u{12345}(?:\u{23456})", unicode: true)
-      .hasMatch("a\u{12345}\u{23456}b"));
-  assertTrue(RegExp(r"\u{12345}(?:\u{23456})", unicode: true)
-      .hasMatch("b\u{12345}\u{23456}c"));
-  assertFalse(RegExp(r"\u{12345}(?:\u{23456})", unicode: true)
-      .hasMatch("a\udf45\u{23456}b"));
-  assertFalse(RegExp(r"\u{12345}(?:\u{23456})", unicode: true)
-      .hasMatch("b\udf45\u{23456}c"));
+  assertTrue(
+    RegExp(
+      r"\u{12345}(?:\u{23456})",
+      unicode: true,
+    ).hasMatch("a\u{12345}\u{23456}b"),
+  );
+  assertTrue(
+    RegExp(
+      r"\u{12345}(?:\u{23456})",
+      unicode: true,
+    ).hasMatch("b\u{12345}\u{23456}c"),
+  );
+  assertFalse(
+    RegExp(
+      r"\u{12345}(?:\u{23456})",
+      unicode: true,
+    ).hasMatch("a\udf45\u{23456}b"),
+  );
+  assertFalse(
+    RegExp(
+      r"\u{12345}(?:\u{23456})",
+      unicode: true,
+    ).hasMatch("b\udf45\u{23456}c"),
+  );
 
   // Alternative.
   assertTrue(
-      RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("a\u{12345}b"));
+    RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("a\u{12345}b"),
+  );
   assertTrue(
-      RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("b\u{23456}c"));
+    RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("b\u{23456}c"),
+  );
   assertFalse(
-      RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("a\udf45\ud84db"));
+    RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("a\udf45\ud84db"),
+  );
   assertFalse(
-      RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("b\udf45\ud808c"));
+    RegExp(r"\u{12345}|\u{23456}", unicode: true).hasMatch("b\udf45\ud808c"),
+  );
 
   // Capture.
-  assertTrue(RegExp("(\u{12345}|\u{23456}).\\1", unicode: true)
-      .hasMatch("\u{12345}b\u{12345}"));
-  assertTrue(RegExp(r"(\u{12345}|\u{23456}).\1", unicode: true)
-      .hasMatch("\u{12345}b\u{12345}"));
-  assertFalse(RegExp("(\u{12345}|\u{23456}).\\1", unicode: true)
-      .hasMatch("\u{12345}b\u{23456}"));
-  assertFalse(RegExp(r"(\u{12345}|\u{23456}).\1", unicode: true)
-      .hasMatch("\u{12345}b\u{23456}"));
+  assertTrue(
+    RegExp(
+      "(\u{12345}|\u{23456}).\\1",
+      unicode: true,
+    ).hasMatch("\u{12345}b\u{12345}"),
+  );
+  assertTrue(
+    RegExp(
+      r"(\u{12345}|\u{23456}).\1",
+      unicode: true,
+    ).hasMatch("\u{12345}b\u{12345}"),
+  );
+  assertFalse(
+    RegExp(
+      "(\u{12345}|\u{23456}).\\1",
+      unicode: true,
+    ).hasMatch("\u{12345}b\u{23456}"),
+  );
+  assertFalse(
+    RegExp(
+      r"(\u{12345}|\u{23456}).\1",
+      unicode: true,
+    ).hasMatch("\u{12345}b\u{23456}"),
+  );
 
   // Quantifier.
-  assertTrue(RegExp("\u{12345}{3}", unicode: true)
-      .hasMatch("\u{12345}\u{12345}\u{12345}"));
-  assertTrue(RegExp(r"\u{12345}{3}", unicode: true)
-      .hasMatch("\u{12345}\u{12345}\u{12345}"));
+  assertTrue(
+    RegExp(
+      "\u{12345}{3}",
+      unicode: true,
+    ).hasMatch("\u{12345}\u{12345}\u{12345}"),
+  );
+  assertTrue(
+    RegExp(
+      r"\u{12345}{3}",
+      unicode: true,
+    ).hasMatch("\u{12345}\u{12345}\u{12345}"),
+  );
   assertTrue(RegExp("\u{12345}{3}").hasMatch("\u{12345}\udf45\udf45"));
-  assertFalse(RegExp(r"\ud808\udf45{3}", unicode: true)
-      .hasMatch("\u{12345}\udf45\udf45"));
-  assertTrue(RegExp(r"\ud808\udf45{3}", unicode: true)
-      .hasMatch("\u{12345}\u{12345}\u{12345}"));
   assertFalse(
-      RegExp("\u{12345}{3}", unicode: true).hasMatch("\u{12345}\udf45\udf45"));
+    RegExp(r"\ud808\udf45{3}", unicode: true).hasMatch("\u{12345}\udf45\udf45"),
+  );
+  assertTrue(
+    RegExp(
+      r"\ud808\udf45{3}",
+      unicode: true,
+    ).hasMatch("\u{12345}\u{12345}\u{12345}"),
+  );
   assertFalse(
-      RegExp(r"\u{12345}{3}", unicode: true).hasMatch("\u{12345}\udf45\udf45"));
+    RegExp("\u{12345}{3}", unicode: true).hasMatch("\u{12345}\udf45\udf45"),
+  );
+  assertFalse(
+    RegExp(r"\u{12345}{3}", unicode: true).hasMatch("\u{12345}\udf45\udf45"),
+  );
 
   // Literal surrogates.
   shouldBe(
-      RegExp("\ud800\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
-      ["\u{10000}\u{10000}"]);
+    RegExp("\ud800\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
+    ["\u{10000}\u{10000}"],
+  );
   shouldBe(
-      RegExp("\\ud800\\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
-      ["\u{10000}\u{10000}"]);
+    RegExp("\\ud800\\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
+    ["\u{10000}\u{10000}"],
+  );
 
   shouldBe(
-      RegExp("[\\ud800\\udc03-\\ud900\\udc01\]+", unicode: true)
-          .firstMatch("\u{10003}\u{50001}"),
-      ["\u{10003}\u{50001}"]);
+    RegExp(
+      "[\\ud800\\udc03-\\ud900\\udc01\]+",
+      unicode: true,
+    ).firstMatch("\u{10003}\u{50001}"),
+    ["\u{10003}\u{50001}"],
+  );
   shouldBe(
-      RegExp("[\ud800\udc03-\u{50001}\]+", unicode: true)
-          .firstMatch("\u{10003}\u{50001}"),
-      ["\u{10003}\u{50001}"]);
+    RegExp(
+      "[\ud800\udc03-\u{50001}\]+",
+      unicode: true,
+    ).firstMatch("\u{10003}\u{50001}"),
+    ["\u{10003}\u{50001}"],
+  );
 
   // Unicode escape sequences to represent a non-BMP character cannot have
   // mixed notation, and must follow the rules for RegExpUnicodeEscapeSequence.
   assertThrows(() => RegExp("[\\ud800\udc03-\ud900\\udc01\]+", unicode: true));
   assertNull(
-      RegExp("\\ud800\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"));
+    RegExp("\\ud800\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
+  );
   assertNull(
-      RegExp("\ud800\\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"));
+    RegExp("\ud800\\udc00+", unicode: true).firstMatch("\u{10000}\u{10000}"),
+  );
 
   assertNull(RegExp("[\\ud800\udc00]", unicode: true).firstMatch("\u{10000}"));
   assertNull(
-      RegExp("[\\{ud800}\udc00]", unicode: true).firstMatch("\u{10000}"));
+    RegExp("[\\{ud800}\udc00]", unicode: true).firstMatch("\u{10000}"),
+  );
   assertNull(RegExp("[\ud800\\udc00]", unicode: true).firstMatch("\u{10000}"));
   assertNull(
-      RegExp("[\ud800\\{udc00}]", unicode: true).firstMatch("\u{10000}"));
+    RegExp("[\ud800\\{udc00}]", unicode: true).firstMatch("\u{10000}"),
+  );
 
-  assertNull(RegExp(r"\u{d800}\u{dc00}+", unicode: true)
-      .firstMatch("\ud800\udc00\udc00"));
-  assertNull(RegExp(r"\ud800\u{dc00}+", unicode: true)
-      .firstMatch("\ud800\udc00\udc00"));
-  assertNull(RegExp(r"\u{d800}\udc00+", unicode: true)
-      .firstMatch("\ud800\udc00\udc00"));
+  assertNull(
+    RegExp(
+      r"\u{d800}\u{dc00}+",
+      unicode: true,
+    ).firstMatch("\ud800\udc00\udc00"),
+  );
+  assertNull(
+    RegExp(r"\ud800\u{dc00}+", unicode: true).firstMatch("\ud800\udc00\udc00"),
+  );
+  assertNull(
+    RegExp(r"\u{d800}\udc00+", unicode: true).firstMatch("\ud800\udc00\udc00"),
+  );
 }

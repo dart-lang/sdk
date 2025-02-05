@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -22,59 +22,59 @@ class GetterSetterTypesVerifier {
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  void checkExtension(ExtensionElement element) {
-    for (var getter in element.accessors) {
-      if (getter.isGetter) {
-        _checkLocalGetter(getter);
-      }
+  void checkExtension(ExtensionElement2 element) {
+    for (var getter in element.getters2) {
+      _checkLocalGetter(getter);
     }
   }
 
-  void checkExtensionType(ExtensionTypeElement element, Interface interface) {
+  void checkExtensionType(ExtensionTypeElement2 element, Interface interface) {
     checkInterface(element, interface);
-    checkStaticAccessors(element.accessors);
+    checkStaticGetters(element.getters2);
   }
 
-  void checkInterface(InterfaceElement element, Interface interface) {
-    var libraryUri = element.library.source.uri;
+  void checkInterface(InterfaceElement2 element, Interface interface) {
+    var libraryUri = element.library2.uri;
 
-    for (var name in interface.map.keys) {
-      if (!name.isAccessibleFor(libraryUri)) continue;
+    var interfaceMap = interface.map2;
+    for (var entry in interfaceMap.entries) {
+      var getterName = entry.key;
+      if (!getterName.isAccessibleFor(libraryUri)) continue;
 
-      var getter = interface.map[name]!;
+      var getter = entry.value;
       if (getter.kind == ElementKind.GETTER) {
-        var setter = interface.map[Name(libraryUri, '${name.name}=')];
-        if (setter != null && setter.parameters.length == 1) {
+        var setter = interfaceMap[getterName.forSetter];
+        if (setter != null && setter.formalParameters.length == 1) {
           var getterType = getter.returnType;
-          var setterType = setter.parameters[0].type;
+          var setterType = setter.formalParameters[0].type;
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-            Element errorElement;
-            if (getter.enclosingElement3 == element) {
-              if (element is ExtensionTypeElement &&
-                  element.representation.getter == getter) {
+            Element2 errorElement;
+            if (getter.enclosingElement2 == element) {
+              if (element is ExtensionTypeElement2 &&
+                  element.representation2.getter2 == getter) {
                 errorElement = setter;
               } else {
                 errorElement = getter;
               }
-            } else if (setter.enclosingElement3 == element) {
+            } else if (setter.enclosingElement2 == element) {
               errorElement = setter;
             } else {
               errorElement = element;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement3 != element) {
-              var getterClassName = getter.enclosingElement3.displayName;
+            if (getter.enclosingElement2 != element) {
+              var getterClassName = getter.enclosingElement2!.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement3 != element) {
-              var setterClassName = setter.enclosingElement3.displayName;
+            if (setter.enclosingElement2 != element) {
+              var setterClassName = setter.enclosingElement2!.displayName;
               setterName = '$setterClassName.$setterName';
             }
 
-            _errorReporter.atElement(
+            _errorReporter.atElement2(
               errorElement,
               CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
               arguments: [getterName, getterType, setterType, setterName],
@@ -85,41 +85,48 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void checkStaticAccessors(List<PropertyAccessorElement> accessors) {
-    for (var getter in accessors) {
-      if (getter.isStatic && getter.isGetter) {
+  void checkStaticGetters(List<GetterElement> getters) {
+    for (var getter in getters) {
+      if (getter.isStatic) {
         _checkLocalGetter(getter);
       }
     }
   }
 
-  void _checkLocalGetter(PropertyAccessorElement getter) {
-    assert(getter.isGetter);
-    var setter = getter.correspondingSetter;
-    if (setter != null) {
-      var getterType = _getGetterType(getter);
-      var setterType = _getSetterType(setter);
-      if (setterType != null) {
-        if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-          var name = getter.name;
-          _errorReporter.atElement(
-            getter,
-            CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
-            arguments: [name, getterType, setterType, name],
-          );
-        }
-      }
+  void _checkLocalGetter(GetterElement getter) {
+    var name = getter.name3;
+    if (name == null) {
+      return;
+    }
+
+    var setter = getter.variable3?.setter2;
+    if (setter == null) {
+      return;
+    }
+
+    var setterType = _getSetterType(setter);
+    if (setterType == null) {
+      return;
+    }
+
+    var getterType = _getGetterType(getter);
+    if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
+      _errorReporter.atElement2(
+        getter,
+        CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+        arguments: [name, getterType, setterType, name],
+      );
     }
   }
 
   /// Return the return type of the [getter].
-  static DartType _getGetterType(PropertyAccessorElement getter) {
+  static DartType _getGetterType(GetterElement getter) {
     return getter.returnType;
   }
 
   /// Return the type of the first parameter of the [setter].
-  static DartType? _getSetterType(PropertyAccessorElement setter) {
-    var parameters = setter.parameters;
+  static DartType? _getSetterType(SetterElement setter) {
+    var parameters = setter.formalParameters;
     if (parameters.isNotEmpty) {
       return parameters[0].type;
     } else {

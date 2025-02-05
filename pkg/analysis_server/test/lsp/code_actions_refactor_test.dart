@@ -8,13 +8,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
+import 'request_helpers_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -113,42 +113,9 @@ void f() {
 }
 
 @reflectiveTest
-class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest {
+class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
+    with LspProgressNotificationsMixin {
   final extractMethodTitle = 'Extract Method';
-
-  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
-  /// requests and notifications for convenience in testing.
-  ///
-  /// Analyzing statuses are not included.
-  Stream<String> get progressUpdates {
-    var controller = StreamController<String>();
-
-    requestsFromServer
-        .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
-      var params = WorkDoneProgressCreateParams.fromJson(
-          request.params as Map<String, Object?>);
-      if (params.token != analyzingProgressToken) {
-        controller.add('CREATE');
-      }
-    }, onDone: controller.close);
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((notification) {
-      var params =
-          ProgressParams.fromJson(notification.params as Map<String, Object?>);
-      if (params.token != analyzingProgressToken) {
-        if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-          controller.add('BEGIN');
-        } else if (WorkDoneProgressEnd.canParse(
-            params.value, nullLspJsonReporter)) {
-          controller.add('END');
-        }
-      }
-    });
-
-    return controller.stream;
-  }
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
@@ -203,10 +170,11 @@ void newMethod() {
     // Respond to any applyEdit requests from the server with successful responses
     // and capturing the last edit.
     late WorkspaceEdit edit;
-    requestsFromServer.listen((request) async {
+    requestsFromServer.listen((request) {
       if (request.method == Method.workspace_applyEdit) {
         var params = ApplyWorkspaceEditParams.fromJson(
-            request.params as Map<String, Object?>);
+          request.params as Map<String, Object?>,
+        );
         edit = params.edit;
         respondTo(request, ApplyWorkspaceEditResult(applied: true));
       }
@@ -218,7 +186,15 @@ void newMethod() {
 
     // Expect the first will have cancelled the second.
     await expectLater(
-        req1, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      req1,
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestCancelled,
+          message:
+              'Another workspace/executeCommand request for a refactor was started',
+        ),
+      ),
+    );
     await req2;
 
     // Ensure applying the changes will give us the expected content.
@@ -246,12 +222,15 @@ void f() {
     try {
       // Send an edit request immediately after the refactor request.
       var req1 = executeCommand(codeAction.command!);
-      await replaceFile(100, mainFileUri, 'new test content');
+      var req2 = replaceFile(100, mainFileUri, 'new test content');
       completer.complete();
 
       // Expect the first to fail because of the modified content.
       await expectLater(
-          req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+        req1,
+        throwsA(isResponseError(ErrorCodes.ContentModified)),
+      );
+      await req2;
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
       PerformRefactorCommandHandler.delayAfterResolveForTests = null;
@@ -272,11 +251,8 @@ void f() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri,
-          range: code.range.range,
-          kinds: [kind],
-        );
+    ofKind(CodeActionKind kind) =>
+        getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
     // Helper that requests CodeActions for [kind] and ensures all results
     // returned have either an equal kind, or a kind that is prefixed with the
@@ -288,13 +264,7 @@ void f() {
           (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
           (action) => action.kind,
         );
-        expect(
-          '$resultKind',
-          anyOf([
-            equals('$kind'),
-            startsWith('$kind.'),
-          ]),
-        );
+        expect('$resultKind', anyOf([equals('$kind'), startsWith('$kind.')]));
       }
     }
 
@@ -460,7 +430,8 @@ void newMethod() {
 }
 ''';
 
-    // Ensure the progress messages come through and in the correct order.
+    // Expect create/begin/end progress updates, because in this case the server
+    // generates the token.
     expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
 
     setWorkDoneProgressSupport();
@@ -495,15 +466,18 @@ void doFoo(void Function() a) => a();
     // themselves (via middleware).
     var response = await executeCommand(
       Command(
-          title: command.title,
-          command: Commands.validateRefactor,
-          arguments: command.arguments),
+        title: command.title,
+        command: Commands.validateRefactor,
+        arguments: command.arguments,
+      ),
       decoder: ValidateRefactorResult.fromJson,
     );
 
     expect(response.valid, isFalse);
     expect(
-        response.message, contains('Cannot extract the closure as a method'));
+      response.message,
+      contains('Cannot extract the closure as a method'),
+    );
   }
 
   /// Test if the client does not call refactor.validate it still gets a
@@ -531,9 +505,10 @@ void doFoo(void Function() a) => a();
     var errorNotification = await expectErrorNotification(() async {
       var response = await executeCommand(
         Command(
-            title: command.title,
-            command: command.command,
-            arguments: command.arguments),
+          title: command.title,
+          command: command.command,
+          arguments: command.arguments,
+        ),
       );
       expect(response, isNull);
     });
@@ -565,9 +540,10 @@ void doFoo(void Function() a) => a();
     // themselves (via middleware).
     var response = await executeCommand(
       Command(
-          title: command.title,
-          command: Commands.validateRefactor,
-          arguments: command.arguments),
+        title: command.title,
+        command: Commands.validateRefactor,
+        arguments: command.arguments,
+      ),
       decoder: ValidateRefactorResult.fromJson,
     );
 
@@ -844,9 +820,7 @@ const NewWidget({
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
 
     setDocumentChangesSupport();
   }
@@ -908,6 +882,7 @@ class NewWidget extends StatelessWidget {
       expectedContent,
       command: Commands.performRefactor,
       title: extractWidgetTitle,
+      openTargetFile: true,
     );
   }
 
@@ -953,6 +928,7 @@ void f() {
       expectedContent,
       command: Commands.performRefactor,
       title: inlineVariableTitle,
+      openTargetFile: true,
     );
   }
 }

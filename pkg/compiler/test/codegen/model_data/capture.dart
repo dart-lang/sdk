@@ -13,16 +13,16 @@ class Class {
 
   /*member: Class.capture:params=0*/
   @pragma('dart2js:noInline')
-  Class.capture([a]) : f = (/*access=[a],params=0*/ () => a);
+  Class.capture([a]) : f = ( /*access=[a],params=0*/ () => a);
 
   // TODO(johnniwinther): Remove the redundant assignment of elided boxed
   // parameters.
   /*member: Class.box:assign=[a,a],params=0*/
   @pragma('dart2js:noInline')
   Class.box([a])
-      : f = (/*access=[_box_0],assign=[a],params=0*/ () {
-          a = 42;
-        });
+    : f = ( /*access=[_box_0],assign=[a],params=0*/ () {
+        a = 42;
+      });
 
   Class.internal(this.f);
 }
@@ -35,9 +35,9 @@ class Subclass extends Class {
   /*member: Subclass.box:assign=[a,a],params=0*/
   @pragma('dart2js:noInline')
   Subclass.box([a])
-      : super.internal(/*access=[_box_0],assign=[a],params=0*/ () {
-          a = 42;
-        });
+    : super.internal(/*access=[_box_0],assign=[a],params=0*/ () {
+        a = 42;
+      });
 }
 
 /*member: main:calls=*,params=0*/

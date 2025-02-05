@@ -4,9 +4,4 @@
 
 import '../tool/util/path_utils.dart';
 
-final String integrationTestDir =
-    pathRelativeToPackageRoot(['test_data', 'integration']);
-final String ruleTestDataDir =
-    pathRelativeToPackageRoot(['test_data', 'rules']);
 final String ruleTestDir = pathRelativeToPackageRoot(['test', 'rules']);
-final String testConfigDir = pathRelativeToPackageRoot(['test', 'configs']);

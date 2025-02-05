@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -  54 "needsEvaluation"
+# -  58 "needsEvaluation"
 # - 308 "needsFix"
-# - 465 "hasFix"
+# - 470 "hasFix"
 # - 514 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -151,7 +151,9 @@ CompileTimeErrorCode.AMBIGUOUS_EXPORT:
   status: needsFix
   notes: |-
     For each exported name, add a fix to hide the name.
-CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
+CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+  status: hasFix
+CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
   status: hasFix
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
   status: needsFix
@@ -424,6 +426,8 @@ CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
   status: needsEvaluation
@@ -1425,7 +1429,7 @@ CompileTimeErrorCode.RETURN_IN_GENERATOR:
   notes: |-
     Replace with a yield.
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
@@ -1738,7 +1742,7 @@ FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER: 
+FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
   status: noFix
   since: ~2.15
 FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
@@ -1788,6 +1792,10 @@ FfiCode.NATIVE_FIELD_MISSING_TYPE:
   status: needsEvaluation
 FfiCode.NATIVE_FIELD_NOT_STATIC:
   status: needsEvaluation
+FfiCode.NATIVE_FUNCTION_MISSING_TYPE:
+  status: needsEvaluation
+FfiCode.NEGATIVE_VARIABLE_DIMENSION:
+  status: noFix
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
 FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
@@ -2196,6 +2204,8 @@ LintCode.omit_local_variable_types:
   status: hasFix
 LintCode.omit_obvious_local_variable_types:
   status: hasFix
+LintCode.omit_obvious_property_types:
+  status: hasFix
 LintCode.one_member_abstracts:
   status: noFix
   notes: |-
@@ -2204,8 +2214,6 @@ LintCode.one_member_abstracts:
 LintCode.only_throw_errors:
   status: noFix
 LintCode.overridden_fields:
-  status: noFix
-LintCode.package_api_docs:
   status: noFix
 LintCode.package_names:
   status: noFix
@@ -2359,6 +2367,22 @@ LintCode.sort_unnamed_constructors_first:
   status: hasFix
 LintCode.specify_nonobvious_local_variable_types:
   status: hasFix
+LintCode.specify_nonobvious_property_types:
+  status: hasFix
+LintCode.strict_top_level_inference_add_type:
+  status: hasFix
+LintCode.strict_top_level_inference_replace_keyword:
+  status: noFix
+  notes: |-
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
+LintCode.strict_top_level_inference_split_to_types:
+  status: noFix
+  notes: |-
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:
@@ -2377,6 +2401,10 @@ LintCode.unintended_html_in_doc_comment:
   status: needsFix
   notes: |-
     The fix is to encode the angle brackets.
+LintCode.unnecessary_async:
+  status: needsFix
+  notes: |-
+    And probably also quick assist that works even if returns `Future`.
 LintCode.unnecessary_await_in_return:
   status: hasFix
 LintCode.unnecessary_brace_in_string_interps:
@@ -2431,18 +2459,21 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_underscores:
+  status: hasFix  
 LintCode.unreachable_from_main:
   status: hasFix
 LintCode.unrelated_type_equality_checks_in_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
-LintCode.unsafe_html_attribute:
+LintCode.unsafe_variance:
   status: noFix
-LintCode.unsafe_html_method:
-  status: noFix
-LintCode.unsafe_html_constructor:
-  status: noFix
+  notes: |-
+    A type like `X Function([X])` could be replaced by `X Function()`,
+    or by `X Function([Never])`, or by `Function`, depending on the
+    situation and the preferences of the developer. There is no
+    universally applicable fix.
 LintCode.use_build_context_synchronously_async_use:
   status: noFix
 LintCode.use_build_context_synchronously_wrong_mounted:
@@ -3371,6 +3402,12 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_ELEMENT:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+  status: needsEvaluation
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:

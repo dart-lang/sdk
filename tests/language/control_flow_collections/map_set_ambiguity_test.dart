@@ -69,12 +69,16 @@ void testBottomUpInference() {
 
   expectMapOf<int, int>({for (; false;) ...map, for (; false;) ...map});
   // expect___Of<...>({for (; false;) ...map, for (; false;) ...set});
-  expectMapOf<dynamic, dynamic>(
-      {for (; false;) ...map, for (; false;) ...dynMap});
+  expectMapOf<dynamic, dynamic>({
+    for (; false;) ...map,
+    for (; false;) ...dynMap,
+  });
   // expect___Of<...>({for (; false;) ...map, for (; false;) ...iterable});
   // expect___Of<...>({for (; false;) ...map, for (; false;) ...customSet});
-  expectMapOf<int, Object>(
-      {for (; false;) ...map, for (; false;) ...customMap});
+  expectMapOf<int, Object>({
+    for (; false;) ...map,
+    for (; false;) ...customMap,
+  });
 
   expectSetOf<int>({for (; false;) ...set, for (; false;) ...set});
   expectSetOf<dynamic>({for (; false;) ...set, for (; false;) ...dynSet});
@@ -83,27 +87,26 @@ void testBottomUpInference() {
   // expect___Of<...>({for (; false;) ...set, for (; false;) ...customMap});
 
   // expect___Of<...>({for (; false;) ...dyn, for (; false;) ...dyn});
-  expectSetOf<dynamic>(
-      {for (; false;) ...dynSet, for (; false;) ...iterable});
-  expectSetOf<dynamic>(
-      {for (; false;) ...dynSet, for (; false;) ...customSet});
-  expectMapOf<dynamic, dynamic>(
-      {for (; false;) ...dynMap, for (; false;) ...customMap});
+  expectSetOf<dynamic>({for (; false;) ...dynSet, for (; false;) ...iterable});
+  expectSetOf<dynamic>({for (; false;) ...dynSet, for (; false;) ...customSet});
+  expectMapOf<dynamic, dynamic>({
+    for (; false;) ...dynMap,
+    for (; false;) ...customMap,
+  });
 
-  expectSetOf<int>(
-      {for (; false;) ...iterable, for (; false;) ...iterable});
-  expectSetOf<int>(
-      {for (; false;) ...iterable, for (; false;) ...customSet});
+  expectSetOf<int>({for (; false;) ...iterable, for (; false;) ...iterable});
+  expectSetOf<int>({for (; false;) ...iterable, for (; false;) ...customSet});
   // expect___Of<...>(
   //     {for (; false;) ...iterable, for (; false;) ...customMap});
 
-  expectSetOf<int>(
-      {for (; false;) ...customSet, for (; false;) ...customSet});
+  expectSetOf<int>({for (; false;) ...customSet, for (; false;) ...customSet});
   // expect___Of<...>(
   //     {for (; false;) ...customSet, for (; false;) ...customMap});
 
-  expectMapOf<int, String>(
-      {for (; false;) ...customMap, for (; false;) ...customMap});
+  expectMapOf<int, String>({
+    for (; false;) ...customMap,
+    for (; false;) ...customMap,
+  });
 }
 
 void testTopDownInference() {

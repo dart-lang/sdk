@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' hide Link;
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'deferred_loading_test_helper.dart';
 
@@ -19,11 +19,17 @@ const List<String> compilerOptions = const [];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const OutputUnitDataComputer(),
-        options: compilerOptions, args: args, setUpFunction: () {
-      importPrefixes.clear();
-    },
-        testedConfigs: allSpecConfigs +
-            [twoDeferredFragmentConfig, threeDeferredFragmentConfig]);
+    await checkTests(
+      dataDir,
+      const OutputUnitDataComputer(),
+      options: compilerOptions,
+      args: args,
+      setUpFunction: () {
+        importPrefixes.clear();
+      },
+      testedConfigs:
+          allSpecConfigs +
+          [twoDeferredFragmentConfig, threeDeferredFragmentConfig],
+    );
   });
 }

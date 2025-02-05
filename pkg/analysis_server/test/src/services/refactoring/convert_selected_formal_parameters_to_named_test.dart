@@ -256,10 +256,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  required int b,
-  required int a,
-}) {}
+void test({required int b, required int a}) {}
 
 void f() {
   test(b: 1, a: 0);
@@ -292,8 +289,6 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(
-      ConvertSelectedFormalParametersToNamed.constTitle,
-    );
+    await expectNoCodeAction(ConvertSelectedFormalParametersToNamed.constTitle);
   }
 }

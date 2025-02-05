@@ -12,21 +12,13 @@ class A {
 
   // Redirecting constructor must not have a function body.
 
-
   // Redirecting constructor must not initialize any fields.
-
 
   // Redirecting constructor must not have initializing formal parameters.
 
-
   // Redirection constructors must not call super constructor.
-
 }
 
 main() {
   new A(3);
-
-
-
-
 }

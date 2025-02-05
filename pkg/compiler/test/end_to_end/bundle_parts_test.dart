@@ -37,13 +37,17 @@ Future<void> runTestWithOptions(List<String> options) async {
   final bundledPartsUri = tmpDir.uri.resolve('out.bundle.js');
   final bundledParts = File(bundledPartsUri.toFilePath());
   await bundledParts.writeAsBytes(await part1.readAsBytes());
-  await bundledParts.writeAsBytes(await part2.readAsBytes(),
-      mode: FileMode.append);
+  await bundledParts.writeAsBytes(
+    await part2.readAsBytes(),
+    mode: FileMode.append,
+  );
   await bundledParts.writeAsString('\n$verifyParts', mode: FileMode.append);
   final result = executeJsWithD8([bundledPartsUri]);
   if (result.exitCode != 0) {
-    Expect.fail('Expected exit code 0. D8 results:\n'
-        '${(result.stdout as String).trim()}');
+    Expect.fail(
+      'Expected exit code 0. D8 results:\n'
+      '${(result.stdout as String).trim()}',
+    );
   }
   Expect.equals(0, result.exitCode);
 }

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend.namer;
+part of 'namer.dart';
 
 class FrequencyBasedNamer extends Namer
     with _MinifiedFieldNamer, _MinifiedOneShotInterceptorNamer
-    implements jsAst.TokenFinalizer {
+    implements js_ast.TokenFinalizer {
   @override
-  late final _FieldNamingRegistry fieldRegistry = _FieldNamingRegistry(this);
+  late final FieldNamingRegistry fieldRegistry = FieldNamingRegistry(this);
   List<TokenName> tokens = [];
 
   final Map<NamingScope, TokenScope> _tokenScopes = {};
@@ -34,16 +34,25 @@ class FrequencyBasedNamer extends Namer
   }
 
   @override
-  jsAst.Name getFreshName(NamingScope scope, String proposedName,
-      {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
+  js_ast.Name getFreshName(
+    NamingScope scope,
+    String proposedName, {
+    bool sanitizeForNatives = false,
+    bool sanitizeForAnnotations = false,
+  }) {
     // Grab the scope for this token
-    TokenScope tokenScope =
-        _tokenScopes.putIfAbsent(scope, () => newScopeFor(scope));
+    TokenScope tokenScope = _tokenScopes.putIfAbsent(
+      scope,
+      () => newScopeFor(scope),
+    );
 
     // Get the name the normal namer would use as a key.
-    String proposed = _generateFreshStringForName(proposedName, scope,
-        sanitizeForNatives: sanitizeForNatives,
-        sanitizeForAnnotations: sanitizeForAnnotations);
+    String proposed = _generateFreshStringForName(
+      proposedName,
+      scope,
+      sanitizeForNatives: sanitizeForNatives,
+      sanitizeForAnnotations: sanitizeForAnnotations,
+    );
 
     TokenName name = TokenName(tokenScope, proposed);
     tokens.add(name);
@@ -51,8 +60,8 @@ class FrequencyBasedNamer extends Namer
   }
 
   @override
-  jsAst.Name instanceFieldPropertyName(FieldEntity element) {
-    jsAst.Name? proposed = _minifiedInstanceFieldPropertyName(element);
+  js_ast.Name instanceFieldPropertyName(FieldEntity element) {
+    js_ast.Name? proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
     }
@@ -70,6 +79,8 @@ class FrequencyBasedNamer extends Namer
     List<TokenName> usedNames =
         tokens.where((TokenName a) => a._rc > 0).toList();
     usedNames.sort(compareReferenceCount);
-    usedNames.forEach((TokenName token) => token.finalize());
+    for (var token in usedNames) {
+      token.finalize();
+    }
   }
 }

@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A location (character range) within a file.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class Location {
 
-  public static final Location[] EMPTY_ARRAY = new Location[0];
-
-  public static final List<Location> EMPTY_LIST = Lists.newArrayList();
+  public static final List<Location> EMPTY_LIST = List.of();
 
   /**
    * The file containing the range.
@@ -85,16 +80,15 @@ public class Location {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Location) {
-      Location other = (Location) obj;
+    if (obj instanceof Location other) {
       return
-        ObjectUtilities.equals(other.file, file) &&
+        Objects.equals(other.file, file) &&
         other.offset == offset &&
         other.length == length &&
         other.startLine == startLine &&
         other.startColumn == startColumn &&
-        ObjectUtilities.equals(other.endLine, endLine) &&
-        ObjectUtilities.equals(other.endColumn, endColumn);
+        Objects.equals(other.endLine, endLine) &&
+        Objects.equals(other.endColumn, endColumn);
     }
     return false;
   }
@@ -114,10 +108,9 @@ public class Location {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<Location> list = new ArrayList<Location>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<Location> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -173,15 +166,15 @@ public class Location {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(file);
-    builder.append(offset);
-    builder.append(length);
-    builder.append(startLine);
-    builder.append(startColumn);
-    builder.append(endLine);
-    builder.append(endColumn);
-    return builder.toHashCode();
+    return Objects.hash(
+      file,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      endLine,
+      endColumn
+    );
   }
 
   public JsonObject toJson() {
@@ -205,17 +198,23 @@ public class Location {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file + ", ");
+    builder.append(file);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("startLine=");
-    builder.append(startLine + ", ");
+    builder.append(startLine);
+    builder.append(", ");
     builder.append("startColumn=");
-    builder.append(startColumn + ", ");
+    builder.append(startColumn);
+    builder.append(", ");
     builder.append("endLine=");
-    builder.append(endLine + ", ");
+    builder.append(endLine);
+    builder.append(", ");
     builder.append("endColumn=");
     builder.append(endColumn);
     builder.append("]");

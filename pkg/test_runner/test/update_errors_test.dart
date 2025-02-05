@@ -229,54 +229,46 @@ main() {
 }
 """);
 
-  // Discards indentation if it would collide with carets.
+  // Discards previous error indentation if it would collide with carets.
   expectUpdate("""
+// This fits:
 int i = "bad";
-        /\/    ^^
-        /\/ [analyzer] previous.error
+      /\/    ^^
+      /\/ [analyzer] previous.error
 
-main() {
-  int i =
-  "bad";
-}
+// This does not:
+int j = "bad";
+       /\/    ^^
+       /\/ [analyzer] previous.error
 """, errors: [
-    makeError(line: 1, column: 9, length: 5, cfeError: "Error."),
-    makeError(line: 7, column: 3, length: 5, analyzerError: "new.error"),
+    makeError(line: 2, column: 9, length: 5, cfeError: "Error."),
+    makeError(line: 7, column: 9, length: 5, cfeError: "Error."),
   ], expected: """
+// This fits:
 int i = "bad";
+      /\/^^^^^
+      /\/ [cfe] Error.
+
+// This does not:
+int j = "bad";
 /\/      ^^^^^
 /\/ [cfe] Error.
-
-main() {
-  int i =
-  "bad";
-/\/^^^^^
-/\/ [analyzer] new.error
-}
 """);
 
-  // Uses an explicit error location if there's no room for the carets.
+  // Uses explicit location if indenting based on preceding code would collide
+  // with carets.
   expectUpdate("""
-int i =
-"bad";
-    /\/    ^^
-    /\/ [analyzer] previous.error
-
-int j =
-"bad";
+main() {
+  ["bad"];
+}
 """, errors: [
-    makeError(line: 2, column: 1, length: 5, analyzerError: "updated.error"),
-    makeError(line: 7, column: 1, length: 5, cfeError: "Error."),
+    makeError(line: 2, column: 4, length: 5, cfeError: "Error."),
   ], expected: """
-int i =
-"bad";
-/\/ [error column 1, length 5]
-/\/ [analyzer] updated.error
-
-int j =
-"bad";
-/\/ [error column 1, length 5]
-/\/ [cfe] Error.
+main() {
+  ["bad"];
+  /\/ [error column 4, length 5]
+  /\/ [cfe] Error.
+}
 """);
 
   // Uses length one if there's no length.

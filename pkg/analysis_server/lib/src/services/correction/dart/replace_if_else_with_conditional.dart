@@ -16,8 +16,9 @@ class ReplaceIfElseWithConditional extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
@@ -47,8 +48,10 @@ class ReplaceIfElseWithConditional extends ResolvedCorrectionProducer {
           var conditionSrc = utils.getNodeText(ifStatement.expression);
           var thenSrc = utils.getNodeText(thenExpression);
           var elseSrc = utils.getNodeText(elseExpression);
-          builder.addSimpleReplacement(range.node(ifStatement),
-              'return $conditionSrc ? $thenSrc : $elseSrc;');
+          builder.addSimpleReplacement(
+            range.node(ifStatement),
+            'return $conditionSrc ? $thenSrc : $elseSrc;',
+          );
         });
       }
     }
@@ -68,8 +71,10 @@ class ReplaceIfElseWithConditional extends ResolvedCorrectionProducer {
             var conditionSrc = utils.getNodeText(ifStatement.expression);
             var thenSrc = utils.getNodeText(thenAssignment.rightHandSide);
             var elseSrc = utils.getNodeText(elseAssignment.rightHandSide);
-            builder.addSimpleReplacement(range.node(ifStatement),
-                '$thenTarget = $conditionSrc ? $thenSrc : $elseSrc;');
+            builder.addSimpleReplacement(
+              range.node(ifStatement),
+              '$thenTarget = $conditionSrc ? $thenSrc : $elseSrc;',
+            );
           }
         });
       }

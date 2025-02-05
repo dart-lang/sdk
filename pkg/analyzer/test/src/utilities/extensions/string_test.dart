@@ -101,6 +101,18 @@ class IterableOfStringExtensionTest {
 
 @reflectiveTest
 class StringExtensionTest {
+  void test_elideTo() {
+    expect(''.elideTo(10), '');
+    expect('0'.elideTo(10), '0');
+    expect('012'.elideTo(10), '012');
+    expect('0123456789'.elideTo(10), '0123456789');
+    expect('0123456789abcd'.elideTo(10), '0123...bcd');
+    expect('0123456789abcde'.elideTo(10), '0123...cde');
+    expect('0123456789abcdef'.elideTo(10), '0123...def');
+    expect('0123456789abcdef'.elideTo(11), '0123...cdef');
+    expect('0123456789abcdef'.elideTo(12), '01234...cdef');
+  }
+
   void test_ifEqualThen_equal() {
     expect('foo'.ifEqualThen('foo', 'bar'), 'bar');
   }

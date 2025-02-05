@@ -320,7 +320,7 @@ trace to find the place to insert the appropriate support.
             elif arg == 'gen/utils/analysis_server/analysis_server.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_analysis_server()
-            elif arg == '../../pkg/front_end/tool/_fasta/compile_platform.dart':
+            elif arg == '../../pkg/front_end/tool/compile_platform.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_compile_platform()
             elif arg == '../../utils/compiler/create_snapshot_entry.dart':
@@ -368,9 +368,12 @@ trace to find the place to insert the appropriate support.
             arg = self.next_arg()
             if arg == 'js':
                 self.extra_paths.add(
+                    self.rebase(os.path.join(self.dart_subdir,
+                                             'dartaotruntime')))
+                self.extra_paths.add(
                     self.rebase(
                         os.path.join(self.dart_subdir,
-                                     'snapshots/dart2js.dart.snapshot')))
+                                     'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
             else:
                 self.unsupported('compile', arg)

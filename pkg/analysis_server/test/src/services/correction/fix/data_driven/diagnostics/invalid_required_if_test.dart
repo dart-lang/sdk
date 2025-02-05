@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class InvalidRequiredIfTest extends AbstractTransformSetParserTest {
   void test_requiredNamed() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -37,8 +38,8 @@ transforms:
           p:
             kind: 'fragment'
             value: 'arguments[1]'
-''', [
-      error(TransformSetErrorCode.invalidRequiredIf, 269, 10),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidRequiredIf, 269, 10)],
+    );
   }
 }

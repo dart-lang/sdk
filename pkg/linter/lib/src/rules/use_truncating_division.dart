@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use truncating division.';
 
@@ -51,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methodElement == null) return;
 
     var libraryElement = methodElement.library2;
-    if (libraryElement != null && !libraryElement.isDartCore) return;
+    if (!libraryElement.isDartCore) return;
 
     var parent = node.parent;
     if (parent is! ParenthesizedExpression) return;

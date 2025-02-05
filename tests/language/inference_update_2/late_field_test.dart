@@ -4,7 +4,7 @@
 
 // Tests that field promotion logic properly handles late fields.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final int? _i;

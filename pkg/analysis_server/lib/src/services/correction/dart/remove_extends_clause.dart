@@ -28,8 +28,12 @@ class RemoveExtendsClause extends ResolvedCorrectionProducer {
     if (classDeclaration == null) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.startStart(
-          classDeclaration.extendsClause!, classDeclaration.leftBracket));
+      builder.addDeletion(
+        range.startStart(
+          classDeclaration.extendsClause!,
+          classDeclaration.leftBracket,
+        ),
+      );
     });
   }
 }

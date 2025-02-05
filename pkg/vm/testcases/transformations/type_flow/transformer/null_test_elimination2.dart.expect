@@ -5,7 +5,7 @@ import "dart:_internal" as _in;
 
 
 [@vm.inferred-return-type.metadata=dart.core::bool (value: true)]
-static method _defaultCheck([dynamic _ = #C1]) → core::bool
+static method _defaultCheck([wildcard dynamic _#wc0#formal = #C1]) → core::bool
   return true;
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
@@ -18,7 +18,7 @@ static method testStaticTypeOfConditional<T extends core::Object? = dynamic>([@v
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
-  self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](core::String _) → core::bool => true);
+  self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](core::String _#wc0#formal) → core::bool => true);
 }
 constants  {
   #C1 = null

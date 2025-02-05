@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 import 'dart:typed_data';
 
@@ -310,8 +312,6 @@ class LinkedElementFactory {
     libraryElement.typeProvider = analysisContext.typeProvider;
     libraryElement.typeSystem = analysisContext.typeSystem;
     libraryElement.hasTypeProviderSystemSet = true;
-
-    libraryElement.createLoadLibraryFunction();
   }
 
   void _disposeLibrary(Element? libraryElement) {

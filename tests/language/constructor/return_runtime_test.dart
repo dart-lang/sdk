@@ -14,27 +14,19 @@ class A {
   A(this.x) {
     return;
   }
-  A.test1(this.x) {
-
-  }
-  A.test2(this.x) {
-
-  }
+  A.test1(this.x) {}
+  A.test2(this.x) {}
   int foo(int y) => x + y;
 }
 
-class B {
-
-}
+class B {}
 
 class C {
   int value = -1;
-
 }
 
 class D {
   int value = -1;
-
 }
 
 main() {

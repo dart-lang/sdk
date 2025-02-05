@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Negative test to make sure that we are reaching all assertions.
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 /* Dummy import so multi-test copies the file.
 import 'spawn_uri_child_isolate.dart';

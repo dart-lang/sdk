@@ -20,7 +20,10 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(
-      void params, MessageInfo message, CancellationToken token) async {
+    void params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     // This command just starts a refresh, it does not wait for it to
     // complete before responding to the client.
     unawaited(server.reanalyze());

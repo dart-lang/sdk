@@ -7,10 +7,6 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -18,10 +14,13 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+library;
 
-class FfiCode extends AnalyzerErrorCode {
+import "package:analyzer/error/error.dart";
+
+class FfiCode extends ErrorCode {
   ///  No parameters.
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',
@@ -385,6 +384,25 @@ class FfiCode extends AnalyzerErrorCode {
     'NATIVE_FIELD_NOT_STATIC',
     "Native fields must be static.",
     correctionMessage: "Try adding the modifier 'static' to this field.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters
+  static const FfiCode NATIVE_FUNCTION_MISSING_TYPE = FfiCode(
+    'NATIVE_FUNCTION_MISSING_TYPE',
+    "The native type of this function couldn't be inferred so it must be "
+        "specified in the annotation.",
+    correctionMessage:
+        "Try adding a type parameter extending `NativeType` to the `@Native` "
+        "annotation.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode NEGATIVE_VARIABLE_DIMENSION = FfiCode(
+    'NEGATIVE_VARIABLE_DIMENSION',
+    "The variable dimension of a variable-length array must be non-negative.",
+    correctionMessage: "Try using a value that is zero or greater.",
     hasPublishedDocs: true,
   );
 

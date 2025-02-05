@@ -177,10 +177,13 @@ enum E {
     await resolveTestCode(r'''
 enum _MyEnum {A, B, C}
 ''');
-    await assertHasFix(r'''
-''', errorFilter: (AnalysisError error) {
-      return error.errorCode == WarningCode.UNUSED_ELEMENT;
-    });
+    await assertHasFix(
+      r'''
+''',
+      errorFilter: (AnalysisError error) {
+        return error.errorCode == WarningCode.UNUSED_ELEMENT;
+      },
+    );
   }
 
   Future<void> test_functionLocal_notUsed_noReference() async {

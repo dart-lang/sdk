@@ -26,7 +26,11 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
 
   @override
   bool testValues(
-      js.Node? node1, Object? value1, js.Node? node2, Object? value2) {
+    js.Node? node1,
+    Object? value1,
+    js.Node? node2,
+    Object? value2,
+  ) {
     if (value1 != value2) {
       print('Value mismatch:');
       print('  ${value1}');
@@ -41,7 +45,11 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
 
   @override
   bool testLabels(
-      js.Node node1, String? label1, js.Node node2, String? label2) {
+    js.Node node1,
+    String? label1,
+    js.Node node2,
+    String? label2,
+  ) {
     if (label1 == null && label2 == null) return true;
     if (labelsMap.containsKey(label1)) {
       String? expectedValue = labelsMap[label1];

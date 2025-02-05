@@ -265,21 +265,21 @@ void matchIL$testCallInTryWithControlFlow(FlowGraph graph) {
       'pos' << match.Parameter(index: 1),
       match.CheckStackOverflow(),
       'cid1' << match.LoadClassId('value'),
-      match.Branch(match.TestRange('cid1'), ifTrue: 'B9', ifFalse: 'B10'),
+      match.Branch(match.TestRange('cid1'), ifTrue: 'B10', ifFalse: 'B11'),
     ]),
-    'B9' <<
-        match.block('Target', [
-          match.MoveArgument('value'),
-          'value_length1' << match.DispatchTableCall('cid1'),
-          match.Goto('B11'),
-        ]),
     'B10' <<
         match.block('Target', [
           match.MoveArgument('value'),
-          'value_length2' << match.InstanceCall('value'),
-          match.Goto('B11'),
+          'value_length1' << match.DispatchTableCall('cid1'),
+          match.Goto('B12'),
         ]),
     'B11' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          'value_length2' << match.InstanceCall('value'),
+          match.Goto('B12'),
+        ]),
+    'B12' <<
         match.block('Join', [
           'value_length' << match.Phi('value_length1', 'value_length2'),
           'value_length_unboxed' << match.UnboxInt64('value_length'),
@@ -290,49 +290,50 @@ void matchIL$testCallInTryWithControlFlow(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.Goto('B8'),
+          match.Goto('B9'),
         ]),
     'B4' <<
         match.block('Target', [
           match.Goto('B5'),
         ]),
-    'B5' <<
+    'B5' << match.tryBlock(tryBody: 'B6', catches: 'B8'),
+    'B6' <<
         match.block('Join', [
           'pos_boxed' << match.BoxInt64('pos'),
           'cid2' << match.LoadClassId('value'),
-          match.Branch(match.TestRange('cid2'), ifTrue: 'B12', ifFalse: 'B13'),
-        ]),
-    'B12' <<
-        match.block('Target', [
-          match.MoveArgument('value'),
-          match.MoveArgument('pos_boxed'),
-          'value_substring1' << match.DispatchTableCall('cid2'),
-          match.Goto('B14'),
+          match.Branch(match.TestRange('cid2'), ifTrue: 'B13', ifFalse: 'B14'),
         ]),
     'B13' <<
         match.block('Target', [
           match.MoveArgument('value'),
           match.MoveArgument('pos_boxed'),
-          'value_substring2' << match.InstanceCall('value', 'pos_boxed'),
-          match.Goto('B14'),
+          'value_substring1' << match.DispatchTableCall('cid2'),
+          match.Goto('B15'),
         ]),
     'B14' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          match.MoveArgument('pos_boxed'),
+          'value_substring2' << match.InstanceCall('value', 'pos_boxed'),
+          match.Goto('B15'),
+        ]),
+    'B15' <<
         match.block('Join', [
           'value_substring' <<
               match.Phi('value_substring1', 'value_substring2'),
           match.MoveArgument('value_substring'),
           match.StaticCall('value_substring'),
-          match.Goto('B6'),
-        ]),
-    'B7' <<
-        match.block('CatchBlock', [
-          match.Goto('B6'),
-        ]),
-    'B6' <<
-        match.block('Join', [
-          match.Goto('B8'),
+          match.Goto('B7'),
         ]),
     'B8' <<
+        match.block('CatchBlock', [
+          match.Goto('B7'),
+        ]),
+    'B7' <<
+        match.block('Join', [
+          match.Goto('B9'),
+        ]),
+    'B9' <<
         match.block('Join', [
           match.DartReturn(match.any),
         ]),

@@ -8,7 +8,7 @@
 // process.  We need to make sure that the dependency tracking logic properly
 // accounts for this extra argument.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 testLaterUnnamedParameter(int i) {
   i._laterUnnamedParameter(0, (x) {

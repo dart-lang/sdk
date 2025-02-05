@@ -127,7 +127,7 @@ suggestions
   }
 
   Future<void>
-      test_partFile_InstanceCreationExpression_assignment_filter() async {
+  test_partFile_InstanceCreationExpression_assignment_filter() async {
     newFile('$testPackageLibPath/b.dart', '''
 int T0 = 0;
 F0() {}
@@ -174,7 +174,7 @@ suggestions
   }
 
   Future<void>
-      test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
+  test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     newFile('$testPackageLibPath/b.dart', '''
 int T0 = 0;
 F0() {}

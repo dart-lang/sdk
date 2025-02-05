@@ -207,6 +207,42 @@ void main() {
     expect(vm.systemIsolates!.where((e) => e.name == 'main'), isNotEmpty);
   });
 
+  // Regression tests for https://github.com/dart-lang/sdk/issues/56842
+  group('properly handles --suppress-analytics', () {
+    void suppressAnalyticsTest({required bool beforeCommand}) {
+      test('${beforeCommand ? 'before' : 'after'} command', () async {
+        final p = project(pubspecExtras: {
+          'dev_dependencies': {'test': 'any'}
+        });
+        p.file('test/foo_test.dart', '''
+          import 'package:test/test.dart';
+
+          void main() {
+            test('', () {
+              expect(1,1);
+            });
+          }
+          ''');
+
+        // An implicit `pub get` will happen.
+        final result = await p.run([
+          if (beforeCommand) '--suppress-analytics',
+          'test',
+          '--no-color',
+          '--reporter',
+          'expanded',
+          if (!beforeCommand) '--suppress-analytics',
+        ]);
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, contains('All tests passed!'));
+        expect(result.exitCode, 0);
+      });
+    }
+
+    suppressAnalyticsTest(beforeCommand: true);
+    suppressAnalyticsTest(beforeCommand: false);
+  });
+
   group('--enable-experiment', () {
     late TestProject p;
     Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {

@@ -14,16 +14,36 @@ import "package:expect/expect.dart";
 // Not allowed without class prefix as constructor.
 class C1 {
   const new();
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INSTANCE_FIELD
+  // [cfe] Only static fields can be declared as const.
   //    ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
+  // [cfe] Expected ';' after this.
+  // [cfe] The const variable 'new' must be initialized.
+  //       ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  //       ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [cfe] Expected an identifier, but got '('.
 }
 
 class C2 {
   factory new() => C2._();
+  // [error column 3, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+  // [cfe] Expected ';' after this.
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   //      ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
+  // [cfe] Expected a class member, but got 'new'.
+  //         ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '('.
   C2._();
 }
 
@@ -31,54 +51,59 @@ class C2 {
 class C3 {
   int new() => 1;
   //  ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 }
 
 class C4 {
   int get new => 1;
   //      ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 
   void set new(int value) {}
   //       ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 }
 
 class C5 {
   int new = 1;
   //  ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 }
 
 // Not allowed as static member.
 class C6 {
   static void new() {}
   //          ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
+  // [cfe] Expected ';' after this.
+  //             ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '('.
 }
 
 class C7 {
   static int get new => 42;
   //             ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 
   static void set new(int x) {}
   //              ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 }
 
 class C8 {
   static int new = 1;
   //         ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 }
 
 // Not allowed as reference if there is no unnamed constructor.
@@ -88,36 +113,38 @@ class NoUnnamed<T> {
   NoUnnamed.named();
 
   NoUnnamed.genRedir() : this.new();
-  //                          ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  //                     ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR
+  //                          ^
+  // [cfe] Couldn't find constructor 'NoUnnamed.new'.
 
   factory NoUnnamed.facRedir() = NoUnnamed.new;
-  //                                       ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  //                             ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_MISSING_CONSTRUCTOR
+  // [cfe] Redirection constructor target not found: 'NoUnnamed.new'
 
   factory NoUnnamed.facRedir2() = NoUnnamed<T>.new;
-  //                                           ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  //                              ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_MISSING_CONSTRUCTOR
+  // [cfe] Couldn't find constructor 'NoUnnamed.new'.
+  // [cfe] Redirection constructor target not found: 'NoUnnamed.new'
 }
 
 class SubNoUnnamed extends NoUnnamed<int> {
   SubNoUnnamed() : super.new();
-  //                     ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  //               ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+  // [cfe] Superclass has no constructor named 'NoUnnamed.new'.
 }
 
 void main() {
   NoUnnamed.new();
   //        ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+  // [cfe] Member not found: 'NoUnnamed.new'.
 
   NoUnnamed<int>.new();
   //             ^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Couldn't find constructor 'NoUnnamed.new'.
 }

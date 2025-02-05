@@ -45,7 +45,7 @@ void f() {
   }
 
   void _assertTypeOfV(String expected) {
-    assertType(findElement.localVar('v').type, expected);
+    assertType(findElement2.localVar('v').type, expected);
     assertType(findNode.simple('v;'), expected);
   }
 }

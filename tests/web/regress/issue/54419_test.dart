@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 // Ensure we don't omit as checks based on a subtype check ignoring nullability.
 
@@ -11,7 +12,7 @@ void foo<T>(T? x) {
 }
 
 void main() {
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(() => foo<int>(null));
   }
 }

@@ -19,12 +19,13 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   /// Initializes a newly created correction producer to create an object
   /// pattern that will match an empty map.
   ReplaceEmptyMapPattern.empty({required super.context})
-      : _style = _Style.empty;
+    : _style = _Style.empty;
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => _style.fixKind;
@@ -42,16 +43,19 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
         var text = utils.getNodeText(typeArguments);
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
-              range.node(targetNode), replacement(text));
+            range.node(targetNode),
+            replacement(text),
+          );
         });
       }
     }
   }
 
   /// Return the replacement for the map pattern.
-  String replacement(String typeArguments) => _style == _Style.any
-      ? 'Map$typeArguments()'
-      : 'Map$typeArguments(isEmpty: true)';
+  String replacement(String typeArguments) =>
+      _style == _Style.any
+          ? 'Map$typeArguments()'
+          : 'Map$typeArguments(isEmpty: true)';
 }
 
 /// An indication of the style of replacement being offered.

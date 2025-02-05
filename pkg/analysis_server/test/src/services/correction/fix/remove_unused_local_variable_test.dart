@@ -13,7 +13,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedLocalVariableTest);
     defineReflectiveTests(
-        RemoveUnusedLocalVariableTest_DeclaredVariablePattern);
+      RemoveUnusedLocalVariableTest_DeclaredVariablePattern,
+    );
   });
 }
 
@@ -173,12 +174,15 @@ void f() {
   var v = 1;
 }
 ''');
-    await assertHasFix(r'''
+    await assertHasFix(
+      r'''
 void f() {
 }
 ''',
-        errorFilter: (e) =>
-            e.errorCode != CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+      errorFilter:
+          (e) =>
+              e.errorCode != CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+    );
   }
 }
 

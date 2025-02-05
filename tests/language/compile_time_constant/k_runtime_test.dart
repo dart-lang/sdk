@@ -7,21 +7,10 @@
 
 import "package:expect/expect.dart";
 
-const x = const {
+const x = const {'a': 4};
+const y = const {};
 
-  'a': 4
-};
-const y = const {
-
-
-};
-
-const z = const {
-
-
-
-  '__proto__': 499
-};
+const z = const {'__proto__': 499};
 
 const x2 = const {'a': 4};
 const y2 = const {'a': 14, 'b': 13};

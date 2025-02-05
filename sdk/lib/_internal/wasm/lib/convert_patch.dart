@@ -8,7 +8,8 @@ import "dart:_internal"
 import "dart:_js_string_convert";
 import "dart:_js_types";
 import "dart:_js_helper" show jsStringToDartString;
-import "dart:_list" show GrowableList, WasmListBaseUnsafeExtensions;
+import "dart:_list"
+    show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
@@ -20,15 +21,30 @@ import "dart:typed_data" show Uint8List;
 
 @patch
 dynamic _parseJson(
-    String source, Object? Function(Object? key, Object? value)? reviver) {
-  _JsonListener listener = new _JsonListener(reviver);
-  var parser = new _JsonStringParser(listener);
-  parser.chunk = unsafeCast<StringBase>(
-      source is JSStringImpl ? jsStringToDartString(source) : source);
-  parser.chunkEnd = source.length;
-  parser.parse(0);
-  parser.close();
-  return listener.result;
+  String source,
+  Object? Function(Object? key, Object? value)? reviver,
+) {
+  final listener = _JsonListener(reviver);
+  if (source is OneByteString) {
+    final parser = _JsonOneByteStringParser(listener);
+    parser.chunk = source;
+    parser.chunkEnd = source.length;
+    parser.parse(0);
+    parser.close();
+    return listener.result;
+  } else if (source is TwoByteString) {
+    final parser = _JsonTwoByteStringParser(listener);
+    parser.chunk = source;
+    parser.chunkEnd = source.length;
+    parser.parse(0);
+    parser.close();
+    return listener.result;
+  } else {
+    return _parseJson(
+      jsStringToDartString(unsafeCast<JSStringImpl>(source)),
+      reviver,
+    );
+  }
 }
 
 @patch
@@ -37,10 +53,11 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
       return _JsonUtf8Decoder(
-              (next as JsonDecoder)._reviver, this._allowMalformed)
-          as dynamic/*=Converter<List<int>, T>*/;
+            (next as JsonDecoder)._reviver,
+            this._allowMalformed,
+          )
+          as dynamic /*=Converter<List<int>, T>*/;
     }
-    // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
     return super.fuse<T>(next);
   }
 }
@@ -58,9 +75,8 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
     return parser.result;
   }
 
-  ByteConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
-  }
+  ByteConversionSink startChunkedConversion(Sink<Object?> sink) =>
+      _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -87,20 +103,25 @@ class _JsonListener {
   int stackLength = 0;
 
   void stackPush(WasmArray<Object?>? value, int valueLength) {
-    final GrowableList<Object?>? valueAsList = value == null
-        ? null
-        : GrowableList.withDataAndLength(value, valueLength);
+    final GrowableList<Object?>? valueAsList =
+        value == null
+            ? null
+            : GrowableList.withDataAndLength(value, valueLength);
 
     // `GrowableList._nextCapacity` is copied here as the next capacity. We
     // can't use `GrowableList._nextCapacity` as tear-off as it's difficult to
     // inline tear-offs manually in the `pushWasmArray` compiler.
     pushWasmArray<GrowableList<Object?>?>(
-        this.stack, this.stackLength, valueAsList, (stackLength * 2) | 3);
+      this.stack,
+      this.stackLength,
+      valueAsList,
+      (stackLength * 2) | 3,
+    );
   }
 
   GrowableList<dynamic>? stackPop() {
     assert(stackLength != 0);
-    return popWasmArray<GrowableList<dynamic>>(stack, stackLength);
+    return popWasmArray<GrowableList<dynamic>?>(stack, stackLength);
   }
 
   /** Contents of the current container being built, or null if not building a
@@ -112,11 +133,16 @@ class _JsonListener {
   int currentContainerLength = 0;
 
   void currentContainerPush(Object? value) {
-    WasmArray<Object?> currentContainerNonNull =
-        unsafeCast<WasmArray<Object?>>(this.currentContainer);
+    WasmArray<Object?> currentContainerNonNull = unsafeCast<WasmArray<Object?>>(
+      this.currentContainer,
+    );
     // Per `_HashBase` invariant capacity needs to be a power of two.
-    pushWasmArray<Object?>(currentContainerNonNull, this.currentContainerLength,
-        value, currentContainerLength == 0 ? 8 : (currentContainerLength * 2));
+    pushWasmArray<Object?>(
+      currentContainerNonNull,
+      this.currentContainerLength,
+      value,
+      currentContainerLength == 0 ? 8 : (currentContainerLength * 2),
+    );
     currentContainer = currentContainerNonNull;
   }
 
@@ -137,7 +163,9 @@ class _JsonListener {
       value = null;
     } else {
       value = GrowableList.withDataAndLength(
-          currentContainerLocal, currentContainerLength);
+        currentContainerLocal,
+        currentContainerLength,
+      );
     }
 
     final GrowableList<dynamic>? currentContainerList = stackPop();
@@ -177,8 +205,9 @@ class _JsonListener {
 
   void propertyValue() {
     if (reviver case final reviver?) {
-      final keyValuePairs =
-          unsafeCast<WasmArray<Object?>>(currentContainer); // null deref
+      final keyValuePairs = unsafeCast<WasmArray<Object?>>(
+        currentContainer,
+      ); // null deref
       final key = keyValuePairs[currentContainerLength - 1];
       currentContainerPush(reviver(key, value));
     } else {
@@ -191,7 +220,9 @@ class _JsonListener {
     popContainer();
     final list = unsafeCast<GrowableList>(value);
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-        list.data, list.length);
+      list.data,
+      list.length,
+    );
   }
 
   void beginArray() {
@@ -241,7 +272,7 @@ class _NumberBuffer {
   WasmArray<WasmI8> array;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-      : array = WasmArray<WasmI8>(_initialCapacity(initialCapacity));
+    : array = WasmArray<WasmI8>(_initialCapacity(initialCapacity));
 
   int get capacity => array.length;
 
@@ -285,25 +316,128 @@ class _NumberBuffer {
   double parseDouble() => double.parse(getString());
 }
 
-abstract class _JsonParserWithListener {
+/**
+ * Base class for the common monomorphic parts of all chunked JSON parsers.
+ *
+ * The members in this class should not be overridden and should not have
+ * polymorphism to make sure the generated code for the subclasses is optimal.
+ */
+abstract class _ChunkedJsonParserState {
   final _JsonListener listener;
-  _JsonParserWithListener(this.listener);
+
+  _ChunkedJsonParserState(this.listener);
+
+  // The current parsing state.
+  int state = _ChunkedJsonParser.STATE_INITIAL;
+
+  WasmArray<WasmI64> states = WasmArray<WasmI64>(0);
+  int statesLength = 0;
+
+  /**
+   * Stores tokenizer state between chunks.
+   *
+   * This state is stored when a chunk stops in the middle of a
+   * token (string, numeral, boolean or null).
+   *
+   * The partial state is used to continue parsing on the next chunk.
+   * The previous chunk is not retained, any data needed are stored in
+   * this integer, or in the [buffer] field as a string-building buffer
+   * or a [_NumberBuffer].
+   *
+   * Prefix state stored in [prefixState] as bits.
+   *
+   *            ..00 : No partial value (NO_PARTIAL).
+   *
+   *         ..00001 : Partial string, not inside escape.
+   *         ..00101 : Partial string, after '\'.
+   *     ..vvvv1dd01 : Partial \u escape.
+   *                   The 'dd' bits (2-3) encode the number of hex digits seen.
+   *                   Bits 5-16 encode the value of the hex digits seen so far.
+   *
+   *        ..0ddd10 : Partial numeral.
+   *                   The `ddd` bits store the parts of in the numeral seen so
+   *                   far, as the constants `NUM_*` defined above.
+   *                   The characters of the numeral are stored in [buffer]
+   *                   as a [_NumberBuffer].
+   *
+   *      ..0ddd0011 : Partial 'null' keyword.
+   *      ..0ddd0111 : Partial 'true' keyword.
+   *      ..0ddd1011 : Partial 'false' keyword.
+   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
+   *                   For all keywords, the `ddd` bits encode the number
+   *                   of letters seen.
+   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
+   *                   and only at the very beginning of input.
+   */
+  int partialState = _ChunkedJsonParser.NO_PARTIAL;
+
+  /**
+   * String parts stored while parsing a string.
+   */
+  StringBuffer? _stringBuffer;
+
+  @pragma('wasm:prefer-inline')
+  StringBuffer get stringBuffer => _stringBuffer ??= StringBuffer();
+
+  /**
+   * Number parts stored while parsing a number.
+   */
+  _NumberBuffer? _numberBuffer;
+
+  @pragma('wasm:prefer-inline')
+  _NumberBuffer get numberBuffer =>
+      _numberBuffer ??= _NumberBuffer(_NumberBuffer.minCapacity);
+
+  void restoreStateFromChunkedParserState(
+    _ChunkedJsonParserState chunkedParserState,
+  ) {
+    state = chunkedParserState.state;
+    states = chunkedParserState.states;
+    statesLength = chunkedParserState.statesLength;
+    partialState = chunkedParserState.partialState;
+    _stringBuffer = chunkedParserState._stringBuffer;
+    _numberBuffer = chunkedParserState._numberBuffer;
+  }
+
+  /**
+   * Push the current parse [state] on a stack.
+   *
+   * State is pushed when a new array or object literal starts,
+   * so the parser can go back to the correct value when the literal ends.
+   */
+  void saveState(int state) {
+    pushWasmArray<WasmI64>(
+      states,
+      statesLength,
+      state.toWasmI64(),
+      (statesLength * 2) | 3,
+    );
+  }
+
+  /**
+   * Restore a state pushed with [saveState].
+   */
+  int restoreState() {
+    assert(statesLength > 0);
+    return popWasmArray<WasmI64>(states, statesLength).toInt();
+  }
+
+  /**
+   * Read out the result after successfully closing the parser.
+   *
+   * The parser is closed by calling [close] or calling [addSourceChunk] with
+   * `true` as second (`isLast`) argument.
+   */
+  dynamic get result => listener.result;
 }
 
 /**
- * Chunked JSON parser.
+ * Chunked JSON parser implementation.
  *
- * Receives inputs in chunks, gives access to individual parts of the input,
- * and stores input state between chunks.
- *
- * Implementations include [String] and UTF-8 parsers.
- *
- * Note: this is a mixin instead of the base class to allow compilers
- * to specialize applications otherwise accessing chunk characters becomes
- * polymorphic.
- *
+ * This is a mixin instead of a base class to allow compilers to specialize
+ * applications otherwise accessing chunk characters becomes polymorphic.
  */
-mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
+mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -434,76 +568,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   // Mask used to mask off two lower bits.
   static const int TWO_BIT_MASK = 3;
 
-  // The current parsing state.
-  int state = STATE_INITIAL;
-  List<int> states = <int>[];
-
-  /**
-   * Stores tokenizer state between chunks.
-   *
-   * This state is stored when a chunk stops in the middle of a
-   * token (string, numeral, boolean or null).
-   *
-   * The partial state is used to continue parsing on the next chunk.
-   * The previous chunk is not retained, any data needed are stored in
-   * this integer, or in the [buffer] field as a string-building buffer
-   * or a [_NumberBuffer].
-   *
-   * Prefix state stored in [prefixState] as bits.
-   *
-   *            ..00 : No partial value (NO_PARTIAL).
-   *
-   *         ..00001 : Partial string, not inside escape.
-   *         ..00101 : Partial string, after '\'.
-   *     ..vvvv1dd01 : Partial \u escape.
-   *                   The 'dd' bits (2-3) encode the number of hex digits seen.
-   *                   Bits 5-16 encode the value of the hex digits seen so far.
-   *
-   *        ..0ddd10 : Partial numeral.
-   *                   The `ddd` bits store the parts of in the numeral seen so
-   *                   far, as the constants `NUM_*` defined above.
-   *                   The characters of the numeral are stored in [buffer]
-   *                   as a [_NumberBuffer].
-   *
-   *      ..0ddd0011 : Partial 'null' keyword.
-   *      ..0ddd0111 : Partial 'true' keyword.
-   *      ..0ddd1011 : Partial 'false' keyword.
-   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
-   *                   For all keywords, the `ddd` bits encode the number
-   *                   of letters seen.
-   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
-   *                   and only at the very beginning of input.
-   */
-  int partialState = NO_PARTIAL;
-
-  /**
-   * String parts stored while parsing a string.
-   */
-  late final StringBuffer stringBuffer = StringBuffer();
-
-  /**
-   * Number parts stored while parsing a number.
-   */
-  late final _NumberBuffer numberBuffer =
-      _NumberBuffer(_NumberBuffer.minCapacity);
-
-  /**
-   * Push the current parse [state] on a stack.
-   *
-   * State is pushed when a new array or object literal starts,
-   * so the parser can go back to the correct value when the literal ends.
-   */
-  void saveState(int state) {
-    states.add(state);
-  }
-
-  /**
-   * Restore a state pushed with [saveState].
-   */
-  int restoreState() {
-    return states.removeLast(); // Throws if empty.
-  }
-
   /**
    * Finalizes the parsing.
    *
@@ -536,16 +600,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     if (state != STATE_END) {
       fail(chunkEnd);
     }
-  }
-
-  /**
-   * Read out the result after successfully closing the parser.
-   *
-   * The parser is closed by calling [close] or calling [addSourceChunk] with
-   * `true` as second (`isLast`) argument.
-   */
-  dynamic get result {
-    return listener.result;
   }
 
   /** Sets the current source chunk. */
@@ -587,7 +641,11 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Used for number buffer (always copies ASCII, so encoding is not important).
    */
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset);
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  );
 
   /**
    * Build a string using input code units.
@@ -1068,8 +1126,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * }
    * ```
    */
-  static const WasmArray<WasmI8> _characterAttributes =
-      WasmArray<WasmI8>.literal([
+  static const _characterAttributes = ImmutableWasmArray<WasmI8>.literal([
     33, 33, 33, 33, 33, 33, 33, 33, 33, 35, 35, 33, 33, 35, 33, 33, 33, 33, //
     33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 32, 33, 32, //
     32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
@@ -1159,7 +1216,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returns [chunkEnd] so it can be used as part of a return statement.
    */
   int chunkStringEscapeU(int count, int value) {
-    partialState = PARTIAL_STRING |
+    partialState =
+        PARTIAL_STRING |
         STR_U |
         (count << STR_U_COUNT_SHIFT) |
         (value << STR_U_VALUE_SHIFT);
@@ -1435,7 +1493,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       char = getChar(position);
       int expSign = 1;
       int exponent = 0;
-      if (((char + 1) | 2) == 0x2e /*+ or -*/) {
+      if (((char + 1) | 2) == 0x2e /*+ or -*/ ) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
@@ -1459,7 +1517,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           listener.handleNumber(sign < 0 ? -0.0 : 0.0);
         } else {
           listener.handleNumber(
-              sign < 0 ? double.negativeInfinity : double.infinity);
+            sign < 0 ? double.negativeInfinity : double.infinity,
+          );
         }
         return position;
       }
@@ -1509,23 +1568,22 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
 }
 
 /**
- * Chunked JSON parser that parses [String] chunks.
+ * Chunked JSON parser that parses [OneByteString] chunks.
  */
-class _JsonStringParser extends _JsonParserWithListener
-    with _ChunkedJsonParser<StringBase> {
-  StringBase chunk = unsafeCast<StringBase>('');
+class _JsonOneByteStringParser extends _ChunkedJsonParserState
+    with _ChunkedJsonParser<OneByteString> {
+  OneByteString chunk = OneByteString.withLength(0);
   int chunkEnd = 0;
 
-  _JsonStringParser(_JsonListener listener) : super(listener);
+  _JsonOneByteStringParser(_JsonListener listener) : super(listener);
 
   @pragma('wasm:prefer-inline')
-  bool get isUtf16Input => true;
+  bool get isUtf16Input => false;
 
   int getChar(int position) => chunk.codeUnitAtUnchecked(position);
 
-  String getString(int start, int end, int bits) {
-    return chunk.substringUnchecked(start, end);
-  }
+  String getString(int start, int end, int bits) =>
+      chunk.substringUnchecked(start, end);
 
   void beginString() {
     assert(stringBuffer.isEmpty);
@@ -1546,7 +1604,11 @@ class _JsonStringParser extends _JsonParserWithListener
   }
 
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset) {
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  ) {
     int length = end - start;
     for (int i = 0; i < length; i++) {
       target.write(offset + i, chunk.codeUnitAtUnchecked(start + i));
@@ -1554,16 +1616,70 @@ class _JsonStringParser extends _JsonParserWithListener
   }
 
   double parseDouble(int start, int end) {
-    return _parseDouble(chunk, start, end);
+    final string = chunk.substringUnchecked(start, end);
+    return double.parse(string);
+  }
+}
+
+/**
+ * Chunked JSON parser that parses [TwoByteString] chunks.
+ */
+class _JsonTwoByteStringParser extends _ChunkedJsonParserState
+    with _ChunkedJsonParser<TwoByteString> {
+  TwoByteString chunk = TwoByteString.withLength(0);
+  int chunkEnd = 0;
+
+  _JsonTwoByteStringParser(_JsonListener listener) : super(listener);
+
+  @pragma('wasm:prefer-inline')
+  bool get isUtf16Input => true;
+
+  int getChar(int position) => chunk.codeUnitAtUnchecked(position);
+
+  String getString(int start, int end, int bits) =>
+      chunk.substringUnchecked(start, end);
+
+  void beginString() {
+    assert(stringBuffer.isEmpty);
+  }
+
+  void addSliceToString(int start, int end) {
+    stringBuffer.write(chunk.substringUnchecked(start, end));
+  }
+
+  void addCharToString(int charCode) {
+    stringBuffer.writeCharCode(charCode);
+  }
+
+  String endString() {
+    final string = stringBuffer.toString();
+    stringBuffer.clear();
+    return string;
+  }
+
+  void copyCharsToList(
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  ) {
+    int length = end - start;
+    for (int i = 0; i < length; i++) {
+      target.write(offset + i, chunk.codeUnitAtUnchecked(start + i));
+    }
+  }
+
+  double parseDouble(int start, int end) {
+    final string = chunk.substringUnchecked(start, end);
+    return double.parse(string);
   }
 }
 
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonStringDecoderSink(this._reviver, sink);
-  }
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) =>
+      _JsonStringDecoderSink(this._reviver, sink);
 }
 
 /**
@@ -1573,24 +1689,62 @@ class JsonDecoder {
  * The sink only creates one object, but its input can be chunked.
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
-  _JsonStringParser _parser;
+  /// The parser that holds the latest chunked parser state. When switching
+  /// between parsers, restore the chunked parser state from this parser.
+  _ChunkedJsonParserState? _parserState;
+
+  final _JsonListener _listener;
+
+  _JsonOneByteStringParser? _oneByteStringParser;
+
+  _JsonOneByteStringParser get oneByteStringParser {
+    final oneByteStringParser =
+        _oneByteStringParser ??= _JsonOneByteStringParser(_listener);
+    final parserState = _parserState;
+    if (parserState != null && !identical(oneByteStringParser, parserState)) {
+      oneByteStringParser.restoreStateFromChunkedParserState(parserState);
+    }
+    _parserState = oneByteStringParser;
+    return oneByteStringParser;
+  }
+
+  _JsonTwoByteStringParser? _twoByteStringParser;
+
+  _JsonTwoByteStringParser get twoByteStringParser {
+    final twoByteStringParser =
+        _twoByteStringParser ??= _JsonTwoByteStringParser(_listener);
+    final parserState = _parserState;
+    if (parserState != null && !identical(twoByteStringParser, parserState)) {
+      twoByteStringParser.restoreStateFromChunkedParserState(parserState);
+    }
+    _parserState = twoByteStringParser;
+    return twoByteStringParser;
+  }
+
   final Object? Function(Object? key, Object? value)? _reviver;
+
   final Sink<Object?> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
-      : _parser = _createParser(_reviver);
-
-  static _JsonStringParser _createParser(
-      Object? Function(Object? key, Object? value)? reviver) {
-    return new _JsonStringParser(new _JsonListener(reviver));
-  }
+    : _listener = _JsonListener(_reviver);
 
   void addSlice(String chunk, int start, int end, bool isLast) {
-    _parser.chunk = unsafeCast<StringBase>(
-        chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk);
-    _parser.chunkEnd = end;
-    _parser.parse(start);
-    if (isLast) _parser.close();
+    if (chunk is OneByteString) {
+      final parser = oneByteStringParser;
+      parser.chunk = chunk;
+      parser.chunkEnd = end;
+      parser.parse(start);
+      if (isLast) parser.close();
+    } else if (chunk is TwoByteString) {
+      final parser = twoByteStringParser;
+      parser.chunk = chunk;
+      parser.chunkEnd = end;
+      parser.parse(start);
+      if (isLast) parser.close();
+    } else {
+      final dartString = jsStringToDartString(unsafeCast<JSStringImpl>(chunk));
+      return addSlice(dartString, start, end, isLast);
+    }
   }
 
   void add(String chunk) {
@@ -1598,21 +1752,38 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void close() {
-    _parser.close();
-    var decoded = _parser.result;
-    _sink.add(decoded);
+    final parserState = _parserState;
+    if (parserState != null) {
+      // Use any of the parsers to finish parsing. Since we have a parser state,
+      // at least one of these parsers should be non-null.
+      final oneByteStringParser = _oneByteStringParser;
+      final twoByteStringParser = _twoByteStringParser;
+
+      if (oneByteStringParser != null) {
+        oneByteStringParser.restoreStateFromChunkedParserState(parserState);
+        oneByteStringParser.close();
+      } else {
+        // Use `unsafeCast` for unchecked null deref.
+        final parser = unsafeCast<_JsonTwoByteStringParser>(
+          twoByteStringParser,
+        );
+        parser.restoreStateFromChunkedParserState(parserState);
+        parser.close();
+      }
+    }
+
+    _sink.add(_listener.result);
     _sink.close();
   }
 
-  ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
-  }
+  ByteConversionSink asUtf8Sink(bool allowMalformed) =>
+      _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
 }
 
 /**
  * Chunked JSON parser that parses UTF-8 chunks.
  */
-class _JsonUtf8Parser extends _JsonParserWithListener
+class _JsonUtf8Parser extends _ChunkedJsonParserState
     with _ChunkedJsonParser<U8List> {
   static final U8List emptyChunk = U8List(0);
 
@@ -1621,8 +1792,8 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
-      : decoder = new _Utf8Decoder(allowMalformed),
-        super(listener) {
+    : decoder = _Utf8Decoder(allowMalformed),
+      super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1681,20 +1852,20 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   }
 
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset) {
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  ) {
     int length = end - start;
     target.copy(offset, chunk.data, start, length);
   }
 
   double parseDouble(int start, int end) {
-    String string = getString(start, end, 0x7f);
-    return _parseDouble(string, 0, string.length);
+    final string = getString(start, end, 0x7f);
+    return double.parse(string);
   }
 }
-
-@pragma("wasm:prefer-inline")
-double _parseDouble(String source, int start, int end) =>
-    double.parse(source.substringUnchecked(start, end));
 
 /**
  * Implements the chunked conversion from a UTF-8 encoding of JSON
@@ -1705,13 +1876,12 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   final Sink<Object?> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
-      : _parser = _createParser(reviver, allowMalformed);
+    : _parser = _createParser(reviver, allowMalformed);
 
   static _JsonUtf8Parser _createParser(
-      Object? Function(Object? key, Object? value)? reviver,
-      bool allowMalformed) {
-    return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
-  }
+    Object? Function(Object? key, Object? value)? reviver,
+    bool allowMalformed,
+  ) => _JsonUtf8Parser(_JsonListener(reviver), allowMalformed);
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     _addChunk(chunk, start, end);
@@ -1777,7 +1947,7 @@ class _Utf8Decoder {
   // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
   // Illegal   'a' = 64 + (1 | flagIllegal);
   // Illegal   'b' = 64 + (2 | flagIllegal);
-  static const WasmArray<WasmI8> scanTable = WasmArray<WasmI8>.literal([
+  static const scanTable = ImmutableWasmArray<WasmI8>.literal([
     // 00-1F
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
@@ -1811,13 +1981,6 @@ class _Utf8Decoder {
     82, 82, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98,
   ]);
 
-  /// Max chunk to scan at a time.
-  ///
-  /// Avoids staying away from safepoints too long.
-  /// The Utf8ScanInstr relies on this being small enough to ensure the
-  /// decoded length stays within Smi range.
-  static const int scanChunkSize = 65536;
-
   /// Reset the decoder to a state where it is ready to decode a new string but
   /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
   void reset() {
@@ -1825,25 +1988,11 @@ class _Utf8Decoder {
     _bomIndex = -1;
   }
 
-  int scan(Uint8List bytes, int start, int end) {
-    // Assumes 0 <= start <= end <= bytes.length
-    int size = 0;
-    _scanFlags = 0;
-    int localStart = start;
-    while (end - localStart > scanChunkSize) {
-      int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd);
-      localStart = localEnd;
-    }
-    size += _scan(bytes, localStart, end);
-    return size;
-  }
-
-  int _scan(Uint8List bytes, int start, int end) {
+  int scan(U8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.readUnsigned(bytes[i]);
+      int t = scanTable.readUnsigned(bytes.getUnchecked(i));
       size += t & sizeMask;
       flags |= t;
     }
@@ -1861,8 +2010,12 @@ class _Utf8Decoder {
     if (start == end) return "";
 
     if (codeUnits is JSUint8ArrayImpl) {
-      JSStringImpl? decoded =
-          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      JSStringImpl? decoded = decodeUtf8JS(
+        codeUnits,
+        start,
+        end,
+        allowMalformed,
+      );
       if (decoded != null) return decoded;
     }
 
@@ -1885,7 +2038,10 @@ class _Utf8Decoder {
             byte = 0xFF;
           } else {
             throw FormatException(
-                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
+              'Invalid UTF-8 byte',
+              codeUnits,
+              codeUnitsIdx,
+            );
           }
         }
         u8listData.write(u8listIdx++, byte);
@@ -1910,8 +2066,9 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(size == end - start);
       OneByteString result = OneByteString.withLength(size);
-      oneByteStringArray(result)
-          .copy(0, bytes.data, bytes.offsetInBytes + start, size);
+      oneByteStringArray(
+        result,
+      ).copy(0, bytes.data, bytes.offsetInBytes + start, size);
       return result;
     }
 
@@ -1948,14 +2105,13 @@ class _Utf8Decoder {
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
-    // Have bytes as Uint8List.
-    Uint8List bytes;
+    final U8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = unsafeCast<Uint8List>(codeUnits);
+    if (codeUnits is U8List) {
+      bytes = unsafeCast<U8List>(codeUnits);
       errorOffset = 0;
     } else {
-      bytes = _makeUint8List(codeUnits, start, end);
+      bytes = _makeU8List(codeUnits, start, end);
       errorOffset = start;
       end -= start;
       start = 0;
@@ -2049,17 +2205,17 @@ class _Utf8Decoder {
     return result;
   }
 
-  int skipBomSingle(Uint8List bytes, int start, int end) {
+  int skipBomSingle(U8List bytes, int start, int end) {
     if (end - start >= 3 &&
-        bytes[start] == 0xEF &&
-        bytes[start + 1] == 0xBB &&
-        bytes[start + 2] == 0xBF) {
+        bytes.getUnchecked(start) == 0xEF &&
+        bytes.getUnchecked(start + 1) == 0xBB &&
+        bytes.getUnchecked(start + 2) == 0xBF) {
       return start + 3;
     }
     return start;
   }
 
-  int skipBomChunked(Uint8List bytes, int start, int end) {
+  int skipBomChunked(U8List bytes, int start, int end) {
     assert(start <= end);
     int bomIndex = _bomIndex;
     // Already skipped?
@@ -2073,7 +2229,7 @@ class _Utf8Decoder {
         _bomIndex = bomIndex;
         return start;
       }
-      if (bytes[i++] != bomValues[bomIndex++]) {
+      if (bytes.getUnchecked(i++) != bomValues[bomIndex++]) {
         // No BOM.
         _bomIndex = -1;
         return start;
@@ -2085,7 +2241,7 @@ class _Utf8Decoder {
     return i;
   }
 
-  String decode8(Uint8List bytes, int start, int end, int size) {
+  String decode8(U8List bytes, int start, int end, int size) {
     assert(start < end);
     OneByteString result = OneByteString.withLength(size);
     int i = start;
@@ -2093,7 +2249,7 @@ class _Utf8Decoder {
     if (_state == X1) {
       // Half-way though 2-byte sequence
       assert(_charOrIndex == 2 || _charOrIndex == 3);
-      final int e = bytes[i++] ^ 0x80;
+      final int e = bytes.getUnchecked(i++) ^ 0x80;
       if (e >= 0x40) {
         _state = errorMissingExtension;
         _charOrIndex = i - 1;
@@ -2104,7 +2260,7 @@ class _Utf8Decoder {
     }
     assert(_state == accept);
     while (i < end) {
-      int byte = bytes[i++];
+      int byte = bytes.getUnchecked(i++);
       if (byte >= 0x80) {
         if (byte < 0xC0) {
           _state = errorUnexpectedExtension;
@@ -2117,7 +2273,7 @@ class _Utf8Decoder {
           _charOrIndex = byte & 0x1F;
           break;
         }
-        final int e = bytes[i++] ^ 0x80;
+        final int e = bytes.getUnchecked(i++) ^ 0x80;
         if (e >= 0x40) {
           _state = errorMissingExtension;
           _charOrIndex = i - 1;
@@ -2129,18 +2285,22 @@ class _Utf8Decoder {
     }
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
 
-  String decode16(Uint8List bytes, int start, int end, int size) {
+  String decode16(U8List bytes, int start, int end, int size) {
     assert(start < end);
-    final OneByteString transitionTable =
-        unsafeCast<OneByteString>(_Utf8Decoder.transitionTable);
-    final OneByteString typeTable =
-        unsafeCast<OneByteString>(_Utf8Decoder.typeTable);
+    final OneByteString transitionTable = unsafeCast<OneByteString>(
+      _Utf8Decoder.transitionTable,
+    );
+    final OneByteString typeTable = unsafeCast<OneByteString>(
+      _Utf8Decoder.typeTable,
+    );
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
     int j = 0;
@@ -2149,7 +2309,7 @@ class _Utf8Decoder {
 
     // First byte
     assert(!isErrorState(state));
-    final int byte = bytes[i++];
+    final int byte = bytes.getUnchecked(i++);
     final int type = typeTable.codeUnitAtUnchecked(byte) & typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
@@ -2160,7 +2320,7 @@ class _Utf8Decoder {
     }
 
     while (i < end) {
-      final int byte = bytes[i++];
+      final int byte = bytes.getUnchecked(i++);
       final int type = typeTable.codeUnitAtUnchecked(byte) & typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
@@ -2201,9 +2361,82 @@ class _Utf8Decoder {
     _charOrIndex = char;
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
+}
+
+U8List _makeU8List(List<int> codeUnits, int start, int end) {
+  if (codeUnits is WasmListBase) {
+    return _makeU8ListFromWasmListBase(
+      unsafeCast<WasmListBase<int>>(codeUnits),
+      start,
+      end,
+    );
+  }
+
+  if (codeUnits is WasmI8ArrayBase) {
+    return _makeU8ListFromWasmI8ArrayBase(
+      unsafeCast<WasmI8ArrayBase>(codeUnits),
+      start,
+      end,
+    );
+  }
+
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  for (int i = 0; i < length; i++) {
+    int b = codeUnits[start + i];
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytes.setUnchecked(i, b);
+  }
+  return bytes;
+}
+
+U8List _makeU8ListFromWasmListBase(
+  WasmListBase<int> codeUnits,
+  int start,
+  int end,
+) {
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  final WasmArray<Object?> listData = codeUnits.data;
+  final WasmArray<WasmI8> bytesData = bytes.data;
+  for (int i = 0; i < length; i++) {
+    int b = unsafeCast<int>(listData[start + i]);
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytesData.write(i, b);
+  }
+  return bytes;
+}
+
+U8List _makeU8ListFromWasmI8ArrayBase(
+  WasmI8ArrayBase codeUnits,
+  int start,
+  int end,
+) {
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  final WasmArray<WasmI8> listData = codeUnits.data;
+  final listDataOffset = codeUnits.offsetInBytes;
+  final WasmArray<WasmI8> bytesData = bytes.data;
+  for (int i = 0; i < length; i++) {
+    int b = listData.readSigned(listDataOffset + start + i);
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytesData.write(i, b);
+  }
+  return bytes;
 }

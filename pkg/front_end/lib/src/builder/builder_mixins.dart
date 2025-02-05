@@ -10,7 +10,6 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
-import 'field_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'nullability_builder.dart';
@@ -96,16 +95,16 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
       builder = lookupLocalMember(name.text, setter: false, required: required);
-      if (builder is! FieldBuilder || !builder.isAssignable) {
+      if (builder is! MemberBuilder ||
+          !builder.isField ||
+          !builder.isAssignable) {
         builder = null;
       }
     }
     if (builder != null) {
       if (name.isPrivate && libraryBuilder.library != name.library) {
         builder = null;
-      } else if (builder is FieldBuilder &&
-          !builder.isStatic &&
-          !builder.isExternal) {
+      } else if (builder.isField && !builder.isStatic && !builder.isExternal) {
         // Non-external extension instance fields are invalid.
         builder = null;
       } else if (builder.isDuplicate) {

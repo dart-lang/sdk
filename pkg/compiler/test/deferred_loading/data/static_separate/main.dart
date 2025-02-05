@@ -35,8 +35,8 @@
 // Dart2js will put them in separate hunks.
 // Similarly for C2, ..., C5.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' deferred as lib2;
 

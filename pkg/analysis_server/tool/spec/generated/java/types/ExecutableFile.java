@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of an executable file.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ExecutableFile {
 
-  public static final ExecutableFile[] EMPTY_ARRAY = new ExecutableFile[0];
-
-  public static final List<ExecutableFile> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExecutableFile> EMPTY_LIST = List.of();
 
   /**
    * The path of the executable file.
@@ -55,11 +50,10 @@ public class ExecutableFile {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExecutableFile) {
-      ExecutableFile other = (ExecutableFile) obj;
+    if (obj instanceof ExecutableFile other) {
       return
-        ObjectUtilities.equals(other.file, file) &&
-        ObjectUtilities.equals(other.kind, kind);
+        Objects.equals(other.file, file) &&
+        Objects.equals(other.kind, kind);
     }
     return false;
   }
@@ -74,10 +68,9 @@ public class ExecutableFile {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExecutableFile> list = new ArrayList<ExecutableFile>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExecutableFile> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +91,10 @@ public class ExecutableFile {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(file);
-    builder.append(kind);
-    return builder.toHashCode();
+    return Objects.hash(
+      file,
+      kind
+    );
   }
 
   public JsonObject toJson() {
@@ -116,7 +109,8 @@ public class ExecutableFile {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file + ", ");
+    builder.append(file);
+    builder.append(", ");
     builder.append("kind=");
     builder.append(kind);
     builder.append("]");

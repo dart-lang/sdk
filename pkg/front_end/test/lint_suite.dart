@@ -22,7 +22,7 @@ import 'package:package_config/package_config.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'testing_utils.dart' show checkEnvironment, filterList;
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
@@ -30,13 +30,12 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     displayName: "lint suite",
     configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {"onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool onlyInGit = environment["onlyInGit"] != "false";
-  return new Context(onlyInGit: onlyInGit);
+  return new Future.value(new Context(onlyInGit: onlyInGit));
 }
 
 class LintTestDescription extends TestDescription {
@@ -136,10 +135,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       Uint8List bytes = description.cache.rawBytes = f.readAsBytesSync();
       Utf8BytesScanner scanner = new Utf8BytesScanner(
         bytes,
-        configuration: const ScannerConfiguration(
-            enableExtensionMethods: true,
-            enableNonNullable: true,
-            enableTripleShift: true),
+        configuration: const ScannerConfiguration(enableTripleShift: true),
         includeComments: true,
         languageVersionChanged: (scanner, languageVersion) {
           // Nothing - but don't overwrite the previous settings.

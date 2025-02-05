@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.stack_listener_impl;
-
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
     show ExperimentalFlag;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show Keyword, Token, TokenIsAExtension;
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -85,4 +84,12 @@ abstract class StackListenerImpl extends StackListener {
 /// `TreeNode.noOffset`.
 int offsetForToken(Token? token) {
   return token == null ? TreeNode.noOffset : token.offset;
+}
+
+ProcedureKind computeProcedureKind(Token? token) {
+  if (token == null) return ProcedureKind.Method;
+  if (token.isA(Keyword.GET)) return ProcedureKind.Getter;
+  if (token.isA(Keyword.SET)) return ProcedureKind.Setter;
+  // Coverage-ignore-block(suite): Not run.
+  throw new UnsupportedError("Unexpected get/set token $token.");
 }

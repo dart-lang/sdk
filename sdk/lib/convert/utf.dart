@@ -38,7 +38,7 @@ final class Utf8Codec extends Encoding {
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// they throw a [FormatException].
   const Utf8Codec({bool allowMalformed = false})
-      : _allowMalformed = allowMalformed;
+    : _allowMalformed = allowMalformed;
 
   /// The name of this codec is "utf-8".
   String get name => "utf-8";
@@ -57,9 +57,10 @@ final class Utf8Codec extends Encoding {
   /// was used to instantiate `this`.
   String decode(List<int> codeUnits, {bool? allowMalformed}) {
     // Switch between const objects to avoid allocation.
-    Utf8Decoder decoder = allowMalformed ?? _allowMalformed
-        ? const Utf8Decoder(allowMalformed: true)
-        : const Utf8Decoder(allowMalformed: false);
+    Utf8Decoder decoder =
+        allowMalformed ?? _allowMalformed
+            ? const Utf8Decoder(allowMalformed: true)
+            : const Utf8Decoder(allowMalformed: false);
     return decoder.convert(codeUnits);
   }
 
@@ -126,7 +127,8 @@ final class Utf8Encoder extends Converter<String, List<int>> {
   /// [ByteConversionSink].
   StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     return _Utf8EncoderSink(
-        sink is ByteConversionSink ? sink : ByteConversionSink.from(sink));
+      sink is ByteConversionSink ? sink : ByteConversionSink.from(sink),
+    );
   }
 
   // Override the base-classes bind, to provide a better type.
@@ -145,7 +147,7 @@ class _Utf8Encoder {
   _Utf8Encoder() : this.withBufferSize(_DEFAULT_BYTE_BUFFER_SIZE);
 
   _Utf8Encoder.withBufferSize(int bufferSize)
-      : _buffer = _createBuffer(bufferSize);
+    : _buffer = _createBuffer(bufferSize);
 
   /// Allow an implementation to pick the most efficient way of storing bytes.
   static Uint8List _createBuffer(int size) => Uint8List(size);
@@ -335,7 +337,7 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// it throws a [FormatException].
   const Utf8Decoder({bool allowMalformed = false})
-      : _allowMalformed = allowMalformed;
+    : _allowMalformed = allowMalformed;
 
   /// Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
   /// corresponding string.
@@ -434,7 +436,8 @@ class _Utf8Decoder {
   // 'M' = 4-byte (possibly out-of-range), F4
   // 'N' = 4-byte, F1-F3
   // 'O' = 4-byte (possibly overlong), F0
-  static const String typeTable = ""
+  static const String typeTable =
+      ""
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
@@ -489,7 +492,8 @@ class _Utf8Decoder {
 
   // Transition table of the state machine. Maps state and byte type
   // to next state.
-  static const String transitionTable = " "
+  static const String transitionTable =
+      " "
       // A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
       "$_IA$_X1$_X2$_TS$_E3$_E2$_E2$_E2$_E2$_E2$_TO$_X2$_QR$_X3$_QO " // IA
       "$_IA$_X1$_X2$_TS$_E3$_E2$_E2$_E2$_E2$_E2$_TO$_B1$_QR$_X3$_QO " // BB
@@ -549,7 +553,11 @@ class _Utf8Decoder {
   external String convertChunked(List<int> codeUnits, int start, int? maybeEnd);
 
   String convertGeneral(
-      List<int> codeUnits, int start, int? maybeEnd, bool single) {
+    List<int> codeUnits,
+    int start,
+    int? maybeEnd,
+    bool single,
+  ) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
     if (start == end) return "";
@@ -607,9 +615,10 @@ class _Utf8Decoder {
       multibyte:
       while (true) {
         int type = typeTable.codeUnitAt(byte) & typeMask;
-        char = (state <= afterBom)
-            ? byte & (shiftedByteMask >> type)
-            : (byte & 0x3F) | (char << 6);
+        char =
+            (state <= afterBom)
+                ? byte & (shiftedByteMask >> type)
+                : (byte & 0x3F) | (char << 6);
         state = transitionTable.codeUnitAt(state + type);
         if (state == accept) {
           buffer.writeCharCode(char);

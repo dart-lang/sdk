@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
@@ -27,6 +26,7 @@ class AlwaysSpecifyTypes extends LintRule {
         LintNames.avoid_types_on_closure_parameters,
         LintNames.omit_local_variable_types,
         LintNames.omit_obvious_local_variable_types,
+        LintNames.omit_obvious_property_types,
       ];
 
   @override
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
-          !element.hasOptionalTypeArgs) {
+          !element.metadata2.hasOptionalTypeArgs) {
         rule.reportLint(namedType,
             errorCode: LinterLintCode.always_specify_types_add_type);
       }

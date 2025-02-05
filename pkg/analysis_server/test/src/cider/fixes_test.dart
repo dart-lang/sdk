@@ -204,10 +204,7 @@ var v = 0;
     _errorsFixes = await CiderFixesComputer(
       logger,
       fileResolver,
-    ).compute(
-      convertPath(testPath),
-      _correctionContext.line,
-    );
+    ).compute(convertPath(testPath), _correctionContext.line);
   }
 
   Fix _getFix(FixKind kind) {

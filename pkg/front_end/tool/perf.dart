@@ -8,8 +8,8 @@
 /// perf bots.
 ///
 /// This file was started to measure the implementation of the front-end when it
-/// was based on the analyzer codebase.  Now that we are using fasta as the
-/// implementation (which is measured in fasta_perf.dart), we still want to
+/// was based on the analyzer codebase.  Now that we are using cfe as the
+/// implementation (which is measured in cfe_perf.dart), we still want to
 /// measure the analyzer to ensure that there are no regressions when replacing
 /// features (e.g. there is no regression from replacing summaries with kernel
 /// outlines).
@@ -23,6 +23,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -113,6 +115,8 @@ CompilationUnit parseDirectives(Source source) {
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
+    languageVersion: LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null),
     lineInfo: lineInfo,
   );
   return parser.parseDirectives(result.tokens);
@@ -139,6 +143,8 @@ CompilationUnit parseFull(Source source) {
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
+    languageVersion: LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null),
     lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(result.tokens);

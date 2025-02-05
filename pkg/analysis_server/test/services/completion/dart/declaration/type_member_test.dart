@@ -156,7 +156,7 @@ suggestions
   }
 
   Future<void>
-      test_argumentList_InstanceCreationExpression_functionalArg() async {
+  test_argumentList_InstanceCreationExpression_functionalArg() async {
     newFile('$testPackageLibPath/a.dart', '''
 library A0;
 class A0 {
@@ -2415,7 +2415,7 @@ suggestions
     kind: methodInvocation
 ''');
   }
-
+  
   Future<void> test_generic_field() async {
     await computeSuggestions('''
 class C<T> {
@@ -5685,7 +5685,7 @@ suggestions
       'hashCode',
       'noSuchMethod',
       'runtimeType',
-      'toString'
+      'toString',
     };
     await computeSuggestions('''
 typedef O0 Func();

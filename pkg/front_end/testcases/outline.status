@@ -21,8 +21,6 @@ general/abstract_members: TypeCheckError
 general/bounds_type_parameters: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
-general/crashes/crash_02/main: Crash
-general/crashes/crash_06/main: Crash
 general/getter_vs_setter_type: TypeCheckError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError

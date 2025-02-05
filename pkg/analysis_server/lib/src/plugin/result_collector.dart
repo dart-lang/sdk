@@ -24,7 +24,7 @@ class ResultCollector<E> {
 
   /// Initialize a newly created result manager.
   ResultCollector(this.serverId, {ShouldCollectPredicate? predicate})
-      : _shouldCollect = predicate;
+    : _shouldCollect = predicate;
 
   /// Clear any results that have been contributed for the file with the given
   /// [filePath], but continue to collect results for the file. This is used

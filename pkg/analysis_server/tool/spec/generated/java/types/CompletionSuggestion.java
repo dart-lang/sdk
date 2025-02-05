@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A suggestion for how to complete partially entered text. Many of the fields are optional,
@@ -32,9 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class CompletionSuggestion {
 
-  public static final CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
-
-  public static final List<CompletionSuggestion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<CompletionSuggestion> EMPTY_LIST = List.of();
 
   /**
    * The kind of element being suggested.
@@ -176,7 +171,8 @@ public class CompletionSuggestion {
   private final String parameterType;
 
   /**
-   * This field is omitted if getSuggestions was used rather than getSuggestions2.
+   * This field is omitted if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    *
    * This field is omitted if this suggestion corresponds to a locally declared element.
    *
@@ -185,15 +181,16 @@ public class CompletionSuggestion {
    *
    * If this suggestion corresponds to an element from a not yet imported library, this field is the
    * URI of a library that could be imported to make this suggestion accessible in the file where
-   * completion was requested, such as package:foo/bar.dart or
-   * file:///home/me/workspace/foo/test/bar_test.dart.
+   * completion was requested, such as <code>package:foo/bar.dart</code> or
+   * <code>file:///home/me/workspace/foo/test/bar_test.dart</code>.
    */
   private final String libraryUri;
 
   /**
    * True if the suggestion is for an element from a not yet imported library. This field is omitted
    * if the element is declared locally, or is from library is already imported, so that the
-   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
+   * suggestion can be inserted as is, or if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    */
   private final Boolean isNotImported;
 
@@ -230,34 +227,33 @@ public class CompletionSuggestion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof CompletionSuggestion) {
-      CompletionSuggestion other = (CompletionSuggestion) obj;
+    if (obj instanceof CompletionSuggestion other) {
       return
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.kind, kind) &&
         other.relevance == relevance &&
-        ObjectUtilities.equals(other.completion, completion) &&
-        ObjectUtilities.equals(other.displayText, displayText) &&
-        ObjectUtilities.equals(other.replacementOffset, replacementOffset) &&
-        ObjectUtilities.equals(other.replacementLength, replacementLength) &&
+        Objects.equals(other.completion, completion) &&
+        Objects.equals(other.displayText, displayText) &&
+        Objects.equals(other.replacementOffset, replacementOffset) &&
+        Objects.equals(other.replacementLength, replacementLength) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
         other.isPotential == isPotential &&
-        ObjectUtilities.equals(other.docSummary, docSummary) &&
-        ObjectUtilities.equals(other.docComplete, docComplete) &&
-        ObjectUtilities.equals(other.declaringType, declaringType) &&
-        ObjectUtilities.equals(other.defaultArgumentListString, defaultArgumentListString) &&
+        Objects.equals(other.docSummary, docSummary) &&
+        Objects.equals(other.docComplete, docComplete) &&
+        Objects.equals(other.declaringType, declaringType) &&
+        Objects.equals(other.defaultArgumentListString, defaultArgumentListString) &&
         Arrays.equals(other.defaultArgumentListTextRanges, defaultArgumentListTextRanges) &&
-        ObjectUtilities.equals(other.element, element) &&
-        ObjectUtilities.equals(other.returnType, returnType) &&
-        ObjectUtilities.equals(other.parameterNames, parameterNames) &&
-        ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
-        ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
-        ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
-        ObjectUtilities.equals(other.parameterName, parameterName) &&
-        ObjectUtilities.equals(other.parameterType, parameterType) &&
-        ObjectUtilities.equals(other.libraryUri, libraryUri) &&
-        ObjectUtilities.equals(other.isNotImported, isNotImported);
+        Objects.equals(other.element, element) &&
+        Objects.equals(other.returnType, returnType) &&
+        Objects.equals(other.parameterNames, parameterNames) &&
+        Objects.equals(other.parameterTypes, parameterTypes) &&
+        Objects.equals(other.requiredParameterCount, requiredParameterCount) &&
+        Objects.equals(other.hasNamedParameters, hasNamedParameters) &&
+        Objects.equals(other.parameterName, parameterName) &&
+        Objects.equals(other.parameterType, parameterType) &&
+        Objects.equals(other.libraryUri, libraryUri) &&
+        Objects.equals(other.isNotImported, isNotImported);
     }
     return false;
   }
@@ -295,10 +291,9 @@ public class CompletionSuggestion {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<CompletionSuggestion> list = new ArrayList<CompletionSuggestion>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<CompletionSuggestion> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -387,7 +382,8 @@ public class CompletionSuggestion {
   /**
    * True if the suggestion is for an element from a not yet imported library. This field is omitted
    * if the element is declared locally, or is from library is already imported, so that the
-   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
+   * suggestion can be inserted as is, or if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    */
   public Boolean getIsNotImported() {
     return isNotImported;
@@ -409,7 +405,8 @@ public class CompletionSuggestion {
   }
 
   /**
-   * This field is omitted if getSuggestions was used rather than getSuggestions2.
+   * This field is omitted if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    *
    * This field is omitted if this suggestion corresponds to a locally declared element.
    *
@@ -418,8 +415,8 @@ public class CompletionSuggestion {
    *
    * If this suggestion corresponds to an element from a not yet imported library, this field is the
    * URI of a library that could be imported to make this suggestion accessible in the file where
-   * completion was requested, such as package:foo/bar.dart or
-   * file:///home/me/workspace/foo/test/bar_test.dart.
+   * completion was requested, such as <code>package:foo/bar.dart</code> or
+   * <code>file:///home/me/workspace/foo/test/bar_test.dart</code>.
    */
   public String getLibraryUri() {
     return libraryUri;
@@ -516,33 +513,33 @@ public class CompletionSuggestion {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(relevance);
-    builder.append(completion);
-    builder.append(displayText);
-    builder.append(replacementOffset);
-    builder.append(replacementLength);
-    builder.append(selectionOffset);
-    builder.append(selectionLength);
-    builder.append(isDeprecated);
-    builder.append(isPotential);
-    builder.append(docSummary);
-    builder.append(docComplete);
-    builder.append(declaringType);
-    builder.append(defaultArgumentListString);
-    builder.append(defaultArgumentListTextRanges);
-    builder.append(element);
-    builder.append(returnType);
-    builder.append(parameterNames);
-    builder.append(parameterTypes);
-    builder.append(requiredParameterCount);
-    builder.append(hasNamedParameters);
-    builder.append(parameterName);
-    builder.append(parameterType);
-    builder.append(libraryUri);
-    builder.append(isNotImported);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      relevance,
+      completion,
+      displayText,
+      replacementOffset,
+      replacementLength,
+      selectionOffset,
+      selectionLength,
+      isDeprecated,
+      isPotential,
+      docSummary,
+      docComplete,
+      declaringType,
+      defaultArgumentListString,
+      Arrays.hashCode(defaultArgumentListTextRanges),
+      element,
+      returnType,
+      parameterNames,
+      parameterTypes,
+      requiredParameterCount,
+      hasNamedParameters,
+      parameterName,
+      parameterType,
+      libraryUri,
+      isNotImported
+    );
   }
 
   public JsonObject toJson() {
@@ -628,53 +625,77 @@ public class CompletionSuggestion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("relevance=");
-    builder.append(relevance + ", ");
+    builder.append(relevance);
+    builder.append(", ");
     builder.append("completion=");
-    builder.append(completion + ", ");
+    builder.append(completion);
+    builder.append(", ");
     builder.append("displayText=");
-    builder.append(displayText + ", ");
+    builder.append(displayText);
+    builder.append(", ");
     builder.append("replacementOffset=");
-    builder.append(replacementOffset + ", ");
+    builder.append(replacementOffset);
+    builder.append(", ");
     builder.append("replacementLength=");
-    builder.append(replacementLength + ", ");
+    builder.append(replacementLength);
+    builder.append(", ");
     builder.append("selectionOffset=");
-    builder.append(selectionOffset + ", ");
+    builder.append(selectionOffset);
+    builder.append(", ");
     builder.append("selectionLength=");
-    builder.append(selectionLength + ", ");
+    builder.append(selectionLength);
+    builder.append(", ");
     builder.append("isDeprecated=");
-    builder.append(isDeprecated + ", ");
+    builder.append(isDeprecated);
+    builder.append(", ");
     builder.append("isPotential=");
-    builder.append(isPotential + ", ");
+    builder.append(isPotential);
+    builder.append(", ");
     builder.append("docSummary=");
-    builder.append(docSummary + ", ");
+    builder.append(docSummary);
+    builder.append(", ");
     builder.append("docComplete=");
-    builder.append(docComplete + ", ");
+    builder.append(docComplete);
+    builder.append(", ");
     builder.append("declaringType=");
-    builder.append(declaringType + ", ");
+    builder.append(declaringType);
+    builder.append(", ");
     builder.append("defaultArgumentListString=");
-    builder.append(defaultArgumentListString + ", ");
+    builder.append(defaultArgumentListString);
+    builder.append(", ");
     builder.append("defaultArgumentListTextRanges=");
-    builder.append(StringUtils.join(defaultArgumentListTextRanges, ", ") + ", ");
+    builder.append(defaultArgumentListTextRanges == null ? "null" : Arrays.stream(defaultArgumentListTextRanges).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("element=");
-    builder.append(element + ", ");
+    builder.append(element);
+    builder.append(", ");
     builder.append("returnType=");
-    builder.append(returnType + ", ");
+    builder.append(returnType);
+    builder.append(", ");
     builder.append("parameterNames=");
-    builder.append(StringUtils.join(parameterNames, ", ") + ", ");
+    builder.append(parameterNames == null ? "null" : parameterNames.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("parameterTypes=");
-    builder.append(StringUtils.join(parameterTypes, ", ") + ", ");
+    builder.append(parameterTypes == null ? "null" : parameterTypes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("requiredParameterCount=");
-    builder.append(requiredParameterCount + ", ");
+    builder.append(requiredParameterCount);
+    builder.append(", ");
     builder.append("hasNamedParameters=");
-    builder.append(hasNamedParameters + ", ");
+    builder.append(hasNamedParameters);
+    builder.append(", ");
     builder.append("parameterName=");
-    builder.append(parameterName + ", ");
+    builder.append(parameterName);
+    builder.append(", ");
     builder.append("parameterType=");
-    builder.append(parameterType + ", ");
+    builder.append(parameterType);
+    builder.append(", ");
     builder.append("libraryUri=");
-    builder.append(libraryUri + ", ");
+    builder.append(libraryUri);
+    builder.append(", ");
     builder.append("isNotImported=");
     builder.append(isNotImported);
     builder.append("]");

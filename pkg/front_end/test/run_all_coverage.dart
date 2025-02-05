@@ -42,17 +42,17 @@ Future<void> main() async {
     ]);
   }
 
-  addSuiteSkipVm("pkg/front_end/test/fasta/strong_suite.dart");
-  addSuiteSkipVm("pkg/front_end/test/fasta/modular_suite.dart");
-  addSuiteSkipVm("pkg/front_end/test/fasta/weak_suite.dart");
+  addSuiteSkipVm("pkg/front_end/test/strong_suite.dart");
+  addSuiteSkipVm("pkg/front_end/test/modular_suite.dart");
+  addSuiteSkipVm("pkg/front_end/test/weak_suite.dart");
 
-  addWithCoverageArgument("pkg/front_end/test/fasta/messages_suite.dart");
-  addWithCoverageArgument("pkg/front_end/test/fasta/outline_suite.dart");
+  addWithCoverageArgument("pkg/front_end/test/messages_suite.dart");
+  addWithCoverageArgument("pkg/front_end/test/outline_suite.dart");
   addWithCoverageArgument(
-      "pkg/front_end/test/fasta/textual_outline_suite.dart");
-  addWithCoverageArgument("pkg/front_end/test/fasta/expression_suite.dart");
+      "pkg/front_end/test/textual_outline_suite.dart");
+  addWithCoverageArgument("pkg/front_end/test/expression_suite.dart");
   addWithCoverageArgument(
-      "pkg/front_end/test/fasta/incremental_dartino_suite.dart");
+      "pkg/front_end/test/incremental_dartino_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/dartdoctest_suite.dart");
   addWithCoverageArgument(
       "pkg/front_end/test/incremental_bulk_compiler_smoke_suite.dart");

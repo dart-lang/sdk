@@ -19,11 +19,11 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
   RemoveAbstract({required super.context})
-      : applicability = CorrectionApplicability.singleLocation;
+    : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   RemoveAbstract.bulkFixable({required super.context})
-      : applicability = CorrectionApplicability.automatically;
+    : applicability = CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;
@@ -68,8 +68,12 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
             var abstractKeyword = member.abstractKeyword;
             if (abstractKeyword != null) {
               await builder.addDartFileEdit(file, (builder) {
-                builder.addDeletion(range.startOffsetEndOffset(
-                    abstractKeyword.offset, abstractKeyword.next!.offset));
+                builder.addDeletion(
+                  range.startOffsetEndOffset(
+                    abstractKeyword.offset,
+                    abstractKeyword.next!.offset,
+                  ),
+                );
               });
             }
             break;

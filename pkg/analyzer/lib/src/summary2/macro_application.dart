@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -157,7 +159,7 @@ class LibraryMacroApplier {
       switch (declaration) {
         case ast.ClassDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -169,7 +171,7 @@ class LibraryMacroApplier {
           );
         case ast.ClassTypeAliasImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -181,7 +183,7 @@ class LibraryMacroApplier {
           );
         case ast.EnumDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -203,7 +205,7 @@ class LibraryMacroApplier {
           }
         case ast.ExtensionDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -215,7 +217,7 @@ class LibraryMacroApplier {
           );
         case ast.ExtensionTypeDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -248,7 +250,7 @@ class LibraryMacroApplier {
           );
         case ast.MixinDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -652,11 +654,7 @@ class LibraryMacroApplier {
         annotationIndex: annotationIndex,
         annotationNode: annotation,
         instance: instance,
-        phasesToExecute: {
-          macro.Phase.types,
-          macro.Phase.declarations,
-          macro.Phase.definitions
-        },
+        phasesToExecute: await instance.phasesToExecute,
       );
 
       libraryBuilder._applications.add(application);
@@ -992,7 +990,8 @@ class LibraryMacroApplier {
     return macro.Arguments(positional, named);
   }
 
-  /// Run the [body], report [AnalyzerMacroDiagnostic]s to [onDiagnostic].
+  /// Runs the [body], report [AnalyzerMacroDiagnostic]s to
+  /// `targetElement.addMacroDiagnostic`.
   static Future<T?> _runWithCatchingExceptions<T>(
     Future<T> Function() body, {
     required MacroTargetElement targetElement,

@@ -25,7 +25,19 @@ class BoxedInt {
 }
 
 @pragma("wasm:prefer-inline")
-String _jsBigIntToString(int i, int radix) => JSStringImpl(JS<WasmExternRef?>(
-    'Function.prototype.call.bind(BigInt.prototype.toString)',
-    WasmI64.fromInt(i),
-    WasmI32.fromInt(radix)));
+String _jsBigIntToString(int i, int radix) {
+  final upperBits = (i >> 31);
+  final result =
+      (upperBits == -1 || upperBits == 0)
+          ? JS<WasmExternRef?>(
+            'Function.prototype.call.bind(Number.prototype.toString)',
+            WasmI32.fromInt(i),
+            WasmI32.fromInt(radix),
+          )
+          : JS<WasmExternRef?>(
+            'Function.prototype.call.bind(BigInt.prototype.toString)',
+            WasmI64.fromInt(i),
+            WasmI32.fromInt(radix),
+          );
+  return JSStringImpl(result);
+}

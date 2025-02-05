@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -44,7 +46,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -88,7 +90,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -145,7 +147,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -219,8 +221,13 @@ int Function() foo() {
     ]);
 
     var identifier = findNode.simple('a; // ref');
-    assertElement(identifier, findElement.getter('a'));
-    assertType(identifier, 'A?');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@class::B::@getter::a
+  element: <testLibraryFragment>::@class::B::@getter::a#element
+  staticType: A?
+''');
   }
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
@@ -586,7 +593,7 @@ PropertyAccess
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -624,7 +631,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -676,7 +683,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -849,7 +856,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -873,7 +880,7 @@ CascadeExpression
         staticElement: dart:core::<fragment>::@class::int::@getter::isEven
         element: dart:core::<fragment>::@class::int::@getter::isEven#element
         staticType: bool
-      staticType: bool
+      staticType: bool?
   staticType: A
 ''');
   }
@@ -900,7 +907,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -984,7 +991,7 @@ CascadeExpression
         staticElement: <testLibraryFragment>::@class::A::@getter::baq
         element: <testLibraryFragment>::@class::A::@getter::baq#element
         staticType: A
-      staticType: A
+      staticType: A?
   staticType: A?
 ''');
   }
@@ -1535,7 +1542,7 @@ PropertyAccess
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1576,7 +1583,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1630,7 +1637,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -2452,6 +2459,46 @@ PropertyAccess
 ''');
   }
 
+  test_rewrite_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  T Function<T>(T) get f;
+}
+abstract class B {
+  A get a;
+}
+int Function(int)? f(B? b) => b?.a.f;
+''');
+
+    var node = findNode.functionReference('b?.a.f');
+    assertResolvedNodeText(node, r'''FunctionReference
+  function: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: b
+        staticElement: <testLibraryFragment>::@function::f::@parameter::b
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@class::B::@getter::a
+        element: <testLibraryFragment>::@class::B::@getter::a#element
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      staticElement: <testLibraryFragment>::@class::A::@getter::f
+      element: <testLibraryFragment>::@class::A::@getter::f#element
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_super_read() async {
     await assertNoErrorsInCode('''
 class A {
@@ -2646,8 +2693,13 @@ bar() {
 ''');
 
     var identifier = findNode.simple('foo;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@class::A::@method::foo
+  element: <testLibraryFragment>::@class::A::@method::foo#element
+  staticType: void Function(int)
+''');
   }
 
   test_unresolved_identifier() async {

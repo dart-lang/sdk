@@ -4,12 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use predefined named constants.';
 
@@ -41,10 +40,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isConst) {
       var type = node.staticType;
       if (type is! InterfaceType) return;
-      var element = type.element;
-      if (element is ClassElement) {
-        var nodeField =
-            node.thisOrAncestorOfType<VariableDeclaration>()?.declaredElement;
+      var element = type.element3;
+      if (element is ClassElement2) {
+        var nodeField = node
+            .thisOrAncestorOfType<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
 
         // avoid diagnostic for fields in the same class having the same value
         // class A {
@@ -52,16 +53,18 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement3 == element) return;
+        if (nodeField?.enclosingElement2 == element) return;
 
-        var library = (node.root as CompilationUnit).declaredElement?.library;
+        var library =
+            (node.root as CompilationUnit).declaredFragment?.element.library2;
         if (library == null) return;
         var value = node.computeConstantValue().value;
         for (var field
-            in element.fields.where((e) => e.isStatic && e.isConst)) {
-          if (field.isAccessibleIn(library) &&
+            in element.fields2.where((e) => e.isStatic && e.isConst)) {
+          if (field.isAccessibleIn2(library) &&
               field.computeConstantValue() == value) {
-            rule.reportLint(node, arguments: ['${element.name}.${field.name}']);
+            rule.reportLint(node,
+                arguments: ['${element.name3}.${field.name3}']);
             return;
           }
         }

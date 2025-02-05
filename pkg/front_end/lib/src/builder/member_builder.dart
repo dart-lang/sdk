@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.member_builder;
-
 import 'package:kernel/ast.dart';
 
-import '../base/modifier.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
-import 'modifier_builder.dart';
 
 abstract class MemberBuilder implements Builder {
   String get name;
@@ -21,41 +17,76 @@ abstract class MemberBuilder implements Builder {
 
   LibraryBuilder get libraryBuilder;
 
-  /// The declared name of this member;
+  /// The declared name of this member.
+  ///
+  /// For extension and extension type members this is different from the
+  /// name of the generated members.
+  ///
+  /// For instance for
+  ///
+  ///     extension E {
+  ///       get foo => null;
+  ///     }
+  ///     extension type E(int id) {
+  ///       get foo => null;
+  ///     }
+  ///
+  /// the [memberName] is `foo` for bother getters, but the name of the
+  /// generated members is `E|foo` and `ET|foo`, respectively.
   Name get memberName;
-
-  /// The [Member] built by this builder;
-  Member get member;
 
   /// The [Member] to use when reading from this member builder.
   ///
-  /// For a field, a getter or a regular method this is the [member] itself.
+  /// For a field, a getter or a regular method this is the member itself.
   /// For an instance extension method this is special tear-off function. For
   /// a constructor, an operator, a factory or a setter this is `null`.
   Member? get readTarget;
 
-  /// The [Member] to use when write to this member builder.
+  /// The [Reference] to use when reading from this member builder.
   ///
-  /// For an assignable field or a setter this is the [member] itself. For
+  /// For a field, a getter or a regular method this is the member itself.
+  /// For an instance extension method this is special tear-off function. For
+  /// a constructor, an operator, a factory or a setter this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [readTarget].
+  Reference? get readTargetReference;
+
+  /// The [Reference] to use when write to this member builder.
+  ///
+  /// For an assignable field or a setter this is the member itself. For
   /// a constructor, a non-assignable field, a getter, an operator or a regular
   /// method this is `null`.
   Member? get writeTarget;
 
+  /// The [Member] to use when write to this member builder.
+  ///
+  /// For an assignable field or a setter this is the member itself. For
+  /// a constructor, a non-assignable field, a getter, an operator or a regular
+  /// method this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [writeTarget].
+  Reference? get writeTargetReference;
+
   /// The [Member] to use when invoking this member builder.
   ///
   /// For a constructor, a field, a regular method, a getter, an operator or
-  /// a factory this is the [member] itself. For a setter this is `null`.
+  /// a factory this is the member itself. For a setter this is `null`.
   Member? get invokeTarget;
 
-  /// The members from this builder that are accessible in exports through
-  /// the name of the builder.
+  /// The [Reference] to use when invoking this member builder.
+  ///
+  /// For a constructor, a field, a regular method, a getter, an operator or
+  /// a factory this is the member itself. For a setter this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [invokeTarget].
+  Reference? get invokeTargetReference;
+
+  /// The references to the members from this builder that are accessible in
+  /// exports through the name of the builder.
   ///
   /// This is used to allow a single builder to create separate members for
   /// the getter and setter capabilities.
-  Iterable<Member> get exportedMembers;
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  ProcedureKind? get kind;
+  Iterable<Reference> get exportedMemberReferences;
 
   @override
   bool get isExternal;
@@ -91,54 +122,20 @@ abstract class MemberBuilder implements Builder {
   /// Returns the [Annotatable] nodes that hold the annotations declared on this
   /// member.
   Iterable<Annotatable> get annotatables;
+
+  /// Returns `true` is this member is a property, i.e. a field, getter or
+  /// setter.
+  bool get isProperty;
 }
 
-abstract class MemberBuilderImpl extends ModifierBuilderImpl
-    implements MemberBuilder {
+abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
   @override
-  String get name;
-
-  /// For top-level members, the parent is set correctly during
-  /// construction. However, for class members, the parent is initially the
-  /// library and updated later.
-  @override
-  Builder parent;
+  Uri get fileUri;
 
   @override
-  final int charOffset;
-
-  @override
-  final Uri fileUri;
-
-  MemberBuilderImpl(this.parent, this.fileUri, this.charOffset);
-
-  @override
-  DeclarationBuilder? get declarationBuilder =>
-      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
-
-  @override
-  ClassBuilder? get classBuilder =>
-      parent is ClassBuilder ? parent as ClassBuilder : null;
-
-  @override
-  LibraryBuilder get libraryBuilder {
-    if (parent is LibraryBuilder) {
-      LibraryBuilder library = parent as LibraryBuilder;
-      return library.partOfLibrary ?? library;
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (parent is ExtensionBuilder) {
-      ExtensionBuilder extension = parent as ExtensionBuilder;
-      return extension.libraryBuilder;
-    } else if (parent is ExtensionTypeDeclarationBuilder) {
-      ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
-          parent as ExtensionTypeDeclarationBuilder;
-      return extensionTypeDeclaration.libraryBuilder;
-    } else {
-      ClassBuilder cls = parent as ClassBuilder;
-      return cls.libraryBuilder;
-    }
-  }
+  ClassBuilder? get classBuilder => declarationBuilder is ClassBuilder
+      ? declarationBuilder as ClassBuilder
+      : null;
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -168,12 +165,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isTopLevel => !isDeclarationMember;
 
   @override
-  bool get isExternal => (modifiers & externalMask) != 0;
-
-  @override
-  bool get isAbstract => (modifiers & abstractMask) != 0;
-
-  @override
   bool get isConflictingSetter => false;
 
   @override
@@ -185,7 +176,7 @@ abstract class BuilderClassMember implements ClassMember {
   MemberBuilderImpl get memberBuilder;
 
   @override
-  int get charOffset => memberBuilder.charOffset;
+  int get charOffset => memberBuilder.fileOffset;
 
   @override
   DeclarationBuilder get declarationBuilder =>
@@ -195,12 +186,14 @@ abstract class BuilderClassMember implements ClassMember {
   Uri get fileUri => memberBuilder.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeMember => memberBuilder.isExtensionTypeMember;
 
   @override
   Name get name => memberBuilder.memberName;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = declarationBuilder.fullNameForErrors;
@@ -214,9 +207,11 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isDuplicate => memberBuilder.isDuplicate;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => memberBuilder.isField;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isGetter => memberBuilder.isGetter;
 
   @override
@@ -231,15 +226,18 @@ abstract class BuilderClassMember implements ClassMember {
   }
 
   @override
-  bool get isAbstract => memberBuilder.member.isAbstract;
+  bool get isAbstract => memberBuilder.isAbstract;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isInternalImplementation => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNoSuchMethodForwarder => false;
 
   @override
@@ -262,6 +260,7 @@ abstract class BuilderClassMember implements ClassMember {
   @override
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
+      // Coverage-ignore-block(suite): Not run.
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
           isDeclaredAsField: memberBuilder.isField,
           fullName:

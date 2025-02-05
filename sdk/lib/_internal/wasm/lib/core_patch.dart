@@ -65,6 +65,7 @@ import 'dart:_wasm';
 part "closure.dart";
 part "double_patch.dart";
 part "errors_patch.dart";
+part "function_patch.dart";
 part "identical_patch.dart";
 part "named_parameters.dart";
 part "object_patch.dart";

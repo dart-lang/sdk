@@ -31,8 +31,10 @@ class AnalysisHoverBlazeTest extends BlazeWorkspaceAnalysisServerTest {
 class A {}
 ''');
 
-    var request = AnalysisGetHoverParams(testFile.path, 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      testFile.path,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -51,11 +53,15 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   Future<HoverInformation?> prepareHoverAt(int offset, {File? inFile}) async {
     inFile ??= testFile;
     await waitForTasksFinished();
-    var request = AnalysisGetHoverParams(inFile.path, offset)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      inFile.path,
+      offset,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = AnalysisGetHoverResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = AnalysisGetHoverResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     return result.hovers.firstOrNull;
   }
 
@@ -69,6 +75,62 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   Future<void> setUp() async {
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
+  }
+
+  Future<void> test_binaryOperator() async {
+    newFile(testFilePath, '''
+class A {
+  /// doc op
+  A operator +(A other) => this;
+}
+
+var a = A() + A();
+''');
+    var hover = await prepareHover('+ A()');
+    // element
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.dartdoc, 'doc op');
+    expect(hover.elementDescription, 'A +(A other)');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter.
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_binaryOperator_leftHandSide() async {
+    newFile(testFilePath, '''
+class A {
+  /// doc aaa
+  A();
+  A operator +(int other) => this;
+}
+
+var a = A() + A();
+''');
+    var hover = await prepareHover('A() +');
+    // element
+    expect(hover.elementDescription, '(new) A A()');
+    // don't show parameter information for binary operators
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_binaryOperator_rightHandSide() async {
+    newFile(testFilePath, '''
+class A {
+  A();
+  A operator +(int other) => this;
+}
+
+var a = A() + A(); // 1
+''');
+    var hover = await prepareHover('A(); // 1');
+    // element
+    expect(hover.elementDescription, '(new) A A()');
+    // don't show parameter information for binary operators
+    expect(hover.parameter, isNull);
   }
 
   Future<void> test_class_constructor_named() async {
@@ -360,9 +422,10 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
     var hover = await prepareHover('B<T>');
     expect(hover.containingClassDescription, null);
     expect(
-        hover.elementDescription,
-        'class B<T> extends A<T> with M1, M2<int> '
-        'implements I1<int, String>, I2<dynamic>');
+      hover.elementDescription,
+      'class B<T> extends A<T> with M1, M2<int> '
+      'implements I1<int, String>, I2<dynamic>',
+    );
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }
@@ -519,7 +582,7 @@ void f(A<String> a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'T get fff');
+    expect(hover.elementDescription, 'String get fff');
     expect(hover.elementKind, 'getter');
     // types
     expect(hover.staticType, 'String');
@@ -542,8 +605,11 @@ void f(A a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'String fff');
-    expect(hover.elementKind, 'field');
+    // Synthetic getters are now shown as getters to avoid confusing
+    // users by hiding them.
+    // https://github.com/dart-lang/sdk/issues/55956
+    expect(hover.elementDescription, 'String get fff');
+    expect(hover.elementKind, 'getter');
     // types
     expect(hover.staticType, 'String');
     expect(hover.propagatedType, isNull);
@@ -637,13 +703,17 @@ f(Stream<int> s) {
     // element
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
-    expect(hover.elementDescription,
-        'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)');
+    expect(
+      hover.elementDescription,
+      'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)',
+    );
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types
-    expect(hover.staticType,
-        'Stream<dynamic> Function(StreamTransformer<int, dynamic>)');
+    expect(
+      hover.staticType,
+      'Stream<dynamic> Function(StreamTransformer<int, dynamic>)',
+    );
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -690,7 +760,7 @@ void f(A<String> a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'set fff(T value)');
+    expect(hover.elementDescription, 'set fff(String value)');
     expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');
@@ -817,8 +887,11 @@ void f(A a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'String fff');
-    expect(hover.elementKind, 'field');
+    // Synthetic getters are now shown as getters to avoid confusing
+    // users by hiding them.
+    // https://github.com/dart-lang/sdk/issues/55956
+    expect(hover.elementDescription, 'set fff(String _fff)');
+    expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');
     expect(hover.propagatedType, isNull);
@@ -845,7 +918,7 @@ C f() => C.named(); //
   }
 
   Future<void>
-      test_constructorInvocation_referenceFromAugmentation_default() async {
+  test_constructorInvocation_referenceFromAugmentation_default() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 
@@ -874,7 +947,7 @@ class C {
   }
 
   Future<void>
-      test_constructorInvocation_referenceFromAugmentation_named() async {
+  test_constructorInvocation_referenceFromAugmentation_named() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 
@@ -1042,8 +1115,8 @@ void f(E e) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'E');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'String fff');
-    expect(hover.elementKind, 'field');
+    expect(hover.elementDescription, 'String get fff');
+    expect(hover.elementKind, 'getter');
     // types
     expect(hover.staticType, 'String');
     expect(hover.propagatedType, isNull);
@@ -1167,7 +1240,9 @@ List<String> fff(int a, [String b = 'b']) {
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(
-        hover.elementDescription, "List<String> fff(int a, [String b = 'b'])");
+      hover.elementDescription,
+      "List<String> fff(int a, [String b = 'b'])",
+    );
     expect(hover.elementKind, 'function');
     // types
     expect(hover.staticType, isNull);
@@ -1306,8 +1381,10 @@ foo(double myParameter) {}
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = AnalysisGetHoverParams('test.dart', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      'test.dart',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1317,9 +1394,10 @@ foo(double myParameter) {}
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1372,7 +1450,7 @@ void f() {
   }
 
   Future<void>
-      test_methodInvocation_macroGenerated_referenceToGenerated() async {
+  test_methodInvocation_macroGenerated_referenceToGenerated() async {
     addMacros([declareInTypeMacro()]);
     newFile(testFilePath, '''
 import 'macros.dart';
@@ -1504,6 +1582,70 @@ void f() {
     expect(hover.staticType, 'int? Function(double?)');
   }
 
+  Future<void> test_nullAwareElement_inList() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  [?x];
+}
+''');
+    var hover = await prepareHover('x];');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareElement_inSet() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {?x};
+}
+''');
+    var hover = await prepareHover('x};');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareKey_inMap() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {?x: ""};
+}
+''');
+    var hover = await prepareHover('x: ');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareValue_inMap() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {"": ?x};
+}
+''');
+    var hover = await prepareHover('x};');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
   Future<void> test_parameter_declaration_fieldFormal() async {
     newFile(testFilePath, '''
 class A {
@@ -1557,7 +1699,7 @@ class A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
     newFile(testFilePath, '''
 class A {
   A([int a = 1]);
@@ -1573,7 +1715,7 @@ class B extends A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
     newFile(testFilePath, '''
 class A {
   A([int a = 1]);
@@ -1589,7 +1731,7 @@ class B extends A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
     newFile(testFilePath, '''
 class A {
   A([num a = 1.2]);
@@ -1699,7 +1841,7 @@ typedef void A(int a);
 /// doc bbb
 set fff(String value) {}
 
-void f(A a) {
+void f() {
   fff = '';
 }
 ''');
@@ -1714,6 +1856,30 @@ void f(A a) {
     // types
     expect(hover.staticType, 'String');
     expect(hover.propagatedType, isNull);
+    // don't show parameter for setters
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_topLevel_setter_parameter() async {
+    newFile(testFilePath, '''
+set fff(String value) {}
+
+void f(String x) {
+  fff = x;
+}
+''');
+    var hover = await prepareHover('x;');
+    // element
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.elementDescription, 'String x');
+    expect(hover.elementKind, 'parameter');
+    // types
+    expect(hover.staticType, 'String');
+    expect(hover.propagatedType, isNull);
+    // don't show parameter information for setters
+    expect(hover.parameter, isNull);
   }
 
   void _assertHover(

@@ -147,11 +147,6 @@ class DeoptContext : public MallocAllocated {
   // objects.
   void FillDestFrame();
 
-  // Convert deoptimization instructions to a list of moves that need
-  // to be executed when entering catch entry block from this deoptimization
-  // point.
-  const CatchEntryMoves* ToCatchEntryMoves(intptr_t num_vars);
-
   // Materializes all deferred objects.  Returns the total number of
   // artificial arguments used during deoptimization.
   intptr_t MaterializeDeferredObjects();
@@ -316,12 +311,6 @@ class DeoptInstr : public ZoneAllocated {
   }
 
   virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
-
-  virtual CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                          intptr_t dest_slot) {
-    UNREACHABLE();
-    return CatchEntryMove();
-  }
 
   virtual DeoptInstr::Kind kind() const = 0;
 

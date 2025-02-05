@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -38,13 +37,13 @@ class ExecutableParameters {
 
   /// Return the names of the named parameters.
   List<String> get namedNames {
-    return named.map((parameter) => parameter.name).toList();
+    return named.map((parameter) => parameter.name3).nonNulls.toList();
   }
 
   /// Return the [FormalParameterList] of the [executable], or `null` if it
   /// can't be found.
   Future<FormalParameterList?> getParameterList() async {
-    var result = await sessionHelper.getElementDeclaration2(firstFragment);
+    var result = await sessionHelper.getElementDeclaration(firstFragment);
     var targetDeclaration = result?.node;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
@@ -60,8 +59,9 @@ class ExecutableParameters {
   /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
   /// or `null` if it can't be found.
   Future<FormalParameter?> getParameterNode2(
-      FormalParameterFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    FormalParameterFragment fragment,
+  ) async {
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {
@@ -72,7 +72,9 @@ class ExecutableParameters {
   }
 
   static ExecutableParameters? forInvocation(
-      AnalysisSessionHelper sessionHelper, AstNode? invocation) {
+    AnalysisSessionHelper sessionHelper,
+    AstNode? invocation,
+  ) {
     Element2? element;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {
@@ -84,8 +86,7 @@ class ExecutableParameters {
     } else if (invocation is ConstructorReferenceNode) {
       element = invocation.element;
     }
-    var firstFragment =
-        element.ifTypeOrNull<FragmentedElement>()?.firstFragment;
+    var firstFragment = element?.firstFragment;
     if (element is ExecutableElement2 &&
         !element.isSynthetic &&
         firstFragment is ExecutableFragment) {

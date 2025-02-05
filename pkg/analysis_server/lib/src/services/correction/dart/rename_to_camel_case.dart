@@ -76,17 +76,20 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     if (element is LocalVariableElement2) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
-        references = findLocalElementReferences3(root, element);
+        references = findLocalElementReferences(root, element);
       }
     } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
-        var root = node
-            .thisOrAncestorMatching((node) =>
-                node.parent is FunctionDeclaration ||
-                node.parent is MethodDeclaration)
-            ?.parent;
+        var root =
+            node
+                .thisOrAncestorMatching(
+                  (node) =>
+                      node.parent is FunctionDeclaration ||
+                      node.parent is MethodDeclaration,
+                )
+                ?.parent;
         if (root != null) {
-          references = findLocalElementReferences3(root, element);
+          references = findLocalElementReferences(root, element);
         }
       }
     }
@@ -95,10 +98,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    var sourceRanges = {
-      range.token(nameToken),
-      ...references.map(range.node),
-    };
+    var sourceRanges = {range.token(nameToken), ...references.map(range.node)};
     await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addSimpleReplacement(sourceRange, _newName);

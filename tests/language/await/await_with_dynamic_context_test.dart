@@ -33,7 +33,7 @@
 //   `Future.value(C())` to `B`.
 // - So the static type of `Future.value(C())` is `Future<B>`.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {}
 
@@ -42,6 +42,8 @@ class C extends B {}
 T id<T>(T t) => t;
 
 main() async {
-  dynamic x = await id(((null as Future<B>?) ??
-      (Future.value(C())..expectStaticType<Exactly<Future<C>>>())));
+  dynamic x = await id(
+    ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>())),
+  );
 }

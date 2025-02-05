@@ -11,49 +11,53 @@ import "dart:ffi";
 
 import "dylib_utils.dart";
 
-typedef VigesimalOp = double Function(
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double);
+typedef VigesimalOp =
+    double Function(
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+    );
 
-typedef NativeVigesimalOp = Double Function(
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double);
+typedef NativeVigesimalOp =
+    Double Function(
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+    );
 
 main() {
   final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -62,6 +66,26 @@ main() {
       .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
 
   // Should not crash.
-  sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
-      15, 16.0, 17, 18.0, 19, 20.0);
+  sumManyNumbers(
+    1,
+    2.0,
+    3,
+    4.0,
+    5,
+    6.0,
+    7,
+    8.0,
+    9,
+    10.0,
+    11,
+    12.0,
+    13,
+    14.0,
+    15,
+    16.0,
+    17,
+    18.0,
+    19,
+    20.0,
+  );
 }

@@ -40,9 +40,7 @@ class FromPointerInt8 extends BenchmarkBase {
 //
 
 void main(List<String> args) {
-  final benchmarks = [
-    FromPointerInt8.new,
-  ];
+  final benchmarks = [FromPointerInt8.new];
 
   final filter = args.firstOrNull;
   for (var constructor in benchmarks) {

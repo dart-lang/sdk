@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
@@ -375,15 +377,15 @@ class RunCommand extends DartdevCommand {
       }
     } else {
       final runPackageName = getPackageForCommand(mainCommand);
-      final (success, assets) = await compileNativeAssetsJitYamlFile(
+      final assetsYamlFileUri = await compileNativeAssetsJitYamlFile(
         verbose: verbose,
         runPackageName: runPackageName,
       );
-      if (!success) {
+      if (assetsYamlFileUri == null) {
         log.stderr('Error: Compiling native assets failed.');
         return errorExitCode;
       }
-      nativeAssets = assets?.toFilePath();
+      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     final String? residentCompilerInfoFileArg =
@@ -428,8 +430,26 @@ class RunCommand extends DartdevCommand {
       }
 
       final executableFile = File(executable.executable);
-      if (!await isFileKernelFile(executableFile) &&
-          !await isFileAppJitSnapshot(executableFile) &&
+      if (await isFileKernelFile(executableFile)) {
+        // If the file is a kernel file, we do not need to compile it, but we do
+        // need to replace the file in the resident frontend compiler kernel
+        // cache associated with this executable, because the cached kernel file
+        // may be used to populate context for expression evaluation later.
+        await ensureCompilationServerIsRunning(residentCompilerInfoFile);
+        final succeeded = await invokeReplaceCachedDill(
+          replacementDillPath: executableFile.absolute.path,
+          serverInfoFile: residentCompilerInfoFile,
+        );
+        if (!succeeded) {
+          log.stderr(
+            'Error: Encountered a problem accessing the Resident Frontend '
+            "Compiler's kernel file cache. Please try re-running the same "
+            'command again. If the error persists, please file an issue at '
+            'https://github.com/dart-lang/sdk/issues/new.',
+          );
+          return errorExitCode;
+        }
+      } else if (!await isFileAppJitSnapshot(executableFile) &&
           !await isFileAotSnapshot(executableFile)) {
         final compiledKernelFile = await _compileToKernelUsingResidentCompiler(
           executable: executable,

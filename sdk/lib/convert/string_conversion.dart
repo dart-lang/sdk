@@ -108,7 +108,7 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
   final StringConversionSink _chunkedSink;
 
   _StringConversionSinkAsStringSinkAdapter(this._chunkedSink)
-      : _buffer = StringBuffer();
+    : _buffer = StringBuffer();
 
   void close() {
     if (_buffer.isNotEmpty) _flush();
@@ -251,7 +251,7 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
   final StringSink _stringSink;
 
   _Utf8StringSinkAdapter(this._sink, this._stringSink, bool allowMalformed)
-      : _decoder = _Utf8Decoder(allowMalformed);
+    : _decoder = _Utf8Decoder(allowMalformed);
 
   void close() {
     _decoder.flush(_stringSink);
@@ -263,7 +263,11 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
   }
 
   void addSlice(
-      List<int> codeUnits, int startIndex, int endIndex, bool isLast) {
+    List<int> codeUnits,
+    int startIndex,
+    int endIndex,
+    bool isLast,
+  ) {
     _stringSink.write(_decoder.convertChunked(codeUnits, startIndex, endIndex));
     if (isLast) close();
   }
@@ -278,12 +282,14 @@ class _Utf8ConversionSink extends ByteConversionSink {
   final StringConversionSink _chunkedSink;
   final StringBuffer _buffer;
   _Utf8ConversionSink(StringConversionSink sink, bool allowMalformed)
-      : this._(sink, StringBuffer(), allowMalformed);
+    : this._(sink, StringBuffer(), allowMalformed);
 
   _Utf8ConversionSink._(
-      this._chunkedSink, StringBuffer stringBuffer, bool allowMalformed)
-      : _decoder = _Utf8Decoder(allowMalformed),
-        _buffer = stringBuffer;
+    this._chunkedSink,
+    StringBuffer stringBuffer,
+    bool allowMalformed,
+  ) : _decoder = _Utf8Decoder(allowMalformed),
+      _buffer = stringBuffer;
 
   void close() {
     _decoder.flush(_buffer);

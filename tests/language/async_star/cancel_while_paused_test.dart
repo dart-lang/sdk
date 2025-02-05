@@ -5,8 +5,8 @@
 // This is a regression test for issue 22853.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() {
   var list = [];
@@ -26,19 +26,22 @@ main() {
   var sub = stream.listen(list.add);
 
   asyncStart();
-  return sync.wait().whenComplete(() {
-    Expect.listEquals(["*1", 1], list);
-    sub.pause();
-    return sync.wait();
-  }).whenComplete(() {
-    Expect.listEquals(["*1", 1, "*2"], list);
-    sub.cancel();
-    new Future.delayed(new Duration(milliseconds: 200), () {
-      // Should not have yielded 2 or added *3 while paused.
-      Expect.listEquals(["*1", 1, "*2"], list);
-      asyncEnd();
-    });
-  });
+  return sync
+      .wait()
+      .whenComplete(() {
+        Expect.listEquals(["*1", 1], list);
+        sub.pause();
+        return sync.wait();
+      })
+      .whenComplete(() {
+        Expect.listEquals(["*1", 1, "*2"], list);
+        sub.cancel();
+        new Future.delayed(new Duration(milliseconds: 200), () {
+          // Should not have yielded 2 or added *3 while paused.
+          Expect.listEquals(["*1", 1, "*2"], list);
+          asyncEnd();
+        });
+      });
 }
 
 /**

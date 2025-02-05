@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.constructor_reference_builder;
-
 import '../base/messages.dart' show noLength, templateConstructorNotFound;
 import '../base/scope.dart';
 import 'builder.dart';

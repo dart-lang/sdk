@@ -76,31 +76,36 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           constructors
             named @55
               reference: dart:foo::<fragment>::@class::A::@constructor::named
               element: dart:foo::<fragment>::@class::A::@constructor::named#element
               sinceSdkVersion: 2.15.0
+              typeName: A
+              typeNameOffset: 53
               periodOffset: 54
-              nameEnd: 60
         class B @73
           reference: dart:foo::<fragment>::@class::B
-          element: dart:foo::<fragment>::@class::B#element
+          element: dart:foo::@class::B
           constructors
             named @81
               reference: dart:foo::<fragment>::@class::B::@constructor::named
               element: dart:foo::<fragment>::@class::B::@constructor::named#element
+              typeName: B
+              typeNameOffset: 79
               periodOffset: 80
-              nameEnd: 86
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       constructors
         named
           firstFragment: dart:foo::<fragment>::@class::A::@constructor::named
+          sinceSdkVersion: 2.15.0
     class B
+      reference: dart:foo::@class::B
       firstFragment: dart:foo::<fragment>::@class::B
       constructors
         named
@@ -160,32 +165,33 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
-            foo @57
+            hasInitializer foo @57
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
           getters
-            get foo @-1
+            synthetic get foo
               reference: dart:foo::<fragment>::@class::A::@getter::foo
               element: dart:foo::<fragment>::@class::A::@getter::foo#element
               sinceSdkVersion: 2.15.0
           setters
-            set foo= @-1
+            synthetic set foo
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
               formalParameters
-                _foo @-1
+                <null-name>
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
-        foo
+        hasInitializer foo
           firstFragment: dart:foo::<fragment>::@class::A::@field::foo
           type: int
           getter: dart:foo::<fragment>::@class::A::@getter::foo#element
@@ -193,9 +199,11 @@ library
       getters
         synthetic get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
+          sinceSdkVersion: 2.15.0
       setters
-        synthetic set foo=
+        synthetic set foo
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
+          sinceSdkVersion: 2.15.0
           formalParameters
             requiredPositional _foo
               type: int
@@ -244,9 +252,9 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
-            foo @-1
+            synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
@@ -257,6 +265,7 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
@@ -267,6 +276,7 @@ library
       getters
         get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -307,7 +317,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @58
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -315,11 +325,14 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -361,7 +374,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -369,11 +382,14 @@ library
               sinceSdkVersion: 2.16.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.16.0
 ''');
   }
 
@@ -415,7 +431,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -423,11 +439,14 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -476,14 +495,14 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
-            foo @-1
+            synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
           setters
-            set foo= @57
+            set foo @57
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
@@ -492,6 +511,7 @@ library
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_#element
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
@@ -500,8 +520,9 @@ library
           type: int
           setter: dart:foo::<fragment>::@class::A::@setter::foo#element
       setters
-        set foo=
+        set foo
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
+          sinceSdkVersion: 2.15.0
           formalParameters
             requiredPositional _
               type: int
@@ -570,41 +591,42 @@ library
       enums
         enum E @31
           reference: dart:foo::<fragment>::@enum::E
-          element: dart:foo::<fragment>::@enum::E#element
+          element: dart:foo::@enum::E
           fields
-            enumConstant v1 @37
+            hasInitializer v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
               element: dart:foo::<fragment>::@enum::E::@field::v1#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v1
-            enumConstant v2 @60
+            hasInitializer v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
               element: dart:foo::<fragment>::@enum::E::@field::v2#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v2
-            values @-1
+            synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
-            get v1 @-1
+            synthetic get v1
               reference: dart:foo::<fragment>::@enum::E::@getter::v1
               element: dart:foo::<fragment>::@enum::E::@getter::v1#element
-            get v2 @-1
+            synthetic get v2
               reference: dart:foo::<fragment>::@enum::E::@getter::v2
               element: dart:foo::<fragment>::@enum::E::@getter::v2#element
               sinceSdkVersion: 2.15.0
-            get values @-1
+            synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
   enums
     enum E
+      reference: dart:foo::@enum::E
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
       fields
-        static const v1
+        static const enumConstant hasInitializer v1
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v1
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v1#element
-        static const v2
+        static const enumConstant hasInitializer v2
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v2#element
@@ -682,22 +704,22 @@ library
       enums
         enum E @46
           reference: dart:foo::<fragment>::@enum::E
-          element: dart:foo::<fragment>::@enum::E#element
+          element: dart:foo::@enum::E
           fields
-            enumConstant v @52
+            hasInitializer v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
               element: dart:foo::<fragment>::@enum::E::@field::v#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v
-            values @-1
+            synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
-            get v @-1
+            synthetic get v
               reference: dart:foo::<fragment>::@enum::E::@getter::v
               element: dart:foo::<fragment>::@enum::E::@getter::v#element
               sinceSdkVersion: 2.15.0
-            get values @-1
+            synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
           methods
@@ -707,11 +729,12 @@ library
               sinceSdkVersion: 2.15.0
   enums
     enum E
+      reference: dart:foo::@enum::E
       firstFragment: dart:foo::<fragment>::@enum::E
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const v
+        static const enumConstant hasInitializer v
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v#element
@@ -722,11 +745,15 @@ library
       getters
         synthetic static get v
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v
+          sinceSdkVersion: 2.15.0
         synthetic static get values
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
+          sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@enum::E::@method::foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -768,7 +795,7 @@ library
       extensions
         extension E @51
           reference: dart:foo::<fragment>::@extension::E
-          element: dart:foo::<fragment>::@extension::E#element
+          element: dart:foo::@extension::E
           methods
             foo @69
               reference: dart:foo::<fragment>::@extension::E::@method::foo
@@ -776,11 +803,14 @@ library
               sinceSdkVersion: 2.15.0
   extensions
     extension E
+      reference: dart:foo::@extension::E
       firstFragment: dart:foo::<fragment>::@extension::E
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@extension::E::@method::foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -823,7 +853,7 @@ library
       mixins
         mixin M @47
           reference: dart:foo::<fragment>::@mixin::M
-          element: dart:foo::<fragment>::@mixin::M#element
+          element: dart:foo::@mixin::M
           methods
             foo @58
               reference: dart:foo::<fragment>::@mixin::M::@method::foo
@@ -831,13 +861,16 @@ library
               sinceSdkVersion: 2.15.0
   mixins
     mixin M
+      reference: dart:foo::@mixin::M
       firstFragment: dart:foo::<fragment>::@mixin::M
       sinceSdkVersion: 2.15.0
       superclassConstraints
         Object
       methods
         foo
+          reference: dart:foo::@mixin::M::@method::foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -877,16 +910,19 @@ library
       functions
         foo @46
           reference: dart:foo::<fragment>::@function::foo
-          element: dart:foo::<fragment>::@function::foo#element
+          element: dart:foo::@function::foo
           sinceSdkVersion: 2.15.0
         bar @61
           reference: dart:foo::<fragment>::@function::bar
-          element: dart:foo::<fragment>::@function::bar#element
+          element: dart:foo::@function::bar
   functions
     foo
+      reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.0
       returnType: void
     bar
+      reference: dart:foo::@function::bar
       firstFragment: dart:foo::<fragment>::@function::bar
       returnType: void
 ''');
@@ -922,11 +958,13 @@ library
       functions
         foo @54
           reference: dart:foo::<fragment>::@function::foo
-          element: dart:foo::<fragment>::@function::foo#element
+          element: dart:foo::@function::foo
           sinceSdkVersion: 2.15.3-dev.7
   functions
     foo
+      reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.3-dev.7
       returnType: void
 ''');
   }
@@ -961,11 +999,13 @@ library
       functions
         foo @48
           reference: dart:foo::<fragment>::@function::foo
-          element: dart:foo::<fragment>::@function::foo#element
+          element: dart:foo::@function::foo
           sinceSdkVersion: 2.15.3
   functions
     foo
+      reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.3
       returnType: void
 ''');
   }
@@ -999,9 +1039,10 @@ library
       functions
         foo @44
           reference: dart:foo::<fragment>::@function::foo
-          element: dart:foo::<fragment>::@function::foo#element
+          element: dart:foo::@function::foo
   functions
     foo
+      reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
       returnType: void
 ''');
@@ -1041,11 +1082,13 @@ library
       functions
         foo @56
           reference: dart:foo::<fragment>::@function::foo
-          element: dart:foo::<fragment>::@function::foo#element
+          element: dart:foo::@function::foo
           sinceSdkVersion: 2.15.0
   functions
     foo
+      reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }
@@ -1088,7 +1131,7 @@ library
       functions
         f @31
           reference: dart:foo::<fragment>::@function::f
-          element: dart:foo::<fragment>::@function::f#element
+          element: dart:foo::@function::f
           formalParameters
             p1 @37
               element: dart:foo::<fragment>::@function::f::@parameter::p1#element
@@ -1098,6 +1141,7 @@ library
               sinceSdkVersion: 2.15.0
   functions
     f
+      reference: dart:foo::@function::f
       firstFragment: dart:foo::<fragment>::@function::f
       formalParameters
         requiredPositional p1
@@ -1105,6 +1149,7 @@ library
         optionalNamed p2
           firstFragment: dart:foo::<fragment>::@function::f::@parameter::p2
           type: int?
+          sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }
@@ -1146,7 +1191,7 @@ library
       functions
         f @31
           reference: dart:foo::<fragment>::@function::f
-          element: dart:foo::<fragment>::@function::f#element
+          element: dart:foo::@function::f
           formalParameters
             p1 @37
               element: dart:foo::<fragment>::@function::f::@parameter::p1#element
@@ -1155,12 +1200,14 @@ library
               sinceSdkVersion: 2.15.0
   functions
     f
+      reference: dart:foo::@function::f
       firstFragment: dart:foo::<fragment>::@function::f
       formalParameters
         requiredPositional p1
           type: int
         optionalPositional p2
           type: int?
+          sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }
@@ -1194,11 +1241,12 @@ library
       typeAliases
         A @49
           reference: dart:foo::<fragment>::@typeAlias::A
-          element: dart:foo::<fragment>::@typeAlias::A#element
+          element: dart:foo::@typeAlias::A
           sinceSdkVersion: 2.15.0
   typeAliases
     A
       firstFragment: dart:foo::<fragment>::@typeAlias::A
+      sinceSdkVersion: 2.15.0
       aliasedType: List<int>
 ''');
   }
@@ -1238,19 +1286,21 @@ library
     dart:foo::<fragment>
       element: dart:foo
       topLevelVariables
-        final foo @47
+        hasInitializer foo @47
           reference: dart:foo::<fragment>::@topLevelVariable::foo
-          element: dart:foo::<fragment>::@topLevelVariable::foo#element
+          element: dart:foo::@topLevelVariable::foo
           sinceSdkVersion: 2.15.0
           getter2: dart:foo::<fragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: dart:foo::<fragment>::@getter::foo
           element: dart:foo::<fragment>::@getter::foo#element
           sinceSdkVersion: 2.15.0
   topLevelVariables
-    final foo
+    final hasInitializer foo
+      reference: dart:foo::@topLevelVariable::foo
       firstFragment: dart:foo::<fragment>::@topLevelVariable::foo
+      sinceSdkVersion: 2.15.0
       type: int
       getter: dart:foo::<fragment>::@getter::foo#element
   getters
@@ -1276,7 +1326,7 @@ library
 
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
-    return libraryResult.element as LibraryElementImpl;
+    return libraryResult.element2 as LibraryElementImpl;
   }
 }
 

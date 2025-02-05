@@ -17,8 +17,9 @@ class AddCallSuper extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Adding as the first statement is not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Adding as the first statement is not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_addition];
@@ -31,9 +32,10 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
 
-    var classFragment = methodDeclaration
-        .thisOrAncestorOfType<ClassDeclaration>()
-        ?.declaredFragment;
+    var classFragment =
+        methodDeclaration
+            .thisOrAncestorOfType<ClassDeclaration>()
+            ?.declaredFragment;
     if (classFragment == null) return;
     var classElement = classFragment.element;
 
@@ -41,11 +43,12 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var nameObj = Name.forLibrary(classElement.library2, name);
     var overridden = InheritanceManager3().getInherited4(classElement, nameObj);
     if (overridden == null) return;
-    var overriddenParameters = overridden.formalParameters.map((p) => p.name);
+    var overriddenParameters = overridden.formalParameters.map((p) => p.name3);
 
     var body = methodDeclaration.body;
     var parameters = methodDeclaration.parameters?.parameters;
-    var argumentList = parameters
+    var argumentList =
+        parameters
             ?.map((p) {
               var name = p.name?.lexeme;
               if (overriddenParameters.contains(name)) {
@@ -80,7 +83,9 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   }
 
   Future<void> _expression(
-      ChangeBuilder builder, ExpressionFunctionBody body) async {
+    ChangeBuilder builder,
+    ExpressionFunctionBody body,
+  ) async {
     var expression = body.expression;
     var semicolon = body.semicolon;
     var prefix = utils.getLinePrefix(expression.offset);
@@ -88,11 +93,14 @@ class AddCallSuper extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.startStart(body.functionDefinition, expression),
-          '{${prefixWithLine}super.$_addition;${prefixWithLine}return ');
+        range.startStart(body.functionDefinition, expression),
+        '{${prefixWithLine}super.$_addition;${prefixWithLine}return ',
+      );
 
       builder.addSimpleReplacement(
-          range.endEnd(expression, semicolon ?? expression), ';$eol$prefix}');
+        range.endEnd(expression, semicolon ?? expression),
+        ';$eol$prefix}',
+      );
     });
   }
 }

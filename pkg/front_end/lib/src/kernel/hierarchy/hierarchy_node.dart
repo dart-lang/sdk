@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
@@ -57,15 +55,15 @@ abstract class HierarchyNodeBuilder {
 
   List<Supertype> _substSupertypes(
       TypeDeclarationType supertype, List<Supertype> supertypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         supertype.typeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = supertype.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<Supertype>? result;
@@ -91,7 +89,6 @@ abstract class HierarchyNodeBuilder {
         if (interfaces.length == 1) {
           return null;
         } else {
-          // Coverage-ignore-block(suite): Not run.
           interfaces = interfaces.toList();
           interfaces.removeAt(i);
           return _ignoreFunction(interfaces);
@@ -116,7 +113,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _classBuilder.name;
 
   @override
-  int get _fileOffset => _classBuilder.charOffset;
+  int get _fileOffset => _classBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _classBuilder.fileUri;
@@ -160,8 +157,9 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
         supertype =
             new Supertype(_hierarchy.coreTypes.objectClass, const <DartType>[]);
       }
+      InterfaceType superTypeAsInterfaceType = supertype.asInterfaceType;
       superclasses.setRange(0, superclasses.length - 1,
-          _substSupertypes(supertype.asInterfaceType, supernode.superclasses));
+          _substSupertypes(superTypeAsInterfaceType, supernode.superclasses));
       superclasses[superclasses.length - 1] = supertype;
 
       List<TypeBuilder>? directInterfaceBuilders =
@@ -181,7 +179,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
       List<Supertype> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces.isNotEmpty) {
         superclassInterfaces =
-            _substSupertypes(supertype.asInterfaceType, superclassInterfaces);
+            _substSupertypes(superTypeAsInterfaceType, superclassInterfaces);
       }
 
       if (directInterfaceBuilders != null) {
@@ -209,14 +207,16 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
               maxInheritancePath = interfaceNode.maxInheritancePath + 1;
             }
 
+            InterfaceType directInterfaceAsInterfaceType =
+                directInterface.asInterfaceType;
             List<Supertype> types = _substSupertypes(
-                directInterface.asInterfaceType, interfaceNode.superclasses);
+                directInterfaceAsInterfaceType, interfaceNode.superclasses);
             for (int i = 0; i < types.length; i++) {
               _addInterface(interfaces, superclasses, types[i]);
             }
             if (interfaceNode.interfaces.isNotEmpty) {
               List<Supertype> types = _substSupertypes(
-                  directInterface.asInterfaceType, interfaceNode.interfaces);
+                  directInterfaceAsInterfaceType, interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 _addInterface(interfaces, superclasses, types[i]);
               }
@@ -402,7 +402,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _extensionTypeBuilder.name;
 
   @override
-  int get _fileOffset => _extensionTypeBuilder.charOffset;
+  int get _fileOffset => _extensionTypeBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _extensionTypeBuilder.fileUri;
@@ -434,14 +434,15 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
             maxInheritancePath = interfaceNode.maxInheritancePath + 1;
           }
 
+          InterfaceType superTypeAsInterfaceType = supertype.asInterfaceType;
           List<Supertype> types = _substSupertypes(
-              supertype.asInterfaceType, interfaceNode.superclasses);
+              superTypeAsInterfaceType, interfaceNode.superclasses);
           for (int i = 0; i < types.length; i++) {
             _addSuperClass(superclasses, types[i]);
           }
           if (interfaceNode.interfaces.isNotEmpty) {
             List<Supertype> types = _substSupertypes(
-                supertype.asInterfaceType, interfaceNode.interfaces);
+                superTypeAsInterfaceType, interfaceNode.interfaces);
             for (int i = 0; i < types.length; i++) {
               _addSuperClass(superclasses, types[i]);
             }
@@ -528,15 +529,15 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   List<ExtensionType> _substSuperExtensionTypes(
       ExtensionType superExtensionType,
       List<ExtensionType> superExtensionTypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         superExtensionType.extensionTypeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return superExtensionTypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = superExtensionType.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<ExtensionType>? result;

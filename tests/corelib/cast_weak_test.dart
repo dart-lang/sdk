@@ -25,14 +25,17 @@ testIterable() {
   Expect.equals(null, dIterableDirect.skip(3).elementAt(1));
 
   // An iterable that cannot do direct access.
-  var dIterableNonDirect =
-      Iterable.castFrom<C?, D>(iterable.where((_) => true));
+  var dIterableNonDirect = Iterable.castFrom<C?, D>(
+    iterable.where((_) => true),
+  );
   Expect.equals(d, dIterableNonDirect.elementAt(1));
   Expect.equals(null, dIterableNonDirect.skip(3).elementAt(1));
 
   // Iterable that definitely won't survive accessing element 3.
   var iterableLimited = new Iterable<C?>.generate(
-      elements.length, (n) => n == 3 ? throw "untouchable" : elements[n]);
+    elements.length,
+    (n) => n == 3 ? throw "untouchable" : elements[n],
+  );
   var dIterableLimited = Iterable.castFrom<C?, D>(iterableLimited);
   Expect.equals(d, dIterableLimited.elementAt(1));
   Expect.equals(null, dIterableLimited.skip(3).elementAt(1));

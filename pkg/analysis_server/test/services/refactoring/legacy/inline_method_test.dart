@@ -142,7 +142,9 @@ class A {
 ''');
     _createRefactoring('test async');
     // error
-    return _assertConditionsFatal('Cannot inline async into sync*.');
+    return _assertConditionsFatal(
+      "Can't inline an 'async' method into a 'sync*' method.",
+    );
   }
 
   Future<void> test_bad_async_targetIsSync_doesNotReturnFuture() async {
@@ -159,7 +161,8 @@ class A {
     _createRefactoring('test async');
     // error
     return _assertConditionsFatal(
-        'Cannot inline async into a function that does not return a Future.');
+      "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+    );
   }
 
   Future<void> test_bad_asyncStar() async {
@@ -177,7 +180,7 @@ class A {
 ''');
     _createRefactoring('test() async*');
     // error
-    return _assertConditionsFatal('Cannot inline a generator.');
+    return _assertConditionsFatal("Can't inline a generator.");
   }
 
   Future<void> test_bad_cascadeInvocation() async {
@@ -196,9 +199,12 @@ void f() {
     // error
     var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('..test()'), '..test()'.length);
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: 'Cannot inline cascade invocation.',
-        expectedContextRange: location);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "Can't inline a cascade invocation.",
+      expectedContextRange: location,
+    );
   }
 
   Future<void> test_bad_constructor() async {
@@ -230,9 +236,11 @@ void f() {
     refactoring.inlineAll = false;
     // final conditions
     status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            'All references must be inlined to remove the source.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'All references must be inlined to remove the source.',
+    );
   }
 
   Future<void> test_bad_notExecutableElement() async {
@@ -265,7 +273,7 @@ class A {
 ''');
     _createRefactoring('-(other)');
     // error
-    return _assertConditionsFatal('Cannot inline operator.');
+    return _assertConditionsFatal("Can't inline an operator.");
   }
 
   Future<void> test_bad_propertyAccessor_synthetic() async {
@@ -297,7 +305,7 @@ void f() {
 ''');
     _createRefactoring('test(a, b)');
     // error
-    return _assertConditionsFatal('Cannot inline class method reference.');
+    return _assertConditionsFatal("Can't inline a class method reference.");
   }
 
   Future<void> test_bad_severalReturns() async {
@@ -626,7 +634,7 @@ second line
   }
 
   Future<void>
-      test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
+  test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -657,7 +665,7 @@ class B extends A {
   }
 
   Future<void>
-      test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
+  test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -832,7 +840,7 @@ void f() {
   }
 
   Future<void>
-      test_function_notStatement_oneStatement_variableDeclaration() async {
+  test_function_notStatement_oneStatement_variableDeclaration() async {
     await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
@@ -1104,6 +1112,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_getter_topLevel_prefixedIdentifier_target() async {
+    await indexTestUnit(r'''
+void f() {
+  test.isEven;
+}
+
+int get test => [0].first;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  [0].first.isEven;
+}
+''');
+  }
+
   Future<void> test_initialMode_all() async {
     await indexTestUnit(r'''
 test(a, b) {
@@ -1136,6 +1161,132 @@ void f() {
     await refactoring.checkInitialConditions();
     expect(refactoring.deleteSource, false);
     expect(refactoring.inlineAll, false);
+  }
+
+  Future<void> test_intoStringInterpolation2_integerLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+int get test => 0;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0}';
+}
+''');
+  }
+
+  Future<void>
+  test_intoStringInterpolation2_literal_simpleStringLiteral_raw() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+String get test => r'\n';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${r'\n'}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_propertyAccess() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+int get test => 0.sign;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0.sign}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_propertyAccess_already() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: ${test}';
+}
+
+int get test => 0.sign;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0.sign}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_simpleIdentifier() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+const value = 0;
+int get test => value;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: $value';
+}
+
+const value = 0;
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_simpleStringLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+String get test => 'b';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: b';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_stringInterpolation() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+const value = 0;
+String get test => 'foo $value bar';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: foo $value bar';
+}
+
+const value = 0;
+''');
   }
 
   Future<void> test_intoStringInterpolation_identifier() async {
@@ -1174,6 +1325,86 @@ void test(int a) {
     return _assertSuccessfulRefactoring(r'''
 void f() {
   'a: ${0}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_propertyAccess() async {
+    await indexTestUnit(r'''
+void f(int v) {
+  test(v.isEven);
+}
+
+void test(bool a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(bool');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f(int v) {
+  'a: ${v.isEven}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_simpleStringLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  test('b');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: b';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_simpleStringLiteral_raw() async {
+    await indexTestUnit(r'''
+void f() {
+  test(r'\n');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${r'\n'}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_stringInterpolation() async {
+    await indexTestUnit(r'''
+const value = 0;
+
+void f() {
+  test('foo $value bar');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+const value = 0;
+
+void f() {
+  'a: foo $value bar';
 }
 ''');
   }
@@ -1235,7 +1466,7 @@ void f(A a) {
 ''');
     _createRefactoring('test();');
     // error
-    return _assertConditionsFatal('Cannot inline method without body.');
+    return _assertConditionsFatal("Can't inline a method without a body.");
   }
 
   Future<void> test_method_fieldInstance() async {
@@ -1603,9 +1834,12 @@ void f() {
     // error
     var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('test();'), 'test()'.length);
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: 'No argument for the parameter "a".',
-        expectedContextRange: location);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'No argument for the parameter "a".',
+      expectedContextRange: location,
+    );
   }
 
   Future<void> test_reference_expressionBody() async {
@@ -1848,7 +2082,7 @@ void f() {
   }
 
   Future<void>
-      test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
+  test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a * (b);
@@ -1926,19 +2160,26 @@ class _InlineMethodTest extends RefactoringTest {
 
   Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: message,
+    );
   }
 
   Future<void> _assertConditionsFatal(String message) async {
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: message,
+    );
   }
 
   Future<void> _assertInvalidSelection() {
     return _assertConditionsFatal(
-        'Method declaration or reference must be selected to activate this refactoring.');
+      'Method declaration or reference must be selected to activate this refactoring.',
+    );
   }
 
   Future<void> _assertSuccessfulRefactoring(String expectedCode) async {

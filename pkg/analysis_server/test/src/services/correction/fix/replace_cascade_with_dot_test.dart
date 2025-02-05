@@ -46,16 +46,19 @@ class A {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   void foo() {
     0.bar[1] = 2;
   }
 }
 ''',
-        errorFilter: (e) =>
-            e.errorCode.name ==
-            LintNames.avoid_single_cascade_in_expression_statements);
+      errorFilter:
+          (e) =>
+              e.errorCode.name ==
+              LintNames.avoid_single_cascade_in_expression_statements,
+    );
   }
 
   Future<void> test_assignment_property_normalCascade() async {
@@ -86,7 +89,8 @@ f() {
   E(3)..g;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   int get g => 0;
 }
@@ -94,9 +98,11 @@ f() {
   E(3).g;
 }
 ''',
-        errorFilter: (e) =>
-            e.errorCode.name ==
-            LintNames.avoid_single_cascade_in_expression_statements);
+      errorFilter:
+          (e) =>
+              e.errorCode.name ==
+              LintNames.avoid_single_cascade_in_expression_statements,
+    );
   }
 
   Future<void> test_getter_normalCascade() async {

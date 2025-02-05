@@ -47,7 +47,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/dart-developer/dart-developer-library.html.
   Future<Response> callServiceExtension(String method, {
     String? isolateId,
     Map<String, dynamic>? args
@@ -215,6 +215,10 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
 
   Future _processRequest(Map<String, dynamic> json) async {
     final result = await _routeRequest(json['method'], json['params'] ?? <String, dynamic>{});
+    if (_disposed) {
+      // The service has disappeared. Don't try to send the response.
+      return;
+    }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
     String message = jsonEncode(result);

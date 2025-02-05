@@ -45,7 +45,7 @@ sealed class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    DartType type = getStaticType(context).nonTypeVariableBound;
+    DartType type = getStaticType(context).nonTypeParameterBound;
     if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
@@ -1406,8 +1406,7 @@ class Arguments extends TreeNode {
             .toList(),
         types: function.typeParameters
             .map<DartType>((p) =>
-                new TypeParameterType.withDefaultNullabilityForLibrary(
-                    p, library))
+                new TypeParameterType.withDefaultNullability(p))
             .toList());
   }
 

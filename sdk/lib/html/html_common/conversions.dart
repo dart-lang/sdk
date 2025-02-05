@@ -295,13 +295,14 @@ class ContextAttributes {
   bool failIfMajorPerformanceCaveat;
 
   ContextAttributes(
-      this.alpha,
-      this.antialias,
-      this.depth,
-      this.failIfMajorPerformanceCaveat,
-      this.premultipliedAlpha,
-      this.preserveDrawingBuffer,
-      this.stencil);
+    this.alpha,
+    this.antialias,
+    this.depth,
+    this.failIfMajorPerformanceCaveat,
+    this.premultipliedAlpha,
+    this.preserveDrawingBuffer,
+    this.stencil,
+  );
 }
 
 convertNativeToDart_ContextAttributes(nativeContextAttributes) {
@@ -309,13 +310,14 @@ convertNativeToDart_ContextAttributes(nativeContextAttributes) {
   // object so we create a _TypedContextAttributes.
 
   return new ContextAttributes(
-      JS('var', '#.alpha', nativeContextAttributes),
-      JS('var', '#.antialias', nativeContextAttributes),
-      JS('var', '#.depth', nativeContextAttributes),
-      JS('var', '#.failIfMajorPerformanceCaveat', nativeContextAttributes),
-      JS('var', '#.premultipliedAlpha', nativeContextAttributes),
-      JS('var', '#.preserveDrawingBuffer', nativeContextAttributes),
-      JS('var', '#.stencil', nativeContextAttributes));
+    JS('var', '#.alpha', nativeContextAttributes),
+    JS('var', '#.antialias', nativeContextAttributes),
+    JS('var', '#.depth', nativeContextAttributes),
+    JS('var', '#.failIfMajorPerformanceCaveat', nativeContextAttributes),
+    JS('var', '#.premultipliedAlpha', nativeContextAttributes),
+    JS('var', '#.preserveDrawingBuffer', nativeContextAttributes),
+    JS('var', '#.stencil', nativeContextAttributes),
+  );
 }
 
 // Conversions for ImageData
@@ -359,17 +361,23 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
   // object.  So we create a _TypedImageData.
 
   return new _TypedImageData(
-      JS('NativeUint8ClampedList', '#.data', nativeImageData),
-      JS('var', '#.height', nativeImageData),
-      JS('var', '#.width', nativeImageData));
+    JS('NativeUint8ClampedList', '#.data', nativeImageData),
+    JS('var', '#.height', nativeImageData),
+    JS('var', '#.width', nativeImageData),
+  );
 }
 
 // We can get rid of this conversion if _TypedImageData implements the fields
 // with native names.
 convertDartToNative_ImageData(ImageData imageData) {
   if (imageData is _TypedImageData) {
-    return JS('', '{data: #, height: #, width: #}', imageData.data,
-        imageData.height, imageData.width);
+    return JS(
+      '',
+      '{data: #, height: #, width: #}',
+      imageData.data,
+      imageData.height,
+      imageData.width,
+    );
   }
   return imageData;
 }

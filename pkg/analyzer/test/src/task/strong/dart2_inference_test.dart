@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,7 +45,7 @@ AssertInitializer
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -64,7 +66,7 @@ AssertInitializer
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -102,7 +104,7 @@ AssertStatement
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -123,7 +125,7 @@ AssertStatement
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -344,7 +346,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -358,7 +360,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -391,7 +393,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -405,7 +407,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

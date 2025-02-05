@@ -57,7 +57,8 @@ void main() {
   assertThrows(() => RegExp("\\p{Qaac}", unicode: true));
   assertThrows(() => RegExp("\\p{Egyp}", unicode: true));
   assertDoesNotThrow(
-      () => RegExp("\\p{Script=Egyptian_Hieroglyphs}", unicode: true));
+    () => RegExp("\\p{Script=Egyptian_Hieroglyphs}", unicode: true),
+  );
   assertThrows(() => RegExp("\\p{EgyptianHieroglyphs}", unicode: true));
 
   assertThrows(() => RegExp("\\p{BidiClass=LeftToRight}", unicode: true));

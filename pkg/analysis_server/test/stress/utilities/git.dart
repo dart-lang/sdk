@@ -16,8 +16,9 @@ import 'logger.dart';
 /// A representation of the differences between two blobs.
 class BlobDiff {
   /// The regular expression used to identify the beginning of a hunk.
-  static final RegExp hunkHeaderRegExp =
-      RegExp(r'@@ -([0-9]+)(?:,[0-9]+)? \+([0-9]+)(?:,[0-9]+)? @@');
+  static final RegExp hunkHeaderRegExp = RegExp(
+    r'@@ -([0-9]+)(?:,[0-9]+)? \+([0-9]+)(?:,[0-9]+)? @@',
+  );
 
   /// A list of the hunks in the diff.
   List<DiffHunk> hunks = <DiffHunk>[];
@@ -183,8 +184,9 @@ class CommitDelta {
       dstPath = _makeAbsolute(input.substring(startIndex, endIndex));
     }
     // Create the record.
-    diffRecords
-        .add(DiffRecord(repository, srcSha, dstSha, status, srcPath, dstPath));
+    diffRecords.add(
+      DiffRecord(repository, srcSha, dstSha, status, srcPath, dstPath),
+    );
     return endIndex + 1;
   }
 }
@@ -262,8 +264,14 @@ class DiffRecord {
   final String? dstPath;
 
   /// Initialize a newly created diff record.
-  DiffRecord(this.repository, this.srcBlob, this.dstBlob, this.status,
-      this.srcPath, this.dstPath);
+  DiffRecord(
+    this.repository,
+    this.srcBlob,
+    this.dstBlob,
+    this.status,
+    this.srcPath,
+    this.dstPath,
+  );
 
   /// Return `true` if this record represents a file that was added.
   bool get isAddition => status == 'A';
@@ -342,7 +350,7 @@ class GitRepository {
       '--no-renames',
       '-z',
       srcCommit,
-      dstCommit
+      dstCommit,
     ]);
     return CommitDelta._(this, result.stdout as String);
   }
@@ -359,8 +367,13 @@ class GitRepository {
   /// Return the result of running the process.
   ProcessResult _run(List<String> arguments) {
     logger?.log('git', 'git', arguments: arguments);
-    return Process.runSync('git', arguments,
-        stderrEncoding: utf8, stdoutEncoding: utf8, workingDirectory: path);
+    return Process.runSync(
+      'git',
+      arguments,
+      stderrEncoding: utf8,
+      stdoutEncoding: utf8,
+      workingDirectory: path,
+    );
   }
 }
 

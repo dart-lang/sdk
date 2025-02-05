@@ -5,6 +5,8 @@
 /// Test the modular compilation pipeline of dart2js.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
+library;
+
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:async';
@@ -20,12 +22,14 @@ import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
+import 'package:path/path.dart' as p;
 
 String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
 Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 late Options _options;
 late String _dart2jsScript;
+late String _kernelWorkerAotScript;
 late String _kernelWorkerScript;
 
 const dillSummaryId = DataId("summary.dill");
@@ -57,9 +61,10 @@ String getRootScheme(Module module) {
 String sourceToImportUri(Module module, Uri relativeUri) {
   if (module.isPackage) {
     var basePath = module.packageBase!.path;
-    var packageRelativePath = basePath == "./"
-        ? relativeUri.path
-        : relativeUri.path.substring(basePath.length);
+    var packageRelativePath =
+        basePath == "./"
+            ? relativeUri.path
+            : relativeUri.path.substring(basePath.length);
     return 'package:${module.name}/$packageRelativePath';
   } else {
     return '${getRootScheme(module)}:/$relativeUri';
@@ -82,8 +87,12 @@ abstract class CFEStep extends IOModularStep {
   bool get onlyOnMain => false;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("\nstep: $stepName on $module");
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
@@ -93,14 +102,15 @@ abstract class CFEStep extends IOModularStep {
     List<String> sources;
     List<String> extraArgs = [
       '--packages-file',
-      '$rootScheme:/$packageConfigJsonPath'
+      '$rootScheme:/$packageConfigJsonPath',
     ];
     if (module.isSdk) {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
       if (flags.isEmpty) {
-        var platform =
-            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var platform = computePlatformBinariesLocation().resolve(
+          "dart2js_platform.dill",
+        );
         var destination = root.resolveUri(toUri(module, outputData));
         if (_options.verbose) {
           print('command:\ncp $platform $destination');
@@ -111,15 +121,29 @@ abstract class CFEStep extends IOModularStep {
       sources = requiredLibraries['dart2js']! + ['dart:core'];
       extraArgs += [
         '--libraries-file',
-        '$rootScheme:///sdk/lib/libraries.json'
+        '$rootScheme:///sdk/lib/libraries.json',
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = getSources(module);
     }
 
+    var isAot = File(_kernelWorkerAotScript).existsSync();
+    var script = _kernelWorkerAotScript;
+    var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
+    var executable = p.absolute(
+      sdkPath,
+      'bin',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+    );
+    if (!isAot) {
+      // This can be removed once we stop supporting ia32 architecture.
+      script = _kernelWorkerScript;
+      executable = Platform.resolvedExecutable;
+    }
+
     List<String> args = [
-      _kernelWorkerScript,
+      script,
       '--sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
@@ -130,18 +154,24 @@ abstract class CFEStep extends IOModularStep {
       ...extraArgs,
       '--output',
       '${toUri(module, outputData)}',
-      ...(transitiveDependencies
-          .expand((m) => ['--input-summary', '${toUri(m, inputData)}'])),
+      ...(transitiveDependencies.expand(
+        (m) => ['--input-summary', '${toUri(m, inputData)}'],
+      )),
       ...transitiveDependencies
           .where((m) => m.macroConstructors.isNotEmpty)
-          .expand((m) =>
-              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
+          .expand(
+            (m) => ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};'],
+          ),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
 
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      executable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -166,15 +196,20 @@ class OutlineDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded =>
-      const [dillSummaryId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [
+    dillSummaryId,
+    precompiledMacroId,
+  ];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
 
   @override
-  List<String> get stepArguments =>
-      ['--target', 'dart2js_summary', '--summary-only'];
+  List<String> get stepArguments => [
+    '--target',
+    'dart2js_summary',
+    '--summary-only',
+  ];
 
   @override
   DataId get inputData => dillSummaryId;
@@ -194,15 +229,21 @@ class FullDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded =>
-      const [dillSummaryId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [
+    dillSummaryId,
+    precompiledMacroId,
+  ];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
 
   @override
-  List<String> get stepArguments =>
-      ['--target', 'dart2js', '--no-summary', '--no-summary-only'];
+  List<String> get stepArguments => [
+    '--target',
+    'dart2js',
+    '--no-summary',
+    '--no-summary-only',
+  ];
 
   @override
   DataId get inputData => dillSummaryId;
@@ -234,12 +275,17 @@ class ConcatenateDillsStep extends IOModularStep {
   ConcatenateDillsStep();
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("\nstep: dart2js concatenate dills on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    Iterable<String> dillDependencies =
-        transitiveDependencies.map((m) => '${toUri(m, dillId)}');
+    Iterable<String> dillDependencies = transitiveDependencies.map(
+      (m) => '${toUri(m, dillId)}',
+    );
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
@@ -254,15 +300,20 @@ class ConcatenateDillsStep extends IOModularStep {
       '--out=${toUri(module, fullDillId)}',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js concatenate dills on $module");
+    }
   }
 }
 
@@ -288,10 +339,15 @@ class ComputeClosedWorldStep extends IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
-    if (_options.verbose)
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
+    if (_options.verbose) {
       print("\nstep: dart2js compute closed world on $module");
+    }
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
@@ -306,15 +362,20 @@ class ComputeClosedWorldStep extends IOModularStep {
       '${Flags.stage}=closed-world',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js compute closed world on $module");
+    }
   }
 }
 
@@ -336,8 +397,12 @@ class GlobalAnalysisStep extends IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
@@ -354,15 +419,20 @@ class GlobalAnalysisStep extends IOModularStep {
       '${Flags.stage}=global-inference',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js global analysis on $module");
+    }
   }
 }
 
@@ -384,15 +454,22 @@ class Dart2jsCodegenStep extends IOModularStep {
   List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded =>
-      const [fullDillId, closedWorldId, globalDataId];
+  List<DataId> get moduleDataNeeded => const [
+    fullDillId,
+    closedWorldId,
+    globalDataId,
+  ];
 
   @override
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
@@ -411,7 +488,11 @@ class Dart2jsCodegenStep extends IOModularStep {
       '${Flags.stage}=codegen',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
@@ -435,15 +516,24 @@ class Dart2jsEmissionStep extends IOModularStep {
   List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded =>
-      const [fullDillId, closedWorldId, globalDataId, codeId0, codeId1];
+  List<DataId> get moduleDataNeeded => const [
+    fullDillId,
+    closedWorldId,
+    globalDataId,
+    codeId0,
+    codeId1,
+  ];
 
   @override
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
@@ -463,7 +553,11 @@ class Dart2jsEmissionStep extends IOModularStep {
       '--out=${toUri(module, jsId)}',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
@@ -488,20 +582,24 @@ class Dart2jsDumpInfoStep extends IOModularStep {
 
   @override
   List<DataId> get moduleDataNeeded => const [
-        fullDillId,
-        closedWorldId,
-        globalDataId,
-        codeId0,
-        codeId1,
-        dumpInfoDataId,
-      ];
+    fullDillId,
+    closedWorldId,
+    globalDataId,
+    codeId0,
+    codeId1,
+    dumpInfoDataId,
+  ];
 
   @override
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("step: dart2js dump info on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
@@ -521,7 +619,11 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       '--out=${toUri(module, jsId)}',
     ];
     var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+      Platform.resolvedExecutable,
+      args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
   }
@@ -550,8 +652,12 @@ class RunD8 extends IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  ) async {
     if (_options.verbose) print("\nstep: d8 on $module");
     List<String> d8Args = [
       sdkRoot
@@ -559,13 +665,18 @@ class RunD8 extends IOModularStep {
           .toFilePath(),
       root.resolveUri(toUri(module, jsId)).toFilePath(),
     ];
-    var result = await runProcess(sdkRoot.resolve(_d8executable).toFilePath(),
-        d8Args, root.toFilePath(), _options.verbose);
+    var result = await runProcess(
+      sdkRoot.resolve(_d8executable).toFilePath(),
+      d8Args,
+      root.toFilePath(),
+      _options.verbose,
+    );
 
     checkExitCode(result, this, module, _options.verbose);
 
-    await File.fromUri(root.resolveUri(toUri(module, txtId)))
-        .writeAsString(result.stdout);
+    await File.fromUri(
+      root.resolveUri(toUri(module, txtId)),
+    ).writeAsString(result.stdout);
   }
 
   @override
@@ -609,7 +720,7 @@ class ShardDataId implements DataId {
   }
 
   @override
-  String get name => '${dataId.name}${shard}';
+  String get name => '${dataId.name}$shard';
 
   @override
   String toString() => name;
@@ -617,14 +728,17 @@ class ShardDataId implements DataId {
 
 Future<void> resolveScripts(Options options) async {
   Future<String> resolve(
-      String sourceUriOrPath, String relativeSnapshotPath) async {
+    String sourceUriOrPath,
+    String relativeSnapshotPath,
+  ) async {
     Uri sourceUri = sdkRoot.resolve(sourceUriOrPath);
     String result =
         sourceUri.isScheme('file') ? sourceUri.toFilePath() : sourceUriOrPath;
     if (_options.useSdk) {
-      String snapshot = Uri.file(Platform.resolvedExecutable)
-          .resolve(relativeSnapshotPath)
-          .toFilePath();
+      String snapshot =
+          Uri.file(
+            Platform.resolvedExecutable,
+          ).resolve(relativeSnapshotPath).toFilePath();
       if (await File(snapshot).exists()) {
         return snapshot;
       }
@@ -634,11 +748,20 @@ Future<void> resolveScripts(Options options) async {
 
   _options = options;
   _dart2jsScript = await resolve(
-      'package:compiler/src/dart2js.dart', 'snapshots/dart2js.dart.snapshot');
-  _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
-      'snapshots/kernel_worker.dart.snapshot');
+    'package:compiler/src/dart2js.dart',
+    'snapshots/dart2js.dart.snapshot',
+  );
+  _kernelWorkerAotScript = await resolve(
+    'utils/bazel/kernel_worker.dart',
+    'snapshots/kernel_worker_aot.dart.snapshot',
+  );
+  _kernelWorkerScript = await resolve(
+    'utils/bazel/kernel_worker.dart',
+    'snapshots/kernel_worker.dart.snapshot',
+  );
 }
 
-String _librarySpecForSnapshot = Uri.file(Platform.resolvedExecutable)
-    .resolve('../lib/libraries.json')
-    .toFilePath();
+String _librarySpecForSnapshot =
+    Uri.file(
+      Platform.resolvedExecutable,
+    ).resolve('../lib/libraries.json').toFilePath();

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 main() {
   asyncStart();
@@ -16,11 +19,12 @@ main() {
       throw 0;
     }, (e, s) {
       Expect.equals(0, e);
-      throw e;  //#01 : ok
+      throw e; //#01 : ok
       asyncEnd();
     });
   } catch (e) {
-    asyncEnd(); return;  //# 01: continued
+    asyncEnd(); //# 01: continued
+    return; //# 01: continued
     rethrow;
   }
 }

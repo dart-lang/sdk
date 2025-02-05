@@ -14,8 +14,5 @@ const d = dynamic;
 const i = int;
 
 void main() {
-
   // Duplicate key error.
-
-
 }

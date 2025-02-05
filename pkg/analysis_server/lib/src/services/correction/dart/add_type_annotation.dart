@@ -24,11 +24,11 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   /// Initializes a newly created instance that can't apply bulk and in-file
   /// fixes.
   AddTypeAnnotation({required super.context})
-      : applicability = CorrectionApplicability.singleLocation;
+    : applicability = CorrectionApplicability.singleLocation;
 
   /// Initializes a newly created instance that can apply bulk and in-file fixes.
   AddTypeAnnotation.bulkFixable({required super.context})
-      : applicability = CorrectionApplicability.automatically;
+    : applicability = CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
@@ -83,7 +83,11 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   }
 
   Future<void> _applyChange(
-      ChangeBuilder builder, Token? keyword, Token name, DartType type) async {
+    ChangeBuilder builder,
+    Token? keyword,
+    Token name,
+    DartType type,
+  ) async {
     await builder.addDartFileEdit(file, (builder) {
       if (builder.canWriteType(type)) {
         if (keyword != null && keyword.keyword == Keyword.VAR) {
@@ -101,7 +105,9 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   }
 
   Future<void> _forDeclaredIdentifier(
-      ChangeBuilder builder, DeclaredIdentifier declaredIdentifier) async {
+    ChangeBuilder builder,
+    DeclaredIdentifier declaredIdentifier,
+  ) async {
     // Ensure that there isn't already a type annotation.
     if (declaredIdentifier.type != null) {
       return;
@@ -114,11 +120,17 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
     await _applyChange(
-        builder, declaredIdentifier.keyword, declaredIdentifier.name, type);
+      builder,
+      declaredIdentifier.keyword,
+      declaredIdentifier.name,
+      type,
+    );
   }
 
   Future<void> _forSimpleFormalParameter(
-      ChangeBuilder builder, SimpleFormalParameter parameter) async {
+    ChangeBuilder builder,
+    SimpleFormalParameter parameter,
+  ) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
       return;
@@ -135,7 +147,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     // parameter, it would be nice to copy down the type from the overridden
     // method.
     if (type is! InterfaceType &&
-//        type is! FunctionType &&
+        //        type is! FunctionType &&
         type is! RecordType) {
       return;
     }
@@ -143,7 +155,9 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   }
 
   Future<void> _forVariableDeclaration(
-      ChangeBuilder builder, VariableDeclarationList declarationList) async {
+    ChangeBuilder builder,
+    VariableDeclarationList declarationList,
+  ) async {
     // Ensure that there isn't already a type annotation.
     if (declarationList.type != null) {
       return;

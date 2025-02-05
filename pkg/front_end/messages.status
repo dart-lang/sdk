@@ -23,7 +23,7 @@ AmbiguousExtensionOperator/analyzerCode: Fail
 AmbiguousExtensionProperty/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
-AnnotationOnFunctionTypeTypeVariable/analyzerCode: Fail
+AnnotationOnFunctionTypeTypeParameter/analyzerCode: Fail
 AnonymousBreakTargetOutsideFunction/part_wrapped_statement: Fail
 AnonymousBreakTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
 AnonymousContinueTargetOutsideFunction/part_wrapped_statement: Fail
@@ -72,19 +72,18 @@ CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (no
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
+ClassShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ClassShouldBeListedAsCallableInDynamicInterface/example: Fail
+ClassShouldBeListedAsExtendableInDynamicInterface/analyzerCode: Fail
+ClassShouldBeListedAsExtendableInDynamicInterface/example: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
 CompilingWithoutSoundNullSafety/analyzerCode: Fail
 ConflictingModifiers/part_wrapped_script1: Fail
 ConflictingModifiers/script1: Fail
-ConflictsWithConstructor/example: Fail
-ConflictsWithFactory/analyzerCode: Fail
-ConflictsWithFactory/example: Fail
-ConflictsWithImplicitSetter/example: Fail
-ConflictsWithMember/example: Fail
-ConflictsWithMemberWarning/example: Fail
-ConflictsWithSetter/example: Fail
-ConflictsWithTypeVariable/example: Fail
+ConflictsWithTypeParameter/example: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/example: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
 ConstAndFinal/part_wrapped_declaration3: Fail
@@ -221,6 +220,8 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatedRecordLiteralFieldName/analyzerCode: Fail
 DuplicatedRecordTypeFieldName/analyzerCode: Fail
+DynamicCallsAreNotAllowedInDynamicModule/analyzerCode: Fail
+DynamicCallsAreNotAllowedInDynamicModule/example: Fail
 Encoding/analyzerCode: Fail
 EnumAbstractMember/analyzerCode: Fail
 EnumAbstractMember/example: Fail
@@ -587,16 +588,16 @@ InvalidReturnNullabilityNullType/analyzerCode: Fail
 InvalidReturnPartNullability/analyzerCode: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail
-InvalidTypeVariableInSupertype/analyzerCode: Fail
-InvalidTypeVariableInSupertypeWithVariance/analyzerCode: Fail
-InvalidTypeVariableInSupertypeWithVariance/part_wrapped_script: Fail # Triggers multiple errors
-InvalidTypeVariableInSupertypeWithVariance/script: Fail # Triggers multiple errors
-InvalidTypeVariableVariancePosition/analyzerCode: Fail
-InvalidTypeVariableVariancePosition/part_wrapped_script: Fail # Triggers multiple errors
-InvalidTypeVariableVariancePosition/script: Fail # Triggers multiple errors
-InvalidTypeVariableVariancePositionInReturnType/analyzerCode: Fail
-InvalidTypeVariableVariancePositionInReturnType/part_wrapped_script: Fail # Triggers multiple errors
-InvalidTypeVariableVariancePositionInReturnType/script: Fail # Triggers multiple errors
+InvalidTypeParameterInSupertype/analyzerCode: Fail
+InvalidTypeParameterInSupertypeWithVariance/analyzerCode: Fail
+InvalidTypeParameterInSupertypeWithVariance/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeParameterInSupertypeWithVariance/script: Fail # Triggers multiple errors
+InvalidTypeParameterVariancePosition/analyzerCode: Fail
+InvalidTypeParameterVariancePosition/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeParameterVariancePosition/script: Fail # Triggers multiple errors
+InvalidTypeParameterVariancePositionInReturnType/analyzerCode: Fail
+InvalidTypeParameterVariancePositionInReturnType/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeParameterVariancePositionInReturnType/script: Fail # Triggers multiple errors
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail
@@ -708,10 +709,14 @@ LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
-LanguageVersionTooHigh/analyzerCode: Fail
-LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
-LanguageVersionTooLow/analyzerCode: Fail
-LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooHighExplicit/analyzerCode: Fail
+LanguageVersionTooHighExplicit/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooHighPackage/analyzerCode: Fail
+LanguageVersionTooHighPackage/example: Fail
+LanguageVersionTooLowExplicit/analyzerCode: Fail
+LanguageVersionTooLowExplicit/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooLowPackage/analyzerCode: Fail
+LanguageVersionTooLowPackage/example: Fail
 LateDefinitelyAssignedError/analyzerCode: Fail
 LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.
@@ -735,6 +740,10 @@ MainWrongParameterType/analyzerCode: Fail
 MainWrongParameterTypeExported/analyzerCode: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MemberNotFound/example: Fail
+MemberShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+MemberShouldBeListedAsCallableInDynamicInterface/example: Fail
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/analyzerCode: Fail
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail
@@ -771,6 +780,7 @@ NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
 NamedParametersInExtensionTypeDeclaration/analyzerCode: Fail
 NativeClauseShouldBeAnnotation/example: Fail
+NegativeVariableDimension/analyzerCode: Fail
 NeverReachableSwitchDefaultError/analyzerCode: Fail
 NeverReachableSwitchDefaultError/example: Fail
 NeverReachableSwitchDefaultWarning/analyzerCode: Fail
@@ -813,7 +823,7 @@ NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonCovariantTypeParameterInRepresentationType/analyzerCode: Fail
-NonInstanceTypeVariableUse/example: Fail
+NonInstanceTypeParameterUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
@@ -901,9 +911,9 @@ OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeMismatchReturnTypeWarning/example: Fail
 OverrideTypeMismatchSetter/example: Fail
 OverrideTypeMismatchSetterWarning/example: Fail
-OverrideTypeVariablesBoundMismatch/analyzerCode: Fail
-OverrideTypeVariablesBoundMismatch/example: Fail
-OverrideTypeVariablesMismatch/example: Fail
+OverrideTypeParametersBoundMismatch/analyzerCode: Fail
+OverrideTypeParametersBoundMismatch/example: Fail
+OverrideTypeParametersMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
@@ -921,8 +931,8 @@ PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
 PartOrphan/part_wrapped_script: Fail # Already using 'part of' in the (now) part.
 PartTwice/part_wrapped_script: Fail # Using 'part' in the (now) part.
-PatchClassTypeVariablesMismatch/analyzerCode: Fail
-PatchClassTypeVariablesMismatch/example: Fail
+PatchClassTypeParametersMismatch/analyzerCode: Fail
+PatchClassTypeParametersMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
 PatchDeclarationMismatch/example: Fail
 PatchInjectionFailed/analyzerCode: Fail
@@ -995,7 +1005,7 @@ SuperAsIdentifier/example: Fail
 SuperExtensionTypeIsIllegal/analyzerCode: Fail
 SuperExtensionTypeIsIllegalAliased/analyzerCode: Fail
 SuperExtensionTypeIsNullableAliased/analyzerCode: Fail
-SuperExtensionTypeIsTypeVariable/analyzerCode: Fail
+SuperExtensionTypeIsTypeParameter/analyzerCode: Fail
 SuperNullAware/example: Fail
 SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
 SuperParameterInitializerOutsideConstructor/example: Fail
@@ -1032,13 +1042,13 @@ TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/part_wrapped_script1: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
-TypeVariableDuplicatedName/example: Fail
-TypeVariableSameNameAsEnclosing/example: Fail
+TypeParameterDuplicatedName/example: Fail
+TypeParameterSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
-TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
-TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+TypedefTypeParameterNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
+TypedefTypeParameterNotConstructor/example: Fail # Feature not yet enabled by default.
 UnavailableDartLibrary/part_wrapped_script: Fail # Uses imports
 UndefinedExtensionGetter/analyzerCode: Fail
 UndefinedExtensionGetter/example: Fail

@@ -15,15 +15,17 @@ class SpawnLatency {
     final completerResult = Completer();
     final receivePort = ReceivePort()..listen(completerResult.complete);
     final isolateExitedCompleter = Completer<DateTime>();
-    final onExitReceivePort = ReceivePort()
-      ..listen((_) {
-        isolateExitedCompleter.complete(DateTime.now());
-      });
+    final onExitReceivePort =
+        ReceivePort()..listen((_) {
+          isolateExitedCompleter.complete(DateTime.now());
+        });
     final beforeSpawn = DateTime.now();
     await Isolate.spawn(
-        isolateCompiler, StartMessageLatency(receivePort.sendPort, beforeSpawn),
-        onExit: onExitReceivePort.sendPort,
-        onError: onExitReceivePort.sendPort);
+      isolateCompiler,
+      StartMessageLatency(receivePort.sendPort, beforeSpawn),
+      onExit: onExitReceivePort.sendPort,
+      onError: onExitReceivePort.sendPort,
+    );
     final afterSpawn = DateTime.now();
 
     final ResultMessageLatency result = await completerResult.future;
@@ -42,8 +44,9 @@ class SpawnLatency {
     final watch = Stopwatch()..start();
     final Metric toAfterIsolateSpawnUs = LatencyMetric('${name}ToAfterSpawn');
     final Metric toStartRunningCodeUs = LatencyMetric('${name}ToStartRunning');
-    final Metric toFinishRunningCodeUs =
-        LatencyMetric('${name}ToFinishRunning');
+    final Metric toFinishRunningCodeUs = LatencyMetric(
+      '${name}ToFinishRunning',
+    );
     final Metric toExitUs = LatencyMetric('${name}ToExit');
     while (watch.elapsedMicroseconds < minimumMicros) {
       final result = await run();
@@ -52,8 +55,12 @@ class SpawnLatency {
       toFinishRunningCodeUs.add(result.timeToFinishRunningCodeUs);
       toExitUs.add(result.timeToExitUs);
     }
-    return AggregatedResultMessageLatency(toAfterIsolateSpawnUs,
-        toStartRunningCodeUs, toFinishRunningCodeUs, toExitUs);
+    return AggregatedResultMessageLatency(
+      toAfterIsolateSpawnUs,
+      toStartRunningCodeUs,
+      toFinishRunningCodeUs,
+      toExitUs,
+    );
   }
 
   Future<AggregatedResultMessageLatency> measure() async {
@@ -86,7 +93,8 @@ class Metric {
   double _rms() => sqrt(sumOfSquares / count);
 
   @override
-  String toString() => '$prefix): ${_average()}$suffix\n'
+  String toString() =>
+      '$prefix): ${_average()}$suffix\n'
       '${prefix}Max): $max$suffix\n'
       '${prefix}RMS): ${_rms()}$suffix';
 
@@ -110,9 +118,10 @@ class StartMessageLatency {
 }
 
 class ResultMessageLatency {
-  ResultMessageLatency(
-      {required this.timeToStartRunningCodeUs,
-      required this.timeToFinishRunningCodeUs});
+  ResultMessageLatency({
+    required this.timeToStartRunningCodeUs,
+    required this.timeToFinishRunningCodeUs,
+  });
 
   final int timeToStartRunningCodeUs;
   final int timeToFinishRunningCodeUs;
@@ -144,18 +153,23 @@ $toExitUs''';
 Future<void> isolateCompiler(StartMessageLatency start) async {
   final timeRunningCodeUs = DateTime.now();
   await runZoned(
-      () => gen_kernel.compile(<String>[
-            'benchmarks/IsolateSpawn/dart/helloworld.dart',
-            'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
-          ]),
-      zoneSpecification: ZoneSpecification(
-          print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));
+    () => gen_kernel.compile(<String>[
+      'benchmarks/IsolateSpawn/dart/helloworld.dart',
+      'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
+    ]),
+    zoneSpecification: ZoneSpecification(
+      print: (Zone self, ZoneDelegate parent, Zone zone, String line) {},
+    ),
+  );
   final timeFinishRunningCodeUs = DateTime.now();
-  start.sendPort.send(ResultMessageLatency(
+  start.sendPort.send(
+    ResultMessageLatency(
       timeToStartRunningCodeUs:
           timeRunningCodeUs.difference(start.spawned).inMicroseconds,
       timeToFinishRunningCodeUs:
-          timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds));
+          timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds,
+    ),
+  );
 }
 
 Future<void> main() async {

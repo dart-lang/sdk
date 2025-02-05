@@ -22,8 +22,9 @@ class IsolateAnalysisServer {
   /// Initializes an [IsolateChannel] with [clientSendPort] and starts a server
   /// with it.
   Future<void> serveIsolate(SendPort clientSendPort) async {
-    var serverIsolateChannel =
-        IsolateChannel<List<int>>.connectSend(clientSendPort);
+    var serverIsolateChannel = IsolateChannel<List<int>>.connectSend(
+      clientSendPort,
+    );
     var serverChannel = InputOutputByteStreamServerChannel(
       serverIsolateChannel.stream,
       IOSink(serverIsolateChannel.sink),

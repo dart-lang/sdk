@@ -13,8 +13,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   static final _underscoresPattern = RegExp('_+');
 
-  static final _tripletWithUnderscoresPattern =
-      RegExp(r'^[0-9a-fA-F]{2}_[0-9a-fA-F]{2}_[0-9a-fA-F]{2}$');
+  static final _tripletWithUnderscoresPattern = RegExp(
+    r'^[0-9a-fA-F]{2}_[0-9a-fA-F]{2}_[0-9a-fA-F]{2}$',
+  );
 
   /// The replacement text, used as an argument to the fix message.
   String _replacement = '';
@@ -45,8 +46,10 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
         if (_tripletWithUnderscoresPattern.hasMatch(originalDigits)) {
           replacementDigits = '00_$originalDigits';
         } else {
-          var originalWithoutSeparators =
-              originalDigits.replaceAll(_underscoresPattern, '');
+          var originalWithoutSeparators = originalDigits.replaceAll(
+            _underscoresPattern,
+            '',
+          );
           var numberOfDigitsToAdd =
               replacementDigits.length - originalWithoutSeparators.length;
           var newLeadingDigits = '0' * numberOfDigitsToAdd;
@@ -54,8 +57,7 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
         }
       }
       var hexIndicator = switch (literal.type) {
-        TokenType.HEXADECIMAL ||
-        TokenType.HEXADECIMAL_WITH_SEPARATORS =>
+        TokenType.HEXADECIMAL || TokenType.HEXADECIMAL_WITH_SEPARATORS =>
           literal.lexeme.substring(0, '0x'.length),
         // Defalt to lower-case.
         _ => '0x',

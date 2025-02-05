@@ -52,10 +52,13 @@ class AnalysisOptionsFixGenerator {
   final List<Fix> fixes = <Fix>[];
 
   AnalysisOptionsFixGenerator(
-      this.resourceProvider, this.error, this.content, this.options)
-      : errorOffset = error.offset,
-        errorLength = error.length,
-        lineInfo = LineInfo.fromContent(content);
+    this.resourceProvider,
+    this.error,
+    this.content,
+    this.options,
+  ) : errorOffset = error.offset,
+      errorLength = error.length,
+      lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -63,8 +66,10 @@ class AnalysisOptionsFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    var locator =
-        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
+    var locator = YamlNodeLocator(
+      start: errorOffset,
+      end: errorOffset + errorLength - 1,
+    );
     var coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
@@ -95,10 +100,16 @@ class AnalysisOptionsFixGenerator {
 
       if (_isErrorAtMapKey(strongModeMap, 'implicit-casts')) {
         await _addFix_replaceWithStrictCasts(
-            coveringNodePath, analyzerMap, strongModeMap);
+          coveringNodePath,
+          analyzerMap,
+          strongModeMap,
+        );
       } else if (_isErrorAtMapKey(strongModeMap, 'implicit-dynamic')) {
         await _addFix_replaceWithStrictRawTypes(
-            coveringNodePath, analyzerMap, strongModeMap);
+          coveringNodePath,
+          analyzerMap,
+          strongModeMap,
+        );
       }
     } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
         errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE ||
@@ -115,25 +126,35 @@ class AnalysisOptionsFixGenerator {
   Future<void> _addFix_removeLint(List<YamlNode> coveringNodePath) async {
     var builder = await _createScalarDeletionBuilder(coveringNodePath);
     if (builder != null) {
-      _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_LINT,
-          args: [coveringNodePath[0].toString()]);
+      _addFixFromBuilder(
+        builder,
+        AnalysisOptionsFixKind.REMOVE_LINT,
+        args: [coveringNodePath[0].toString()],
+      );
     }
   }
 
   Future<void> _addFix_removeSetting(List<YamlNode> coveringNodePath) async {
     var builder = await _createScalarDeletionBuilder(coveringNodePath);
     if (builder != null) {
-      _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_SETTING,
-          args: [coveringNodePath[0].toString()]);
+      _addFixFromBuilder(
+        builder,
+        AnalysisOptionsFixKind.REMOVE_SETTING,
+        args: [coveringNodePath[0].toString()],
+      );
     }
   }
 
   /// Replaces `analyzer: strong-mode: implicit-casts: false` with
   /// `analyzer: language: strict-casts: true`.
-  Future<void> _addFix_replaceWithStrictCasts(List<YamlNode> coveringNodePath,
-      YamlMap analyzerMap, YamlMap strongModeMap) async {
-    var builder =
-        ChangeBuilder(workspace: _NonDartChangeWorkspace(resourceProvider));
+  Future<void> _addFix_replaceWithStrictCasts(
+    List<YamlNode> coveringNodePath,
+    YamlMap analyzerMap,
+    YamlMap strongModeMap,
+  ) async {
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+    );
     await builder.addYamlFileEdit(file, (builder) {
       _replaceStrongModeEntryWithLanguageEntry(
         builder,
@@ -146,18 +167,22 @@ class AnalysisOptionsFixGenerator {
       );
     });
     _addFixFromBuilder(
-        builder, AnalysisOptionsFixKind.REPLACE_WITH_STRICT_CASTS,
-        args: [coveringNodePath[0].toString()]);
+      builder,
+      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_CASTS,
+      args: [coveringNodePath[0].toString()],
+    );
   }
 
   /// Replaces `analyzer: strong-mode: implicit-dynamic: false` with
   /// `analyzer: language: strict-raw-types: true`.
   Future<void> _addFix_replaceWithStrictRawTypes(
-      List<YamlNode> coveringNodePath,
-      YamlMap analyzerMap,
-      YamlMap strongModeMap) async {
-    var builder =
-        ChangeBuilder(workspace: _NonDartChangeWorkspace(resourceProvider));
+    List<YamlNode> coveringNodePath,
+    YamlMap analyzerMap,
+    YamlMap strongModeMap,
+  ) async {
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+    );
     await builder.addYamlFileEdit(file, (builder) {
       _replaceStrongModeEntryWithLanguageEntry(
         builder,
@@ -170,8 +195,10 @@ class AnalysisOptionsFixGenerator {
       );
     });
     _addFixFromBuilder(
-        builder, AnalysisOptionsFixKind.REPLACE_WITH_STRICT_RAW_TYPES,
-        args: [coveringNodePath[0].toString()]);
+      builder,
+      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_RAW_TYPES,
+      args: [coveringNodePath[0].toString()],
+    );
   }
 
   /// Add a fix whose edits were built by the [builder] that has the given
@@ -206,7 +233,9 @@ class AnalysisOptionsFixGenerator {
         if (parent.nodes.length > 1) {
           var nodeToDelete = coveringNodePath[index - 1];
           deletionRange = _lines(
-              nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
+            nodeToDelete.span.start.offset,
+            nodeToDelete.span.end.offset,
+          );
           break;
         }
       } else if (parent is YamlMap) {
@@ -229,10 +258,13 @@ class AnalysisOptionsFixGenerator {
           }
           if (key == null || value == null) {
             throw StateError(
-                'Child is neither a key nor a value in the parent');
+              'Child is neither a key nor a value in the parent',
+            );
           }
-          deletionRange = _lines(key.span.start.offset,
-              _firstNonWhitespaceBefore(value.span.end.offset));
+          deletionRange = _lines(
+            key.span.start.offset,
+            _firstNonWhitespaceBefore(value.span.end.offset),
+          );
           break;
         }
       } else if (parent is YamlDocument) {
@@ -241,8 +273,10 @@ class AnalysisOptionsFixGenerator {
       index++;
     }
     var nodeToDelete = coveringNodePath[index - 1];
-    deletionRange ??=
-        _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
+    deletionRange ??= _lines(
+      nodeToDelete.span.start.offset,
+      nodeToDelete.span.end.offset,
+    );
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(resourceProvider),
     );
@@ -264,9 +298,9 @@ class AnalysisOptionsFixGenerator {
   /// Returns whether the error is located within [map], covering the
   /// [YamlScalar] node for [key].
   bool _isErrorAtMapKey(YamlMap map, String key) {
-    var keyNode = map.nodes.keys
-        .whereType<YamlScalar>()
-        .firstWhereOrNull((k) => k.value == key);
+    var keyNode = map.nodes.keys.whereType<YamlScalar>().firstWhereOrNull(
+      (k) => k.value == key,
+    );
     if (keyNode == null) {
       return false;
     }
@@ -280,7 +314,8 @@ class AnalysisOptionsFixGenerator {
     var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
     var endLocation = lineInfo.getLocation(end);
     var endOffset = lineInfo.getOffsetOfLine(
-        math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
+      math.min(endLocation.lineNumber, lineInfo.lineCount - 1),
+    );
     return SourceRange(startOffset, endOffset - startOffset);
   }
 
@@ -308,8 +343,9 @@ class AnalysisOptionsFixGenerator {
     }
     var languageEdit = yamlEditor.edits.single;
     builder.addSimpleReplacement(
-        SourceRange(languageEdit.offset, languageEdit.length),
-        languageEdit.replacement);
+      SourceRange(languageEdit.offset, languageEdit.length),
+      languageEdit.replacement,
+    );
 
     // If `strongModeKey` is the only entry under 'strong-mode', then remove
     // the entire 'strong-mode' entry.
@@ -321,14 +357,16 @@ class AnalysisOptionsFixGenerator {
     var strongModeEdit = yamlEditor.edits[1];
     int strongModeEditOffset;
     if (strongModeEdit.offset > languageEdit.offset) {
-      strongModeEditOffset = strongModeEdit.offset -
+      strongModeEditOffset =
+          strongModeEdit.offset -
           (languageEdit.replacement.length - languageEdit.length);
     } else {
       strongModeEditOffset = strongModeEdit.offset;
     }
     builder.addSimpleReplacement(
-        SourceRange(strongModeEditOffset, strongModeEdit.length),
-        strongModeEdit.replacement);
+      SourceRange(strongModeEditOffset, strongModeEdit.length),
+      strongModeEdit.replacement,
+    );
   }
 }
 

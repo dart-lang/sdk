@@ -26,12 +26,18 @@ class EditGetAssistsHandler extends LegacyHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetAssistsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetAssistsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetAssistsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     var offset = params.offset;
     var length = params.length;
@@ -48,22 +54,26 @@ class EditGetAssistsHandler extends LegacyHandler
     //
     var requestParams = plugin.EditGetAssistsParams(file, offset, length);
     var driver = performance.run(
-        'getAnalysisDriver', (_) => server.getAnalysisDriver(file));
+      'getAnalysisDriver',
+      (_) => server.getAnalysisDriver(file),
+    );
     var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
     //
     // Compute fixes associated with server-generated errors.
     //
-    var changes = await performance.runAsync('_computeServerAssists',
-        (_) => _computeServerAssists(request, file, offset, length));
+    var changes = await performance.runAsync(
+      '_computeServerAssists',
+      (_) => _computeServerAssists(request, file, offset, length),
+    );
 
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
     var responses = await performance.runAsync(
-        'waitForResponses',
-        (_) =>
-            waitForResponses(pluginFutures, requestParameters: requestParams));
+      'waitForResponses',
+      (_) => waitForResponses(pluginFutures, requestParameters: requestParams),
+    );
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     var converter = ResultConverter();
     var pluginChanges = <plugin.PrioritizedSourceChange>[];
@@ -71,8 +81,9 @@ class EditGetAssistsHandler extends LegacyHandler
       var result = plugin.EditGetAssistsResult.fromResponse(response);
       pluginChanges.addAll(result.assists);
     }
-    pluginChanges
-        .sort((first, second) => first.priority.compareTo(second.priority));
+    pluginChanges.sort(
+      (first, second) => first.priority.compareTo(second.priority),
+    );
     changes.addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
 
     //
@@ -82,19 +93,23 @@ class EditGetAssistsHandler extends LegacyHandler
   }
 
   Future<List<SourceChange>> _computeServerAssists(
-      Request request, String file, int offset, int length) async {
+    Request request,
+    String file,
+    int offset,
+    int length,
+  ) async {
     var changes = <SourceChange>[];
 
-    var result = await server.getResolvedUnit(file);
+    var libraryResult = await server.getResolvedLibrary(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
 
-    if (result != null) {
+    if (libraryResult != null) {
+      var unitResult = libraryResult.unitWithPath(file)!;
       var context = DartAssistContextImpl(
         server.instrumentationService,
-        DartChangeWorkspace(
-          await server.currentSessions,
-        ),
-        result,
+        DartChangeWorkspace(await server.currentSessions),
+        libraryResult,
+        unitResult,
         server.producerGeneratorsForLintRules,
         offset,
         length,
@@ -115,7 +130,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content,
+          file: unitResult.content,
           'parameters': parametersFile,
         });
       }

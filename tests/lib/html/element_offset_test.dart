@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   void initPage() {
@@ -56,7 +56,9 @@ main() {
     bar.children.add(baz);
 
     var quux = new DivElement()..classes.add('quux');
-    var qux = new DivElement()..classes.add('qux')..children.add(quux);
+    var qux = new DivElement()
+      ..classes.add('qux')
+      ..children.add(quux);
 
     document.body!.append(bar);
     document.body!.append(qux);

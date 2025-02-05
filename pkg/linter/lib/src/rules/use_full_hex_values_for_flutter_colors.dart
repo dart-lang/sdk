@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to '
@@ -41,10 +40,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement;
+    var element = node.constructorName.element;
     if (element != null &&
         element.isSameAs(
-            uri: 'dart.ui', className: 'Color', constructorName: '')) {
+          uri: 'dart.ui',
+          className: 'Color',
+          constructorName: 'new',
+        )) {
       var arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         var argument = arguments.first;

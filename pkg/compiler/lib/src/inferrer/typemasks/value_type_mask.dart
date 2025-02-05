@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 class ValueTypeMask extends ForwardingTypeMask {
   /// Tag used for identifying serialized [ValueTypeMask] objects in a
@@ -17,7 +17,9 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   /// Deserializes a [ValueTypeMask] object from [source].
   factory ValueTypeMask.readFromDataSource(
-      DataSourceReader source, CommonMasks domain) {
+    DataSourceReader source,
+    CommonMasks domain,
+  ) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     final constant = source.readConstant() as PrimitiveConstantValue;
@@ -36,7 +38,7 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  ValueTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  ValueTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -44,19 +46,29 @@ class ValueTypeMask extends ForwardingTypeMask {
       return this;
     }
     return ValueTypeMask(
-        forwardTo.withFlags(
-            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
-        value);
+      forwardTo.withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      ),
+      value,
+    );
   }
 
   @override
-  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {required bool isNullable, required bool hasLateSentinel}) {
+  TypeMask? _unionSpecialCases(
+    TypeMask other,
+    CommonMasks domain, {
+    required bool isNullable,
+    required bool hasLateSentinel,
+  }) {
     if (other is ValueTypeMask &&
-        forwardTo.withoutFlags() == other.forwardTo.withoutFlags() &&
+        forwardTo.withoutSpecialValues() ==
+            other.forwardTo.withoutSpecialValues() &&
         value == other.value) {
-      return withFlags(
-          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+      return withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     }
     return null;
   }

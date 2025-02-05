@@ -26,7 +26,10 @@ test(List expects, Iterable iterable, [String? name]) {
       var expect = expects[index];
       Expect.equals(expect, it.current, "$name at $index");
       Expect.equals(
-          expect, iterable.elementAt(index), "$name: elementAt($index)");
+        expect,
+        iterable.elementAt(index),
+        "$name: elementAt($index)",
+      );
       Expect.isTrue(iterable.contains(expect), "$name:contains $index");
     }
     Expect.isFalse(it.moveNext(), "$name: extra element at ${expects.length}");
@@ -52,7 +55,7 @@ main() {
   for (var data in [
     const <int>[],
     const <int>[1],
-    const <int>[1, 2, 3]
+    const <int>[1, 2, 3],
   ]) {
     conversions.forEach((name, c) {
       test(data, c(data).whereType<int>(), "$name#${data.length}.wt<int>");

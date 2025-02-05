@@ -49,51 +49,66 @@ abstract class IOOverrides {
   ///
   /// See the documentation on the corresponding methods of [IOOverrides] for
   /// information about what the optional arguments do.
-  static R runZoned<R>(R body(),
-      {
-      // Directory
-      Directory Function(String)? createDirectory,
-      Directory Function()? getCurrentDirectory,
-      void Function(String)? setCurrentDirectory,
-      Directory Function()? getSystemTempDirectory,
+  static R runZoned<R>(
+    R body(), {
+    // Directory
+    Directory Function(String)? createDirectory,
+    Directory Function()? getCurrentDirectory,
+    void Function(String)? setCurrentDirectory,
+    Directory Function()? getSystemTempDirectory,
 
-      // File
-      File Function(String)? createFile,
+    // File
+    File Function(String)? createFile,
 
-      // FileStat
-      Future<FileStat> Function(String)? stat,
-      FileStat Function(String)? statSync,
+    // FileStat
+    Future<FileStat> Function(String)? stat,
+    FileStat Function(String)? statSync,
 
-      // FileSystemEntity
-      Future<bool> Function(String, String)? fseIdentical,
-      bool Function(String, String)? fseIdenticalSync,
-      Future<FileSystemEntityType> Function(String, bool)? fseGetType,
-      FileSystemEntityType Function(String, bool)? fseGetTypeSync,
+    // FileSystemEntity
+    Future<bool> Function(String, String)? fseIdentical,
+    bool Function(String, String)? fseIdenticalSync,
+    Future<FileSystemEntityType> Function(String, bool)? fseGetType,
+    FileSystemEntityType Function(String, bool)? fseGetTypeSync,
 
-      // _FileSystemWatcher
-      Stream<FileSystemEvent> Function(String, int, bool)? fsWatch,
-      bool Function()? fsWatchIsSupported,
+    // _FileSystemWatcher
+    Stream<FileSystemEvent> Function(String, int, bool)? fsWatch,
+    bool Function()? fsWatchIsSupported,
 
-      // Link
-      Link Function(String)? createLink,
+    // Link
+    Link Function(String)? createLink,
 
-      // Socket
-      Future<Socket> Function(dynamic, int,
-              {dynamic sourceAddress, int sourcePort, Duration? timeout})?
-          socketConnect,
-      Future<ConnectionTask<Socket>> Function(dynamic, int,
-              {dynamic sourceAddress, int sourcePort})?
-          socketStartConnect,
+    // Socket
+    Future<Socket> Function(
+      dynamic,
+      int, {
+      dynamic sourceAddress,
+      int sourcePort,
+      Duration? timeout,
+    })?
+    socketConnect,
+    Future<ConnectionTask<Socket>> Function(
+      dynamic,
+      int, {
+      dynamic sourceAddress,
+      int sourcePort,
+    })?
+    socketStartConnect,
 
-      // ServerSocket
-      Future<ServerSocket> Function(dynamic, int,
-              {int backlog, bool v6Only, bool shared})?
-          serverSocketBind,
+    // ServerSocket
+    Future<ServerSocket> Function(
+      dynamic,
+      int, {
+      int backlog,
+      bool v6Only,
+      bool shared,
+    })?
+    serverSocketBind,
 
-      // Standard Streams
-      Stdin Function()? stdin,
-      Stdout Function()? stdout,
-      Stdout Function()? stderr}) {
+    // Standard Streams
+    Stdin Function()? stdin,
+    Stdout Function()? stdout,
+    Stdout Function()? stderr,
+  }) {
     // Avoid building chains of override scopes. Just copy outer scope's
     // functions and `_previous`.
     var current = IOOverrides.current;
@@ -142,8 +157,10 @@ abstract class IOOverrides {
       stdout ?? currentScope?._stdout,
       stderr ?? currentScope?._stderr,
     );
-    return dart_async
-        .runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async.runZoned<R>(
+      body,
+      zoneValues: {_ioOverridesToken: overrides},
+    );
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
@@ -151,8 +168,10 @@ abstract class IOOverrides {
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
   static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
-    return dart_async
-        .runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async.runZoned<R>(
+      body,
+      zoneValues: {_ioOverridesToken: overrides},
+    );
   }
 
   // Directory
@@ -275,10 +294,20 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.connect(...)`.
-  Future<Socket> socketConnect(host, int port,
-      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
-    return Socket._connect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
+  Future<Socket> socketConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) {
+    return Socket._connect(
+      host,
+      port,
+      sourceAddress: sourceAddress,
+      sourcePort: sourcePort,
+      timeout: timeout,
+    );
   }
 
   /// Asynchronously returns a [ConnectionTask] that connects to the given host
@@ -286,10 +315,18 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.startConnect(...)`.
-  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress, int sourcePort = 0}) {
-    return Socket._startConnect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort);
+  Future<ConnectionTask<Socket>> socketStartConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+  }) {
+    return Socket._startConnect(
+      host,
+      port,
+      sourceAddress: sourceAddress,
+      sourcePort: sourcePort,
+    );
   }
 
   // ServerSocket
@@ -299,10 +336,20 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this functions overrides the behavior of
   /// `ServerSocket.bind(...)`.
-  Future<ServerSocket> serverSocketBind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false}) {
-    return ServerSocket._bind(address, port,
-        backlog: backlog, v6Only: v6Only, shared: shared);
+  Future<ServerSocket> serverSocketBind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) {
+    return ServerSocket._bind(
+      address,
+      port,
+      backlog: backlog,
+      v6Only: v6Only,
+      shared: shared,
+    );
   }
 
   // Standard streams
@@ -362,16 +409,31 @@ class _IOOverridesScope extends IOOverrides {
   final Link Function(String)? _createLink;
 
   // Socket
-  final Future<Socket> Function(dynamic, int,
-      {dynamic sourceAddress,
-      int sourcePort,
-      Duration? timeout})? _socketConnect;
-  final Future<ConnectionTask<Socket>> Function(dynamic, int,
-      {dynamic sourceAddress, int sourcePort})? _socketStartConnect;
+  final Future<Socket> Function(
+    dynamic,
+    int, {
+    dynamic sourceAddress,
+    int sourcePort,
+    Duration? timeout,
+  })?
+  _socketConnect;
+  final Future<ConnectionTask<Socket>> Function(
+    dynamic,
+    int, {
+    dynamic sourceAddress,
+    int sourcePort,
+  })?
+  _socketStartConnect;
 
   // ServerSocket
-  final Future<ServerSocket> Function(dynamic, int,
-      {int backlog, bool v6Only, bool shared})? _serverSocketBind;
+  final Future<ServerSocket> Function(
+    dynamic,
+    int, {
+    int backlog,
+    bool v6Only,
+    bool shared,
+  })?
+  _serverSocketBind;
 
   // Standard streams
   final Stdin Function()? _stdin;
@@ -514,41 +576,91 @@ class _IOOverridesScope extends IOOverrides {
 
   // Socket
   @override
-  Future<Socket> socketConnect(host, int port,
-          {sourceAddress, int sourcePort = 0, Duration? timeout}) =>
-      _socketConnect?.call(host, port,
-          sourceAddress: sourceAddress,
-          sourcePort: sourcePort,
-          timeout: timeout) ??
-      _previous?.socketConnect(host, port,
-          sourceAddress: sourceAddress,
-          sourcePort: sourcePort,
-          timeout: timeout) ??
-      super.socketConnect(host, port,
-          sourceAddress: sourceAddress,
-          sourcePort: sourcePort,
-          timeout: timeout);
+  Future<Socket> socketConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) =>
+      _socketConnect?.call(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+        timeout: timeout,
+      ) ??
+      _previous?.socketConnect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+        timeout: timeout,
+      ) ??
+      super.socketConnect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+        timeout: timeout,
+      );
 
   @override
-  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-          {sourceAddress, int sourcePort = 0}) =>
-      _socketStartConnect?.call(host, port,
-          sourceAddress: sourceAddress, sourcePort: sourcePort) ??
-      _previous?.socketStartConnect(host, port,
-          sourceAddress: sourceAddress, sourcePort: sourcePort) ??
-      super.socketStartConnect(host, port,
-          sourceAddress: sourceAddress, sourcePort: sourcePort);
+  Future<ConnectionTask<Socket>> socketStartConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+  }) =>
+      _socketStartConnect?.call(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+      ) ??
+      _previous?.socketStartConnect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+      ) ??
+      super.socketStartConnect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+      );
 
   // ServerSocket
   @override
-  Future<ServerSocket> serverSocketBind(address, int port,
-          {int backlog = 0, bool v6Only = false, bool shared = false}) =>
-      _serverSocketBind?.call(address, port,
-          backlog: backlog, v6Only: v6Only, shared: shared) ??
-      _previous?.serverSocketBind(address, port,
-          backlog: backlog, v6Only: v6Only, shared: shared) ??
-      super.serverSocketBind(address, port,
-          backlog: backlog, v6Only: v6Only, shared: shared);
+  Future<ServerSocket> serverSocketBind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) =>
+      _serverSocketBind?.call(
+        address,
+        port,
+        backlog: backlog,
+        v6Only: v6Only,
+        shared: shared,
+      ) ??
+      _previous?.serverSocketBind(
+        address,
+        port,
+        backlog: backlog,
+        v6Only: v6Only,
+        shared: shared,
+      ) ??
+      super.serverSocketBind(
+        address,
+        port,
+        backlog: backlog,
+        v6Only: v6Only,
+        shared: shared,
+      );
 
   // Standard streams
   @override

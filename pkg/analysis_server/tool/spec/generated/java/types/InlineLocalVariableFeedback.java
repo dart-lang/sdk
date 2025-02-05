@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -29,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class InlineLocalVariableFeedback extends RefactoringFeedback {
 
-  public static final InlineLocalVariableFeedback[] EMPTY_ARRAY = new InlineLocalVariableFeedback[0];
-
-  public static final List<InlineLocalVariableFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<InlineLocalVariableFeedback> EMPTY_LIST = List.of();
 
   /**
    * The name of the variable being inlined.
@@ -53,10 +48,9 @@ public class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof InlineLocalVariableFeedback) {
-      InlineLocalVariableFeedback other = (InlineLocalVariableFeedback) obj;
+    if (obj instanceof InlineLocalVariableFeedback other) {
       return
-        ObjectUtilities.equals(other.name, name) &&
+        Objects.equals(other.name, name) &&
         other.occurrences == occurrences;
     }
     return false;
@@ -72,10 +66,9 @@ public class InlineLocalVariableFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<InlineLocalVariableFeedback> list = new ArrayList<InlineLocalVariableFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<InlineLocalVariableFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -96,12 +89,13 @@ public class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(name);
-    builder.append(occurrences);
-    return builder.toHashCode();
+    return Objects.hash(
+      name,
+      occurrences
+    );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", name);
@@ -114,7 +108,8 @@ public class InlineLocalVariableFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("occurrences=");
     builder.append(occurrences);
     builder.append("]");

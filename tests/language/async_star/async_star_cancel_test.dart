@@ -6,8 +6,8 @@
 // event, and before continuing after the yield.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() async {
   asyncStart();
@@ -25,21 +25,27 @@ main() async {
 
   var completer = Completer();
   var s;
-  s = f().listen((e) {
-    log.add("+$e");
-    // The `cancel` operation makes all `yield` operations act as returns.
-    // It should make the `finally` block in `f` log an "x",
-    // and nothing else.
-    completer.complete(s.cancel());
-  }, onError: (e) {
-    // Should never be reached, but if it does, we'll make the await
-    // below terminate.
-    completer.complete(new Future.sync(() {
-      Expect.fail("$e");
-    }));
-  }, onDone: () {
-    completer.complete(null);
-  });
+  s = f().listen(
+    (e) {
+      log.add("+$e");
+      // The `cancel` operation makes all `yield` operations act as returns.
+      // It should make the `finally` block in `f` log an "x",
+      // and nothing else.
+      completer.complete(s.cancel());
+    },
+    onError: (e) {
+      // Should never be reached, but if it does, we'll make the await
+      // below terminate.
+      completer.complete(
+        new Future.sync(() {
+          Expect.fail("$e");
+        }),
+      );
+    },
+    onDone: () {
+      completer.complete(null);
+    },
+  );
   await completer.future;
   Expect.listEquals(["-1", "+1", "x"], log, "cancel");
   asyncEnd();

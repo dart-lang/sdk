@@ -67,15 +67,18 @@ class ServerDartFixPromptTest extends PubPackageAnalysisServerTest {
 @reflectiveTest
 class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_getVersion() async {
-    var request = ServerGetVersionParams()
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ServerGetVersionParams().toRequest(
+      '0',
+      clientUriConverter: server.uriConverter,
+    );
     var response = await handleSuccessfulRequest(request);
     expect(
-        response.toJson(),
-        equals({
-          Response.ID: '0',
-          Response.RESULT: {VERSION: PROTOCOL_VERSION}
-        }));
+      response.toJson(),
+      equals({
+        Response.ID: '0',
+        Response.RESULT: {VERSION: PROTOCOL_VERSION},
+      }),
+    );
   }
 
   Future<void> test_openUrl() async {
@@ -88,17 +91,22 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
-    await serverChannel.simulateResponseFromClient(ServerOpenUrlRequestResult()
-        .toResponse(request.id, clientUriConverter: server.uriConverter));
+    await serverChannel.simulateResponseFromClient(
+      ServerOpenUrlRequestResult().toResponse(
+        request.id,
+        clientUriConverter: server.uriConverter,
+      ),
+    );
     await responseFuture;
   }
 
   Future<void> test_setClientCapabilities_requests() async {
     var requestId = -1;
 
-    Future<void> setCapabilities(
-        {required bool openUrlRequest,
-        required bool showMessageRequest}) async {
+    Future<void> setCapabilities({
+      required bool openUrlRequest,
+      required bool showMessageRequest,
+    }) async {
       var requests = [
         if (openUrlRequest) 'openUrlRequest',
         if (showMessageRequest) 'showMessageRequest',
@@ -107,15 +115,18 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
         // This is a bit of a kludge, but the first time this function is called
         // we won't set the request, we'll just test the default state.
         var request = ServerSetClientCapabilitiesParams(requests).toRequest(
-            requestId.toString(),
-            clientUriConverter: server.uriConverter);
+          requestId.toString(),
+          clientUriConverter: server.uriConverter,
+        );
         await handleSuccessfulRequest(request);
       }
       requestId++;
 
       expect(server.clientCapabilities.requests, requests);
-      expect(server.openUriNotificationSender,
-          openUrlRequest ? isNotNull : isNull);
+      expect(
+        server.openUriNotificationSender,
+        openUrlRequest ? isNotNull : isNull,
+      );
       expect(server.userPromptSender, showMessageRequest ? isNotNull : isNull);
     }
 
@@ -129,26 +140,30 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   /// Verify that the server handles URIs once we've enabled the supportsUris
   /// client capability.
   Future<void>
-      test_setClientCapabilities_supportsUris_clientToServer_request() async {
+  test_setClientCapabilities_supportsUris_clientToServer_request() async {
     // Tell the server we support URIs.
     await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('-1', clientUriConverter: server.uriConverter));
+      ServerSetClientCapabilitiesParams(
+        [],
+        supportsUris: true,
+      ).toRequest('-1', clientUriConverter: server.uriConverter),
+    );
 
     // Set the roots using a URI. Since the helper methods will to through
     // toJson() (which will convert paths to URIs) we need to pass the JSON
     // manually here.
-    await handleSuccessfulRequest(Request('1', 'analysis.setAnalysisRoots', {
-      'included': [toUri(workspaceRootPath).toString()],
-      'excluded': [],
-    }));
+    await handleSuccessfulRequest(
+      Request('1', 'analysis.setAnalysisRoots', {
+        'included': [toUri(workspaceRootPath).toString()],
+        'excluded': [],
+      }),
+    );
     await pumpEventQueue(times: 5000);
 
     // Ensure the roots were recorded correctly.
-    expect(
-      server.contextManager.includedPaths,
-      [convertPath(workspaceRootPath)],
-    );
+    expect(server.contextManager.includedPaths, [
+      convertPath(workspaceRootPath),
+    ]);
   }
 
   Future<void> test_setClientCapabilities_supportsUris_defaults() async {
@@ -157,25 +172,34 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
 
     // If not supplied.
-    await handleSuccessfulRequest(ServerSetClientCapabilitiesParams([])
-        .toRequest('-1', clientUriConverter: server.uriConverter));
+    await handleSuccessfulRequest(
+      ServerSetClientCapabilitiesParams(
+        [],
+      ).toRequest('-1', clientUriConverter: server.uriConverter),
+    );
     expect(server.clientCapabilities.supportsUris, isNull);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
 
     // If set explicitly to false.
     await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: false)
-            .toRequest('-1', clientUriConverter: server.uriConverter));
+      ServerSetClientCapabilitiesParams(
+        [],
+        supportsUris: false,
+      ).toRequest('-1', clientUriConverter: server.uriConverter),
+    );
     expect(server.clientCapabilities.supportsUris, isFalse);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
   }
 
   Future<void>
-      test_setClientCapabilities_supportsUris_false_rejectsUris() async {
+  test_setClientCapabilities_supportsUris_false_rejectsUris() async {
     // Explicitly tell the server we do not support URIs.
     await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: false)
-            .toRequest('-1', clientUriConverter: server.uriConverter));
+      ServerSetClientCapabilitiesParams(
+        [],
+        supportsUris: false,
+      ).toRequest('-1', clientUriConverter: server.uriConverter),
+    );
 
     // Try to send a URI anyway.
     var request = Request('1', 'analysis.setAnalysisRoots', {
@@ -184,15 +208,15 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     });
     var response = await handleRequest(request);
     expect(
-        response,
-        isResponseFailure(
-            request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+      response,
+      isResponseFailure(request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   /// Verify that the server uses URIs in notifications once we've enabled the
   /// supportsUris client capability.
   Future<void>
-      test_setClientCapabilities_supportsUris_serverToClient_notification() async {
+  test_setClientCapabilities_supportsUris_serverToClient_notification() async {
     // Add a file with an error for testing.
     var testFilePath = convertPath('$testPackageLibPath/test.dart');
     var testFileUriString = toUri(testFilePath).toString();
@@ -201,8 +225,11 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Tell the server we support URIs before analysis starts since we will
     // verify the analysis.errors notification.
     await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('10', clientUriConverter: server.uriConverter));
+      ServerSetClientCapabilitiesParams(
+        [],
+        supportsUris: true,
+      ).toRequest('10', clientUriConverter: server.uriConverter),
+    );
     await pumpEventQueue(times: 5000);
 
     // Trigger analysis.
@@ -218,16 +245,13 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
         .where((notification) => notification.event == 'analysis.errors')
         .map((notification) => notification.params!['file'] as String)
         .lastWhere((filePath) => filePath.endsWith('test.dart'));
-    expect(
-      lastErrorFile,
-      testFileUriString,
-    );
+    expect(lastErrorFile, testFileUriString);
   }
 
   /// Verify that the server returns URIs once we've enabled the supportsUris
   /// client capability.
   Future<void>
-      test_setClientCapabilities_supportsUris_serverToClient_response() async {
+  test_setClientCapabilities_supportsUris_serverToClient_response() async {
     // Add a file with an error for testing.
     var testFilePath = convertPath('$testPackageLibPath/test.dart');
     var testFileUriString = toUri(testFilePath).toString();
@@ -238,16 +262,18 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Tell the server we support URIs.
     await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('10', clientUriConverter: server.uriConverter));
+      ServerSetClientCapabilitiesParams(
+        [],
+        supportsUris: true,
+      ).toRequest('10', clientUriConverter: server.uriConverter),
+    );
     await pumpEventQueue(times: 5000);
 
     // Send a GetErrors request. The response has nested FilePaths inside the
     // AnalysisErrors so will confirm the server mapped correctly.
-    var response =
-        await handleSuccessfulRequest(Request('1', 'analysis.getErrors', {
-      'file': testFileUriString,
-    }));
+    var response = await handleSuccessfulRequest(
+      Request('1', 'analysis.getErrors', {'file': testFileUriString}),
+    );
     // Verify the error location was the expected URI.
     expect(
       (response.result as dynamic)['errors'][0]!['location']['file'],
@@ -256,7 +282,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void>
-      test_setClientCapabilities_supportsUris_unspecified_rejectsUris() async {
+  test_setClientCapabilities_supportsUris_unspecified_rejectsUris() async {
     // Do not tell the server we support URIs.
 
     // Try to send a URI anyway.
@@ -266,14 +292,14 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     });
     var response = await handleRequest(request);
     expect(
-        response,
-        isResponseFailure(
-            request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+      response,
+      isResponseFailure(request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   Future<void> test_setSubscriptions_invalidServiceName() async {
     var request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
-      SUBSCRIPTIONS: ['noSuchService']
+      SUBSCRIPTIONS: ['noSuchService'],
     });
     var response = await handleRequest(request);
     expect(response, isResponseFailure('0'));
@@ -282,8 +308,9 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_setSubscriptions_success() async {
     expect(server.serverServices, isEmpty);
     // send request
-    var request = ServerSetSubscriptionsParams([ServerService.STATUS])
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ServerSetSubscriptionsParams([
+      ServerService.STATUS,
+    ]).toRequest('0', clientUriConverter: server.uriConverter);
     await handleSuccessfulRequest(request);
     // set of services has been changed
     expect(server.serverServices, contains(ServerService.STATUS));
@@ -293,15 +320,20 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     server.clientCapabilities.requests = ['showMessageRequest'];
 
     // Send the request.
-    var responseFuture =
-        server.userPromptSender!(MessageType.warning, 'message', ['a', 'b']);
+    var responseFuture = server.userPromptSender!(
+      MessageType.warning,
+      'message',
+      ['a', 'b'],
+    );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult(action: 'a')
-            .toResponse(request.id, clientUriConverter: server.uriConverter));
+      ServerShowMessageRequestResult(
+        action: 'a',
+      ).toResponse(request.id, clientUriConverter: server.uriConverter),
+    );
     var response = await responseFuture;
     expect(response, 'a');
   }
@@ -310,22 +342,30 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     server.clientCapabilities.requests = ['showMessageRequest'];
 
     // Send the request.
-    var responseFuture =
-        server.userPromptSender!(MessageType.warning, 'message', ['a', 'b']);
+    var responseFuture = server.userPromptSender!(
+      MessageType.warning,
+      'message',
+      ['a', 'b'],
+    );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult()
-            .toResponse(request.id, clientUriConverter: server.uriConverter));
+      ServerShowMessageRequestResult().toResponse(
+        request.id,
+        clientUriConverter: server.uriConverter,
+      ),
+    );
     var response = await responseFuture;
     expect(response, isNull);
   }
 
   Future<void> test_shutdown() async {
-    var request = ServerShutdownParams()
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ServerShutdownParams().toRequest(
+      '0',
+      clientUriConverter: server.uriConverter,
+    );
     await handleSuccessfulRequest(request);
   }
 }

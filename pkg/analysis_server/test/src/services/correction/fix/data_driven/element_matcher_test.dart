@@ -19,17 +19,21 @@ void main() {
 }
 
 abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
-  void _assertMatcher(String search,
-      {List<String>? expectedComponents,
-      List<ElementKind>? expectedKinds,
-      List<String>? expectedUris}) {
+  void _assertMatcher(
+    String search, {
+    List<String>? expectedComponents,
+    List<ElementKind>? expectedKinds,
+    List<String>? expectedUris,
+  }) {
     var node = findNode.any(search);
     var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
     if (expectedUris != null) {
-      expect(matcher.importedUris,
-          unorderedEquals(expectedUris.map((uri) => Uri.parse(uri))));
+      expect(
+        matcher.importedUris,
+        unorderedEquals(expectedUris.map((uri) => Uri.parse(uri))),
+      );
     }
     if (expectedComponents != null) {
       expect(matcher.components, expectedComponents);
@@ -65,7 +69,7 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   /// The kinds that are expected where a method or constructor is allowed.
   static List<ElementKind> methodKinds = [
     ElementKind.constructorKind,
-    ElementKind.methodKind
+    ElementKind.methodKind,
   ];
 
   /// The kinds that are expected where a type is allowed.
@@ -84,9 +88,11 @@ void f(int x, int y) {
   x + y;
 }
 ''');
-    _assertMatcher('+',
-        expectedComponents: ['+', 'int'],
-        expectedKinds: [ElementKind.methodKind]);
+    _assertMatcher(
+      '+',
+      expectedComponents: ['+', 'int'],
+      expectedKinds: [ElementKind.methodKind],
+    );
   }
 
   @failingTest
@@ -98,9 +104,11 @@ void f(C c1, C c2) {
 }
 class C {}
 ''');
-    _assertMatcher('+',
-        expectedComponents: ['+', 'C'],
-        expectedKinds: [ElementKind.methodKind]);
+    _assertMatcher(
+      '+',
+      expectedComponents: ['+', 'C'],
+      expectedKinds: [ElementKind.methodKind],
+    );
   }
 
   Future<void> test_getter_withoutTarget_resolved() async {
@@ -132,8 +140,11 @@ void f(String s) {
   s.length;
 }
 ''');
-    _assertMatcher('length',
-        expectedComponents: ['length', 'String'], expectedKinds: accessorKinds);
+    _assertMatcher(
+      'length',
+      expectedComponents: ['length', 'String'],
+      expectedKinds: accessorKinds,
+    );
   }
 
   Future<void> test_getter_withTarget_unresolved() async {
@@ -142,8 +153,11 @@ void f(String s) {
   s.foo;
 }
 ''');
-    _assertMatcher('foo',
-        expectedComponents: ['foo', 'String'], expectedKinds: accessorKinds);
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'String'],
+      expectedKinds: accessorKinds,
+    );
   }
 
   Future<void> test_identifier_propertyAccess() async {
@@ -163,10 +177,11 @@ void f() {
     );
 
     var element = ElementDescriptor(
-        libraryUris: [Uri.parse(importUri)],
-        kind: ElementKind.constructorKind,
-        components: ['', 'A'],
-        isStatic: false);
+      libraryUris: [Uri.parse(importUri)],
+      kind: ElementKind.constructorKind,
+      components: ['', 'A'],
+      isStatic: false,
+    );
 
     expect(matcher.matches(element), isFalse);
   }
@@ -179,10 +194,11 @@ void f() {
     );
 
     var element = ElementDescriptor(
-        libraryUris: [Uri.parse(importUri)],
-        kind: ElementKind.constructorKind,
-        components: ['', 'A'],
-        isStatic: false);
+      libraryUris: [Uri.parse(importUri)],
+      kind: ElementKind.constructorKind,
+      components: ['', 'A'],
+      isStatic: false,
+    );
 
     expect(matcher.matches(element), isTrue);
   }
@@ -196,8 +212,11 @@ class C {
   }
 }
 ''');
-    _assertMatcher('m(0)',
-        expectedComponents: ['m', 'C'], expectedKinds: invocationKinds);
+    _assertMatcher(
+      'm(0)',
+      expectedComponents: ['m', 'C'],
+      expectedKinds: invocationKinds,
+    );
   }
 
   Future<void> test_method_withoutTarget_unresolved() async {
@@ -208,8 +227,11 @@ class C {
   }
 }
 ''');
-    _assertMatcher('foo',
-        expectedComponents: ['foo'], expectedKinds: invocationKinds);
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo'],
+      expectedKinds: invocationKinds,
+    );
   }
 
   Future<void> test_method_withTarget_resolved() async {
@@ -218,9 +240,11 @@ void f(String s) {
   s.substring(2);
 }
 ''');
-    _assertMatcher('substring',
-        expectedComponents: ['substring', 'String'],
-        expectedKinds: methodKinds);
+    _assertMatcher(
+      'substring',
+      expectedComponents: ['substring', 'String'],
+      expectedKinds: methodKinds,
+    );
   }
 
   Future<void> test_method_withTarget_unresolved() async {
@@ -229,8 +253,11 @@ void f(String s) {
   s.foo(2);
 }
 ''');
-    _assertMatcher('foo',
-        expectedComponents: ['foo', 'String'], expectedKinds: methodKinds);
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'String'],
+      expectedKinds: methodKinds,
+    );
   }
 
   Future<void> test_setter_withoutTarget_resolved() async {
@@ -265,8 +292,11 @@ class C {
   set s(String s) {}
 }
 ''');
-    _assertMatcher('s =',
-        expectedComponents: ['s', 'C'], expectedKinds: accessorKinds);
+    _assertMatcher(
+      's =',
+      expectedComponents: ['s', 'C'],
+      expectedKinds: accessorKinds,
+    );
   }
 
   Future<void> test_setter_withTarget_unresolved() async {
@@ -275,8 +305,11 @@ void f(String s) {
   s.foo = '';
 }
 ''');
-    _assertMatcher('foo',
-        expectedComponents: ['foo', 'String'], expectedKinds: accessorKinds);
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'String'],
+      expectedKinds: accessorKinds,
+    );
   }
 
   Future<void> test_type_field_resolved() async {
@@ -285,8 +318,11 @@ class C {
   String s = '';
 }
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_field_unresolved() async {
@@ -295,8 +331,11 @@ class C {
   Foo s = '';
 }
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_localVariable_resolved() async {
@@ -305,8 +344,11 @@ void f() {
   String s = '';
 }
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_localVariable_unresolved() async {
@@ -315,8 +357,11 @@ void f() {
   Foo s = '';
 }
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_method_resolved() async {
@@ -325,8 +370,11 @@ class C {
   String m() => '';
 }
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_method_unresolved() async {
@@ -335,56 +383,77 @@ class C {
   Foo m() => '';
 }
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_parameter_resolved() async {
     await resolveTestCode('''
 void f(String s) {}
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_parameter_unresolved() async {
     await resolveTestCode('''
 void f(Foo s) {}
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_topLevelFunction_resolved() async {
     await resolveTestCode('''
 String f() => '';
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_topLevelFunction_unresolved() async {
     await resolveTestCode('''
 Foo f() => '';
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_topLevelVariable_resolved() async {
     await resolveTestCode('''
 String s = '';
 ''');
-    _assertMatcher('String',
-        expectedComponents: ['String'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'String',
+      expectedComponents: ['String'],
+      expectedKinds: typeKinds,
+    );
   }
 
   Future<void> test_type_topLevelVariable_unresolved() async {
     await resolveTestCode('''
 Foo s = '';
 ''');
-    _assertMatcher('Foo',
-        expectedComponents: ['Foo'], expectedKinds: typeKinds);
+    _assertMatcher(
+      'Foo',
+      expectedComponents: ['Foo'],
+      expectedKinds: typeKinds,
+    );
   }
 }
 
@@ -401,16 +470,20 @@ String s = '';
     var packageRootPath = '$workspaceRootPath/other';
     newFile('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
-        config: PackageConfigFileBuilder()
-          ..add(name: 'other', rootPath: packageRootPath));
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'other', rootPath: packageRootPath),
+    );
 
     await resolveTestCode('''
 import 'package:other/other.dart';
 
 String s = '';
 ''');
-    _assertMatcher('s',
-        expectedUris: ['dart:core', 'package:other/other.dart']);
+    _assertMatcher(
+      's',
+      expectedUris: ['dart:core', 'package:other/other.dart'],
+    );
   }
 
   Future<void> test_imports_relative() async {

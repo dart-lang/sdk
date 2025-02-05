@@ -15,7 +15,8 @@ void main() {
 
 @reflectiveTest
 class ClassStaticMembersWithoutClassNameTest
-    extends AbstractCompletionDriverTest with _Helpers {
+    extends AbstractCompletionDriverTest
+    with _Helpers {
   @override
   Future<void> setUp() async {
     await super.setUp();

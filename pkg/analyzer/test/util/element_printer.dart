@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -83,6 +85,10 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.write('<null>');
+      case TypeAliasElementImpl2 element:
+        writeReference(element.reference);
+      case TopLevelVariableElementImpl2 element:
+        writeReference(element.reference);
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
         _sink.write('<not-implemented>');
@@ -91,13 +97,15 @@ class ElementPrinter {
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case DynamicElementImpl():
-        _sink.write('dynamic@-1');
+      case DynamicElementImpl2():
+        _sink.write('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment);
+        var referenceStr = _elementToReferenceString(firstFragment as Element);
         _sink.write(referenceStr);
         _sink.write('#element');
+      case TopLevelFunctionElementImpl element:
+        writeReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
@@ -109,31 +117,46 @@ class ElementPrinter {
         writeReference(reference!);
         _sink.write('#element');
       case LabelElementImpl():
-        _sink.write('${element.name}@${element.nameOffset}');
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl2():
-        _sink.write('${element.name}@${element.nameOffset}');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
         writeReference(e.reference!);
       case LocalFunctionElementImpl():
-        _sink.write('${element.name}@${element.nameOffset}');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
-        _sink.write('${element.name}@${element.nameOffset}');
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl2():
-        _sink.write('${element.name}@${element.nameOffset}');
-      case MaybeAugmentedInstanceElementMixin element:
-        var firstFragment = element.firstFragment as ElementImpl;
-        var reference = firstFragment.reference!;
-        writeReference(reference);
-        _sink.write('#element');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+      case NeverElementImpl2():
+        _sink.write('Never');
+      case ClassElementImpl2 element:
+        writeReference(element.reference);
+      case EnumElementImpl2 element:
+        writeReference(element.reference);
+      case ExtensionElementImpl2 element:
+        writeReference(element.reference);
+      case ExtensionTypeElementImpl2 element:
+        writeReference(element.reference);
+      case MixinElementImpl2 element:
+        writeReference(element.reference);
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case MultiplyDefinedElementImpl():
+      case MultiplyDefinedElementImpl2():
         _sink.write('<null>');
       case NeverElementImpl():
         _sink.write('Never@-1');
+      case ParameterMember():
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment as Element);
+        _sink.write(referenceStr);
+        _sink.write('#element');
       case PrefixElementImpl2 element:
         writeReference(element.reference);
       case SetterElement element:
@@ -151,6 +174,24 @@ class ElementPrinter {
       _sink.writeIndent();
       writeElement(element);
     });
+  }
+
+  void writeElementList2(String name, List<Element2> elements) {
+    _sink.writeElements(name, elements, (element) {
+      _sink.writeIndentedLine(() {
+        writeElement2(element);
+      });
+    });
+  }
+
+  void writeFragmentReference(Fragment fragment) {
+    var referenceStr = _fragmentToReferenceString(fragment);
+    _sink.write(referenceStr);
+  }
+
+  void writelnFragmentReference(Fragment fragment) {
+    writeFragmentReference(fragment);
+    _sink.writeln();
   }
 
   void writelnNamedElement2(String name, Element2? element) {
@@ -239,6 +280,33 @@ class ElementPrinter {
       ].join();
     } else {
       return '${element.name}@${element.nameOffset}';
+    }
+  }
+
+  String _fragmentToReferenceString(Fragment element) {
+    var enclosingFragment = element.enclosingFragment;
+    var reference = (element as ElementImpl).reference;
+    if (reference != null) {
+      return _referenceToString(reference);
+    } else if (element is FormalParameterFragment &&
+        enclosingFragment is! GenericFunctionTypeFragment) {
+      // Positional parameters don't have actual references.
+      // But we fabricate one to make the output better.
+      var enclosingStr = enclosingFragment != null
+          ? _fragmentToReferenceString(enclosingFragment)
+          : 'root';
+      return '$enclosingStr::@formalParameter::${element.name2}';
+    } else if (element is JoinPatternVariableElementImpl) {
+      return [
+        if (!element.isConsistent) 'notConsistent ',
+        if (element.isFinal) 'final ',
+        element.name,
+        '[',
+        element.variables.map(_elementToReferenceString).join(', '),
+        ']',
+      ].join();
+    } else {
+      return '${element.name2}@${element.nameOffset2}';
     }
   }
 

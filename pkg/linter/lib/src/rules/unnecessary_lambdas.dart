@@ -5,16 +5,15 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
-Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
+Set<Element2?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
@@ -36,7 +35,7 @@ class UnnecessaryLambdas extends LintRule {
 }
 
 class _FinalExpressionChecker {
-  final Set<ParameterElement?> parameters;
+  final Set<FormalParameterElement?> parameters;
 
   _FinalExpressionChecker(this.parameters);
 
@@ -61,7 +60,7 @@ class _FinalExpressionChecker {
     }
 
     if (node is SimpleIdentifier) {
-      var element = node.staticElement;
+      var element = node.element;
       if (parameters.contains(element)) {
         return false;
       }
@@ -73,18 +72,18 @@ class _FinalExpressionChecker {
 }
 
 class _IdentifierVisitor extends RecursiveAstVisitor<void> {
-  final _elements = <Element?>{};
+  final _elements = <Element2?>{};
 
   _IdentifierVisitor();
 
-  Set<Element?> extractElements(AstNode node) {
+  Set<Element2?> extractElements(AstNode node) {
     node.accept(this);
     return _elements;
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    _elements.add(node.staticElement);
+    _elements.add(node.element);
     super.visitSimpleIdentifier(node);
   }
 }
@@ -101,7 +100,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.declaredElement?.name != '' || node.body.keyword != null) {
+    var element = node.declaredFragment?.element;
+    if (element?.name3 != '' || node.body.keyword != null) {
       return;
     }
     var body = node.body;
@@ -140,8 +140,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var nodeType = node.declaredElement?.type;
-    var invocationType = expression.constructorName.staticElement?.type;
+    var functionElement = node.declaredFragment?.element;
+
+    var nodeType = functionElement?.type;
+    var invocationType = expression.constructorName.element?.type;
     if (nodeType == null) return;
     if (invocationType == null) return;
     // It is possible that the invocation function type is a valid replacement
@@ -176,7 +178,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
+    var parameters =
+        nodeToLintParams.map((e) => e.declaredFragment?.element).toSet();
     if (node is FunctionExpressionInvocation) {
       if (node.function.mightBeDeferred) return;
 
@@ -198,15 +201,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (argType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
-        var variableType = parent.declaredElement?.type;
+        var variableElement =
+            parent.declaredElement2 ?? parent.declaredFragment?.element;
+        var variableType = variableElement?.type;
         if (variableType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;
       }
 
       var checker = _FinalExpressionChecker(parameters);
-      if (!node.containsNullAwareInvocationInChain() &&
+      if (!node.containsNullAwareInvocationInChain &&
           checker.isFinalNode(node.target) &&
-          node.methodName.staticElement.isFinal &&
+          node.methodName.element.isFinal &&
           node.typeArguments == null) {
         rule.reportLint(nodeToLint);
       }
@@ -216,30 +221,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Expression? {
   bool get mightBeDeferred {
-    var self = this;
-    var element = switch (self) {
-      PrefixedIdentifier() => self.prefix.staticElement,
-      SimpleIdentifier() => self.staticElement,
+    var element = switch (this) {
+      PrefixedIdentifier(:var prefix) => prefix.element,
+      SimpleIdentifier(:var element) => element,
       _ => null,
     };
-    return element is PrefixElement &&
-        element.imports.any((e) => e.prefix is DeferredImportElementPrefix);
+    return element is PrefixElement2 &&
+        element.imports.any((e) => e.prefix2?.isDeferred ?? false);
   }
 }
 
-extension on Element? {
+extension on Element2? {
   /// Returns whether this is a `final` variable or property and not `late`.
-  bool get isFinal {
-    var self = this;
-    if (self is PropertyAccessorElement) {
-      var variable = self.variable2;
-      return self.isSynthetic &&
-          variable != null &&
-          variable.isFinal &&
-          !variable.isLate;
-    } else if (self is VariableElement) {
-      return self.isFinal && !self.isLate;
-    }
-    return true;
-  }
+  bool get isFinal => switch (this) {
+        PropertyAccessorElement2(:var isSynthetic, :var variable3?) =>
+          isSynthetic && variable3.isFinal && !variable3.isLate,
+        VariableElement2(:var isLate, :var isFinal) => isFinal && !isLate,
+        // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
+        _ => true,
+      };
 }

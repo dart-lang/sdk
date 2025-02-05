@@ -7,16 +7,20 @@ part of "core_patch.dart";
 @patch
 class RegExp {
   @patch
-  factory RegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false}) {
-    return new _RegExp(source,
-        multiLine: multiLine,
-        caseSensitive: caseSensitive,
-        unicode: unicode,
-        dotAll: dotAll);
+  factory RegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) {
+    return new _RegExp(
+      source,
+      multiLine: multiLine,
+      caseSensitive: caseSensitive,
+      unicode: unicode,
+      dotAll: dotAll,
+    );
   }
 
   /**
@@ -142,11 +146,13 @@ const _initialBacktrackingStackSize = 128;
 @pragma("vm:entry-point")
 class _RegExp implements RegExp {
   @pragma("vm:external-name", "RegExp_factory")
-  external factory _RegExp(String pattern,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false});
+  external factory _RegExp(
+    String pattern, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  });
 
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
@@ -305,8 +311,8 @@ class _RegExp implements RegExp {
     return registers;
   }
 
-// TODO: Should we bound this to the same limit used by the irregexp interpreter
-// for consistency?
+  // TODO: Should we bound this to the same limit used by the irregexp interpreter
+  // for consistency?
   static Int32List _growBacktrackingStack() {
     final stack = _backtrackingStack;
     final newStack = Int32List(stack.length * 2);
@@ -319,8 +325,9 @@ class _RegExp implements RegExp {
 
   static Int32List? _registers;
 
-  static Int32List _backtrackingStack =
-      Int32List(_initialBacktrackingStackSize);
+  static Int32List _backtrackingStack = Int32List(
+    _initialBacktrackingStackSize,
+  );
 }
 
 class _AllMatchesIterable extends Iterable<RegExpMatch> {

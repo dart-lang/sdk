@@ -24,9 +24,10 @@ mixin class MixinClassFactory {
   MixinClassFactory.named();
   factory MixinClassFactory.x() = MixinClassFactory.named;
   factory MixinClassFactory.y() = MixinClassFactory;
-  factory MixinClassFactory.z() { return MixinClassFactory(); }
+  factory MixinClassFactory.z() {
+    return MixinClassFactory();
+  }
 }
-
 
 main() {
   Expect.equals(0, MixinClassCtor().foo);

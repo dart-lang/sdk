@@ -11,9 +11,9 @@ void main() {
     final Component testComponent = new Component(libraries: []);
     final StrongComponents strongComponents =
         new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
-    strongComponents.computeModules();
+    strongComponents.computeLibraryBundles();
 
-    expect(strongComponents.modules, {});
+    expect(strongComponents.libraryBundleImportToLibraries, {});
   });
 
   test('no circular imports', () {
@@ -42,14 +42,14 @@ void main() {
     ]);
     final StrongComponents strongComponents =
         new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
-    strongComponents.computeModules();
+    strongComponents.computeLibraryBundles();
 
-    expect(strongComponents.modules, {
+    expect(strongComponents.libraryBundleImportToLibraries, {
       new Uri.file('/a.dart'): [libraryA],
       new Uri.file('/b.dart'): [libraryB],
       new Uri.file('/c.dart'): [libraryC],
     });
-    expect(strongComponents.moduleAssignment, {
+    expect(strongComponents.libraryImportToLibraryBundleImport, {
       new Uri.file('/a.dart'): new Uri.file('/a.dart'),
       new Uri.file('/b.dart'): new Uri.file('/b.dart'),
       new Uri.file('/c.dart'): new Uri.file('/c.dart'),
@@ -89,21 +89,21 @@ void main() {
     ]);
     final StrongComponents strongComponents =
         new StrongComponents(testComponent, {}, uriC);
-    strongComponents.computeModules({uriA: partialA});
+    strongComponents.computeLibraryBundles({uriA: partialA});
 
-    expect(strongComponents.modules, {
+    expect(strongComponents.libraryBundleImportToLibraries, {
       uriA: [partialA],
       uriB: [libraryB],
       uriC: [libraryC],
     });
-    expect(strongComponents.moduleAssignment, {
+    expect(strongComponents.libraryImportToLibraryBundleImport, {
       uriA: uriA,
       uriB: uriB,
       uriC: uriC,
     });
   });
 
-  test('circular imports are combined into single module', () {
+  test('circular imports are combined into single bundle', () {
     final Library libraryA = new Library(
       new Uri.file('/a.dart'),
       fileUri: new Uri.file('/a.dart'),
@@ -129,15 +129,15 @@ void main() {
     ]);
     final StrongComponents strongComponents =
         new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
-    strongComponents.computeModules();
+    strongComponents.computeLibraryBundles();
 
-    expect(strongComponents.modules, {
-      // The choice of module here is arbitrary, but should be consistent for
+    expect(strongComponents.libraryBundleImportToLibraries, {
+      // The choice of bundle here is arbitrary, but should be consistent for
       // a given component.
       new Uri.file('/a.dart'): [libraryA, libraryB],
       new Uri.file('/c.dart'): [libraryC],
     });
-    expect(strongComponents.moduleAssignment, {
+    expect(strongComponents.libraryImportToLibraryBundleImport, {
       new Uri.file('/a.dart'): new Uri.file('/a.dart'),
       new Uri.file('/b.dart'): new Uri.file('/a.dart'),
       new Uri.file('/c.dart'): new Uri.file('/c.dart'),
@@ -173,12 +173,12 @@ void main() {
     ]);
     final StrongComponents strongComponents = new StrongComponents(
         testComponent, {libraryLoaded}, new Uri.file('/c.dart'));
-    strongComponents.computeModules();
+    strongComponents.computeLibraryBundles();
 
-    expect(strongComponents.modules, {
+    expect(strongComponents.libraryBundleImportToLibraries, {
       new Uri.file('/c.dart'): [libraryC],
     });
-    expect(strongComponents.moduleAssignment, {
+    expect(strongComponents.libraryImportToLibraryBundleImport, {
       new Uri.file('/c.dart'): new Uri.file('/c.dart'),
     });
   });

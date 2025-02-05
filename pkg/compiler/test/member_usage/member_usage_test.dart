@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -22,13 +22,21 @@ main(List<String> args) {
     print('------------------------------------------------------------------');
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
-    await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args, testedConfigs: allSpecConfigs);
+    await checkTests(
+      dataDir,
+      const ClosedWorldDataComputer(false),
+      args: args,
+      testedConfigs: allSpecConfigs,
+    );
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
-    await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args, testedConfigs: allSpecConfigs);
+    await checkTests(
+      dataDir,
+      const ClosedWorldDataComputer(true),
+      args: args,
+      testedConfigs: allSpecConfigs,
+    );
   });
 }
 
@@ -54,8 +62,11 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   /// Dynamic access on instance members and static access on non-instance
   /// members is implicit, so we only annotate super access and static access
   /// not implied by dynamic or super access.
-  String computeAccessText(MemberEntity member, EnumSet<Access> access,
-      [String? prefix]) {
+  String computeAccessText(
+    MemberEntity member,
+    EnumSet<Access> access, [
+    String? prefix,
+  ]) {
     StringBuffer sb = StringBuffer();
     String delimiter = '';
     if (prefix != null) {
@@ -75,9 +86,12 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ResolutionWorldBuilder resolutionWorldBuilder =
         compiler.resolutionWorldBuilderForTesting!;
@@ -98,18 +112,28 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
       if (memberUsage.hasInvoke) {
         if (memberUsage is MethodUsage &&
             !memberUsage.parameterUsage.isFullyUsed) {
-          features[Tags.invoke] = computeAccessText(member, memberUsage.invokes,
-              memberUsage.invokedParameters!.shortText);
+          features[Tags.invoke] = computeAccessText(
+            member,
+            memberUsage.invokes,
+            memberUsage.invokedParameters!.shortText,
+          );
         } else {
-          features[Tags.invoke] =
-              computeAccessText(member, memberUsage.invokes);
+          features[Tags.invoke] = computeAccessText(
+            member,
+            memberUsage.invokes,
+          );
         }
       }
     }
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
+    actualMap[id] = ActualData<Features>(
+      id,
+      features,
+      nodeWithOffset.location!.file,
+      nodeWithOffset.fileOffset,
+      member,
+    );
   }
 
   @override

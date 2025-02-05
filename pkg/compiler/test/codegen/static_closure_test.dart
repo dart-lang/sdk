@@ -4,8 +4,8 @@
 
 // Test that static functions are closurized as expected.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import '../helpers/compiler_helper.dart';
 
 main() {
@@ -19,8 +19,9 @@ main() {
     // If this test fail, please take a look at the use of
     // toStringWrapper in captureStackTrace in js_helper.dart.
     Expect.isTrue(
-        code.contains(RegExp(r'print\([$A-Z]+\.main__main\$closure\(\)\);')),
-        code);
+      code.contains(RegExp(r'print\([$A-Z]+\.main__main\$closure\(\)\);')),
+      code,
+    );
   }
 
   asyncTest(() async {

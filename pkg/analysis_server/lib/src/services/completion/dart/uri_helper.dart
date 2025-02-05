@@ -24,8 +24,11 @@ class UriHelper {
   /// The state used to compute the candidate suggestions.
   final CompletionState state;
 
-  UriHelper(
-      {required this.request, required this.collector, required this.state});
+  UriHelper({
+    required this.request,
+    required this.collector,
+    required this.state,
+  });
 
   void addSuggestions(StringLiteral uri) {
     if (uri is! SimpleStringLiteral) {
@@ -149,7 +152,10 @@ class UriHelper {
   }
 
   void _addPackageFolderSuggestions(
-      String partial, String prefix, Folder folder) {
+    String partial,
+    String prefix,
+    Folder folder,
+  ) {
     var pathContext = request.resourceProvider.pathContext;
     try {
       for (var child in folder.getChildren()) {
@@ -193,7 +199,9 @@ class UriHelper {
       return null;
     }
     return node.literal.lexeme.substring(
-        node.contentsOffset - node.offset, request.offset - node.offset);
+      node.contentsOffset - node.offset,
+      request.offset - node.offset,
+    );
   }
 
   void _simpleStringLiteral(SimpleStringLiteral node) {
@@ -219,10 +227,7 @@ class UriHelper {
     var matcherScore = state.matcher.score(uriStr);
     if (matcherScore != -1) {
       collector.addSuggestion(
-        UriSuggestion(
-          uriStr: uriStr,
-          matcherScore: matcherScore,
-        ),
+        UriSuggestion(uriStr: uriStr, matcherScore: matcherScore),
       );
     }
   }

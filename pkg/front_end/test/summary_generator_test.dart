@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/kernel.dart';
@@ -111,7 +113,7 @@ var allSources = <String, String>{
 };
 
 /// Helper function to check that some expectations from the summary of D.
-void checkDSummary(List<int> summary) {
+void checkDSummary(Uint8List summary) {
   var component = loadComponentFromBytes(summary);
   var aLib = findLibrary(component, 'a.dart');
   var bLib = findLibrary(component, 'b.dart');

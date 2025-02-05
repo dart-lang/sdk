@@ -283,8 +283,12 @@ base class SubListIterable<E> extends ListIterable<E> {
   E elementAt(int index) {
     int realIndex = _startIndex + index;
     if (index < 0 || realIndex >= _endIndex) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
+      throw IndexError.withLength(
+        index,
+        length,
+        indexable: this,
+        name: "index",
+      );
     }
     return _iterable.elementAt(realIndex);
   }
@@ -319,8 +323,11 @@ base class SubListIterable<E> extends ListIterable<E> {
     int length = end - start;
     if (length <= 0) return List<E>.empty(growable: growable);
 
-    List<E> result =
-        List<E>.filled(length, _iterable.elementAt(start), growable: growable);
+    List<E> result = List<E>.filled(
+      length,
+      _iterable.elementAt(start),
+      growable: growable,
+    );
     for (int i = 1; i < length; i++) {
       result[i] = _iterable.elementAt(start + i);
       if (_iterable.length < end) throw ConcurrentModificationError(this);
@@ -344,9 +351,9 @@ class ListIterator<E> implements Iterator<E> {
 
   @pragma("wasm:prefer-inline")
   ListIterator(Iterable<E> iterable)
-      : _iterable = iterable,
-        _length = iterable.length,
-        _index = 0;
+    : _iterable = iterable,
+      _length = iterable.length,
+      _index = 0;
 
   E get current => _current as E;
 
@@ -398,7 +405,7 @@ class MappedIterable<S, T> extends Iterable<T> {
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
     implements EfficientLengthIterable<T>, HideEfficientLengthIterable<T> {
   EfficientLengthMappedIterable(Iterable<S> iterable, T function(S value))
-      : super._(iterable, function);
+    : super._(iterable, function);
 }
 
 class MappedIterator<S, T> implements Iterator<T> {
@@ -533,7 +540,7 @@ class TakeIterable<E> extends Iterable<E> {
 class EfficientLengthTakeIterable<E> extends TakeIterable<E>
     implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   EfficientLengthTakeIterable(Iterable<E> iterable, int takeCount)
-      : super._(iterable, takeCount);
+    : super._(iterable, takeCount);
 
   int get length {
     int iterableLength = _iterable.length;
@@ -631,7 +638,7 @@ class EfficientLengthSkipIterable<E> extends SkipIterable<E>
   }
 
   EfficientLengthSkipIterable._(Iterable<E> iterable, int count)
-      : super._(iterable, count);
+    : super._(iterable, count);
 
   int get length {
     int length = _iterable.length - _skipCount;
@@ -641,7 +648,9 @@ class EfficientLengthSkipIterable<E> extends SkipIterable<E>
 
   Iterable<E> skip(int count) {
     return EfficientLengthSkipIterable<E>._(
-        _iterable, _skipCount + _checkCount(count));
+      _iterable,
+      _skipCount + _checkCount(count),
+    );
   }
 }
 
@@ -799,7 +808,9 @@ class FollowedByIterable<E> extends Iterable<E> {
   FollowedByIterable(this._first, this._second);
 
   factory FollowedByIterable.firstEfficient(
-      EfficientLengthIterable<E> first, Iterable<E> second) {
+    EfficientLengthIterable<E> first,
+    Iterable<E> second,
+  ) {
     if (second is EfficientLengthIterable<E>) {
       return EfficientLengthFollowedByIterable<E>(first, second);
     }
@@ -839,8 +850,9 @@ class FollowedByIterable<E> extends Iterable<E> {
 class EfficientLengthFollowedByIterable<E> extends FollowedByIterable<E>
     implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   EfficientLengthFollowedByIterable(
-      EfficientLengthIterable<E> first, EfficientLengthIterable<E> second)
-      : super(first, second);
+    EfficientLengthIterable<E> first,
+    EfficientLengthIterable<E> second,
+  ) : super(first, second);
 
   E elementAt(int index) {
     int firstLength = _first.length;
@@ -864,7 +876,7 @@ class FollowedByIterator<E> implements Iterator<E> {
   Iterable<E>? _nextIterable;
 
   FollowedByIterator(Iterable<E> first, this._nextIterable)
-      : _currentIterator = first.iterator;
+    : _currentIterator = first.iterator;
 
   bool moveNext() {
     if (_currentIterator.moveNext()) return true;
@@ -964,7 +976,7 @@ class IndexedIterable<T> extends Iterable<(int, T)> {
   }
 
   IndexedIterable.nonEfficientLength(Iterable<T> source, int start)
-      : this._(source, start);
+    : this._(source, start);
 
   IndexedIterable._(this._source, this._start);
 
@@ -988,10 +1000,14 @@ class IndexedIterable<T> extends Iterable<(int, T)> {
   }
 
   Iterable<(int, T)> take(int count) => IndexedIterable<T>.nonEfficientLength(
-      _source.take(_checkCount(count)), _start);
+    _source.take(_checkCount(count)),
+    _start,
+  );
 
   Iterable<(int, T)> skip(int count) => IndexedIterable<T>.nonEfficientLength(
-      _source.skip(_checkCount(count)), count + _start);
+    _source.skip(_checkCount(count)),
+    count + _start,
+  );
 
   @pragma('vm:prefer-inline')
   Iterator<(int, T)> get iterator =>
@@ -1024,10 +1040,14 @@ class EfficientLengthIndexedIterable<T> extends IndexedIterable<T>
   }
 
   Iterable<(int, T)> take(int count) => EfficientLengthIndexedIterable<T>(
-      _source.take(_checkCount(count)), _start);
+    _source.take(_checkCount(count)),
+    _start,
+  );
 
   Iterable<(int, T)> skip(int count) => EfficientLengthIndexedIterable<T>(
-      _source.skip(_checkCount(count)), _start + count);
+    _source.skip(_checkCount(count)),
+    _start + count,
+  );
 }
 
 class IndexedIterator<T> implements Iterator<(int, T)> {
@@ -1046,9 +1066,10 @@ class IndexedIterator<T> implements Iterator<(int, T)> {
     return false;
   }
 
-  (int, T) get current => _index >= 0
-      ? (_start + _index, _source.current)
-      : (throw IterableElementError.noElement());
+  (int, T) get current =>
+      _index >= 0
+          ? (_start + _index, _source.current)
+          : (throw IterableElementError.noElement());
 }
 
 /**

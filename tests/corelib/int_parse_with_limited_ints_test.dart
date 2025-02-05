@@ -30,31 +30,49 @@ main() {
   Expect.throws(() => int.parse("10000000000000000000"));
 
   Expect.equals(
-      0x7fffffffffffffff,
-      int.parse(
-          "111111111111111111111111111111111111111111111111111111111111111",
-          radix: 2));
+    0x7fffffffffffffff,
+    int.parse(
+      "111111111111111111111111111111111111111111111111111111111111111",
+      radix: 2,
+    ),
+  );
   Expect.equals(
-      -0x7fffffffffffffff,
-      int.parse(
-          "-111111111111111111111111111111111111111111111111111111111111111",
-          radix: 2));
+    -0x7fffffffffffffff,
+    int.parse(
+      "-111111111111111111111111111111111111111111111111111111111111111",
+      radix: 2,
+    ),
+  );
   Expect.equals(
-      -0x7fffffffffffffff - 1,
-      int.parse(
-          "-1000000000000000000000000000000000000000000000000000000000000000",
-          radix: 2));
+    -0x7fffffffffffffff - 1,
+    int.parse(
+      "-1000000000000000000000000000000000000000000000000000000000000000",
+      radix: 2,
+    ),
+  );
 
-  Expect.throws(() => int.parse(
+  Expect.throws(
+    () => int.parse(
       "1000000000000000000000000000000000000000000000000000000000000000",
-      radix: 2));
-  Expect.throws(() => int.parse(
+      radix: 2,
+    ),
+  );
+  Expect.throws(
+    () => int.parse(
       "1111111111111111111111111111111111111111111111111111111111111110",
-      radix: 2));
-  Expect.throws(() => int.parse(
+      radix: 2,
+    ),
+  );
+  Expect.throws(
+    () => int.parse(
       "1111111111111111111111111111111111111111111111111111111111111111",
-      radix: 2));
-  Expect.throws(() => int.parse(
+      radix: 2,
+    ),
+  );
+  Expect.throws(
+    () => int.parse(
       "-1000000000000000000000000000000000000000000000000000000000000001",
-      radix: 2));
+      radix: 2,
+    ),
+  );
 }

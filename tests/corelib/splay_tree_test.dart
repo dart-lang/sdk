@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test for Splaytrees.
+// Dart test for Splay-tree data structures.
 library splay_tree_test;
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 import 'dart:collection';
 
 main() {
@@ -55,6 +56,79 @@ main() {
   regressRemoveWhere2();
   regressFromCompare();
   regressIncomparable();
+
+  // Setting values do not break iteration.
+  // Setting values during iteration may show either old or new value,
+  // but must be consistent when read.
+  var map =
+      SplayTreeMap<String, int>()
+        ..["a"] = 1
+        ..["b"] = 2;
+  var index = 0;
+  for (var v in map.values) {
+    if (index == 0) {
+      Expect.equals(1, v);
+      map["b"] = 42;
+    } else {
+      Expect.equals(1, index);
+      if (v != 42 && v != 2) {
+        Expect.fail('map["b"] not 2 or 42');
+      }
+      map["b"] = 2;
+    }
+    index++;
+  }
+
+  index = 0;
+  // Same using explicit iterator.
+  for (var iterator = map.values.iterator; iterator.moveNext(); index++) {
+    if (index == 0) {
+      Expect.equals(1, iterator.current);
+      map["b"] = 42;
+    } else {
+      Expect.equals(1, index);
+      var v = iterator.current;
+      if (v != 42 && v != 2) {
+        Expect.fail('map["b"] not 2 or 42');
+      }
+      map["b"] = 2;
+      var v2 = iterator.current;
+      Expect.equals(v, v2, "current getter not consistent: $v -> $v2");
+    }
+  }
+
+  // Same for values accessed through `.entries`.
+  for (var entry in map.entries) {
+    if (entry.key == "a") {
+      Expect.equals(1, entry.value);
+      map["b"] = 42;
+    } else {
+      Expect.equals("b", entry.key);
+      var v = entry.value;
+      if (v != 42 && v != 2) {
+        Expect.fail('map["b"] not 2 or 42');
+      }
+      map["b"] = 2;
+      var v2 = entry.value;
+      Expect.equals(v, v2, "current getter not consistent: $v -> $v2");
+    }
+  }
+
+  for (var iterator = map.entries.iterator; iterator.moveNext();) {
+    if (iterator.current.key == "a") {
+      Expect.equals(1, iterator.current.value);
+      map["b"] = 42;
+    } else {
+      Expect.equals("b", iterator.current.key);
+      var v = iterator.current.value;
+      if (v != 42 && v != 2) {
+        Expect.fail('map["b"] not 2 or 42');
+      }
+      map["b"] = 2;
+      var v2 = iterator.current.value;
+      Expect.equals(v, v2, "current getter not consistent: $v -> $v2");
+    }
+  }
 }
 
 void regressRemoveWhere() {
@@ -112,8 +186,11 @@ void regressFromCompare() {
 
   var entries = {key(0): 0, key(1): 1, key(2): 2, key(0): 0};
   Expect.equals(4, entries.length);
-  var map =
-      new SplayTreeMap<IncomparableKey, int>.from(entries, compare, isValidKey);
+  var map = new SplayTreeMap<IncomparableKey, int>.from(
+    entries,
+    compare,
+    isValidKey,
+  );
   Expect.equals(3, map.length);
   for (int i = 0; i < 3; i++) {
     Expect.isTrue(map.containsKey(key(i)));
@@ -125,8 +202,6 @@ void regressFromCompare() {
   Expect.equals(null, map[key(5)]);
   Expect.equals(null, map[1]);
   Expect.equals(null, map["string"]);
-  map[1] = 42; //# 01: compile-time error
-  map["string"] = 42; //# 02: compile-time error
   map[key(5)] = 42;
   Expect.equals(4, map.length);
   Expect.equals(42, map[key(5)]);
@@ -134,19 +209,27 @@ void regressFromCompare() {
 
 // Incomparable keys throw when added, even on an empty collection.
 void regressIncomparable() {
-  var set = SplayTreeSet();
+  // With no `compare` function given, it defaults to one that does
+  // dynamic downcast of both arguments to `Comparable<Object?>`,
+  // then invoking its `compareTo` with the latter.
+  // Since `IncomparableKey` can't be downcast to `Comparable`, it should throw.
+  var set = SplayTreeSet<Object?>();
   Expect.throws(() => set.add(IncomparableKey(0)));
   Expect.throws(() => set.lookup(IncomparableKey(0)));
   set.add(1);
-  Expect.throws(() => set.add(IncomparableKey(0)));
-  Expect.throws(() => set.lookup(IncomparableKey(0)));
+  if (checkedImplicitDowncasts) {
+    Expect.throws(() => set.add(IncomparableKey(0)));
+    Expect.throws(() => set.lookup(IncomparableKey(0)));
+  }
 
   var map = SplayTreeMap();
   Expect.throws(() => map[IncomparableKey(0)] = 0);
   Expect.throws(() => map.putIfAbsent(IncomparableKey(0), () => 0));
   map[1] = 1;
-  Expect.throws(() => map[IncomparableKey(0)] = 0);
-  Expect.throws(() => map.putIfAbsent(IncomparableKey(0), () => 0));
+  if (checkedImplicitDowncasts) {
+    Expect.throws(() => map[IncomparableKey(0)] = 0);
+    Expect.throws(() => map.putIfAbsent(IncomparableKey(0), () => 0));
+  }
 
   // But not if the compare function allows them.
   // This now includes `null`.
@@ -158,6 +241,7 @@ void regressIncomparable() {
     }
     throw UnsupportedError("Nope");
   }
+
   for (var key in [null, IncomparableKey(0)]) {
     set = SplayTreeSet<Object?>(compare);
     set.add(key);

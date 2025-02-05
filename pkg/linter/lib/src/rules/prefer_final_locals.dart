@@ -4,12 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
@@ -38,11 +37,11 @@ class PreferFinalLocals extends LintRule {
 }
 
 class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
-  final List<BindPatternVariableElement> declaredElements = [];
+  final List<BindPatternVariableElement2> declaredElements = [];
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     if (element != null) {
       declaredElements.add(element);
     }
@@ -56,8 +55,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement;
-      if (element == null || function.isPotentiallyMutatedInScope(element)) {
+      var element = pattern.declaredElement2;
+      if (element == null || function.isPotentiallyMutatedInScope2(element)) {
         return true;
       }
     }
@@ -130,10 +129,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement;
+      var declaredElement = variable.declaredElement2;
       if (declaredElement != null &&
           (declaredElement.isWildcardVariable ||
-              function.isPotentiallyMutatedInScope(declaredElement))) {
+              function.isPotentiallyMutatedInScope2(declaredElement))) {
         return;
       }
     }
@@ -180,7 +179,7 @@ extension on AstNode {
     accept(declaredVariableVisitor);
     var declaredElements = declaredVariableVisitor.declaredElements;
     for (var element in declaredElements) {
-      if (function.isPotentiallyMutatedInScope(element)) {
+      if (function.isPotentiallyMutatedInScope2(element)) {
         return true;
       }
     }

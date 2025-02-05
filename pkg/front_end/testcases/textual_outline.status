@@ -7,6 +7,8 @@
 
 # These tests have errors in them which isn't reported by the parser but the
 # formatter still sees as syntax errors and thus won't format.
+regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
+regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 extension_types/const_constructor_body: FormatterCrash
 extension_types/field_access: FormatterCrash
 extension_types/issue52119: FormatterCrash
@@ -57,7 +59,6 @@ regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
 extension_types/with_dependencies/issue53209_2/main: UnknownChunk
-general/bad_import: UnknownChunk # Test has parser errors
 general/error_recovery/constructor_recovery_operator.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors

@@ -628,6 +628,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       summaryName += '::${localFunctionName(localFunction)}';
     }
     debugPrint("===== $summaryName =====");
+    if (_enclosingMember != null) {
+      throw 'Unable to create summary recursively, previous: $_enclosingMember, current: $summaryName';
+    }
     assert(!member.isAbstract);
     _enclosingMember = member;
 
@@ -1579,6 +1582,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.intNullableRawType)) ||
           (rhs is StringLiteral &&
+              target.canInferStringClassAfterEqualityComparison &&
               _isSubtype(lhs.variable.type,
                   _environment.coreTypes.stringNullableRawType)) ||
           (rhs is ConstantExpression &&
@@ -1601,11 +1605,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           Args<TypeExpr>([expr, _nullType]));
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
       final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
+      final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
       if (!_aggregateVariable[varIndex]) {
-        trueState[varIndex] = _nullType;
+        trueState[varIndex] = _makeUnaryOperation(UnaryOp.Move, _nullType)
+          ..condition = result;
         falseState[varIndex] = narrowedNotNull;
       }
-      final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
       _variableValues = const <TypeExpr?>[]; // Should not be used.
       return result;
     } else if (node is IsExpression && node.operand is VariableGet) {
@@ -2926,11 +2931,13 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
     for (int i = 0; i < constant.positional.length; ++i) {
       final Field f = epl.getRecordPositionalField(recordShape, i);
       final Type value = typeFor(constant.positional[i]);
+      assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     }
     constant.named.forEach((String fieldName, Constant fieldValue) {
       final Field f = epl.getRecordNamedField(recordShape, fieldName);
       final Type value = typeFor(fieldValue);
+      assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     });
     return receiver;
@@ -2941,6 +2948,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
     final resultClass = summaryCollector._entryPointsListener
         .addAllocatedClass(constant.classNode);
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
+      assert(!fieldReference.asField.isCovariantByClass);
       summaryCollector._entryPointsListener.addFieldUsedInConstant(
           fieldReference.asField, resultClass, typeFor(value));
     });

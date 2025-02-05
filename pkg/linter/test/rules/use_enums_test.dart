@@ -35,14 +35,11 @@ augment class C {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       // TODO(pq): update when augmentation contributed fields are considered.
       // See: https://github.com/dart-lang/linter/issues/4900
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_constructor_private() async {

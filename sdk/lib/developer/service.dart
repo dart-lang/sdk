@@ -29,12 +29,14 @@ final class ServiceProtocolInfo {
     if (uri != null) {
       final pathSegments = <String>[];
       if (uri.pathSegments.isNotEmpty) {
-        pathSegments.addAll(uri.pathSegments.where(
-          // Strip out the empty string that appears at the end of path segments.
-          // Empty string elements will result in an extra '/' being added to the
-          // URI.
-          (s) => s.isNotEmpty,
-        ));
+        pathSegments.addAll(
+          uri.pathSegments.where(
+            // Strip out the empty string that appears at the end of path segments.
+            // Empty string elements will result in an extra '/' being added to the
+            // URI.
+            (s) => s.isNotEmpty,
+          ),
+        );
       }
       pathSegments.add('ws');
       uri = uri.replace(scheme: 'ws', pathSegments: pathSegments);
@@ -62,8 +64,10 @@ final class Service {
   /// Uri to access the service).
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort =
-        new RawReceivePort(null, 'Service.getInfo');
+    final RawReceivePort receivePort = new RawReceivePort(
+      null,
+      'Service.getInfo',
+    );
     final Completer<String?> completer = new Completer<String?>();
     receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
@@ -80,13 +84,17 @@ final class Service {
   /// [enable] is used as a toggle to enable or disable the web server
   /// servicing requests. If [silenceOutput] is provided and is true,
   /// the server will not output information to the console.
-  static Future<ServiceProtocolInfo> controlWebServer(
-      {bool enable = false, bool? silenceOutput}) async {
+  static Future<ServiceProtocolInfo> controlWebServer({
+    bool enable = false,
+    bool? silenceOutput,
+  }) async {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort =
-        new RawReceivePort(null, 'Service.controlWebServer');
+    final RawReceivePort receivePort = new RawReceivePort(
+      null,
+      'Service.controlWebServer',
+    );
     final Completer<String?> completer = new Completer<String?>();
     receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
@@ -139,7 +147,10 @@ external void _getServerInfo(SendPort sendPort);
 
 /// [sendPort] will receive a Uri or null.
 external void _webServerControl(
-    SendPort sendPort, bool enable, bool? silenceOutput);
+  SendPort sendPort,
+  bool enable,
+  bool? silenceOutput,
+);
 
 /// Returns the major version of the service protocol.
 external int _getServiceMajorVersion();

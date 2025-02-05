@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -61,7 +63,7 @@ SwitchExpression
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: void Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -183,6 +185,34 @@ SwitchExpression
 ''');
   }
 
+  test_joinedVariables_inLocalFunction() async {
+    // Note: this is an important case to test because when variables are inside
+    // a local function, their enclosing element is `null`.
+    await assertNoErrorsInCode('''
+abstract class C {
+  List<int> get values;
+}
+abstract class D {
+  List<int> get values;
+}
+test(Object o) => () =>
+  switch (o) {
+    C(:var values) || D(:var values) =>
+      [for (var value in values) value + 1],
+    _ => []
+  };
+''');
+
+    var node = findNode.simple('value + 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: value
+  staticElement: value@185
+  element: value@185
+  staticType: int
+''');
+  }
+
   test_location_topLevel() async {
     await assertNoErrorsInCode(r'''
 num a = 0;
@@ -212,7 +242,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -312,7 +342,7 @@ SwitchExpressionCase
           type: NamedType
             name: A
             element: <testLibraryFragment>::@class::A
-            element2: <testLibraryFragment>::@class::A#element
+            element2: <testLibrary>::@class::A
             type: A
           staticElement: <testLibraryFragment>::@class::A::@constructor::new
           element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -543,7 +573,7 @@ SwitchExpression
               NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -624,7 +654,7 @@ SwitchExpression
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@58
@@ -711,7 +741,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@44

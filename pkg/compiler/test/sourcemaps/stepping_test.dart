@@ -7,9 +7,9 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 
@@ -35,8 +35,11 @@ void main(List<String> args) {
       print('Checking ${entity.uri}');
       print('----------------------------------------------------------------');
       String annotatedCode = await File.fromUri(entity.uri).readAsString();
-      await testAnnotatedCode(annotatedCode,
-          verbose: argResults['verbose'], debug: argResults['debug']);
+      await testAnnotatedCode(
+        annotatedCode,
+        verbose: argResults['verbose'],
+        debug: argResults['debug'],
+      );
       if (argResults['continued']) {
         continuing = true;
       }
@@ -46,22 +49,36 @@ void main(List<String> args) {
 
 const String kernelMarker = 'kernel.';
 
-Future testAnnotatedCode(String code,
-    {bool debug = false, bool verbose = false}) async {
-  AnnotatedCode annotatedCode =
-      AnnotatedCode.fromText(code, commentStart, commentEnd);
+Future testAnnotatedCode(
+  String code, {
+  bool debug = false,
+  bool verbose = false,
+}) async {
+  AnnotatedCode annotatedCode = AnnotatedCode.fromText(
+    code,
+    commentStart,
+    commentEnd,
+  );
   print(annotatedCode.sourceCode);
-  Map<String, AnnotatedCode> split =
-      splitByPrefixes(annotatedCode, [kernelMarker]);
+  Map<String, AnnotatedCode> split = splitByPrefixes(annotatedCode, [
+    kernelMarker,
+  ]);
   print('---from kernel------------------------------------------------------');
-  await runTest(split[kernelMarker]!, kernelMarker,
-      debug: debug, verbose: verbose);
+  await runTest(
+    split[kernelMarker]!,
+    kernelMarker,
+    debug: debug,
+    verbose: verbose,
+  );
 }
 
-Future runTest(AnnotatedCode annotatedCode, String config,
-    {bool debug = false,
-    bool verbose = false,
-    List<String> options = const <String>[]}) async {
+Future runTest(
+  AnnotatedCode annotatedCode,
+  String config, {
+  bool debug = false,
+  bool verbose = false,
+  List<String> options = const <String>[],
+}) async {
   Directory dir = Directory.systemTemp.createTempSync('stepping_test');
   String testFileName = 'test.dart';
   String path = dir.path;
@@ -81,10 +98,14 @@ Future runTest(AnnotatedCode annotatedCode, String config,
   Expect.isTrue(compilationResult.isSuccess);
   List<String> scriptD8Command = [
     '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
-    outputFile
+    outputFile,
   ];
-  ProcessResult result =
-      runD8AndStep(dir.path, testFileName, annotatedCode, scriptD8Command);
+  ProcessResult result = runD8AndStep(
+    dir.path,
+    testFileName,
+    annotatedCode,
+    scriptD8Command,
+  );
   List<String> d8output = result.stdout.split("\n");
   if (verbose) {
     d8output.forEach(print);

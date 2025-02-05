@@ -31,22 +31,23 @@ class A {
       foo /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
   /*member: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
-  returnDynamic2() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
-      index] /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
+  returnDynamic2() =>
+      this /*[subclass=A]*/ /*update: [subclass=A]*/ [index] /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
   /*member: A.returnNum3:[subclass=JSNumber]*/
   returnNum3() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/
       --this /*[subclass=A]*/ /*update: [subclass=A]*/ [index];
 
   /*member: A.returnNum4:[subclass=JSNumber]*/
-  returnNum4() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
-      index] /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
+  returnNum4() =>
+      this /*[subclass=A]*/ /*update: [subclass=A]*/ [index] /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -=
+          42;
 
   /*member: A.returnEmpty3:[empty]*/
   returnEmpty3() {
     dynamic a = this;
-    return a. /*[subclass=A]*/ /*update: [subclass=A]*/
-        bar /*invoke: [empty]*/ --;
+    return a
+        . /*[subclass=A]*/ /*update: [subclass=A]*/ bar /*invoke: [empty]*/ --;
   }
 
   /*member: A.returnEmpty1:[empty]*/

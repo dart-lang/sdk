@@ -15,14 +15,18 @@ import 'dlopen_helper.dart';
 const N = 1000;
 
 // The native library that holds all the native functions being called.
-final nativeFunctionsLib = dlopenPlatformSpecific('native_functions',
-    path: Platform.script.resolve('../native/out/').path);
+final nativeFunctionsLib = dlopenPlatformSpecific(
+  'native_functions',
+  path: Platform.script.resolve('../native/out/').path,
+);
 
 final getRootLibraryUrl = nativeFunctionsLib
     .lookupFunction<Handle Function(), Object Function()>('GetRootLibraryUrl');
 
-final setNativeResolverForTest = nativeFunctionsLib.lookupFunction<
-    Void Function(Handle), void Function(Object)>('SetNativeResolverForTest');
+final setNativeResolverForTest = nativeFunctionsLib
+    .lookupFunction<Void Function(Handle), void Function(Object)>(
+      'SetNativeResolverForTest',
+    );
 
 //
 // Benchmark fixtures.
@@ -71,26 +75,27 @@ class Int64x20 extends NativeCallBenchmarkBase {
 
   @pragma('vm:external-name', 'Function20Int64')
   external static int f(
-      int a,
-      int b,
-      int c,
-      int d,
-      int e,
-      int f,
-      int g,
-      int h,
-      int i,
-      int j,
-      int k,
-      int l,
-      int m,
-      int n,
-      int o,
-      int p,
-      int q,
-      int r,
-      int s,
-      int t);
+    int a,
+    int b,
+    int c,
+    int d,
+    int e,
+    int f,
+    int g,
+    int h,
+    int i,
+    int j,
+    int k,
+    int l,
+    int m,
+    int n,
+    int o,
+    int p,
+    int q,
+    int r,
+    int s,
+    int t,
+  );
 
   @override
   void run() {
@@ -124,35 +129,57 @@ class Doublex20 extends NativeCallBenchmarkBase {
 
   @pragma('vm:external-name', 'Function20Double')
   external static double f(
-      double a,
-      double b,
-      double c,
-      double d,
-      double e,
-      double f,
-      double g,
-      double h,
-      double i,
-      double j,
-      double k,
-      double l,
-      double m,
-      double n,
-      double o,
-      double p,
-      double q,
-      double r,
-      double s,
-      double t);
+    double a,
+    double b,
+    double c,
+    double d,
+    double e,
+    double f,
+    double g,
+    double h,
+    double i,
+    double j,
+    double k,
+    double l,
+    double m,
+    double n,
+    double o,
+    double p,
+    double q,
+    double r,
+    double s,
+    double t,
+  );
 
   @override
   void run() {
     double x = 0;
     for (int i = 0; i < N; i++) {
-      x += f(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-          13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
+      x += f(
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0,
+        9.0,
+        10.0,
+        11.0,
+        12.0,
+        13.0,
+        14.0,
+        15.0,
+        16.0,
+        17.0,
+        18.0,
+        19.0,
+        20.0,
+      );
     }
-    final double expected = N *
+    final double expected =
+        N *
         (1.0 +
             2.0 +
             3.0 +
@@ -204,26 +231,27 @@ class Handlex20 extends NativeCallBenchmarkBase {
 
   @pragma('vm:external-name', 'Function20Handle')
   external static Object f(
-      Object a,
-      Object b,
-      Object c,
-      Object d,
-      Object e,
-      Object f,
-      Object g,
-      Object h,
-      Object i,
-      Object j,
-      Object k,
-      Object l,
-      Object m,
-      Object n,
-      Object o,
-      Object p,
-      Object q,
-      Object r,
-      Object s,
-      Object t);
+    Object a,
+    Object b,
+    Object c,
+    Object d,
+    Object e,
+    Object f,
+    Object g,
+    Object h,
+    Object i,
+    Object j,
+    Object k,
+    Object l,
+    Object m,
+    Object n,
+    Object o,
+    Object p,
+    Object q,
+    Object r,
+    Object s,
+    Object t,
+  );
 
   @override
   void run() {
@@ -249,8 +277,28 @@ class Handlex20 extends NativeCallBenchmarkBase {
     final p20 = MyClass(20);
     Object x = p1;
     for (int i = 0; i < N; i++) {
-      x = f(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
-          p16, p17, p18, p19, p20);
+      x = f(
+        x,
+        p2,
+        p3,
+        p4,
+        p5,
+        p6,
+        p7,
+        p8,
+        p9,
+        p10,
+        p11,
+        p12,
+        p13,
+        p14,
+        p15,
+        p16,
+        p17,
+        p18,
+        p19,
+        p20,
+      );
     }
     expectIdentical(x, p1);
   }

@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
+/// @docImport 'package:analyzer/src/generated/engine.dart';
+library;
+
 import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -113,8 +117,8 @@ class LibraryContext {
     return keys;
   }
 
-  /// Get the [LibraryElement] for the given library.
-  LibraryElement getLibraryElement(Uri uri) {
+  /// Get the [LibraryElementImpl] for the given library.
+  LibraryElementImpl getLibraryElement(Uri uri) {
     _createElementFactoryTypeProvider();
     return elementFactory.libraryOfUri2(uri);
   }

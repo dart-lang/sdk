@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 
@@ -40,23 +44,51 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    var identifier = findNode.any(search);
-    var element = ElementLocator.locate(identifier);
-    if (identifier is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(identifier);
+    var node = findNode.any(search);
+
+    Element? element;
+    switch (node) {
+      case ExportDirective():
+        element = node.element;
+      case ImportDirective():
+        element = node.element;
+      case PartOfDirective():
+        element = node.element;
+      default:
+        element = ElementLocator.locate2(node).asElement;
     }
+
+    if (node is SimpleIdentifier && element is PrefixElement) {
+      element = getImportElement(node);
+    }
+
     createRenameRefactoringForElement(element);
   }
 
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element? element) {
-    var workspace = RefactoringWorkspace(
-      [driverFor(testFile)],
-      searchEngine,
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoring = RenameRefactoring.create(
+      workspace,
+      testAnalysisResult,
+      element,
     );
-    var refactoring =
-        RenameRefactoring.create(workspace, testAnalysisResult, element);
+    if (refactoring == null) {
+      fail("No refactoring for '$element'.");
+    }
+    this.refactoring = refactoring;
+  }
+
+  /// Creates a new [RenameRefactoring] in [refactoring] for [element].
+  /// Fails if no [RenameRefactoring] can be created.
+  void createRenameRefactoringForElement2(Element2? element) {
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoring = RenameRefactoring.create2(
+      workspace,
+      testAnalysisResult,
+      element,
+    );
     if (refactoring == null) {
       fail("No refactoring for '$element'.");
     }

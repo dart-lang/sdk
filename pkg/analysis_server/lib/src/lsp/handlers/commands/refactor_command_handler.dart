@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
@@ -40,13 +41,17 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         offset is! int ||
         length is! int ||
         arguments == null) {
-      return ErrorOr.error(ResponseError(
+      return ErrorOr.error(
+        ResponseError(
           code: ServerErrorCodes.InvalidCommandArguments,
-          message: 'Refactoring operations require 4 parameters: '
+          message:
+              'Refactoring operations require 4 parameters: '
               'filePath: String, '
               'offset: int, '
               'length: int, '
-              'arguments: List'));
+              'arguments: List',
+        ),
+      );
     }
 
     // Use the editor capabilities, since we're building edits to send to the
@@ -61,57 +66,94 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
     return library.mapResult((library) async {
       var unit = library.unitWithPath(filePath);
       if (unit == null) {
-        return error(ErrorCodes.InternalError,
-            'The library containing a path did not contain the path.');
+        return error(
+          ErrorCodes.InternalError,
+          'The library containing a path did not contain the path.',
+        );
       }
-      var context = RefactoringContext(
-        server: server,
-        startSessions: await server.currentSessions,
-        resolvedLibraryResult: library,
-        resolvedUnitResult: unit,
-        clientCapabilities: clientCapabilities,
-        selectionOffset: offset,
-        selectionLength: length,
-        includeExperimental:
-            server.lspClientConfiguration.global.experimentalRefactors,
-      );
-      var producer = generator(context);
-      var builder = ChangeBuilder(
-          workspace: context.workspace, eol: context.utils.endOfLine);
-      var status = await producer.compute(arguments, builder);
+      try {
+        progress.begin('Refactoring…');
+        return await _performRefactor(
+          library,
+          unit,
+          clientCapabilities,
+          offset,
+          length,
+          arguments,
+        );
+      } finally {
+        progress.end();
+      }
+    });
+  }
 
-      if (status is ComputeStatusFailure) {
-        var reason = status.reason ?? 'Cannot compute the change. No details.';
+  /// Performs the refactor, including sending the edits to the client and
+  /// waiting for them to be applied.
+  Future<ErrorOr<void>> _performRefactor(
+    ResolvedLibraryResult library,
+    ResolvedUnitResult unit,
+    LspClientCapabilities clientCapabilities,
+    int offset,
+    int length,
+    List<Object?> arguments,
+  ) async {
+    var context = RefactoringContext(
+      server: server,
+      startSessions: await server.currentSessions,
+      resolvedLibraryResult: library,
+      resolvedUnitResult: unit,
+      clientCapabilities: clientCapabilities,
+      selectionOffset: offset,
+      selectionLength: length,
+      includeExperimental:
+          server.lspClientConfiguration.global.experimentalRefactors,
+    );
+    var producer = generator(context);
+    var builder = ChangeBuilder(
+      workspace: context.workspace,
+      eol: context.utils.endOfLine,
+    );
+    var status = await producer.compute(arguments, builder);
+
+    if (status is ComputeStatusFailure) {
+      var reason = status.reason ?? 'Cannot compute the change. No details.';
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.RefactoringComputeStatusFailure,
+          message: reason,
+        ),
+      );
+    }
+
+    var edits = builder.sourceChange.edits;
+    if (edits.isEmpty) {
+      return success(null);
+    }
+
+    var fileEdits = <FileEditInformation>[];
+    for (var edit in edits) {
+      var path = edit.file;
+      var fileResult = context.session.getFile(path);
+      if (fileResult is! FileResult) {
         return ErrorOr.error(
           ResponseError(
-            code: ServerErrorCodes.RefactoringComputeStatusFailure,
-            message: reason,
+            code: ServerErrorCodes.FileAnalysisFailed,
+            message: 'Could not access "$path".',
           ),
         );
       }
-
-      var edits = builder.sourceChange.edits;
-      if (edits.isEmpty) {
-        return success(null);
-      }
-
-      var fileEdits = <FileEditInformation>[];
-      for (var edit in edits) {
-        var path = edit.file;
-        var fileResult = context.session.getFile(path);
-        if (fileResult is! FileResult) {
-          return ErrorOr.error(ResponseError(
-              code: ServerErrorCodes.FileAnalysisFailed,
-              message: 'Could not access "$path".'));
-        }
-        var docIdentifier = server.getVersionedDocumentIdentifier(path);
-        fileEdits.add(FileEditInformation(
-            docIdentifier, fileResult.lineInfo, edit.edits,
-            newFile: edit.fileStamp == -1));
-      }
-      var workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
-      return sendWorkspaceEditToClient(workspaceEdit);
-    });
+      var docIdentifier = server.getVersionedDocumentIdentifier(path);
+      fileEdits.add(
+        FileEditInformation(
+          docIdentifier,
+          fileResult.lineInfo,
+          edit.edits,
+          newFile: edit.fileStamp == -1,
+        ),
+      );
+    }
+    var workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
+    return sendWorkspaceEditToClient(workspaceEdit);
   }
 
   /// If the [arguments] is a list, then return it. Otherwise, return `null`

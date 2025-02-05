@@ -7,7 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// An outcome of a condition checking operation.
 class RefactoringStatus {
   /// The current severity of this [RefactoringStatus] - the maximum of the
-  /// severities of its [entries].
+  /// severities of its [problems].
   RefactoringProblemSeverity? _severity;
 
   /// A list of [RefactoringProblem]s.
@@ -79,14 +79,24 @@ class RefactoringStatus {
 
   /// Adds an ERROR problem with the given message and location.
   void addError(String msg, [Location? location]) {
-    _addProblem(RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
-        location: location));
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.ERROR,
+        msg,
+        location: location,
+      ),
+    );
   }
 
   /// Adds a FATAL problem with the given message and location.
   void addFatalError(String msg, [Location? location]) {
-    _addProblem(RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
-        location: location));
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.FATAL,
+        msg,
+        location: location,
+      ),
+    );
   }
 
   /// Merges [other] into this [RefactoringStatus].
@@ -106,8 +116,13 @@ class RefactoringStatus {
 
   /// Adds a WARNING problem with the given message and location.
   void addWarning(String msg, [Location? location]) {
-    _addProblem(RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
-        location: location));
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.WARNING,
+        msg,
+        location: location,
+      ),
+    );
   }
 
   @override

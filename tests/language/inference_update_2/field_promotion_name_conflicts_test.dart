@@ -6,7 +6,7 @@
 // of the same name in the library that's a non-final field or a concrete
 // getter.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 part 'field_promotion_name_conflicts_part.dart';
 

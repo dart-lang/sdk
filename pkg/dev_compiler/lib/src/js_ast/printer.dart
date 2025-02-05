@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: omit_local_variable_types
+// ignore_for_file: omit_local_variable_types, unnecessary_breaks
 
 import 'characters.dart' as char_codes;
 import 'nodes.dart';
@@ -1149,11 +1149,21 @@ class Printer implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    if (node.isStatic) {
+      out('static ');
+    }
     propertyNameOut(node.name);
-    out(':');
+    if (node.isClassProperty) {
+      out(' =');
+    } else {
+      out(':');
+    }
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
+    if (node.isClassProperty) {
+      out(';');
+    }
   }
 
   @override
@@ -1198,13 +1208,13 @@ class Printer implements NodeVisitor {
       visit(node.heritage!);
     }
     spaceOut();
-    if (node.methods.isNotEmpty) {
+    if (node.properties.isNotEmpty) {
       out('{');
       lineOut();
       indentMore();
-      for (var method in node.methods) {
+      for (var property in node.properties) {
         indent();
-        visit(method);
+        visit(property);
         lineOut();
       }
       indentLess();
@@ -1503,7 +1513,7 @@ class VarCollector extends BaseVisitorVoid {
   void visitClassExpression(ClassExpression node) {
     // Note that we don't bother collecting the name of the class.
     node.heritage?.accept(this);
-    for (Method method in node.methods) {
+    for (Property method in node.properties) {
       method.accept(this);
     }
   }
@@ -1813,7 +1823,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   void visitClassExpression(ClassExpression node) {
     declare(node.name);
     node.heritage?.accept(this);
-    for (Method element in node.methods) {
+    for (Property element in node.properties) {
       element.accept(this);
     }
   }

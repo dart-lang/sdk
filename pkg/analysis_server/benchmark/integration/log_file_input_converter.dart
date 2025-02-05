@@ -44,7 +44,9 @@ class LogFileInputConverter extends CommonInputConverter {
       return null;
     } catch (e, s) {
       throw AnalysisException(
-          'Failed to parse line\n  $line', CaughtException(e, s));
+        'Failed to parse line\n  $line',
+        CaughtException(e, s),
+      );
     }
   }
 

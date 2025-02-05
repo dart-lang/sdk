@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -888,6 +889,7 @@ class _Base extends AbstractContextTest {
   int? offset;
   late CompletionTarget target;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   void assertTarget(
     String entityText,
@@ -955,34 +957,35 @@ class _Base extends AbstractContextTest {
 
     var result = await resolveFile(path);
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
 
     target = CompletionTarget.forOffset(result.unit, offset!);
   }
 
-  static String _executableNameStr(ExecutableElement executable) {
-    var executableEnclosing = executable.enclosingElement3;
-    if (executableEnclosing is CompilationUnitElement) {
-      return executable.name;
-    } else if (executable is ConstructorElement) {
-      if (executable.name == '') {
-        return '${executableEnclosing.name}.<init>';
+  static String _executableNameStr(ExecutableElement2 executable) {
+    var executableEnclosing = executable.enclosingElement2;
+    if (executableEnclosing is LibraryElement2) {
+      return executable.name3!;
+    } else if (executable is ConstructorElement2) {
+      if (executable.name3 == 'new') {
+        return '${executableEnclosing!.name3}.<init>';
       } else {
-        return '${executableEnclosing.name}.${executable.name}';
+        return '${executableEnclosing!.name3}.${executable.name3}';
       }
-    } else if (executable is MethodElement) {
-      return '${executableEnclosing.name}.${executable.name}';
+    } else if (executable is MethodElement2) {
+      return '${executableEnclosing!.name3}.${executable.name3}';
     }
     fail('Unexpected element: $executable');
   }
 
-  static String _executableStr(ExecutableElement element) {
+  static String _executableStr(ExecutableElement2 element) {
     var executableStr = _executableNameStr(element);
     var typeStr = element.type.getDisplayString();
     return '$executableStr: $typeStr';
   }
 
-  static String _parameterStr(ParameterElement element) {
+  static String _parameterStr(FormalParameterElement element) {
     var typeStr = element.type.getDisplayString();
-    return '${element.name}: $typeStr';
+    return '${element.name3}: $typeStr';
   }
 }

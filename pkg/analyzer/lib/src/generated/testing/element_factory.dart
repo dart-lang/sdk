@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -43,13 +46,18 @@ class ElementFactory {
   static ClassElementImpl classElement(
       String typeName, InterfaceType? superclassType,
       [List<String>? parameterNames]) {
-    ClassElementImpl element = ClassElementImpl(typeName, 0);
-    element.constructors = const <ConstructorElementImpl>[];
-    element.supertype = superclassType;
+    var fragment = ClassElementImpl(typeName, 0);
+    fragment.constructors = const <ConstructorElementImpl>[];
+    fragment.supertype = superclassType;
     if (parameterNames != null) {
-      element.typeParameters = typeParameters(parameterNames);
+      fragment.typeParameters = typeParameters(parameterNames);
     }
-    return element;
+
+    var element = ClassElementImpl2(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+
+    return fragment;
   }
 
   static ClassElementImpl classElement2(String typeName,
@@ -58,7 +66,7 @@ class ElementFactory {
 
   static ClassElementImpl classElement3({
     required String name,
-    List<TypeParameterElement>? typeParameters,
+    List<TypeParameterElementImpl>? typeParameters,
     List<String> typeParameterNames = const [],
     InterfaceType? supertype,
     List<InterfaceType> mixins = const [],
@@ -67,13 +75,18 @@ class ElementFactory {
     typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
     supertype ??= objectType;
 
-    var element = ClassElementImpl(name, 0);
-    element.typeParameters = typeParameters;
-    element.supertype = supertype;
-    element.mixins = mixins;
-    element.interfaces = interfaces;
-    element.constructors = const <ConstructorElementImpl>[];
-    return element;
+    var fragment = ClassElementImpl(name, 0);
+    fragment.typeParameters = typeParameters;
+    fragment.supertype = supertype;
+    fragment.mixins = mixins;
+    fragment.interfaces = interfaces;
+    fragment.constructors = const <ConstructorElementImpl>[];
+
+    var element = ClassElementImpl2(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+
+    return fragment;
   }
 
   static ClassElementImpl classElement4(String typeName,
@@ -124,7 +137,6 @@ class ElementFactory {
     constructor.isSynthetic = name == null;
     constructor.isConst = isConst;
     constructor.parameters = _requiredParameters(argumentTypes);
-    constructor.enclosingElement = definingClass;
     constructor.enclosingElement3 = definingClass;
     if (!constructor.isSynthetic) {
       constructor.constantInitializers = <ConstructorInitializer>[];
@@ -226,9 +238,8 @@ class ElementFactory {
       ClassElement enclosingElement,
       String methodName,
       DartType returnType,
-      List<ParameterElement> parameters) {
+      List<ParameterElementImpl> parameters) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
-    method.enclosingElement = enclosingElement;
     method.enclosingElement3 = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
@@ -237,7 +248,7 @@ class ElementFactory {
 
   static MixinElementImpl mixinElement(
       {required String name,
-      List<TypeParameterElement>? typeParameters,
+      List<TypeParameterElementImpl>? typeParameters,
       List<String> typeParameterNames = const [],
       List<InterfaceType> constraints = const [],
       List<InterfaceType> interfaces = const [],
@@ -329,7 +340,7 @@ class ElementFactory {
     setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable2 = field;
-    setter.parameters = <ParameterElement>[parameter];
+    setter.parameters = [parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.isStatic = isStatic;
     field.setter = setter;
@@ -343,7 +354,7 @@ class ElementFactory {
     return TypeParameterElementImpl(name, 0);
   }
 
-  static List<TypeParameterElement> typeParameters(List<String> names) {
+  static List<TypeParameterElementImpl> typeParameters(List<String> names) {
     return names.map((name) => typeParameterWithType(name)).toList();
   }
 

@@ -4,7 +4,6 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:args/args.dart';
 
 /// Compute and print information about flutter packages.
@@ -41,11 +41,7 @@ Future<void> main(List<String> args) async {
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   var parser = ArgParser();
-  parser.addOption(
-    'help',
-    abbr: 'h',
-    help: 'Print this help message.',
-  );
+  parser.addOption('help', abbr: 'h', help: 'Print this help message.');
   return parser;
 }
 
@@ -136,15 +132,15 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var previousParentWidget = parentWidget;
     if (node.isWidgetCreation) {
-      var element = node.constructorName.staticElement;
+      var element = node.constructorName.element;
       if (element == null) {
         throw StateError(
-            'Unresolved constructor name: ${node.constructorName}');
+          'Unresolved constructor name: ${node.constructorName}',
+        );
       }
-      var childWidget = element.enclosingElement3.name;
-      if (!element.librarySource.uri
-          .toString()
-          .startsWith('package:flutter/')) {
+      var childWidget = element.enclosingElement2.name3!;
+      var library = element.library2;
+      if (!library.uri.toString().startsWith('package:flutter/')) {
         childWidget = 'user-defined';
       }
       data.recordWidgetCreation(childWidget, parentWidget);
@@ -187,7 +183,9 @@ class FlutterMetricsComputer {
   /// separate context collection to prevent accumulating memory. The metrics
   /// should be captured in the [collector].
   Future<void> _computeInContext(
-      ContextRoot root, FlutterDataCollector collector) async {
+    ContextRoot root,
+    FlutterDataCollector collector,
+  ) async {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -199,8 +197,9 @@ class FlutterMetricsComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+          var resolvedUnitResult = await context.currentSession.getResolvedUnit(
+            filePath,
+          );
           //
           // Check for errors that cause the file to be skipped.
           //
@@ -255,7 +254,9 @@ class FlutterMetricsComputer {
 
   /// Write the structure data in the [structureMap] to the [sink].
   void _writeStructureData(
-      StringSink sink, Map<String, Map<String, int>> structureMap) {
+    StringSink sink,
+    Map<String, Map<String, int>> structureMap,
+  ) {
     var outerEntries = structureMap.entries.toList();
     outerEntries.sort((first, second) => first.key.compareTo(second.key));
     for (var outerEntry in outerEntries) {
@@ -265,7 +266,9 @@ class FlutterMetricsComputer {
       var entries = innerMap.entries.toList();
       entries.sort((first, second) => second.value.compareTo(first.value));
       var total = entries.fold<int>(
-          0, (previousValue, entry) => previousValue + entry.value);
+        0,
+        (previousValue, entry) => previousValue + entry.value,
+      );
       for (var entry in entries) {
         var percent = _formatPercent(entry.value, total);
         sink.writeln('  $percent%: ${entry.key} (${entry.value})');

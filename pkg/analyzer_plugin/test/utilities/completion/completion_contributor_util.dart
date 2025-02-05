@@ -476,7 +476,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future<E> performAnalysis<E>(int times, Completer<E> completer) async {
+  Future<E> performAnalysis<E>(int times, Completer<E> completer) {
     if (completer.isCompleted) {
       return completer.future;
     }

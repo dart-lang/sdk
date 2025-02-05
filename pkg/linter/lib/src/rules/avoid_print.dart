@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid `print` calls in production code.';
@@ -51,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parent = node.parent;
       if (parent is IfStatement && node == parent.thenStatement) {
         var condition = parent.expression;
-        if (condition is SimpleIdentifier && isKDebugMode2(condition.element)) {
+        if (condition is SimpleIdentifier && isKDebugMode(condition.element)) {
           return true;
         }
       } else if (parent is FunctionBody) {

@@ -405,6 +405,21 @@ macro class M {
     ]);
   }
 
+  test_parameterizedType() async {
+    // Verify we aren't doing an unsafe cast to a `ConstructorFragment` in type.dart.
+    // b/374689139
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A<T> {}
+
+@immutable
+class C<U> extends A<U> {
+  C();
+}
+''');
+  }
+
   test_returnOfInvalidType() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';

@@ -71,7 +71,7 @@ To reduce the time the mutator is paused for old-space GCs, we allow the mutator
 
 ### Barrier
 
-With the mutator and marker running concurrently, the mutator could write a pointer to an object that has not been marked (TARGET) into an object that has already been marked and visited (SOURCE), leading to incorrect collection of TARGET. To prevent this, the write barrier checks if a store creates a pointer from an old-space object to an old-space object that is not marked, and marks the target object for such stores. We ignore pointers from new-space objects because we treat new-space objects as roots and will revisit them to finalize marking. We ignore the marking state of the source object to avoid expensive memory barriers required to ensure reordering of accesses to the header and slots can't lead skipped marking, and on the assumption that objects accessed during marking are likely to remain live when marking finishes.
+With the mutator and marker running concurrently, the mutator could write a pointer to an object that has not been marked (TARGET) into an object that has already been marked and visited (SOURCE), leading to incorrect collection of TARGET. To prevent this, the write barrier checks if a store creates a pointer to an object that is not marked, and marks the target object. We ignore the marking state of the source object to avoid expensive memory barriers required to ensure reordering of accesses to the header and slots can't lead skipped marking, and on the assumption that objects accessed during marking are likely to remain live when marking finishes.
 
 The barrier is equivalent to
 
@@ -82,7 +82,7 @@ StorePointer(ObjectPtr source, ObjectPtr* slot, ObjectPtr target) {
   if (source->IsOldObject() && !source->IsRemembered() && target->IsNewObject()) {
     source->SetRemembered();
     AddToRememberedSet(source);
-  } else if (source->IsOldObject() && target->IsOldObject() && !target->IsMarked() && Thread::Current()->IsMarking()) {
+  } else if (!target->IsMarked() && Thread::Current()->IsMarking()) {
     if (target->TryAcquireMarkBit()) {
       AddToMarkList(target);
     }
@@ -150,7 +150,9 @@ For old-space objects created before marking started, in each slot the marker ca
 
 For old-space objects created after marking started, the marker may see uninitialized values because operations on slots are not synchronized. To prevent this, during marking we allocate old-space objects [black (marked)](https://en.wikipedia.org/wiki/Tracing_garbage_collection#TRI-COLOR) so the marker will not visit them.
 
-New-space objects and roots are only visited during a safepoint, and safepoints establish synchronization.
+New-space objects inside an active TLAB and roots are only visited during a safepoint, and safepoints establish synchronization.
+
+New-space objects outside an active TLAB are synchronized by the store-release used to switch to the next TLAB.
 
 When the mutator's mark block becomes full, it transferred to the marker by an acquire-release operation, so the marker will see the stores into the block.
 
@@ -167,8 +169,7 @@ When this occurs, we must insert `container` into the remembered set.
 
 The incremental marking write barrier, needed by the marker, checks if
 
-* `container` is old, and
-* `value` is old and not marked, and
+* `value` is not marked, and
 * marking is in progress
 
 When this occurs, we must insert `value` into the marking worklist.
@@ -178,7 +179,10 @@ We can eliminate these checks when the compiler can prove these cases cannot hap
 * `value` is a constant. Constants are always old, and they will be marked via the constant pools even if we fail to mark them via `container`.
 * `value` has the static type bool. All possible values of the bool type (null, false, true) are constants.
 * `value` is known to be a Smi. Smis are not heap objects.
-* `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
+* `value` is `container`. Self-references cannot cross generations or marking states.
+* `container` is known to be
+  * a new object or or an old object that is in the remembered set, AND
+  * a new object in the active TLAB or queued for re-scanning
 
 We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been preemptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
 

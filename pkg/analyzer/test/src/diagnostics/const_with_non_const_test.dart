@@ -103,7 +103,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     staticElement: <testLibraryFragment>::@class::A::@constructor::new
     element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -140,7 +140,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     staticElement: <testLibraryFragment>::@class::A::@constructor::new
     element: <testLibraryFragment>::@class::A::@constructor::new#element

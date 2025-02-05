@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/annotation_referencing_extension_instance_member.dart:8:4: Error: Not a constant expression.
+//   @foo
+//    ^^^
+//
+// pkg/front_end/testcases/regress/annotation_referencing_extension_instance_member.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+//   @foo
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Bar on core::String {
+  method foo = self::Bar|foo;
+  method tearoff foo = self::Bar|get#foo;
+  method bar = self::Bar|bar;
+  method tearoff bar = self::Bar|get#bar;
+}
+static extension-member method Bar|foo(lowered final core::String #this) → dynamic
+  ;
+static extension-member method Bar|get#foo(lowered final core::String #this) → () → dynamic
+  return () → dynamic => self::Bar|foo(#this);
+@invalid-expression "pkg/front_end/testcases/regress/annotation_referencing_extension_instance_member.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+  @foo
+   ^" in invalid-expression "pkg/front_end/testcases/regress/annotation_referencing_extension_instance_member.dart:8:4: Error: Not a constant expression.
+  @foo
+   ^^^"
+static extension-member method Bar|bar(lowered final core::String #this) → dynamic
+  ;
+static extension-member method Bar|get#bar(lowered final core::String #this) → () → dynamic
+  return () → dynamic => self::Bar|bar(#this);

@@ -47,7 +47,8 @@ void main() {
     Expect.listEquals([1, 2, 5, 6], list);
 
     Expect.throwsRangeError(
-        () => list.setRange(4, 5, makeIterable([5, 6, 7, 8])));
+      () => list.setRange(4, 5, makeIterable([5, 6, 7, 8])),
+    );
     Expect.listEquals([1, 2, 5, 6], list);
 
     list.setRange(1, 3, makeIterable([9, 10, 11, 12]));
@@ -66,12 +67,14 @@ void testNegativeIndices() {
     var list = [1, 2];
     Expect.throwsRangeError(() => list.setRange(-1, 1, makeIterable([1])));
     Expect.throwsArgumentError(
-        () => list.setRange(0, 1, makeIterable([1]), -1));
+      () => list.setRange(0, 1, makeIterable([1]), -1),
+    );
 
     Expect.throwsRangeError(() => list.setRange(2, 1, makeIterable([1])));
 
     Expect.throwsArgumentError(
-        () => list.setRange(-1, -2, makeIterable([1]), -1));
+      () => list.setRange(-1, -2, makeIterable([1]), -1),
+    );
     Expect.listEquals([1, 2], list);
 
     Expect.throwsRangeError(() => list.setRange(-1, -1, makeIterable([1])));

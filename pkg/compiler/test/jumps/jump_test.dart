@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -18,8 +18,12 @@ import 'package:kernel/ast.dart' as ir;
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const JumpDataComputer(),
-        options: [stopAfterTypeInference], args: args);
+    await checkTests(
+      dataDir,
+      const JumpDataComputer(),
+      options: [stopAfterTypeInference],
+      args: args,
+    );
   });
 }
 
@@ -31,16 +35,22 @@ class JumpDataComputer extends DataComputer<String> {
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
   /// for the data origin.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
         compiler.globalInference.resultsForTesting!.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    JumpsIrChecker(compiler.reporter, actualMap, localsMap.getLocalsMap(member))
-        .run(definition.node);
+    JumpsIrChecker(
+      compiler.reporter,
+      actualMap,
+      localsMap.getLocalsMap(member),
+    ).run(definition.node);
   }
 
   @override
@@ -56,7 +66,8 @@ class TargetData {
   TargetData(this.index, this.id, this.sourceSpan, this.target);
 
   @override
-  String toString() => 'TargetData(index=$index,id=$id,'
+  String toString() =>
+      'TargetData(index=$index,id=$id,'
       'sourceSpan=$sourceSpan,target=$target)';
 }
 
@@ -79,9 +90,11 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   Map<JumpTarget, TargetData> targets = <JumpTarget, TargetData>{};
   List<GotoData> gotos = <GotoData>[];
 
-  JumpsIrChecker(DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap, this._localsMap)
-      : super(reporter, actualMap);
+  JumpsIrChecker(
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._localsMap,
+  ) : super(reporter, actualMap);
 
   void processData() {
     targets.forEach((JumpTarget target, TargetData data) {
@@ -102,7 +115,12 @@ class JumpsIrChecker extends IrDataExtractor<String> {
       }
       String value = sb.toString();
       registerValue(
-          data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, target);
+        data.sourceSpan.uri,
+        data.sourceSpan.begin,
+        data.id,
+        value,
+        target,
+      );
     });
     gotos.forEach((GotoData data) {
       StringBuffer sb = StringBuffer();
@@ -111,7 +129,12 @@ class JumpsIrChecker extends IrDataExtractor<String> {
       sb.write(targetData.index);
       String value = sb.toString();
       registerValue(
-          data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, data);
+        data.sourceSpan.uri,
+        data.sourceSpan.begin,
+        data.id,
+        value,
+        data,
+      );
     });
   }
 
@@ -137,28 +160,40 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   @override
   visitForStatement(ir.ForStatement node) {
     addTargetData(
-        node, createLoopId(node)!, _localsMap.getJumpTargetForFor(node));
+      node,
+      createLoopId(node)!,
+      _localsMap.getJumpTargetForFor(node),
+    );
     super.visitForStatement(node);
   }
 
   @override
   visitForInStatement(ir.ForInStatement node) {
     addTargetData(
-        node, createLoopId(node)!, _localsMap.getJumpTargetForForIn(node));
+      node,
+      createLoopId(node)!,
+      _localsMap.getJumpTargetForForIn(node),
+    );
     super.visitForInStatement(node);
   }
 
   @override
   visitWhileStatement(ir.WhileStatement node) {
     addTargetData(
-        node, createLoopId(node)!, _localsMap.getJumpTargetForWhile(node));
+      node,
+      createLoopId(node)!,
+      _localsMap.getJumpTargetForWhile(node),
+    );
     super.visitWhileStatement(node);
   }
 
   @override
   visitDoStatement(ir.DoStatement node) {
     addTargetData(
-        node, createLoopId(node)!, _localsMap.getJumpTargetForDo(node));
+      node,
+      createLoopId(node)!,
+      _localsMap.getJumpTargetForDo(node),
+    );
     super.visitDoStatement(node);
   }
 
@@ -185,14 +220,20 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   @override
   visitSwitchStatement(ir.SwitchStatement node) {
     addTargetData(
-        node, createSwitchId(node)!, _localsMap.getJumpTargetForSwitch(node));
+      node,
+      createSwitchId(node)!,
+      _localsMap.getJumpTargetForSwitch(node),
+    );
     super.visitSwitchStatement(node);
   }
 
   @override
   visitSwitchCase(ir.SwitchCase node) {
-    addTargetData(node, createSwitchCaseId(node),
-        _localsMap.getJumpTargetForSwitchCase(node));
+    addTargetData(
+      node,
+      createSwitchCaseId(node),
+      _localsMap.getJumpTargetForSwitchCase(node),
+    );
     super.visitSwitchCase(node);
   }
 

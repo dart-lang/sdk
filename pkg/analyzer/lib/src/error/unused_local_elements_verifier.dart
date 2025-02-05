@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -946,7 +948,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   Iterable<ExecutableElement> _overriddenElements(Element element) {
     var fragment = element.enclosingElement3;
     if (fragment is InterfaceElement) {
-      var enclosingElement = fragment.augmented.declaration;
+      var enclosingElement = fragment.augmented.firstFragment;
       Name name = Name(_libraryUri, element.name!);
       var overridden =
           _inheritanceManager.getOverridden2(enclosingElement, name);

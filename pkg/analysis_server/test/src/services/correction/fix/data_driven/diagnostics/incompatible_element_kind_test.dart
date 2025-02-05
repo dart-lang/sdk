@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class IncompatibleElementKindTest extends AbstractTransformSetParserTest {
   void test_integer() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Replace'
@@ -30,8 +31,8 @@ transforms:
       newElement:
         uris: ['test.dart']
         variable: 'v'
-''', [
-      error(TransformSetErrorCode.incompatibleElementKind, 191, 42),
-    ]);
+''',
+      [error(TransformSetErrorCode.incompatibleElementKind, 191, 42)],
+    );
   }
 }

@@ -4,11 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
@@ -32,7 +31,7 @@ class PreferForeach extends LintRule {
 
 class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  LocalVariableElement? element;
+  LocalVariableElement2? element;
   ForStatement? forEachStatement;
 
   _PreferForEachVisitor(this.rule);
@@ -53,7 +52,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      var element = loopParts.loopVariable.declaredElement;
+      var element = loopParts.loopVariable.declaredElement2;
       if (element != null) {
         forEachStatement = node;
         this.element = element;
@@ -89,7 +88,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
 
 class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
-  final LocalVariableElement? element;
+  final LocalVariableElement2? element;
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {

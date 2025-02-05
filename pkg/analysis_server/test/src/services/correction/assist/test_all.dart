@@ -66,6 +66,8 @@ import 'flutter_wrap_builder_test.dart' as flutter_wrap_builder;
 import 'flutter_wrap_center_test.dart' as flutter_wrap_center;
 import 'flutter_wrap_column_test.dart' as flutter_wrap_column;
 import 'flutter_wrap_container_test.dart' as flutter_wrap_container;
+import 'flutter_wrap_expanded_test.dart' as flutter_wrap_expanded;
+import 'flutter_wrap_flexible_test.dart' as flutter_wrap_flexible;
 import 'flutter_wrap_generic_test.dart' as flutter_wrap_generic;
 import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
@@ -76,6 +78,7 @@ import 'inline_invocation_test.dart' as inline_invocation;
 import 'invert_conditional_expression_test.dart'
     as invert_conditional_expression;
 import 'invert_if_statement_test.dart' as invert_if_statement;
+import 'join_else_with_if_test.dart' as join_else_with_if;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
 import 'join_variable_declaration_test.dart' as join_variable_declaration;
@@ -153,6 +156,8 @@ void main() {
     flutter_wrap_center.main();
     flutter_wrap_column.main();
     flutter_wrap_container.main();
+    flutter_wrap_expanded.main();
+    flutter_wrap_flexible.main();
     flutter_wrap_generic.main();
     flutter_wrap_padding.main();
     flutter_wrap_row.main();
@@ -163,6 +168,7 @@ void main() {
     inline_invocation.main();
     invert_conditional_expression.main();
     invert_if_statement.main();
+    join_else_with_if.main();
     join_if_with_inner.main();
     join_if_with_outer.main();
     join_variable_declaration.main();

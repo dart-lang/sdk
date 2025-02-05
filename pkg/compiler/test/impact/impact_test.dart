@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -23,10 +23,13 @@ main(List<String> args) {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     print('Testing computation of WorldImpact through ImpactData');
     print('==================================================================');
-    await checkTests(dataDir, const ImpactDataComputer(),
-        options: const ['--enable-asserts'],
-        args: args,
-        testedConfigs: allSpecConfigs);
+    await checkTests(
+      dataDir,
+      const ImpactDataComputer(),
+      options: const ['--enable-asserts'],
+      args: args,
+      testedConfigs: allSpecConfigs,
+    );
   });
 }
 
@@ -44,9 +47,12 @@ class ImpactDataComputer extends DataComputer<Features> {
   static const String wildcard = '%';
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member]!;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
@@ -75,8 +81,13 @@ class ImpactDataComputer extends DataComputer<Features> {
     impactData.apply(ImpactDataGoldener(frontendStrategy.elementMap, features));
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
+    actualMap[id] = ActualData<Features>(
+      id,
+      features,
+      nodeWithOffset.location!.file,
+      nodeWithOffset.fileOffset,
+      member,
+    );
   }
 
   @override
@@ -94,12 +105,16 @@ class ImpactDataGoldener implements ImpactRegistry {
   ImpactDataGoldener(this.elementMap, this.features);
 
   @override
-  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
-      ir.DartType? argumentType) {
+  void registerRuntimeTypeUse(
+    RuntimeTypeUseKind kind,
+    ir.DartType receiverType,
+    ir.DartType? argumentType,
+  ) {
     final runtimeTypeUse = RuntimeTypeUse(
-        kind,
-        elementMap.getDartType(receiverType),
-        argumentType == null ? null : elementMap.getDartType(argumentType));
+      kind,
+      elementMap.getDartType(receiverType),
+      argumentType == null ? null : elementMap.getDartType(argumentType),
+    );
     features.addElement(Tags.runtimeTypeUse, runtimeTypeUse.shortText);
   }
 

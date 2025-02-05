@@ -62,15 +62,19 @@ int f() {
   return 1;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 int get foo => null;
 Future<int> f() async {
   await foo;
   return 1;
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+      },
+    );
   }
 
   Future<void> test_closure() async {
@@ -79,13 +83,17 @@ void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() => await 1);
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() async => await 1);
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+      },
+    );
   }
 
   Future<void> test_expressionFunctionBody() async {
@@ -96,6 +104,215 @@ f() => await foo();
     await assertHasFix('''
 foo() {}
 f() async => await foo();
+''');
+  }
+
+  Future<void> test_futureOrString() async {
+    await resolveTestCode('''
+Future<String> f() {
+  if (1 == 2) {
+    return '';
+  }
+  return Future.value('');
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  if (1 == 2) {
+    return '';
+  }
+  return Future.value('');
+}
+''');
+  }
+
+  Future<void> test_futureString_closure() async {
+    await resolveTestCode('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() => '');
+''');
+    await assertHasFix('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() async => '');
+''');
+  }
+
+  Future<void> test_futureString_function() async {
+    await resolveTestCode('''
+Future<String> f() {
+  return '';
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  return '';
+}
+''');
+  }
+
+  Future<void> test_futureString_innerClosure_closure() async {
+    await resolveTestCode('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() => () => '');
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_futureString_innerClosure_functionBody() async {
+    await resolveTestCode('''
+Future<int> f() {
+  () => '';
+  return 0;
+}
+''');
+    await assertHasFix('''
+Future<int> f() async {
+  () => '';
+  return 0;
+}
+''');
+  }
+
+  Future<void> test_futureString_innerClosureCall_closure() async {
+    await resolveTestCode('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() => (() => '')());
+''');
+    await assertHasFix('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() async => (() => '')());
+''');
+  }
+
+  Future<void> test_futureString_innerClosureCall_functionBody() async {
+    await resolveTestCode('''
+Future<String> f() {
+  return (() => '')();
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  return (() => '')();
+}
+''');
+  }
+
+  Future<void> test_futureString_innerFunction_closure() async {
+    await resolveTestCode('''
+void f(Future<int> Function() p) async {}
+
+void g() => f(() => () {
+  return '';
+});
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_futureString_innerFunction_functionBody() async {
+    await resolveTestCode('''
+Future<String> f() {
+  int g() {
+    return 0;
+  }
+  g();
+  return '';
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  int g() {
+    return 0;
+  }
+  g();
+  return '';
+}
+''');
+  }
+
+  Future<void> test_futureString_innerFunctionCall_closure() async {
+    await resolveTestCode('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() => (() {
+  return '';
+})());
+''');
+    await assertHasFix('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() async => (() {
+  return '';
+})());
+''');
+  }
+
+  Future<void> test_futureString_innerFunctionCall_functionBody() async {
+    await resolveTestCode('''
+Future<String> f() {
+  String g() {
+    return '';
+  }
+  return g();
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  String g() {
+    return '';
+  }
+  return g();
+}
+''');
+  }
+
+  Future<void> test_futureString_int_closure() async {
+    await resolveTestCode('''
+void f(Future<String> Function() p) async {}
+
+void g() => f(() => 0);
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_futureString_int_function() async {
+    await resolveTestCode('''
+Future<String> f() {
+  return 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_futureString_int_method() async {
+    await resolveTestCode('''
+class C {
+  Future<String> f() {
+    return 0;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_futureString_method() async {
+    await resolveTestCode('''
+class C {
+  Future<String> f() {
+    return '';
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<String> f() async {
+    return '';
+  }
+}
 ''');
   }
 
@@ -112,36 +329,6 @@ void f() async {
   await g();
 }
 ''');
-  }
-
-  Future<void> test_missingReturn_hasReturn() async {
-    await resolveTestCode('''
-Future<int> f(bool b) {
-  if (b) {
-    return 0;
-  }
-}
-''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
-  }
-
-  Future<void> test_missingReturn_method_hasReturn() async {
-    await resolveTestCode('''
-class C {
-  Future<int> m(bool b) {
-    if (b) {
-      return 0;
-    }
-  }
-}
-''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
-    });
   }
 
   Future<void> test_missingReturn_method_notVoid() async {
@@ -221,20 +408,6 @@ Future<int> f() {
     await assertNoFix();
   }
 
-  Future<void> test_missingReturn_topLevel_hasReturn() async {
-    await resolveTestCode('''
-Future<int> f(bool b) {
-  if (b) {
-    return 0;
-  }
-}
-''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
-  }
-
   Future<void> test_missingReturn_topLevel_notVoid() async {
     await resolveTestCode('''
 Future<int> f() {
@@ -285,15 +458,18 @@ Future<int> f() {
   return 42;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 foo() {}
 Future<int> f() async {
   await foo();
   return 42;
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
+      },
+    );
   }
 
   Future<void> test_returnFuture_dynamic() async {

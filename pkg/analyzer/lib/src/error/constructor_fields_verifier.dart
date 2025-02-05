@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// Verifier for initializing fields in constructors.
 class ConstructorFieldsVerifier {
   final TypeSystemImpl typeSystem;
-  final Map<AugmentedInstanceElement, _Interface> _interfaces = Map.identity();
+  final Map<InstanceElement2, _Interface> _interfaces = Map.identity();
 
   ConstructorFieldsVerifier({
     required this.typeSystem,
@@ -21,10 +20,10 @@ class ConstructorFieldsVerifier {
 
   void addConstructors(
     ErrorReporter errorReporter,
-    AugmentedInstanceElement augmented,
+    InterfaceElement2 element,
     List<ClassMember> members,
   ) {
-    var interfaceFields = _forInterface(augmented);
+    var interfaceFields = _forInterface(element);
     var constructors = members.whereType<ConstructorDeclarationImpl>();
     for (var constructor in constructors) {
       _addConstructor(
@@ -54,35 +53,32 @@ class ConstructorFieldsVerifier {
       return;
     }
 
-    var element = node.declaredElement!;
+    var fragment = node.declaredFragment!;
     var constructorState = interfaceFields.forConstructor(
       errorReporter: errorReporter,
       node: node,
-      element: element,
+      fragment: fragment,
     );
-    if (constructorState == null) {
-      return;
-    }
 
-    if (!element.isAugmentation) {
+    if (!fragment.isAugmentation) {
       constructorState.updateWithParameters(node);
     }
 
     constructorState.updateWithInitializers(errorReporter, node);
   }
 
-  _Interface _forInterface(AugmentedInstanceElement augmented) {
-    if (_interfaces[augmented] case var result?) {
+  _Interface _forInterface(InterfaceElement2 element) {
+    if (_interfaces[element] case var result?) {
       return result;
     }
 
-    var fieldMap = <FieldElement, _InitState>{};
+    var fieldMap = <FieldElement2, _InitState>{};
 
-    for (var field in augmented.fields) {
+    for (var field in element.fields2) {
       if (field.isSynthetic) {
         continue;
       }
-      if (augmented is AugmentedEnumElement && field.name == 'index') {
+      if (element is EnumElement2 && field.name3 == 'index') {
         continue;
       }
       fieldMap[field] = field.hasInitializer
@@ -90,9 +86,9 @@ class ConstructorFieldsVerifier {
           : _InitState.notInit;
     }
 
-    return _interfaces[augmented] = _Interface(
+    return _interfaces[element] = _Interface(
       typeSystem: typeSystem,
-      augmented: augmented,
+      element: element,
       fields: fieldMap,
     );
   }
@@ -102,8 +98,8 @@ class _Constructor {
   final TypeSystemImpl typeSystem;
   final ErrorReporter errorReporter;
   final ConstructorDeclaration node;
-  final ConstructorElementImpl element;
-  final Map<FieldElement, _InitState> fields;
+  final ConstructorElement2 element;
+  final Map<FieldElement2, _InitState> fields;
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
@@ -122,34 +118,40 @@ class _Constructor {
     }
 
     // Prepare lists of not initialized fields.
-    var notInitFinalFields = <FieldElement>[];
-    var notInitNonNullableFields = <FieldElement>[];
-    fields.forEach((FieldElement field, _InitState state) {
+    var notInitFinalFields = <_Field>[];
+    var notInitNonNullableFields = <_Field>[];
+    fields.forEach((field, state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
       if (field.isAbstract || field.isExternal) return;
       if (field.isStatic) return;
 
+      var name = field.name3;
+      if (name == null) return;
+
       if (field.isFinal) {
-        notInitFinalFields.add(field);
+        notInitFinalFields.add(
+          _Field(field, name),
+        );
       } else if (typeSystem.isPotentiallyNonNullable(field.type)) {
-        notInitNonNullableFields.add(field);
+        notInitNonNullableFields.add(
+          _Field(field, name),
+        );
       }
     });
 
-    reportNotInitializedFinal(node, notInitFinalFields);
-    reportNotInitializedNonNullable(node, notInitNonNullableFields);
+    reportNotInitializedFinal(notInitFinalFields);
+    reportNotInitializedNonNullable(notInitNonNullableFields);
   }
 
   void reportNotInitializedFinal(
-    ConstructorDeclaration node,
-    List<FieldElement> notInitFinalFields,
+    List<_Field> notInitFinalFields,
   ) {
     if (notInitFinalFields.isEmpty) {
       return;
     }
 
-    var names = notInitFinalFields.map((item) => item.name).toList();
+    var names = notInitFinalFields.map((f) => f.name).toList();
     names.sort();
 
     if (names.length == 1) {
@@ -174,8 +176,7 @@ class _Constructor {
   }
 
   void reportNotInitializedNonNullable(
-    ConstructorDeclaration node,
-    List<FieldElement> notInitNonNullableFields,
+    List<_Field> notInitNonNullableFields,
   ) {
     if (notInitNonNullableFields.isEmpty) {
       return;
@@ -203,14 +204,14 @@ class _Constructor {
         hasRedirectingConstructorInvocation = true;
       }
       if (initializer is ConstructorFieldInitializer) {
-        SimpleIdentifier fieldName = initializer.fieldName;
-        var element = fieldName.staticElement;
-        if (element is FieldElement) {
-          var state = fields[element];
+        var fieldName = initializer.fieldName;
+        var fieldElement = fieldName.element;
+        if (fieldElement is FieldElement2) {
+          var state = fields[fieldElement];
           if (state == _InitState.notInit) {
-            fields[element] = _InitState.initInInitializer;
+            fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
-            if (element.isFinal || element.isConst) {
+            if (fieldElement.isFinal || fieldElement.isConst) {
               errorReporter.atNode(
                 fieldName,
                 CompileTimeErrorCode
@@ -227,7 +228,7 @@ class _Constructor {
             errorReporter.atNode(
               fieldName,
               CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-              arguments: [element.displayName],
+              arguments: [fieldElement.displayName],
             );
           }
         }
@@ -241,10 +242,9 @@ class _Constructor {
     var formalParameters = node.parameters.parameters;
     for (var parameter in formalParameters) {
       parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameter) {
-        var fieldElement =
-            (parameter.declaredElement as FieldFormalParameterElementImpl)
-                .field;
+      if (parameter is FieldFormalParameterImpl) {
+        var parameterFragment = parameter.declaredFragment!;
+        var fieldElement = parameterFragment.element.field2;
         if (fieldElement == null) {
           continue;
         }
@@ -266,6 +266,14 @@ class _Constructor {
       }
     }
   }
+}
+
+/// The field with a non `null` name.
+class _Field {
+  final FieldElement2 element;
+  final String name;
+
+  _Field(this.element, this.name);
 }
 
 /// The four states of a field initialization state through a constructor
@@ -290,36 +298,32 @@ enum _InitState {
 
 class _Interface {
   final TypeSystemImpl typeSystem;
-  final AugmentedInstanceElement augmented;
+  final InterfaceElement2 element;
 
   /// [_InitState.notInit] or [_InitState.initInDeclaration] for each field
-  /// in [augmented]. This map works as the initial state for
+  /// in [element]. This map works as the initial state for
   /// [_Constructor].
-  final Map<FieldElement, _InitState> fields;
+  final Map<FieldElement2, _InitState> fields;
 
-  final Map<ConstructorElementImpl, _Constructor> constructors = Map.identity();
+  final Map<ConstructorElement2, _Constructor> constructors = Map.identity();
 
   _Interface({
     required this.typeSystem,
-    required this.augmented,
+    required this.element,
     required this.fields,
   });
 
-  _Constructor? forConstructor({
+  _Constructor forConstructor({
     required ErrorReporter errorReporter,
     required ConstructorDeclaration node,
-    required ConstructorElementImpl element,
+    required ConstructorFragment fragment,
   }) {
-    var declaration = element.augmentedDeclaration;
-    if (declaration == null) {
-      return null;
-    }
-
-    return constructors[declaration] ??= _Constructor(
+    var element = fragment.element;
+    return constructors[element] ??= _Constructor(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
       node: node,
-      element: declaration,
+      element: element,
       fields: {...fields},
     );
   }

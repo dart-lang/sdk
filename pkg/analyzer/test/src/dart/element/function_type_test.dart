@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -50,12 +52,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     // FunctionType properties
     expect(f.namedParameterTypes, namedParameterTypes,
         reason: 'namedParameterTypes');
-    expect(f.normalParameterNames, normalParameterNames,
-        reason: 'normalParameterNames');
     expect(f.normalParameterTypes, normalParameterTypes,
         reason: 'normalParameterTypes');
-    expect(f.optionalParameterNames, optionalParameterNames,
-        reason: 'optionalParameterNames');
     expect(f.optionalParameterTypes, optionalParameterTypes,
         reason: 'optionalParameterTypes');
     expect(f.parameters, parameters, reason: 'parameters');
@@ -307,7 +305,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_hash_optionalPositionalParameterType() {
-    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
               positionalParameter(name: 'x', type: class_(name: 'C$i').thisType)
@@ -368,7 +366,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_hash_requiredPositionalParameterType() {
-    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
               requiredParameter(name: 'x', type: class_(name: 'C$i').thisType)

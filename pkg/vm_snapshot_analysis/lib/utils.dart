@@ -1,7 +1,6 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library vm_snapshot_analysis.utils;
 
 import 'package:vm_snapshot_analysis/ascii_table.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'

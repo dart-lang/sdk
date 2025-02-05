@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.member_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
-import '../base/modifier.dart';
-import '../base/problems.dart' show unsupported;
-import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
+import '../base/name_space.dart';
 import '../builder/member_builder.dart';
-import '../kernel/body_builder_context.dart';
+import '../builder/metadata_builder.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import 'source_class_builder.dart';
@@ -27,8 +23,18 @@ typedef BuildNodesCallback = void Function(
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
 
+  Iterable<MetadataBuilder>? get metadataForTesting;
+
   @override
   SourceLibraryBuilder get libraryBuilder;
+
+  @override
+  Uri get fileUri;
+
+  bool get isFinal;
+
+  // TODO(johnniwinther): Avoid this or define a clear semantics.
+  bool get isSynthesized;
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
@@ -41,14 +47,17 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
 
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
+
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
   /// Checks the signature types of this member.
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment);
 
   /// Returns `true` if this member is declared using the `augment` modifier.
   bool get isAugmentation;
@@ -59,11 +68,6 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void set isConflictingAugmentationMember(bool value);
 
   AugmentSuperTarget? get augmentSuperTarget;
-
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields});
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -100,14 +104,6 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnimplementedError('$runtimeType.augmentSuperTarget');
   }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    throw new UnimplementedError('$runtimeType.bodyBuilderContext');
-  }
 }
 
 abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
@@ -115,16 +111,12 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl(Builder parent, Uri fileUri, int charOffset)
+  SourceMemberBuilderImpl()
       : dataForTesting = retainDataForTesting
             ?
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
-            : null,
-        super(parent, fileUri, charOffset);
-
-  @override
-  bool get isAugmentation => modifiers & augmentMask != 0;
+            : null;
 
   bool? _isConflictingSetter;
 
@@ -153,31 +145,27 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
     _isConflictingAugmentationMember = value;
   }
 
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
-
   @override
   // Coverage-ignore(suite): Not run.
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
-  StringBuffer printOn(StringBuffer buffer) {
-    if (isClassMember) {
-      buffer.write(classBuilder!.name);
-      buffer.write('.');
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(runtimeType);
+    sb.write('(');
+    if (isAugmenting) {
+      sb.write('augmentation ');
     }
-    buffer.write(name);
-    return buffer;
+    if (isClassMember) {
+      sb.write(classBuilder!.name);
+      sb.write('.');
+    }
+    sb.write(name);
+    sb.write(')');
+    return sb.toString();
   }
-
-  /// The builder for the enclosing class or extension, if any.
-  @override
-  DeclarationBuilder? get declarationBuilder =>
-      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
 
   @override
   AugmentSuperTarget? get augmentSuperTarget {

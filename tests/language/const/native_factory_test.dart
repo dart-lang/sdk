@@ -8,10 +8,10 @@ class Cake {
 
   @pragma("vm:external-name", "Cake_BakeMeACake")
   @JSName("Cake_BakeMeACake")
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
-// ^
-// [cfe] Couldn't find constructor 'JSName'.
+  // [error column 3, length 27]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+  // [error column 4]
+  // [cfe] Couldn't find constructor 'JSName'.
   external const factory Cake.BakeMeACake();
 }
 

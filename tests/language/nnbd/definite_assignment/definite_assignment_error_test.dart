@@ -198,7 +198,7 @@ void testDefiniteUnassignment(bool b) {
   }
 
   // Assignments in a branch of a switch which returns do not affect definite
-  // uassignment after the switch.
+  // assignment after the switch.
   if (b) {
     int x;
     late int y;

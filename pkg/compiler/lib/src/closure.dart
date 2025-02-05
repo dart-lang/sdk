@@ -16,8 +16,9 @@ import 'serialization/serialization.dart';
 abstract class ClosureData {
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureData.readFromDataSource(
-          JsToElementMap elementMap, DataSourceReader source) =
-      ClosureDataImpl.readFromDataSource;
+    JsToElementMap elementMap,
+    DataSourceReader source,
+  ) = ClosureDataImpl.readFromDataSource;
 
   /// Serializes this [ClosureData] to [sink].
   void writeToDataSink(DataSinkWriter sink);
@@ -36,6 +37,10 @@ abstract class ClosureData {
   /// Accessor to the information about scopes that closures capture. Used by
   /// the SSA builder.
   CapturedScope getCapturedScope(MemberEntity entity);
+
+  /// Look up scope information about a block. Used by the SSA builder to box
+  /// variables if needed.
+  CapturedScope getCapturedBlockScope(ir.Block node);
 
   /// If [entity] is a closure call method or closure signature method, the
   /// original enclosing member is returned. Otherwise [entity] is returned.
@@ -83,7 +88,7 @@ class ScopeInfo {
 
   /// Serializes this [ScopeInfo] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
-    throw UnsupportedError('${runtimeType}.writeToDataSink');
+    throw UnsupportedError('$runtimeType.writeToDataSink');
   }
 
   /// Convenience reference pointer to the element representing `this`.
@@ -114,7 +119,9 @@ class ScopeInfo {
   /// variables declared in the for loop expression (`for (...here...)`) that
   /// need to be boxed to snapshot their value.
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
+    KernelToLocalsMap localsMap,
+    void Function(Local local, FieldEntity field) f,
+  ) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
   bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) => false;
@@ -240,14 +247,16 @@ class ClosureRepresentationInfo extends ScopeInfo {
 
   /// Deserializes a [ClosureRepresentationInfo] object from [source].
   factory ClosureRepresentationInfo.readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
       case ScopeInfoKind.capturedScope:
       case ScopeInfoKind.capturedLoopScope:
         throw UnsupportedError(
-            'Unexpected ClosureRepresentationInfo kind $kind');
+          'Unexpected ClosureRepresentationInfo kind $kind',
+        );
       case ScopeInfoKind.closureRepresentationInfo:
         return JsClosureClassInfo.readFromDataSource(source);
     }
@@ -272,12 +281,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// The signature method for [callMethod] if needed.
   FunctionEntity? get signatureMethod => null;
 
-  /// List of locals that this closure class has created corresponding field
-  /// entities for.
-  @deprecated
-  List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) =>
-      const <Local>[];
-
   /// As shown in the example in the comments at the top of this class, we
   /// create fields in the closure class for each captured variable. This is an
   /// accessor the [local] for which [field] was created.
@@ -299,13 +302,17 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// the superclass ScopeInfo.
   @override
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
+    KernelToLocalsMap localsMap,
+    void Function(Local local, FieldEntity field) f,
+  ) {}
 
   /// Loop through each free variable in this closure. Free variables are the
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
   void forEachFreeVariable(
-      KernelToLocalsMap localsMap, void f(Local variable, FieldEntity field)) {}
+    KernelToLocalsMap localsMap,
+    void Function(Local variable, FieldEntity field) f,
+  ) {}
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Dart test program for testing that errors thrown from isolates are
 // processed correctly and don't result in crashes.
 
@@ -9,7 +12,7 @@ library Isolate3NegativeTest;
 
 import 'dart:isolate';
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 class TestClass {
   TestClass.named(num this.fld1)

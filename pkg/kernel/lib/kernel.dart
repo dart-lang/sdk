@@ -24,17 +24,17 @@ import 'text/ast_to_text.dart';
 export 'ast.dart';
 
 Component loadComponentFromBinary(String path, [Component? component]) {
-  List<int> bytes = new File(path).readAsBytesSync();
+  Uint8List bytes = new File(path).readAsBytesSync();
   return loadComponentFromBytes(bytes, component);
 }
 
-Component loadComponentFromBytes(List<int> bytes, [Component? component]) {
+Component loadComponentFromBytes(Uint8List bytes, [Component? component]) {
   component ??= new Component();
   new BinaryBuilder(bytes).readComponent(component);
   return component;
 }
 
-Component loadComponentSourceFromBytes(List<int> bytes,
+Component loadComponentSourceFromBytes(Uint8List bytes,
     [Component? component]) {
   component ??= new Component();
   new BinaryBuilder(bytes).readComponentSource(component);

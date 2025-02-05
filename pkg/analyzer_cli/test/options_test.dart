@@ -6,15 +6,14 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:args/args.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -288,34 +287,6 @@ class ArgumentsTest with ResourceProviderMixin {
     );
   }
 
-  void test_updateAnalysisOptions_defaultLanguageVersion() {
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {},
-      (analysisOptions) {
-        expect(
-          analysisOptions.nonPackageLanguageVersion,
-          ExperimentStatus.currentVersion,
-        );
-        var featureSet = analysisOptions.nonPackageFeatureSet;
-        expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
-      },
-    );
-
-    _applyAnalysisOptions(
-      ['--default-language-version=2.7', 'a.dart'],
-      (analysisOptions) {},
-      (analysisOptions) {
-        expect(
-          analysisOptions.nonPackageLanguageVersion,
-          Version.parse('2.7.0'),
-        );
-        var featureSet = analysisOptions.nonPackageFeatureSet;
-        expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
-      },
-    );
-  }
-
   void test_updateAnalysisOptions_enableExperiment() {
     var feature_a = ExperimentalFeature(
       index: 0,
@@ -337,20 +308,19 @@ class ArgumentsTest with ResourceProviderMixin {
       releaseVersion: null,
     );
 
-    FeatureSet featuresWithExperiments(List<String> experiments) {
+    ExperimentStatus featuresWithExperiments(List<String> experiments) {
       return FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: experiments,
-      );
+      ) as ExperimentStatus;
     }
 
     overrideKnownFeatures({'a': feature_a, 'b': feature_b}, () {
       // Replace.
       _applyAnalysisOptions(
         ['--enable-experiment=b', 'a.dart'],
-        (analysisOptions) {
-          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
-        },
+        (optionsBuilder) =>
+            optionsBuilder.contextFeatures = featuresWithExperiments(['a']),
         (analysisOptions) {
           var featureSet = analysisOptions.contextFeatures;
           expect(featureSet.isEnabled(feature_a), isFalse);
@@ -361,9 +331,8 @@ class ArgumentsTest with ResourceProviderMixin {
       // Don't change if not provided.
       _applyAnalysisOptions(
         ['a.dart'],
-        (analysisOptions) {
-          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
-        },
+        (optionsBuilder) =>
+            optionsBuilder.contextFeatures = featuresWithExperiments(['a']),
         (analysisOptions) {
           var featureSet = analysisOptions.contextFeatures;
           expect(featureSet.isEnabled(feature_a), isTrue);
@@ -375,14 +344,16 @@ class ArgumentsTest with ResourceProviderMixin {
 
   void _applyAnalysisOptions(
     List<String> args,
-    void Function(AnalysisOptionsImpl) configureInitial,
+    void Function(AnalysisOptionsBuilder) configureInitial,
     void Function(AnalysisOptionsImpl) checkApplied,
   ) {
     _parse(args);
     expect(commandLineOptions, isNotNull);
 
-    var analysisOptions = AnalysisOptionsImpl();
-    configureInitial(analysisOptions);
+    var optionsBuilder = AnalysisOptionsBuilder();
+    configureInitial(optionsBuilder);
+
+    var analysisOptions = optionsBuilder.build();
 
     commandLineOptions!.updateAnalysisOptions(analysisOptions);
     checkApplied(analysisOptions);

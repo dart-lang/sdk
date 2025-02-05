@@ -31,8 +31,9 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
 
     // Ensure the server was actually started.
     var client = HttpClient();
-    var request = await client
-        .getUrl(Uri.parse('http://localhost:${server.port}/status'));
+    var request = await client.getUrl(
+      Uri.parse('http://localhost:${server.port}/status'),
+    );
     var response = await request.close();
     var responseBody = await utf8.decodeStream(response.cast<List<int>>());
     expect(responseBody, contains('<title>Analysis Server</title>'));
@@ -45,12 +46,15 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await initialize();
     sendExit();
 
-    await channel.closed.timeout(const Duration(seconds: 10),
-        onTimeout: () =>
-            fail('Server channel did not close within 10 seconds'));
+    await channel.closed.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server channel did not close within 10 seconds'),
+    );
 
-    var exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
-        onTimeout: () => fail('Server process did not exit within 10 seconds'));
+    var exitCode = await client!.exitCode.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server process did not exit within 10 seconds'),
+    );
 
     expect(exitCode, equals(1));
   }
@@ -60,12 +64,15 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await sendShutdown();
     sendExit();
 
-    await channel.closed.timeout(const Duration(seconds: 10),
-        onTimeout: () =>
-            fail('Server channel did not close within 10 seconds'));
+    await channel.closed.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server channel did not close within 10 seconds'),
+    );
 
-    var exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
-        onTimeout: () => fail('Server process did not exit within 10 seconds'));
+    var exitCode = await client!.exitCode.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server process did not exit within 10 seconds'),
+    );
 
     expect(exitCode, equals(0));
   }
@@ -87,12 +94,15 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await sendShutdown();
     sendExit();
 
-    await channel.closed.timeout(const Duration(seconds: 10),
-        onTimeout: () =>
-            fail('Server channel did not close within 10 seconds'));
+    await channel.closed.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server channel did not close within 10 seconds'),
+    );
 
-    var exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
-        onTimeout: () => fail('Server process did not exit within 10 seconds'));
+    var exitCode = await client!.exitCode.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => fail('Server process did not exit within 10 seconds'),
+    );
 
     expect(exitCode, equals(0));
   }

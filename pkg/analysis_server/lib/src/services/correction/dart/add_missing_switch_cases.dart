@@ -16,9 +16,10 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Adding the missing cases is not a sufficient fix (user logic needs
-      // to be added as well).
-      CorrectionApplicability.singleLocation;
+          // Adding the missing cases is not a sufficient fix (user logic needs
+          // to be added as well).
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;
@@ -59,8 +60,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   bool _hasInaccessibleEnumMemberPart(List<MissingPatternPart> parts) {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart &&
-          (part.enumElement.isPrivate || part.value.isPrivate) &&
-          libraryElement != part.enumElement.library) {
+          (part.enumElement2.isPrivate || part.value2.isPrivate) &&
+          libraryElement2 != part.enumElement2.library2) {
         return true;
       }
     }
@@ -83,34 +84,36 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
-          switchKeyword: node.switchKeyword,
-          rightParenthesis: node.rightParenthesis,
-          leftBracket: node.leftBracket,
-          rightBracket: node.rightBracket, (builder) {
-        for (var patternParts in patternPartsList) {
-          if (_hasInaccessibleEnumMemberPart(patternParts)) {
-            needsDefault = true;
-            continue;
+        switchKeyword: node.switchKeyword,
+        rightParenthesis: node.rightParenthesis,
+        leftBracket: node.leftBracket,
+        rightBracket: node.rightBracket,
+        (builder) {
+          for (var patternParts in patternPartsList) {
+            if (_hasInaccessibleEnumMemberPart(patternParts)) {
+              needsDefault = true;
+              continue;
+            }
+
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.writeln('// TODO: Handle this case.');
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            _writePatternPart(builder, patternParts);
+            builder.writeln(' => throw UnimplementedError(),');
           }
 
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          _writePatternPart(builder, patternParts);
-          builder.writeln(' => throw UnimplementedError(),');
-        }
-
-        if (needsDefault) {
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.writeln('_ => throw UnimplementedError(),');
-        }
-      });
+          if (needsDefault) {
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.writeln('// TODO: Handle this case.');
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.writeln('_ => throw UnimplementedError(),');
+          }
+        },
+      );
     });
   }
 
@@ -125,42 +128,44 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
-          switchKeyword: node.switchKeyword,
-          rightParenthesis: node.rightParenthesis,
-          leftBracket: node.leftBracket,
-          rightBracket: node.rightBracket, (builder) {
-        void addTodoAndThrow() {
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('throw UnimplementedError();');
-        }
-
-        for (var patternParts in patternPartsList) {
-          if (_hasInaccessibleEnumMemberPart(patternParts)) {
-            needsDefault = true;
-            continue;
+        switchKeyword: node.switchKeyword,
+        rightParenthesis: node.rightParenthesis,
+        leftBracket: node.leftBracket,
+        rightBracket: node.rightBracket,
+        (builder) {
+          void addTodoAndThrow() {
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('// TODO: Handle this case.');
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('throw UnimplementedError();');
           }
 
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.write('case ');
-          _writePatternPart(builder, patternParts);
-          builder.writeln(':');
-          addTodoAndThrow();
-        }
+          for (var patternParts in patternPartsList) {
+            if (_hasInaccessibleEnumMemberPart(patternParts)) {
+              needsDefault = true;
+              continue;
+            }
 
-        if (needsDefault) {
-          builder.write(lineIndent);
-          builder.write(singleIndent);
-          builder.writeln('default:');
-          addTodoAndThrow();
-        }
-      });
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.write('case ');
+            _writePatternPart(builder, patternParts);
+            builder.writeln(':');
+            addTodoAndThrow();
+          }
+
+          if (needsDefault) {
+            builder.write(lineIndent);
+            builder.write(singleIndent);
+            builder.writeln('default:');
+            addTodoAndThrow();
+          }
+        },
+      );
     });
   }
 
@@ -170,9 +175,9 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   ) {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart) {
-        builder.writeReference(part.enumElement);
+        builder.writeReference(part.enumElement2);
         builder.write('.');
-        builder.write(part.value.name);
+        builder.write(part.value2.name3!);
       } else if (part is MissingPatternTextPart) {
         builder.write(part.text);
       } else if (part is MissingPatternTypePart) {

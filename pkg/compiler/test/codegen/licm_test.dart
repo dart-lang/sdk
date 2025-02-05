@@ -5,7 +5,7 @@
 // Check that we hoist instructions in a loop condition, even if that
 // condition involves control flow.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST = '''
@@ -25,8 +25,11 @@ main() {
 
 main() {
   runTest() async {
-    await compileAndMatch(TEST, 'main',
-        RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'));
+    await compileAndMatch(
+      TEST,
+      'main',
+      RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'),
+    );
   }
 
   asyncTest(() async {

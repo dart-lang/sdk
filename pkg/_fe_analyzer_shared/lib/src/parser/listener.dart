@@ -314,7 +314,7 @@ class Listener implements UnescapeErrorListener {
   void beginCompilationUnit(Token token) {}
 
   /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/fasta integration is complete.
+  /// and will be removed once analyzer/cfe integration is complete.
   ///
   /// This is called when [Parser.parseDirectives] has parsed all directives
   /// and is skipping the remainder of the file.  Substructures:
@@ -1141,8 +1141,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralString");
   }
 
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    logEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    logEvent("AdjacentStringLiterals");
   }
 
   /// Called for class-like members (class, mixin, extension), but each member

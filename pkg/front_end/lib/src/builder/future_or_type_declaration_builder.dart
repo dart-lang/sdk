@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.future_or_type_builder;
-
 import 'package:kernel/ast.dart' show DartType, FutureOrType, Nullability;
 import 'package:kernel/class_hierarchy.dart';
 
@@ -17,9 +15,6 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   FutureOrTypeDeclarationBuilder(
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("FutureOr", type, compilationUnit, charOffset);
-
-  @override
-  String get debugName => "FutureOrTypeDeclarationBuilder";
 
   @override
   DartType buildAliasedType(
@@ -51,11 +46,11 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (typeArguments != null && typeArguments.length == 1) {
       return typeArguments.single.computeNullability(
-          typeVariablesTraversalState: typeVariablesTraversalState);
+          typeParametersTraversalState: typeParametersTraversalState);
     } else {
       // This is `FutureOr<dynamic>`.
       return Nullability.nullable;

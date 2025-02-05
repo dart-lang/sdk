@@ -11,22 +11,25 @@ test(String path, String normalizedPath) {
     for (var auth in [
       [null, "hostname", null],
       ["userinfo", "hostname", 1234],
-      [null, null, null]
+      [null, null, null],
     ]) {
       for (var query in [null, "query"]) {
         for (var fragment in [null, "fragment"]) {
           var base = new Uri(
-              scheme: scheme,
-              userInfo: auth[0] as String?,
-              host: auth[1] as String?,
-              port: auth[2] as int?,
-              path: path,
-              query: query,
-              fragment: fragment);
+            scheme: scheme,
+            userInfo: auth[0] as String?,
+            host: auth[1] as String?,
+            port: auth[2] as int?,
+            path: path,
+            query: query,
+            fragment: fragment,
+          );
           var expected = base.replace(
-              path: (base.hasAuthority && normalizedPath.isEmpty)
-                  ? "/"
-                  : normalizedPath);
+            path:
+                (base.hasAuthority && normalizedPath.isEmpty)
+                    ? "/"
+                    : normalizedPath,
+          );
           var actual = base.normalizePath();
           Expect.equals(expected, actual, "$base");
         }

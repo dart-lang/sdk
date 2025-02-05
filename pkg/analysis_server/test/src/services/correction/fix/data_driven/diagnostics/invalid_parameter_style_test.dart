@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class InvalidParameterStyleTest extends AbstractTransformSetParserTest {
   void test_invalid() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -32,8 +33,8 @@ transforms:
       name: 'p'
       argumentValue:
         expression: ''
-''', [
-      error(TransformSetErrorCode.invalidParameterStyle, 171, 5),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidParameterStyle, 171, 5)],
+    );
   }
 }

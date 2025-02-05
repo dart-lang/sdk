@@ -7,9 +7,12 @@ class A {
   /*member: A.foo:[exact=JSUInt31]*/
   foo(/*[null|subclass=Object]*/ a) => 3;
   /*member: A.bar:[exact=MappedListIterable]*/
-  bar(/*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ x) =>
-      x. /*invoke: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ map(
-          /*[subclass=A]*/ foo);
+  bar(
+    /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ x,
+  ) => x
+      . /*invoke: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ map(
+        /*[subclass=A]*/ foo,
+      );
 }
 
 /*member: B.:[exact=B]*/
@@ -26,7 +29,10 @@ getA(bool /*Value([exact=JSBool], value: false)*/ x) => x ? A() : B();
 
 /*member: main:[null]*/
 main() {
-  getA(false). /*invoke: [subclass=A]*/ bar(List
-      . /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ generate(
-          10, (i) => i));
+  getA(false). /*invoke: [subclass=A]*/ bar(
+    List. /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 10)*/ generate(
+      10,
+      (i) => i,
+    ),
+  );
 }

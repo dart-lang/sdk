@@ -405,11 +405,13 @@ nodesInRange
   }
 
   Future<void> test_classTypeAlias_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 class A = C with M;
 class C {}
 mixin M {}
-''');
+''',
+    );
   }
 
   Future<void> test_compilationUnit_declarations() async {
@@ -456,30 +458,39 @@ nodesInRange
   }
 
   Future<void> test_constructorDeclaration_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C {
-''', postfix: '''
+''',
+      postfix: '''
   C();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_declaredIdentifier_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f(List l) {
   for (
-''', postfix: '''
+''',
+      postfix: '''
 var e in l) {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_defaultFormalParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f([
-''', postfix: '''
+''',
+      postfix: '''
 int x = 0]) {}
-''');
+''',
+    );
   }
 
   Future<void> test_dottedName_components() async {
@@ -494,11 +505,14 @@ nodesInRange
   }
 
   Future<void> test_enumConstantDeclaration_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 enum E {
-''', postfix: '''
+''',
+      postfix: '''
 a }
-''');
+''',
+    );
   }
 
   Future<void> test_enumDeclaration_constants() async {
@@ -530,9 +544,11 @@ nodesInRange
   }
 
   Future<void> test_enumDeclaration_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 enum E { a }
-''');
+''',
+    );
   }
 
   Future<void> test_exportDirective_combinators() async {
@@ -564,9 +580,11 @@ nodesInRange
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 export 'a.dart';
-''');
+''',
+    );
   }
 
   Future<void> test_extensionDeclaration_members() async {
@@ -586,39 +604,50 @@ nodesInRange
   }
 
   Future<void> test_extensionDeclaration_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 extension on int {}
-''');
+''',
+    );
   }
 
   Future<void> test_fieldDeclaration_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C {
-''', postfix: '''
+''',
+      postfix: '''
   int? f;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_fieldFormalParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C {
   int x = 0;
   C(
-''', postfix: '''
+''',
+      postfix: '''
 this.x);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_forEachPartsWithPattern_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f(List<(int, int)> r) {
   for (
-''', postfix: '''
+''',
+      postfix: '''
   var (x, y) in r) {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_formalParameterList_parameters_mixed() async {
@@ -693,29 +722,38 @@ nodesInRange
   }
 
   Future<void> test_functionDeclaration_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 void f() {}
-''');
+''',
+    );
   }
 
   Future<void> test_functionTypeAlias_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 typedef void F();
-''');
+''',
+    );
   }
 
   Future<void> test_functionTypedFormalParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f(
-''', postfix: '''
+''',
+      postfix: '''
 int g(int)) {}
-''');
+''',
+    );
   }
 
   Future<void> test_genericTypeAlias_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 typedef F = void Function();
-''');
+''',
+    );
   }
 
   Future<void> test_hideCombinator_hiddenNames() async {
@@ -779,9 +817,11 @@ nodesInRange
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 import 'a.dart';
-''');
+''',
+    );
   }
 
   Future<void> test_labeledStatement_labels() async {
@@ -808,9 +848,11 @@ nodesInRange
   }
 
   Future<void> test_libraryDirective_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 library l;
-''');
+''',
+    );
   }
 
   Future<void> test_libraryIdentifier_components() async {
@@ -868,12 +910,15 @@ nodesInRange
   }
 
   Future<void> test_methodDeclaration_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C {
-''', postfix: '''
+''',
+      postfix: '''
   void m() {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_mixinDeclaration_members() async {
@@ -893,9 +938,11 @@ nodesInRange
   }
 
   Future<void> test_mixinDeclaration_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 mixin M {}
-''');
+''',
+    );
   }
 
   Future<void> test_objectPattern_fields() async {
@@ -934,24 +981,31 @@ nodesInRange
 
   Future<void> test_partDirective_metadata() async {
     newFile('$testPackageLibPath/a.dart', "part of 'test.dart';");
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 part 'a.dart';
-''');
+''',
+    );
   }
 
   Future<void> test_partOfDirective_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 part of '';
-''');
+''',
+    );
   }
 
   Future<void> test_patternVariableDeclaration_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f((int, int) r) {
-''', postfix: '''
+''',
+      postfix: '''
   var (x, y) = r;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_recordLiteral_fields() async {
@@ -993,11 +1047,14 @@ nodesInRange
   }
 
   Future<void> test_recordTypeAnnotationNamedField_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f(({
-''', postfix: '''
+''',
+      postfix: '''
 int x}) r) {}
-''');
+''',
+    );
   }
 
   Future<void> test_recordTypeAnnotationNamedFields_fields() async {
@@ -1012,11 +1069,14 @@ nodesInRange
   }
 
   Future<void> test_recordTypeAnnotationPositionalField_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f((int,
-''', postfix: '''
+''',
+      postfix: '''
 int) r) {}
-''');
+''',
+    );
   }
 
   Future<void> test_setOrMapLiteral_elements() async {
@@ -1045,11 +1105,14 @@ nodesInRange
   }
 
   Future<void> test_simpleFormalParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f(
-''', postfix: '''
+''',
+      postfix: '''
 int x) {}
-''');
+''',
+    );
   }
 
   Future<void> test_stringInterpolation_elements() async {
@@ -1066,16 +1129,19 @@ nodesInRange
   }
 
   Future<void> test_superFormalParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C extends B {
   C({
-''', postfix: '''
+''',
+      postfix: '''
 super.x});
 }
 class B {
   B({int? x});
 }
-''');
+''',
+    );
   }
 
   Future<void> test_switchCase_labels() async {
@@ -1234,9 +1300,11 @@ nodesInRange
   }
 
   Future<void> test_topLevelVariableDeclaration_metadata() async {
-    await assertMetadata(postfix: '''
+    await assertMetadata(
+      postfix: '''
 int x = 0;
-''');
+''',
+    );
   }
 
   Future<void> test_tryStatement_catchClauses() async {
@@ -1277,11 +1345,14 @@ nodesInRange
   }
 
   Future<void> test_typeParameter_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 class C<
-''', postfix: '''
+''',
+      postfix: '''
 T> {}
-''');
+''',
+    );
   }
 
   Future<void> test_typeParameterList_typeParameters() async {
@@ -1296,12 +1367,15 @@ nodesInRange
   }
 
   Future<void> test_variableDeclarationList_metadata() async {
-    await assertMetadata(prefix: '''
+    await assertMetadata(
+      prefix: '''
 void f() {
-''', postfix: '''
+''',
+      postfix: '''
   int x = 0;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_variableDeclarationList_variables() async {
@@ -1352,15 +1426,10 @@ nodesInRange
     var range = testCode.range.sourceRange;
 
     await resolveTestCode(testCode.code);
-    var selection = testUnit.select(
-      offset: range.offset,
-      length: range.length,
-    )!;
+    var selection =
+        testUnit.select(offset: range.offset, length: range.length)!;
 
-    return _CodeSelection(
-      testCode: testCode,
-      selection: selection,
-    );
+    return _CodeSelection(testCode: testCode, selection: selection);
   }
 
   void _writeSelectionToBuffer(StringBuffer buffer, _CodeSelection selection) {
@@ -1380,8 +1449,5 @@ class _CodeSelection {
   final TestCode testCode;
   final Selection selection;
 
-  _CodeSelection({
-    required this.testCode,
-    required this.selection,
-  });
+  _CodeSelection({required this.testCode, required this.selection});
 }

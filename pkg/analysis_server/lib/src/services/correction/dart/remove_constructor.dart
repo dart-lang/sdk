@@ -16,8 +16,9 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CONSTRUCTOR;
@@ -87,8 +88,5 @@ class _Container {
   final Token leftBracket;
   final List<ClassMember> members;
 
-  _Container({
-    required this.leftBracket,
-    required this.members,
-  });
+  _Container({required this.leftBracket, required this.members});
 }

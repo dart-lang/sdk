@@ -75,7 +75,7 @@ void matchIL$strictCompareConstantEqValue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('A(0)', 'value', kind: '==='),
+      match.Branch(match.StrictCompare('value', 'A(0)', kind: '==='),
           ifTrue: 'B1', ifFalse: 'B2'),
     ]),
     'B1' <<
@@ -141,7 +141,7 @@ void matchIL$strictCompareConstantNeValue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('A(0)', 'value', kind: '!=='),
+      match.Branch(match.StrictCompare('value', 'A(0)', kind: '!=='),
           ifTrue: 'B1', ifFalse: 'B2'),
     ]),
     'B1' <<

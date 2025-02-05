@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.source_loader;
-
 import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
@@ -61,7 +59,6 @@ import '../codes/cfe_codes.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
-import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -81,7 +78,6 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
-import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -97,7 +93,6 @@ import 'source_library_builder.dart'
         LibraryAccess,
         SourceCompilationUnitImpl,
         SourceLibraryBuilder;
-import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
@@ -124,8 +119,6 @@ class SourceLoader extends Loader {
   /// that builder. This is used for looking up source builders when finalizing
   /// exports in dill builders.
   Map<Reference, Builder> buildersCreatedWithReferences = {};
-
-  Map<Reference, Fragment> fragmentsCreatedWithReferences = {};
 
   /// Used when checking whether a return type of an async function is valid.
   ///
@@ -550,16 +543,21 @@ class SourceLoader extends Loader {
               packageForLanguageVersion.languageVersion!.major,
               packageForLanguageVersion.languageVersion!.minor);
           if (version > target.currentSdkVersion) {
-            // Coverage-ignore-block(suite): Not run.
             packageLanguageVersionProblem =
-                templateLanguageVersionTooHigh.withArguments(
+                templateLanguageVersionTooHighPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.currentSdkVersion.major,
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem =
-                templateLanguageVersionTooLow.withArguments(
+                templateLanguageVersionTooLowPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.leastSupportedVersion.major,
                     target.leastSupportedVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
@@ -920,6 +918,25 @@ severity: $severity
 
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
 
+  void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
+    MemberBuilder constructor = getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(
+          constructor.invokeTarget as Constructor, arguments)
+        ..isConst = true;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      annotation =
+          new StaticInvocation(constructor.invokeTarget as Procedure, arguments)
+            ..isConst = true;
+    }
+
+    annotatable.addAnnotation(annotation);
+  }
+
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext,
@@ -1034,15 +1051,6 @@ severity: $severity
                 ExperimentalFlag.tripleShift,
                 compilationUnit.importUri,
                 compilationUnit.packageLanguageVersion.version),
-            enableExtensionMethods:
-                target.isExperimentEnabledInLibraryByVersion(
-                    ExperimentalFlag.extensionMethods,
-                    compilationUnit.importUri,
-                    compilationUnit.packageLanguageVersion.version),
-            enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
-                ExperimentalFlag.nonNullable,
-                compilationUnit.importUri,
-                compilationUnit.packageLanguageVersion.version),
             forAugmentationLibrary: compilationUnit.forAugmentationLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
@@ -1054,10 +1062,7 @@ severity: $severity
       }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift:
-              compilationUnit.libraryFeatures.tripleShift.isEnabled,
-          enableExtensionMethods:
-              compilationUnit.libraryFeatures.extensionMethods.isEnabled,
-          enableNonNullable: true);
+              compilationUnit.libraryFeatures.tripleShift.isEnabled);
     }, allowLazyStrings: allowLazyStrings);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
@@ -1171,7 +1176,7 @@ severity: $severity
             templateUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
           loadedLibraries ??=
-              new LoadedLibrariesImpl(rootLibrary, compilationUnits);
+              new LoadedLibrariesImpl([rootLibrary], compilationUnits);
           Set<String> importChain = computeImportChainsFor(
               rootLibrary.importUri, loadedLibraries, importUri,
               verbose: false);
@@ -1309,7 +1314,7 @@ severity: $severity
       SourceLibraryBuilder libraryBuilder,
       String? enclosingClassOrExtension,
       bool isClassInstanceMember,
-      FunctionNode parameters,
+      Procedure procedure,
       VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder.compilationUnit,
         suppressLexicalErrors: false, allowLazyStrings: false);
@@ -1319,14 +1324,12 @@ severity: $severity
         // support members from source, so we provide an empty [DeclarationMap].
         new OffsetMap(libraryBuilder.fileUri));
 
-    Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
           .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            parent = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1334,22 +1337,21 @@ severity: $severity
                   ScopeKind.declaration,
                   "debugExpression in class $enclosingClassOrExtension",
                   parent: TypeParameterScope.fromList(
-                      dietListener.memberScope, builder.typeVariables));
+                      dietListener.memberScope, builder.typeParameters));
           case ExtensionBuilder():
-            parent = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
                   builder.nameSpace,
                   ScopeKind.declaration,
                   "debugExpression in extension $enclosingClassOrExtension",
-                  // TODO(johnniwinther): Shouldn't type variables be in scope?
+                  // TODO(johnniwinther): Shouldn't type parameters be in scope?
                   parent: dietListener.memberScope);
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
-          case NominalVariableBuilder():
-          case StructuralVariableBuilder():
+          case NominalParameterBuilder():
+          case StructuralParameterBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
           // TODO(johnniwinther): How should we handle this case?
@@ -1357,40 +1359,14 @@ severity: $severity
         }
       }
     }
-    SourceProcedureBuilder builder = new SourceProcedureBuilder(
-        /* metadata = */ null,
-        /* modifier flags = */ 0,
-        const ImplicitTypeBuilder(),
-        "debugExpr",
-        /* type variables = */ null,
-        /* formals = */ null,
-        ProcedureKind.Method,
-        libraryBuilder,
-        null,
-        libraryBuilder.fileUri,
-        /* start char offset = */ 0,
-        /* char offset = */ 0,
-        /* open paren offset = */ -1,
-        /* end offset = */ -1,
-        /* procedure reference = */ null,
-        /* tear off reference = */ null,
-        AsyncMarker.Sync,
-        new NameScheme(
-            containerName: null,
-            containerType: ContainerType.Library,
-            isInstanceMember: false,
-            libraryName: libraryBuilder.libraryName))
-      ..parent = parent;
+
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
-            isDeclarationInstanceMember: isClassInstanceMember,
-            inOutlineBuildingPhase: false,
-            inMetadata: false,
-            inConstFields: false),
+        new ExpressionCompilerProcedureBodyBuildContext(dietListener, procedure,
+            isDeclarationInstanceMember: isClassInstanceMember),
         dietListener.memberScope,
         thisVariable: extensionThis);
-    builder.procedure.function = parameters..parent = builder.procedure;
-    for (VariableDeclaration variable in parameters.positionalParameters) {
+    for (VariableDeclaration variable
+        in procedure.function.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }
 
@@ -1399,7 +1375,7 @@ severity: $severity
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
             allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled),
         token,
-        parameters);
+        procedure.function);
   }
 
   DietListener createDietListener(
@@ -1869,51 +1845,52 @@ severity: $severity
     return delayedDefaultValueCloners;
   }
 
-  void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
+  void finishTypeParameters(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    Map<NominalVariableBuilder, SourceLibraryBuilder>
-        unboundTypeVariableBuilders = new Map.identity();
-    Map<StructuralVariableBuilder, SourceLibraryBuilder>
-        unboundFunctionTypeTypeVariableBuilders = new Map.identity();
+    Map<NominalParameterBuilder, SourceLibraryBuilder>
+        unboundNominalParameterBuilders = new Map.identity();
+    Map<StructuralParameterBuilder, SourceLibraryBuilder>
+        unboundStructuralParameterBuilders = new Map.identity();
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeVariables(
-          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
+      library.collectUnboundTypeParameters(
+          unboundNominalParameterBuilders, unboundStructuralParameterBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilder> sortedTypeVariables =
-        sortAllTypeVariablesTopologically([
-      ...unboundFunctionTypeTypeVariableBuilders.keys,
-      ...unboundTypeVariableBuilders.keys
+    List<TypeParameterBuilder> sortedTypeParameters =
+        sortAllTypeParametersTopologically([
+      ...unboundStructuralParameterBuilders.keys,
+      ...unboundNominalParameterBuilders.keys
     ]);
 
-    for (TypeVariableBuilder builder in sortedTypeVariables) {
+    for (TypeParameterBuilder builder in sortedTypeParameters) {
       switch (builder) {
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundTypeVariableBuilders[builder]!;
-          libraryBuilder.checkTypeVariableDependencies([builder]);
-        case StructuralVariableBuilder():
+              unboundNominalParameterBuilders[builder]!;
+          libraryBuilder.checkTypeParameterDependencies([builder]);
+        case StructuralParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundFunctionTypeTypeVariableBuilders[builder]!;
-          libraryBuilder.checkTypeVariableDependencies([builder]);
+              unboundStructuralParameterBuilders[builder]!;
+          libraryBuilder.checkTypeParameterDependencies([builder]);
       }
     }
-    for (TypeVariableBuilder builder in sortedTypeVariables) {
+    for (TypeParameterBuilder builder in sortedTypeParameters) {
       switch (builder) {
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundTypeVariableBuilders[builder]!;
+              unboundNominalParameterBuilders[builder]!;
           builder.finish(libraryBuilder, object, dynamicType);
-        case StructuralVariableBuilder():
+        case StructuralParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundFunctionTypeTypeVariableBuilders[builder]!;
+              unboundStructuralParameterBuilders[builder]!;
           builder.finish(libraryBuilder, object, dynamicType);
       }
     }
 
-    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
+    ticker
+        .logMs("Resolved ${sortedTypeParameters.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -1922,7 +1899,7 @@ severity: $severity
     for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeVariances();
     }
-    ticker.logMs("Computed variances of $count type variables");
+    ticker.logMs("Computed variances of $count type parameters");
   }
 
   void computeDefaultTypes(
@@ -1936,7 +1913,7 @@ severity: $severity
       count += library.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClass);
     }
-    ticker.logMs("Computed default types for $count type variables");
+    ticker.logMs("Computed default types for $count type parameters");
   }
 
   void finishNativeMethods() {
@@ -1965,16 +1942,16 @@ severity: $severity
       if (objectClass.supertypeBuilder != null) {
         objectClass.supertypeBuilder = null;
         objectClass.addProblem(
-            messageObjectExtends, objectClass.charOffset, noLength);
+            messageObjectExtends, objectClass.fileOffset, noLength);
       }
       if (objectClass.interfaceBuilders != null) {
         objectClass.addProblem(
-            messageObjectImplements, objectClass.charOffset, noLength);
+            messageObjectImplements, objectClass.fileOffset, noLength);
         objectClass.interfaceBuilders = null;
       }
       if (objectClass.mixedInTypeBuilder != null) {
         objectClass.addProblem(
-            messageObjectMixesIn, objectClass.charOffset, noLength);
+            messageObjectMixesIn, objectClass.fileOffset, noLength);
         objectClass.mixedInTypeBuilder = null;
       }
     }
@@ -2048,8 +2025,8 @@ severity: $severity
         classBuilder.supertypeBuilder =
             new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                 objectClass, const NullabilityBuilder.omitted(),
-                instanceTypeVariableAccess:
-                    InstanceTypeVariableAccessState.Unexpected);
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Unexpected);
         classBuilder.interfaceBuilders = null;
         classBuilder.mixedInTypeBuilder = null;
 
@@ -2059,7 +2036,7 @@ severity: $severity
         classBuilder.addProblem(
             templateCyclicClassHierarchy
                 .withArguments(classBuilder.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength);
       }
     }
@@ -2091,7 +2068,7 @@ severity: $severity
         extensionTypeBuilder.addProblem(
             templateCyclicClassHierarchy
                 .withArguments(extensionTypeBuilder.fullNameForErrors),
-            extensionTypeBuilder.charOffset,
+            extensionTypeBuilder.fileOffset,
             noLength);
       }
     }
@@ -2111,13 +2088,13 @@ severity: $severity
         cls.addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(builder.fullNameForErrors),
-            cls.charOffset,
+            cls.fileOffset,
             noLength,
             context: [
               templateIllegalMixinDueToConstructorsCause
                   .withArguments(builder.fullNameForErrors)
                   .withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
+                      constructor.fileUri!, constructor.fileOffset, noLength)
             ]);
       }
     }
@@ -2128,7 +2105,7 @@ severity: $severity
       // Coverage-ignore-block(suite): Not run.
       cls.addProblem(
           templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
-          cls.charOffset,
+          cls.fileOffset,
           noLength);
       return true;
     }
@@ -2149,7 +2126,7 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         classBuilder.addProblem(
             templateExtendingEnum.withArguments(supertype.name),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength);
       } else if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
           (denyListedClasses.contains(supertype) ||
@@ -2160,17 +2137,17 @@ severity: $severity
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength,
               context: [
                 messageTypedefCause.withLocation(
-                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                    aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ]);
         } else {
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength);
         }
       }
@@ -2189,13 +2166,13 @@ severity: $severity
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength,
               context: declaration is TypeAliasBuilder
                   ? [
                       messageTypedefUnaliasedTypeCause.withLocation(
                           unaliasedDeclaration.fileUri,
-                          unaliasedDeclaration.charOffset,
+                          unaliasedDeclaration.fileOffset,
                           noLength),
                     ]
                   : null);
@@ -2212,12 +2189,12 @@ severity: $severity
         classBuilder.addProblem(
             templateIllegalMixin
                 .withArguments(mixedInTypeBuilder.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength,
             context: declaration is TypeAliasBuilder
                 ? [
                     messageTypedefCause.withLocation(
-                        declaration.fileUri, declaration.charOffset, noLength),
+                        declaration.fileUri, declaration.fileOffset, noLength),
                   ]
                 : null);
       }
@@ -2415,7 +2392,7 @@ severity: $severity
           cls.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
-              cls.charOffset,
+              cls.fileOffset,
               noLength);
         } else if (baseOrFinalSuperClass.isBase) {
           final Template<Message Function(String, String)> template =
@@ -2425,7 +2402,7 @@ severity: $severity
           cls.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
-              cls.charOffset,
+              cls.fileOffset,
               noLength);
         }
       }
@@ -2536,7 +2513,7 @@ severity: $severity
                       .withArguments(interfaceDeclaration.fullNameForErrors,
                           checkedClass.fullNameForErrors)
                       .withLocation(checkedClass.fileUri,
-                          checkedClass.charOffset, noLength)
+                          checkedClass.fileOffset, noLength)
               ];
 
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
@@ -2743,7 +2720,7 @@ severity: $severity
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
                   templateEnumInheritsRestricted.withArguments(name.text),
-                  classBuilder.charOffset,
+                  classBuilder.fileOffset,
                   classBuilder.name.length,
                   classBuilder.fileUri,
                   context: <LocatedMessage>[
@@ -2949,6 +2926,13 @@ severity: $severity
       if (redirectingFactoryBuilders != null) {
         for (RedirectingFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
+          if (redirectingFactoryBuilder.parent.isExtension) {
+            // Extensions don't build their redirecting factories so we can't
+            // process them. Once they are added in
+            // [DeclarationNameSpaceBuilder.buildNameSpace] this skipping can
+            // likely be removed.
+            continue;
+          }
           redirectingFactoryBuilder.buildOutlineExpressions(
               classHierarchy, delayedDefaultValueCloners);
         }
@@ -2987,35 +2971,35 @@ severity: $severity
       if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+              libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
               context: [
                 messageExportedMain.withLocation(mainBuilder.fileUri!,
-                    mainBuilder.charOffset, mainBuilder.name.length)
+                    mainBuilder.fileOffset, mainBuilder.name.length)
               ]);
         } else {
           libraryBuilder.addProblem(
               messageMainNotFunctionDeclaration,
-              mainBuilder.charOffset,
+              mainBuilder.fileOffset,
               mainBuilder.name.length,
               mainBuilder.fileUri);
         }
       } else {
-        Procedure procedure = mainBuilder.member as Procedure;
+        Procedure procedure = mainBuilder.invokeTarget as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParametersExported,
-                libraryBuilder.charOffset,
+                libraryBuilder.fileOffset,
                 noLength,
                 libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
-                      mainBuilder.charOffset, mainBuilder.name.length)
+                      mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParameters,
-                mainBuilder.charOffset,
+                mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
@@ -3024,17 +3008,17 @@ severity: $severity
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParametersExported,
-                libraryBuilder.charOffset,
+                libraryBuilder.fileOffset,
                 noLength,
                 libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
-                      mainBuilder.charOffset, mainBuilder.name.length)
+                      mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParameters,
-                mainBuilder.charOffset,
+                mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
@@ -3048,18 +3032,18 @@ severity: $severity
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(
                       parameterType, listOfString),
-                  libraryBuilder.charOffset,
+                  libraryBuilder.fileOffset,
                   noLength,
                   libraryBuilder.fileUri,
                   context: [
                     messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
+                        mainBuilder.fileOffset, mainBuilder.name.length)
                   ]);
             } else {
               libraryBuilder.addProblem(
                   templateMainWrongParameterType.withArguments(
                       parameterType, listOfString),
-                  mainBuilder.charOffset,
+                  mainBuilder.fileOffset,
                   mainBuilder.name.length,
                   mainBuilder.fileUri);
             }
@@ -3069,14 +3053,14 @@ severity: $severity
     } else if (mainBuilder != null) {
       if (mainBuilder.parent != libraryBuilder) {
         libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-            libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
             context: [
               messageExportedMain.withLocation(
-                  mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
+                  mainBuilder.fileUri!, mainBuilder.fileOffset, noLength)
             ]);
       } else {
         libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
-            mainBuilder.charOffset, noLength, mainBuilder.fileUri);
+            mainBuilder.fileOffset, noLength, mainBuilder.fileUri);
       }
     }
   }

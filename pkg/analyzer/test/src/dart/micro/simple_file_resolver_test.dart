@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -11,7 +13,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1479,14 +1481,14 @@ class A {}
     var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.classes, hasLength(1));
+    expect(element.classes, hasLength(1));
   }
 
   test_getLibraryByUri_notExistingFile() async {
     var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.classes, isEmpty);
+    expect(element.classes, isEmpty);
   }
 
   test_getLibraryByUri_partOf() async {
@@ -1663,8 +1665,7 @@ byteStore
     );
 
     // Ask types for top-level variables.
-    var b_unit = b_library.definingCompilationUnit;
-    for (var topLevelVariable in b_unit.topLevelVariables) {
+    for (var topLevelVariable in b_library.topLevelVariables) {
       topLevelVariable.type;
     }
 

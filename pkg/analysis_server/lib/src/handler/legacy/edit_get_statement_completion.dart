@@ -14,12 +14,18 @@ class EditGetStatementCompletionHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetStatementCompletionHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetStatementCompletionParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetStatementCompletionParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {

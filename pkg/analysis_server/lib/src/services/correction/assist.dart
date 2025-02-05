@@ -19,7 +19,10 @@ class DartAssistContextImpl implements DartAssistContext {
   final ChangeWorkspace workspace;
 
   @override
-  final ResolvedUnitResult resolveResult;
+  final ResolvedLibraryResult libraryResult;
+
+  @override
+  final ResolvedUnitResult unitResult;
 
   @override
   final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
@@ -33,7 +36,8 @@ class DartAssistContextImpl implements DartAssistContext {
   DartAssistContextImpl(
     this.instrumentationService,
     this.workspace,
-    this.resolveResult,
+    this.libraryResult,
+    this.unitResult,
     this.producerGeneratorsForLintRules,
     this.selectionOffset,
     this.selectionLength,
@@ -287,6 +291,16 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with Container',
   );
+  static const FLUTTER_WRAP_EXPANDED = AssistKind(
+    'dart.assist.flutter.wrap.expanded',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with Expanded',
+  );
+  static const FLUTTER_WRAP_FLEXIBLE = AssistKind(
+    'dart.assist.flutter.wrap.flexible',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with Flexible',
+  );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
@@ -351,6 +365,16 @@ abstract final class DartAssistKind {
     'dart.assist.invertIf',
     DartAssistKindPriority.DEFAULT,
     "Invert 'if' statement",
+  );
+  static const JOIN_ELSE_WITH_IF = AssistKind(
+    'dart.assist.inlineElseBlock',
+    DartAssistKindPriority.DEFAULT,
+    "Join the 'else' block with inner 'if' statement",
+  );
+  static const JOIN_IF_WITH_ELSE = AssistKind(
+    'dart.assist.inlineEnclosingElseBlock',
+    DartAssistKindPriority.DEFAULT,
+    "Join 'if' statement with outer 'else' block",
   );
   static const JOIN_IF_WITH_INNER = AssistKind(
     'dart.assist.joinWithInnerIf',
@@ -457,11 +481,6 @@ abstract final class DartAssistKind {
     'dart.assist.surround.while',
     DartAssistKindPriority.SURROUND_WITH_WHILE,
     "Surround with 'while'",
-  );
-  static const UNWRAP_IF_BODY = AssistKind(
-    'dart.assist.unwrap.if',
-    DartAssistKindPriority.DEFAULT,
-    "Unwrap 'if' body",
   );
   static const USE_CURLY_BRACES = AssistKind(
     'dart.assist.surround.curlyBraces',

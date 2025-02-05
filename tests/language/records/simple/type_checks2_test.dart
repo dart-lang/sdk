@@ -5,6 +5,7 @@
 // VMOptions=--deterministic --optimization_counter_threshold=150
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class A<T> {}
 
@@ -45,14 +46,14 @@ doTests() {
 
   b2.foo((foo: 10));
   Expect.throwsTypeError(() => b2.foo((foo: 10.5)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => b2.foo(null));
   }
 
   b2.bar(A<({int foo})>());
   b2.bar(A<Never>());
   Expect.throwsTypeError(() => b2.bar(A<({num foo})>()));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => b2.bar(A<Null>()));
     Expect.throwsTypeError(() => b2.bar(A<({int foo})?>()));
   }
@@ -62,7 +63,7 @@ doTests() {
   b3.foo(null);
   Expect.throwsTypeError(() => b3.foo((20.5, foo: 30)));
   Expect.throwsTypeError(() => b3.foo((20, foo: 30.5)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => b3.foo((null, foo: 30)));
   }
 
@@ -73,7 +74,7 @@ doTests() {
   b3.bar(A<Never>());
   Expect.throwsTypeError(() => b3.bar(A<(int, {double foo})>()));
   Expect.throwsTypeError(() => b3.bar(A<(num, {int foo})>()));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => b3.bar(A<(int?, {int? foo})?>()));
   }
 

@@ -62,25 +62,25 @@ class WidgetA extends StatelessWidget {
   }
 
   Future<void>
-      test_attributes_functionExpression_hasParameters_blockExpression() async {
+  test_attributes_functionExpression_hasParameters_blockExpression() async {
     var attribute = await _getAttribute('test', '(a) {}');
     expect(attribute.label, '(…) { … }');
   }
 
   Future<void>
-      test_attributes_functionExpression_hasParameters_bodyExpression() async {
+  test_attributes_functionExpression_hasParameters_bodyExpression() async {
     var attribute = await _getAttribute('test', '(a) => 1');
     expect(attribute.label, '(…) => …');
   }
 
   Future<void>
-      test_attributes_functionExpression_noParameters_blockExpression() async {
+  test_attributes_functionExpression_noParameters_blockExpression() async {
     var attribute = await _getAttribute('test', '() {}');
     expect(attribute.label, '() { … }');
   }
 
   Future<void>
-      test_attributes_functionExpression_noParameters_bodyExpression() async {
+  test_attributes_functionExpression_noParameters_bodyExpression() async {
     var attribute = await _getAttribute('test', '() => 1');
     expect(attribute.label, '() => …');
   }
@@ -577,7 +577,10 @@ class MyWidget extends StatelessWidget {
   }
 
   void _assertLocation(
-      Location actual, int expectedOffset, int expectedLength) {
+    Location actual,
+    int expectedOffset,
+    int expectedLength,
+  ) {
     expect(actual.offset, expectedOffset);
     expect(actual.length, expectedLength);
   }
@@ -591,7 +594,9 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<FlutterOutlineAttribute> _getAttribute(
-      String name, String value) async {
+    String name,
+    String value,
+  ) async {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 

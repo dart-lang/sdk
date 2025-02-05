@@ -4,11 +4,12 @@
 
 /// Helper classes and methods to adapt between `package:compiler` and
 /// `package:front_end` APIs.
-library compiler.kernel.front_end_adapter;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../../compiler_api.dart' as api;
@@ -43,8 +44,10 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   Future<String> readAsString() async {
     api.Input<Uint8List> input;
     try {
-      input = await fs.inputProvider
-          .readFromUri(uri, inputKind: api.InputKind.UTF8);
+      input = await fs.inputProvider.readFromUri(
+        uri,
+        inputKind: api.InputKind.utf8,
+      );
     } catch (e) {
       throw fe.FileSystemException(uri, '$e');
     }
@@ -59,8 +62,10 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   Future<Uint8List> readAsBytes() async {
     api.Input<Uint8List> input;
     try {
-      input = await fs.inputProvider
-          .readFromUri(uri, inputKind: api.InputKind.binary);
+      input = await fs.inputProvider.readFromUri(
+        uri,
+        inputKind: api.InputKind.binary,
+      );
     } catch (e) {
       throw fe.FileSystemException(uri, '$e');
     }
@@ -68,7 +73,7 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<bool> exists() async {
@@ -87,31 +92,35 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// Report a [message] received from the front-end, using dart2js's
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
-    DiagnosticReporter reporter, fe.DiagnosticMessage message) {
-  Spannable _getSpannable(fe.DiagnosticMessage message) {
+  DiagnosticReporter reporter,
+  fe.DiagnosticMessage message,
+) {
+  Spannable getSpannable(fe.DiagnosticMessage message) {
     Uri? uri = fe.getMessageUri(message);
     int offset = fe.getMessageCharOffset(message)!;
     int length = fe.getMessageLength(message)!;
     if (uri != null && offset != -1) {
       return SourceSpan(uri, offset, offset + length);
     } else {
-      return NO_LOCATION_SPANNABLE;
+      return noLocationSpannable;
     }
   }
 
-  DiagnosticMessage _convertMessage(fe.DiagnosticMessage message) {
-    Spannable span = _getSpannable(message);
+  DiagnosticMessage convertMessage(fe.DiagnosticMessage message) {
+    Spannable span = getSpannable(message);
     String? text = fe.getMessageHeaderText(message);
-    return reporter
-        .createMessage(span, MessageKind.GENERIC, {'text': text ?? ''});
+    return reporter.createMessage(span, MessageKind.generic, {
+      'text': text ?? '',
+    });
   }
 
-  Iterable<fe.DiagnosticMessage>? relatedInformation =
-      fe.getMessageRelatedInformation(message);
-  DiagnosticMessage mainMessage = _convertMessage(message);
-  List<DiagnosticMessage> infos = relatedInformation != null
-      ? relatedInformation.map(_convertMessage).toList()
-      : const [];
+  Iterable<fe.DiagnosticMessage>? relatedInformation = fe
+      .getMessageRelatedInformation(message);
+  DiagnosticMessage mainMessage = convertMessage(message);
+  List<DiagnosticMessage> infos =
+      relatedInformation != null
+          ? relatedInformation.map(convertMessage).toList()
+          : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
       throw mainMessage.message.message;

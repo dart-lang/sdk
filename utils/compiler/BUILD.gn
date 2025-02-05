@@ -87,6 +87,30 @@ aot_snapshot("dart2js_aot") {
   name = "dart2js_aot"
 }
 
+aot_snapshot("dart2js_sdk_aot") {
+  deps = [ ":dart2js_create_snapshot_entry" ]
+
+  main_dart = "$target_gen_dir/dart2js.dart"
+  name = "dart2js_aot.dart"
+  output = "$root_gen_dir/dart2js_aot.dart.snapshot"
+}
+
+aot_snapshot("dart2js_sdk_aot_product") {
+  deps = [ ":dart2js_create_snapshot_entry" ]
+
+  main_dart = "$target_gen_dir/dart2js.dart"
+  name = "dart2js_aot_product.dart"
+  output = "$root_gen_dir/dart2js_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product sdks, and is built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and dart2js aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
+
 compile_platform("compile_dart2js_platform_unsound") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/")

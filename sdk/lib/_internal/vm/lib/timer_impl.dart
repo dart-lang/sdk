@@ -17,7 +17,7 @@ class _TimerHeap {
   int _used = 0;
 
   _TimerHeap([int initSize = 7])
-      : _list = List<_Timer>.filled(initSize, _Timer._sentinelTimer);
+    : _list = List<_Timer>.filled(initSize, _Timer._sentinelTimer);
 
   bool get isEmpty => _used == 0;
 
@@ -64,8 +64,10 @@ class _TimerHeap {
   }
 
   void _resize() {
-    var newList =
-        List<_Timer>.filled(_list.length * 2 + 1, _Timer._sentinelTimer);
+    var newList = List<_Timer>.filled(
+      _list.length * 2 + 1,
+      _Timer._sentinelTimer,
+    );
     newList.setRange(0, _used, _list);
     _list = newList;
   }
@@ -148,7 +150,7 @@ class _Timer implements Timer {
   static bool _handlingCallbacks = false;
 
   void Function(Timer)?
-      _callback; // Closure to call when timer fires. null if canceled.
+  _callback; // Closure to call when timer fires. null if canceled.
   int _wakeupTime; // Expiration time.
   final int _milliSeconds; // Duration specified at creation.
   final bool _repeating; // Indicates periodic timers.
@@ -166,19 +168,25 @@ class _Timer implements Timer {
   }
 
   _Timer._sentinel()
-      : _callback = null,
-        _wakeupTime = 0,
-        _milliSeconds = 0,
-        _repeating = false,
-        _indexOrNext = null,
-        _id = -1;
+    : _callback = null,
+      _wakeupTime = 0,
+      _milliSeconds = 0,
+      _repeating = false,
+      _indexOrNext = null,
+      _id = -1;
 
   _Timer._internal(
-      this._callback, this._wakeupTime, this._milliSeconds, this._repeating)
-      : _id = _nextId();
+    this._callback,
+    this._wakeupTime,
+    this._milliSeconds,
+    this._repeating,
+  ) : _id = _nextId();
 
   static _Timer _createTimer(
-      void callback(Timer timer), int milliSeconds, bool repeating) {
+    void callback(Timer timer),
+    int milliSeconds,
+    bool repeating,
+  ) {
     // Negative timeouts are treated as if 0 timeout.
     if (milliSeconds < 0) {
       milliSeconds = 0;
@@ -190,8 +198,12 @@ class _Timer implements Timer {
     int now = VMLibraryHooks.timerMillisecondClock();
     int wakeupTime = (milliSeconds == 0) ? now : (now + 1 + milliSeconds);
 
-    _Timer timer =
-        new _Timer._internal(callback, wakeupTime, milliSeconds, repeating);
+    _Timer timer = new _Timer._internal(
+      callback,
+      wakeupTime,
+      milliSeconds,
+      repeating,
+    );
     // Enqueue this newly created timer in the appropriate structure and
     // notify if necessary.
     timer._enqueue();
@@ -474,7 +486,10 @@ class _Timer implements Timer {
 
   // The Timer factory registered with the dart:async library by the embedder.
   static Timer _factory(
-      int milliSeconds, void callback(Timer timer), bool repeating) {
+    int milliSeconds,
+    void callback(Timer timer),
+    bool repeating,
+  ) {
     if (repeating) {
       return new _Timer.periodic(milliSeconds, callback);
     }

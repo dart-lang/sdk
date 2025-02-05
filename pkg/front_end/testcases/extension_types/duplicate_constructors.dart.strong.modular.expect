@@ -4,38 +4,38 @@ library;
 //
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:6:3: Error: 'ET1' is already declared in this scope.
 //   ET1.new(this.id);
-//   ^^^
+//   ^^^^^^^
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:5:19: Context: Previous declaration of 'ET1'.
 // extension type ET1(int id) {
-//                   ^^^
+//                   ^
 //
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:10:3: Error: 'ET2' is already declared in this scope.
 //   ET2(this.id);
 //   ^^^
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:9:22: Context: Previous declaration of 'ET2'.
 // extension type ET2<T>(T id) {
-//                      ^^^
+//                      ^
 //
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:14:3: Error: 'ET3' is already declared in this scope.
 //   ET3(this.id);
 //   ^^^
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:13:20: Context: Previous declaration of 'ET3'.
 // extension type ET3.new(int id) {
-//                    ^^^
+//                    ^
 //
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:18:3: Error: 'ET4' is already declared in this scope.
 //   ET4.new(this.id);
-//   ^^^
+//   ^^^^^^^
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:17:23: Context: Previous declaration of 'ET4'.
 // extension type ET4<T>.new(T id) {
-//                       ^^^
+//                       ^
 //
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:22:3: Error: 'ET5.n' is already declared in this scope.
 //   ET5.n(this.id);
 //   ^^^^^
 // pkg/front_end/testcases/extension_types/duplicate_constructors.dart:21:20: Context: Previous declaration of 'ET5.n'.
 // extension type ET5.n(int id) {
-//                    ^^^^^
+//                    ^
 //
 import self as self;
 import "dart:core" as core;

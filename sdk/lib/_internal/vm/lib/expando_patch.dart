@@ -19,9 +19,9 @@ void _rehashObjects(List objects) {
 class Expando<T> {
   @patch
   Expando([String? name])
-      : name = name,
-        _data = new List<_WeakProperty?>.filled(_minSize, null),
-        _used = 0;
+    : name = name,
+      _data = new List<_WeakProperty?>.filled(_minSize, null),
+      _used = 0;
 
   static const _minSize = 8;
   static final _deletedEntry = new _WeakProperty();

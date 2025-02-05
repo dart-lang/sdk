@@ -74,7 +74,8 @@ DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
 static void* LoadDynamicLibrary(const char* library_file,
                                 char** error = nullptr) {
   char* utils_error = nullptr;
-  void* handle = Utils::LoadDynamicLibrary(library_file, &utils_error);
+  void* handle = Utils::LoadDynamicLibrary(
+      library_file, /* search_dll_load_dir= */ false, &utils_error);
   if (utils_error != nullptr) {
     if (error != nullptr) {
       *error = OS::SCreate(
@@ -452,7 +453,7 @@ intptr_t FfiResolveInternal(const String& asset,
 
   // Native assets resolution.
   void* asset_result = FfiResolveAsset(thread, asset, symbol, error);
-  if (asset_result != nullptr) {
+  if (asset_result != nullptr || *error != nullptr) {
     return reinterpret_cast<intptr_t>(asset_result);
   }
 

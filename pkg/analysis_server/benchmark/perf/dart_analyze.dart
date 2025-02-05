@@ -23,10 +23,11 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
   void cleanup() {}
 
   @override
-  Future<BenchMarkResult> run(
-      {required String dartSdkPath,
-      bool quick = false,
-      bool verbose = false}) async {
+  Future<BenchMarkResult> run({
+    required String dartSdkPath,
+    bool quick = false,
+    bool verbose = false,
+  }) async {
     if (!quick) {
       deleteServerCache();
     }
@@ -53,10 +54,14 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
     stopwatchWithCache.stop();
 
     var result = CompoundBenchMarkResult(id);
-    result.add('no-cache',
-        BenchMarkResult('micros', stopwatchNoCache.elapsedMicroseconds));
-    result.add('with-cache',
-        BenchMarkResult('micros', stopwatchWithCache.elapsedMicroseconds));
+    result.add(
+      'no-cache',
+      BenchMarkResult('micros', stopwatchNoCache.elapsedMicroseconds),
+    );
+    result.add(
+      'with-cache',
+      BenchMarkResult('micros', stopwatchWithCache.elapsedMicroseconds),
+    );
 
     if (!quick) {
       deleteServerCache();
@@ -68,7 +73,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
           '--suppress-analytics',
           '--format=json',
           '--memory',
-          ...analyzeThis
+          ...analyzeThis,
         ],
         cwd: workingDir,
         verbose: false,
@@ -85,7 +90,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
           '--suppress-analytics',
           '--format=json',
           '--memory',
-          ...analyzeThis
+          ...analyzeThis,
         ],
         cwd: workingDir,
         verbose: false,
@@ -93,7 +98,9 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
       );
       int kbWithCache = jsonDecode(stdout[1])['memory'] as int;
       result.add(
-          'with-cache-memory', BenchMarkResult('bytes', kbWithCache * 1024));
+        'with-cache-memory',
+        BenchMarkResult('bytes', kbWithCache * 1024),
+      );
     }
 
     cleanup();
@@ -106,9 +113,11 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
 
 class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
   CmdLineOneProjectBenchmark()
-      : super('dart-analyze-one-project',
-            'Run dart analyze on one project with and without a cache',
-            kind: 'group');
+    : super(
+        'dart-analyze-one-project',
+        'Run dart analyze on one project with and without a cache',
+        kind: 'group',
+      );
 
   @override
   String get workingDir => packageRoot;
@@ -120,34 +129,39 @@ class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
 
 class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
   CmdLineSeveralProjectsBenchmark()
-      : super('dart-analyze-several-projects',
-            'Run dart analyze on several projects with and without a cache',
-            kind: 'group');
+    : super(
+        'dart-analyze-several-projects',
+        'Run dart analyze on several projects with and without a cache',
+        kind: 'group',
+      );
 
   @override
   String get workingDir => packageRoot;
 
   @override
-  List<String> analyzeWhat(bool quick) => quick
-      ? ['meta']
-      : [
-          'analysis_server',
-          'analysis_server_client',
-          'analyzer',
-          'analyzer_cli',
-          'analyzer_plugin',
-          'analyzer_utilities',
-          '_fe_analyzer_shared',
-        ];
+  List<String> analyzeWhat(bool quick) =>
+      quick
+          ? ['meta']
+          : [
+            'analysis_server',
+            'analysis_server_client',
+            'analyzer',
+            'analyzer_cli',
+            'analyzer_plugin',
+            'analyzer_utilities',
+            '_fe_analyzer_shared',
+          ];
 }
 
 class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {
   Directory? _tempDir;
 
   CmdLineSmallFileBenchmark()
-      : super('dart-analyze-small-file',
-            'Run dart analyze on a small file with and without a cache',
-            kind: 'group');
+    : super(
+        'dart-analyze-small-file',
+        'Run dart analyze on a small file with and without a cache',
+        kind: 'group',
+      );
 
   @override
   String get workingDir => _tempDir!.path;

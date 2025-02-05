@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/type_test_helper.dart';
 
@@ -52,30 +52,42 @@ main() {
   C().futureOrT();
 }
 """);
-    FunctionType getFunctionType(String name, String expectedType,
-        [ClassEntity? cls]) {
+    FunctionType getFunctionType(
+      String name,
+      String expectedType, [
+      ClassEntity? cls,
+    ]) {
       final type = env.getMemberType(name, cls) as FunctionType?;
-      Expect.isNotNull(type,
-          "Member $name not found${cls != null ? ' in class $cls' : ''}.");
+      Expect.isNotNull(
+        type,
+        "Member $name not found${cls != null ? ' in class $cls' : ''}.",
+      );
       Expect.equals(
-          expectedType,
-          env.printType(type!),
-          "Unexpected type for $name"
-          "${cls != null ? ' in class $cls' : ''}.");
+        expectedType,
+        env.printType(type!),
+        "Unexpected type for $name"
+        "${cls != null ? ' in class $cls' : ''}.",
+      );
       return type;
     }
 
-    DartType getReturnType(String name, String expectedType,
-        [ClassEntity? cls]) {
+    DartType getReturnType(
+      String name,
+      String expectedType, [
+      ClassEntity? cls,
+    ]) {
       final type = env.getMemberType(name, cls) as FunctionType?;
-      Expect.isNotNull(type,
-          "Member $name not found${cls != null ? ' in class $cls' : ''}.");
+      Expect.isNotNull(
+        type,
+        "Member $name not found${cls != null ? ' in class $cls' : ''}.",
+      );
       DartType returnType = type!.returnType.withoutNullability;
       Expect.equals(
-          expectedType,
-          env.printType(returnType),
-          "Unexpected return type for $name"
-          "${cls != null ? ' in class $cls' : ''}.");
+        expectedType,
+        env.printType(returnType),
+        "Unexpected return type for $name"
+        "${cls != null ? ' in class $cls' : ''}.",
+      );
       return returnType;
     }
 
@@ -92,14 +104,18 @@ main() {
         getReturnType('futureOrInt', 'FutureOr<int>') as FutureOrType;
     DartType int_ = futureOrInt.typeArgument;
 
-    DartType futureListNum =
-        getReturnType('futureListNum', 'Future<List<num>>');
+    DartType futureListNum = getReturnType(
+      'futureListNum',
+      'Future<List<num>>',
+    );
     final futureOrListNum =
         getReturnType('futureOrListNum', 'FutureOr<List<num>>') as FutureOrType;
     DartType ListNum = futureOrListNum.typeArgument;
 
-    DartType futureFutureNum =
-        getReturnType('futureFutureNum', 'Future<Future<num>>');
+    DartType futureFutureNum = getReturnType(
+      'futureFutureNum',
+      'Future<Future<num>>',
+    );
     final futureOrFutureOrNum =
         getReturnType('futureOrFutureOrNum', 'FutureOr<FutureOr<num>>')
             as FutureOrType;
@@ -118,8 +134,10 @@ main() {
     futureOrT.forEachTypeVariable((t) => Expect.equals(T, t));
 
     DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
-    DartType returnFutureNull =
-        getFunctionType('futureOrNull', 'Future<Null>? Function()');
+    DartType returnFutureNull = getFunctionType(
+      'futureOrNull',
+      'Future<Null>? Function()',
+    );
 
     List<DartType> all = [
       top,
@@ -152,9 +170,7 @@ main() {
       T: [futureOrT],
       futureNum: [futureOrNum, futureOrFutureOrNum],
       futureInt: [futureNum, futureOrNum, futureOrInt, futureOrFutureOrNum],
-      futureNull: [
-        futureOrNull,
-      ],
+      futureNull: [futureOrNull],
       futureListNum: [futureOrListNum],
       futureT: [futureOrT],
       futureFutureNum: [futureOrFutureOrNum],
@@ -170,10 +186,11 @@ main() {
         bool expectedSubtype =
             t == s || expectedSubtypes.contains(s) || s == top || t == bottom;
         Expect.equals(
-            expectedSubtype,
-            env.isSubtype(t, s),
-            "$t${expectedSubtype ? '' : ' not'} "
-            "expected to be a subtype of $s.");
+          expectedSubtype,
+          env.isSubtype(t, s),
+          "$t${expectedSubtype ? '' : ' not'} "
+          "expected to be a subtype of $s.",
+        );
       }
     }
   });

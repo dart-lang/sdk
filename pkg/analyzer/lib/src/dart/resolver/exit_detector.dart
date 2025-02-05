@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Instances of the class `ExitDetector` determine whether the visited AST node
@@ -436,7 +436,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         return false;
       }
     }
-    var element = node.methodName.staticElement;
+    var element = node.methodName.element;
     if (_elementExits(element)) {
       return true;
     }
@@ -645,8 +645,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
-  /// If the given [expression] has a known Boolean value, return the known
-  /// value, otherwise return `null`.
+  /// If the given [conditionExpression] has a known Boolean value, return the
+  /// known value, otherwise return `null`.
   bool? _knownConditionValue(Expression conditionExpression) {
     // TODO(jwren): Do we want to take all constant expressions into account?
     if (conditionExpression is BooleanLiteral) {
@@ -696,10 +696,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return ExitDetector()._nodeExits(node);
   }
 
-  static bool _elementExits(Element? element) {
-    if (element is ExecutableElement) {
-      var declaration = element.declaration;
-      return declaration.hasAlwaysThrows ||
+  static bool _elementExits(Element2? element) {
+    if (element is ExecutableElement2) {
+      var declaration = element.baseElement;
+      return declaration.metadata2.hasAlwaysThrows ||
           identical(declaration.returnType, NeverTypeImpl.instance);
     }
 

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 void main() {
   // Non-Boolean if condition.
   var _ = <int>[if (1) 2]; //# 00: compile-time error

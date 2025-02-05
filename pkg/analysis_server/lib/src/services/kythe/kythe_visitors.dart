@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -39,8 +41,12 @@ String? _getNodeKind(Element e) {
   return null;
 }
 
-String _getPath(ResourceProvider provider, Element? e,
-    {String? sdkRootPath, String? corpus}) {
+String _getPath(
+  ResourceProvider provider,
+  Element? e, {
+  String? sdkRootPath,
+  String? corpus,
+}) {
   // TODO(jwren): This method simply serves to provide the WORKSPACE relative
   // path for sources in Elements, it needs to be written in a more robust way.
   // TODO(jwren): figure out what source generates a e != null, but
@@ -81,15 +87,23 @@ String _getPath(ResourceProvider provider, Element? e,
 /// generate and return a [String] signature, otherwise [schema.DYNAMIC_KIND] is
 /// returned.
 String _getSignature(
-    ResourceProvider provider, Element? element, String nodeKind, String corpus,
-    {String? sdkRootPath}) {
+  ResourceProvider provider,
+  Element? element,
+  String nodeKind,
+  String corpus, {
+  String? sdkRootPath,
+}) {
   assert(nodeKind != schema.ANCHOR_KIND); // Call _getAnchorSignature instead
   if (element == null) {
     return schema.DYNAMIC_KIND;
   }
   if (element is CompilationUnitElement) {
-    return _getPath(provider, element,
-        sdkRootPath: sdkRootPath, corpus: corpus);
+    return _getPath(
+      provider,
+      element,
+      sdkRootPath: sdkRootPath,
+      corpus: corpus,
+    );
   }
   return '$nodeKind:${element.accept(_SignatureElementVisitor.instance)}';
 }
@@ -116,10 +130,19 @@ class CiderKytheHelper {
     assert(nodeKind != schema.FILE_KIND);
     // general case
     return _KytheVName(
-      path: _getPath(resourceProvider, e,
-          sdkRootPath: sdkRootPath, corpus: corpus),
-      signature: _getSignature(resourceProvider, e, nodeKind, corpus,
-          sdkRootPath: sdkRootPath),
+      path: _getPath(
+        resourceProvider,
+        e,
+        sdkRootPath: sdkRootPath,
+        corpus: corpus,
+      ),
+      signature: _getSignature(
+        resourceProvider,
+        e,
+        nodeKind,
+        corpus,
+        sdkRootPath: sdkRootPath,
+      ),
     );
   }
 }
@@ -128,10 +151,7 @@ class _KytheVName {
   final String path;
   final String signature;
 
-  _KytheVName({
-    required this.path,
-    required this.signature,
-  });
+  _KytheVName({required this.path, required this.signature});
 }
 
 /// This visitor class should be used by [_getSignature].

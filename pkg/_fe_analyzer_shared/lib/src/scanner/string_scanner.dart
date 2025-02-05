@@ -100,9 +100,7 @@ class StringScanner extends AbstractScanner {
       bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromSubstring(
         type, _string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true,
-        precedingComments: comments,
-        allowLazyFoo: allowLazy);
+        canonicalize: true, precedingComments: comments, allowLazy: allowLazy);
   }
 
   @override

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
@@ -14,8 +13,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:meta/meta.dart';
 
-class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
-    with LspHandlerHelperMixin {
+class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the refactor running.
   @visibleForTesting
@@ -51,7 +49,12 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
 
     return result.mapResult((result) async {
       var refactoring = await getRefactoring(
-          RefactoringKind(kind), result, offset, length, options);
+        RefactoringKind.values.byName(kind),
+        result,
+        offset,
+        length,
+        options,
+      );
       return refactoring.mapResult((refactoring) async {
         // Don't include potential edits in refactorings until there is some UI
         // for the user to control this.
@@ -76,13 +79,13 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
           }
 
           if (cancelableToken.isCancellationRequested) {
-            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+            return cancelled(cancelableToken);
           }
 
           var change = await refactoring.createChange();
 
           if (cancelableToken.isCancellationRequested) {
-            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+            return cancelled(cancelableToken);
           }
 
           if (change.edits.isEmpty) {

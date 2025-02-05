@@ -5,10 +5,10 @@
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -16,7 +16,9 @@ void main() {
   runTest() async {
     OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+    );
     Compiler compiler = result.compiler!;
     String mainOutput = collector.getOutput('', api.OutputType.js)!;
     String deferredOutput =
@@ -25,9 +27,10 @@ void main() {
     String isPrefix =
         backendStrategy.namerForTesting.fixedNames.operatorIsPrefix;
     Expect.isTrue(
-        deferredOutput.contains('${isPrefix}A: 1'),
-        "Deferred output doesn't contain '${isPrefix}A: 1':\n"
-        "$deferredOutput");
+      deferredOutput.contains('${isPrefix}A: 1'),
+      "Deferred output doesn't contain '${isPrefix}A: 1':\n"
+      "$deferredOutput",
+    );
     Expect.isFalse(mainOutput.contains('${isPrefix}A: 1'));
   }
 

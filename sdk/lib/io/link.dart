@@ -229,12 +229,12 @@ class _Link extends FileSystemEntity implements Link {
   final Uint8List _rawPath;
 
   _Link(String path)
-      : _path = path,
-        _rawPath = FileSystemEntity._toUtf8Array(path);
+    : _path = path,
+      _rawPath = FileSystemEntity._toUtf8Array(path);
 
   _Link.fromRawPath(Uint8List rawPath)
-      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
-        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+    : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
+      _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -250,13 +250,21 @@ class _Link extends FileSystemEntity implements Link {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) => _File._dispatchWithNamespace(
-            _IOService.fileCreateLink, [null, _rawPath, target]))
+        .then(
+          (_) => _File._dispatchWithNamespace(_IOService.fileCreateLink, [
+            null,
+            _rawPath,
+            target,
+          ]),
+        )
         .then((response) {
-      _checkForErrorResponse(
-          response, "Cannot create link to target '$target'", path);
-      return this;
-    });
+          _checkForErrorResponse(
+            response,
+            "Cannot create link to target '$target'",
+            path,
+          );
+          return this;
+        });
   }
 
   void createSync(String target, {bool recursive = false}) {
@@ -286,12 +294,14 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> _delete({bool recursive = false}) {
     if (recursive) {
-      return new Directory.fromRawPath(_rawPath)
-          .delete(recursive: true)
-          .then((_) => this);
+      return new Directory.fromRawPath(
+        _rawPath,
+      ).delete(recursive: true).then((_) => this);
     }
-    return _File._dispatchWithNamespace(
-        _IOService.fileDeleteLink, [null, _rawPath]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.fileDeleteLink, [
+      null,
+      _rawPath,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot delete link", path);
       return this;
     });
@@ -306,10 +316,16 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> rename(String newPath) {
-    return _File._dispatchWithNamespace(
-        _IOService.fileRenameLink, [null, _rawPath, newPath]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.fileRenameLink, [
+      null,
+      _rawPath,
+      newPath,
+    ]).then((response) {
       _checkForErrorResponse(
-          response, "Cannot rename link to '$newPath'", path);
+        response,
+        "Cannot rename link to '$newPath'",
+        path,
+      );
       return new Link(newPath);
     });
   }
@@ -321,8 +337,10 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    return _File._dispatchWithNamespace(
-        _IOService.fileLinkTarget, [null, _rawPath]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.fileLinkTarget, [
+      null,
+      _rawPath,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot get target of link", path);
       return response as String;
     });

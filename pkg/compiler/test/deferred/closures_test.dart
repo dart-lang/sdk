@@ -4,8 +4,8 @@
 
 // Ensures that closures are in the output unit of their enclosing element.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -49,5 +49,5 @@ const Map<String, String> sources = const {
     library deferred;
 
     unique_method_name() => (() => print("unique-string"))();
-    """
+    """,
 };

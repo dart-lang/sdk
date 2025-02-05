@@ -4,7 +4,7 @@
 
 // Avoid dart2js optimizations that alter the JavaScript stack trace. (1)
 // dart2js inlines methods in the generated JavaScript which leads to missing
-// frames in the stack trace. (2) Minification obfucsates names. Both issues can
+// frames in the stack trace. (2) Minification obfuscates names. Both issues can
 // be addressed offline by post-processing the stack trace using the source map
 // file.
 //

@@ -1,0 +1,59 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:6:14: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final foo1 = bar;
+//              ^^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:7:14: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final foo2 = baz(0);
+//              ^^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:6:21: Error: Undefined name 'bar'.
+//   late final foo1 = bar;
+//                     ^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:7:21: Error: Can't access 'this' in a field initializer to read 'baz'.
+//   late final foo2 = baz(0);
+//                     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Foo(dynamic x) {
+  abstract extension-type-member representation-field get x() → dynamic;
+  get foo1 = self::Foo|get#foo1;
+  get foo2 = self::Foo|get#foo2;
+  method baz = self::Foo|baz;
+  method tearoff baz = self::Foo|get#baz;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+}
+extension type Foo2(dynamic _input) {
+  abstract extension-type-member representation-field get _input() → dynamic;
+  constructor _ = self::Foo2|constructor#_;
+  constructor tearoff _ = self::Foo2|constructor#_#_#tearOff;
+  constructor fromInt = self::Foo2|constructor#fromInt;
+  constructor tearoff fromInt = self::Foo2|constructor#_#fromInt#tearOff;
+}
+static extension-type-member method Foo|constructor#(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
+  return self::Foo|constructor#(x);
+static abstract extension-type-member method Foo|get#foo1(lowered dynamic #this) → invalid-type;
+static abstract extension-type-member method Foo|get#foo2(lowered dynamic #this) → invalid-type;
+static extension-type-member method Foo|baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this, core::int i) → core::int
+  ;
+static extension-type-member method Foo|get#baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this) → (core::int) → core::int
+  return (core::int i) → core::int => self::Foo|baz(#this, i);
+static extension-type-member method Foo2|constructor#_(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
+  return self::Foo2|constructor#_(_input);
+static extension-type-member method Foo2|constructor#fromInt(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method Foo2|constructor#_#fromInt#tearOff(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
+  return self::Foo2|constructor#fromInt(i);

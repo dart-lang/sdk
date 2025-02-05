@@ -1830,8 +1830,6 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
-
-  heap_->old_space()->PushDependencyToConcurrentMarking();
 }
 
 void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {

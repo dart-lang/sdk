@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -29,6 +33,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -54,7 +59,6 @@ class ElementHolder {
   }
 
   void enclose(ElementImpl element) {
-    element.enclosingElement = _element;
     element.enclosingElement3 = _element;
   }
 }
@@ -68,7 +72,7 @@ class ElementHolder {
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
-  LibraryElementImpl _libraryElement;
+  final LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
   final ErrorReporter _errorReporter;
@@ -415,7 +419,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       name,
       node.name.offset,
     );
-    _patternVariables.add(name, element);
+    _patternVariables.add(name, element.element);
     _elementHolder.enclose(element);
     _define(element);
     element.hasImplicitType = node.type == null;
@@ -669,7 +673,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitForEachPartsWithPattern(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
+        .whereType<BindPatternVariableElementImpl2>()
+        .map((e) => e.asElement as BindPatternVariableElementImpl)
         .toList();
   }
 
@@ -698,11 +703,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           : _elementWalker!.getFunction();
       node.declaredElement = element;
       expression.declaredElement = element;
+      expression.declaredFragment = element;
     } else {
       var functionElement = node.declaredElement as FunctionElementImpl;
+      functionElement.element = LocalFunctionElementImpl(functionElement);
+
       element = functionElement;
       expression.declaredElement = functionElement;
-      expression.declaredElement2 = functionElement.element2;
+      expression.declaredFragment = functionElement;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -765,34 +773,36 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var element = FunctionElementImpl.forOffset(node.offset);
-    _elementHolder.enclose(element);
-    node.declaredElement = element;
-    node.declaredElement2 = element.element2;
+    var fragment = FunctionElementImpl.forOffset(node.offset);
+    fragment.element = LocalFunctionElementImpl(fragment);
 
-    element.hasImplicitReturnType = true;
-    element.returnType = DynamicTypeImpl.instance;
+    _elementHolder.enclose(fragment);
+    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
+
+    fragment.hasImplicitReturnType = true;
+    fragment.returnType = DynamicTypeImpl.instance;
 
     FunctionBody body = node.body;
-    element.isAsynchronous = body.isAsynchronous;
-    element.isGenerator = body.isGenerator;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isGenerator = body.isGenerator;
 
-    var holder = ElementHolder(element);
+    var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
 
         node.parameters!.accept(this);
-        element.parameters = holder.parameters;
+        fragment.parameters = holder.parameters;
 
-        _defineParameters(element.parameters);
+        _defineParameters(fragment.parameters);
         node.body.accept(this);
       });
     });
 
-    _setCodeRange(element, node);
+    _setCodeRange(fragment, node);
   }
 
   @override
@@ -1142,7 +1152,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
+        .whereType<BindPatternVariableElementImpl2>()
+        .map((e) => e.asElement as BindPatternVariableElementImpl)
         .toList();
   }
 
@@ -1471,15 +1482,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       covariant FunctionDeclarationStatementImpl statement) {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
-    var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
-    node.declaredElement = element;
-    node.declaredElement2 = element.element2;
+
+    var fragment = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    fragment.name2 = nameToken.nameIfNotEmpty;
+    fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
+    node.declaredElement = fragment;
+
+    fragment.element = LocalFunctionElementImpl(fragment);
+    node.functionExpression.declaredFragment = fragment;
+
+    // The fragment's old enclosing element needs to be set before we can get
+    // the new element for it.
+    _elementHolder.enclose(fragment);
 
     if (!_isWildCardVariable(nameToken.lexeme)) {
-      _define(element);
+      _define(fragment);
     }
-
-    _elementHolder.enclose(element);
   }
 
   void _buildLocalVariableElements(VariableDeclarationList variableList) {
@@ -1527,6 +1545,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = _elementWalker!.getTypeParameter();
       } else {
         element = TypeParameterElementImpl(name.lexeme, name.offset);
+        element.name2 = name.lexeme;
+        element.nameOffset2 = name.offset;
         _elementHolder.addTypeParameter(element);
 
         _setCodeRange(element, typeParameter);
@@ -1599,7 +1619,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     // Matched variables are available in `whenClause`.
     _withNameScope(() {
       for (var variable in variables.values) {
-        _define(variable);
+        _define(variable.asElement!);
       }
       guardedPattern.variables = variables.cast();
       guardedPattern.whenClause?.accept(this);
@@ -1910,7 +1930,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _VariableBinder
-    extends VariableBinder<DartPatternImpl, PromotableElement> {
+    extends VariableBinder<DartPatternImpl, PromotableElementImpl2> {
   final TypeProvider typeProvider;
 
   _VariableBinder({
@@ -1919,48 +1939,48 @@ class _VariableBinder
   });
 
   @override
-  JoinPatternVariableElementImpl joinPatternVariables({
+  JoinPatternVariableElementImpl2 joinPatternVariables({
     required Object key,
-    required List<PromotableElement> components,
+    required List<PromotableElement2> components,
     required shared.JoinedPatternVariableInconsistency inconsistency,
   }) {
     var first = components.first;
     List<PatternVariableElementImpl> expandedVariables;
     if (key is LogicalOrPatternImpl) {
       expandedVariables = components.expand((variable) {
-        variable as PatternVariableElementImpl;
-        if (variable is JoinPatternVariableElementImpl) {
+        variable as PatternVariableElementImpl2;
+        if (variable is JoinPatternVariableElementImpl2) {
           return variable.variables;
         } else {
-          return [variable];
+          return [variable.asElement as PatternVariableElementImpl];
         }
       }).toList(growable: false);
     } else if (key is SwitchStatementCaseGroup) {
       expandedVariables = components
-          .map((e) => e as PatternVariableElementImpl)
+          .map((e) => e.asElement as PatternVariableElementImpl)
           .toList(growable: false);
     } else {
       throw UnimplementedError('(${key.runtimeType}) $key');
     }
-    return JoinPatternVariableElementImpl(
-      first.name,
+    return (JoinPatternVariableElementImpl(
+      first.name3!,
       -1,
       expandedVariables,
       inconsistency.maxWithAll(
         components
-            .whereType<JoinPatternVariableElementImpl>()
+            .whereType<JoinPatternVariableElementImpl2>()
             .map((e) => e.inconsistency),
       ),
     )
-      // ignore: deprecated_member_use_from_same_package
-      ..enclosingElement = first.enclosingElement
-      ..enclosingElement3 = first.enclosingElement3
-      ..type = InvalidTypeImpl.instance;
+          ..enclosingElement3 =
+              first.firstFragment.enclosingFragment!.element.asElement!
+          ..type = InvalidTypeImpl.instance)
+        .element;
   }
 }
 
 class _VariableBinderErrors
-    implements VariableBinderErrors<DartPatternImpl, PromotableElement> {
+    implements VariableBinderErrors<DartPatternImpl, PromotableElementImpl2> {
   final ResolutionVisitor visitor;
 
   _VariableBinderErrors(this.visitor);
@@ -1974,8 +1994,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant BindPatternVariableElementImpl original,
-    required covariant BindPatternVariableElementImpl duplicate,
+    required covariant BindPatternVariableElementImpl2 original,
+    required covariant BindPatternVariableElementImpl2 duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
@@ -1994,12 +2014,22 @@ class _VariableBinderErrors
     required covariant LogicalOrPatternImpl node,
     required bool hasInLeft,
     required String name,
-    required PromotableElement variable,
+    required PromotableElement2 variable,
   }) {
     visitor._errorReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,
       CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
       arguments: [name],
     );
+  }
+}
+
+extension on Token {
+  String? get nameIfNotEmpty {
+    return lexeme.isNotEmpty ? lexeme : null;
+  }
+
+  int? get offsetIfNotEmpty {
+    return lexeme.isNotEmpty ? offset : null;
   }
 }

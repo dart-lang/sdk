@@ -6,7 +6,6 @@ import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
-import '../../linter_lint_codes.dart';
 
 const _desc = r'Sort pub dependencies alphabetically.';
 

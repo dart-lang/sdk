@@ -31,11 +31,16 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> prepareAssistsAt(int offset, int length) async {
-    var request = EditGetAssistsParams(testFile.path, offset, length)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAssistsParams(
+      testFile.path,
+      offset,
+      length,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetAssistsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetAssistsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     changes = result.assists;
   }
 
@@ -47,18 +52,28 @@ class AssistsTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_fromPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
-        TestNotificationManager(), InstrumentationService.NULL_SERVICE);
+    PluginInfo info = DiscoveredPluginInfo(
+      'a',
+      'b',
+      'c',
+      TestNotificationManager(),
+      InstrumentationService.NULL_SERVICE,
+    );
     var message = 'From a plugin';
     var change = plugin.PrioritizedSourceChange(
-        5,
-        SourceChange(message, edits: <SourceFileEdit>[
-          SourceFileEdit('', 5, edits: <SourceEdit>[SourceEdit(5, 0, 'x')])
-        ]));
-    var result =
-        plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[change]);
+      5,
+      SourceChange(
+        message,
+        edits: <SourceFileEdit>[
+          SourceFileEdit('', 5, edits: <SourceEdit>[SourceEdit(5, 0, 'x')]),
+        ],
+      ),
+    );
+    var result = plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[
+      change,
+    ]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(result.toResponse('-', 1))
+      info: Future.value(result.toResponse('-', 1)),
     };
 
     addTestFile('void f() {}');
@@ -68,8 +83,11 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetAssistsParams('test.dart', 0, 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAssistsParams(
+      'test.dart',
+      0,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -79,9 +97,11 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
-            .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAssistsParams(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -145,8 +165,10 @@ void f() {
   void _assertHasChange(String message, String expectedCode) {
     for (var change in changes) {
       if (change.message == message) {
-        var resultCode =
-            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
+        var resultCode = SourceEdit.applySequence(
+          testFileContent,
+          change.edits[0].edits,
+        );
         expect(resultCode, expectedCode);
         return;
       }

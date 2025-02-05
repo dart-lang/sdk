@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -43,14 +43,16 @@ const MEMORY_SOURCE_FILES = const {
         for (int i = 0; i < list.length; i++) {
           print(list[i].foo(i, i + 1));
         }
-      }'''
+      }''',
 };
 
 main() {
   runTest() async {
     OutputCollector collector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+    );
     String jsOutput = collector.getOutput('', api.OutputType.js)!;
 
     // Skip comments.

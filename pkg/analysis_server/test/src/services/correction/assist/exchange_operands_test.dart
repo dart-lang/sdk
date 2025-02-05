@@ -149,14 +149,11 @@ void f() {
   1 + 2;
 }
 ''');
-    await assertHasAssistAt(
-        '1 + 2',
-        '''
+    await assertHasAssistAt('1 + 2', '''
 void f() {
   2 + 1;
 }
-''',
-        length: '1 + 2'.length);
+''', length: '1 + 2'.length);
   }
 
   Future<void> test_simple_withLength() async {
@@ -165,13 +162,10 @@ void f() {
   1 + 2;
 }
 ''');
-    await assertHasAssistAt(
-        '+ 2',
-        '''
+    await assertHasAssistAt('+ 2', '''
 void f() {
   2 + 1;
 }
-''',
-        length: 2);
+''', length: 2);
   }
 }

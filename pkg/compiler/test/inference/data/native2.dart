@@ -14,8 +14,8 @@ main() {
 
 /*member: createElement:[subclass=Element]*/
 Element createElement()
-    // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-    native;
+// ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+native;
 
 /*member: createRectangle:[subclass=DomRectReadOnly]*/
 createRectangle() => foreign.JS('Rectangle', "#", null);

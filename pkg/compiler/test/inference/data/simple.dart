@@ -106,7 +106,9 @@ nonEmptyString() => 'foo';
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: stringJuxtaposition:Value([exact=JSString], value: "foobar")*/
-stringJuxtaposition() => 'foo' 'bar';
+stringJuxtaposition() =>
+    'foo'
+    'bar';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a string constant interpolation.

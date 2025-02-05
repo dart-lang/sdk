@@ -16,7 +16,8 @@ void main() {
     defineReflectiveTests(AddKeyToConstructorsInFileTest);
     defineReflectiveTests(AddKeyToConstructorsTest);
     defineReflectiveTests(
-        AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest);
+      AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest,
+    );
     defineReflectiveTests(AddKeyToConstructorsWithoutSuperParametersTest);
   });
 }
@@ -29,9 +30,7 @@ class AddKeyToConstructorsBulkTest extends BulkFixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_singleFile() async {
@@ -63,14 +62,13 @@ class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_file() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.use_key_in_widget_constructors]);
+      lints: [LintNames.use_key_in_widget_constructors],
+    );
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
@@ -103,9 +101,7 @@ class AddKeyToConstructorsTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_class_newline() async {
@@ -328,7 +324,7 @@ class MyWidget extends A {
   }
 
   Future<void>
-      test_constructor_noParameters_withSuper_nonEmpty_tailingComma() async {
+  test_constructor_noParameters_withSuper_nonEmpty_tailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
@@ -358,7 +354,7 @@ class MyWidget extends A {
   }
 
   Future<void>
-      test_constructor_noParameters_withSuper_nonNamed_trailingComma() async {
+  test_constructor_noParameters_withSuper_nonNamed_trailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
@@ -560,9 +556,7 @@ class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_constructor_noParameters_withSuper_nonEmpty() async {
@@ -610,9 +604,7 @@ class AddKeyToConstructorsWithoutSuperParametersTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_class_newline() async {
@@ -778,7 +770,7 @@ class MyWidget extends A {
   }
 
   Future<void>
-      test_constructor_noParameters_withSuper_nonEmpty_tailingComma() async {
+  test_constructor_noParameters_withSuper_nonEmpty_tailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
@@ -808,7 +800,7 @@ class MyWidget extends A {
   }
 
   Future<void>
-      test_constructor_noParameters_withSuper_nonNamed_trailingComma() async {
+  test_constructor_noParameters_withSuper_nonNamed_trailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 

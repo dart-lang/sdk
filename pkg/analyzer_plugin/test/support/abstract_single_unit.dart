@@ -4,12 +4,13 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
@@ -24,6 +25,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late CompilationUnit testUnit;
   late FindNode findNode;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   void addTestSource(String code) {
     testCode = code;
@@ -59,7 +61,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element? findNodeElementAtString(
+  Element2? findNodeElementAtString(
     String search, [
     bool Function(AstNode)? predicate,
   ]) {
@@ -67,7 +69,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-    return ElementLocator.locate(node);
+    return ElementLocator.locate2(node);
   }
 
   int findOffset(String search) {
@@ -119,6 +121,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+    findElement2 = FindElement2(testUnit);
   }
 
   @override

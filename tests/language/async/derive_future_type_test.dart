@@ -44,7 +44,7 @@
 // sequences.
 
 import 'dart:async';
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 mixin class FakeFutureHelper<T> {
   Future<T> get _realFuture;
@@ -166,46 +166,76 @@ void main() async {
     (await x).expectStaticType<Exactly<bool?>>();
   }
 
-  await f1<Future<int>, SubFuture, ExtensionFuture, ExtensionSubFuture,
-          FutureOr<Object>, Future<Never>?, Future<Symbol>, Future<Symbol>>(
-      Future<int>.value(10),
-      SubFuture(),
-      ExtensionFuture(Future<String>.value('f1')),
-      ExtensionSubFuture(SubFuture()),
-      20,
-      null,
-      Future.value(#foo));
+  await f1<
+    Future<int>,
+    SubFuture,
+    ExtensionFuture,
+    ExtensionSubFuture,
+    FutureOr<Object>,
+    Future<Never>?,
+    Future<Symbol>,
+    Future<Symbol>
+  >(
+    Future<int>.value(10),
+    SubFuture(),
+    ExtensionFuture(Future<String>.value('f1')),
+    ExtensionSubFuture(SubFuture()),
+    20,
+    null,
+    Future.value(#foo),
+  );
 
-  await f2<Object?, Future<Never>, FutureOr<Object>, Future<Never>?,
-      Future<Symbol>, Future<Symbol>>(true);
+  await f2<
+    Object?,
+    Future<Never>,
+    FutureOr<Object>,
+    Future<Never>?,
+    Future<Symbol>,
+    Future<Symbol>
+  >(true);
 
-  await C1<Future<int>, SubFuture, ExtensionFuture, ExtensionSubFuture,
-          FutureOr<Object>, Future<Never>?, Future<Symbol>, Future<Symbol>>()
+  await C1<
+        Future<int>,
+        SubFuture,
+        ExtensionFuture,
+        ExtensionSubFuture,
+        FutureOr<Object>,
+        Future<Never>?,
+        Future<Symbol>,
+        Future<Symbol>
+      >()
       .f1(
-          Future<int>.value(10),
-          SubFuture(),
-          ExtensionFuture(Future<String>.value('f1')),
-          ExtensionSubFuture(SubFuture()),
-          20,
-          null,
-          Future.value(#foo));
+        Future<int>.value(10),
+        SubFuture(),
+        ExtensionFuture(Future<String>.value('f1')),
+        ExtensionSubFuture(SubFuture()),
+        20,
+        null,
+        Future.value(#foo),
+      );
 
-  await C2<Object?, Future<Never>, FutureOr<Object>, Future<Never>?,
-          Future<Symbol>, Future<Symbol>>()
+  await C2<
+        Object?,
+        Future<Never>,
+        FutureOr<Object>,
+        Future<Never>?,
+        Future<Symbol>,
+        Future<Symbol>
+      >()
       .f2(true);
 }
 
 // Test non-promoted types that involve function type parameters.
 Future<void> f1<
-        X1a extends Future<int>,
-        X1b extends SubFuture,
-        X1c extends ExtensionFuture,
-        X1d extends ExtensionSubFuture,
-        X2 extends FutureOr<Object>,
-        X3 extends Future<Never>?,
-        X4 extends Y,
-        Y extends Future<Symbol>>(
-    X1a x1a, X1b x1b, X1c x1c, X1d x1d, X2 x2, X3 x3, X4 x4) async {
+  X1a extends Future<int>,
+  X1b extends SubFuture,
+  X1c extends ExtensionFuture,
+  X1d extends ExtensionSubFuture,
+  X2 extends FutureOr<Object>,
+  X3 extends Future<Never>?,
+  X4 extends Y,
+  Y extends Future<Symbol>
+>(X1a x1a, X1b x1b, X1c x1c, X1d x1d, X2 x2, X3 x3, X4 x4) async {
   // 4.1, `X1a` derives `Future<int>`.
   (await x1a).expectStaticType<Exactly<int>>();
 
@@ -270,12 +300,13 @@ Future<void> f1<
 // `X & X1?`, but the relevant question is then: which future type does
 // `X1?` derive?
 Future<void> f2<
-    X,
-    X1 extends Future<Never>,
-    X2 extends FutureOr<Object>,
-    X3 extends Future<Never>?,
-    X4 extends Y,
-    Y extends Future<Symbol>>(X x) async {
+  X,
+  X1 extends Future<Never>,
+  X2 extends FutureOr<Object>,
+  X3 extends Future<Never>?,
+  X4 extends Y,
+  Y extends Future<Symbol>
+>(X x) async {
   if (x is X1) {
     // 4.1, `X1` derives `Future<Never>`.
     (await x).expectStaticType<Exactly<Never?>>();
@@ -320,16 +351,24 @@ Future<void> f2<
 
 // Test non-promoted types that involve class type parameters.
 class C1<
-    X1a extends Future<int>,
-    X1b extends SubFuture,
-    X1c extends ExtensionFuture,
-    X1d extends ExtensionSubFuture,
-    X2 extends FutureOr<Object>,
-    X3 extends Future<Never>?,
-    X4 extends Y,
-    Y extends Future<Symbol>> {
+  X1a extends Future<int>,
+  X1b extends SubFuture,
+  X1c extends ExtensionFuture,
+  X1d extends ExtensionSubFuture,
+  X2 extends FutureOr<Object>,
+  X3 extends Future<Never>?,
+  X4 extends Y,
+  Y extends Future<Symbol>
+> {
   Future<void> f1(
-      X1a x1a, X1b x1b, X1c x1c, X1d x1d, X2 x2, X3 x3, X4 x4) async {
+    X1a x1a,
+    X1b x1b,
+    X1c x1c,
+    X1d x1d,
+    X2 x2,
+    X3 x3,
+    X4 x4,
+  ) async {
     // 4.1, `X1a` derives `Future<int>`.
     (await x1a).expectStaticType<Exactly<int>>();
 
@@ -393,8 +432,14 @@ class C1<
 // type of `x` is of the form `X & B`, which calls for the future type
 // that `B` derives (if any). So the type of `x` may be `X & X1?`, but
 // the relevant question is then: which future type does `X1?` derive?
-class C2<X, X1 extends Future<Never>, X2 extends FutureOr<Object>,
-    X3 extends Future<Never>?, X4 extends Y, Y extends Future<Symbol>> {
+class C2<
+  X,
+  X1 extends Future<Never>,
+  X2 extends FutureOr<Object>,
+  X3 extends Future<Never>?,
+  X4 extends Y,
+  Y extends Future<Symbol>
+> {
   Future<void> f2(X x) async {
     if (x is X1) {
       // 4.1, `X1` derives `Future<Never>`.

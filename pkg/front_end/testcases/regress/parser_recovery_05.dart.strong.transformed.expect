@@ -1,0 +1,59 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:7:11: Error: Expected an identifier, but got '<'.
+// Try inserting an identifier before '<'.
+//     final <int> f = [42];
+//           ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:7:11: Error: This couldn't be parsed.
+//     final <int> f = [42];
+//           ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:13: Error: Undefined name 'a'.
+//     var y = a<int, void>?.c = 42;
+//             ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:20: Error: Expected an identifier, but got 'void'.
+// Try inserting an identifier before 'void'.
+//     var y = a<int, void>?.c = 42;
+//                    ^^^^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:18: Error: Expected ';' after this.
+//     var y = a<int, void>?.c = 42;
+//                  ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:24: Error: Expected an identifier, but got '>'.
+// Try inserting an identifier before '>'.
+//     var y = a<int, void>?.c = 42;
+//                        ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:24: Error: Expected ';' after this.
+//     var y = a<int, void>?.c = 42;
+//                        ^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:25: Error: Expected an identifier, but got '?.'.
+// Try inserting an identifier before '?.'.
+//     var y = a<int, void>?.c = 42;
+//                         ^^
+//
+// pkg/front_end/testcases/regress/parser_recovery_05.dart:12:29: Error: Can't assign to this.
+//     var y = a<int, void>?.c = 42;
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        final invalid-type f = core::_GrowableList::_literal1<core::int>(42);
+      }
+    }
+  }
+}
+static method bar() → dynamic {}

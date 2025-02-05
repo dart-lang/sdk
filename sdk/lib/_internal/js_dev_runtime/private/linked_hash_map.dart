@@ -73,8 +73,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
       V value = JS('', '#[#]', entries, i + 1);
       if (key == null) {
         key = JS('', 'null');
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, keyMap);
       }
       JS('', '#.set(#, #)', map, key, value);
@@ -97,8 +102,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   bool containsKey(Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -124,22 +134,32 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     other.forEach((K key, V value) {
       if (key == null) {
         key = JS('', 'null');
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.set(#, #)', _map, key, value);
     });
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3fffffff;
+      _modifications = (_modifications + 1) & _smiMask;
     }
   }
 
   V? operator [](Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -157,60 +177,87 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   void operator []=(K key, V value) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       key = putLinkedMapKey(key, _keyMap);
     }
     var map = _map;
     int length = JS('', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3fffffff;
+      _modifications = (_modifications + 1) & _smiMask;
     }
+  }
+
+  V _putIfAbsentKeyMap(K key, V ifAbsent(), Object map) {
+    // Key has non-trivial equality.
+    var keyMap = _keyMap;
+    var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
+    var buckets = JS('', '#.get(#)', keyMap, hash);
+    if (buckets != null) {
+      for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
+        var k = JS('', '#[#]', buckets, i);
+        if (k == key) return JS('', '#.get(#)', map, k);
+      }
+    }
+    var modifications = _modifications;
+    V value = ifAbsent();
+    if (modifications != _modifications) {
+      key = putLinkedMapKey(key, keyMap);
+    } else if (buckets != null) {
+      JS('', '#.push(#)', buckets, key);
+    } else {
+      JS('', '#.set(#, [#])', keyMap, hash, key);
+    }
+    if (JS<bool>('!', '# === void 0', value)) value = JS<V>('', '#', null);
+    JS('', '#.set(#, #)', map, key, value);
+    _modifications = (_modifications + 1) & _smiMask;
+    return value;
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     var map = _map;
     if (key == null) {
-      key = JS('', 'null');
       if (JS<bool>('!', '#.has(null)', map)) return JS('', '#.get(null)', map);
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
-      @notNull
-      K k = key;
-      var hash = JS<int>('!', '# & 0x3fffffff', k.hashCode);
-      var buckets = JS('', '#.get(#)', _keyMap, hash);
-      if (buckets == null) {
-        JS('', '#.set(#, [#])', _keyMap, hash, key);
-      } else {
-        for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
-          k = JS('', '#[#]', buckets, i);
-          if (k == key) return JS('', '#.get(#)', map, k);
-        }
-        JS('', '#.push(#)', buckets, key);
-      }
+      key = JS('', 'null');
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
+      return _putIfAbsentKeyMap(key, ifAbsent, map);
     } else if (JS<bool>('!', '#.has(#)', map, key)) {
       return JS('', '#.get(#)', map, key);
     }
     V value = ifAbsent();
-    if (value == null) {
-      value = JS('', 'null');
-    }
+    if (JS<bool>('!', '# === void 0', value)) value = JS<V>('', '#', null);
     JS('', '#.set(#, #)', map, key, value);
-    _modifications = (_modifications + 1) & 0x3fffffff;
+    _modifications = (_modifications + 1) & _smiMask;
     return value;
   }
 
   V? remove(Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return null; // not found
-      for (int i = 0, n = JS('!', '#.length', buckets);;) {
+      for (int i = 0, n = JS('!', '#.length', buckets); ;) {
         K k = JS('', '#[#]', buckets, i);
         if (k == key) {
           key = k;
@@ -227,7 +274,7 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     var map = _map;
     V value = JS('', '#.get(#)', map, key);
     if (JS<bool>('!', '#.delete(#)', map, key)) {
-      _modifications = (_modifications + 1) & 0x3fffffff;
+      _modifications = (_modifications + 1) & _smiMask;
     }
     // coerce undefined to null.
     return JS<bool>('!', '# === void 0', value) ? null : value;
@@ -238,7 +285,7 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
-      _modifications = (_modifications + 1) & 0x3fffffff;
+      _modifications = (_modifications + 1) & _smiMask;
     }
   }
 }
@@ -275,3 +322,5 @@ base class ImmutableMap<K, V> extends LinkedMap<K, V> {
   static Error _unsupported() =>
       UnsupportedError("Cannot modify unmodifiable map");
 }
+
+const _smiMask = 0x3fff_ffff;

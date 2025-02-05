@@ -2028,6 +2028,7 @@ TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
 void TimelineEventFileRecorderBase::Drain() {
   MonitorLocker ml(&monitor_);
   thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+  ml.Notify();
   for (;;) {
     if (head_ == nullptr) {
       if (shutting_down_) {
@@ -2080,6 +2081,16 @@ void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
   ml.Notify();
 }
 
+void TimelineEventFileRecorderBase::StartUp(const char* name) {
+  OSThread::Start(name, TimelineEventFileRecorderBaseStart,
+                  reinterpret_cast<uword>(this));
+
+  MonitorLocker ml(&monitor_);
+  while (thread_id_ == OSThread::kInvalidThreadJoinId) {
+    ml.Wait();
+  }
+}
+
 // Must be called in derived class destructors.
 // See |~TimelineEventFileRecorderBase()| for an explanation.
 void TimelineEventFileRecorderBase::ShutDown() {
@@ -2100,9 +2111,7 @@ TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
   // missing ending bracket in this form in case we don't cleanly end the
   // trace.
   Write("[\n");
-  OSThread::Start("TimelineEventFileRecorder",
-                  TimelineEventFileRecorderBaseStart,
-                  reinterpret_cast<uword>(this));
+  StartUp("TimelineEventFileRecorder");
 }
 
 TimelineEventFileRecorder::~TimelineEventFileRecorder() {
@@ -2151,9 +2160,7 @@ TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
   WritePacket(&packet);
   packet.Reset();
 
-  OSThread::Start("TimelineEventPerfettoFileRecorder",
-                  TimelineEventFileRecorderBaseStart,
-                  reinterpret_cast<uword>(this));
+  StartUp("TimelineEventPerfettoFileRecorder");
 }
 
 TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {

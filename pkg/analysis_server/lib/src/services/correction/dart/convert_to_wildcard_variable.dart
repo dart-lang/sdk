@@ -30,6 +30,12 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (!wildcardVariablesEnabled) return;
 
     var node = this.node;
+
+    if (node is FormalParameter) {
+      await computeFormalParameterConversion(builder, node);
+      return;
+    }
+
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
@@ -41,21 +47,27 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     List<AstNode>? references;
     var root = node.thisOrAncestorOfType<Block>();
     if (root != null) {
-      references = findLocalElementReferences3(root, element);
+      references = findLocalElementReferences(root, element);
     }
     if (references == null) return;
 
     // Only assigned variable patterns can be safely converted to wildcards.
     if (references.any((r) => r is! AssignedVariablePattern)) return;
 
-    var sourceRanges = {
-      range.token(nameToken),
-      ...references.map(range.node),
-    };
+    var sourceRanges = {range.token(nameToken), ...references.map(range.node)};
     await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addSimpleReplacement(sourceRange, '_');
       }
+    });
+  }
+
+  Future<void> computeFormalParameterConversion(
+    ChangeBuilder builder,
+    FormalParameter node,
+  ) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(node.name!), '_');
     });
   }
 }

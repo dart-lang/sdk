@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 exhaustiveNonNullableTypeVariable<T extends Object>(int? o) => switch (o) {
       int() as T => 0,
@@ -41,7 +42,7 @@ main() {
   Expect.throws(() => exhaustiveNonNullableTypeVariable(null));
 
   Expect.equals(0, exhaustiveNonNullableType(42));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(() => exhaustiveNonNullableType(null));
   } else {
     Expect.equals(0, exhaustiveNonNullableType(null));
@@ -52,7 +53,7 @@ main() {
 
   Expect.equals(0, exhaustiveNonNullableFutureOr1(42));
   Expect.equals(0, exhaustiveNonNullableFutureOr1(Future<int>.value(42)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(() => exhaustiveNonNullableFutureOr1(null));
   } else {
     Expect.equals(0, exhaustiveNonNullableFutureOr1(null));
@@ -60,7 +61,7 @@ main() {
 
   Expect.equals(0, exhaustiveNonNullableFutureOr2(42));
   Expect.equals(0, exhaustiveNonNullableFutureOr2(Future<int>.value(42)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(
         () => exhaustiveNonNullableFutureOr2(Future<int?>.value(null)));
     Expect.throws(() => exhaustiveNonNullableFutureOr2(null));
@@ -72,7 +73,7 @@ main() {
   Expect.equals(0, exhaustiveNonNullableFutureOrTypeVariable1<Object>(42));
   Expect.equals(0,
       exhaustiveNonNullableFutureOrTypeVariable1<int>(Future<int>.value(42)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(
         () => exhaustiveNonNullableFutureOrTypeVariable1<Object>(null));
   } else {
@@ -84,7 +85,7 @@ main() {
       0,
       exhaustiveNonNullableFutureOrTypeVariable2<Object>(
           Future<int>.value(42)));
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throws(() => exhaustiveNonNullableFutureOrTypeVariable2<int>(
         Future<int?>.value(null)));
     Expect.throws(

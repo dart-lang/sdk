@@ -10,7 +10,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 Future<int> runServer(int port, int connections, bool clean) {

@@ -14,16 +14,21 @@ class ResultConverter {
   static final server.ResponseDecoder decoder = server.ResponseDecoder(null);
 
   server.AnalysisErrorFixes convertAnalysisErrorFixes(
-      plugin.AnalysisErrorFixes fixes) {
-    var changes = fixes.fixes
-        .map((plugin.PrioritizedSourceChange change) =>
-            convertPrioritizedSourceChange(change))
-        .toList();
+    plugin.AnalysisErrorFixes fixes,
+  ) {
+    var changes =
+        fixes.fixes
+            .map(
+              (plugin.PrioritizedSourceChange change) =>
+                  convertPrioritizedSourceChange(change),
+            )
+            .toList();
     return server.AnalysisErrorFixes(fixes.error, fixes: changes);
   }
 
   server.AnalysisNavigationParams convertAnalysisNavigationParams(
-      plugin.AnalysisNavigationParams params) {
+    plugin.AnalysisNavigationParams params,
+  ) {
     return server.AnalysisNavigationParams.fromJson(
       decoder,
       '',
@@ -35,7 +40,9 @@ class ResultConverter {
   }
 
   server.EditGetRefactoringResult convertEditGetRefactoringResult(
-      RefactoringKind kind, plugin.EditGetRefactoringResult result) {
+    RefactoringKind kind,
+    plugin.EditGetRefactoringResult result,
+  ) {
     return server.EditGetRefactoringResult.fromJson(
       server.ResponseDecoder(kind),
       '',
@@ -47,7 +54,8 @@ class ResultConverter {
   }
 
   SourceChange convertPrioritizedSourceChange(
-      plugin.PrioritizedSourceChange change) {
+    plugin.PrioritizedSourceChange change,
+  ) {
     return change.change;
   }
 }

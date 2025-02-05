@@ -1629,9 +1629,9 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
     seen(startToken);
-    doPrint('handleStringJuxtaposition(' '$startToken, ' '$literalCount)');
+    doPrint('handleAdjacentStringLiterals(' '$startToken, ' '$literalCount)');
   }
 
   @override

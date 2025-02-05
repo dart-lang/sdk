@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -57,17 +56,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null) return;
     var rightType = rightOperand.staticType;
     if (rightType == null) return;
+    if (_comparable(leftType, rightType)) return;
 
-    if (_nonComparable(leftType, rightType)) {
-      rule.reportLintForToken(
-        node.operator,
-        errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
-        arguments: [
-          rightType.getDisplayString(),
-          leftType.getDisplayString(),
-        ],
-      );
-    }
+    rule.reportLintForToken(
+      node.operator,
+      errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
+      arguments: [
+        rightType.getDisplayString(),
+        leftType.getDisplayString(),
+      ],
+    );
   }
 
   @override
@@ -77,34 +75,33 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.operator.isEqualityTest) return;
     var operandType = node.operand.staticType;
     if (operandType == null) return;
-    if (_nonComparable(valueType, operandType)) {
-      rule.reportLint(
-        node,
-        errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
-        arguments: [
-          operandType.getDisplayString(),
-          valueType.getDisplayString(),
-        ],
-      );
-    }
+    if (_comparable(valueType, operandType)) return;
+
+    rule.reportLint(
+      node,
+      errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      arguments: [
+        operandType.getDisplayString(),
+        valueType.getDisplayString(),
+      ],
+    );
   }
 
-  bool _nonComparable(DartType leftType, DartType rightType) =>
-      typesAreUnrelated(typeSystem, leftType, rightType) &&
-      !(leftType.isFixnumIntX && rightType.isCoreInt);
+  /// Whether [leftType] and [rightType] are comparable.
+  bool _comparable(DartType leftType, DartType rightType) =>
+      (leftType.isFixnumIntX && rightType.isDartCoreInt) ||
+      !typesAreUnrelated(typeSystem, leftType, rightType);
 }
 
-extension on DartType? {
-  bool get isCoreInt => this != null && this!.isDartCoreInt;
-
+extension on DartType {
   bool get isFixnumIntX {
     var self = this;
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
     if (self is! InterfaceType) return false;
-    var element = self.element;
-    if (element.name != 'Int32' && element.name != 'Int64') return false;
-    var uri = element.library.source.uri;
+    var element = self.element3;
+    if (element.name3 != 'Int32' && element.name3 != 'Int64') return false;
+    var uri = element.library2.uri;
     if (!uri.isScheme('package')) return false;
     return uri.pathSegments.firstOrNull == 'fixnum';
   }

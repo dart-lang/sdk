@@ -105,12 +105,12 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
     return super.{self::M1::_#M1#_f4};
   mixin-super-stub set _#M1#_f4(core::int? value) → void
     return super.{self::M1::_#M1#_f4} = value;
+  mixin-super-stub get _f4() → core::int?
+    return super.{self::M1::_f4};
   mixin-super-stub get _#M1#_f4#isSet() → core::bool
     return super.{self::M1::_#M1#_f4#isSet};
   mixin-super-stub set _#M1#_f4#isSet(core::bool value) → void
     return super.{self::M1::_#M1#_f4#isSet} = value;
-  mixin-super-stub get _f4() → core::int?
-    return super.{self::M1::_f4};
 }
 class E extends self::_E&B&M1 implements self::D {
   constructor •(core::int? i) → self::E

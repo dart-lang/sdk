@@ -14,8 +14,9 @@ class ConvertPartOfToUri extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_PART_OF_TO_URI;
@@ -36,8 +37,10 @@ class ConvertPartOfToUri extends ResolvedCorrectionProducer {
     var libraryFragment = unitResult.libraryElement2.firstFragment;
     var libraryPath = libraryFragment.source.fullName;
     var partPath = unitResult.path;
-    var relativePath =
-        pathContext.relative(libraryPath, from: pathContext.dirname(partPath));
+    var relativePath = pathContext.relative(
+      libraryPath,
+      from: pathContext.dirname(partPath),
+    );
     var uri = pathContext.toUri(relativePath).toString();
     var replacementRange = range.node(libraryName);
     await builder.addDartFileEdit(file, (builder) {

@@ -17,10 +17,9 @@ class DtdProcess {
 
   DtdProcess._(this._proc) {
     // Read output for the URI.
-    _proc.stdout
-        .transform(utf8.decoder)
-        .transform(LineSplitter())
-        .listen((data) {
+    _proc.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
+      data,
+    ) {
       var json = jsonDecode(data);
       if (json case {'tooling_daemon_details': {'uri': String uri}}) {
         _dtdUriCompleter.complete(Uri.parse(uri));
@@ -34,13 +33,15 @@ class DtdProcess {
         .listen((data) => print('<== DTD stderr: $data'));
 
     // Handle unexpected termination.
-    unawaited(_proc.exitCode.then((code) {
-      if (!_dtdUriCompleter.isCompleted) {
-        _dtdUriCompleter.completeError(
-          'DTD process exited with $code without providing a URI',
-        );
-      }
-    }));
+    unawaited(
+      _proc.exitCode.then((code) {
+        if (!_dtdUriCompleter.isCompleted) {
+          _dtdUriCompleter.completeError(
+            'DTD process exited with $code without providing a URI',
+          );
+        }
+      }),
+    );
   }
 
   /// A [Future] that completes with the URI once provided by DTD.
@@ -56,14 +57,11 @@ class DtdProcess {
 
   /// Spawns and returns a new DTD process.
   static Future<DtdProcess> start() async {
-    var proc = await Process.start(
-      Platform.resolvedExecutable,
-      [
-        'tooling-daemon',
-        '--machine',
-        '--fakeAnalytics',
-      ],
-    );
+    var proc = await Process.start(Platform.resolvedExecutable, [
+      'tooling-daemon',
+      '--machine',
+      '--fakeAnalytics',
+    ]);
 
     return DtdProcess._(proc);
   }

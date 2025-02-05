@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -63,8 +63,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.omitImplicitChecks]);
+      memorySourceFiles: {'main.dart': code},
+      options: [Flags.omitImplicitChecks],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -79,17 +80,25 @@ main() {
         }
       }
       Expect.setEquals(
-          expectedStubs,
-          actualStubs,
-          "Unexpected stubs for $element:\n "
-          "Expected: $expectedStubs\n Actual: $actualStubs");
+        expectedStubs,
+        actualStubs,
+        "Unexpected stubs for $element:\n "
+        "Expected: $expectedStubs\n Actual: $actualStubs",
+      );
     }
 
-    checkStubs(closedWorld.commonElements.getInstantiationClass(1),
-        [r'call$1', r'$signature']);
-    checkStubs(closedWorld.commonElements.getInstantiationClass(2),
-        [r'call$2', r'$signature']);
-    checkStubs(closedWorld.commonElements.getInstantiationClass(3),
-        [r'call$3', r'call$4', r'$signature']);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(1), [
+      r'call$1',
+      r'$signature',
+    ]);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(2), [
+      r'call$2',
+      r'$signature',
+    ]);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(3), [
+      r'call$3',
+      r'call$4',
+      r'$signature',
+    ]);
   });
 }

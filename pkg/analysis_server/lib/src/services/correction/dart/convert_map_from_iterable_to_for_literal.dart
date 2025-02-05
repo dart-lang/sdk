@@ -41,7 +41,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     }
     var element = creation.constructorName.element;
     if (element == null ||
-        element.name != 'fromIterable' ||
+        element.name3 != 'fromIterable' ||
         element.enclosingElement2 != typeProvider.mapElement2) {
       return;
     }
@@ -58,7 +58,8 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
 
     var keyClosure =
         _extractClosure('key', secondArg) ?? _extractClosure('key', thirdArg);
-    var valueClosure = _extractClosure('value', thirdArg) ??
+    var valueClosure =
+        _extractClosure('value', thirdArg) ??
         _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;
@@ -103,7 +104,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
           // referenced in the value expression.
           loopVariableName = computeUnusedVariableName();
           keyExpressionText = keyFinder.replaceName(
-              keyExpressionText, loopVariableName, keyClosure.body.offset);
+            keyExpressionText,
+            loopVariableName,
+            keyClosure.body.offset,
+          );
         } else {
           loopVariableName = keyParameterName;
         }
@@ -114,7 +118,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
           // referenced in the key expression.
           loopVariableName = computeUnusedVariableName();
           valueExpressionText = valueFinder.replaceName(
-              valueExpressionText, loopVariableName, valueClosure.body.offset);
+            valueExpressionText,
+            loopVariableName,
+            valueClosure.body.offset,
+          );
         } else {
           loopVariableName = valueParameterName;
         }
@@ -124,9 +131,15 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
         // either the key or value expressions.
         loopVariableName = computeUnusedVariableName();
         keyExpressionText = keyFinder.replaceName(
-            keyExpressionText, loopVariableName, keyClosure.body.offset);
+          keyExpressionText,
+          loopVariableName,
+          keyClosure.body.offset,
+        );
         valueExpressionText = valueFinder.replaceName(
-            valueExpressionText, loopVariableName, valueClosure.body.offset);
+          valueExpressionText,
+          loopVariableName,
+          valueClosure.body.offset,
+        );
       }
     }
     //
@@ -227,9 +240,10 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// the [newName]. The [offset] is the offset of the first character of the
   /// [source] relative to the start of the file.
   String replaceName(String source, String newName, int offset) {
-    var oldLength = parameter.name.length;
     for (var i = references.length - 1; i >= 0; i--) {
       var oldOffset = references[i].offset - offset;
+      // SAFETY: we cannot reference a formal parameter without a name.
+      var oldLength = parameter.name3!.length;
       source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
     }
     return source;

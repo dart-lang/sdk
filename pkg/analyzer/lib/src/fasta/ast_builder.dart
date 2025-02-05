@@ -35,18 +35,20 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
+        boolFromToken,
         ConstructorReferenceContext,
         DeclarationHeaderKind,
         DeclarationKind,
+        doubleFromToken,
         FormalParameterKind,
         IdentifierContext,
+        intFromToken,
         MemberKind,
         optional,
         Parser;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
-import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -56,6 +58,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -162,12 +165,14 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
+  final LibraryLanguageVersion _languageVersion;
+
   final LineInfo _lineInfo;
 
   Token? _enclosingDeclarationAugmentToken;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
-      this._featureSet, this._lineInfo,
+      this._featureSet, this._languageVersion, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableAugmentations = _featureSet.isEnabled(Feature.augmentations),
@@ -1410,6 +1415,7 @@ class AstBuilder extends StackListener {
       endToken: endToken,
       featureSet: _featureSet,
       lineInfo: _lineInfo,
+      languageVersion: _languageVersion,
       invalidNodes: invalidNodes,
     );
     push(unit);
@@ -3634,6 +3640,14 @@ class AstBuilder extends StackListener {
               var awaitToken = variable.name;
               if (awaitToken.type == Keyword.AWAIT ||
                   awaitToken.type == TokenType.IDENTIFIER) {
+                // We see `x.foo await;`, where `;` is synthetic.
+                // It is followed by `y.bar()`.
+                // Insert a new `;`, and (unfortunately) drop `await;`.
+                type.name2.setNext(semicolon.next!);
+                var semicolon2 = parser.rewriter.insertSyntheticToken(
+                  type.name2,
+                  TokenType.SEMICOLON,
+                );
                 push(
                   ExpressionStatementImpl(
                     expression: PrefixedIdentifierImpl(
@@ -3641,10 +3655,9 @@ class AstBuilder extends StackListener {
                       period: importPrefix.period,
                       identifier: SimpleIdentifierImpl(type.name2),
                     ),
-                    semicolon: semicolon,
+                    semicolon: semicolon2,
                   ),
                 );
-                parser.rewriter.insertToken(semicolon, awaitToken);
                 return;
               }
             }
@@ -3707,6 +3720,14 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+  }
+
+  @override
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
+
+    var strings = popTypedList2<StringLiteralImpl>(literalCount);
+    push(AdjacentStringsImpl(strings: strings));
   }
 
   @override
@@ -4700,8 +4721,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleLiteralBool(Token token) {
-    bool value = identical(token.stringValue, "true");
-    assert(value || identical(token.stringValue, "false"));
+    bool value = boolFromToken(token);
     debugEvent("LiteralBool");
 
     push(
@@ -4737,14 +4757,10 @@ class AstBuilder extends StackListener {
       );
     }
 
-    // Only copy `source` if we find a separator ('_'). Most int literals
-    // will not have any separator, and so a quick scan will show we do not
-    // need to produce a new String.
-    var source = stripSeparators(token.lexeme);
     push(
       DoubleLiteralImpl(
         literal: token,
-        value: double.parse(source),
+        value: doubleFromToken(token, hasSeparators: true),
       ),
     );
   }
@@ -4758,7 +4774,7 @@ class AstBuilder extends StackListener {
     push(
       IntegerLiteralImpl(
         literal: token,
-        value: int.tryParse(token.lexeme),
+        value: intFromToken(token, hasSeparators: false),
       ),
     );
   }
@@ -4776,11 +4792,10 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var source = stripSeparators(token.lexeme);
     push(
       IntegerLiteralImpl(
         literal: token,
-        value: int.tryParse(source),
+        value: intFromToken(token, hasSeparators: true),
       ),
     );
   }
@@ -5536,14 +5551,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
-
-    var strings = popTypedList2<StringLiteralImpl>(literalCount);
-    push(AdjacentStringsImpl(strings: strings));
-  }
-
-  @override
   void handleStringPart(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("StringPart");
@@ -5788,6 +5795,7 @@ class AstBuilder extends StackListener {
       errorReporter.errorReporter,
       uri,
       _featureSet,
+      _languageVersion,
       _lineInfo,
       dartdoc,
     ).build();

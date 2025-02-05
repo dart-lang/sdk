@@ -48,8 +48,8 @@ Future<void> selfInvokes() async {
     Platform.isWindows
         ? 'ole32.dll'
         : (Platform.isMacOS || Platform.isIOS)
-            ? 'libc.dylib'
-            : 'libc.so.6', // lib.so contains plain text with GROUP( ... ).
+        ? 'libc.dylib'
+        : 'libc.so.6', // lib.so contains plain text with GROUP( ... ).
   ];
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: selfSourceUri.toString(),
@@ -81,13 +81,13 @@ Future<void> runTests() async {
 @Native<Pointer Function(IntPtr)>()
 external Pointer malloc(int size);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void free(Pointer pointer);
 
 @Native<Pointer Function(Size)>()
 external Pointer CoTaskMemAlloc(int cb);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void CoTaskMemFree(Pointer pv);
 
 void testProcessOrSystem() {
@@ -105,22 +105,26 @@ void testProcessOrSystem() {
 void testProcessOrSystemViaAddressOf() {
   if (Platform.isWindows) {
     final memAlloc =
-        Native.addressOf<NativeFunction<Pointer Function(Size)>>(CoTaskMemAlloc)
-            .asFunction<Pointer Function(int)>();
+        Native.addressOf<NativeFunction<Pointer Function(Size)>>(
+          CoTaskMemAlloc,
+        ).asFunction<Pointer Function(int)>();
     final memFree =
-        Native.addressOf<NativeFunction<Void Function(Pointer)>>(CoTaskMemFree)
-            .asFunction<void Function(Pointer)>();
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(
+          CoTaskMemFree,
+        ).asFunction<void Function(Pointer)>();
 
     final pointer = memAlloc(8);
     Expect.notEquals(nullptr, pointer);
     memFree(pointer);
   } else {
     final mallocViaAddrOf =
-        Native.addressOf<NativeFunction<Pointer Function(IntPtr)>>(malloc)
-            .asFunction<Pointer Function(int)>();
+        Native.addressOf<NativeFunction<Pointer Function(IntPtr)>>(
+          malloc,
+        ).asFunction<Pointer Function(int)>();
     final freeViaAddrOf =
-        Native.addressOf<NativeFunction<Void Function(Pointer)>>(free)
-            .asFunction<void Function(Pointer)>();
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(
+          free,
+        ).asFunction<void Function(Pointer)>();
 
     final pointer = mallocViaAddrOf(8);
     Expect.notEquals(nullptr, pointer);

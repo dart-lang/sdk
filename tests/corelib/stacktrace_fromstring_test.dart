@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "dart:async";
 
 void main() {
@@ -27,19 +27,27 @@ void main() {
   asyncStart();
   var c = new Completer();
   c.completeError(0, stringTrace);
-  c.future.then<Null>((v) {
-    throw "Unexpected value: $v";
-  }, onError: (e, s) {
-    Expect.equals(string, s.toString());
-  }).then((_) {
-    var c = new StreamController();
-    c.stream.listen((v) {
-      throw "Unexpected value: $v";
-    }, onError: (e, s) {
-      Expect.equals(string, s.toString());
-      asyncEnd();
-    });
-    c.addError(0, stringTrace);
-    c.close();
-  });
+  c.future
+      .then<Null>(
+        (v) {
+          throw "Unexpected value: $v";
+        },
+        onError: (e, s) {
+          Expect.equals(string, s.toString());
+        },
+      )
+      .then((_) {
+        var c = new StreamController();
+        c.stream.listen(
+          (v) {
+            throw "Unexpected value: $v";
+          },
+          onError: (e, s) {
+            Expect.equals(string, s.toString());
+            asyncEnd();
+          },
+        );
+        c.addError(0, stringTrace);
+        c.close();
+      });
 }

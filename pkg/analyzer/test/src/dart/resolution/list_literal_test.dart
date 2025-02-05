@@ -31,7 +31,7 @@ ListLiteral
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -58,12 +58,12 @@ ListLiteral
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: double
         element: dart:core::<fragment>::@class::double
-        element2: dart:core::<fragment>::@class::double#element
+        element2: dart:core::@class::double
         type: double
     rightBracket: >
   leftBracket: [

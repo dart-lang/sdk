@@ -9,19 +9,22 @@ import 'reference_extensions.dart';
 /// Information about optional parameters and their default values for a member
 /// or a set of members belonging to the same override group.
 class ParameterInfo {
-  final Member? member;
-  int typeParamCount = 0;
+  final int typeParamCount;
 
   /// Default values of optional positonal parameters. `positional[i] == null`
   /// means positional parameter `i` is not optional.
-  late final List<Constant?> positional;
+  final List<Constant?> positional;
 
   /// Default values of named parameters. Similar to [positional], `null` means
   /// the the parameter is not optional.
-  late final Map<String, Constant?> named;
+  final Map<String, Constant?> named;
 
-  // Do not access these until the info is complete.
+  final bool takesContextOrReceiver;
+
+  // Dispatch table builder updates `ParameterInfo`s, do not access late fields
+  // until the `ParameterInfo` is complete.
   late final List<String> names = named.keys.toList()..sort();
+
   late final Map<String, int> nameIndex = {
     for (int i = 0; i < names.length; i++) names[i]: positional.length + i
   };
@@ -45,47 +48,66 @@ class ParameterInfo {
     }
   }
 
-  ParameterInfo.fromMember(Reference target) : member = target.asMember {
-    FunctionNode? function = member!.function;
+  ParameterInfo._(this.takesContextOrReceiver, this.typeParamCount,
+      this.positional, this.named);
+
+  factory ParameterInfo.fromMember(Reference target) {
+    final member = target.asMember; // Constructor, Field, or Procedure
+    final function = member.function;
+
     if (target.isTearOffReference) {
-      positional = [];
-      named = {};
-    } else if (function != null) {
-      typeParamCount = (member is Constructor
-              ? member!.enclosingClass!.typeParameters
+      // Tear-off getters don't take type parameters even if the member is
+      // generic.
+      return ParameterInfo._(true, 0, [], {});
+    }
+
+    if (function != null) {
+      // Constructor, or static or instance method.
+      assert(member is Constructor || member is Procedure);
+
+      final typeParamCount = (member is Constructor
+              ? member.enclosingClass.typeParameters
               : function.typeParameters)
           .length;
-      positional = List.generate(function.positionalParameters.length, (i) {
+
+      final positional =
+          List.generate(function.positionalParameters.length, (i) {
         // A required parameter has no default value.
         if (i < function.requiredParameterCount) return null;
         return _defaultValue(function.positionalParameters[i]);
       });
-      named = {
+
+      final named = {
         for (VariableDeclaration param in function.namedParameters)
           param.name!: _defaultValue(param)
       };
-    } else {
-      // A setter parameter has no default value.
-      positional = [if (target.isSetter) null];
-      named = {};
+
+      return ParameterInfo._(
+          member.isInstanceMember, typeParamCount, positional, named);
     }
+
+    // A setter or getter. A setter parameter has no default value.
+    assert(member is Field);
+    return ParameterInfo._(true, 0, [if (target.isSetter) null], {});
   }
 
-  ParameterInfo.fromLocalFunction(FunctionNode function) : member = null {
-    typeParamCount = function.typeParameters.length;
-    positional = List.generate(function.positionalParameters.length, (i) {
+  factory ParameterInfo.fromLocalFunction(FunctionNode function) {
+    final typeParamCount = function.typeParameters.length;
+    final positional = List.generate(function.positionalParameters.length, (i) {
       // A required parameter has no default value.
       if (i < function.requiredParameterCount) return null;
       return _defaultValue(function.positionalParameters[i]);
     });
-    named = {
+    final named = {
       for (VariableDeclaration param in function.namedParameters)
         param.name!: _defaultValue(param)
     };
+    return ParameterInfo._(true, typeParamCount, positional, named);
   }
 
   void merge(ParameterInfo other) {
     assert(typeParamCount == other.typeParamCount);
+    assert(takesContextOrReceiver == other.takesContextOrReceiver);
     for (int i = 0; i < other.positional.length; i++) {
       if (i >= positional.length) {
         positional.add(other.positional[i]);

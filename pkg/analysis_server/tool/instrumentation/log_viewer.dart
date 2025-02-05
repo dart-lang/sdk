@@ -44,18 +44,26 @@ class Driver {
   ArgParser createParser() {
     var parser = ArgParser();
     parser.addFlag(helpFlag, help: 'Print this help text', negatable: false);
-    parser.addOption(portOption,
-        help: 'The port number on which the server should listen for requests',
-        defaultsTo: defaultPortNumber.toString());
-    parser.addOption(pageLengthOption,
-        help: 'The number of log entries to show per page',
-        defaultsTo: defaultPageLength.toString());
+    parser.addOption(
+      portOption,
+      help: 'The port number on which the server should listen for requests',
+      defaultsTo: defaultPortNumber.toString(),
+    );
+    parser.addOption(
+      pageLengthOption,
+      help: 'The number of log entries to show per page',
+      defaultsTo: defaultPageLength.toString(),
+    );
     return parser;
   }
 
   /// Print usage information.
-  void printUsage(ArgParser parser,
-      {String? error, Object? exception, StackTrace? stackTrace}) {
+  void printUsage(
+    ArgParser parser, {
+    String? error,
+    Object? exception,
+    StackTrace? stackTrace,
+  }) {
     if (error != null) {
       print(error);
       print('');
@@ -65,7 +73,8 @@ class Driver {
     print('Usage:');
     print('');
     print(
-        'The "logFile" is the file containing the content of the log that is being viewed');
+      'The "logFile" is the file containing the content of the log that is being viewed',
+    );
     print('');
     print('Options:');
     print(parser.usage);
@@ -113,10 +122,12 @@ class Driver {
     try {
       lines = logFile.readAsLinesSync();
     } catch (exception, stackTrace) {
-      printUsage(parser,
-          error: 'Could not read file "$fileName":',
-          exception: exception,
-          stackTrace: stackTrace);
+      printUsage(
+        parser,
+        error: 'Could not read file "$fileName":',
+        exception: exception,
+        stackTrace: stackTrace,
+      );
       return;
     }
     print('Log file contains ${lines.length} lines');

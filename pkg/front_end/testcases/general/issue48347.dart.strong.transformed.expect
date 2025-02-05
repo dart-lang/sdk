@@ -11,7 +11,7 @@ static method test(asy::StreamController<void> _eventStreamController) → dynam
     synthesized asy::_StreamIterator<void>? :for-iterator = new asy::_StreamIterator::•<void>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        final void _ = :for-iterator.{asy::_StreamIterator::current}{void};
+        final wildcard void _#wc0#var = :for-iterator.{asy::_StreamIterator::current}{void};
         {}
       }
     finally

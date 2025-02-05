@@ -13,8 +13,8 @@ import "dart:io";
 import "dart:math";
 import "dart:typed_data";
 
-import "package:async_helper/async_helper.dart";
 import "package:crypto/crypto.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

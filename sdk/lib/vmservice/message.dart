@@ -49,10 +49,10 @@ class Message {
 
   // http://www.jsonrpc.org/specification#request_object
   Message._fromJsonRpcRequest(Client? client, Map<String, dynamic> map)
-      : client = client,
-        type = MessageType.Request,
-        serial = map['id'],
-        method = (map['method'] as String?) {
+    : client = client,
+      type = MessageType.Request,
+      serial = map['id'],
+      method = (map['method'] as String?) {
     if (map['params'] != null) {
       params.addAll(map['params'] as Map<String, dynamic>);
     }
@@ -60,10 +60,10 @@ class Message {
 
   // http://www.jsonrpc.org/specification#notification
   Message._fromJsonRpcNotification(Client? client, Map<String, dynamic> map)
-      : client = client,
-        type = MessageType.Notification,
-        method = (map['method'] as String?),
-        serial = null {
+    : client = client,
+      type = MessageType.Notification,
+      method = (map['method'] as String?),
+      serial = null {
     if (map['params'] != null) {
       params.addAll(map['params'] as Map<String, dynamic>);
     }
@@ -71,19 +71,19 @@ class Message {
 
   // http://www.jsonrpc.org/specification#response_object
   Message._fromJsonRpcResult(Client? client, Map<String, dynamic> map)
-      : client = client,
-        type = MessageType.Response,
-        serial = map['id'],
-        method = null {
+    : client = client,
+      type = MessageType.Response,
+      serial = map['id'],
+      method = null {
     result.addAll(map['result'] as Map<String, dynamic>);
   }
 
   // http://www.jsonrpc.org/specification#response_object
   Message._fromJsonRpcError(Client? client, Map<String, dynamic> map)
-      : client = client,
-        type = MessageType.Response,
-        serial = map['id'],
-        method = null {
+    : client = client,
+      type = MessageType.Response,
+      serial = map['id'],
+      method = null {
     error.addAll(map['error'] as Map<String, dynamic>);
   }
 
@@ -95,22 +95,22 @@ class Message {
   }
 
   Message.forMethod(String method)
-      : client = null,
-        method = method,
-        type = MessageType.Request,
-        serial = '';
+    : client = null,
+      method = method,
+      type = MessageType.Request,
+      serial = '';
 
   Message.fromUri(this.client, Uri uri)
-      : type = MessageType.Request,
-        serial = '',
-        method = _methodNameFromUri(uri) {
+    : type = MessageType.Request,
+      serial = '',
+      method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
   Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
-      : type = MessageType.Request,
-        serial = '',
-        method = _methodNameFromUri(uri) {
+    : type = MessageType.Request,
+      serial = '',
+      method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;
   }
@@ -156,7 +156,9 @@ class Message {
   }
 
   Future<Response> sendToIsolate(
-      List<RawReceivePort> ports, SendPort sendPort) {
+    List<RawReceivePort> ports,
+    SendPort sendPort,
+  ) {
     final receivePort = RawReceivePort(null, 'Isolate Message');
     // Keep track of receive port associated with the request so we can close
     // it if isolate exits before sending a response.
@@ -167,20 +169,24 @@ class Message {
       _setResponseFromPort(value);
     };
     final keys = _makeAllString(params.keys.toList(growable: false));
-    final values =
-        _makeAllString(params.values.cast<Object?>().toList(growable: false));
-    final request = List<Object?>.filled(6, null)
-      ..[0] = 0 // Make room for OOB message type.
-      ..[1] = receivePort.sendPort
-      ..[2] = serial
-      ..[3] = method
-      ..[4] = keys
-      ..[5] = values;
+    final values = _makeAllString(
+      params.values.cast<Object?>().toList(growable: false),
+    );
+    final request =
+        List<Object?>.filled(6, null)
+          ..[0] =
+              0 // Make room for OOB message type.
+          ..[1] = receivePort.sendPort
+          ..[2] = serial
+          ..[3] = method
+          ..[4] = keys
+          ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
       ports.remove(receivePort);
-      _completer.complete(Response.internalError(
-          'could not send message [${serial}] to isolate'));
+      _completer.complete(
+        Response.internalError('could not send message [${serial}] to isolate'),
+      );
     }
     return _completer.future;
   }
@@ -218,13 +224,15 @@ class Message {
       keys = _makeAllString(keys);
       values = _makeAllString(values);
     }
-    final request = List<dynamic>.filled(6, null)
-      ..[0] = 0 // Make room for OOB message type.
-      ..[1] = receivePort.sendPort
-      ..[2] = serial
-      ..[3] = method
-      ..[4] = keys
-      ..[5] = values;
+    final request =
+        List<dynamic>.filled(6, null)
+          ..[0] =
+              0 // Make room for OOB message type.
+          ..[1] = receivePort.sendPort
+          ..[2] = serial
+          ..[3] = method
+          ..[4] = keys
+          ..[5] = values;
 
     if (_methodNeedsObjectParameters(method!)) {
       // We use a different method invocation path here.

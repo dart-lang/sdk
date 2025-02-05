@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,9 +24,10 @@ class RenameImportTest extends RenameRefactoringTest {
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'The new name must be different than the current name.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -77,7 +79,7 @@ void f() {
   }
 
   Future<void>
-      test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
+  test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
 void f() {
@@ -100,7 +102,7 @@ void f() {
   }
 
   Future<void>
-      test_createChange_add_interpolationExpression_noCurlyBrackets() async {
+  test_createChange_add_interpolationExpression_noCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
 void f() {
@@ -236,6 +238,8 @@ void f() {
 
   void _createRefactoring(String search) {
     var directive = findNode.import(search);
-    createRenameRefactoringForElement(directive.element);
+    createRenameRefactoringForElement2(
+      directive.libraryImport as LibraryImportElementImpl,
+    );
   }
 }

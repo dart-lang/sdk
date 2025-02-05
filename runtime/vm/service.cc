@@ -27,6 +27,7 @@
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/kernel.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -2815,18 +2816,20 @@ static void Invoke(Thread* thread, JSONStream* js) {
   const Array& args =
       Array::Handle(zone, Array::MakeFixedLength(growable_args));
   const Array& arg_names = Object::empty_array();
+  // For debugging calls via vm-service, don't require entry point annotations.
+  const bool check_is_entrypoint = false;
 
   if (receiver.IsLibrary()) {
     const Library& lib = Library::Cast(receiver);
-    const Object& result =
-        Object::Handle(zone, lib.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, lib.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }
   if (receiver.IsClass()) {
     const Class& cls = Class::Cast(receiver);
-    const Object& result =
-        Object::Handle(zone, cls.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, cls.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }
@@ -2834,8 +2837,8 @@ static void Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.ptr();
-    const Object& result =
-        Object::Handle(zone, instance.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, instance.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }
@@ -2991,8 +2994,35 @@ static void CollectStringifiedType(Thread* thread,
     return;
   }
   if (type.IsRecordType()) {
-    // _Record class is not useful for the CFE. We use null instead.
+    const auto& record = RecordType::Cast(type);
+    const intptr_t num_fields = record.NumFields();
+    const Array& field_names =
+        Array::Handle(zone, record.GetFieldNames(thread));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
+
+    // Records have their own encoding:
+    // "record" <nullability> <num fields> <num positional fields>
+    // <field names> <encoding of field>
+    instance ^= String::New("record");
     output.Add(instance);
+    instance ^= Smi::New((intptr_t)type.nullability());
+    output.Add(instance);
+    instance ^= Smi::New(num_fields);
+    output.Add(instance);
+    instance ^= Smi::New(num_positional_fields);
+    output.Add(instance);
+
+    String& name = String::Handle(zone);
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      name ^= field_names.At(i);
+      output.Add(name);
+    }
+
+    AbstractType& field_type = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = num_fields; i < n; ++i) {
+      field_type = record.FieldTypeAt(i);
+      CollectStringifiedType(thread, zone, field_type, output);
+    }
     return;
   }
   if (type.IsDynamicType()) {
@@ -3246,6 +3276,11 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     report.AddProperty("scriptUri", script_uri.ToCString());
   }
   report.AddProperty("isStatic", isStatic);
+
+  const Library& root_lib =
+      Library::Handle(isolate->group()->object_store()->root_library());
+  report.AddProperty("rootLibraryUri",
+                     String::Handle(root_lib.url()).ToCString());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3919,6 +3954,88 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
+static const MethodParameter* const reload_kernel_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new BoolParameter("force", false),
+    new BoolParameter("pause", false),
+    new StringParameter("kernelFilePath", false),
+    nullptr,
+};
+
+/// Replaces the program running in the isolate group containing the isolate
+/// specified by |js->LookupParam("isolateId")| with the program defined by
+/// |js->LookupParam("kernelFilePath")|.
+static void ReloadKernel(Thread* thread, JSONStream* js) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+#else
+  if (!js->HasParam("kernelFilePath")) {
+    PrintMissingParamError(js, "kernelFilePath");
+    return;
+  }
+
+  IsolateGroup* isolate_group = thread->isolate_group();
+  if (isolate_group->library_tag_handler() == nullptr) {
+    js->PrintError(kFeatureDisabled,
+                   "A library tag handler must be installed.");
+    return;
+  }
+  Isolate* isolate = thread->isolate();
+  if ((isolate->sticky_error() != Error::null()) ||
+      (Thread::Current()->sticky_error() != Error::null())) {
+    js->PrintError(kIsolateReloadBarred,
+                   "The specified isolate cannot reload from a kernel file "
+                   "anymore because it encountered an unhandled exception. "
+                   "Restart the isolate.");
+    return;
+  }
+  if (isolate_group->IsReloading()) {
+    js->PrintError(kIsolateIsReloading,
+                   "The specified isolate group is already in the process of "
+                   "being reloaded.");
+    return;
+  }
+  if (!isolate_group->CanReload()) {
+    js->PrintError(kFeatureDisabled,
+                   "The specified isolate group cannot reload from a kernel "
+                   "file right now.");
+    return;
+  }
+
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileReadCallback file_read = Dart::file_read_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_read == nullptr) ||
+      (file_close == nullptr)) {
+    js->PrintError(kInternalError,
+                   "An internal error occurred when trying to read the "
+                   "specified kernel file.");
+    return;
+  }
+
+  void* file = (*file_open)(js->LookupParam("kernelFilePath"), /*write=*/false);
+  if (file == nullptr) {
+    js->PrintError(kIsolateReloadBarred,
+                   "The specified kernel file could not be read. Please ensure "
+                   "that the provided 'kernelFilePath' argument is correct.");
+    return;
+  }
+
+  uint8_t* kernel_buffer = nullptr;
+  intptr_t kernel_buffer_size = -1;
+  (*file_read)(&kernel_buffer, &kernel_buffer_size, file);
+
+  const bool force_reload =
+      BoolParameter::Parse(js->LookupParam("force"), false);
+  isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
+                              kernel_buffer_size);
+
+  free(kernel_buffer);
+
+  Service::CheckForPause(isolate, js);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
 static const MethodParameter* const reload_sources_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
@@ -3975,10 +4092,15 @@ void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
 }
 
 ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
+  const bool should_pause_post_current_service_request =
+      isolate->should_pause_post_service_request();
+  if (should_pause_post_current_service_request) {
+    // Ensure that we do not accidentally pause post the next service request.
+    isolate->set_should_pause_post_service_request(false);
+  }
   // Don't pause twice.
   if (!isolate->IsPaused()) {
-    if (isolate->should_pause_post_service_request()) {
-      isolate->set_should_pause_post_service_request(false);
+    if (should_pause_post_current_service_request) {
       if (!error.IsNull()) {
         // Before pausing, restore the sticky error. The debugger will return it
         // from PausePostRequest.
@@ -4015,10 +4137,18 @@ static void AddBreakpointCommon(Thread* thread,
       Error::Handle(thread->isolate()->debugger()->SetBreakpointAtLineCol(
           script_uri, line, col, &bpt));
   if (!error.IsNull()) {
-    js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at line %s. Error occurred "
-                   "when resolving breakpoint location: %s.",
-                   js->method(), line_param, error.ToErrorCString());
+    if (col_param != nullptr) {
+      js->PrintError(
+          kCannotAddBreakpoint,
+          "%s: Cannot add breakpoint at %s:%s. Error occurred when resolving "
+          "breakpoint location: %s.",
+          js->method(), line_param, col_param, error.ToErrorCString());
+    } else {
+      js->PrintError(kCannotAddBreakpoint,
+                     "%s: Cannot add breakpoint at line %s. Error occurred "
+                     "when resolving breakpoint location: %s.",
+                     js->method(), line_param, error.ToErrorCString());
+    }
     return;
   }
   ASSERT(bpt != nullptr);
@@ -6160,6 +6290,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
+  { "_reloadKernel", ReloadKernel,
+    reload_kernel_params },
   { "reloadSources", ReloadSources,
     reload_sources_params },
   { "_reloadSources", ReloadSources,

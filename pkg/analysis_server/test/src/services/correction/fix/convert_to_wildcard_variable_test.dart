@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -11,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToWildcardVariableTest);
+    defineReflectiveTests(ConvertUnnecessaryUnderscoresTest);
   });
 }
 
@@ -90,7 +92,7 @@ void f() {
   }
 
   Future<void>
-      test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
+  test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
     await resolveTestCode('''
 void f() {
   var x = 0;
@@ -114,5 +116,38 @@ void f() {
 ''');
     // Converting the simple identifier `x` would result in invalid code.
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class ConvertUnnecessaryUnderscoresTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
+
+  @override
+  String get lintCode => LintNames.unnecessary_underscores;
+
+  Future<void> test_functionParameter() async {
+    await resolveTestCode(r'''
+void f(int __) {}
+''');
+    await assertHasFix(r'''
+void f(int _) {}
+''');
+  }
+
+  Future<void> test_localVariable() async {
+    await resolveTestCode(r'''
+void f() {
+  // ignore: UNUSED_LOCAL_VARIABLE
+  int __ = 0;
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  // ignore: UNUSED_LOCAL_VARIABLE
+  int _ = 0;
+}
+''');
   }
 }

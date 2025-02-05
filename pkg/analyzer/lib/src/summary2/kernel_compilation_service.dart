@@ -40,7 +40,7 @@ class KernelCompilationService {
 
     var socketCompleter = Completer<io.Socket>();
     var serverSocket = await _loopbackServerSocket();
-    serverSocket.listen((socket) async {
+    serverSocket.listen((socket) {
       socketCompleter.complete(socket);
       socket.setOption(io.SocketOption.tcpNoDelay, true);
     });
@@ -133,7 +133,7 @@ class KernelCompilationService {
 
   /// Stops the running `frontend_server` process.
   static Future<void> dispose() {
-    return _lock.synchronized(() async {
+    return _lock.synchronized(() {
       var instance = _currentInstance;
       if (instance != null) {
         _currentInstance = null;

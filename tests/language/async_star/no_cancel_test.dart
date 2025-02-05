@@ -3,19 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 var events = [];
 
 ticker() async* {
   var sc;
   var sentTickCount = 0;
-  sc = new StreamController(onListen: () {
-    events.add("listen");
-  }, onCancel: () {
-    events.add("cancel");
-  });
+  sc = new StreamController(
+    onListen: () {
+      events.add("listen");
+    },
+    onCancel: () {
+      events.add("cancel");
+    },
+  );
 
   try {
     var counter = 0;

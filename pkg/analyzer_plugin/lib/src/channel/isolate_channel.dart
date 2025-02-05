@@ -102,6 +102,10 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
     if (_subscription != null) {
       throw StateError('Only one listener is allowed per channel');
     }
+    // Note: The documentation for [ReceivePort.listen] indicates that
+    // `onError` and `cancelOnError` are always ignored, "since a ReceivePort
+    // will never receive an error." It is potentially confusing to pass them
+    // here, as if they had an effect. Consider removing.
     _subscription = _receivePort.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: false);
   }

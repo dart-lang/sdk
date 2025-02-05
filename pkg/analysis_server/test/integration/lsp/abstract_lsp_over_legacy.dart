@@ -19,8 +19,11 @@ abstract class AbstractLspOverLegacyTest
   /// A stream of LSP [NotificationMessage]s from the server.
   @override
   Stream<NotificationMessage> get notificationsFromServer =>
-      onLspNotification.map((params) => NotificationMessage.fromJson(
-          params.lspNotification as Map<String, Object?>));
+      onLspNotification.map(
+        (params) => NotificationMessage.fromJson(
+          params.lspNotification as Map<String, Object?>,
+        ),
+      );
 
   /// The URI for the macro-generated content for [testFileUri].
   Uri get testFileMacroUri =>

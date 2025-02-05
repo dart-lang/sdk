@@ -35,7 +35,11 @@ class _Utf8Decoder {
   }
 
   String _convertGeneral(
-      List<int> codeUnits, int start, int? maybeEnd, bool single) {
+    List<int> codeUnits,
+    int start,
+    int? maybeEnd,
+    bool single,
+  ) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
     if (start == end) return "";
 
@@ -43,13 +47,19 @@ class _Utf8Decoder {
     final int errorOffset;
     if (JS<bool>('bool', '# instanceof Uint8Array', codeUnits)) {
       // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
-      NativeUint8List casted =
-          JS<NativeUint8List>('NativeUint8List', '#', codeUnits);
+      NativeUint8List casted = JS<NativeUint8List>(
+        'NativeUint8List',
+        '#',
+        codeUnits,
+      );
       bytes = casted;
       errorOffset = 0;
     } else {
       bytes = JS<NativeUint8List>(
-          'NativeUint8List', '#', _makeNativeUint8List(codeUnits, start, end));
+        'NativeUint8List',
+        '#',
+        _makeNativeUint8List(codeUnits, start, end),
+      );
       errorOffset = start;
       end -= start;
       start = 0;
@@ -63,8 +73,12 @@ class _Utf8Decoder {
     // conversions by rolling the state machine forward to a character boundary
     // and seeking to valid UTF-8 character boundary at the end.
     if (single && end - start >= _shortInputThreshold) {
-      String? result =
-          _convertInterceptedUint8List(allowMalformed, bytes, start, end);
+      String? result = _convertInterceptedUint8List(
+        allowMalformed,
+        bytes,
+        start,
+        end,
+      );
       if (result != null) {
         if (!allowMalformed) return result;
         // In principle, TextDecoder should have provided the correct result
@@ -105,7 +119,10 @@ class _Utf8Decoder {
   }
 
   static Uint8List _makeNativeUint8List(
-      List<int> codeUnits, int start, int end) {
+    List<int> codeUnits,
+    int start,
+    int end,
+  ) {
     final int length = end - start;
     // Re-use a dedicated buffer to avoid allocating small buffers as this is
     // unreasonably expensive on some JavaScript engines.
@@ -128,7 +145,11 @@ class _Utf8Decoder {
   static final Uint8List _reusableBuffer = Uint8List(_reusableBufferSize);
 
   static String? _convertInterceptedUint8List(
-      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
+    bool allowMalformed,
+    NativeUint8List codeUnits,
+    int start,
+    int end,
+  ) {
     final decoder = allowMalformed ? _decoderNonfatal : _decoder;
     if (decoder == null) return null;
     if (0 == start && end == codeUnits.length) {
@@ -136,9 +157,15 @@ class _Utf8Decoder {
     }
 
     return _useTextDecoder(
-        decoder,
-        JS<NativeUint8List>(
-            'NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
+      decoder,
+      JS<NativeUint8List>(
+        'NativeUint8List',
+        '#.subarray(#, #)',
+        codeUnits,
+        start,
+        end,
+      ),
+    );
   }
 
   static String? _useTextDecoder(decoder, NativeUint8List codeUnits) {

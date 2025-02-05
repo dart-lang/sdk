@@ -35,7 +35,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: isFinal a@24
@@ -112,7 +112,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -143,7 +143,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@22
@@ -181,7 +181,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@22
@@ -194,7 +194,7 @@ PatternVariableDeclarationStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -317,7 +317,7 @@ PatternVariableDeclarationStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>(T)
       argumentList: ArgumentList
         leftParenthesis: (

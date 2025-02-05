@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: analyzer_use_new_elements
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -19,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
@@ -281,6 +286,21 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
+/// A single reference to a [LibraryFragment], e.g. import of a library, which
+/// is a reference to the first library fragment.
+class LibraryFragmentSearchMatch {
+  /// The library fragment that contains this reference.
+  final LibraryFragment libraryFragment;
+
+  /// The source range of the URI.
+  final SourceRange range;
+
+  LibraryFragmentSearchMatch({
+    required this.libraryFragment,
+    required this.range,
+  });
+}
+
 /// Search support for an [AnalysisDriver].
 class Search {
   final AnalysisDriver _driver;
@@ -319,17 +339,24 @@ class Search {
     return elements;
   }
 
+  /// Returns class or mixin members with the given [name].
+  Future<List<Element2>> classMembers2(
+      String name, SearchedFiles searchedFiles) async {
+    var elements = await classMembers(name, searchedFiles);
+    return elements.map((e) => e.asElement2!).toList();
+  }
+
   /// Return the prefixes used to reference the [element] in any of the
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
   Future<Set<String>> prefixesUsedInLibrary(
-      LibraryElementImpl library, Element element) async {
+      LibraryElementImpl library, Element2 element) async {
     var prefixes = <String>{};
     for (var unit in library.units) {
       var index = await _driver.getIndex(unit.source.fullName);
       if (index != null) {
         _IndexRequest request = _IndexRequest(index);
-        int elementId = request.findElementId(element);
+        int elementId = request.findElementId(element.asElement!);
         var prefixList = index.elementImportPrefixes[elementId].split(',');
         prefixes.addAll(prefixList);
       }
@@ -393,13 +420,51 @@ class Search {
     return const <SearchResult>[];
   }
 
+  /// Returns references to the [element].
+  Future<List<SearchResult>> references2(
+      Element2? element, SearchedFiles searchedFiles) {
+    return references(element.asElement, searchedFiles);
+  }
+
+  Future<List<LibraryFragmentSearchMatch>> referencesLibraryFragment(
+    LibraryFragment libraryFragment,
+  ) async {
+    var legacyElement = libraryFragment as CompilationUnitElementImpl;
+    var legacyResults = await _searchReferences_CompilationUnit(legacyElement);
+
+    return legacyResults.map((match) {
+      return LibraryFragmentSearchMatch(
+        libraryFragment: match.enclosingFragment as LibraryFragment,
+        range: SourceRange(match.offset, match.length),
+      );
+    }).toList();
+  }
+
+  Future<List<LibraryFragmentSearchMatch>> referencesLibraryImport(
+    LibraryImport import,
+    SearchedFiles searchedFiles,
+  ) async {
+    var legacyElement = import as LibraryImportElementImpl;
+    var legacyResults = await _searchReferences_Import(
+      legacyElement,
+      searchedFiles,
+    );
+
+    return legacyResults.map((match) {
+      return LibraryFragmentSearchMatch(
+        libraryFragment: match.enclosingFragment.libraryFragment!,
+        range: SourceRange(match.offset, match.length),
+      );
+    }).toList();
+  }
+
   /// Returns subtypes of the given [type].
   ///
   /// The [searchedFiles] are consulted to see if a file is "owned" by this
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      InterfaceElement? type, SearchedFiles searchedFiles,
+      InterfaceElement2? type, SearchedFiles searchedFiles,
       {List<FileState>? filesToCheck}) async {
     if (type == null) {
       return const <SearchResult>[];
@@ -407,7 +472,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(
       results,
-      type,
+      type.asElement,
       searchedFiles,
       const {
         IndexRelationKind.IS_EXTENDED_BY:
@@ -425,12 +490,13 @@ class Search {
 
   /// Return direct [SubtypeResult]s for either the [type] or [subtype].
   Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
-      {InterfaceElement? type, SubtypeResult? subtype}) async {
+      {InterfaceElement2? type, SubtypeResult? subtype}) async {
+    var type1 = type?.asElement;
     String name;
     String id;
-    if (type != null) {
-      name = type.name;
-      id = '${type.librarySource.uri};${type.source.uri};$name';
+    if (type1 != null) {
+      name = type1.name;
+      id = '${type1.librarySource.uri};${type1.source.uri};$name';
     } else {
       name = subtype!.name;
       id = subtype.id;
@@ -485,6 +551,12 @@ class Search {
       }
     }
     return elements;
+  }
+
+  /// Returns top-level elements with names matching the given [regExp].
+  Future<List<Element2>> topLevelElements2(RegExp regExp) async {
+    var results = await topLevelElements(regExp);
+    return results.map((e) => e.asElement2!).toList();
   }
 
   /// Returns unresolved references to the given [name].
@@ -920,7 +992,7 @@ class SearchResult {
   /// The deep most element that contains this result.
   final Element enclosingElement;
 
-  /// The kind of the [element] usage.
+  /// The kind of the element usage.
   final SearchResultKind kind;
 
   /// The offset relative to the beginning of the containing file.
@@ -929,14 +1001,23 @@ class SearchResult {
   /// The length of the usage in the containing file context.
   final int length;
 
-  /// Is `true` if a field or a method is using with a qualifier.
+  /// Whether a field or a method is using with a qualifier.
   final bool isResolved;
 
-  /// Is `true` if the result is a resolved reference to [element].
+  /// Whether the result is a resolved reference to the element.
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
       this.isResolved, this.isQualified);
+
+  Element2 get enclosingElement2 => enclosingElement.asElement2!;
+
+  Fragment get enclosingFragment {
+    if (enclosingElement case CompilationUnitElementImpl libraryFragment) {
+      return libraryFragment;
+    }
+    return enclosingElement as Fragment;
+  }
 
   @override
   String toString() {
@@ -1209,7 +1290,7 @@ class _FindCompilationUnitDeclarations {
   }
 }
 
-/// Searches through [files] for declarations.
+/// Searches through [fileEntries] for declarations.
 class _FindDeclarations {
   final List<MapEntry<Uri, AnalysisDriver>> fileEntries;
   final WorkspaceSymbols result;
@@ -1252,7 +1333,7 @@ class _FindDeclarations {
           (performance) async {
             var result = await analysisDriver.getLibraryByUri('$uri');
             if (result is LibraryElementResultImpl) {
-              return result.element as LibraryElementImpl;
+              return result.element;
             }
             return null;
           },

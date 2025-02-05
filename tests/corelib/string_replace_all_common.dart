@@ -81,7 +81,9 @@ testReplaceAllMapped(Pattern Function(Pattern) wrap) {
 
   // Test when matches are adjacent
   Expect.equals(
-      "[from][from]", "fromfrom".replaceAllMapped(wrap("from"), mark));
+    "[from][from]",
+    "fromfrom".replaceAllMapped(wrap("from"), mark),
+  );
 
   // Test replacing by the empty string.
   Expect.equals("bcbde", "abcabdae".replaceAllMapped(wrap("a"), (m) => ""));
@@ -98,47 +100,69 @@ testSplitMapJoin(Pattern Function(Pattern) wrap) {
   String mark(Match m) => "[${m[0]}]";
   String rest(String s) => "<${s}>";
 
-  Expect.equals("<a>[b]<ca>[b]<dae>",
-      "abcabdae".splitMapJoin(wrap("b"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<a>[b]<ca>[b]<dae>",
+    "abcabdae".splitMapJoin(wrap("b"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test with the replaced string at the beginning.
-  Expect.equals("<>[a]<bc>[a]<bd>[a]<e>",
-      "abcabdae".splitMapJoin(wrap("a"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<>[a]<bc>[a]<bd>[a]<e>",
+    "abcabdae".splitMapJoin(wrap("a"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test with the replaced string at the end.
-  Expect.equals("<abcabda>[e]<>",
-      "abcabdae".splitMapJoin(wrap("e"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<abcabda>[e]<>",
+    "abcabdae".splitMapJoin(wrap("e"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test when there are no occurrence of the string to replace.
-  Expect.equals("<abcabdae>",
-      "abcabdae".splitMapJoin(wrap("f"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<abcabdae>",
+    "abcabdae".splitMapJoin(wrap("f"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test when the string to change is the empty string.
   Expect.equals(
-      "<>", "".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest));
+    "<>",
+    "".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test when the string to change is a substring of the string to
   // replace.
-  Expect.equals("<fro>",
-      "fro".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<fro>",
+    "fro".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test when matches are adjacent
-  Expect.equals("<>[from]<>[from]<>",
-      "fromfrom".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<>[from]<>[from]<>",
+    "fromfrom".splitMapJoin(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test changing the empty string.
   Expect.equals(
-      "<>[]<>", "".splitMapJoin(wrap(""), onMatch: mark, onNonMatch: rest));
+    "<>[]<>",
+    "".splitMapJoin(wrap(""), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test replacing the empty string.
-  Expect.equals("<>[]<A>[]<B>[]<C>[]<>",
-      "ABC".splitMapJoin(wrap(""), onMatch: mark, onNonMatch: rest));
+  Expect.equals(
+    "<>[]<A>[]<B>[]<C>[]<>",
+    "ABC".splitMapJoin(wrap(""), onMatch: mark, onNonMatch: rest),
+  );
 
   // Test with only onMatch.
   Expect.equals(
-      "[a]bc[a]bd[a]e", "abcabdae".splitMapJoin(wrap("a"), onMatch: mark));
+    "[a]bc[a]bd[a]e",
+    "abcabdae".splitMapJoin(wrap("a"), onMatch: mark),
+  );
 
   // Test with only onNonMatch
   Expect.equals(
-      "<>a<bc>a<bd>a<e>", "abcabdae".splitMapJoin(wrap("a"), onNonMatch: rest));
+    "<>a<bc>a<bd>a<e>",
+    "abcabdae".splitMapJoin(wrap("a"), onNonMatch: rest),
+  );
 }

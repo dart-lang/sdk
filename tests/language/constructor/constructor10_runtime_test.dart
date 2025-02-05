@@ -13,17 +13,13 @@ class A {
 }
 
 class B extends A {
-
   B() : super(null);
-
 }
 
 // ==========
 
 class Y extends A {
-
   Y() : super(null);
-
 }
 
 class Z extends Y {
@@ -33,9 +29,7 @@ class Z extends Y {
 // ==============
 
 class G extends A {
-
   G() : super(null);
-
 }
 
 class H extends G {}

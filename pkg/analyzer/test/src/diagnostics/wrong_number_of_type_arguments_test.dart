@@ -94,6 +94,56 @@ dynamic<int> v;
     ]);
   }
 
+  test_functionInvocation_tooFew() async {
+    await assertErrorsInCode('''
+void f() {
+  g<int>();
+}
+void g<T, U>() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 14, 5),
+    ]);
+  }
+
+  test_functionInvocation_tooMany() async {
+    await assertErrorsInCode('''
+void f() {
+  g<int, String>();
+}
+void g<T>() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 14, 13),
+    ]);
+  }
+
+  test_functionReference_implicitCallTearoff_tooFew() async {
+    await assertErrorsInCode('''
+f(C c) {
+  c<int>;
+}
+class C {
+  void call<T, U>() {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 12, 5),
+    ]);
+  }
+
+  test_functionReference_implicitCallTearoff_tooMany() async {
+    await assertErrorsInCode('''
+f(C c) {
+  c<int, String>;
+}
+class C {
+  void call<T>() {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 12, 13),
+    ]);
+  }
+
   test_functionReference_tooFew() async {
     await assertErrorsInCode('''
 f() {
@@ -224,6 +274,32 @@ typedef B<T> = A;
 void f() {}
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 13),
+    ]);
+  }
+
+  test_methodInvocation_tooFew() async {
+    await assertErrorsInCode('''
+void f(C c) {
+  c.g<int>();
+}
+class C {
+  void g<T, U>() {}
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 19, 5),
+    ]);
+  }
+
+  test_methodInvocation_tooMany() async {
+    await assertErrorsInCode('''
+void f(C c) {
+  c.g<int, String>();
+}
+class C {
+  void g<T>() {}
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 19, 13),
     ]);
   }
 
@@ -380,11 +456,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A
 ''');
   }
@@ -408,11 +484,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -436,16 +512,16 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<InvalidType>
 ''');
   }

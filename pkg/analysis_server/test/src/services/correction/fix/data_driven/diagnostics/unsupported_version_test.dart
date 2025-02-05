@@ -18,21 +18,23 @@ void main() {
 class UnsupportedVersionTest extends AbstractTransformSetParserTest {
   void test_tooHigh() {
     var version = (TransformSetParser.currentVersion + 1).toString();
-    assertErrors('''
+    assertErrors(
+      '''
 version: $version
 transforms: []
-''', [
-      error(TransformSetErrorCode.unsupportedVersion, 9, version.length),
-    ]);
+''',
+      [error(TransformSetErrorCode.unsupportedVersion, 9, version.length)],
+    );
   }
 
   void test_tooLow() {
     var version = (TransformSetParser.oldestVersion - 1).toString();
-    assertErrors('''
+    assertErrors(
+      '''
 version: $version
 transforms: []
-''', [
-      error(TransformSetErrorCode.unsupportedVersion, 9, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.unsupportedVersion, 9, 1)],
+    );
   }
 }

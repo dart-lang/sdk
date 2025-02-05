@@ -17,7 +17,11 @@ void matchIL$compareUnboxedToConstant(FlowGraph graph) {
     match.block('Graph'),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.EqualityCompare('value', match.any, kind: '==')),
+      if (is32BitConfiguration)
+        'value_32' << match.IntConverter('value', from: 'int64', to: 'int32'),
+      match.Branch(match.EqualityCompare(
+          is32BitConfiguration ? 'value_32' : 'value', match.any,
+          kind: '==')),
     ]),
   ]);
 }
@@ -33,7 +37,11 @@ void matchIL$compareUnboxedToSmi(FlowGraph graph) {
     match.block('Graph'),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.EqualityCompare('value', match.any, kind: '==')),
+      if (is32BitConfiguration)
+        'value_32' << match.IntConverter('value', from: 'int64', to: 'int32'),
+      match.Branch(match.EqualityCompare(
+          is32BitConfiguration ? 'value_32' : 'value', match.any,
+          kind: '==')),
     ]),
   ]);
 }

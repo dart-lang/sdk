@@ -41,9 +41,13 @@ class UseEffectiveIntegerDivision extends ResolvedCorrectionProducer {
               parentOfToIntInvocation.precedence >= binary.precedence) {
             // Wrap the new `~/` binary expression in parentheses if needed.
             builder.addSimpleReplacement(
-                range.startStart(n, binary.leftOperand), '(');
+              range.startStart(n, binary.leftOperand),
+              '(',
+            );
             builder.addSimpleReplacement(
-                range.endEnd(binary.rightOperand, n), ')');
+              range.endEnd(binary.rightOperand, n),
+              ')',
+            );
           } else {
             // Remove everything before and after.
             builder.addDeletion(range.startStart(n, binary.leftOperand));

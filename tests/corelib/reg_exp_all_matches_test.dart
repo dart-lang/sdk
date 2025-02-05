@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 // Dart test program for RegExp.allMatches.
 
@@ -10,7 +11,7 @@ class RegExpAllMatchesTest {
   static testIterator() {
     var matches = new RegExp("foo").allMatches("foo foo");
     Iterator it = matches.iterator;
-    if (hasSoundNullSafety) {
+    if (!unsoundNullSafety) {
       Expect.throws(() => it.current);
     } else {
       Expect.isNull(it.current);
@@ -71,25 +72,40 @@ class RegExpAllMatchesTest {
 
   static testEvery() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.every((Match m) {
-      return m.group(0)!.startsWith("fo");
-    }));
-    Expect.equals(false, matches.every((Match m) {
-      return m.group(0)!.startsWith("foo");
-    }));
+    Expect.equals(
+      true,
+      matches.every((Match m) {
+        return m.group(0)!.startsWith("fo");
+      }),
+    );
+    Expect.equals(
+      false,
+      matches.every((Match m) {
+        return m.group(0)!.startsWith("foo");
+      }),
+    );
   }
 
   static testSome() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.any((Match m) {
-      return m.group(0)!.startsWith("fo");
-    }));
-    Expect.equals(true, matches.any((Match m) {
-      return m.group(0)!.startsWith("foo");
-    }));
-    Expect.equals(false, matches.any((Match m) {
-      return m.group(0)!.startsWith("fooo");
-    }));
+    Expect.equals(
+      true,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("fo");
+      }),
+    );
+    Expect.equals(
+      true,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("foo");
+      }),
+    );
+    Expect.equals(
+      false,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("fooo");
+      }),
+    );
   }
 
   static testIsEmpty() {

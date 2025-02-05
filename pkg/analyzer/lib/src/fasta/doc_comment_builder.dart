@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -112,6 +113,7 @@ final class DocCommentBuilder {
   final ErrorReporter? _errorReporter;
   final Uri _uri;
   final FeatureSet _featureSet;
+  final LibraryLanguageVersion _languageVersion;
   final LineInfo _lineInfo;
   final List<CommentReferenceImpl> _references = [];
   final List<MdCodeBlock> _codeBlocks = [];
@@ -128,6 +130,7 @@ final class DocCommentBuilder {
     this._errorReporter,
     this._uri,
     this._featureSet,
+    this._languageVersion,
     this._lineInfo,
     this._startToken,
   ) : _characterSequence = _CharacterSequence(_startToken);
@@ -156,7 +159,7 @@ final class DocCommentBuilder {
   }
 
   /// Parses a closing tag for a block doc directive, matching it with it's
-  /// opening tag on [_blockDirectiveTagStack], if one can be found.
+  /// opening tag on [_blockDocDirectiveBuilderStack], if one can be found.
   ///
   /// The algorithm is as follows:
   ///
@@ -432,6 +435,7 @@ final class DocCommentBuilder {
       _uri,
       true /* isFullAst */,
       _featureSet,
+      _languageVersion,
       _lineInfo,
     );
     var parser = Parser(docImportListener);
@@ -455,9 +459,7 @@ final class DocCommentBuilder {
 
   /// Parses a fenced code block, starting with [content].
   ///
-  /// The backticks of the opening delimiter start at [index].
-  ///
-  /// When this method returns, [characterSequence] is postioned at the closing
+  /// When this method returns, [_characterSequence] is postioned at the closing
   /// delimiter line (`.next()` must be called to move to the next line).
   bool _parseFencedCodeBlock({
     required String content,
@@ -811,8 +813,8 @@ final class DocCommentBuilder {
 }
 
 class DocImportStringScanner extends StringScanner {
-  /// A list of offset pairs; each contains an offset in [source], and the
-  /// associated offset in the source text from which [source] is derived.
+  /// A list of offset pairs; each contains an offset in the source, and the
+  /// associated offset in the source text from which the source is derived.
   ///
   /// Always contains a mapping from 0 to the offset of the `@docImport` text.
   ///
@@ -847,7 +849,7 @@ class DocImportStringScanner extends StringScanner {
   @override
 
   /// The position of the start of the next token _in the unit_, not in
-  /// [source].
+  /// the source.
   ///
   /// This is used for constructing [Token] objects, for a Token's offset.
   int get tokenStart => _toOffsetInUnit(super.tokenStart);
@@ -926,7 +928,7 @@ abstract class _CharacterSequence {
         : _CharacterSequenceFromMultiLineComment(token);
   }
 
-  /// The current offset in the compilation unit, which is found in [_token].
+  /// The current offset in the compilation unit.
   int get _offset;
 
   /// Moves the current position of the doc comment to the next line.
