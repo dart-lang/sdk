@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
@@ -550,6 +551,7 @@ final _builtInNonLintMultiProducers = {
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
     DataDriven.new,
