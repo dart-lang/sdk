@@ -13,6 +13,8 @@ import 'dart:typed_data' show Uint16List, Uint32List;
 
 import 'internal_utils.dart' show isIdentifierChar;
 
+import 'keyword_state.dart' show KeywordState, KeywordStateHelper;
+
 import 'token.dart'
     show
         BeginToken,
@@ -46,8 +48,6 @@ import 'error_token.dart'
         UnsupportedOperator,
         UnterminatedString,
         UnterminatedToken;
-
-import 'keyword_state.dart' show KeywordState;
 
 import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
@@ -1711,23 +1711,18 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
-    KeywordState? state = KeywordState.KEYWORD_STATE;
+    KeywordState state = KeywordStateHelper.table;
     int start = scanOffset;
     // We allow a leading capital character.
-    if ($A <= next && next <= $Z) {
-      state = state.nextCapital(next);
-      next = advance();
-    } else if ($a <= next && next <= $z) {
-      // Do the first next call outside the loop to avoid an additional test
-      // and to make the loop monomorphic.
+    if ($A <= next && next <= $z) {
       state = state.next(next);
       next = advance();
     }
-    while (state != null && $a <= next && next <= $z) {
+    while (!state.isNull && $a <= next && next <= $z) {
       state = state.next(next);
       next = advance();
     }
-    if (state == null) {
+    if (state.isNull) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     Keyword? keyword = state.keyword;

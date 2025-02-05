@@ -1714,6 +1714,7 @@ spend
 spent
 spin
 splitting
+spots
 spuriously
 sq
 sra
