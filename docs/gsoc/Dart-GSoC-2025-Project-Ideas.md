@@ -12,6 +12,8 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
  * Daco Harkes ([dcharkes](https://github.com/dcharkes)) `dacoharkes@google.com`
  * Hossein Yousefi ([HosseinYousefi](https://github.com/HosseinYousefi)) `yousefi@google.com`
  * Liam Appelbe ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
+ * Huan Lin  ([hellohuanlin](https://github.com/hellohuanlin)) `huanlin@google.com`
+ * Justin McCandless ([justinmc](https://github.com/justinmc)) `jmccandless@google.com`
  * More to come!
 
 ## Project Application Process
@@ -57,28 +59,6 @@ Try to generalize these test cases to avoid repetitive code, see the existing [T
 **Expected outcome**: PRs that land in `package:webcrypto` and increases our confidence in correctness cross-platforms.
 
 
-## **Idea:** Pigeon generating FFI/JNI code
-
- - **Possible Mentor(s)**:  `yousefi@google.com`
- - **Difficulty**: Hard
- - **Project size**: Large (350 hours)
- - **Skills**: Dart, FFI, Java
-
-**Description**: Modify the existing pigeon tool to use dart:ffi through ffigen, jnigen, and swiftgen instead of method channels.
-
-Pigeon should continue to generate interfaces for all languages which the user would have to implement. However, instead of generating method channels for the methods, it will use direct native interop using jnigen, ffigen, and swiftgen tools.
-
-The generation tools should also be slightly modified to generate pigeon compatible bindings, for example data structures and strings should be deeply serialized to Dart data structures and strings similar to how pigeon generates the binding code.
-
-The new version of pigeon can be used as a drop-in replacement without any major work to update all the plugins already using pigeon to use direct native interop.
-
-**Good Sample Project**:
-* Take the example from pigeon: https://github.com/flutter/packages/tree/main/packages/pigeon/example .
-* Convert one of its platforms to ffigen/jnigen, for example convert Android to use jnigen instead of the default method channels.
-
-**Expected outcome**: A new backend for Pigeon.
-
-
 ## **Idea:** Use an LLM to translate Java/Kotlin tutorial snippets into Dart JNIgen code
 
  - **Possible Mentor(s)**: `dacoharkes@google.com`, `yousefi@google.com`
@@ -115,6 +95,31 @@ Inspired by this issue: https://github.com/dart-lang/native/issues/1240
 * Try generating tests for any old Dart API. Don't try to integrate `package:coverage` yet.
 
 **Expected outcome**: A package on pub.dev for increasing test coverage.
+
+
+## **Idea:** Secure Paste Custom Actions on iOS
+
+ - **Possible Mentor(s)**: `huanlin@google.com`, `jmccandless@google.com`
+ - **Difficulty**: Medium
+ - **Project size**:  Medium (175 hours)
+ - **Skills**: Dart, Objective-C
+
+**Description**: Support custom action items for native edit menu on iOS. It's a pretty impactful project requested by many developers (main issue here: https://github.com/flutter/flutter/issues/103163). This project is one of the key milestones: https://github.com/flutter/flutter/issues/140184.
+
+Project:
+* Prepare: Learn basic git commands; Setup flutter engine dev environment; Read style guide, etc;
+* Design new dart API for custom items in context menu (Related API: https://api.flutter.dev/flutter/widgets/SystemContextMenu-class.html)
+* Design engine <-> framework communication API using method channel
+* Implement both framework part (in Dart) and engine part (in Objective-C)
+* Go through code review process and land the solution
+* The final product should allow developers to add custom items to the iOS native edit menu.
+
+**Good Sample Project**: ...
+
+* Build a sample project in Flutter with a text field that shows custom actions in the context menu. (Hint: use https://docs.flutter.dev/release/breaking-changes/context-menus).
+* Build a sample project in UIKit that shows custom actions in the native edit menu (Hint: use https://developer.apple.com/documentation/uikit/uieditmenuinteraction?language=objc). You can either use ObjC or Swift, but ObjC is preferred.
+
+**Expected outcome**: A PR merged in Flutter
 
 
 ## TODO: More ideas as they come!
