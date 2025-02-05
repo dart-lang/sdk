@@ -284,7 +284,7 @@ class AssignmentExpressionResolver {
         assignedType = DynamicTypeImpl.instance;
       } else if (operatorElement != null) {
         var rightType = rightHandSide.typeOrThrow;
-        assignedType = _typeSystem.refineBinaryExpressionType2(
+        assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
           operator,
           rightType,

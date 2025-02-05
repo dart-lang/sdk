@@ -1842,8 +1842,16 @@ final class BinaryExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? value) {
+    staticElement = value?.asElement;
+  }
+
   @override
   Token get endToken => _rightOperand.endToken;
+
+  set fragment(MethodFragment? value) {
+    staticElement = value as MethodElement;
+  }
 
   @override
   ExpressionImpl get leftOperand => _leftOperand;

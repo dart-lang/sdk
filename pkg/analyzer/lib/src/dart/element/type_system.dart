@@ -1688,23 +1688,10 @@ class TypeSystemImpl implements TypeSystem {
       TokenType operator,
       DartType rightType,
       DartType currentType,
-      MethodElement? operatorElement) {
+      MethodElement2? operatorElement) {
     if (operatorElement == null) return currentType;
     return _refineNumericInvocationTypeNullSafe(
-        leftType, operatorElement, [rightType], currentType);
-  }
-
-  /// Determine the type of a binary expression with the given [operator] whose
-  /// left operand has the type [leftType] and whose right operand has the type
-  /// [rightType], given that resolution has so far produced the [currentType].
-  DartType refineBinaryExpressionType2(
-      DartType leftType,
-      TokenType operator,
-      DartType rightType,
-      DartType currentType,
-      MethodElement2? operatorElement) {
-    return refineBinaryExpressionType(
-        leftType, operator, rightType, currentType, operatorElement?.asElement);
+        leftType, operatorElement.asElement, [rightType], currentType);
   }
 
   /// Determines the context type for the parameters of a method invocation
