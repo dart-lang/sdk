@@ -584,6 +584,7 @@ enumerates
 enuum
 env
 eof
+eol
 epoch
 eq
 equally
@@ -1101,6 +1102,7 @@ mini
 minutes
 misc
 miss
+misses
 mistakes
 misuse
 mixers
@@ -1269,6 +1271,7 @@ payload
 payloads
 pdf
 pedantic
+peeked
 per
 percentages
 perf
@@ -1604,6 +1607,7 @@ scrutinee's
 sdk's
 seconds
 sections
+seemingly
 segment
 selectively
 selectors
@@ -2043,6 +2047,7 @@ usual
 usually
 util
 utilizes
+utilizing
 utils
 uuid
 v
