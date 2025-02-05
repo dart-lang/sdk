@@ -1234,22 +1234,16 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceClassBuilder classBuilder = new SourceClassBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
-            interfaceBuilders: fragment.interfaces,
-            onTypes: null,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: false,
             classDeclaration: new RegularClassDeclaration(fragment));
         fragment.builder = classBuilder;
         fragment.bodyScope.declarationBuilder = classBuilder;
@@ -1263,24 +1257,16 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
-            interfaceBuilders: fragment.interfaces,
-            // TODO(johnniwinther): Add the `on` clause types of a mixin
-            //  declaration here.
-            onTypes: null,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: true,
             classDeclaration: new MixinDeclaration(fragment));
         fragment.builder = mixinBuilder;
         fragment.bodyScope.declarationBuilder = mixinBuilder;
@@ -1297,8 +1283,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             new NamedMixinApplication(fragment, mixins);
 
         String name = fragment.name;
-        int computedStartOffset =
-            fragment.metadata?.first.atOffset ?? fragment.startOffset;
 
         IndexedClass? referencesFromIndexedClass;
         if (indexedLibrary != null) {
@@ -1310,20 +1294,15 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder classBuilder = new SourceClassBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
             name: name,
             typeParameters: fragment.typeParameters,
-            interfaceBuilders: fragment.interfaces,
-            onTypes: null,
             typeParameterScope: typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: [],
             fileUri: fragment.fileUri,
-            startOffset: computedStartOffset,
             nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
             indexedClass: referencesFromIndexedClass,
             mixedInTypeBuilder: mixin,
             classDeclaration: classDeclaration);
@@ -1339,7 +1318,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
-            metadata: fragment.metadata,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,

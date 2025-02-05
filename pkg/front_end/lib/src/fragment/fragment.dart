@@ -62,6 +62,7 @@ import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 
 part 'class.dart';
+part 'class/declaration.dart';
 part 'constructor.dart';
 part 'enum.dart';
 part 'enum_element.dart';

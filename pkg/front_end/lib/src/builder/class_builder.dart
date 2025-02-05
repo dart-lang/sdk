@@ -98,9 +98,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type in the `implements` clause of a class or mixin declaration.
   List<TypeBuilder>? get interfaceBuilders;
 
-  /// The types in the `on` clause of an extension or mixin declaration.
-  List<TypeBuilder>? get onTypes;
-
   @override
   Uri get fileUri;
 
@@ -124,7 +121,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isAnonymousMixinApplication;
 
-  abstract TypeBuilder? mixedInTypeBuilder;
+  TypeBuilder? get mixedInTypeBuilder;
 
   bool get isFutureOr;
 

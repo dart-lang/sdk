@@ -1683,25 +1683,9 @@ severity: $severity
   /// Check that [objectClass] has no supertypes. Recover by removing any
   /// found.
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
-    if (objectClass is SourceClassBuilder &&
-        // Coverage-ignore(suite): Not run.
-        objectClass.libraryBuilder.loader == this) {
+    if (objectClass is SourceClassBuilder) {
       // Coverage-ignore-block(suite): Not run.
-      if (objectClass.supertypeBuilder != null) {
-        objectClass.supertypeBuilder = null;
-        objectClass.addProblem(
-            messageObjectExtends, objectClass.fileOffset, noLength);
-      }
-      if (objectClass.interfaceBuilders != null) {
-        objectClass.addProblem(
-            messageObjectImplements, objectClass.fileOffset, noLength);
-        objectClass.interfaceBuilders = null;
-      }
-      if (objectClass.mixedInTypeBuilder != null) {
-        objectClass.addProblem(
-            messageObjectMixesIn, objectClass.fileOffset, noLength);
-        objectClass.mixedInTypeBuilder = null;
-      }
+      objectClass.checkObjectSupertypes();
     }
   }
 

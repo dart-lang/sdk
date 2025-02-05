@@ -677,12 +677,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     state = SourceLibraryBuilderState.nameSpaceBuilt;
   }
 
-  TypeBuilder? _computeSupertypeBuilderForClass(
-      SourceClassBuilder classBuilder) {
+  void _computeSupertypeBuilderForClass(SourceClassBuilder classBuilder) {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
-    return classBuilder.computeSupertypeBuilder(
+    classBuilder.computeSupertypeBuilder(
         loader: loader,
         problemReporting: this,
         unboundNominalParameters: _unboundNominalParameters,
@@ -760,19 +759,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
       SourceClassBuilder declaration = iterator.current;
-      Class cls = declaration.cls;
-      if (cls != objectClass) {
-        cls.supertype ??= objectClass.asRawSupertype;
-        declaration.supertypeBuilder ??=
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                objectClassBuilder, const NullabilityBuilder.omitted(),
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Unexpected);
-      }
-      if (declaration.isMixinApplication) {
-        cls.mixedInType =
-            declaration.mixedInTypeBuilder!.buildMixedInType(this);
-      }
+      declaration.installDefaultSupertypes(objectClassBuilder, objectClass);
     }
   }
 
