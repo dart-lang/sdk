@@ -130,15 +130,15 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
-  "core_rev": "3b35aca9a651b63e7405e578800c4a6cfa91bbae",
+  "core_rev": "2458e1aa4594a9c9bae98698e2addb2298c3312f",
   "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be", # https://github.com/dart-lang/dartdoc/issues/3969
-  "ecosystem_rev": "c4a163ae2c95105c0d958058031b1536f38fe534",
+  "ecosystem_rev": "5b0d815952d81f5a51cc6a1af1cacab26f3a61d7",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
-  "http_rev": "6d99ff5755d3581f44ce5c18bb029a2fa1ef0eaf",
+  "http_rev": "c7cc4f8e19dd0a050fcf5654b120d789663c48e4",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
-  "markdown_rev": "19aaded4300d24bedcbf52ade792b203ddf030b0",
+  "markdown_rev": "62f78c64d963ba6f73bd70ed65630dc934a264e6",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "native_rev": "c817a5e41220de370cbea6e6445e63cdc7087544", # disable tools/rev_sdk_deps.dart
@@ -147,13 +147,13 @@ vars = {
   "shelf_rev": "2a7442f7d6d3e63fdc7b387128619b263dcb7e78",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "92eed6c4b6c0d008796fe7bfdb51601de0f112b6",
+  "test_rev": "2ccfc5cdba8e36b3939e26f09116d49aa12c76e8",
   "tools_rev": "3bdef2043af9244b804adc08896bf96d51bb49ba", # b/391934702
-  "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
-  "web_rev": "fd3d9889a6b5ab777f6116b4972d76277e4a6404",
-  "web_socket_channel_rev": "a937243563e8ee75d11fb23610297d4f6e5cb2b9",
-  "webdev_rev": "5dc7950863e2728bb5398c4e6887513cc344bbae",
-  "webdriver_rev": "d83d6a3cbaab152ff9b99b29382d1f48b5d5ba23",
+  "vector_math_rev": "533c513771d35312dcd0f69e662d729979882df1",
+  "web_rev": "c2d5f63e9ea4c1409d6e159fc7b92dbcf4dc0d4d",
+  "web_socket_channel_rev": "f335e52affa5c70a725401394bf265fc4384e62f",
+  "webdev_rev": "616da45582e008efa114728927eabb498c71f1b7",
+  "webdriver_rev": "e84e9ccbee3e0c38a149b7d964eb7ab6ccc78384",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
   # Windows deps
