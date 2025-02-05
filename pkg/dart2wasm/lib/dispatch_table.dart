@@ -39,21 +39,11 @@ class SelectorInfo {
   /// Is this an implicit or explicit setter?
   final bool isSetter;
 
-  /// Does this method have any tear-off uses?
-  bool hasTearOffUses = false;
-
-  /// Does this method have any non-this uses?
-  bool hasNonThisUses = false;
-
-  /// Targets for all concrete classes implementing this selector.
+  /// Whether we create multiple entry points for the selector.
   ///
-  /// As a subclass hierarchy often inherits the same target, we associate the
-  /// target with a range of class ids. The ranges are non-empty,
-  /// non-overlapping and sorted in ascending order.
-  late final List<({Range range, Reference target})> targetRanges;
-  late final Set<Reference> targetSet =
-      targetRanges.map((e) => e.target).toSet();
-  late final List<({Range range, Reference target})> staticDispatchRanges;
+  /// We create multiple entry points when any implementation of this selector
+  /// performs type checks on the passed arguments.
+  bool useMultipleEntryPoints = false;
 
   /// Wasm function type for the selector.
   ///
@@ -63,12 +53,6 @@ class SelectorInfo {
   /// Number of concrete classes that provide this selector.
   late final int concreteClasses;
 
-  /// Offset of the selector in the dispatch table.
-  ///
-  /// For a class in [targetRanges], `class ID + offset` gives the offset of the
-  /// class member for this selector.
-  int? offset;
-
   /// The selector's member's name.
   final String name;
 
@@ -77,9 +61,29 @@ class SelectorInfo {
   /// `noSuchMethod` overrides to the dispatch table.
   final bool isNoSuchMethod;
 
+  late final SelectorTargets? _normal;
+  late final SelectorTargets? _checked;
+  late final SelectorTargets? _unchecked;
+
+  SelectorTargets targets({required bool unchecked}) {
+    if (useMultipleEntryPoints) {
+      assert(_checked!.targetRanges.length == _unchecked!.targetRanges.length);
+      assert(_checked!.staticDispatchRanges.length ==
+          _unchecked!.staticDispatchRanges.length);
+      return unchecked ? _unchecked! : _checked!;
+    }
+    assert(_checked == null && _unchecked == null);
+    return _normal!;
+  }
+
   SelectorInfo._(
       this.translator, this.id, this.name, this.callCount, this.paramInfo,
       {required this.isSetter, required this.isNoSuchMethod});
+
+  String entryPointName(bool unchecked) {
+    if (!useMultipleEntryPoints) return name;
+    return '$name (${unchecked ? 'unchecked' : 'checked'})';
+  }
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -95,7 +99,7 @@ class SelectorInfo {
         List.generate(1 + paramInfo.paramCount, (_) => {});
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
-    for (final (range: _, :target) in targetRanges) {
+    for (final (range: _, :target) in targets(unchecked: false).targetRanges) {
       Member member = target.asMember;
       DartType receiver =
           InterfaceType(member.enclosingClass!, Nullability.nonNullable);
@@ -214,6 +218,39 @@ class SelectorInfo {
     }
     return w.RefType.def(heapTypes.single, nullable: nullable);
   }
+
+  late final Set<Reference> targetSet = useMultipleEntryPoints
+      ? {..._unchecked!._targetSet, ..._checked!._targetSet}
+      : _normal!._targetSet;
+}
+
+class SelectorTargets {
+  /// Targets for all concrete classes implementing this selector.
+  ///
+  /// As a subclass hierarchy often inherits the same target, we associate the
+  /// target with a range of class ids. The ranges are non-empty,
+  /// non-overlapping and sorted in ascending order.
+  final List<({Range range, Reference target})> targetRanges;
+
+  /// Targets that a interface call will check & directly call before falling
+  /// back to dispatch table calls.
+  ///
+  /// The targets in here are mainly the ones annotated with
+  /// `@pragma('wasm:static-dispatch')`. The compiler will generate then code
+  /// that first checks the receiver for those targets directly and issue direct
+  /// calls before falling back to dispatch table calls.
+  final List<({Range range, Reference target})> staticDispatchRanges;
+
+  /// Offset of the selector in the dispatch table.
+  ///
+  /// For a class in [targetRanges], `class ID + offset` gives the offset of the
+  /// class member for this selector.
+  late final int offset;
+
+  SelectorTargets(this.targetRanges, this.staticDispatchRanges);
+
+  late final Set<Reference> _targetSet =
+      targetRanges.map((e) => e.target).toSet();
 }
 
 /// Builds the dispatch table for member calls.
@@ -256,9 +293,6 @@ class DispatchTable {
         _importedWasmTables = WasmTableImporter(translator, 'dispatch');
 
   SelectorInfo selectorForTarget(Reference target) {
-    // Dispatch table currently doesn't have unchecked entries.
-    assert(!target.isUncheckedEntryReference);
-
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     ProcedureAttributesMetadata metadata =
@@ -296,8 +330,11 @@ class DispatchTable {
             isSetter: isSetter,
             isNoSuchMethod: member == translator.objectNoSuchMethod));
     assert(selector.isSetter == isSetter);
-    selector.hasTearOffUses |= metadata.hasTearOffUses;
-    selector.hasNonThisUses |= metadata.hasNonThisUses;
+    final useMultipleEntryPoints = !member.isAbstract &&
+        !target.isGetter &&
+        !target.isTearOffReference &&
+        translator.needToCheckTypesFor(member);
+    selector.useMultipleEntryPoints |= useMultipleEntryPoints;
     selector.paramInfo.merge(paramInfo);
     if (calledDynamically) {
       if (isGetter) {
@@ -382,13 +419,11 @@ class DispatchTable {
         if (member is Field) {
           addMember(member.getterReference, staticDispatch);
           if (member.hasSetter) {
-            final target = translator.getFunctionEntry(member.setterReference!,
-                uncheckedEntry: false);
+            final target = member.setterReference!;
             addMember(target, staticDispatch);
           }
         } else if (member is Procedure) {
-          final target = translator.getFunctionEntry(member.reference,
-              uncheckedEntry: false);
+          final target = member.reference;
           addMember(target, staticDispatch);
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
@@ -449,14 +484,48 @@ class DispatchTable {
           : ranges
               .where((range) => staticDispatchPragmas.contains(range.target))
               .toList();
-      selector.targetRanges = ranges;
-      selector.staticDispatchRanges = staticDispatchRanges;
+
+      if (selector.useMultipleEntryPoints) {
+        ({Range range, Reference target}) getChecked(
+          ({Range range, Reference target}) targetRange,
+          bool unchecked,
+        ) =>
+            (
+              range: targetRange.range,
+              target: translator.getFunctionEntry(targetRange.target,
+                  uncheckedEntry: unchecked)
+            );
+
+        selector._normal = null;
+        selector._checked = SelectorTargets(
+          ranges.map((r) => getChecked(r, false)).toList(),
+          staticDispatchRanges.map((r) => getChecked(r, false)).toList(),
+        );
+        selector._unchecked = SelectorTargets(
+          ranges.map((r) => getChecked(r, true)).toList(),
+          staticDispatchRanges.map((r) => getChecked(r, true)).toList(),
+        );
+      } else {
+        selector._normal = SelectorTargets(ranges, staticDispatchRanges);
+        selector._checked = null;
+        selector._unchecked = null;
+      }
     });
 
     _selectorInfo.forEach((_, selector) {
       if (!selectorTargets.containsKey(selector)) {
-        selector.concreteClasses = 0;
-        selector.targetRanges = [];
+        // There are no concrete implementations for the given [selector].
+        // But there may be an abstract interface target which is targed by a
+        // call. In this case the call should be unreachable.
+        if (selector.useMultipleEntryPoints) {
+          selector._normal = null;
+          selector._checked = SelectorTargets([], []);
+          selector._unchecked = SelectorTargets([], []);
+        } else {
+          selector._normal = SelectorTargets([], []);
+          selector._checked = null;
+          selector._unchecked = null;
+        }
       }
     });
 
@@ -467,9 +536,11 @@ class DispatchTable {
         return true;
       }
       if (selector.callCount == 0) return false;
-      if (selector.targetRanges.length <= 1) return false;
-      if (selector.staticDispatchRanges.length ==
-          selector.targetRanges.length) {
+
+      final targets = selector.targets(unchecked: false);
+
+      if (targets.targetRanges.length <= 1) return false;
+      if (targets.staticDispatchRanges.length == targets.targetRanges.length) {
         return false;
       }
       return true;
@@ -494,19 +565,36 @@ class DispatchTable {
 
     final rows = <Row<Reference>>[];
     for (final selector in selectors) {
-      final rowValues = <({int index, Reference value})>[];
-      for (final (:range, :target) in selector.targetRanges) {
-        for (int classId = range.start; classId <= range.end; ++classId) {
-          rowValues.add((index: classId, value: target));
+      Row<Reference> buildRow(
+          List<({Range range, Reference target})> targetRanges) {
+        final rowValues = <({int index, Reference value})>[];
+        for (final (:range, :target) in targetRanges) {
+          for (int classId = range.start; classId <= range.end; ++classId) {
+            rowValues.add((index: classId, value: target));
+          }
         }
+        rowValues.sort((a, b) => a.index.compareTo(b.index));
+        return Row(rowValues);
       }
-      rowValues.sort((a, b) => a.index.compareTo(b.index));
-      rows.add(Row(rowValues));
+
+      if (selector.useMultipleEntryPoints) {
+        rows.add(buildRow(selector._checked!.targetRanges));
+        rows.add(buildRow(selector._unchecked!.targetRanges));
+      } else {
+        rows.add(buildRow(selector._normal!.targetRanges));
+      }
     }
 
     _table = buildRowDisplacementTable<Reference>(rows);
-    for (int i = 0; i < rows.length; ++i) {
-      selectors[i].offset = rows[i].offset;
+
+    int rowIndex = 0;
+    for (final selector in selectors) {
+      if (selector.useMultipleEntryPoints) {
+        selector._checked!.offset = rows[rowIndex++].offset;
+        selector._unchecked!.offset = rows[rowIndex++].offset;
+      } else {
+        selector._normal!.offset = rows[rowIndex++].offset;
+      }
     }
 
     _definedWasmTable =

@@ -26,6 +26,7 @@ class FunctionCollector {
   final Map<Reference, String> _exports = {};
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
+  final Set<int> _calledUncheckedSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the compilation queue
@@ -231,9 +232,12 @@ class FunctionCollector {
     }
   }
 
-  void recordSelectorUse(SelectorInfo selector) {
-    if (_calledSelectors.add(selector.id)) {
-      for (final (:range, :target) in selector.targetRanges) {
+  void recordSelectorUse(SelectorInfo selector, bool useUncheckedEntry) {
+    final set =
+        useUncheckedEntry ? _calledUncheckedSelectors : _calledSelectors;
+    if (set.add(selector.id)) {
+      for (final (:range, :target)
+          in selector.targets(unchecked: useUncheckedEntry).targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
           if (_allocatedClasses.contains(classId)) {
             // Class declaring or inheriting member is allocated somewhere.

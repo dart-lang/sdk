@@ -491,16 +491,19 @@ class Translator with KernelNodes {
     return b.emitUnreachableIfNoResult(function.type.outputs);
   }
 
-  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector) {
+  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector,
+      {required bool useUncheckedEntry}) {
+    final offset = selector.targets(unchecked: useUncheckedEntry).offset;
+
     // TODO(natebiggs): Handle dispatch to dynamic module overrideable members.
     b.struct_get(topInfo.struct, FieldIndex.classId);
-    if (selector.offset! != 0) {
-      b.i32_const(selector.offset!);
+    if (offset != 0) {
+      b.i32_const(offset);
       b.i32_add();
     }
     b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
     b.emitUnreachableIfNoResult(selector.signature.outputs);
-    functions.recordSelectorUse(selector);
+    functions.recordSelectorUse(selector, useUncheckedEntry);
   }
 
   Class classForType(DartType type) {
@@ -1175,18 +1178,7 @@ class Translator with KernelNodes {
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
-    if (target.asMember.isInstanceMember) {
-      if (target.isBodyReference) {
-        return makeFunctionTypeForBody(this, target.asMember);
-      }
-      if (target.isUncheckedEntryReference) {
-        // The unchecked entries use the same signature as normal entries.
-        final member = target.asMember;
-        return signatureForDirectCall(member is Field
-            ? member.setterReference!
-            : (member as Procedure).reference);
-      }
-
+    if (target.asMember.isInstanceMember && !target.isBodyReference) {
       final selector = dispatchTable.selectorForTarget(target);
       if (selector.targetSet.contains(target)) {
         return selector.signature;
@@ -1197,14 +1189,6 @@ class Translator with KernelNodes {
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
-      if (target.isUncheckedEntryReference) {
-        // The unchecked entries use the same signature as normal entries.
-        final member = target.asMember;
-        return paramInfoForDirectCall(member is Field
-            ? member.setterReference!
-            : (member as Procedure).reference);
-      }
-
       final selector = dispatchTable.selectorForTarget(target);
       if (selector.targetSet.contains(target)) {
         return selector.paramInfo;
@@ -1466,6 +1450,13 @@ class Translator with KernelNodes {
 
   bool shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return false;
+
+    // Unchecked entry point functions perform very little, mainly optional
+    // parameter handling and then call the real body function.
+    //
+    // By inlining them we can often avoid downcasts and sometimes boxing. The
+    // force inlining here seem to even lead to overall size decreases.
+    if (target.isUncheckedEntryReference) return true;
 
     final member = target.asMember;
     if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
@@ -2134,14 +2125,20 @@ class PolymorphicDispatchers {
   final Translator translator;
   final w.ModuleBuilder callingModule;
   final cache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
+  final uncheckedCache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
 
   PolymorphicDispatchers(this.translator, this.callingModule);
 
-  CallTarget getPolymorphicDispatcher(SelectorInfo selector) {
-    assert(selector.targetRanges.length > 1);
-    return cache.putIfAbsent(selector, () {
+  CallTarget getPolymorphicDispatcher(SelectorInfo selector,
+      {required bool useUncheckedEntry}) {
+    assert(
+        selector.targets(unchecked: useUncheckedEntry).targetRanges.length > 1);
+    return (useUncheckedEntry && selector.useMultipleEntryPoints
+            ? uncheckedCache
+            : cache)
+        .putIfAbsent(selector, () {
       return PolymorphicDispatcherCallTarget(
-          translator, selector, callingModule);
+          translator, selector, callingModule, useUncheckedEntry);
     });
   }
 }
@@ -2150,9 +2147,10 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   final Translator translator;
   final SelectorInfo selector;
   final w.ModuleBuilder callingModule;
+  final bool useUncheckedEntry;
 
-  PolymorphicDispatcherCallTarget(
-      this.translator, this.selector, this.callingModule)
+  PolymorphicDispatcherCallTarget(this.translator, this.selector,
+      this.callingModule, this.useUncheckedEntry)
       : super(selector.signature);
 
   @override
@@ -2162,11 +2160,16 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   bool get supportsInlining => true;
 
   @override
-  bool get shouldInline => selector.staticDispatchRanges.length <= 2;
+  bool get shouldInline =>
+      selector
+          .targets(unchecked: useUncheckedEntry)
+          .staticDispatchRanges
+          .length <=
+      2;
 
   @override
-  CodeGenerator get inliningCodeGen =>
-      PolymorphicDispatcherCodeGenerator(translator, selector);
+  CodeGenerator get inliningCodeGen => PolymorphicDispatcherCodeGenerator(
+      translator, selector, useUncheckedEntry);
 
   @override
   late final w.BaseFunction function = (() {
@@ -2182,20 +2185,24 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
   final Translator translator;
   final SelectorInfo selector;
+  final bool useUncheckedEntry;
 
-  PolymorphicDispatcherCodeGenerator(this.translator, this.selector);
+  PolymorphicDispatcherCodeGenerator(
+      this.translator, this.selector, this.useUncheckedEntry);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
       w.Label? returnLabel) {
     final signature = selector.signature;
 
-    final targetRanges = selector.staticDispatchRanges
+    final targets = selector.targets(unchecked: useUncheckedEntry);
+
+    final targetRanges = targets.staticDispatchRanges
         .map((entry) => (range: entry.range, value: entry.target))
         .toList();
 
     final bool needFallback =
-        selector.targetRanges.length > selector.staticDispatchRanges.length;
+        targets.targetRanges.length > targets.staticDispatchRanges.length;
 
     void emitDirectCall(Reference target) {
       for (int i = 0; i < signature.inputs.length; ++i) {
@@ -2209,7 +2216,8 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         b.local_get(paramLocals[i]);
       }
       b.local_get(paramLocals[0]);
-      translator.callDispatchTable(b, selector);
+      translator.callDispatchTable(b, selector,
+          useUncheckedEntry: useUncheckedEntry);
     }
 
     b.local_get(paramLocals[0]);

@@ -99,8 +99,10 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     final ranges = selectors
-        .expand((selector) =>
-            selector.targetRanges.map((r) => (range: r.range, value: r.target)))
+        .expand((selector) => selector
+            .targets(unchecked: false)
+            .targetRanges
+            .map((r) => (range: r.range, value: r.target)))
         .toList();
     ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
 
@@ -145,8 +147,10 @@ class Forwarder {
     final selectors =
         translator.dispatchTable.dynamicSetterSelectors(memberName);
     final ranges = selectors
-        .expand((selector) =>
-            selector.targetRanges.map((r) => (range: r.range, value: r.target)))
+        .expand((selector) => selector
+            .targets(unchecked: false)
+            .targetRanges
+            .map((r) => (range: r.range, value: r.target)))
         .toList();
     ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
 
@@ -197,7 +201,8 @@ class Forwarder {
     for (final selector in methodSelectors) {
       // Accumulates all class ID ranges that have the same target.
       final Map<Reference, List<Range>> targets = {};
-      for (final (:range, :target) in selector.targetRanges) {
+      for (final (:range, :target)
+          in selector.targets(unchecked: false).targetRanges) {
         targets.putIfAbsent(target, () => []).add(range);
       }
 
@@ -477,7 +482,8 @@ class Forwarder {
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     final getterValueLocal = b.addLocal(translator.topInfo.nullableType);
     for (final selector in getterSelectors) {
-      for (final (:range, :target) in selector.targetRanges) {
+      for (final (:range, :target)
+          in selector.targets(unchecked: false).targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
           final targetMember = target.asMember;
           // This loop checks getters and fields. Methods are considered in the
@@ -734,7 +740,7 @@ void generateNoSuchMethodCall(
 ) {
   final SelectorInfo noSuchMethodSelector = translator.dispatchTable
       .selectorForTarget(translator.objectNoSuchMethod.reference);
-  translator.functions.recordSelectorUse(noSuchMethodSelector);
+  translator.functions.recordSelectorUse(noSuchMethodSelector, false);
 
   final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
   final noSuchMethodWasmFunctionType = noSuchMethodSelector.signature;
@@ -773,7 +779,8 @@ void generateNoSuchMethodCall(
 
   // Get class id for virtual call
   pushReceiver();
-  translator.callDispatchTable(b, noSuchMethodSelector);
+  translator.callDispatchTable(b, noSuchMethodSelector,
+      useUncheckedEntry: false);
 }
 
 class ClassIdRange {
