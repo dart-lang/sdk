@@ -97,12 +97,13 @@ ${_argParser.usage}
 ''';
 
 Future<void> main(List<String> arguments) async {
-  io.exitCode = await runCompiler(_argParser.parse(arguments));
+  io.exitCode = await runCompilerWithCommandLineArguments(arguments);
 }
 
-/// Run bytecode compiler tool with given [options]
-/// and return exit code.
-Future<int> runCompiler(ArgResults options) async {
+/// Run bytecode compiler tool with given [arguments]
+/// and return exit code (0 on success, non-zero on failure).
+Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
+  final ArgResults options = _argParser.parse(arguments);
   final String? platformKernel = options['platform'];
 
   if (options['help']) {
@@ -131,6 +132,58 @@ Future<int> runCompiler(ArgResults options) async {
     return badUsageExitCode;
   }
 
+  final String? importDill = options['import-dill'];
+  final String? validateDynamicInterface = options['validate'];
+  final String messageVerbosity = options['verbosity'];
+  final String cfeInvocationModes = options['invocation-modes'];
+  final bool trackWidgetCreation = options['track-widget-creation'];
+  final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
+
+  return await runCompilerWithOptions(
+    input: input,
+    platformKernel: platformKernel,
+    outputFileName: outputFileName,
+    targetName: targetName,
+    packages: packages,
+    importDill: importDill,
+    validateDynamicInterface: validateDynamicInterface,
+    enableAsserts: enableAsserts,
+    experimentalFlags: experimentalFlags,
+    environmentDefines: environmentDefines,
+    fileSystemScheme: fileSystemScheme,
+    fileSystemRoots: fileSystemRoots,
+    messageVerbosity: messageVerbosity,
+    cfeInvocationModes: cfeInvocationModes,
+    trackWidgetCreation: trackWidgetCreation,
+    bytecodeGeneratorOptions: bytecodeGeneratorOptions,
+    depfile: depfile,
+    depfileTarget: depfileTarget,
+  );
+}
+
+/// Run bytecode compiler tool with given options
+/// and return exit code (0 on success, non-zero on failure).
+Future<int> runCompilerWithOptions({
+  required String input,
+  required String platformKernel,
+  required String outputFileName,
+  required String targetName,
+  String? packages,
+  String? importDill,
+  String? validateDynamicInterface,
+  bool enableAsserts = false,
+  List<String>? experimentalFlags,
+  Map<String, String> environmentDefines = const {},
+  String? fileSystemScheme,
+  List<String>? fileSystemRoots,
+  String messageVerbosity = Verbosity.defaultValue,
+  void Function(String) printMessage = print,
+  String cfeInvocationModes = '',
+  bool trackWidgetCreation = false,
+  List<String>? bytecodeGeneratorOptions,
+  String? depfile,
+  String? depfileTarget,
+}) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
@@ -139,17 +192,17 @@ Future<int> runCompiler(ArgResults options) async {
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
 
   final List<Uri> additionalDills = <Uri>[];
-  final String? importDill = options['import-dill'];
   if (importDill != null) {
     additionalDills.add(Uri.base.resolveUri(new Uri.file(importDill)));
   }
 
-  final String? validate = options['validate'];
   final Uri? dynamicInterfaceSpecificationUri =
-      (validate != null) ? resolveInputUri(validate) : null;
+      (validateDynamicInterface != null)
+          ? resolveInputUri(validateDynamicInterface)
+          : null;
 
-  final verbosity = Verbosity.parseArgument(options['verbosity']);
-  final errorPrinter = ErrorPrinter(verbosity);
+  final verbosity = Verbosity.parseArgument(messageVerbosity);
+  final errorPrinter = ErrorPrinter(verbosity, println: printMessage);
   final errorDetector = ErrorDetector(previousErrorHandler: errorPrinter.call);
 
   Uri mainUri = resolveInputUri(input);
@@ -165,20 +218,18 @@ Future<int> runCompiler(ArgResults options) async {
     ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
-        onError: print)
+        onError: printMessage)
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = false
-    ..invocationModes =
-        InvocationMode.parseArguments(options['invocation-modes'])
+    ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
     ..verbosity = verbosity;
 
   compilerOptions.target = createFrontEndTarget(targetName,
-      trackWidgetCreation: options['track-widget-creation'],
-      supportMirrors: false);
+      trackWidgetCreation: trackWidgetCreation, supportMirrors: false);
   if (compilerOptions.target == null) {
-    print('Failed to create front-end target $targetName.');
+    printMessage('Failed to create front-end target $targetName.');
     return badUsageExitCode;
   }
 
@@ -187,7 +238,7 @@ Future<int> runCompiler(ArgResults options) async {
       options: compilerOptions,
       requireMain: false,
       includePlatform: false,
-      environmentDefines: environmentDefines,
+      environmentDefines: Map.of(environmentDefines),
       enableAsserts: enableAsserts));
 
   errorPrinter.printCompilationMessages();
@@ -199,7 +250,7 @@ Future<int> runCompiler(ArgResults options) async {
 
   final BytecodeOptions bytecodeOptions =
       BytecodeOptions(enableAsserts: enableAsserts)
-        ..parseCommandLineFlags(options['bytecode-options']);
+        ..parseCommandLineFlags(bytecodeGeneratorOptions);
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
