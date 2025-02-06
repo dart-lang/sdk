@@ -80,6 +80,7 @@ part 'mixin.dart';
 part 'named_mixin_application.dart';
 part 'primary_constructor.dart';
 part 'setter.dart';
+part 'type_parameter.dart';
 part 'typedef.dart';
 part 'util.dart';
 

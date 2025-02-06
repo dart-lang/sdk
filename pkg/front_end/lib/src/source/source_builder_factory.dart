@@ -148,7 +148,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginClassDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ClassFragment(
         name,
         _compilationUnit.fileUri,
@@ -177,7 +177,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   // Coverage-ignore(suite): Not run.
   void endClassDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -187,13 +187,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _declarationFragments.pop();
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: null, allowNameConflict: true);
   }
 
   @override
   void beginMixinDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new MixinFragment(
         name,
         _compilationUnit.fileUri,
@@ -222,7 +222,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   // Coverage-ignore(suite): Not run.
   void endMixinDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -232,13 +232,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _declarationFragments.pop();
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: null, allowNameConflict: true);
   }
 
   @override
   void beginNamedMixinApplication(String name, int charOffset,
-      List<NominalParameterBuilder>? typeParameters) {}
+      List<TypeParameterFragment>? typeParameters) {}
 
   @override
   void endNamedMixinApplication(String name) {
@@ -249,13 +249,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endNamedMixinApplicationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -273,7 +273,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginEnumDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new EnumFragment(
         name,
         _compilationUnit.fileUri,
@@ -301,7 +301,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endEnumDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -311,8 +311,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _declarationFragments.pop();
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: null, allowNameConflict: true);
+        _problemReporting,
+        typeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        ownerName: null,
+        allowNameConflict: true);
   }
 
   @override
@@ -329,7 +333,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginExtensionDeclaration(String? name, int charOffset,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ExtensionFragment(
         name,
         _compilationUnit.fileUri,
@@ -359,7 +363,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginExtensionTypeDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ExtensionTypeFragment(
         name,
         _compilationUnit.fileUri,
@@ -422,14 +426,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endConstructorForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: null, allowNameConflict: true);
+        _problemReporting,
+        typeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        ownerName: null,
+        allowNameConflict: true);
   }
 
   @override
@@ -447,13 +455,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   // Coverage-ignore(suite): Not run.
   void endStaticMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -471,14 +479,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endInstanceMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: null, allowNameConflict: true);
+        _problemReporting,
+        typeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        ownerName: null,
+        allowNameConflict: true);
   }
 
   @override
@@ -495,14 +507,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endTopLevelMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: null, allowNameConflict: true);
+        _problemReporting,
+        typeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        ownerName: null,
+        allowNameConflict: true);
   }
 
   @override
@@ -527,13 +543,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   // Coverage-ignore(suite): Not run.
   void endTypedefForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters) {
+      List<TypeParameterFragment>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -776,7 +792,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder? supertype,
       required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
@@ -794,7 +810,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: className, allowNameConflict: false);
 
     if (declarationFragment.declaresConstConstructor) {
@@ -823,7 +839,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {required OffsetMap offsetMap,
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
@@ -839,7 +855,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
@@ -883,7 +899,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? supertypeConstraints,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
@@ -907,7 +923,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: className, allowNameConflict: false);
 
     modifiers |= Modifiers.Abstract;
@@ -937,7 +953,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addNamedMixinApplication(
       {required List<MetadataBuilder>? metadata,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
       required List<TypeBuilder> mixins,
@@ -952,7 +968,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _mixinApplications != null, "Late registration of mixin application.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
 
     _addFragment(new NamedMixinApplicationFragment(
@@ -977,7 +993,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier? identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder onType,
       required int startOffset,
       required int nameOrExtensionOffset,
@@ -993,7 +1009,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
 
     declarationFragment.metadata = metadata;
@@ -1021,7 +1037,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset}) {
@@ -1035,7 +1051,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
 
     declarationFragment.metadata = metadata;
@@ -1056,17 +1072,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addFunctionTypeAlias(
       List<MetadataBuilder>? metadata,
       String name,
-      List<NominalParameterBuilder>? typeParameters,
+      List<TypeParameterFragment>? typeParameters,
       TypeBuilder type,
       int nameOffset) {
     if (typeParameters != null) {
-      for (NominalParameterBuilder typeParameter in typeParameters) {
+      for (NominalParameterBuilder typeParameter in typeParameters.builders) {
         typeParameter.varianceCalculationValue =
             VarianceCalculationValue.pending;
       }
     }
     _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
+        _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
@@ -1088,7 +1104,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required String name,
       required TypeBuilder? returnType,
       required List<FormalParameterBuilder>? formals,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required Token? beginInitializers,
       required int startOffset,
       required int endOffset,
@@ -1293,7 +1309,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required Modifiers modifiers,
       required Identifier identifier,
       required ConstructorName constructorName,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int formalsOffset,
@@ -1565,7 +1581,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -1624,7 +1640,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -1687,7 +1703,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -1732,7 +1748,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
-        declaredTypeParameters: typeParameters,
+        declaredTypeParameters: typeParameters?.builders,
         typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         declaredFormals: formals,
@@ -1942,7 +1958,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  NominalParameterBuilder addNominalParameter(List<MetadataBuilder>? metadata,
+  TypeParameterFragment addNominalParameter(List<MetadataBuilder>? metadata,
       String name, TypeBuilder? bound, int charOffset, Uri fileUri,
       {required TypeParameterKind kind}) {
     String variableName = name;
@@ -1952,12 +1968,24 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       variableName = createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
+    TypeParameterFragment fragment = new TypeParameterFragment(
+        metadata: metadata,
+        name: name,
+        bound: bound,
+        nameOffset: charOffset,
+        fileUri: fileUri,
+        kind: kind,
+        isWildcard: isWildcard,
+        variableName: variableName);
+
     NominalParameterBuilder builder = new NominalParameterBuilder(
         variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
 
     _unboundNominalParameters.add(builder);
-    return builder;
+
+    fragment.builder = builder;
+    return fragment;
   }
 
   @override

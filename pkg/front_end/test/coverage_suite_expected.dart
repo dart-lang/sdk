@@ -470,7 +470,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/class/declaration.dart": (
-    hitCount: 138,
+    hitCount: 142,
     missCount: 0,
   ),
   // 100.0%.
@@ -551,6 +551,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/fragment/setter.dart": (
     hitCount: 547,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/type_parameter.dart": (
+    hitCount: 10,
     missCount: 0,
   ),
   // 100.0%.
@@ -780,7 +785,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/utils.dart": (
-    hitCount: 68,
+    hitCount: 72,
     missCount: 0,
   ),
   // 100.0%.
@@ -825,7 +830,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2108,
+    hitCount: 2114,
     missCount: 0,
   ),
   // 100.0%.
@@ -835,7 +840,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1112,
+    hitCount: 1123,
     missCount: 0,
   ),
   // 100.0%.
@@ -865,13 +870,13 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_extension_builder.dart": (
-    hitCount: 146,
+    hitCount: 147,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
       (
-    hitCount: 504,
+    hitCount: 506,
     missCount: 0,
   ),
   // 100.0%.
@@ -911,7 +916,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_type_alias_builder.dart": (
-    hitCount: 358,
+    hitCount: 359,
     missCount: 0,
   ),
   // 100.0%.
@@ -926,7 +931,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1383,
+    hitCount: 1395,
     missCount: 0,
   ),
   // 100.0%.

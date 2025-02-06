@@ -47,7 +47,8 @@ class RegularClassDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+  List<NominalParameterBuilder>? get typeParameters =>
+      _fragment.typeParameters?.builders;
 
   @override
   bool get isMixinDeclaration => false;
@@ -92,7 +93,8 @@ class EnumDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+  List<NominalParameterBuilder>? get typeParameters =>
+      _fragment.typeParameters?.builders;
 
   @override
   bool get isMixinDeclaration => false;
@@ -134,7 +136,8 @@ class NamedMixinApplication implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+  List<NominalParameterBuilder>? get typeParameters =>
+      _fragment.typeParameters?.builders;
 
   @override
   bool get isMixinDeclaration => false;
@@ -222,7 +225,8 @@ class MixinDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => _fragment.typeParameters;
+  List<NominalParameterBuilder>? get typeParameters =>
+      _fragment.typeParameters?.builders;
 
   @override
   bool get isMixinDeclaration => true;

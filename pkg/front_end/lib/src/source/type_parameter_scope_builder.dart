@@ -1236,7 +1236,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         SourceClassBuilder classBuilder = new SourceClassBuilder(
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
+            typeParameters: fragment.typeParameters?.builders,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
@@ -1256,10 +1256,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case MixinFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        List<NominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.map((p) => p.builder).toList();
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
+            typeParameters: typeParameters,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
@@ -1290,13 +1292,13 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
 
         LookupScope typeParameterScope = TypeParameterScope.fromList(
-            fragment.compilationUnitScope, fragment.typeParameters);
+            fragment.compilationUnitScope, fragment.typeParameters?.builders);
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder classBuilder = new SourceClassBuilder(
             modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
             name: name,
-            typeParameters: fragment.typeParameters,
+            typeParameters: fragment.typeParameters?.builders,
             typeParameterScope: typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: enclosingLibraryBuilder,
@@ -1317,9 +1319,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case EnumFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        List<NominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.map((p) => p.builder).toList();
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
+            typeParameters: typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,
             interfaceBuilders: fragment.interfaces,
             enumElements: fragment.enumElements,
@@ -1579,7 +1583,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               methodBuilder;
         }
       case ConstructorFragment():
-        List<NominalParameterBuilder>? typeParameters = fragment.typeParameters;
+        List<NominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.builders;
         switch (declarationBuilder!) {
           case ExtensionBuilder():
           case ExtensionTypeDeclarationBuilder():
@@ -2081,7 +2086,7 @@ abstract class DeclarationFragment {
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
   final List<Fragment> _fragments = [];
 
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<TypeParameterFragment>? typeParameters;
 
   final NominalParameterNameSpace _nominalParameterNameSpace;
 
