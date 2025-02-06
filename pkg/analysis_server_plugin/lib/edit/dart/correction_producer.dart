@@ -611,6 +611,20 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
+    // Handle `await`, infer a `Future` type.
+    if (parent is AwaitExpression) {
+      var grandParent = parent.parent;
+      // `await myFunction();`
+      if (grandParent is ExpressionStatement) {
+        return typeProvider.futureType(typeProvider.voidType);
+      }
+      var inferredParentType =
+          inferUndefinedExpressionType(parent) ?? typeProvider.dynamicType;
+      if (inferredParentType is InvalidType) {
+        inferredParentType = typeProvider.dynamicType;
+      }
+      return typeProvider.futureType(inferredParentType);
+    }
     // We don't know.
     return null;
   }
