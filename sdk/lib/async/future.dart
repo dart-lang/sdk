@@ -314,9 +314,8 @@ abstract interface class Future<T> {
     try {
       result = computation();
     } catch (error, stackTrace) {
-      var future = new _Future<T>();
-      _asyncCompleteWithErrorCallback(future, error, stackTrace);
-      return future;
+      return _Future<T>()
+        .._asyncCompleteErrorObject(_interceptCaughtError(error, stackTrace));
     }
     return result is Future<T> ? result : _Future<T>.value(result);
   }
@@ -369,10 +368,8 @@ abstract interface class Future<T> {
   ///
   /// final error = await getFuture(); // Throws.
   /// ```
-  factory Future.error(Object error, [StackTrace? stackTrace]) {
-    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
-    return new _Future<T>.immediateError(error, stackTrace);
-  }
+  factory Future.error(Object error, [StackTrace? stackTrace]) =>
+      _Future<T>.immediateError(_interceptUserError(error, stackTrace));
 
   /// Creates a future that runs its computation after a delay.
   ///
@@ -561,25 +558,21 @@ abstract interface class Future<T> {
         return _future.._completeWithValue(<T>[]);
       }
       values = List<T?>.filled(remaining, null);
-    } catch (e, st) {
+    } catch (e, s) {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
       // This is a breach of the `Future` protocol, but we try to handle it
       // gracefully.
       if (remaining == 0 || eagerError) {
-        // Throw a new Future.error.
-        // Don't just call `_future._completeError` since that would propagate
-        // the error too eagerly, not giving the callers time to install
-        // error handlers.
-        // Also, don't use `_asyncCompleteError` since that one doesn't give
-        // zones the chance to intercept the error.
-        return new Future.error(e, st);
+        // Complete asynchronously to give receiver time to handle
+        // the result.
+        return _future.._asyncCompleteErrorObject(_interceptCaughtError(e, s));
       } else {
         // Don't allocate a list for values, thus indicating that there was an
         // error.
         // Set error to the caught exception.
         error = e;
-        stackTrace = st;
+        stackTrace = s;
       }
     }
     return _future;
@@ -716,9 +709,11 @@ abstract interface class Future<T> {
         try {
           result = action();
         } catch (error, stackTrace) {
-          // Cannot use _completeWithErrorCallback because it completes
+          // Cannot use `_completeWithErrorCallback` because it completes
           // the future synchronously.
-          _asyncCompleteWithErrorCallback(doneSignal, error, stackTrace);
+          doneSignal._asyncCompleteErrorObject(
+            _interceptCaughtError(error, stackTrace),
+          );
           return;
         }
         if (result is Future<bool>) {
@@ -1331,7 +1326,7 @@ abstract interface class Completer<T> {
   bool get isCompleted;
 }
 
-// Helper function completing a _Future with error, but checking the zone
+// Helper function completing a _Future with an error, but checking the zone
 // for error replacement and missing stack trace first.
 // Only used for errors that are *caught*.
 // A user provided error object should use `_interceptUserError` which
@@ -1341,24 +1336,5 @@ void _completeWithErrorCallback(
   Object error,
   StackTrace stackTrace,
 ) {
-  var replacement = _interceptError(error, stackTrace);
-  if (replacement != null) {
-    error = replacement.error;
-    stackTrace = replacement.stackTrace;
-  }
-  result._completeError(error, stackTrace);
-}
-
-// Like [_completeWithErrorCallback] but completes asynchronously.
-void _asyncCompleteWithErrorCallback(
-  _Future result,
-  Object error,
-  StackTrace stackTrace,
-) {
-  var replacement = _interceptError(error, stackTrace);
-  if (replacement != null) {
-    error = replacement.error;
-    stackTrace = replacement.stackTrace;
-  }
-  result._asyncCompleteError(error, stackTrace);
+  result._completeErrorObject(_interceptCaughtError(error, stackTrace));
 }

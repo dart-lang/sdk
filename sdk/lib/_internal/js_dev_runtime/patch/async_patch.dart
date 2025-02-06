@@ -127,7 +127,7 @@ _async<T>(Function() initGenerator) {
       if (isRunningAsEvent) {
         _completeWithErrorCallback(asyncFuture, e, s);
       } else {
-        _asyncCompleteWithErrorCallback(asyncFuture, e, s);
+        asyncFuture._asyncCompleteErrorObject(_interceptCaughtError(e, s));
       }
     }
   }

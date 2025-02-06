@@ -27,14 +27,13 @@ _runUserCode<T>(
 void _cancelAndError(
   StreamSubscription subscription,
   _Future future,
-  Object error,
-  StackTrace stackTrace,
+  AsyncError error,
 ) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
-    cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
+  if (!identical(cancelFuture, Future._nullFuture)) {
+    cancelFuture.whenComplete(() => future._completeErrorObject(error));
   } else {
-    future._completeError(error, stackTrace);
+    future._completeErrorObject(error);
   }
 }
 
@@ -44,29 +43,30 @@ void _cancelAndErrorWithReplacement(
   Object error,
   StackTrace stackTrace,
 ) {
-  AsyncError? replacement = _interceptError(error, stackTrace);
-  if (replacement != null) {
-    error = replacement.error;
-    stackTrace = replacement.stackTrace;
-  }
-  _cancelAndError(subscription, future, error, stackTrace);
+  _cancelAndError(
+    subscription,
+    future,
+    _interceptCaughtError(error, stackTrace),
+  );
 }
 
 /// Helper function to make an onError argument to [_runUserCode].
+///
+/// The error is already an asynchronous error, so is not intercepted.
 void Function(Object error, StackTrace stackTrace) _cancelAndErrorClosure(
   StreamSubscription subscription,
   _Future future,
 ) {
   return (Object error, StackTrace stackTrace) {
-    _cancelAndError(subscription, future, error, stackTrace);
+    _cancelAndError(subscription, future, AsyncError(error, stackTrace));
   };
 }
 
-/** Helper function to cancel a subscription and wait for the potential future,
-  before completing with a value. */
+// Helper function to cancel a subscription and wait for the potential future,
+// before completing with a value.
 void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
+  if (!identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._complete(value));
   } else {
     future._complete(value);

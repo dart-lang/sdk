@@ -359,7 +359,8 @@ abstract mixin class Stream<T> {
         try {
           iterator = elements.iterator;
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           controller.close();
           return;
         }
@@ -376,7 +377,8 @@ abstract mixin class Stream<T> {
           try {
             hasNext = iterator.moveNext();
           } catch (e, s) {
-            controller.addErrorSync(e, s);
+            var error = _interceptCaughtError(e, s);
+            controller.addErrorSync(error.error, error.stackTrace);
             controller.closeSync();
             return;
           }
@@ -384,7 +386,8 @@ abstract mixin class Stream<T> {
             try {
               controller.addSync(iterator.current);
             } catch (e, s) {
-              controller.addErrorSync(e, s);
+              var error = _interceptCaughtError(e, s);
+              controller.addErrorSync(error.error, error.stackTrace);
             }
             if (controller.hasListener && !controller.isPaused) {
               zone.scheduleMicrotask(next);
@@ -521,7 +524,8 @@ abstract mixin class Stream<T> {
           try {
             event = computation(computationCount++);
           } catch (e, s) {
-            controller.addError(e, s);
+            var error = _interceptCaughtError(e, s);
+            controller.addError(error.error, error.stackTrace);
             return;
           }
           controller.add(event);
@@ -830,7 +834,8 @@ abstract mixin class Stream<T> {
         try {
           newValue = convert(event);
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           return;
         }
         if (newValue is Future<E>) {
@@ -885,7 +890,8 @@ abstract mixin class Stream<T> {
         try {
           newStream = convert(event);
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           return;
         }
         if (newStream != null) {
@@ -1070,14 +1076,10 @@ abstract mixin class Stream<T> {
       onError: result._completeError,
       onDone: () {
         if (!seenFirst) {
-          try {
-            // Throw and recatch, instead of just doing
-            //  _completeWithErrorCallback, e, theError, StackTrace.current),
-            // to ensure that the stackTrace is set on the error.
-            throw IterableElementError.noElement();
-          } catch (e, s) {
-            _completeWithErrorCallback(result, e, s);
-          }
+          var stack = StackTrace.empty;
+          var error = IterableElementError.noElement();
+          _trySetStackTrace(error, stack);
+          _completeWithErrorCallback(result, error, stack);
         } else {
           result._complete(value);
         }
@@ -1650,11 +1652,10 @@ abstract mixin class Stream<T> {
       null,
       onError: future._completeError,
       onDone: () {
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1687,11 +1688,10 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1718,22 +1718,20 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
     subscription.onData((T value) {
       if (foundResult) {
         // This is the second element we get.
-        try {
-          throw IterableElementError.tooMany();
-        } catch (e, s) {
-          _cancelAndErrorWithReplacement(subscription, future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.tooMany();
+        _trySetStackTrace(error, stack);
+        _cancelAndErrorWithReplacement(subscription, future, error, stack);
         return;
       }
       foundResult = true;
@@ -1788,12 +1786,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          // Sets stackTrace on error.
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1849,11 +1845,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1917,11 +1912,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1930,11 +1924,10 @@ abstract mixin class Stream<T> {
       _runUserCode(() => test(value), (bool isMatch) {
         if (isMatch) {
           if (foundResult) {
-            try {
-              throw IterableElementError.tooMany();
-            } catch (e, s) {
-              _cancelAndErrorWithReplacement(subscription, future, e, s);
-            }
+            var stack = StackTrace.empty;
+            var error = IterableElementError.tooMany();
+            _trySetStackTrace(error, stack);
+            _cancelAndErrorWithReplacement(subscription, future, error, stack);
             return;
           }
           foundResult = true;
