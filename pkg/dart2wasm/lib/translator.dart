@@ -1520,10 +1520,16 @@ class Translator with KernelNodes {
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) {
       // Guard against recursive inlining.
+      //
       // Though we allow inlining calls to constructor initializer & body
       // functions while generating the constructor.
+      //
+      // We also allow inlining calls to the member body functions as any
+      // recursive inlining would call to checked or unchecked entry which would
+      // disallow it.
       if (!target.isInitializerReference &&
-          !target.isConstructorBodyReference) {
+          !target.isConstructorBodyReference &&
+          !target.isBodyReference) {
         return false;
       }
     }
