@@ -1219,7 +1219,7 @@ class RuntimeTypeInformation {
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
     typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
       for (final entry in table)
-        IntConstant(entry == null
+        translator.constants.makeWasmI32(entry == null
             ? 0
             : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
     ]);
@@ -1233,7 +1233,8 @@ class RuntimeTypeInformation {
 
     typeRowDisplacementOffsets = translator.constants.makeArrayOf(wasmI32, [
       for (int classId = 0; classId < translator.classes.length; ++classId)
-        IntConstant(rowForSuperclass[classId]?.offset ?? -1),
+        translator.constants
+            .makeWasmI32(rowForSuperclass[classId]?.offset ?? -1),
     ]);
   }
 
