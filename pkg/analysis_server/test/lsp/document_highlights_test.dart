@@ -74,6 +74,28 @@ void f() {
 }
 ''');
 
+  Future<void> test_formalParameters_closure() => _testMarkedContent('''
+void f(void Function(int) _) {}
+
+void g() => f((/*[0*/^variable/*0]*/) {
+  print(/*[1*/variable/*1]*/);
+});
+''');
+
+  Future<void> test_formalParameters_function() => _testMarkedContent('''
+void f(int /*[0*/^parameter/*0]*/) {
+  print(/*[1*/parameter/*1]*/);
+}
+''');
+
+  Future<void> test_formalParameters_method() => _testMarkedContent('''
+class C {
+  void m(int /*[0*/^parameter/*0]*/) {
+    print(/*[1*/parameter/*1]*/);
+  }
+}
+''');
+
   Future<void> test_functions() => _testMarkedContent('''
 /*[0*/main/*0]*/() {
   /*[1*/mai^n/*1]*/();
