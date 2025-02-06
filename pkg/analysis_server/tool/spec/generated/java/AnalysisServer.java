@@ -876,6 +876,11 @@ public interface AnalysisServer {
    *
    * Call an LSP handler. Message can be requests or notifications.
    *
+   * This request can be called in either direction, either by the client to the server, or by the
+   * server to the client. The server will only call the client if the client has indicated it
+   * supports the associated LSP request via <code>lspCapabilities</code> in the
+   * <code>setClientCapabilities</code> request.
+   *
    * @param lspMessage The LSP RequestMessage.
    */
   public void lsp_handle(Object lspMessage, HandleConsumer consumer);
@@ -1041,8 +1046,13 @@ public interface AnalysisServer {
    *        can fetch the file contents for URIs with custom schemes (and receive modification
    *        events) through the LSP protocol (see the "lsp" domain). LSP notifications are
    *        automatically enabled when the client sets this capability.
+   * @param lspCapabilities LSP capabilities of the client as defined by the Language Server Protocol
+   *        specification. If custom LSP capabilities are to be used, the setClientCapabilities
+   *        request should be called before any LSP requests are made to the server. If LSP
+   *        capabilities are not provided or no setClientCapabilities request is made, a very basic
+   *        set of capabilities will be assumed.
    */
-  public void server_setClientCapabilities(List<String> requests, boolean supportsUris);
+  public void server_setClientCapabilities(List<String> requests, boolean supportsUris, Object lspCapabilities);
 
   /**
    * {@code server.setSubscriptions}

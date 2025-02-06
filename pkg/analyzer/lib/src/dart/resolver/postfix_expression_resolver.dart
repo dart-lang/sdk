@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -51,8 +49,8 @@ class PostfixExpressionResolver {
       hasRead: true,
     );
 
-    var readElement = operandResolution.readElement;
-    var writeElement = operandResolution.writeElement;
+    var readElement = operandResolution.readElement2;
+    var writeElement = operandResolution.writeElement2;
 
     var operand = node.operand;
     _resolver.setReadElement(
@@ -97,8 +95,8 @@ class PostfixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  DartType _computeStaticReturnType(Element? element) {
-    if (element is PropertyAccessorElement) {
+  TypeImpl _computeStaticReturnType(Element2? element) {
+    if (element is PropertyAccessorElement2) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
@@ -107,7 +105,7 @@ class PostfixExpressionResolver {
       return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
-    } else if (element is ExecutableElement) {
+    } else if (element is ExecutableElement2) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
@@ -125,7 +123,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
+  void _resolve1(PostfixExpressionImpl node, TypeImpl receiverType) {
     ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
@@ -144,7 +142,7 @@ class PostfixExpressionResolver {
       propertyErrorEntity: node.operator,
       nameErrorEntity: operand,
     );
-    node.staticElement = result.getter as MethodElement?;
+    node.element = result.getter2 as MethodElement2?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
         _errorReporter.atToken(
@@ -162,18 +160,18 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
+  void _resolve2(PostfixExpressionImpl node, TypeImpl receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
-      DartType operatorReturnType;
+      TypeImpl operatorReturnType;
       if (receiverType.isDartCoreInt) {
         // No need to check for `intVar++`, the result is `int`.
         operatorReturnType = receiverType;
       } else {
-        var operatorElement = node.staticElement;
+        var operatorElement = node.element;
         operatorReturnType = _computeStaticReturnType(operatorElement);
         _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
       }

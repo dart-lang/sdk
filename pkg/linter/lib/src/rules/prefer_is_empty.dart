@@ -14,26 +14,24 @@ import '../extensions.dart';
 const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 
 class PreferIsEmpty extends LintRule {
-  PreferIsEmpty()
-      : super(
-          name: LintNames.prefer_is_empty,
-          description: _desc,
-        );
+  PreferIsEmpty() : super(name: LintNames.prefer_is_empty, description: _desc);
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.prefer_is_empty_always_false,
-        LinterLintCode.prefer_is_empty_always_true,
-        LinterLintCode.prefer_is_empty_use_is_empty,
-        LinterLintCode.prefer_is_empty_use_is_not_empty
-      ];
+    LinterLintCode.prefer_is_empty_always_false,
+    LinterLintCode.prefer_is_empty_always_true,
+    LinterLintCode.prefer_is_empty_use_is_empty,
+    LinterLintCode.prefer_is_empty_use_is_not_empty,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
@@ -65,8 +63,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _check(BinaryExpression expression, int value,
-      {required bool constantOnRight}) {
+  void _check(
+    BinaryExpression expression,
+    int value, {
+    required bool constantOnRight,
+  }) {
     // Don't lint if we're in a const constructor initializer.
     var constructorInitializer =
         expression.thisOrAncestorOfType<ConstructorInitializer>();
@@ -88,39 +89,55 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (value == 0) {
       if (operator.type == TokenType.EQ_EQ ||
           operator.type == TokenType.LT_EQ) {
-        rule.reportLint(expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_empty);
+        rule.reportLint(
+          expression,
+          errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+        );
       } else if (operator.type == TokenType.GT ||
           operator.type == TokenType.BANG_EQ) {
-        rule.reportLint(expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty);
+        rule.reportLint(
+          expression,
+          errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+        );
       } else if (operator.type == TokenType.LT) {
-        rule.reportLint(expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_false);
+        rule.reportLint(
+          expression,
+          errorCode: LinterLintCode.prefer_is_empty_always_false,
+        );
       } else if (operator.type == TokenType.GT_EQ) {
-        rule.reportLint(expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_true);
+        rule.reportLint(
+          expression,
+          errorCode: LinterLintCode.prefer_is_empty_always_true,
+        );
       }
     } else if (value == 1) {
       if (constantOnRight) {
         // 'length >= 1' is same as 'isNotEmpty',
         // and 'length < 1' is same as 'isEmpty'
         if (operator.type == TokenType.GT_EQ) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+          );
         } else if (operator.type == TokenType.LT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_use_is_empty);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+          );
         }
       } else {
         // '1 <= length' is same as 'isNotEmpty',
         // and '1 > length' is same as 'isEmpty'
         if (operator.type == TokenType.LT_EQ) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+          );
         } else if (operator.type == TokenType.GT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_use_is_empty);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+          );
         }
       }
     } else if (value < 0) {
@@ -129,36 +146,46 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_always_false);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_always_false,
+          );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_always_true);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_always_true,
+          );
         }
       } else {
         // 'length' is always >= 0, so comparing with negative makes no sense.
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_always_false);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_always_false,
+          );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(expression,
-              errorCode: LinterLintCode.prefer_is_empty_always_true);
+          rule.reportLint(
+            expression,
+            errorCode: LinterLintCode.prefer_is_empty_always_true,
+          );
         }
       }
     }
   }
 
   // TODO(pq): consider sharing
-  T? _drillDownTo<T extends Expression>(Expression expression,
-      {required bool ignoreParens, required bool ignoreAs}) {
+  T? _drillDownTo<T extends Expression>(
+    Expression expression, {
+    required bool ignoreParens,
+    required bool ignoreAs,
+  }) {
     var search = expression;
-    // ignore: literal_only_boolean_expressions
     while (true) {
       if (ignoreParens && search is ParenthesizedExpression) {
         search = search.expression;

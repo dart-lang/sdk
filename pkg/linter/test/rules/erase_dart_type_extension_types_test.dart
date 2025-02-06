@@ -21,26 +21,28 @@ class EraseDartTypeExtensionTypesTest extends LintRuleTest {
   String get lintRule => LintNames.erase_dart_type_extension_types;
 
   test_isDartType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:kernel/ast.dart';
 
 void f(Object t) {
   t is DartType;
 }
-''', [
-      lint(56, 13),
-    ]);
+''',
+      [lint(56, 13)],
+    );
   }
 
   test_isDartType_subclass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:kernel/ast.dart';
 
 void f(Object t) {
   t is InterfaceType;
 }
-''', [
-      lint(56, 18),
-    ]);
+''',
+      [lint(56, 18)],
+    );
   }
 }

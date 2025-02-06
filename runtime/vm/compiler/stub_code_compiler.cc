@@ -2388,14 +2388,15 @@ void StubCodeCompiler::GenerateResumeStub() {
   }
 
 #if defined(DART_DYNAMIC_MODULES)
-  __ Comment("Resume interpreter with exception");
-  __ Bind(&resume_interpreter);
-
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   // This case is used when Dart frame is still on the stack.
-  SPILLS_LR_TO_FRAME({});
+  if (FLAG_precompiled_mode) {
+    RESTORES_LR_FROM_FRAME({});  // Undo EnterStubFrame() from the case above.
+  }
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER({});  // Undo SetReturnAddress().
 #endif
-
+  __ Comment("Resume interpreter with exception");
+  __ Bind(&resume_interpreter);
   __ PushObject(NullObject());  // Make room for result.
   __ PushObject(NullObject());  // Return value.
   __ PushRegistersInOrder({kException, kStackTrace});

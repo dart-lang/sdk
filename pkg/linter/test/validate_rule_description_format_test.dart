@@ -13,17 +13,22 @@ void main() {
     var rules = Registry.ruleRegistry.rules;
 
     test('(setup)', () {
-      expect(rules, isNotEmpty,
-          reason:
-              'Ensure `registerLintRules()` is called before running this suite.');
+      expect(
+        rules,
+        isNotEmpty,
+        reason:
+            'Ensure `registerLintRules()` is called before running this suite.',
+      );
     });
 
     group('description - trailing periods', () {
       for (var rule in rules) {
         test('`${rule.name}` description', () {
-          expect(rule.description.endsWith('.'), isTrue,
-              reason:
-                  "Rule description for ${rule.name} should end with a '.'");
+          expect(
+            rule.description.endsWith('.'),
+            isTrue,
+            reason: "Rule description for ${rule.name} should end with a '.'",
+          );
         });
       }
     });

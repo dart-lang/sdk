@@ -17,34 +17,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-class PluginServerTestBase with ResourceProviderMixin {
-  final channel = _FakeChannel();
-
-  late final PluginServer pluginServer;
-
-  Folder get byteStoreRoot => getFolder('/byteStore');
-
-  Folder get sdkRoot => getFolder('/sdk');
-
-  @mustCallSuper
-  Future<void> setUp() async {
-    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
-  }
-
-  Future<void> startPlugin() async {
-    await pluginServer.initialize();
-    pluginServer.start(channel);
-
-    await pluginServer.handlePluginVersionCheck(
-      protocol.PluginVersionCheckParams(
-          byteStoreRoot.path, sdkRoot.path, '0.0.1'),
-    );
-  }
-
-  void tearDown() => registeredFixGenerators.clearLintProducers();
-}
-
-class _FakeChannel implements PluginCommunicationChannel {
+class FakeChannel implements PluginCommunicationChannel {
   final _completers = <String, Completer<protocol.Response>>{};
 
   final StreamController<protocol.Notification> _notificationsController =
@@ -89,4 +62,31 @@ class _FakeChannel implements PluginCommunicationChannel {
     var completer = _completers.remove(response.id);
     completer?.complete(response);
   }
+}
+
+class PluginServerTestBase with ResourceProviderMixin {
+  final channel = FakeChannel();
+
+  late final PluginServer pluginServer;
+
+  Folder get byteStoreRoot => getFolder('/byteStore');
+
+  Folder get sdkRoot => getFolder('/sdk');
+
+  @mustCallSuper
+  Future<void> setUp() async {
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+  }
+
+  Future<void> startPlugin() async {
+    await pluginServer.initialize();
+    pluginServer.start(channel);
+
+    await pluginServer.handlePluginVersionCheck(
+      protocol.PluginVersionCheckParams(
+          byteStoreRoot.path, sdkRoot.path, '0.0.1'),
+    );
+  }
+
+  void tearDown() => registeredFixGenerators.clearLintProducers();
 }

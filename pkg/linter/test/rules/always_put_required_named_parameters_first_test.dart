@@ -27,16 +27,17 @@ class AlwaysPutRequiredNamedParametersFirstTest extends LintRuleTest {
   String get lintRule => LintNames.always_put_required_named_parameters_first;
 
   test_constructor_requiredAfterOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   C.f({
     int? a,
     required int? b,
   });
 }
-''', [
-      lint(48, 1),
-    ]);
+''',
+      [lint(48, 1)],
+    );
   }
 
   test_constructor_requiredAfterRequired() async {
@@ -51,7 +52,8 @@ class C {
   }
 
   test_constructor_requiredAnnotationAfterOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   C.f({
@@ -59,9 +61,9 @@ class C {
     @required int? b,
   });
 }
-''', [
-      lint(82, 1),
-    ]);
+''',
+      [lint(82, 1)],
+    );
   }
 
   test_constructor_requiredAnnotationAfterRequiredAnnotation() async {
@@ -77,14 +79,15 @@ class C {
   }
 
   test_topLevelFunction_requiredAfterOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f({
   int? a,
   required int? b,
 }) {}
-''', [
-      lint(35, 1),
-    ]);
+''',
+      [lint(35, 1)],
+    );
   }
 
   test_topLevelFunction_requiredAfterRequired() async {
@@ -97,15 +100,16 @@ void f({
   }
 
   test_topLevelFunction_requiredAnnotationAfterOptional() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:meta/meta.dart';
 void f({
   int? a,
   @required int? b,
 }) {}
-''', [
-      lint(69, 1),
-    ]);
+''',
+      [lint(69, 1)],
+    );
   }
 
   test_topLevelFunction_requiredAnnotationAfterRequiredAnnotation() async {

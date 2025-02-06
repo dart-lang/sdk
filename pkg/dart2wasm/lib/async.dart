@@ -181,7 +181,8 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     emitValue();
-    call(translator.completerComplete.reference);
+    call(translator.getFunctionEntry(translator.completerComplete.reference,
+        uncheckedEntry: true));
     b.return_();
   }
 
@@ -253,7 +254,8 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     b.ref_null(translator.topInfo.struct);
-    call(translator.completerComplete.reference);
+    call(translator.getFunctionEntry(translator.completerComplete.reference,
+        uncheckedEntry: true));
     b.return_();
     b.end(); // masterLoop
 

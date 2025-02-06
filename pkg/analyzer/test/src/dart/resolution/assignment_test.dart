@@ -1559,7 +1559,9 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement: <null>
-  writeElement2: <null>
+  writeElement2: multiplyDefinedElement
+    package:test/a.dart::@class::C
+    package:test/b.dart::@class::C
   writeType: InvalidType
   staticElement: <null>
   element: <null>

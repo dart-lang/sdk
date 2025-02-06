@@ -1,0 +1,33 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  static method foo() → void {
+    core::print("hi");
+  }
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  @#C3
+  abstract method bar() → void;
+}
+abstract class _Z&Object&M2 extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  @#C3
+  abstract method bar() → void;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

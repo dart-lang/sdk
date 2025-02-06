@@ -510,6 +510,7 @@ coerced
 coerces
 coercing
 coercion
+coercions
 coincides
 coinductively
 collapses
@@ -2739,6 +2740,7 @@ sake
 same
 sample
 samples
+sanitizes
 sanity
 sate
 satisfied

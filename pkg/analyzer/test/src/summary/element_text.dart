@@ -13,11 +13,8 @@ import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../../util/element_printer.dart';
@@ -57,7 +54,6 @@ class ElementTextConfiguration {
   ElementPrinterConfiguration elementPrinterConfiguration =
       ElementPrinterConfiguration();
   bool Function(Object) filter;
-  List<Pattern>? macroDiagnosticMessagePatterns;
   bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
@@ -68,7 +64,6 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
-  bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
@@ -247,6 +242,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       // _writeList(
       //   'libraryExports',
@@ -284,7 +280,6 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
-      _writeMacroDiagnostics(e);
     });
   }
 
@@ -313,6 +308,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeDisplayName(e);
 
       _writeElementList(
@@ -343,7 +339,6 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       // _writeNonSyntheticElement(e);
-      _writeMacroDiagnostics(e);
     });
 
     // if (e.isSynthetic) {
@@ -422,7 +417,6 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       // _writeNonSyntheticElement(f);
-      _writeMacroDiagnostics(f);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('previousFragment', f.previousFragment);
     });
@@ -566,7 +560,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      // _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
@@ -574,7 +568,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeMacroDiagnostics(e);
       _writeElementReference('getter', e.getter2);
       _writeElementReference('setter', e.setter2);
     });
@@ -633,7 +626,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('getter2', f.getter2);
@@ -682,6 +674,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -899,6 +892,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -910,7 +904,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeMacroDiagnostics(e);
     });
   }
 
@@ -972,7 +965,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -996,17 +988,16 @@ class _Element2Writer extends _AbstractElementWriter {
       switch (e) {
         case ClassElementImpl2():
           _sink.writeIf(e.isAbstract, 'abstract ');
-          // _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
           _sink.writeIf(e.isFinal, 'final ');
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
         case EnumElementImpl2():
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('enum ');
         case ExtensionElementImpl2():
           _sink.write('extension ');
@@ -1019,11 +1010,11 @@ class _Element2Writer extends _AbstractElementWriter {
           //     e.hasImplementsSelfReference,
           //     'hasImplementsSelfReference ',
           //   );
-          //   // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('extension type ');
         case MixinElementImpl2():
           _sink.writeIf(e.isBase, 'base ');
-          // _writeNotSimplyBounded(e);
+          _writeNotSimplyBounded(e);
           _sink.write('mixin ');
       }
 
@@ -1035,10 +1026,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.metadata2.sinceSdkVersion);
+      _writeSinceSdkVersion(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
-      _writeMacroDiagnostics(e);
 
       void writeSupertype(InterfaceElement2 e) {
         if (e.supertype case var supertype?) {
@@ -1113,7 +1103,6 @@ class _Element2Writer extends _AbstractElementWriter {
           // TODO(brianwilkerson): Figure out why we can't ask the fragments
           //  these questions.
           // _sink.writeIf(f.isAbstract, 'abstract ');
-          // _sink.writeIf(f.isMacro, 'macro ');
           // _sink.writeIf(f.isSealed, 'sealed ');
           // _sink.writeIf(f.isBase, 'base ');
           // _sink.writeIf(f.isInterface, 'interface ');
@@ -1181,7 +1170,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeMetadata(f.metadata2, includeSince: false);
+      _writeMetadata(f.metadata2);
 
       if (configuration.withImports) {
         var imports = f.libraryImports2.where((import) {
@@ -1246,7 +1235,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata2, includeSince: false);
+      _writeMetadata(e.metadata2);
       // _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1267,261 +1256,8 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMacroDiagnostics(Element2 e) {
-    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
-      switch (location) {
-        case AliasedTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('AliasedTypeLocation');
-        case ElementTypeLocation():
-          _sink.writelnWithIndent('ElementTypeLocation');
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', location.element);
-          });
-        case ExtendsClauseTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ExtendsClauseTypeLocation');
-        case FormalParameterTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('FormalParameterTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case ListIndexTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ListIndexTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case RecordNamedFieldTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('RecordNamedFieldTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case RecordPositionalFieldTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('RecordPositionalFieldTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case ReturnTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ReturnTypeLocation');
-        case VariableTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('VariableTypeLocation');
-        default:
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError('${location.runtimeType}');
-      }
-    }
 
-    /// Returns `true` if patterns were printed.
-    /// Returns `false` if no patterns configured.
-    bool printMessagePatterns(String message) {
-      var patterns = configuration.macroDiagnosticMessagePatterns;
-      if (patterns == null) {
-        return false;
-      }
-
-      _sink.writelnWithIndent('contains');
-      _sink.withIndent(() {
-        for (var pattern in patterns) {
-          if (message.contains(pattern)) {
-            _sink.writelnWithIndent(pattern);
-          }
-        }
-      });
-      return true;
-    }
-
-    void writeMessage(MacroDiagnosticMessage object) {
-      // Write the message.
-      if (!printMessagePatterns(object.message)) {
-        var message = object.message;
-        const stackTraceText = '#0';
-        var stackTraceIndex = message.indexOf(stackTraceText);
-        if (stackTraceIndex >= 0) {
-          var end = stackTraceIndex + stackTraceText.length;
-          var withoutStackTrace = message.substring(0, end);
-          if (configuration.withMacroStackTraces) {
-            _sink.writelnWithIndent('message:\n$message');
-          } else {
-            _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
-          }
-        } else {
-          _sink.writelnWithIndent('message: $message');
-        }
-      }
-      // Write the target.
-      var target = object.target;
-      switch (target) {
-        case ApplicationMacroDiagnosticTarget():
-          _sink.writelnWithIndent('target: ApplicationMacroDiagnosticTarget');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent(
-              'annotationIndex: ${target.annotationIndex}',
-            );
-          });
-        case ElementMacroDiagnosticTarget():
-          _sink.writelnWithIndent('target: ElementMacroDiagnosticTarget');
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', target.element);
-          });
-        case ElementAnnotationMacroDiagnosticTarget():
-          _sink.writelnWithIndent(
-            'target: ElementAnnotationMacroDiagnosticTarget',
-          );
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', target.element);
-            _sink.writelnWithIndent(
-              'annotationIndex: ${target.annotationIndex}',
-            );
-          });
-        case TypeAnnotationMacroDiagnosticTarget():
-          _sink.writelnWithIndent(
-            'target: TypeAnnotationMacroDiagnosticTarget',
-          );
-          _sink.withIndent(() {
-            writeTypeAnnotationLocation(target.location);
-          });
-      }
-    }
-
-    if (e case MacroTargetElement macroTarget) {
-      _sink.writeElements(
-        'macroDiagnostics',
-        macroTarget.macroDiagnostics,
-        (diagnostic) {
-          switch (diagnostic) {
-            case ArgumentMacroDiagnostic():
-              _sink.writelnWithIndent('ArgumentMacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writelnWithIndent(
-                  'argumentIndex: ${diagnostic.argumentIndex}',
-                );
-                _sink.writelnWithIndent('message: ${diagnostic.message}');
-              });
-            case DeclarationsIntrospectionCycleDiagnostic():
-              _sink.writelnWithIndent(
-                'DeclarationsIntrospectionCycleDiagnostic',
-              );
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _elementPrinter.writeNamedElement(
-                  'introspectedElement',
-                  diagnostic.introspectedElement,
-                );
-                _sink.writeElements(
-                  'components',
-                  diagnostic.components,
-                  (component) {
-                    _sink.writelnWithIndent(
-                      'DeclarationsIntrospectionCycleComponent',
-                    );
-                    _sink.withIndent(() {
-                      _elementPrinter.writeNamedElement(
-                        'element',
-                        component.element,
-                      );
-                      _sink.writelnWithIndent(
-                        'annotationIndex: ${component.annotationIndex}',
-                      );
-                      _elementPrinter.writeNamedElement(
-                        'introspectedElement',
-                        component.introspectedElement,
-                      );
-                    });
-                  },
-                );
-              });
-            case ExceptionMacroDiagnostic():
-              _sink.writelnWithIndent('ExceptionMacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                if (!printMessagePatterns(diagnostic.message)) {
-                  _sink.writelnWithIndent(
-                    'message: ${diagnostic.message}',
-                  );
-                }
-                if (configuration.withMacroStackTraces) {
-                  _sink.writelnWithIndent(
-                    'stackTrace:\n${diagnostic.stackTrace}',
-                  );
-                }
-              });
-            case InvalidMacroTargetDiagnostic():
-              _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writeElements(
-                  'supportedKinds',
-                  diagnostic.supportedKinds,
-                  (kindName) {
-                    _sink.writelnWithIndent(kindName);
-                  },
-                );
-              });
-            case MacroDiagnostic():
-              _sink.writelnWithIndent('MacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent('message: MacroDiagnosticMessage');
-                _sink.withIndent(() {
-                  writeMessage(diagnostic.message);
-                });
-                _sink.writeElements(
-                  'contextMessages',
-                  diagnostic.contextMessages,
-                  (message) {
-                    _sink.writelnWithIndent('MacroDiagnosticMessage');
-                    _sink.withIndent(() {
-                      writeMessage(message);
-                    });
-                  },
-                );
-                _sink.writelnWithIndent(
-                  'severity: ${diagnostic.severity.name}',
-                );
-                if (diagnostic.correctionMessage case var correctionMessage?) {
-                  _sink.writelnWithIndent(
-                    'correctionMessage: $correctionMessage',
-                  );
-                }
-              });
-            case NotAllowedDeclarationDiagnostic():
-              _sink.writelnWithIndent('NotAllowedDeclarationDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writelnWithIndent(
-                  'phase: ${diagnostic.phase.name}',
-                );
-                var nodeRangesStr = diagnostic.nodeRanges
-                    .map((r) => '(${r.offset}, ${r.length})')
-                    .join(' ');
-                _sink.writelnWithIndent('nodeRanges: $nodeRangesStr');
-                _sink.writeln('---');
-                _sink.write(diagnostic.code);
-                _sink.writeln('---');
-              });
-          }
-        },
-      );
-    }
-  }
-
-  void _writeMetadata(Metadata metadata, {bool includeSince = true}) {
+  void _writeMetadata(Metadata metadata) {
     if (configuration.withMetadata) {
       var annotations = metadata.annotations;
       if (annotations.isNotEmpty) {
@@ -1533,9 +1269,6 @@ class _Element2Writer extends _AbstractElementWriter {
           }
         });
       }
-    }
-    if (includeSince) {
-      _writeSinceSdkVersion(metadata.sinceSdkVersion);
     }
   }
 
@@ -1555,6 +1288,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeTypeInferenceError(e);
 
       _writeElementList(
@@ -1571,7 +1305,6 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
-      _writeMacroDiagnostics(e);
     });
 
     // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
@@ -1618,10 +1351,13 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
-      // _writeMacroDiagnostics(f);
       // _writeAugmentationTarget(f);
       // _writeAugmentation(f);
     });
+  }
+
+  void _writeNotSimplyBounded(InterfaceElementImpl2 e) {
+    _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
   }
 
   void _writePrefixElement(PrefixElementImpl2 e) {
@@ -1687,6 +1423,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -1698,7 +1435,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeMacroDiagnostics(e);
     });
   }
 
@@ -1760,15 +1496,17 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
   }
 
-  void _writeSinceSdkVersion(Version? version) {
-    if (version != null) {
-      _sink.writelnWithIndent('sinceSdkVersion: $version');
+  void _writeSinceSdkVersion(Element2 element) {
+    if (element case HasSinceSdkVersion hasSince) {
+      var version = hasSince.sinceSdkVersion;
+      if (version != null) {
+        _sink.writelnWithIndent('sinceSdkVersion: $version');
+      }
     }
   }
 
@@ -1787,6 +1525,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -1801,7 +1540,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
       _writeType('returnType', e.returnType);
-      _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -1838,7 +1576,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterFragment,
       );
       // _writeType('returnType', e.returnType);
-      // _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -1886,13 +1623,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
-      _writeMacroDiagnostics(e);
       _writeElementReference('getter', e.getter2);
       _writeElementReference('setter', e.setter2);
     });
@@ -1949,7 +1686,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
-      // _writeMacroDiagnostics(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('getter2', f.getter2);
@@ -1983,6 +1719,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
+      _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
@@ -2000,7 +1737,6 @@ class _Element2Writer extends _AbstractElementWriter {
       //   });
       // }
 
-      _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -2038,7 +1774,6 @@ class _Element2Writer extends _AbstractElementWriter {
       //   });
       // }
 
-      // _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
@@ -2063,7 +1798,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(e.metadata2, includeSince: false);
+      _writeMetadata(e.metadata2);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2089,7 +1824,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(f.metadata2, includeSince: false);
+      _writeMetadata(f.metadata2);
     });
 
     // _assertNonSyntheticElementSelf(f);
@@ -2146,7 +1881,6 @@ class _ElementWriter extends _AbstractElementWriter {
       }
 
       _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
-      _writeMacroDiagnostics(e);
     });
   }
 
@@ -2396,7 +2130,6 @@ class _ElementWriter extends _AbstractElementWriter {
       }
 
       _writeNonSyntheticElement(e);
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -2476,7 +2209,6 @@ class _ElementWriter extends _AbstractElementWriter {
       if (e.augmentationTarget == null) {
         _writeType('extendedType', e.extendedType);
       }
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
       _writeElements('fields', e.fields, _writePropertyInducingElement);
@@ -2520,7 +2252,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -2545,7 +2276,6 @@ class _ElementWriter extends _AbstractElementWriter {
       switch (e) {
         case ClassElementImpl():
           _sink.writeIf(e.isAbstract, 'abstract ');
-          _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
@@ -2584,7 +2314,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
 
@@ -2687,259 +2416,6 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _writeMacroDiagnostics(Element e) {
-    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
-      switch (location) {
-        case AliasedTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('AliasedTypeLocation');
-        case ElementTypeLocation():
-          _sink.writelnWithIndent('ElementTypeLocation');
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', location.element);
-          });
-        case ExtendsClauseTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ExtendsClauseTypeLocation');
-        case FormalParameterTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('FormalParameterTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case ListIndexTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ListIndexTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case RecordNamedFieldTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('RecordNamedFieldTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case RecordPositionalFieldTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('RecordPositionalFieldTypeLocation');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent('index: ${location.index}');
-          });
-        case ReturnTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('ReturnTypeLocation');
-        case VariableTypeLocation():
-          writeTypeAnnotationLocation(location.parent);
-          _sink.writelnWithIndent('VariableTypeLocation');
-        default:
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError('${location.runtimeType}');
-      }
-    }
-
-    /// Returns `true` if patterns were printed.
-    /// Returns `false` if no patterns configured.
-    bool printMessagePatterns(String message) {
-      var patterns = configuration.macroDiagnosticMessagePatterns;
-      if (patterns == null) {
-        return false;
-      }
-
-      _sink.writelnWithIndent('contains');
-      _sink.withIndent(() {
-        for (var pattern in patterns) {
-          if (message.contains(pattern)) {
-            _sink.writelnWithIndent(pattern);
-          }
-        }
-      });
-      return true;
-    }
-
-    void writeMessage(MacroDiagnosticMessage object) {
-      // Write the message.
-      if (!printMessagePatterns(object.message)) {
-        var message = object.message;
-        const stackTraceText = '#0';
-        var stackTraceIndex = message.indexOf(stackTraceText);
-        if (stackTraceIndex >= 0) {
-          var end = stackTraceIndex + stackTraceText.length;
-          var withoutStackTrace = message.substring(0, end);
-          if (configuration.withMacroStackTraces) {
-            _sink.writelnWithIndent('message:\n$message');
-          } else {
-            _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
-          }
-        } else {
-          _sink.writelnWithIndent('message: $message');
-        }
-      }
-      // Write the target.
-      var target = object.target;
-      switch (target) {
-        case ApplicationMacroDiagnosticTarget():
-          _sink.writelnWithIndent('target: ApplicationMacroDiagnosticTarget');
-          _sink.withIndent(() {
-            _sink.writelnWithIndent(
-              'annotationIndex: ${target.annotationIndex}',
-            );
-          });
-        case ElementMacroDiagnosticTarget():
-          _sink.writelnWithIndent('target: ElementMacroDiagnosticTarget');
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', target.element);
-          });
-        case ElementAnnotationMacroDiagnosticTarget():
-          _sink.writelnWithIndent(
-            'target: ElementAnnotationMacroDiagnosticTarget',
-          );
-          _sink.withIndent(() {
-            _elementPrinter.writeNamedElement('element', target.element);
-            _sink.writelnWithIndent(
-              'annotationIndex: ${target.annotationIndex}',
-            );
-          });
-        case TypeAnnotationMacroDiagnosticTarget():
-          _sink.writelnWithIndent(
-            'target: TypeAnnotationMacroDiagnosticTarget',
-          );
-          _sink.withIndent(() {
-            writeTypeAnnotationLocation(target.location);
-          });
-      }
-    }
-
-    if (e case MacroTargetElement macroTarget) {
-      _sink.writeElements(
-        'macroDiagnostics',
-        macroTarget.macroDiagnostics,
-        (diagnostic) {
-          switch (diagnostic) {
-            case ArgumentMacroDiagnostic():
-              _sink.writelnWithIndent('ArgumentMacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writelnWithIndent(
-                  'argumentIndex: ${diagnostic.argumentIndex}',
-                );
-                _sink.writelnWithIndent('message: ${diagnostic.message}');
-              });
-            case DeclarationsIntrospectionCycleDiagnostic():
-              _sink.writelnWithIndent(
-                'DeclarationsIntrospectionCycleDiagnostic',
-              );
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _elementPrinter.writeNamedElement(
-                  'introspectedElement',
-                  diagnostic.introspectedElement,
-                );
-                _sink.writeElements(
-                  'components',
-                  diagnostic.components,
-                  (component) {
-                    _sink.writelnWithIndent(
-                      'DeclarationsIntrospectionCycleComponent',
-                    );
-                    _sink.withIndent(() {
-                      _elementPrinter.writeNamedElement(
-                        'element',
-                        component.element,
-                      );
-                      _sink.writelnWithIndent(
-                        'annotationIndex: ${component.annotationIndex}',
-                      );
-                      _elementPrinter.writeNamedElement(
-                        'introspectedElement',
-                        component.introspectedElement,
-                      );
-                    });
-                  },
-                );
-              });
-            case ExceptionMacroDiagnostic():
-              _sink.writelnWithIndent('ExceptionMacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                if (!printMessagePatterns(diagnostic.message)) {
-                  _sink.writelnWithIndent(
-                    'message: ${diagnostic.message}',
-                  );
-                }
-                if (configuration.withMacroStackTraces) {
-                  _sink.writelnWithIndent(
-                    'stackTrace:\n${diagnostic.stackTrace}',
-                  );
-                }
-              });
-            case InvalidMacroTargetDiagnostic():
-              _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writeElements(
-                  'supportedKinds',
-                  diagnostic.supportedKinds,
-                  (kindName) {
-                    _sink.writelnWithIndent(kindName);
-                  },
-                );
-              });
-            case MacroDiagnostic():
-              _sink.writelnWithIndent('MacroDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent('message: MacroDiagnosticMessage');
-                _sink.withIndent(() {
-                  writeMessage(diagnostic.message);
-                });
-                _sink.writeElements(
-                  'contextMessages',
-                  diagnostic.contextMessages,
-                  (message) {
-                    _sink.writelnWithIndent('MacroDiagnosticMessage');
-                    _sink.withIndent(() {
-                      writeMessage(message);
-                    });
-                  },
-                );
-                _sink.writelnWithIndent(
-                  'severity: ${diagnostic.severity.name}',
-                );
-                if (diagnostic.correctionMessage case var correctionMessage?) {
-                  _sink.writelnWithIndent(
-                    'correctionMessage: $correctionMessage',
-                  );
-                }
-              });
-            case NotAllowedDeclarationDiagnostic():
-              _sink.writelnWithIndent('NotAllowedDeclarationDiagnostic');
-              _sink.withIndent(() {
-                _sink.writelnWithIndent(
-                  'annotationIndex: ${diagnostic.annotationIndex}',
-                );
-                _sink.writelnWithIndent(
-                  'phase: ${diagnostic.phase.name}',
-                );
-                var nodeRangesStr = diagnostic.nodeRanges
-                    .map((r) => '(${r.offset}, ${r.length})')
-                    .join(' ');
-                _sink.writelnWithIndent('nodeRanges: $nodeRangesStr');
-                _sink.writeln('---');
-                _sink.write(diagnostic.code);
-                _sink.writeln('---');
-              });
-          }
-        },
-      );
-    }
-  }
 
   void _writeMetadata(Element element) {
     if (configuration.withMetadata) {
@@ -2981,7 +2457,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -3198,7 +2673,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -3268,7 +2742,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
       writeLinking();
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -3369,7 +2842,6 @@ class _ElementWriter extends _AbstractElementWriter {
         });
       }
 
-      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -3432,13 +2904,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeEnclosingElement(e);
-
-    if (e.macroGenerated case var macroGenerated?) {
-      _sink.writelnWithIndent('macroGeneratedCode');
-      _sink.writeln('---');
-      _sink.write(macroGenerated.code);
-      _sink.writeln('---');
-    }
 
     if (configuration.withImports) {
       var imports = e.libraryImports.where((import) {

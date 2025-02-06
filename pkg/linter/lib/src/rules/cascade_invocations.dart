@@ -13,7 +13,8 @@ import '../extensions.dart';
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
 Element2? _getElementFromVariableDeclarationStatement(
-    VariableDeclarationStatement statement) {
+  VariableDeclarationStatement statement,
+) {
   var variables = statement.variables.variables;
   if (variables.length == 1) {
     var variable = variables.single;
@@ -31,7 +32,8 @@ Element2? _getElementFromVariableDeclarationStatement(
 }
 
 ExecutableElement2? _getExecutableElementFromMethodInvocation(
-    MethodInvocation node) {
+  MethodInvocation node,
+) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
     var executableElement = node.methodName.canonicalElement;
     if (executableElement is ExecutableElement2) {
@@ -67,17 +69,16 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 class CascadeInvocations extends LintRule {
   /// Default constructor.
   CascadeInvocations()
-      : super(
-          name: LintNames.cascade_invocations,
-          description: _desc,
-        );
+    : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.cascade_invocations;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
   }
@@ -86,8 +87,10 @@ class CascadeInvocations extends LintRule {
 /// A CascadableExpression is an object that is built from an expression and
 /// knows if it is able to join to another CascadableExpression.
 class _CascadableExpression {
-  static final nullCascadableExpression =
-      _CascadableExpression._internal(null, []);
+  static final nullCascadableExpression = _CascadableExpression._internal(
+    null,
+    [],
+  );
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
@@ -130,7 +133,8 @@ class _CascadableExpression {
   final List<AstNode> criticalNodes;
 
   factory _CascadableExpression.fromExpressionStatement(
-      ExpressionStatement statement) {
+    ExpressionStatement statement,
+  ) {
     var expression = statement.expression.unParenthesized;
     if (expression is AssignmentExpression) {
       return _CascadableExpression._fromAssignmentExpression(expression);
@@ -152,37 +156,53 @@ class _CascadableExpression {
   }
 
   factory _CascadableExpression.fromVariableDeclarationStatement(
-      VariableDeclarationStatement node) {
+    VariableDeclarationStatement node,
+  ) {
     var element = _getElementFromVariableDeclarationStatement(node);
-    return _CascadableExpression._internal(element, [],
-        canReceive: true, isCritical: true);
+    return _CascadableExpression._internal(
+      element,
+      [],
+      canReceive: true,
+      isCritical: true,
+    );
   }
 
   factory _CascadableExpression._fromAssignmentExpression(
-      AssignmentExpression node) {
+    AssignmentExpression node,
+  ) {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return _CascadableExpression._internal(
-          leftExpression.element, [node.rightHandSide],
-          canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
-          isCritical: true);
+        leftExpression.element,
+        [node.rightHandSide],
+        canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
+        isCritical: true,
+      );
     }
     // setters
     var variable = _getPrefixElementFromExpression(leftExpression);
-    var canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
+    var canReceive =
+        node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
         variable is VariableElement2 &&
         !variable.isStatic;
-    return _CascadableExpression._internal(variable, [node.rightHandSide],
-        canJoin: true, canReceive: canReceive, canBeCascaded: true);
+    return _CascadableExpression._internal(
+      variable,
+      [node.rightHandSide],
+      canJoin: true,
+      canReceive: canReceive,
+      canBeCascaded: true,
+    );
   }
 
   factory _CascadableExpression._fromCascadeExpression(CascadeExpression node) {
     var targetIsSimple = node.target is SimpleIdentifier;
     return _CascadableExpression._internal(
-        _getTargetElementFromCascadeExpression(node), node.cascadeSections,
-        canJoin: targetIsSimple,
-        canReceive: targetIsSimple,
-        canBeCascaded: true);
+      _getTargetElementFromCascadeExpression(node),
+      node.cascadeSections,
+      canJoin: targetIsSimple,
+      canReceive: targetIsSimple,
+      canBeCascaded: true,
+    );
   }
 
   factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
@@ -191,32 +211,45 @@ class _CascadableExpression {
     if (isNonStatic) {
       var targetIsSimple = node.target is SimpleIdentifier;
       return _CascadableExpression._internal(
-          _getTargetElementFromMethodInvocation(node), [node.argumentList],
-          canJoin: targetIsSimple,
-          canReceive: targetIsSimple,
-          canBeCascaded: true);
+        _getTargetElementFromMethodInvocation(node),
+        [node.argumentList],
+        canJoin: targetIsSimple,
+        canReceive: targetIsSimple,
+        canBeCascaded: true,
+      );
     }
     return nullCascadableExpression;
   }
 
   factory _CascadableExpression._fromPrefixedIdentifier(
-          PrefixedIdentifier node) =>
-      _CascadableExpression._internal(node.prefix.canonicalElement, [],
-          canJoin: true, canReceive: true, canBeCascaded: true);
+    PrefixedIdentifier node,
+  ) => _CascadableExpression._internal(
+    node.prefix.canonicalElement,
+    [],
+    canJoin: true,
+    canReceive: true,
+    canBeCascaded: true,
+  );
 
   factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(node.target.canonicalElement, [],
-        canJoin: targetIsSimple,
-        canReceive: targetIsSimple,
-        canBeCascaded: true);
+    return _CascadableExpression._internal(
+      node.target.canonicalElement,
+      [],
+      canJoin: targetIsSimple,
+      canReceive: targetIsSimple,
+      canBeCascaded: true,
+    );
   }
 
-  _CascadableExpression._internal(this.element, this.criticalNodes,
-      {this.canJoin = false,
-      this.canReceive = false,
-      this.canBeCascaded = false,
-      this.isCritical = false});
+  _CascadableExpression._internal(
+    this.element,
+    this.criticalNodes, {
+    this.canJoin = false,
+    this.canReceive = false,
+    this.canBeCascaded = false,
+    this.isCritical = false,
+  });
 
   /// Whether `this` is compatible to be joined with [expressionBox] with a
   /// cascade operation.
@@ -284,8 +317,9 @@ class _Visitor extends SimpleAstVisitor<void> {
             _CascadableExpression.fromVariableDeclarationStatement(statement);
       }
       if (statement is ExpressionStatement) {
-        currentExpressionBox =
-            _CascadableExpression.fromExpressionStatement(statement);
+        currentExpressionBox = _CascadableExpression.fromExpressionStatement(
+          statement,
+        );
       }
       if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
         rule.reportLint(statement);

@@ -507,11 +507,6 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     return new _in::ReversedListIterable::•<self::_NegativeLengthList&Object&ListMixin::E%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
-  }
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
-    return core::Iterable::iterableToFullString(list, "[", "]");
 }
 class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
   final field core::List<self::NegativeLengthList::E%> _list;
@@ -588,4 +583,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1128, effectively constant: 5
+Extra constant evaluation: evaluated: 1121, effectively constant: 5

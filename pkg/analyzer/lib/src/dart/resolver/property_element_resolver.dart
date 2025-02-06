@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -54,7 +55,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
       if (hasRead &&
-          result.getter == null &&
+          result.getter2 == null &&
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
@@ -66,7 +67,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (hasWrite &&
-          result.setter == null &&
+          result.setter2 == null &&
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
@@ -247,7 +248,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     Element? readElementRequested;
     Element? readElementRecovery;
-    DartType? getType;
+    TypeImpl? getType;
     if (hasRead) {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
@@ -266,8 +267,8 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      readElementRequested = readLookup?.requested;
-      if (readElementRequested is PropertyAccessorElement &&
+      readElementRequested = readLookup?.requested.asElement;
+      if (readElementRequested is PropertyAccessorElementOrMember &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
         getType = _resolver.flowAnalysis.flow
@@ -285,8 +286,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       var writeLookup = LexicalLookup.resolveSetter(scopeLookupResult) ??
           _resolver.thisLookupSetter(node);
-      writeElementRequested = writeLookup?.requested;
-      writeElementRecovery = writeLookup?.recovery;
+      writeElementRequested = writeLookup?.requested.asElement;
+      writeElementRecovery = writeLookup?.recovery.asElement;
 
       AssignmentVerifier(errorReporter).verify(
         node: node,
@@ -495,11 +496,11 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: propertyName,
     );
 
-    DartType? getType;
+    TypeImpl? getType;
     if (hasRead) {
-      var unpromotedType = switch (result.getter) {
-        MethodElement(:var type) => type,
-        PropertyAccessorElement(:var returnType) => returnType,
+      var unpromotedType = switch (result.getter2?.asElement) {
+        MethodElementOrMember(:var type) => type,
+        PropertyAccessorElementOrMember(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType
       };
       getType = _resolver.flowAnalysis.flow
@@ -510,12 +511,12 @@ class PropertyElementResolver with ScopeHelpers {
                           as PropertyTarget<ExpressionImpl>
                       : ExpressionPropertyTarget(target),
                   propertyName.name,
-                  result.getter,
+                  result.getter2?.asElement,
                   SharedTypeView(unpromotedType))
               ?.unwrapTypeView() ??
           unpromotedType;
 
-      _checkForStaticMember(target, propertyName, result.getter);
+      _checkForStaticMember(target, propertyName, result.getter2?.asElement);
       if (result.needsGetterError) {
         errorReporter.atNode(
           propertyName,
@@ -526,7 +527,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (hasWrite) {
-      _checkForStaticMember(target, propertyName, result.setter);
+      _checkForStaticMember(target, propertyName, result.setter2?.asElement);
       if (result.needsSetterError) {
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
@@ -538,10 +539,10 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     return PropertyElementResolverResult(
-      readElementRequested: result.getter,
-      readElementRecovery: result.setter,
-      writeElementRequested: result.setter,
-      writeElementRecovery: result.getter,
+      readElementRequested: result.getter2?.asElement,
+      readElementRecovery: result.setter2?.asElement,
+      writeElementRequested: result.setter2?.asElement,
+      writeElementRecovery: result.getter2?.asElement,
       atDynamicTarget: _typeSystem.isDynamicBounded(targetType),
       recordField: result.recordField,
       getType: getType,
@@ -631,7 +632,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElement;
     DartType? getType;
     if (hasRead) {
-      readElement = result.getter;
+      readElement = result.getter2?.asElement;
       if (readElement == null) {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
@@ -649,7 +650,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     ExecutableElement? writeElement;
     if (hasWrite) {
-      writeElement = result.setter;
+      writeElement = result.setter2?.asElement;
       if (writeElement == null) {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
@@ -809,9 +810,9 @@ class PropertyElementResolver with ScopeHelpers {
     }
     var targetType = target.staticType;
 
-    ExecutableElement? readElement;
+    ExecutableElementOrMember? readElement;
     ExecutableElement? writeElement;
-    DartType? getType;
+    TypeImpl? getType;
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
@@ -903,8 +904,8 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
   }) {
-    var readElement = result.getter;
-    var writeElement = result.setter;
+    var readElement = result.getter2?.asElement;
+    var writeElement = result.setter2?.asElement;
 
     var contextType = hasRead
         ? readElement.firstParameterType
@@ -926,12 +927,12 @@ class PropertyElementResolverResult {
   final Element? writeElementRecovery;
   final bool atDynamicTarget;
   final DartType? functionTypeCallType;
-  final RecordTypeField? recordField;
+  final RecordTypeFieldImpl? recordField;
   final DartType? getType;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `_` if `[]` or `[]=` are not resolved or invalid.
-  final DartType indexContextType;
+  final TypeImpl indexContextType;
 
   PropertyElementResolverResult({
     this.readElementRequested,

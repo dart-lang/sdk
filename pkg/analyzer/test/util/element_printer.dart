@@ -148,8 +148,17 @@ class ElementPrinter {
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case MultiplyDefinedElementImpl2():
-        _sink.write('<null>');
+      case MultiplyDefinedElementImpl2 multiElement:
+        _sink.writeln('multiplyDefinedElement');
+        _sink.withIndent(() {
+          for (var (i, element) in multiElement.conflictingElements2.indexed) {
+            if (i != 0) {
+              _sink.writeln();
+            }
+            _sink.writeIndent();
+            writeElement2(element);
+          }
+        });
       case NeverElementImpl():
         _sink.write('Never@-1');
       case ParameterMember():
@@ -199,6 +208,15 @@ class ElementPrinter {
       _sink.write('$name: ');
       writeElement2(element);
     });
+  }
+
+  void writelnNamedFragment(String name, Fragment? fragment) {
+    _sink.writeWithIndent('$name: ');
+    if (fragment != null) {
+      writelnFragmentReference(fragment);
+    } else {
+      _sink.writeln('<null>');
+    }
   }
 
   void writeNamedElement(String name, Element? element) {

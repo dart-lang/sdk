@@ -11,17 +11,19 @@ const _desc = r'Start multiline strings with a newline.';
 
 class LeadingNewlinesInMultilineStrings extends LintRule {
   LeadingNewlinesInMultilineStrings()
-      : super(
-          name: LintNames.leading_newlines_in_multiline_strings,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.leading_newlines_in_multiline_strings,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.leading_newlines_in_multiline_strings;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addSimpleStringLiteral(this, visitor);
@@ -49,7 +51,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitStringInterpolation(StringInterpolation node) {
     _visitSingleStringLiteral(
-        node, (node.elements.first as InterpolationString).contents.lexeme);
+      node,
+      (node.elements.first as InterpolationString).contents.lexeme,
+    );
   }
 
   void _visitSingleStringLiteral(SingleStringLiteral node, String lexeme) {

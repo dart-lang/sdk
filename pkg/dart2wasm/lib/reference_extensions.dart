@@ -14,7 +14,14 @@ extension GetterSetterReference on Reference {
 
   bool get isImplicitSetter {
     Member member = asMember;
-    return member is Field && member.setterReference == this;
+    if (member is Field) {
+      if (member.setterReference == this) return true;
+      if (member.isInstanceMember) {
+        return _isUncheckedEntrySetterReference ||
+            _isCheckedEntrySetterReference;
+      }
+    }
+    return false;
   }
 
   bool get isGetter {
@@ -36,6 +43,9 @@ extension GetterSetterReference on Reference {
 // Use Expandos to avoid keeping the procedure alive.
 final Expando<Reference> _tearOffReference = Expando();
 final Expando<Reference> _typeCheckerReference = Expando();
+final Expando<Reference> _checkedEntryReferences = Expando();
+final Expando<Reference> _uncheckedEntryReferences = Expando();
+final Expando<Reference> _bodyReferences = Expando();
 final Expando<Reference> _initializerReference = Expando();
 final Expando<Reference> _constructorBodyReference = Expando();
 
@@ -45,6 +55,21 @@ extension CustomReference on Member {
 
   Reference get typeCheckerReference =>
       _typeCheckerReference[this] ??= Reference()..node = this;
+
+  Reference get checkedEntryReference {
+    assert(_memberCanHaveMultipleEntryPoints(this));
+    return _checkedEntryReferences[this] ??= Reference()..node = this;
+  }
+
+  Reference get uncheckedEntryReference {
+    assert(_memberCanHaveMultipleEntryPoints(this));
+    return _uncheckedEntryReferences[this] ??= Reference()..node = this;
+  }
+
+  Reference get bodyReference {
+    assert(_memberCanHaveMultipleEntryPoints(this));
+    return _bodyReferences[this] ??= Reference()..node = this;
+  }
 
   Reference get initializerReference =>
       _initializerReference[this] ??= Reference()..node = this;
@@ -58,10 +83,36 @@ extension IsCustomReference on Reference {
 
   bool get isTypeCheckerReference => _typeCheckerReference[asMember] == this;
 
+  bool get isCheckedEntryReference => _checkedEntryReferences[asMember] == this;
+
+  bool get _isCheckedEntrySetterReference =>
+      (asMember is Field) && isCheckedEntryReference;
+
+  bool get isUncheckedEntryReference =>
+      _uncheckedEntryReferences[asMember] == this;
+
+  bool get _isUncheckedEntrySetterReference =>
+      (asMember is Field) && isUncheckedEntryReference;
+
+  bool get isBodyReference => _bodyReferences[asMember] == this;
+
   bool get isInitializerReference => _initializerReference[asMember] == this;
 
   bool get isConstructorBodyReference =>
       _constructorBodyReference[asMember] == this;
+
+  SynchronousProcedureKind get entryKind {
+    if (isUncheckedEntryReference) {
+      return SynchronousProcedureKind.unchecked;
+    }
+    if (isCheckedEntryReference) {
+      return SynchronousProcedureKind.checked;
+    }
+    if (isBodyReference) {
+      return SynchronousProcedureKind.body;
+    }
+    return SynchronousProcedureKind.normal;
+  }
 }
 
 extension ReferenceAs on Member {
@@ -76,4 +127,38 @@ extension ReferenceAs on Member {
             ? member.tearOffReference
             : member.reference;
   }
+}
+
+// Sanity check that [member] may have multiple entry points.
+bool _memberCanHaveMultipleEntryPoints(Member member) {
+  if (member is Field && member.hasSetter ||
+      member is Procedure && member.isSetter) {
+    // The unchecked entry will bypass type checks on the setter values.
+    return true;
+  }
+  if (member is Procedure &&
+      const [ProcedureKind.Method, ProcedureKind.Operator]
+          .contains(member.kind) &&
+      (member.function.positionalParameters.isNotEmpty ||
+          member.function.namedParameters.isNotEmpty ||
+          member.function.typeParameters.isNotEmpty)) {
+    // The unchecked entry will bypass type checks on the method.
+    return true;
+  }
+  return false;
+}
+
+enum SynchronousProcedureKind {
+  // A single procedure doing type argument checks, optional argument handling
+  // and the body.
+  normal,
+  // A entry function doing type argument checks, optional argument handling but
+  // delegates to the actual [body] function.
+  checked,
+  // A entry function doing optional argument handling but
+  // delegates to the actual [body] function.
+  unchecked,
+  // The body of a function excluding type checks and optional argument
+  // handling.
+  body,
 }

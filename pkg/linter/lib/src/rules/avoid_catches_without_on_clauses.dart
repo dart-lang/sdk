@@ -14,17 +14,19 @@ const _desc = r'Avoid catches without on clauses.';
 
 class AvoidCatchesWithoutOnClauses extends LintRule {
   AvoidCatchesWithoutOnClauses()
-      : super(
-          name: LintNames.avoid_catches_without_on_clauses,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_catches_without_on_clauses,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_catches_without_on_clauses;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }

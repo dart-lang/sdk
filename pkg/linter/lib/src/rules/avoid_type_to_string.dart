@@ -14,19 +14,21 @@ const _desc =
 
 class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
-      : super(
-          name: LintNames.avoid_type_to_string,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_type_to_string;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor =
-        _Visitor(this, context.typeSystem, context.typeProvider.typeType);
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
+    var visitor = _Visitor(
+      this,
+      context.typeSystem,
+      context.typeProvider.typeType,
+    );
     // Gathering meta information at these nodes.
     // Nodes visited in DFS, so this will be called before
     // each visitMethodInvocation.
@@ -89,14 +91,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isToStringOnCoreTypeClass(
-          DartType? targetType, SimpleIdentifier methodIdentifier) =>
+    DartType? targetType,
+    SimpleIdentifier methodIdentifier,
+  ) =>
       targetType != null &&
       methodIdentifier.name == 'toString' &&
       _isSimpleIdDeclByCoreObj(methodIdentifier) &&
       typeSystem.isSubtypeOf(targetType, typeType);
 
   void _reportIfToStringOnCoreTypeClass(
-      DartType? targetType, SimpleIdentifier methodIdentifier) {
+    DartType? targetType,
+    SimpleIdentifier methodIdentifier,
+  ) {
     if (_isToStringOnCoreTypeClass(targetType, methodIdentifier)) {
       rule.reportLint(methodIdentifier);
     }

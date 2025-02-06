@@ -18,7 +18,8 @@ class JoinReturnWithAssignmentTest extends LintRuleTest {
   String get lintRule => LintNames.join_return_with_assignment;
 
   test_class_field_propertyAccess() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int f = 0;
 }
@@ -27,13 +28,14 @@ int f(A a) {
   a.f = 0;
   return a.f;
 }
-''', [
-      lint(41, 8),
-    ]);
+''',
+      [lint(41, 8)],
+    );
   }
 
   test_class_field_propertyAccess_nested() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int f = 0;
 }
@@ -46,9 +48,9 @@ int f(B b) {
   b.a.f = 0;
   return b.a.f;
 }
-''', [
-      lint(67, 10),
-    ]);
+''',
+      [lint(67, 10)],
+    );
   }
 
   test_class_field_propertyAccess_nested_notSame() async {
@@ -82,7 +84,8 @@ int f(A a1, A a2) {
   }
 
   test_class_field_withoutPrefix() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int? _a;
   int? foo() {
@@ -90,13 +93,14 @@ class A {
     return _a;
   }
 }
-''', [
-      lint(40, 9),
-    ]);
+''',
+      [lint(40, 9)],
+    );
   }
 
   test_class_field_withoutPrefix_ifThenElse() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int? _a;
   int? foo(bool b) {
@@ -109,32 +113,33 @@ class A {
     }
   }
 }
-''', [
-      lint(61, 7),
-      lint(105, 7),
-    ]);
+''',
+      [lint(61, 7), lint(105, 7)],
+    );
   }
 
   test_localVariable_assignment() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int f(int a) {
   a = 0;
   return a;
 }
-''', [
-      lint(17, 6),
-    ]);
+''',
+      [lint(17, 6)],
+    );
   }
 
   test_localVariable_assignment_compound() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int f(int a) {
   a += 0;
   return a;
 }
-''', [
-      lint(17, 7),
-    ]);
+''',
+      [lint(17, 7)],
+    );
   }
 
   @failingTest
@@ -172,25 +177,27 @@ int f(int a) {
   }
 
   test_localVariable_postfix() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int f(int a) {
   a++;
   return a;
 }
-''', [
-      lint(17, 4),
-    ]);
+''',
+      [lint(17, 4)],
+    );
   }
 
   test_localVariable_prefix() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int f(int a) {
   ++a;
   return a;
 }
-''', [
-      lint(17, 4),
-    ]);
+''',
+      [lint(17, 4)],
+    );
   }
 
   test_patternAssignment_multiple() async {

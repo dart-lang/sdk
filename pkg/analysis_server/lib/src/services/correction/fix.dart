@@ -577,6 +577,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Convert to use '?.'",
   );
+  static const CONVERT_TO_NULL_AWARE_LIST_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareListElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY = FixKind(
+    'dart.fix.convert.toNullAwareMapEntryKey',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE = FixKind(
+    'dart.fix.convert.toNullAwareMayEntryValue',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
+  static const CONVERT_TO_NULL_AWARE_SET_ELEMENT = FixKind(
+    'dart.fix.convert.toNullAwareSetElement',
+    DartFixKindPriority.standard,
+    "Convert to use '?'",
+  );
   static const CONVERT_TO_NULL_AWARE_MULTI = FixKind(
     'dart.fix.convert.toNullAware.multi',
     DartFixKindPriority.inFile,
@@ -1134,6 +1154,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove {0}commas from {1} everywhere in file',
   );
+  static const REMOVE_COMMENT = FixKind(
+    'dart.fix.remove.comment',
+    DartFixKindPriority.standard,
+    'Remove the comment',
+  );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',
     DartFixKindPriority.standard,
@@ -1265,6 +1290,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.ifNullOperator.multi',
     DartFixKindPriority.inFile,
     "Remove unnecessary '??' operators everywhere in file",
+  );
+  static const REMOVE_IGNORED_DIAGNOSTIC = FixKind(
+    'dart.fix.remove.ignored.diagnostic',
+    DartFixKindPriority.standard,
+    'Remove {0}',
+  );
+  static const REMOVE_IGNORED_DIAGNOSTIC_MULTI = FixKind(
+    'dart.fix.remove.ignored.diagnostic.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary ignored diagnostics everywhere in file',
   );
   static const REMOVE_INVOCATION = FixKind(
     'dart.fix.remove.invocation',
@@ -1507,6 +1542,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.unnecessaryContainer.multi',
     DartFixKindPriority.inFile,
     "Remove unnecessary 'Container's in file",
+  );
+  static const REMOVE_UNNECESSARY_IGNORE_COMMENT = FixKind(
+    'dart.fix.remove.ignore.comment',
+    DartFixKindPriority.standard,
+    'Remove unnecessary ignore comment',
+  );
+  static const REMOVE_UNNECESSARY_IGNORE_COMMENT_MULTI = FixKind(
+    'dart.fix.remove.ignore.comment.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary ignore comments everywhere in file',
   );
   static const REMOVE_UNNECESSARY_LATE = FixKind(
     'dart.fix.remove.unnecessaryLate',

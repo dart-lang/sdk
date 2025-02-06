@@ -188,6 +188,7 @@ linter:
     - unnecessary_constructor_name
     - unnecessary_final
     - unnecessary_getters_setters
+    - unnecessary_ignore
     - unnecessary_lambdas
     - unnecessary_late
     - unnecessary_library_directive

@@ -9,9 +9,9 @@ import "helpers/on_object.dart" deferred as p1 hide OnObject;
 void main() {
   Object o = 1;
   OnObject(o).onObject;
-//^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: 'OnObject'.
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: 'OnObject'.
   o.onObject;
   //^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER

@@ -46,7 +46,35 @@ class PluginWatcher implements DriverWatcher {
     // We temporarily support both "legacy plugins" and (new) "plugins." We
     // restrict the number of legacy plugins to 1, for performance reasons.
     // At some point, we will stop adding legacy plugins to the context root.
+    _addLegacyPlugins(driver);
 
+    if (driver.pluginConfigurations.isEmpty) {
+      // Call the plugin manager "initialized."
+      if (!manager.initializedCompleter.isCompleted) {
+        manager.initializedCompleter.complete();
+      }
+      return;
+    }
+
+    // Now we add any specified (new) plugins to the context, as a single
+    // "legacy plugin" shared entrypoint.
+    // Add a shared entrypoint plugin to the context root, only if one or more
+    // plugins are specified in analysis options.
+    _addPlugins(driver);
+  }
+
+  /// The context manager has just removed the given analysis [driver].
+  @override
+  void removedDriver(AnalysisDriver driver) {
+    var info = _driverInfo[driver];
+    if (info == null) {
+      throw StateError('Cannot remove a driver that was not added');
+    }
+    manager.removedContextRoot(driver.analysisContext!.contextRoot);
+    _driverInfo.remove(driver);
+  }
+
+  void _addLegacyPlugins(AnalysisDriver driver) {
     for (var hostPackageName in driver.enabledLegacyPluginNames) {
       //
       // Determine whether the package exists and defines a plugin.
@@ -74,44 +102,36 @@ class PluginWatcher implements DriverWatcher {
         isLegacyPlugin: true,
       );
     }
-
-    // Now we add any specified (new) plugins to the context, as a single
-    // "legacy plugin" shared entrypoint.
-    var pluginConfigurations = driver.pluginConfigurations;
-    // Add a shared entrypoint plugin to the context root, only if one or more
-    // plugins are specified in analysis options.
-    if (pluginConfigurations.isNotEmpty) {
-      var contextRoot = driver.analysisContext!.contextRoot;
-      var packageGenerator = PluginPackageGenerator(pluginConfigurations);
-      // The path here just needs to be unique per context root.
-      var sharedPluginFolder = manager.pluginStateFolder(contextRoot.root.path)
-        ..create();
-      sharedPluginFolder
-          .getChildAssumingFile(file_paths.pubspecYaml)
-          .writeAsStringSync(packageGenerator.generatePubspec());
-      var libFolder = sharedPluginFolder.getChildAssumingFolder('bin')
-        ..create();
-      libFolder
-          .getChildAssumingFile('plugin.dart')
-          .writeAsStringSync(packageGenerator.generateEntrypoint());
-
-      manager.addPluginToContextRoot(
-        contextRoot,
-        sharedPluginFolder.path,
-        isLegacyPlugin: false,
-      );
-    }
   }
 
-  /// The context manager has just removed the given analysis [driver].
-  @override
-  void removedDriver(AnalysisDriver driver) {
-    var info = _driverInfo[driver];
-    if (info == null) {
-      throw StateError('Cannot remove a driver that was not added');
-    }
-    manager.removedContextRoot(driver.analysisContext!.contextRoot);
-    _driverInfo.remove(driver);
+  void _addPlugins(AnalysisDriver driver) {
+    var pluginConfigurations = driver.pluginConfigurations;
+    var contextRoot = driver.analysisContext!.contextRoot;
+    var packageGenerator = PluginPackageGenerator(pluginConfigurations);
+    // The path here just needs to be unique per context root.
+
+    var sharedPluginFolder = manager.pluginStateFolder(contextRoot.root.path);
+    manager.instrumentationService.logInfo(
+      "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
+      "context root: '${contextRoot.root.path}'",
+    );
+    sharedPluginFolder.create();
+    sharedPluginFolder
+        .getChildAssumingFile(file_paths.pubspecYaml)
+        .writeAsStringSync(packageGenerator.generatePubspec());
+    var binFolder = sharedPluginFolder.getChildAssumingFolder('bin')..create();
+    binFolder
+        .getChildAssumingFile('plugin.dart')
+        .writeAsStringSync(packageGenerator.generateEntrypoint());
+    manager.instrumentationService.logInfo(
+      'Adding ${driver.pluginConfigurations.length} analyzer plugins for '
+      "context root: '${contextRoot.root.path}'",
+    );
+    manager.addPluginToContextRoot(
+      contextRoot,
+      sharedPluginFolder.path,
+      isLegacyPlugin: false,
+    );
   }
 
   /// Return the path to the root of the SDK being used by the given analysis

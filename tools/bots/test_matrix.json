@@ -201,7 +201,6 @@
       "tests/language/",
       "tests/lib/",
       "tests/light_unittest.dart",
-      "tests/macro_build/",
       "tests/search/",
       "tests/standalone/",
       "tests/ffi/",
@@ -479,7 +478,8 @@
     "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
-          "-O1"
+          "-O1",
+          "--no-strip-wasm"
         ],
         "use-sdk": true,
         "host-asserts": false,
@@ -1772,7 +1772,24 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "runtime/bin:dart",
+            "runtime/bin:run_vm_tests"
+          ]
+        },
+        {
+          "name": "build dart - step 3 - runtime - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
@@ -1806,12 +1823,26 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
-            "dartaotruntime",
-            "gen_snapshot",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - runtime - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "build dart - step 3 - runtime/bin:dart - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
             "runtime"
           ]
         },
@@ -3176,11 +3207,10 @@
           ]
         },
         {
-          "name": "package unit tests and macro build tests",
+          "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)",
-            "macro_build"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3203,14 +3233,29 @@
           ]
         },
         {
-          "name": "build dart - step 1 - divided to avoid timeout",
+          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime/bin:dart",
+            "runtime/bin:run_vm_tests"
+          ]
+        },
+        {
+          "name": "build dart - step 3 - runtime - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "runtime"
           ]
         },
         {
-          "name": "build dart - step 2 - divided to avoid timeout",
+          "name": "build dart - step 4 - sdk, ddc_stable_test - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",

@@ -22,10 +22,7 @@ class UseTestThrowsMatchersTest extends LintRuleTest {
     super.setUp();
     var testApiPath = '$workspaceRootPath/test_api';
     var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_api',
-      rootPath: testApiPath,
-    );
+    packageConfigBuilder.add(name: 'test_api', rootPath: testApiPath);
     writeTestPackageConfig(packageConfigBuilder);
     newFile('$testApiPath/lib/src/frontend/expect.dart', r'''
 void expect(dynamic actual, dynamic matcher) {}
@@ -38,7 +35,8 @@ export 'src/frontend/expect.dart';
   }
 
   test_failInTry() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:test_api/test_api.dart';
 
 void f() {
@@ -47,9 +45,9 @@ void f() {
     fail('fail');
   } catch (e) {}
 }
-''', [
-      lint(74, 13),
-    ]);
+''',
+      [lint(74, 13)],
+    );
   }
 
   test_failWithExpectInCatch() async {

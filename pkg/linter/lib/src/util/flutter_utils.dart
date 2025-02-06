@@ -81,14 +81,16 @@ class _Flutter {
   final Uri _uriFoundation;
 
   _Flutter(this.packageName, String uriPrefix)
-      : widgetsUri = '$uriPrefix/widgets.dart',
-        _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
-        _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
-        _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
-        _uriFoundation = Uri.parse('$uriPrefix/src/foundation/constants.dart');
+    : widgetsUri = '$uriPrefix/widgets.dart',
+      _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
+      _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
+      _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
+      _uriFoundation = Uri.parse('$uriPrefix/src/foundation/constants.dart');
 
-  bool hasWidgetAsAscendant(InterfaceElement2? element,
-      [Set<InterfaceElement2>? alreadySeen]) {
+  bool hasWidgetAsAscendant(
+    InterfaceElement2? element, [
+    Set<InterfaceElement2>? alreadySeen,
+  ]) {
     if (element == null) return false;
 
     if (isExactly(element, _nameWidget, _uriFramework)) return true;
@@ -96,9 +98,10 @@ class _Flutter {
     alreadySeen ??= {};
     if (!alreadySeen.add(element)) return false;
 
-    var type = element.firstFragment.isAugmentation
-        ? element.thisType
-        : element.supertype;
+    var type =
+        element.firstFragment.isAugmentation
+            ? element.thisType
+            : element.supertype;
     return hasWidgetAsAscendant(type?.element3, alreadySeen);
   }
 
@@ -134,13 +137,15 @@ class _Flutter {
 
   bool isState(InterfaceElement2 element) =>
       isExactly(element, _nameState, _uriFramework) ||
-      element.allSupertypes
-          .any((type) => isExactly(type.element3, _nameState, _uriFramework));
+      element.allSupertypes.any(
+        (type) => isExactly(type.element3, _nameState, _uriFramework),
+      );
 
   bool isStatefulWidget(ClassElement2 element) =>
       isExactly(element, _nameStatefulWidget, _uriFramework) ||
-      element.allSupertypes.any((type) =>
-          isExactly(type.element3, _nameStatefulWidget, _uriFramework));
+      element.allSupertypes.any(
+        (type) => isExactly(type.element3, _nameStatefulWidget, _uriFramework),
+      );
 
   bool isWidget(InterfaceElement2 element) {
     if (isExactly(element, _nameWidget, _uriFramework)) {
@@ -171,8 +176,9 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
 
     if (isExactlyWidget) return true;
 
-    return self.allSupertypes
-        .any((type) => type.element3._isExactly(_nameWidget, _uriFramework));
+    return self.allSupertypes.any(
+      (type) => type.element3._isExactly(_nameWidget, _uriFramework),
+    );
   }
 
   /// Whether this is the exact [type] defined in the file with the given [uri].
@@ -184,7 +190,9 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   }
 
   static bool _hasWidgetAsAscendant(
-      InterfaceElement2? element, Set<InterfaceElement2> alreadySeen) {
+    InterfaceElement2? element,
+    Set<InterfaceElement2> alreadySeen,
+  ) {
     if (element == null) return false;
     if (element.isExactlyWidget) return true;
 

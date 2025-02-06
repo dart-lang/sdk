@@ -11,10 +11,7 @@ const _desc = r'Sort pub dependencies alphabetically.';
 
 class SortPubDependencies extends LintRule {
   SortPubDependencies()
-      : super(
-          name: LintNames.sort_pub_dependencies,
-          description: _desc,
-        );
+    : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
@@ -51,8 +48,9 @@ class Visitor extends PubspecVisitor<void> {
       return lc1.compareTo(lc2);
     }
 
-    var depsByLocation = dependencies.toList()
-      ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
+    var depsByLocation =
+        dependencies.toList()
+          ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
     var previousName = '';
     for (var dep in depsByLocation) {
       var name = dep.name;

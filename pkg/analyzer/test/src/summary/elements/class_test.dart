@@ -18432,6 +18432,61 @@ library
 ''');
   }
 
+  test_class_lazy_constructors() async {
+    var library = await buildLibrary('''
+class A {
+  A.named();
+}
+''');
+
+    var constructors = library.getClass2('A')!.constructors2;
+    expect(constructors, hasLength(1));
+  }
+
+  test_class_lazy_fields() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var fields = library.getClass2('A')!.fields2;
+    expect(fields, hasLength(1));
+  }
+
+  test_class_lazy_getters() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var getters = library.getClass2('A')!.getters2;
+    expect(getters, hasLength(1));
+  }
+
+  test_class_lazy_methods() async {
+    var library = await buildLibrary('''
+class A {
+  void foo() {}
+}
+''');
+
+    var methods = library.getClass2('A')!.methods2;
+    expect(methods, hasLength(1));
+  }
+
+  test_class_lazy_setters() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+
+    var setters = library.getClass2('A')!.setters2;
+    expect(setters, hasLength(1));
+  }
+
   test_class_method_abstract() async {
     var library = await buildLibrary('abstract class C { f(); }');
     checkElementText(library, r'''
@@ -20683,7 +20738,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::A
           element: <testLibrary>::@typeAlias::A
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20757,7 +20812,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20894,7 +20949,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -20903,7 +20958,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21108,7 +21163,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21117,7 +21172,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21193,7 +21248,7 @@ library
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21289,7 +21344,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-    class D
+    notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
@@ -21343,7 +21398,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21397,7 +21452,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21534,7 +21589,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::G
           element: <testLibrary>::@typeAlias::G
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -21595,7 +21650,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25504,7 +25559,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25567,7 +25622,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25624,7 +25679,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25678,7 +25733,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -25759,7 +25814,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25846,7 +25901,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -25936,7 +25991,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26026,7 +26081,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26089,7 +26144,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26143,7 +26198,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26197,7 +26252,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26251,7 +26306,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
@@ -26327,7 +26382,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -26412,7 +26467,7 @@ library
             X @10
               element: <not-implemented>
   classes
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -26477,7 +26532,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -26534,7 +26589,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -29194,7 +29249,7 @@ library
               element: <testLibraryFragment>::@class::E::@constructor::new#element
               typeName: E
   classes
-    class alias C
+    notSimplyBounded class alias C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -34978,7 +35033,7 @@ library
                   leftOperand: AugmentedExpression
                     augmentedKeyword: augmented @65
                     element: <testLibraryFragment>::@class::A::@field::foo
-                    element2: <testLibraryFragment>::@class::A::@field::foo#element
+                    fragment: <testLibraryFragment>::@class::A::@field::foo
                     staticType: int
                   operator: + @75
                   rightOperand: IntegerLiteral
@@ -42800,84 +42855,6 @@ library
 ''');
   }
 
-  test_modifiers_macro() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment macro class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-macro class A {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        macro class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment macro class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-''');
-  }
-
   test_modifiers_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -43237,7 +43214,7 @@ library
           typeParameters
             covariant T @37
               bound: A<dynamic>
-              defaultType: A<dynamic>
+              defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@class::A
 ----------------------------------------
 library
@@ -43272,7 +43249,7 @@ library
             T @37
               element: <not-implemented>
   classes
-    class A
+    notSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters

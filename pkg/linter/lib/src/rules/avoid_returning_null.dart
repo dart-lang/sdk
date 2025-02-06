@@ -10,11 +10,11 @@ const _desc =
 
 class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
-      : super(
-          name: LintNames.avoid_returning_null,
-          description: _desc,
-          state: State.removed(since: dart3_3),
-        );
+    : super(
+        name: LintNames.avoid_returning_null,
+        description: _desc,
+        state: State.removed(since: dart3_3),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

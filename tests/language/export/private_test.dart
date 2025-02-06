@@ -4,7 +4,7 @@
 // Check that private dart:_ libraries cannot be imported.
 
 export "dart:_internal";
-// [error line 6, column 1, length 24]
+// [error column 1, length 24]
 // [analyzer] COMPILE_TIME_ERROR.EXPORT_INTERNAL_LIBRARY
 // [cfe] Can't access platform private library.
 

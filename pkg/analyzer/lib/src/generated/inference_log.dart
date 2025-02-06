@@ -4,9 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 final bool _assertionsEnabled = () {
@@ -73,9 +72,7 @@ enum ExpressionVisitCodePath {
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
 /// functionality.
 abstract interface class InferenceLogWriter
-    implements
-        SharedInferenceLogWriter<DartType, DartType,
-            TypeParameterElementImpl2> {
+    implements SharedInferenceLogWriter {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
@@ -109,10 +106,8 @@ abstract interface class InferenceLogWriter
 
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
-final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
-    DartType,
-    DartType,
-    TypeParameterElementImpl2> implements InferenceLogWriter {
+final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
+    implements InferenceLogWriter {
   /// Whether type inference is currently inside the body of a top level
   /// function or method, or the initializer of a top level variable or field,
   /// or the initializers and body of a constructor.
@@ -159,7 +154,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
   }
 
   @override
-  void enterExpression(covariant Expression node, DartType contextType) {
+  void enterExpression(covariant Expression node, TypeImpl contextType) {
     assert(
         !_inBodyOrInitializer || _expressionVisitCodePaths[node] != null,
         'When in a body or initializer, setExpressionVisitSource should be '
@@ -174,7 +169,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
 
   @override
   void enterExtensionOverride(
-      covariant ExtensionOverride node, DartType contextType) {
+      covariant ExtensionOverride node, TypeImpl contextType) {
     checkCall(
         method: 'enterExtensionOverride',
         arguments: [node, contextType],

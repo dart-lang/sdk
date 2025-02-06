@@ -12,17 +12,16 @@ const _desc = r'Unnecessary `toList()` in spreads.';
 
 class UnnecessaryToListInSpreads extends LintRule {
   UnnecessaryToListInSpreads()
-      : super(
-          name: LintNames.unnecessary_to_list_in_spreads,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_to_list_in_spreads, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_to_list_in_spreads;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSpreadElement(this, visitor);
   }

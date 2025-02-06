@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -21,9 +18,9 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 class FunctionTypeBuilder extends TypeBuilder {
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
-  final List<TypeParameterElement> typeFormals;
-  final List<ParameterElement> parameters;
-  final DartType returnType;
+  final List<TypeParameterElementImpl2> typeParameters;
+  final List<FormalParameterElementImpl> formalParameters;
+  final TypeImpl returnType;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -37,11 +34,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  FunctionType? _type;
+  FunctionTypeImpl? _type;
 
   FunctionTypeBuilder(
-    this.typeFormals,
-    this.parameters,
+    this.typeParameters,
+    this.formalParameters,
     this.returnType,
     this.nullabilitySuffix, {
     this.node,
@@ -60,6 +57,22 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
   }
 
+  factory FunctionTypeBuilder.v2({
+    required List<TypeParameterElementImpl2> typeParameters,
+    required List<FormalParameterElementImpl> formalParameters,
+    required TypeImpl returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    GenericFunctionTypeImpl? node,
+  }) {
+    return FunctionTypeBuilder(
+      typeParameters,
+      formalParameters,
+      returnType,
+      nullabilitySuffix,
+      node: node,
+    );
+  }
+
   @override
   R accept<R>(TypeVisitor<R> visitor) {
     if (visitor is LinkingTypeVisitor<R>) {
@@ -71,34 +84,33 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build() {
+  TypeImpl build() {
     var type = _type;
     if (type != null) {
       return type;
     }
 
-    for (var typeParameter in typeFormals) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
-      var bound = typeParameterImpl.bound;
+    for (var typeParameter in typeParameters) {
+      var bound = typeParameter.bound;
       if (bound != null) {
-        typeParameterImpl.bound = _buildType(bound);
+        typeParameter.bound = _buildType(bound);
       }
     }
 
-    for (var parameter in parameters) {
-      (parameter as ParameterElementImpl).type = _buildType(parameter.type);
+    for (var formalParameter in formalParameters) {
+      formalParameter.type = _buildType(formalParameter.type);
     }
 
     var builtReturnType = _buildType(returnType);
-    type = FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
+    type = FunctionTypeImpl.v2(
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
       returnType: builtReturnType,
       nullabilitySuffix: nullabilitySuffix,
     );
 
-    var fresh = getFreshTypeParameters(typeFormals);
-    type = fresh.applyToFunctionType(type) as FunctionTypeImpl;
+    var fresh = getFreshTypeParameters2(typeParameters);
+    type = fresh.applyToFunctionType(type);
 
     _type = type;
     node?.type = type;
@@ -109,14 +121,14 @@ class FunctionTypeBuilder extends TypeBuilder {
   String toString() {
     var buffer = StringBuffer();
 
-    if (typeFormals.isNotEmpty) {
+    if (typeParameters.isNotEmpty) {
       buffer.write('<');
-      buffer.write(typeFormals.join(', '));
+      buffer.write(typeParameters.join(', '));
       buffer.write('>');
     }
 
     buffer.write('(');
-    buffer.write(parameters.join(', '));
+    buffer.write(formalParameters.join(', '));
     buffer.write(')');
 
     buffer.write(' → ');
@@ -132,19 +144,19 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     return FunctionTypeBuilder(
-      typeFormals,
-      parameters,
+      typeParameters,
+      formalParameters,
       returnType,
       nullabilitySuffix,
       node: node,
     );
   }
 
-  static List<ParameterElementImpl> getParameters(
-    FormalParameterList node,
+  static List<FormalParameterElementImpl> getParameters(
+    FormalParameterListImpl node,
   ) {
-    return node.parameters.asImpl.map((parameter) {
-      return ParameterElementImpl.synthetic(
+    return node.parameters.map((parameter) {
+      return FormalParameterElementImpl.synthetic(
         parameter.name?.lexeme ?? '',
         _getParameterType(parameter),
         parameter.kind,
@@ -153,7 +165,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
-  static DartType _buildType(DartType type) {
+  static TypeImpl _buildType(TypeImpl type) {
     if (type is TypeBuilder) {
       return type.build();
     } else {
@@ -162,7 +174,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getNodeType(TypeAnnotation? node) {
+  static TypeImpl _getNodeType(TypeAnnotation? node) {
     if (node == null) {
       return _dynamicType;
     } else {
@@ -171,12 +183,12 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getParameterType(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
+  static DartType _getParameterType(FormalParameterImpl node) {
+    if (node is DefaultFormalParameterImpl) {
       return _getParameterType(node.parameter);
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is SimpleFormalParameterImpl) {
       return _getNodeType(node.type);
-    } else if (node is FunctionTypedFormalParameter) {
+    } else if (node is FunctionTypedFormalParameterImpl) {
       NullabilitySuffix nullabilitySuffix;
       if (node.question != null) {
         nullabilitySuffix = NullabilitySuffix.question;
@@ -195,10 +207,12 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
   }
 
-  static List<TypeParameterElement> _getTypeParameters(
-    TypeParameterList? node,
+  static List<TypeParameterElementImpl2> _getTypeParameters(
+    TypeParameterListImpl? node,
   ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement!).toFixedList();
+    return node.typeParameters.map((node) {
+      return node.declaredFragment!.element;
+    }).toFixedList();
   }
 }

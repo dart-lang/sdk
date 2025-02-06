@@ -29,9 +29,9 @@ Future<void> main() async {
   Expect.equals(2, Lates.withInitializer);
   Expect.equals(3, LatesGeneric.withInitializer);
 }
+
 /** DIFF **/
 /*
-@@ -24,18 +24,8 @@
    Expect.throws(() => Lates.noInitializer);
    Expect.throws(() => LatesGeneric.noInitializer);
  

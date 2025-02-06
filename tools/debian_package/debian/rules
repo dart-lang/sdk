@@ -1,0 +1,35 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+# Nop
+override_dh_auto_clean:
+
+# Nop
+override_dh_auto_configure:
+
+# Nop
+override_dh_auto_build:
+
+# Nop
+override_dh_auto_test:
+
+# Nop
+override_dh_strip:
+
+# Nop
+override_dh_strip_nondeterminism:
+
+# This override allows us to ignore spurious missing library errors when
+# cross-compiling.
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info -l "${LIB_DIR}"
+
+override_dh_auto_install:
+	mkdir -p debian/tmp/out
+	cp -R ../dart-sdk debian/tmp/out
+	mv debian/tmp/out/dart-sdk debian/tmp/out/dart
+	dh_install
+	dh_link

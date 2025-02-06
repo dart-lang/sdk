@@ -1831,30 +1831,6 @@ package:aaa/a.dart::<fragment>::@function::main
 ''');
   }
 
-  test_searchReferences_macroGenerated_references() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    await resolveTestCode('''
-import 'append.dart';
-
-class A {}
-
-@DeclareInLibrary('void f() { A; }')
-class B {
-  void foo() { A; }
-}
-''');
-
-    var element = findElement2.class_('A');
-    await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::B::@method::foo
-  97 7:16 |A| REFERENCE
-<testLibrary>::@fragment::package:test/test.macro.dart::@function::f
-  46 3:12 |A| REFERENCE
-''');
-  }
 
   test_searchReferences_MethodElement_class() async {
     await resolveTestCode('''
@@ -2722,7 +2698,7 @@ void f(x) {
   v();
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v) =');
+    var element = findNode.bindPatternVariableElement('v) =');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   29 3:3 |v| WRITE
@@ -2740,7 +2716,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v)');
+    var element = findNode.bindPatternVariableElement('v)');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   46 3:5 |v| READ
@@ -2756,7 +2732,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('v]');
+    var element = findNode.bindPatternVariableElement('v]');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   57 3:5 |v| READ
@@ -2788,7 +2764,7 @@ Object f(Object? x) => switch (0) {
   _ => -1,
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v');
+    var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   49 2:14 |v| READ
@@ -2804,7 +2780,7 @@ var f = switch (0) {
   _ => -1,
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v');
+    var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@topLevelVariable::f
   34 2:14 |v| READ
@@ -2824,7 +2800,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v when');
+    var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   55 3:21 |v| READ
@@ -2845,7 +2821,7 @@ void f(Object? x) {
   }
 }
 ''');
-    var element = findNode.bindPatternVariableElement2('int v when');
+    var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   55 3:21 |v| READ
@@ -3088,45 +3064,6 @@ class A {}
     expect(c.id, endsWith('c.dart;C'));
   }
 
-  test_subtypes_class_macroGenerated() async {
-    if (!configureWithCommonMacros()) {
-      return;
-    }
-
-    await resolveTestCode('''
-import 'append.dart';
-
-class A {}
-
-@DeclareTypesPhase('C', """
-class C extends A {
-  void methodC() {}
-}
-""")
-class B extends A {
-  void methodB() {}
-}
-''');
-    var A = findElement2.class_('A');
-
-    // Search by 'type'.
-    var subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: A,
-    );
-    expect(subtypes, hasLength(2));
-
-    var B = subtypes.singleWhere((r) => r.name == 'B');
-    var C = subtypes.singleWhere((r) => r.name == 'C');
-
-    expect(B.libraryUri, testUriStr);
-    expect(B.id, '$testUriStr;$testUriStr;B');
-    expect(B.members, ['methodB']);
-
-    expect(C.libraryUri, testUriStr);
-    expect(C.id, 'package:test/test.dart;package:test/test.macro.dart;C');
-    expect(C.members, ['methodC']);
-  }
 
   test_subtypes_enum() async {
     await resolveTestCode('''

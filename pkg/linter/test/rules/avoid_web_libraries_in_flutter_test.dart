@@ -67,9 +67,7 @@ flutter:
 // ignore: unused_import
 import 'dart:html';
 ''');
-    await assertDiagnosticsInFile(mainFile.path, [
-      lint(25, 19),
-    ]);
+    await assertDiagnosticsInFile(mainFile.path, [lint(25, 19)]);
   }
 
   test_noPubspec() async {

@@ -14,17 +14,16 @@ const _desc = r'Name types using UpperCamelCase.';
 
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
-      : super(
-          name: LintNames.camel_case_types,
-          description: _desc,
-        );
+    : super(name: LintNames.camel_case_types, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.camel_case_types;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addGenericTypeAlias(this, visitor);
     registry.addClassDeclaration(this, visitor);

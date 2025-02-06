@@ -421,6 +421,8 @@ List<LspEntity> getCustomClasses() {
     ]),
     interface('EditableArguments', [
       field('textDocument', type: 'TextDocumentIdentifier'),
+      field('name', type: 'string', canBeUndefined: true),
+      field('documentation', type: 'string', canBeUndefined: true),
       // TODO(dantup): field('refactors', ...),
       field('arguments', type: 'EditableArgument', array: true),
     ]),
@@ -465,6 +467,16 @@ List<LspEntity> getCustomClasses() {
             'Whether the value is the default for this parameter, either '
             'because there is no argument or because it is explicitly provided '
             'as the same value.',
+      ),
+      Field(
+        name: 'defaultValue',
+        type: TypeReference.LspAny,
+        allowsNull: false,
+        allowsUndefined: true,
+        comment:
+            'The default value for this parameter if no argument is supplied. '
+            'Setting the argument to this value does not remove it from the '
+            'argument list.',
       ),
       field(
         'displayValue',

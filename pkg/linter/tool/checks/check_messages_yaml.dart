@@ -14,7 +14,9 @@ void main() {
 void checkMessagesYaml() {
   var parsedLintRuleDocs = messagesRuleInfo;
   if (parsedLintRuleDocs.isEmpty) {
-    throw StateError("The 'pkg/linter/messages.yaml' file was parsed "
-        'as including no lint rule entries.');
+    throw StateError(
+      "The 'pkg/linter/messages.yaml' file was parsed "
+      'as including no lint rule entries.',
+    );
   }
 }

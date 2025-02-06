@@ -12,10 +12,7 @@ const _desc = r'Avoid `const` keyword.';
 
 class UnnecessaryConst extends LintRule {
   UnnecessaryConst()
-      : super(
-          name: LintNames.unnecessary_const,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_const, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -25,7 +22,9 @@ class UnnecessaryConst extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);

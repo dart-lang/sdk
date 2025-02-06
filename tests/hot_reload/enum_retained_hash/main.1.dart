@@ -100,7 +100,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -9,22 +9,22 @@
  // https://github.com/dart-lang/sdk/blob/be2aabd91c67f7f331c49cb74e18fe5e469f04db/runtime/vm/isolate_reload_test.cc#L2464
  
  enum A {
@@ -132,9 +131,4 @@ Future<void> main() async {
  }
  
  enum C {
-@@ -97,3 +97,4 @@
-   Expect.identical(c3, C.C3, 'i-c3');
-   Expect.equals(c3.hashCode, C.C3.hashCode, 'h-c3');
- }
-+
 */

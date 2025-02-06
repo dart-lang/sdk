@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -113,7 +114,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
               .havingMemberWithBaseName(name)
               .applicableTo(
                 targetLibrary: libraryElement2,
-                targetType: leftType!,
+                targetType: leftType! as TypeImpl,
               )
               .isNotEmpty;
         }).isEmpty;

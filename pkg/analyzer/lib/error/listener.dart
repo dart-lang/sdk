@@ -196,6 +196,7 @@ class ErrorReporter {
           .whereNotType<String>()
           .whereNotType<DartType>()
           .whereNotType<Element>()
+          .whereNotType<Element2>()
           .whereNotType<int>()
           .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
@@ -275,6 +276,9 @@ class ErrorReporter {
     var typeGroups = <String, List<_ToConvert>>{};
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
+      if (argument is Element2 && argument is! Element) {
+        argument = argument.asElement;
+      }
       if (argument is TypeImpl) {
         var displayName = argument.getDisplayString(preferTypeAlias: true);
         var types = typeGroups.putIfAbsent(displayName, () => []);

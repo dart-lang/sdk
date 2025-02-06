@@ -23,17 +23,22 @@ main() {
   context<num>(E(string).s1 = contextType(1)..expectStaticType<Exactly<int>>());
   context<num?>(string.s2 = contextType(1)..expectStaticType<Exactly<int?>>());
   context<num?>(
-      E(string).s2 = contextType(1)..expectStaticType<Exactly<int?>>());
+    E(string).s2 = contextType(1)..expectStaticType<Exactly<int?>>(),
+  );
 
   var nullableString = '' as String?;
   context<num?>(
-      nullableString?.s1 = contextType(1)..expectStaticType<Exactly<int>>());
+    nullableString?.s1 = contextType(1)..expectStaticType<Exactly<int>>(),
+  );
   context<num?>(
-      E(nullableString)?.s1 = contextType(1)..expectStaticType<Exactly<int>>());
+    E(nullableString)?.s1 = contextType(1)..expectStaticType<Exactly<int>>(),
+  );
   context<num?>(
-      nullableString?.s2 = contextType(1)..expectStaticType<Exactly<int?>>());
-  context<num?>(E(nullableString)?.s2 = contextType(1)
-    ..expectStaticType<Exactly<int?>>());
+    nullableString?.s2 = contextType(1)..expectStaticType<Exactly<int?>>(),
+  );
+  context<num?>(
+    E(nullableString)?.s2 = contextType(1)..expectStaticType<Exactly<int?>>(),
+  );
 
   // And just to verify that the expectations above are reasonable, repeat the
   // same thing with an ordinary class:
@@ -42,7 +47,9 @@ main() {
   context<num?>(c.s4 = contextType(1)..expectStaticType<Exactly<int?>>());
   var nullableC = C() as C?;
   context<num?>(
-      nullableC?.s3 = contextType(1)..expectStaticType<Exactly<int>>());
+    nullableC?.s3 = contextType(1)..expectStaticType<Exactly<int>>(),
+  );
   context<num?>(
-      nullableC?.s4 = contextType(1)..expectStaticType<Exactly<int?>>());
+    nullableC?.s4 = contextType(1)..expectStaticType<Exactly<int?>>(),
+  );
 }

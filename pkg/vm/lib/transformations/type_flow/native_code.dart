@@ -76,14 +76,19 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     return types ?? const [];
   }
 
+  static const _referenceToDocumentation =
+      "See https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+      "aot/entry_point_pragma.md.";
+
   @override
   visitLibrary(Library library) {
     for (final type in entryPointTypesFromPragmas(library.annotations)) {
       if (type == PragmaEntryPointType.Default) {
         nativeCodeOracle.addLibraryReferencedFromNativeCode(library);
       } else {
-        throw "Error: pragma entry-point definition on a library must evaluate "
-            "to null. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation "
+            "on a library must evaluate to null, true, or false.\n"
+            "$_referenceToDocumentation";
       }
     }
     library.visitChildren(this);
@@ -101,8 +106,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         entryPoints.addDynamicallyExtendableClass(klass);
         nativeCodeOracle.addClassReferencedFromNativeCode(klass);
       } else {
-        throw "Error: pragma entry-point definition on a class must evaluate "
-            "to null, true or false. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation "
+            "on a class must evaluate to null, true, or false.\n"
+            "$_referenceToDocumentation";
       }
     }
     klass.visitChildren(this);
@@ -119,34 +125,49 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           : new DirectSelector(proc, callKind: ck));
     }
 
-    final defaultCallKind = proc.isGetter
-        ? CallKind.PropertyGet
-        : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
-
     for (final type in types) {
       switch (type) {
         case PragmaEntryPointType.CallOnly:
-          addSelector(defaultCallKind);
+          if (proc.isGetter) {
+            throw "Error: The argument to an entry-point pragma annotation on "
+                "a getter ($proc) must evaluate to null, true, false, or "
+                "'get'.\n$_referenceToDocumentation";
+          }
+          if (proc.isSetter) {
+            throw "Error: The argument to an entry-point pragma annotation on "
+                "a setter ($proc) must evaluate to null, true, false, or "
+                "'set'.\n$_referenceToDocumentation";
+          }
+          addSelector(CallKind.Method);
           break;
         case PragmaEntryPointType.SetterOnly:
           if (!proc.isSetter) {
-            throw "Error: cannot generate a setter for a method or getter ($proc).";
+            throw "Error: cannot generate a setter for a method or getter "
+                "($proc).\n$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
           break;
         case PragmaEntryPointType.GetterOnly:
           if (proc.isSetter) {
-            throw "Error: cannot closurize a setter ($proc).";
+            throw "Error: cannot closurize a setter ($proc).\n"
+                "$_referenceToDocumentation";
           }
           if (proc.isFactory) {
-            throw "Error: cannot closurize a factory ($proc).";
+            throw "Error: cannot closurize a factory ($proc).\n"
+                "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertyGet);
           break;
         case PragmaEntryPointType.Default:
-          addSelector(defaultCallKind);
-          if (!proc.isSetter && !proc.isGetter && !proc.isFactory) {
+          if (proc.isGetter) {
             addSelector(CallKind.PropertyGet);
+          } else if (proc.isSetter) {
+            addSelector(CallKind.PropertySet);
+          } else {
+            addSelector(CallKind.Method);
+            if (!proc.isFactory) {
+              addSelector(CallKind.PropertyGet);
+            }
           }
           break;
         case PragmaEntryPointType.Extendable:
@@ -165,8 +186,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     for (final type in entryPointTypesFromPragmas(ctor.annotations)) {
       if (type != PragmaEntryPointType.Default &&
           type != PragmaEntryPointType.CallOnly) {
-        throw "Error: pragma entry-point definition on a constructor ($ctor) must"
-            "evaluate to null, true, false or 'call'. See entry_points_pragma.md.";
+        throw "Error: The argument to an entry-point pragma annotation on a "
+            "constructor ($ctor) must evaluate to null, true, false or "
+            "'call'.\n$_referenceToDocumentation";
       }
       entryPoints
           .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
@@ -192,21 +214,22 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           addSelector(CallKind.PropertyGet);
           break;
         case PragmaEntryPointType.SetterOnly:
-          if (field.isFinal) {
-            throw "Error: can't use 'set' in entry-point pragma for final field "
-                "$field";
+          if (!field.hasSetter) {
+            throw "Error: can't use 'set' in an entry-point pragma annotation "
+                "for a field that has no setter ($field).\n"
+                "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
           break;
         case PragmaEntryPointType.Default:
           addSelector(CallKind.PropertyGet);
-          if (!field.isFinal) {
+          if (field.hasSetter) {
             addSelector(CallKind.PropertySet);
           }
           break;
         case PragmaEntryPointType.CallOnly:
-          throw "Error: can't generate invocation dispatcher for field $field"
-              "through @pragma('vm:entry-point')";
+          throw "Error: 'call' is not a valid entry-point pragma annotation "
+              "argument for the field $field.\n$_referenceToDocumentation";
         case PragmaEntryPointType.Extendable:
           throw "Error: only class can be extendable";
         case PragmaEntryPointType.CanBeOverridden:

@@ -40,7 +40,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -205,7 +204,6 @@ abstract class Generator {
     } else {
       if (_helper.constantContext != ConstantContext.none &&
           selector.name != lengthName) {
-        // Coverage-ignore-block(suite): Not run.
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
@@ -3085,14 +3083,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
-    if (declaration is OmittedTypeDeclarationBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(johnniwinther): Report errors when this occurs in-body or with
-      // type arguments.
-      // TODO(johnniwinther): Handle nullability.
-      return new DependentTypeBuilder(
-          (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
-    }
     return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,
@@ -3189,9 +3179,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 InvalidTypeDeclarationBuilder() => false,
                 // Coverage-ignore(suite): Not run.
                 BuiltinTypeDeclarationBuilder() => false,
-                // Coverage-ignore(suite): Not run.
-                // TODO(johnniwinther): How should we handle this case?
-                OmittedTypeDeclarationBuilder() => false,
                 null => false,
               };
       bool isConstructorTearOff =

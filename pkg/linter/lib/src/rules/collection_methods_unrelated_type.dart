@@ -11,22 +11,25 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
-const _desc = 'Invocation of various collection methods with arguments of '
+const _desc =
+    'Invocation of various collection methods with arguments of '
     'unrelated types.';
 
 class CollectionMethodsUnrelatedType extends LintRule {
   CollectionMethodsUnrelatedType()
-      : super(
-          name: LintNames.collection_methods_unrelated_type,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.collection_methods_unrelated_type,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.collection_methods_unrelated_type;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -87,8 +90,12 @@ class _MethodDefinitionForName extends _MethodDefinition {
 
   final String interfaceName;
 
-  _MethodDefinitionForName(this.libraryName, this.interfaceName,
-      super.methodName, super.expectedArgumentKind);
+  _MethodDefinitionForName(
+    this.libraryName,
+    this.interfaceName,
+    super.methodName,
+    super.expectedArgumentKind,
+  );
 
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
@@ -111,71 +118,72 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.typeSystem, this.typeProvider);
 
   List<_MethodDefinition> get indexOperators => [
-        // Argument to `Map<K, V>.[]` should be assignable to `K`.
-        _MethodDefinitionForElement(
-          typeProvider.mapElement2,
-          '[]',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-      ];
+    // Argument to `Map<K, V>.[]` should be assignable to `K`.
+    _MethodDefinitionForElement(
+      typeProvider.mapElement2,
+      '[]',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+  ];
 
   List<_MethodDefinition> get methods => [
-        // Argument to `Iterable<E>.contains` should be assignable to `E`.
-        _MethodDefinitionForElement(
-          typeProvider.iterableElement2,
-          'contains',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `List<E>.remove` should be assignable to `E`.
-        _MethodDefinitionForElement(
-          typeProvider.listElement2,
-          'remove',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Map<K, V>.containsKey` should be assignable to `K`.
-        _MethodDefinitionForElement(
-          typeProvider.mapElement2,
-          'containsKey',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Map<K, V>.containsValue` should be assignable to `V`.
-        _MethodDefinitionForElement(
-          typeProvider.mapElement2,
-          'containsValue',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-          typeArgumentIndex: 1,
-        ),
-        // Argument to `Map<K, V>.remove` should be assignable to `K`.
-        _MethodDefinitionForElement(
-          typeProvider.mapElement2,
-          'remove',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Queue<E>.remove` should be assignable to `E`.
-        _MethodDefinitionForName(
-          'dart.collection',
-          'Queue',
-          'remove',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Set<E>.lookup` should be assignable to `E`.
-        _MethodDefinitionForElement(
-          typeProvider.setElement2,
-          'lookup',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-        // Argument to `Set<E>.remove` should be assignable to `E`.
-        _MethodDefinitionForElement(
-          typeProvider.setElement2,
-          'remove',
-          _ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-      ];
+    // Argument to `Iterable<E>.contains` should be assignable to `E`.
+    _MethodDefinitionForElement(
+      typeProvider.iterableElement2,
+      'contains',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `List<E>.remove` should be assignable to `E`.
+    _MethodDefinitionForElement(
+      typeProvider.listElement2,
+      'remove',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `Map<K, V>.containsKey` should be assignable to `K`.
+    _MethodDefinitionForElement(
+      typeProvider.mapElement2,
+      'containsKey',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `Map<K, V>.containsValue` should be assignable to `V`.
+    _MethodDefinitionForElement(
+      typeProvider.mapElement2,
+      'containsValue',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+      typeArgumentIndex: 1,
+    ),
+    // Argument to `Map<K, V>.remove` should be assignable to `K`.
+    _MethodDefinitionForElement(
+      typeProvider.mapElement2,
+      'remove',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `Queue<E>.remove` should be assignable to `E`.
+    _MethodDefinitionForName(
+      'dart.collection',
+      'Queue',
+      'remove',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `Set<E>.lookup` should be assignable to `E`.
+    _MethodDefinitionForElement(
+      typeProvider.setElement2,
+      'lookup',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+    // Argument to `Set<E>.remove` should be assignable to `E`.
+    _MethodDefinitionForElement(
+      typeProvider.setElement2,
+      'remove',
+      _ExpectedArgumentKind.assignableToCollectionTypeArgument,
+    ),
+  ];
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var matchingMethods =
-        indexOperators.where((method) => '[]' == method.methodName);
+    var matchingMethods = indexOperators.where(
+      (method) => '[]' == method.methodName,
+    );
     if (matchingMethods.isEmpty) {
       return;
     }
@@ -200,8 +208,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var matchingMethods =
-        methods.where((method) => node.methodName.name == method.methodName);
+    var matchingMethods = methods.where(
+      (method) => node.methodName.name == method.methodName,
+    );
     if (matchingMethods.isEmpty) {
       return;
     }
@@ -221,8 +230,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var methodDefinition in matchingMethods) {
       var collectionType = methodDefinition.collectionTypeFor(targetType);
       if (collectionType != null) {
-        _checkMethod(node.argumentList.arguments.first, methodDefinition,
-            collectionType);
+        _checkMethod(
+          node.argumentList.arguments.first,
+          methodDefinition,
+          collectionType,
+        );
         return;
       }
     }
@@ -231,8 +243,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Checks a [MethodInvocation] or [IndexExpression] which has a singular
   /// [argument] and matches [methodDefinition], with a target with a static
   /// type of [collectionType].
-  void _checkMethod(Expression argument, _MethodDefinition methodDefinition,
-      InterfaceType collectionType) {
+  void _checkMethod(
+    Expression argument,
+    _MethodDefinition methodDefinition,
+    InterfaceType collectionType,
+  ) {
     // Finally, determine whether the type of the argument is related to the
     // type of the method target.
     var argumentType = argument.staticType;
@@ -243,29 +258,39 @@ class _Visitor extends SimpleAstVisitor<void> {
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
         if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(),
-            typeArgument.getDisplayString(),
-          ]);
+          rule.reportLint(
+            argument,
+            arguments: [
+              argumentType.getDisplayString(),
+              typeArgument.getDisplayString(),
+            ],
+          );
         }
 
       case _ExpectedArgumentKind.assignableToCollection:
         if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(),
-            collectionType.getDisplayString(),
-          ]);
+          rule.reportLint(
+            argument,
+            arguments: [
+              argumentType.getDisplayString(),
+              collectionType.getDisplayString(),
+            ],
+          );
         }
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
-        var iterableType =
-            collectionType.asInstanceOf2(typeProvider.iterableElement2);
+        var iterableType = collectionType.asInstanceOf2(
+          typeProvider.iterableElement2,
+        );
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(),
-            iterableType.getDisplayString(),
-          ]);
+          rule.reportLint(
+            argument,
+            arguments: [
+              argumentType.getDisplayString(),
+              iterableType.getDisplayString(),
+            ],
+          );
         }
     }
   }
@@ -276,9 +301,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Look for an implicit receiver, starting with [node]'s parent's parent.
-    for (AstNode? parent = node.parent?.parent;
-        parent != null;
-        parent = parent.parent) {
+    for (
+      AstNode? parent = node.parent?.parent;
+      parent != null;
+      parent = parent.parent
+    ) {
       if (parent is ClassDeclaration) {
         return parent.declaredFragment?.element.thisType;
       } else if (parent is MixinDeclaration) {

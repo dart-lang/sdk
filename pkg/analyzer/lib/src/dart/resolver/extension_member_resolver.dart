@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -17,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -88,9 +86,10 @@ class ExtensionMemberResolver {
   /// If the match is ambiguous, reports an error on the [nameEntity], and
   /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
-      DartType type, SyntacticEntity nameEntity, Name name) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions
+      TypeImpl type, SyntacticEntity nameEntity, Name name) {
+    var extensions = _resolver.libraryFragment.accessibleExtensions2
         .havingMemberWithBaseName(name)
+        .toList()
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
           targetType: type,
@@ -135,7 +134,7 @@ class ExtensionMemberResolver {
         arguments: [
           name.name,
           mostSpecific.map((e) {
-            var name = e.extension.name;
+            var name = e.extension.name3;
             if (name != null) {
               return "extension '$name'";
             }
@@ -154,34 +153,36 @@ class ExtensionMemberResolver {
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
       ExtensionOverride node, String name) {
-    var element = node.element;
+    var element = node.element2;
 
-    ExecutableElement? getter;
-    ExecutableElement? setter;
+    ExecutableElement2? getter;
+    ExecutableElement2? setter;
     if (name == '[]') {
-      getter = element.getMethod('[]');
-      setter = element.getMethod('[]=');
+      getter = element.getMethod2('[]');
+      setter = element.getMethod2('[]=');
     } else {
-      getter = element.getGetter(name) ?? element.getMethod(name);
-      setter = element.getSetter(name);
+      getter = element.getGetter2(name) ?? element.getMethod2(name);
+      setter = element.getSetter2(name);
     }
 
     if (getter == null && setter == null) {
       return ExtensionResolutionError.none;
     }
 
-    var substitution = Substitution.fromPairs(
-      element.typeParameters,
+    var substitution = Substitution.fromPairs2(
+      element.typeParameters2,
       node.typeArgumentTypes!,
     );
 
     var getterMember =
-        getter != null ? ExecutableMember.from2(getter, substitution) : null;
+        getter != null ? ExecutableMember.from(getter, substitution) : null;
     var setterMember =
-        setter != null ? ExecutableMember.from2(setter, substitution) : null;
+        setter != null ? ExecutableMember.from(setter, substitution) : null;
 
     return SingleExtensionResolutionResult(
-        getter: getterMember, setter: setterMember);
+      getter2: getterMember,
+      setter2: setterMember,
+    );
   }
 
   /// Perform upward inference for the override.
@@ -338,7 +339,7 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<DartType>? _inferTypeArguments(
-      ExtensionOverride node, DartType receiverType,
+      ExtensionOverrideImpl node, TypeImpl receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
       required AstNodeImpl? nodeForTesting}) {
     var element = node.element2;
@@ -365,10 +366,7 @@ class ExtensionMemberResolver {
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-          // TODO(paulberry): make this cast unnecessary by changing `element`
-          // to `ExtensionElementImpl2`.
-          typeParameters.cast(),
-          element.extendedType);
+          typeParameters.cast(), element.extendedType);
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,
@@ -392,23 +390,26 @@ class ExtensionMemberResolver {
 
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
-  DartType _instantiateToBounds(ExtensionElement extension) {
-    var typeParameters = extension.typeParameters;
-    return Substitution.fromPairs(
+  DartType _instantiateToBounds(ExtensionElement2 extension) {
+    extension as ExtensionElementImpl2;
+    var typeParameters = extension.typeParameters2;
+    return Substitution.fromPairs2(
       typeParameters,
-      _typeSystem.instantiateTypeFormalsToBounds(typeParameters),
+      _typeSystem.instantiateTypeFormalsToBounds2(typeParameters),
     ).substituteType(extension.extendedType);
   }
 
   /// Return `true` is [e1] is more specific than [e2].
   bool _isMoreSpecific(
-      InstantiatedExtensionWithMember e1, InstantiatedExtensionWithMember e2) {
+    InstantiatedExtensionWithMember e1,
+    InstantiatedExtensionWithMember e2,
+  ) {
     // 1. The latter extension is declared in a platform library, and the
     //    former extension is not.
     // 2. They are both declared in platform libraries, or both declared in
     //    non-platform libraries.
-    var e1_isInSdk = e1.extension.library.isInSdk;
-    var e2_isInSdk = e2.extension.library.isInSdk;
+    var e1_isInSdk = e1.extension.library2.isInSdk;
+    var e2_isInSdk = e2.extension.library2.isInSdk;
     if (e1_isInSdk && !e2_isInSdk) {
       return false;
     } else if (!e1_isInSdk && e2_isInSdk) {
@@ -475,13 +476,7 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ambiguous;
 
   @override
-  ExecutableElement? get getter => null;
-
-  @override
-  ExecutableElement2? get getter2 => null;
-
-  @override
-  ExecutableElement? get setter => null;
+  ExecutableElement2OrMember? get getter2 => null;
 
   @override
   ExecutableElement2? get setter2 => null;
@@ -496,6 +491,6 @@ sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 class SingleExtensionResolutionResult extends SimpleResolutionResult
     implements ExtensionResolutionResult {
   SingleExtensionResolutionResult(
-      {required super.getter, required super.setter})
-      : assert(getter != null || setter != null);
+      {required super.getter2, required super.setter2})
+      : assert(getter2 != null || setter2 != null);
 }

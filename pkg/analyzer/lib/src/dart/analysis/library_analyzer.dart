@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
@@ -71,6 +72,7 @@ class AnalysisForCompletionResult {
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
+  final OperationPerformanceImpl performance;
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
@@ -95,6 +97,7 @@ class LibraryAnalyzer {
     this._libraryElement,
     this._inheritance,
     this._library, {
+    required this.performance,
     TestingData? testingData,
     required TypeSystemOperations typeSystemOperations,
     bool enableLintRuleTiming = false,
@@ -116,8 +119,13 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   List<UnitAnalysisResult> analyze() {
-    _parseAndResolve();
-    _computeDiagnostics();
+    performance.run('parseAndResolve', (performance) {
+      _parseAndResolve();
+    });
+
+    performance.run('computeDiagnostics', (performance) {
+      _computeDiagnostics();
+    });
 
     // Return full results.
     var results = <UnitAnalysisResult>[];
@@ -350,16 +358,22 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride();
 
+    var validateUnnecessaryIgnores =
+        _analysisOptions.isLintEnabled('unnecessary_ignore');
+
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var fileAnalysis in _libraryFiles.values) {
+    for (var fileAnalysis in _libraryFiles.values
+        // Only validate non-generated files.
+        .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
-        fileAnalysis.errorReporter,
-        fileAnalysis.errorListener.errors,
-        fileAnalysis.ignoreInfo,
-        fileAnalysis.unit.lineInfo,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
+              fileAnalysis.errorReporter,
+              fileAnalysis.errorListener.errors,
+              fileAnalysis.ignoreInfo,
+              fileAnalysis.unit.lineInfo,
+              _analysisOptions.unignorableNames,
+              validateUnnecessaryIgnores)
+          .reportErrors();
     }
   }
 
@@ -405,9 +419,6 @@ class LibraryAnalyzer {
 
     for (var MapEntry(key: fileAnalysis, value: currentUnit)
         in analysesToContextUnits.entries) {
-      // Skip computing lints on macro generated augmentations.
-      // See: https://github.com/dart-lang/sdk/issues/54875
-      if (fileAnalysis.file.isMacroPart) return;
       // Skip computing lints on files that don't exist.
       // See: https://github.com/Dart-Code/Dart-Code/issues/5343
       if (!fileAnalysis.file.exists) continue;
@@ -713,7 +724,7 @@ class LibraryAnalyzer {
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
         var errorCode = state.isDocImport
             ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-            : isGeneratedSource(state.importedSource)
+            : state.importedSource.isGenerated
                 ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
                 : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
@@ -794,22 +805,6 @@ class LibraryAnalyzer {
       } else if (directive is PartOfDirectiveImpl) {
         // TODO(scheglov): this should be LibraryFragment.
         directive.element = _libraryElement;
-      }
-    }
-
-    // The macro part does not have an explicit `part` directive.
-    // So, we look into the file part includes.
-    var macroInclude = fileKind.partIncludes.lastOrNull;
-    if (macroInclude is PartIncludeWithFile) {
-      var includedFile = macroInclude.includedFile;
-      if (includedFile.isMacroPart) {
-        _resolvePartDirective(
-          enclosingFile: fileAnalysis,
-          directive: null,
-          partState: macroInclude,
-          partElement: fileElement.parts.last,
-          errorReporter: containerErrorReporter,
-        );
       }
     }
 
@@ -1147,4 +1142,8 @@ extension on file_state.DirectiveUri {
     }
     return DirectiveUriImpl();
   }
+}
+
+extension on FileSource {
+  bool get isGenerated => isGeneratedSource(this);
 }

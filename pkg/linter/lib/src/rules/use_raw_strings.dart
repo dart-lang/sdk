@@ -10,18 +10,16 @@ import '../analyzer.dart';
 const _desc = r'Use raw string to avoid escapes.';
 
 class UseRawStrings extends LintRule {
-  UseRawStrings()
-      : super(
-          name: LintNames.use_raw_strings,
-          description: _desc,
-        );
+  UseRawStrings() : super(name: LintNames.use_raw_strings, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_raw_strings;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
   }
@@ -37,8 +35,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isRaw) return;
 
     var lexeme = node.literal.lexeme.substring(
-        node.contentsOffset - node.literal.offset,
-        node.contentsEnd - node.literal.offset);
+      node.contentsOffset - node.literal.offset,
+      node.contentsEnd - node.literal.offset,
+    );
     var hasEscape = false;
     for (var i = 0; i < lexeme.length - 1; i++) {
       var current = lexeme[i];

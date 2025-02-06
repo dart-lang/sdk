@@ -42,9 +42,9 @@ Future<void> main() async {
   set.remove(c.foo);
   Expect.isEmpty(set);
 }
+
 /** DIFF **/
 /*
-@@ -9,7 +9,7 @@
  // https://github.com/dart-lang/sdk/blob/f34a2ed99fc1b34cedbd974a5801f8d922121126/runtime/vm/isolate_reload_test.cc#L1804
  
  class C {

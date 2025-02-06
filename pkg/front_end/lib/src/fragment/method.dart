@@ -77,66 +77,17 @@ class MethodFragment implements Fragment, FunctionFragment {
   }
 
   void setBuilder(
+      ProblemReporting problemReporting,
       SourceMethodBuilder value,
-      List<NominalParameterBuilder>? typeParameters,
-      List<FormalParameterBuilder>? formals) {
+      MethodEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
-    switch (value.declarationBuilder) {
-      case null:
-      case ClassBuilder():
-        if (isOperator) {
-          _encoding = new _RegularOperatorEncoding(this);
-        } else {
-          _encoding = new _RegularMethodEncoding(this);
-        }
-      case ExtensionTypeDeclarationBuilder():
-        if (modifiers.isStatic) {
-          assert(typeParameters == null,
-              "Unexpected type parameters on getter: $typeParameters");
-          assert(formals == null,
-              "Unexpected formal parameters on getter: $formals");
-          assert(!isOperator);
-          _encoding = new _ExtensionTypeStaticMethodEncoding(this);
-        } else {
-          assert(
-              formals != null,
-              "Unexpected formal parameters on extension type instance getter: "
-              "$formals");
-          assert(formals!.length == 1,
-              "Unexpected formals on extension type instance getter: $formals");
-          if (isOperator) {
-            _encoding = new _ExtensionTypeInstanceOperatorEncoding(
-                this, typeParameters, formals!.single);
-          } else {
-            _encoding = new _ExtensionTypeInstanceMethodEncoding(
-                this, typeParameters, formals!.single);
-          }
-        }
-      case ExtensionBuilder():
-        if (modifiers.isStatic) {
-          assert(typeParameters == null,
-              "Unexpected type parameters on getter: $typeParameters");
-          assert(formals == null,
-              "Unexpected formal parameters on getter: $formals");
-          assert(!isOperator);
-          _encoding = new _ExtensionStaticMethodEncoding(this);
-        } else {
-          assert(
-              formals != null,
-              "Unexpected formal parameters on extension instance method: "
-              "$formals");
-          assert(formals!.length == 1,
-              "Unexpected formals on extension instance getter: $formals");
-          if (isOperator) {
-            _encoding = new _ExtensionInstanceOperatorEncoding(
-                this, typeParameters, formals!.single);
-          } else {
-            _encoding = new _ExtensionInstanceMethodEncoding(
-                this, typeParameters, formals!.single);
-          }
-        }
-    }
+    _encoding = encodingStrategy.createMethodEncoding(
+        value, this, unboundNominalParameters);
+    typeParameterNameSpace.addTypeParameters(
+        problemReporting, _encoding.clonedAndDeclaredTypeParameters,
+        ownerName: name, allowNameConflict: true);
     returnType.registerInferredTypeListener(_encoding);
   }
 
@@ -224,7 +175,7 @@ class MethodFragment implements Fragment, FunctionFragment {
 
   // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _encoding.typeParametersForTesting;
+      _encoding.clonedAndDeclaredTypeParameters;
 
   // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formalsForTesting =>
@@ -279,6 +230,115 @@ class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
   VariableDeclaration? get thisVariable => _fragment._encoding.thisVariable;
 }
 
+sealed class MethodEncodingStrategy {
+  factory MethodEncodingStrategy(DeclarationBuilder? declarationBuilder,
+      {required bool isInstanceMember}) {
+    switch (declarationBuilder) {
+      case ExtensionBuilder():
+        if (isInstanceMember) {
+          return const _ExtensionInstanceMethodStrategy();
+        } else {
+          return const _ExtensionStaticMethodStrategy();
+        }
+      case ExtensionTypeDeclarationBuilder():
+        if (isInstanceMember) {
+          return const _ExtensionTypeInstanceMethodStrategy();
+        } else {
+          return const _ExtensionTypeStaticMethodStrategy();
+        }
+      case null:
+      case ClassBuilder():
+        return const _RegularMethodStrategy();
+    }
+  }
+
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters);
+}
+
+class _RegularMethodStrategy implements MethodEncodingStrategy {
+  const _RegularMethodStrategy();
+
+  @override
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return fragment.isOperator
+        ? new _RegularOperatorEncoding(fragment)
+        : new _RegularMethodEncoding(fragment);
+  }
+}
+
+class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
+  const _ExtensionInstanceMethodStrategy();
+
+  @override
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionBuilder;
+    SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
+        declarationBuilder, unboundNominalParameters,
+        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return fragment.isOperator
+        ? new _ExtensionInstanceOperatorEncoding(fragment,
+            signature.clonedDeclarationTypeParameters, signature.thisFormal)
+        : new _ExtensionInstanceMethodEncoding(fragment,
+            signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+}
+
+class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
+  const _ExtensionStaticMethodStrategy();
+
+  @override
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionStaticMethodEncoding(fragment);
+  }
+}
+
+class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
+  const _ExtensionTypeInstanceMethodStrategy();
+
+  @override
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    ExtensionTypeDeclarationBuilder declarationBuilder =
+        builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
+    SynthesizedExtensionTypeSignature signature =
+        new SynthesizedExtensionTypeSignature(
+            declarationBuilder, unboundNominalParameters,
+            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+    return fragment.isOperator
+        ? new _ExtensionTypeInstanceOperatorEncoding(fragment,
+            signature.clonedDeclarationTypeParameters, signature.thisFormal)
+        : new _ExtensionTypeInstanceMethodEncoding(fragment,
+            signature.clonedDeclarationTypeParameters, signature.thisFormal);
+  }
+}
+
+class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
+  const _ExtensionTypeStaticMethodStrategy();
+
+  @override
+  _MethodEncoding createMethodEncoding(
+      SourceMethodBuilder builder,
+      MethodFragment fragment,
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    return new _ExtensionTypeStaticMethodEncoding(fragment);
+  }
+}
+
 sealed class _MethodEncoding implements InferredTypeListener {
   VariableDeclaration? get thisVariable;
   List<TypeParameter>? get thisTypeParameters;
@@ -325,7 +385,7 @@ sealed class _MethodEncoding implements InferredTypeListener {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
-  List<NominalParameterBuilder>? get typeParametersForTesting;
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
 
   List<FormalParameterBuilder>? get formalsForTesting;
 }
@@ -515,8 +575,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
   @override
@@ -691,6 +750,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       Procedure procedure, NameScheme nameScheme, Reference? tearOffReference) {
     _extensionTearOffParameterMap = {};
 
+    int fileStartOffset = _fragment.startOffset;
     int fileOffset = _fragment.nameOffset;
     int fileEndOffset = _fragment.endOffset;
 
@@ -778,7 +838,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
             procedure,
             new Arguments(closurePositionalArguments,
                 types: typeArguments, named: closureNamedArguments))
-          ..fileOffset = fileOffset)
+          // We need to use the fileStartOffset on the StaticInvocation to
+          // avoid a possible "fake coverage miss" on the name of the
+          // extension method.
+          ..fileOffset = fileStartOffset)
       ..fileOffset = fileOffset;
 
     FunctionExpression closure = new FunctionExpression(
@@ -791,7 +854,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
             returnType: closureReturnType)
           ..fileOffset = fileOffset
           ..fileEndOffset = fileEndOffset)
-      ..fileOffset = fileOffset;
+      // We need to use the fileStartOffset on the FunctionExpression to
+      // avoid a possible "fake coverage miss" on the name of the
+      // extension method.
+      ..fileOffset = fileStartOffset;
 
     FunctionNode function = new FunctionNode(
         new ReturnStatement(closure)..fileOffset = fileOffset,
@@ -1033,8 +1099,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
+  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null
           ? [

@@ -140,7 +140,6 @@ abstract class AnalysisServer {
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
-  /// This field is `null` when the new plugin support is disabled.
   AbstractNotificationManager notificationManager;
 
   /// A reference to the handler for executing commands.
@@ -308,11 +307,10 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
+    var disablePubCommandVariable =
+        Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand =
-        processRunner != null &&
-                Platform.environment[PubCommand
-                        .disablePubCommandEnvironmentKey] ==
-                    null
+        processRunner != null && disablePubCommandVariable == null
             ? PubCommand(
               instrumentationService,
               resourceProvider.pathContext,
@@ -1033,6 +1031,11 @@ abstract class AnalysisServer {
   /// 'lsp.notification' notification.
   void sendLspNotification(lsp.NotificationMessage notification);
 
+  /// Sends an LSP request with the given [params] to the client and waits for a
+  /// response. Completes with the raw [lsp.ResponseMessage] which could be an
+  /// error response.
+  Future<lsp.ResponseMessage> sendLspRequest(lsp.Method method, Object params);
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
@@ -1115,7 +1118,7 @@ abstract class CommonServerContextManagerCallbacks
     // If the removed file doesn't have an overlay, we need to clear any
     // previous results.
     if (!resourceProvider.hasOverlay(file)) {
-      // Clear the cached errors in the the notification manager so we don't
+      // Clear the cached errors in the notification manager so we don't
       // re-send stale results if a plugin sends an update and we merge it with
       // previous results.
       analysisServer.notificationManager.errors.clearResultsForFile(file);

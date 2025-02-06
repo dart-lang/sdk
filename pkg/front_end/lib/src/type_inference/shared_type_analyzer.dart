@@ -18,7 +18,7 @@ import 'inference_visitor.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<TreeNode, Statement, Expression, VariableDeclaration,
-            SharedTypeView<DartType>, Pattern, InvalidExpression> {
+            SharedTypeView, Pattern, InvalidExpression> {
   final InferenceVisitorImpl visitor;
   final InferenceHelper helper;
 
@@ -41,8 +41,8 @@ class SharedTypeAnalyzerErrors
   InvalidExpression caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required SharedTypeView<DartType> caseExpressionType,
-      required SharedTypeView<DartType> scrutineeType,
+      required SharedTypeView caseExpressionType,
+      required SharedTypeView scrutineeType,
       required bool nullSafetyEnabled}) {
     return helper.buildProblem(
         nullSafetyEnabled
@@ -133,7 +133,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression? matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
-    required SharedTypeView<DartType> matchedType,
+    required SharedTypeView matchedType,
   }) {
     // These are only warnings, so we don't report anything.
     return null;
@@ -142,8 +142,8 @@ class SharedTypeAnalyzerErrors
   @override
   void matchedTypeIsSubtypeOfRequired({
     required Pattern pattern,
-    required SharedTypeView<DartType> matchedType,
-    required SharedTypeView<DartType> requiredType,
+    required SharedTypeView matchedType,
+    required SharedTypeView requiredType,
   }) {
     // TODO(scheglov) implement
   }
@@ -158,7 +158,7 @@ class SharedTypeAnalyzerErrors
   InvalidExpression patternForInExpressionIsNotIterable({
     required TreeNode node,
     required Expression expression,
-    required SharedTypeView<DartType> expressionType,
+    required SharedTypeView expressionType,
   }) {
     return helper.buildProblem(
         templateForInLoopTypeNotIterable.withArguments(
@@ -172,8 +172,8 @@ class SharedTypeAnalyzerErrors
   InvalidExpression patternTypeMismatchInIrrefutableContext(
       {required Pattern pattern,
       required TreeNode context,
-      required SharedTypeView<DartType> matchedType,
-      required SharedTypeView<DartType> requiredType}) {
+      required SharedTypeView matchedType,
+      required SharedTypeView requiredType}) {
     return helper.buildProblem(
         templatePatternTypeMismatchInIrrefutableContext.withArguments(
             matchedType.unwrapTypeView(), requiredType.unwrapTypeView()),
@@ -191,8 +191,8 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression relationalPatternOperandTypeNotAssignable({
     required covariant RelationalPattern pattern,
-    required SharedTypeView<DartType> operandType,
-    required SharedTypeView<DartType> parameterType,
+    required SharedTypeView operandType,
+    required SharedTypeView parameterType,
   }) {
     return helper.buildProblem(
         templateArgumentTypeNotAssignable.withArguments(
@@ -204,7 +204,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression relationalPatternOperatorReturnTypeNotAssignableToBool({
     required Pattern pattern,
-    required SharedTypeView<DartType> returnType,
+    required SharedTypeView returnType,
   }) {
     return helper.buildProblem(
         templateInvalidAssignmentError.withArguments(

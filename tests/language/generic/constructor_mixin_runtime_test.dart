@@ -21,5 +21,4 @@ class C<Y> = A<Y> with B;
 void main() {
   var v = 0;
   checkNoDynamicTypeError(() => new C<int>(v));
-
 }

@@ -33,7 +33,6 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         templateUnspecified;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 import 'package:kernel/target/targets.dart'
@@ -64,8 +63,6 @@ const List<Option> optionSpecification = [
   Options.packages,
   Options.platform,
   Options.sdk,
-  Options.showGeneratedMacroSources,
-  Options.checkMacroOffsets,
   Options.singleRootBase,
   Options.singleRootScheme,
   Options.nnbdWeakMode,
@@ -188,11 +185,6 @@ ProcessedOptions analyzeCommandLine(
 
   final String verbosity = Options.verbosity.read(parsedOptions);
 
-  final bool showGeneratedMacroSources =
-      Options.showGeneratedMacroSources.read(parsedOptions);
-
-  final bool checkMacroOffsets = Options.checkMacroOffsets.read(parsedOptions);
-
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
@@ -251,12 +243,7 @@ ProcessedOptions analyzeCommandLine(
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..invocationModes = InvocationMode.parseArguments(invocationModes)
-    ..verbosity = Verbosity.parseArgument(verbosity)
-    ..showGeneratedMacroSourcesForTesting = showGeneratedMacroSources;
-
-  if (checkMacroOffsets) {
-    compilerOptions.hooksForTesting = new MacroOffsetChecker();
-  }
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

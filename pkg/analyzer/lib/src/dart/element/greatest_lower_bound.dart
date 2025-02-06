@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -27,7 +24,7 @@ class GreatestLowerBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType getGreatestLowerBound(DartType T1, DartType T2) {
+  TypeImpl getGreatestLowerBound(TypeImpl T1, TypeImpl T2) {
     // DOWN(T, T) = T
     if (identical(T1, T2)) {
       return T1;
@@ -103,11 +100,8 @@ class GreatestLowerBoundHelper {
       }
     }
 
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
+    var T1_nullability = T1.nullabilitySuffix;
+    var T2_nullability = T2.nullabilitySuffix;
 
     // DOWN(Null, T2)
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
@@ -153,7 +147,7 @@ class GreatestLowerBoundHelper {
       }
 
       // * NonNull(T2) if NonNull(T2) is non-nullable
-      var T2_nonNull = _typeSystem.promoteToNonNull(T2_impl);
+      var T2_nonNull = _typeSystem.promoteToNonNull(T2);
       if (_typeSystem.isNonNullable(T2_nonNull)) {
         return T2_nonNull;
       }
@@ -170,7 +164,7 @@ class GreatestLowerBoundHelper {
       }
 
       // * NonNull(T1) if NonNull(T1) is non-nullable
-      var T1_nonNull = _typeSystem.promoteToNonNull(T1_impl);
+      var T1_nonNull = _typeSystem.promoteToNonNull(T1);
       if (_typeSystem.isNonNullable(T1_nonNull)) {
         return T1_nonNull;
       }
@@ -184,12 +178,12 @@ class GreatestLowerBoundHelper {
     // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
     if (T1_nullability != NullabilitySuffix.none ||
         T2_nullability != NullabilitySuffix.none) {
-      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
-      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var T1_none = T1.withNullability(NullabilitySuffix.none);
+      var T2_none = T2.withNullability(NullabilitySuffix.none);
       var S = getGreatestLowerBound(T1_none, T2_none);
       if (T1_nullability == NullabilitySuffix.question &&
           T2_nullability == NullabilitySuffix.question) {
-        return (S as TypeImpl).withNullability(NullabilitySuffix.question);
+        return S.withNullability(NullabilitySuffix.question);
       }
       return S;
     }
@@ -258,7 +252,7 @@ class GreatestLowerBoundHelper {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
-  DartType _functionType(FunctionType f, FunctionType g) {
+  TypeImpl _functionType(FunctionTypeImpl f, FunctionTypeImpl g) {
     var fTypeFormals = f.typeFormals;
     var gTypeFormals = g.typeFormals;
 
@@ -270,7 +264,10 @@ class GreatestLowerBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Never`.
-    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    var fresh = _typeSystem.relateTypeParameters2(
+      f.typeParameters,
+      g.typeParameters,
+    );
     if (fresh == null) {
       return NeverTypeImpl.instance;
     }
@@ -278,10 +275,10 @@ class GreatestLowerBoundHelper {
     f = f.instantiate(fresh.typeParameterTypes);
     g = g.instantiate(fresh.typeParameterTypes);
 
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
+    var fParameters = f.formalParameters;
+    var gParameters = g.formalParameters;
 
-    var parameters = <ParameterElement>[];
+    var parameters = <FormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
@@ -307,7 +304,13 @@ class GreatestLowerBoundHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
+          var fName = fParameter.name3;
+          var gName = gParameter.name3;
+          if (fName == null || gName == null) {
+            return NeverTypeImpl.instance;
+          }
+
+          var compareNames = fName.compareTo(gName);
           if (compareNames == 0) {
             fIndex++;
             gIndex++;
@@ -370,15 +373,15 @@ class GreatestLowerBoundHelper {
 
     var returnType = getGreatestLowerBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl(
-      typeFormals: fresh.typeParameters,
-      parameters: parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: fresh.typeParameters,
+      formalParameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+  TypeImpl _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {

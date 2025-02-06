@@ -13,10 +13,10 @@ const _desc = r'Use interpolation to compose strings and values.';
 
 class PreferInterpolationToComposeStrings extends LintRule {
   PreferInterpolationToComposeStrings()
-      : super(
-          name: LintNames.prefer_interpolation_to_compose_strings,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.prefer_interpolation_to_compose_strings,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -24,7 +24,9 @@ class PreferInterpolationToComposeStrings extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }
@@ -71,7 +73,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (leftOperand.staticType?.isDartCoreString ?? false) {
         rule.reportLintForOffset(
-            leftOperand.offset, rightOperand.end - leftOperand.offset);
+          leftOperand.offset,
+          rightOperand.end - leftOperand.offset,
+        );
         // We've just reported `rightNode`; skip over it.
         i++;
       }
@@ -85,9 +89,6 @@ extension on Expression {
     var self = this;
     if (self is! BinaryExpression) return [self];
     if (self.operator.type != TokenType.PLUS) return const [];
-    return [
-      ...self.leftOperand.chainedAdditions,
-      self.rightOperand,
-    ];
+    return [...self.leftOperand.chainedAdditions, self.rightOperand];
   }
 }

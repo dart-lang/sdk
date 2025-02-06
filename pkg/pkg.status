@@ -70,6 +70,7 @@ vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
 vm_service/test/get_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
 vm_service/test/get_perfetto_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
+vm_service/test/reload_sources_with_resident_compiler_test: Skip # issue 59909
 vm_service/test/valid_source_locations_test: ExtraSlow, Pass # Iterates through all libraries and checks for valid source locations.
 wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
@@ -124,6 +125,7 @@ vm_service/test/coverage_async_test: SkipByDesign # Debugger is disabled in AOT 
 vm_service/test/coverage_closure_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_const_field_async_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_extension_methods_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_instance_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_leaf_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/coverage_optimized_function_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -162,6 +164,7 @@ vm_service/test/issue_27287_test: SkipByDesign # Debugger is disabled in AOT mod
 vm_service/test/issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_56911_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_57040_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_59653_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_59661_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
@@ -347,6 +350,13 @@ dartdev/test/commands/info_windows_test: SkipByDesign
 [ $runtime == vm && $checked ]
 analysis_server/test/integration/edit/sort_members_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
+
+[ $arch != x64 || $mode != release || $runtime != vm || $system != windows ]
+vm_service/test/breakpoint_resolution_after_reloading_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/eval_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_rpc_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_with_scope_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_with_scope_with_resident_compiler_test: Skip # issue 59999
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir

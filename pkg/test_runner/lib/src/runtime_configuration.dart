@@ -246,9 +246,13 @@ class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     if (compiler != Compiler.dart2wasm) {
       throw 'No test runner setup for jsc + dart2js yet';
     }
+    // TODO(https://bugs.webkit.org/show_bug.cgi?id=285902): Once the
+    // JavaScriptCore/WebKit bug is fixed we should be able to remove this
+    // again.
+    const jscBugWorkaround = '--shell-option=--useWasmIPInt=false';
     return [
       Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
-          ['--jsc', ...arguments], environmentOverrides)
+          ['--jsc', jscBugWorkaround, ...arguments], environmentOverrides)
     ];
   }
 }

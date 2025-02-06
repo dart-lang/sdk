@@ -482,7 +482,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       // with indices.
       var typeParamInBindingPosition = _typeEnvironment
               is BindingTypeEnvironment ||
-          (_typeEnvironment is ExtendedClassTypeEnvironment &&
+          (_typeEnvironment is ExtendedTypeEnvironment &&
               _typeEnvironment.functionTypeParameters.contains(node.parameter));
       if (!typeParamInBindingPosition) {
         // We don't emit RTI rules for anonymous mixins since 1) their

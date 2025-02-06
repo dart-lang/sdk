@@ -31,7 +31,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -15,13 +15,12 @@
  var f, r1, r2;
  
  class C {
@@ -48,9 +47,4 @@ Future<void> main() async {
  }
  
  Future<void> main() async {
-@@ -29,3 +28,4 @@
-   await hotReload();
-   Expect.throws<NoSuchMethodError>(helper);
- }
-+
 */

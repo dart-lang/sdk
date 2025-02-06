@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
@@ -147,7 +148,8 @@ class CovariantParametersVerifier {
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
     var classElement = _thisMember.enclosingElement3 as InterfaceElementImpl;
-    var interfaces = classHierarchy.implementedInterfaces(classElement);
+    var interfaces =
+        classHierarchy.implementedInterfaces(classElement.asElement2);
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {

@@ -22,8 +22,10 @@ void defineLinterEngineTests() {
         expect(CamelCaseString('Foo').humanized, 'Foo');
       });
       test('validation', () {
-        expect(() => CamelCaseString('foo'),
-            throwsA(TypeMatcher<ArgumentError>()));
+        expect(
+          () => CamelCaseString('foo'),
+          throwsA(TypeMatcher<ArgumentError>()),
+        );
       });
       test('toString', () {
         expect(CamelCaseString('FooBar').toString(), 'FooBar');

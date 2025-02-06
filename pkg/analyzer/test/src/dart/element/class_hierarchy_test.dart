@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -96,10 +97,10 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
 
     var classHierarchy = ClassHierarchy();
 
-    var actualInterfaces = classHierarchy.implementedInterfaces(X);
+    var actualInterfaces = classHierarchy.implementedInterfaces(X.asElement2);
     _assertInterfaces(actualInterfaces, interfaces);
 
-    var actualErrors = classHierarchy.errors(X);
+    var actualErrors = classHierarchy.errors(X.asElement2);
     _assertErrors(actualErrors, errors);
   }
 

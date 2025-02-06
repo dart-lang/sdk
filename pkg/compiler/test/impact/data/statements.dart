@@ -424,7 +424,7 @@ testTryFinally() {
 
 /*member: testSwitchWithoutFallthrough:
  static=[
-  throwExpression(1),
+  throwExpression(2),
   wrapException(1)],
  type=[
   inst:JSInt,

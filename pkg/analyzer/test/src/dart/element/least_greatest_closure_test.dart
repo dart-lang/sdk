@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,16 +19,16 @@ main() {
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElementImpl2 T;
-  late final TypeParameterType T_none;
+  late final TypeParameterTypeImpl T_none;
   late final TypeParameterType T_question;
 
   @override
   void setUp() {
     super.setUp();
 
-    T = typeParameter('T').asElement2 as TypeParameterElementImpl2;
-    T_none = typeParameterTypeNone(T.asElement);
-    T_question = typeParameterTypeQuestion(T.asElement);
+    T = typeParameter2('T') as TypeParameterElementImpl2;
+    T_none = typeParameterTypeNone2(T);
+    T_question = typeParameterTypeQuestion2(T);
   }
 
   test_contravariant() {
@@ -81,9 +79,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_function() {
     // void Function<U extends T>()
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         typeFormals: [
-          typeParameter('U', bound: T_none),
+          typeParameter2('U', bound: T_none),
         ],
         returnType: voidNone,
       ),
@@ -115,8 +113,8 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
 
     _check1(
-      typeParameterTypeNone(
-        typeParameter('U'),
+      typeParameterTypeNone2(
+        typeParameter2('U'),
       ),
       'U',
     );

@@ -9,9 +9,7 @@
 
 import "package:expect/expect.dart";
 
-int foo
-       <T>
-          (int i, int j) => i + j;
+int foo<T>(int i, int j) => i + j;
 
 List<int Function<T>(S, int)> bar<S extends int>() {
 // [error column 1]

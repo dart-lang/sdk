@@ -8802,12 +8802,6 @@ CompileTimeErrorCode:
       ```dart
       typedef F = int Function(int Function(String));
       ```
-  INVALID_MACRO_APPLICATION_TARGET:
-    problemMessage: "The macro can be applied only to a {0}."
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the list of target kind names
   INVALID_MODIFIER_ON_CONSTRUCTOR:
     problemMessage: "The modifier '{0}' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
@@ -9625,6 +9619,14 @@ CompileTimeErrorCode:
         return v;
       }
       ```
+  LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the list element
+      1: the expected type of the list element
   LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the list type '{1}'."
     hasPublishedDocs: true
@@ -9668,58 +9670,6 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
-  MACRO_APPLICATION_ARGUMENT_ERROR:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when there is an issue converting a macro application argument
-      into a value. So, we cannot instantiate the macro, and run it.
-      Parameters:
-      0: the message
-  MACRO_ERROR:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.error`.
-      Parameters:
-      0: the message
-  MACRO_INTERNAL_EXCEPTION:
-    problemMessage: "{0} {1}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when there is an exception inside the analyzer when running
-      macros. Should not happen, but just in case.
-      Parameters:
-      0: the message
-      1: the stack trace
-  MACRO_NOT_ALLOWED_DECLARATION:
-    problemMessage: |-
-      The macro attempted to add declaration(s) not allowed during the {0} phase.
-      Locations: {1}
-      ---
-      {2}
-      ---
-    correctionMessage: Try adding these declaration during an earlier phase.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the macro phase
-      1: the list of ranges in the code
-      2: the generated code
-  MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
-    problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
-    correctionMessage: Try removing one or more macro applications to break the cycle.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the introspected declaration
-  MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
-    problemMessage: "The macro '{0}' can't be applied in the same library cycle where it is defined."
-    correctionMessage: Try moving it to a different library that does not import the one where it is applied.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the macro class
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -9896,6 +9846,14 @@ CompileTimeErrorCode:
       ```dart
       var collection = <String>{'a', 'b'};
       ```
+  MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_KEY_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a key
+      1: the type of keys declared for the map
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
     hasPublishedDocs: true
@@ -9932,6 +9890,14 @@ CompileTimeErrorCode:
       ```dart
       var m = <int, String>{2 : 'a'};
       ```
+  MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of the expression being used as a value
+      1: the type of values declared for the map
   MAP_VALUE_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map value type '{1}'."
     hasPublishedDocs: true
@@ -15262,6 +15228,14 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the sealed class being extended, implemented, or mixed in
+  SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+    sharedName: SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the actual type of the set element
+      1: the expected type of the set element
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true
@@ -21308,13 +21282,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  MACRO_INFO:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.info`.
-      Parameters:
-      0: the message
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -25162,13 +25129,6 @@ WarningCode:
         void m() {}
       }
       ```
-  MACRO_WARNING:
-    problemMessage: "{0}"
-    hasPublishedDocs: false
-    comment: |-
-      Reported when the macro uses `Builder.report()` with `Severity.warning`.
-      Parameters:
-      0: the message
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete implementation of '{0}'."
@@ -27022,13 +26982,6 @@ WarningCode:
         B(super.value);
       }
       ```
-  UNNECESSARY_IGNORE:
-    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
   UNNECESSARY_NAN_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.

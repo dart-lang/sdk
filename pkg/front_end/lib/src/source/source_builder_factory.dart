@@ -31,7 +31,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -43,7 +42,6 @@ import '../util/local_stack.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_enum_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'type_parameter_scope_builder.dart';
@@ -80,13 +78,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   final List<Export> exports = <Export>[];
-
-  /// Map from synthesized names used for omitted types to their corresponding
-  /// synthesized type declarations.
-  ///
-  /// This is used in macro generated code to create type annotations from
-  /// inferred types in the original code.
-  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
 
   /// Map from mixin application classes to their mixin types.
   ///
@@ -130,15 +121,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required IndexedLibrary? indexedLibrary,
-      required Map<String, Builder>? omittedTypeDeclarationBuilders})
+      required IndexedLibrary? indexedLibrary})
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _compilationUnitScope = scope,
         indexedLibrary = indexedLibrary,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _typeScopes =
             new LocalStack([new TypeScope(TypeScopeKind.library, scope)]);
 
@@ -792,7 +781,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixins,
+      required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -838,9 +827,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
-      required MixinApplicationBuilder? supertypeBuilder,
-      required List<TypeBuilder>? interfaceBuilders,
-      required List<EnumConstantInfo?>? enumConstantInfos,
+      required List<TypeBuilder>? mixins,
+      required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset}) {
     String name = identifier.name;
@@ -859,9 +847,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
-    declarationFragment.supertypeBuilder = supertypeBuilder;
-    declarationFragment.interfaces = interfaceBuilders;
-    declarationFragment.enumConstantInfos = enumConstantInfos;
+    declarationFragment.mixins = mixins;
+    declarationFragment.interfaces = interfaces;
     declarationFragment.constructorReferences =
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
@@ -872,6 +859,25 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _addFragment(declarationFragment);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
+  }
+
+  @override
+  void addEnumElement(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required ConstructorReferenceBuilder? constructorReferenceBuilder,
+      required Token? argumentsBeginToken}) {
+    EnumElementFragment fragment = new EnumElementFragment(
+        metadata: metadata,
+        name: name,
+        nameOffset: nameOffset,
+        fileUri: _compilationUnit.fileUri,
+        constructorReferenceBuilder: constructorReferenceBuilder,
+        argumentsBeginToken: argumentsBeginToken);
+    _declarationFragments.current.addEnumElement(fragment);
+
+    _addFragment(fragment);
   }
 
   @override
@@ -887,14 +893,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int nameOffset,
       required int endOffset}) {
     TypeBuilder? supertype;
-    MixinApplicationBuilder? mixinApplication;
+    List<TypeBuilder>? mixins;
     if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
       supertype = supertypeConstraints.first;
       if (supertypeConstraints.length > 1) {
-        mixinApplication = new MixinApplicationBuilder(
-            supertypeConstraints.skip(1).toList(),
-            supertype.fileUri!,
-            supertype.charOffset!);
+        mixins = supertypeConstraints.skip(1).toList();
       }
     }
 
@@ -919,7 +922,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.supertype = supertype;
-    declarationFragment.mixins = mixinApplication;
+    declarationFragment.mixins = mixins;
     declarationFragment.interfaces = interfaces;
     declarationFragment.constructorReferences =
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
@@ -934,20 +937,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  MixinApplicationBuilder addMixinApplication(
-      List<TypeBuilder> mixins, int charOffset) {
-    return new MixinApplicationBuilder(
-        mixins, _compilationUnit.fileUri, charOffset);
-  }
-
-  @override
   void addNamedMixinApplication(
       {required List<MetadataBuilder>? metadata,
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder mixinApplication,
+      required List<TypeBuilder> mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -972,7 +968,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         typeParameters: typeParameters,
         supertype: supertype,
-        mixins: mixinApplication,
+        mixins: mixins,
         interfaces: interfaces,
         compilationUnitScope: _compilationUnitScope));
   }
@@ -982,7 +978,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required SourceLibraryBuilder enclosingLibraryBuilder,
       required List<NominalParameterBuilder> unboundNominalParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixinApplicationBuilder,
+      required List<TypeBuilder>? mixins,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
@@ -1011,7 +1007,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             "interfaces", "unnamed mixin application", nameOffset, fileUri);
       }
     }
-    if (mixinApplicationBuilder != null) {
+    if (mixins != null) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -1082,10 +1078,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
-      for (int i = 0; i < mixinApplicationBuilder.mixins.length; i++) {
-        TypeBuilder mixin = mixinApplicationBuilder.mixins[i];
-        isNamedMixinApplication =
-            name != null && mixin == mixinApplicationBuilder.mixins.last;
+      for (int i = 0; i < mixins.length; i++) {
+        TypeBuilder mixin = mixins[i];
+        isNamedMixinApplication = name != null && mixin == mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (typeParameterNames != null) {
@@ -1116,11 +1111,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             NominalParameterNameSpace nominalParameterNameSpace =
                 new NominalParameterNameSpace();
 
-            NominalParameterCopy nominalVariableCopy = copyTypeParameters(
-                unboundNominalParameters, typeParameters,
-                kind: TypeParameterKind.extensionSynthesized,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed)!;
+            NominalParameterCopy nominalVariableCopy =
+                NominalParameterCopy.copyTypeParameters(
+                    unboundNominalParameters, typeParameters,
+                    kind: TypeParameterKind.extensionSynthesized,
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Allowed)!;
 
             applicationTypeParameters =
                 nominalVariableCopy.newParameterBuilders;
@@ -2109,13 +2105,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? arguments,
       int charOffset,
       {required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
-    if (_omittedTypeDeclarationBuilders != null) {
-      // Coverage-ignore-block(suite): Not run.
-      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
-      if (builder is OmittedTypeDeclarationBuilder) {
-        return new DependentTypeBuilder(builder.omittedTypeBuilder);
-      }
-    }
     return _registerUnresolvedNamedType(new NamedTypeBuilderImpl(
         typeName, nullabilityBuilder,
         arguments: arguments,
@@ -2234,61 +2223,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _unboundStructuralVariables.add(builder);
     return builder;
-  }
-
-  /// Creates a [NominalParameterCopy] object containing a copy of
-  /// [oldVariableBuilders] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  static NominalParameterCopy? copyTypeParameters(
-      List<NominalParameterBuilder> _unboundNominalVariables,
-      List<NominalParameterBuilder>? oldVariableBuilders,
-      {required TypeParameterKind kind,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
-    if (oldVariableBuilders == null || oldVariableBuilders.isEmpty) {
-      return null;
-    }
-
-    List<TypeBuilder> newTypeArguments = [];
-    Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
-        new Map.identity();
-    Map<NominalParameterBuilder, NominalParameterBuilder> newToOldVariableMap =
-        new Map.identity();
-
-    List<NominalParameterBuilder> newVariableBuilders =
-        <NominalParameterBuilder>[];
-    for (NominalParameterBuilder oldVariable in oldVariableBuilders) {
-      NominalParameterBuilder newVariable = new NominalParameterBuilder(
-          oldVariable.name, oldVariable.fileOffset, oldVariable.fileUri,
-          kind: kind,
-          variableVariance: oldVariable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              oldVariable.variance,
-          isWildcard: oldVariable.isWildcard);
-      newVariableBuilders.add(newVariable);
-      newToOldVariableMap[newVariable] = oldVariable;
-      _unboundNominalVariables.add(newVariable);
-    }
-    for (int i = 0; i < newVariableBuilders.length; i++) {
-      NominalParameterBuilder oldVariableBuilder = oldVariableBuilders[i];
-      TypeBuilder newTypeArgument =
-          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              newVariableBuilders[i], const NullabilityBuilder.omitted(),
-              instanceTypeParameterAccess: instanceTypeParameterAccess);
-      substitutionMap[oldVariableBuilder] = newTypeArgument;
-      newTypeArguments.add(newTypeArgument);
-
-      if (oldVariableBuilder.bound != null) {
-        newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
-            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
-      }
-    }
-    return new NominalParameterCopy(newVariableBuilders, newTypeArguments,
-        substitutionMap, newToOldVariableMap);
   }
 
   @override

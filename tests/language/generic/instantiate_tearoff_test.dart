@@ -25,7 +25,9 @@ test(intFuncDynamic, stringFuncDynamic, dynamicFuncDynamic) {
   Expect.isFalse(stringFuncDynamic is int Function(int));
   Expect.equals(stringFuncDynamic('hello'), 'hello');
   Expect.equals(
-      "${stringFuncDynamic.runtimeType}", "${stringToString.runtimeType}");
+    "${stringFuncDynamic.runtimeType}",
+    "${stringToString.runtimeType}",
+  );
   Expect.throwsTypeError(() {
     stringFuncDynamic(1);
   });

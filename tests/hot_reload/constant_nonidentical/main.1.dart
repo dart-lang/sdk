@@ -32,9 +32,9 @@ Future<void> main() async {
   Expect.identical(x, const Fruit('Pear'));
   Expect.notIdentical(x, helper());
 }
+
 /** DIFF **/
 /*
-@@ -11,6 +11,7 @@
  
  class Fruit {
    final String name;

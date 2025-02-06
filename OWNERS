@@ -10,6 +10,8 @@ vsm@google.com #{LAST_RESORT_SUGGESTION}
 
 # DEPS
 per-file DEPS=file:/tools/OWNERS_ENG
+# Updates fuchsia components only.
+per-file DEPS=file:/tools/OWNERS_FUCHSIA
 
 # Changelog, AUTHORS, and .git* do not require approval.
 per-file CHANGELOG.md,AUTHORS,WATCHLISTS,.gitattributes,.gitconfig,.gitignore,sdk.code-workspace=*

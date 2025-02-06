@@ -18,13 +18,14 @@ class PreferIsNotOperatorTest extends LintRuleTest {
   String get lintRule => 'prefer_is_not_operator';
 
   test_is_wrappedInNot() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(Object p) {
   !(p is int);
 }
-''', [
-      lint(21, 11),
-    ]);
+''',
+      [lint(21, 11)],
+    );
   }
 
   test_isNot() async {

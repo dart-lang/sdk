@@ -41,7 +41,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  InterfaceElement? enclosingClass;
+  InterfaceElementImpl? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
@@ -171,7 +171,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
-  InterfaceType _inferRedirectedConstructor(InterfaceElement element,
+  InterfaceTypeImpl _inferRedirectedConstructor(InterfaceElementImpl element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
       required AstNodeImpl? nodeForTesting}) {
     if (element == enclosingClass) {
@@ -202,13 +202,13 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  DartType _instantiateElement(NamedTypeImpl node, Element element,
+  TypeImpl _instantiateElement(NamedTypeImpl node, Element element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      if (element is InterfaceElement) {
+      if (element is InterfaceElementImpl) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -218,7 +218,7 @@ class NamedTypeResolver with ScopeHelpers {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-      } else if (element is TypeAliasElement) {
+      } else if (element is TypeAliasElementImpl) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -238,7 +238,7 @@ class NamedTypeResolver with ScopeHelpers {
       } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return _instantiateElementNever(nullability);
-      } else if (element is TypeParameterElement) {
+      } else if (element is TypeParameterElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return element.instantiate(
           nullabilitySuffix: nullability,
@@ -249,7 +249,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
 
-    if (element is InterfaceElement) {
+    if (element is InterfaceElementImpl) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
           if (mixin.element == element) {
@@ -263,11 +263,11 @@ class NamedTypeResolver with ScopeHelpers {
             dataForTesting: dataForTesting, nodeForTesting: node);
       }
 
-      return typeSystem.instantiateInterfaceToBounds(
-        element: element,
+      return typeSystem.instantiateInterfaceToBounds2(
+        element: element.asElement2,
         nullabilitySuffix: nullability,
       );
-    } else if (element is TypeAliasElement) {
+    } else if (element is TypeAliasElementImpl) {
       var type = typeSystem.instantiateTypeAliasToBounds(
         element: element,
         nullabilitySuffix: nullability,
@@ -280,7 +280,7 @@ class NamedTypeResolver with ScopeHelpers {
       return DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
       return _instantiateElementNever(nullability);
-    } else if (element is TypeParameterElement) {
+    } else if (element is TypeParameterElementImpl) {
       return element.instantiate(
         nullabilitySuffix: nullability,
       );
@@ -290,7 +290,7 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  DartType _instantiateElementNever(NullabilitySuffix nullability) {
+  TypeImpl _instantiateElementNever(NullabilitySuffix nullability) {
     return NeverTypeImpl.instance.withNullability(nullability);
   }
 
@@ -387,7 +387,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// but the [type] is nullable (because the question mark was specified,
   /// or the type alias is nullable), report an error, and return the
   /// corresponding non-nullable type.
-  DartType _verifyNullability(NamedType node, DartType type) {
+  TypeImpl _verifyNullability(NamedType node, TypeImpl type) {
     if (identical(node, classHierarchy_namedType)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent;
@@ -412,17 +412,17 @@ class NamedTypeResolver with ScopeHelpers {
             CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
           );
         }
-        return (type as TypeImpl).withNullability(NullabilitySuffix.none);
+        return type.withNullability(NullabilitySuffix.none);
       }
     }
 
     return type;
   }
 
-  DartType _verifyTypeAliasForContext(
+  TypeImpl _verifyTypeAliasForContext(
     NamedType node,
     TypeAliasElement element,
-    DartType type,
+    TypeImpl type,
   ) {
     // If a type alias that expands to a type parameter.
     if (element.aliasedType is TypeParameterType) {

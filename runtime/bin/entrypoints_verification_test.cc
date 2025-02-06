@@ -168,6 +168,21 @@ bool IsTreeShaken(const char* name, Dart_Handle handle, const char* error) {
                         Dart_Null()));                                         \
   } while (false)
 
+#define TEST_GETTERS(target)                                                   \
+  do {                                                                         \
+    FAIL("get1", Dart_GetField(target, Dart_NewStringFromCString("get1")));    \
+    CHECK(Dart_GetField(target, Dart_NewStringFromCString("get2")));           \
+    CHECK(Dart_GetField(target, Dart_NewStringFromCString("get3")));           \
+  } while (false)
+
+#define TEST_SETTERS(target, value)                                            \
+  do {                                                                         \
+    FAIL("set1",                                                               \
+         Dart_SetField(target, Dart_NewStringFromCString("set1"), value));     \
+    CHECK(Dart_SetField(target, Dart_NewStringFromCString("set2"), value));    \
+    CHECK(Dart_SetField(target, Dart_NewStringFromCString("set3"), value));    \
+  } while (false)
+
 DART_EXPORT void RunTests() {
   is_dartaotruntime = Dart_IsPrecompiledRuntime();
 
@@ -261,4 +276,28 @@ DART_EXPORT void RunTests() {
 
   fprintf(stderr, "\n\nTesting fields with instance target\n\n\n");
   TEST_FIELDS(D);
+
+  //////// Test actions against getter and setter functions.
+
+  fprintf(stderr, "\n\nTesting getters with library target\n\n\n");
+  TEST_GETTERS(lib);
+
+  fprintf(stderr, "\n\nTesting getters with class target\n\n\n");
+  TEST_GETTERS(F_class);
+
+  fprintf(stderr, "\n\nTesting getters with instance target\n\n\n");
+  TEST_GETTERS(D);
+
+  Dart_Handle test_value =
+      Dart_GetField(lib, Dart_NewStringFromCString("testValue"));
+  CHECK(test_value);
+
+  fprintf(stderr, "\n\nTesting setters with library target\n\n\n");
+  TEST_SETTERS(lib, test_value);
+
+  fprintf(stderr, "\n\nTesting setters with class target\n\n\n");
+  TEST_SETTERS(F_class, test_value);
+
+  fprintf(stderr, "\n\nTesting setters with instance target\n\n\n");
+  TEST_SETTERS(D, test_value);
 }

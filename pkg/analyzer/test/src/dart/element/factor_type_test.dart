@@ -4,8 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart' as test;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +22,7 @@ main() {
 @reflectiveTest
 class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   @override
-  late final TypeProvider typeProvider;
+  late final TypeProviderImpl typeProvider;
 
   late final TypeSystemImpl typeSystem;
 

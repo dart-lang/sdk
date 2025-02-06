@@ -12,17 +12,16 @@ const _desc = r"Don't cast a nullable value to a non nullable type.";
 
 class CastNullableToNonNullable extends LintRule {
   CastNullableToNonNullable()
-      : super(
-          name: LintNames.cast_nullable_to_non_nullable,
-          description: _desc,
-        );
+    : super(name: LintNames.cast_nullable_to_non_nullable, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.cast_nullable_to_non_nullable;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addAsExpression(this, visitor);
   }

@@ -847,7 +847,7 @@ CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
   status: noFix
   notes: |-
-    We cannot figure out the the user's intent here, and so cannot generate a
+    We cannot figure out the user's intent here, and so cannot generate a
     fix that would be right.
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsFix
@@ -966,8 +966,6 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
-CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
-  status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: hasFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
@@ -1019,20 +1017,10 @@ CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
     Remove `const`.
 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
   status: hasFix
+CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+  status: hasFix
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
-  status: noFix
-CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
   status: needsEvaluation
-CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
-  status: noFix
-CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR:
-  status: noFix
-CompileTimeErrorCode.MACRO_ERROR:
-  status: noFix
-CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
-  status: noFix
-CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION:
-  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
@@ -1049,8 +1037,12 @@ CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION:
   status: noFix
 CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP:
   status: noFix
+CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+  status: hasFix
 CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE:
   status: noFix
+CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+  status: hasFix
 CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
@@ -1444,6 +1436,8 @@ CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+  status: hasFix
 CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
@@ -1835,8 +1829,6 @@ HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
-  status: noFix
-HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
@@ -2420,6 +2412,14 @@ LintCode.unnecessary_final_with_type:
 LintCode.unnecessary_final_without_type:
   status: hasFix
 LintCode.unnecessary_getters_setters:
+  status: hasFix
+LintCode.unnecessary_ignore:
+  status: hasFix
+LintCode.unnecessary_ignore_file:
+  status: hasFix
+LintCode.unnecessary_ignore_name:
+  status: hasFix
+LintCode.unnecessary_ignore_name_file:
   status: hasFix
 LintCode.unnecessary_lambdas:
   status: hasFix
@@ -3628,8 +3628,6 @@ WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
   status: needsEvaluation
-WarningCode.MACRO_WARNING:
-  status: noFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
@@ -3751,10 +3749,6 @@ WarningCode.UNNECESSARY_CAST:
   status: hasFix
 WarningCode.UNNECESSARY_FINAL:
   status: hasFix
-WarningCode.UNNECESSARY_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE:
   status: hasFix
   notes: |-

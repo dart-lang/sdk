@@ -71,9 +71,9 @@ abstract class _Enum&_Enum&M<T10 extends dynamic> = core::_Enum with self::M<sel
     ;
 }
 class Enum<T10 extends dynamic> extends self::_Enum&_Enum&M<self::Enum::T10%> implements self::I<self::Enum::T10%> /*isEnum*/  {
+  enum-element static const field self::Enum<core::int> a = #C3;
   static field dynamic staticField = null;
   static const field core::List<self::Enum<dynamic>> values = #C4;
-  enum-element static const field self::Enum<core::int> a = #C3;
   const constructor •(core::int #index, core::String #name, self::Enum::T10% T10) → self::Enum<self::Enum::T10%>
     : super self::_Enum&_Enum&M::•(#index, #name)
     ;

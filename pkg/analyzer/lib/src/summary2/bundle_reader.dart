@@ -32,15 +32,11 @@ import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:macros/macros.dart' as macro;
-import 'package:macros/src/executor.dart' as macro;
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -76,9 +72,7 @@ class BundleReader {
       return _LibraryHeader(
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
-        macroGeneratedCode: _reader.readOptionalObject((reader) {
-          return _reader.readStringUtf8();
-        }),
+        classMembersLengths: _reader.readUInt30List(),
       );
     });
 
@@ -94,8 +88,8 @@ class BundleReader {
         referenceReader: referenceReader,
         reference: reference,
         offset: libraryHeader.offset,
+        classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
-        macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
     }
   }
@@ -103,6 +97,8 @@ class BundleReader {
 
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
+  void Function()? _readMembers;
+  void Function()? applyInformativeDataToMembers;
 
   ClassElementLinkedData({
     required Reference reference,
@@ -112,17 +108,14 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void readMembers(InstanceElementImpl element) {
-    if (element is! ClassElementImpl) {
-      return;
-    }
-
-    // We might read class members before other properties.
-    element.linkedData?.read(element);
-    element.linkedData = null;
-
-    if (element.isMixinApplication) {
-      element.constructors;
+  void readMembers(covariant ClassElementImpl fragment) {
+    // Read members of all fragments, in order.
+    // So we always read a method augmentation after its target.
+    for (var fragment in fragment.element.fragments) {
+      var linkedData = fragment.linkedData;
+      if (linkedData is ClassElementLinkedData) {
+        linkedData._readSingleFragmentMembers(fragment);
+      }
     }
   }
 
@@ -137,7 +130,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
@@ -153,6 +145,22 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     }
 
     applyConstantOffsets?.perform();
+  }
+
+  void _readSingleFragmentMembers(ClassElementImpl element) {
+    // We might read class members before other properties.
+    element.linkedData?.read(element);
+    element.linkedData = null;
+
+    if (element.isMixinApplication) {
+      element.constructors;
+    } else {
+      _readMembers?.call();
+      _readMembers = null;
+
+      applyInformativeDataToMembers?.call();
+      applyInformativeDataToMembers = null;
+    }
   }
 }
 
@@ -227,7 +235,6 @@ class ConstructorElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor = reader.readElement() as ConstructorElement?;
@@ -475,7 +482,6 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
     if (element is ConstFieldElementImpl) {
@@ -510,7 +516,6 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
     applyConstantOffsets?.perform();
@@ -572,7 +577,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       unitElement: unitElement,
     );
 
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     element.fieldNameNonPromotabilityInfo =
@@ -613,7 +617,9 @@ class LibraryReader {
   final Reference _reference;
   final int _offset;
   final InfoDeclarationStore _deserializedDataStore;
-  final String? macroGeneratedCode;
+
+  final Uint32List _classMembersLengths;
+  int _classMembersLengthsIndex = 0;
 
   late final LibraryElementImpl _libraryElement;
   late InstanceElementImpl2 _currentInstanceElement;
@@ -627,8 +633,8 @@ class LibraryReader {
     required _ReferenceReader referenceReader,
     required Reference reference,
     required int offset,
+    required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
-    required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -636,6 +642,7 @@ class LibraryReader {
         _referenceReader = referenceReader,
         _reference = reference,
         _offset = offset,
+        _classMembersLengths = classMembersLengths,
         _deserializedDataStore = infoDeclarationStore;
 
   LibraryElementImpl readElement({required Source librarySource}) {
@@ -643,6 +650,11 @@ class LibraryReader {
     var analysisSession = _elementFactory.analysisSession;
 
     _reader.offset = _offset;
+
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
+    // This should not be needed.
+    // But I have a suspicion that we attempt to read the library twice.
+    _classMembersLengthsIndex = 0;
 
     // Read enough data to create the library.
     var name = _reader.readStringReference();
@@ -754,20 +766,35 @@ class LibraryReader {
     fragment.typeParameters = _readTypeParameters();
 
     if (!fragment.isMixinApplication) {
-      var accessors = <PropertyAccessorElementImpl>[];
-      var fields = <FieldElementImpl>[];
-      _readFields(unitElement, fragment, reference, accessors, fields);
-      _readPropertyAccessors(
-          unitElement, fragment, reference, accessors, fields, '@field');
-      fragment.fields = fields.toFixedList();
-      fragment.accessors = accessors.toFixedList();
-
-      fragment.constructors =
-          _readConstructors(unitElement, fragment, reference);
-      fragment.methods = _readMethods(unitElement, fragment, reference);
+      var membersOffset = _reader.offset;
+      linkedData._readMembers = () {
+        _reader.offset = membersOffset;
+        _readClassElementMembers(fragment, reference);
+      };
+      _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
     }
 
     return fragment;
+  }
+
+  void _readClassElementMembers(
+    ClassElementImpl fragment,
+    Reference reference,
+  ) {
+    // print('[_readClassElementMembers][reference: $reference]');
+    var unitElement = fragment.enclosingElement3;
+    _currentInstanceElement = fragment.element;
+
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
+    _readFields(unitElement, fragment, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, fragment, reference, accessors, fields, '@field');
+    fragment.fields = fields.toFixedList();
+    fragment.accessors = accessors.toFixedList();
+
+    fragment.constructors = _readConstructors(unitElement, fragment, reference);
+    fragment.methods = _readMethods(unitElement, fragment, reference);
   }
 
   void _readClasses(
@@ -1337,7 +1364,7 @@ class LibraryReader {
         fragment.element = element;
       } else {
         var element = MethodElementImpl2(reference2, fragment.name2, fragment);
-        _currentInstanceElement.methods2.add(element);
+        _currentInstanceElement.internal_methods2.add(element);
       }
 
       var linkedData = MethodElementLinkedData(
@@ -1858,13 +1885,6 @@ class LibraryReader {
     unitElement.accessors = accessorFragments.toFixedList();
     unitElement.topLevelVariables = variableFragments.toFixedList();
 
-    unitElement.macroGenerated = _reader.readOptionalObject((reader) {
-      return MacroGeneratedLibraryFragment(
-        code: _reader.readStringUtf8(),
-        informativeBytes: _reader.readUint8List(),
-      );
-    });
-
     unitElement.parts = _reader.readTypedList(() {
       return _readPartElement(
         containerUnit: unitElement,
@@ -1913,7 +1933,6 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
     applyConstantOffsets?.perform();
@@ -1941,7 +1960,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
 
@@ -2097,9 +2115,6 @@ class ResolutionReader {
     return _reader.readEnum(values);
   }
 
-  List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
-    return readTypedList(_readMacroDiagnostic);
-  }
 
   Map<K, V> readMap<K, V>({
     required K Function() readKey,
@@ -2113,7 +2128,7 @@ class ResolutionReader {
 
   FunctionType? readOptionalFunctionType() {
     var type = readType();
-    return type is FunctionType ? type : null;
+    return type is FunctionTypeImpl ? type : null;
   }
 
   T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
@@ -2128,7 +2143,7 @@ class ResolutionReader {
     }
   }
 
-  DartType readRequiredType() {
+  TypeImpl readRequiredType() {
     return readType()!;
   }
 
@@ -2146,7 +2161,7 @@ class ResolutionReader {
     return _reader.readStringReferenceList();
   }
 
-  DartType? readType() {
+  TypeImpl? readType() {
     var tag = _reader.readByte();
     if (tag == Tag.NullType) {
       return null;
@@ -2157,23 +2172,23 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
-        element: element,
+        element: element.asElement2,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiate(
           typeArguments: const <DartType>[],
           nullabilitySuffix: NullabilitySuffix.none);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceElement;
+      var element = readElement() as InterfaceElementImpl;
       var type = element.instantiate(
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2253,14 +2268,14 @@ class ResolutionReader {
     }
   }
 
-  DartType _readAliasElementArguments(DartType type) {
+  TypeImpl _readAliasElementArguments(TypeImpl type) {
     var aliasElement = _readRawElement();
     if (aliasElement is TypeAliasElement) {
       var aliasArguments = _readTypeList();
-      if (type is DynamicType) {
+      if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
         return type;
-      } else if (type is FunctionType) {
+      } else if (type is FunctionTypeImpl) {
         return FunctionTypeImpl(
           typeFormals: type.typeFormals,
           parameters: type.parameters,
@@ -2271,9 +2286,9 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is InterfaceType) {
+      } else if (type is InterfaceTypeImpl) {
         return InterfaceTypeImpl(
-          element: type.element,
+          element: type.element3,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
@@ -2291,7 +2306,7 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is TypeParameterType) {
+      } else if (type is TypeParameterTypeImpl) {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
@@ -2300,7 +2315,7 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
-      } else if (type is VoidType) {
+      } else if (type is VoidTypeImpl) {
         // TODO(scheglov): add support for `void` aliasing
         return type;
       } else {
@@ -2377,7 +2392,7 @@ class ResolutionReader {
   }
 
   // TODO(scheglov): Optimize for write/read of types without type parameters.
-  FunctionType _readFunctionType() {
+  FunctionTypeImpl _readFunctionType() {
     // TODO(scheglov): reuse for formal parameters
     var typeParameters = _readTypeParameters(null);
     var returnType = readRequiredType();
@@ -2395,97 +2410,15 @@ class ResolutionReader {
     );
   }
 
-  InterfaceType _readInterfaceType() {
-    return readType() as InterfaceType;
+  InterfaceTypeImpl _readInterfaceType() {
+    return readType() as InterfaceTypeImpl;
   }
 
-  List<InterfaceType> _readInterfaceTypeList() {
+  List<InterfaceTypeImpl> _readInterfaceTypeList() {
     return readTypedList(_readInterfaceType);
   }
 
-  AnalyzerMacroDiagnostic _readMacroDiagnostic() {
-    var kind = readEnum(MacroDiagnosticKind.values);
-    switch (kind) {
-      case MacroDiagnosticKind.argument:
-        return ArgumentMacroDiagnostic(
-          annotationIndex: readUInt30(),
-          argumentIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-        );
-      case MacroDiagnosticKind.exception:
-        return ExceptionMacroDiagnostic(
-          annotationIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-          stackTrace: _reader.readStringUtf8(),
-        );
-      case MacroDiagnosticKind.introspectionCycle:
-        return DeclarationsIntrospectionCycleDiagnostic(
-          annotationIndex: readUInt30(),
-          introspectedElement: readElement() as ElementImpl,
-          components: readTypedList(() {
-            return DeclarationsIntrospectionCycleComponent(
-              element: readElement() as ElementImpl,
-              annotationIndex: readUInt30(),
-              introspectedElement: readElement() as ElementImpl,
-            );
-          }),
-        );
-      case MacroDiagnosticKind.invalidTarget:
-        return InvalidMacroTargetDiagnostic(
-          annotationIndex: readUInt30(),
-          supportedKinds: _reader.readStringUtf8List(),
-        );
-      case MacroDiagnosticKind.macro:
-        return MacroDiagnostic(
-          severity: readEnum(macro.Severity.values),
-          message: _readMacroDiagnosticMessage(),
-          contextMessages: readTypedList(_readMacroDiagnosticMessage),
-          correctionMessage: _reader.readOptionalStringUtf8(),
-        );
-      case MacroDiagnosticKind.notAllowedDeclaration:
-        return NotAllowedDeclarationDiagnostic(
-          annotationIndex: readUInt30(),
-          phase: readEnum(macro.Phase.values),
-          code: _reader.readStringUtf8(),
-          nodeRanges: readTypedList(readSourceRange),
-        );
-    }
-  }
 
-  MacroDiagnosticMessage _readMacroDiagnosticMessage() {
-    var message = _reader.readStringUtf8();
-
-    MacroDiagnosticTarget target;
-    var targetKind = readEnum(MacroDiagnosticTargetKind.values);
-    switch (targetKind) {
-      case MacroDiagnosticTargetKind.application:
-        target = ApplicationMacroDiagnosticTarget(
-          annotationIndex: readUInt30(),
-        );
-      case MacroDiagnosticTargetKind.element:
-        var element = readElement();
-        target = ElementMacroDiagnosticTarget(
-          element: element as ElementImpl,
-        );
-      case MacroDiagnosticTargetKind.elementAnnotation:
-        var element = readElement();
-        target = ElementAnnotationMacroDiagnosticTarget(
-          element: element as ElementImpl,
-          annotationIndex: readUInt30(),
-        );
-      case MacroDiagnosticTargetKind.type:
-        var location = TypeAnnotationLocationReader(
-          reader: _reader,
-          readElement: readElement,
-        ).read();
-        target = TypeAnnotationMacroDiagnosticTarget(location: location);
-    }
-
-    return MacroDiagnosticMessage(
-      message: message,
-      target: target,
-    );
-  }
 
   List<T> _readNodeList<T>() {
     return readTypedList(() {
@@ -2612,7 +2545,6 @@ class TopLevelVariableElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
     if (element is ConstTopLevelVariableElementImpl) {
@@ -2648,7 +2580,6 @@ class TypeAliasElementLinkedData
       unitElement: unitElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();
     applyConstantOffsets?.perform();
@@ -2665,13 +2596,15 @@ class _LibraryHeader {
   final Uri uri;
   final int offset;
 
-  /// The only (if any) macro generated augmentation code.
-  final String? macroGeneratedCode;
+  /// We don't read class members when reading libraries, by performance
+  /// reasons - in many cases only some classes of a library are used. But
+  /// we need to know how much data to skip for each class.
+  final Uint32List classMembersLengths;
 
   _LibraryHeader({
     required this.uri,
     required this.offset,
-    required this.macroGeneratedCode,
+    required this.classMembersLengths,
   });
 }
 

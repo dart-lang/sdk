@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 
 /// The handler for the `analysis.setAnalysisRoots` request.
 class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
@@ -32,13 +33,13 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
 
     // validate
     for (var path in includedPathList) {
-      if (!server.isValidFilePath(path)) {
+      if (!server.resourceProvider.isValidFilePath(path)) {
         sendResponse(Response.invalidFilePathFormat(request, path));
         return;
       }
     }
     for (var path in excludedPathList) {
-      if (!server.isValidFilePath(path)) {
+      if (!server.resourceProvider.isValidFilePath(path)) {
         sendResponse(Response.invalidFilePathFormat(request, path));
         return;
       }

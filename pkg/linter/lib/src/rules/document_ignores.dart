@@ -15,17 +15,16 @@ const _desc = r'Document ignore comments.';
 
 class DocumentIgnores extends LintRule {
   DocumentIgnores()
-      : super(
-          name: LintNames.document_ignores,
-          description: _desc,
-        );
+    : super(name: LintNames.document_ignores, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.document_ignores;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -54,8 +53,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (ignoreCommentLine > 1) {
         // Only look at the line above if the ignore comment line is not the
         // first line.
-        var previousLineOffset =
-            node.lineInfo.getOffsetOfLine(ignoreCommentLine - 2);
+        var previousLineOffset = node.lineInfo.getOffsetOfLine(
+          ignoreCommentLine - 2,
+        );
         if (content != null &&
             _startsWithEndOfLineComment(content, previousLineOffset)) {
           // A preceding comment, which may be attached to a different token,

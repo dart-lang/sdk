@@ -9,9 +9,7 @@
 
 class Foo<T> {
   Foo() {}
-  dynamic make() {
-
-  }
+  dynamic make() {}
 }
 
 main() {

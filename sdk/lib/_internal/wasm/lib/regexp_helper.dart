@@ -155,9 +155,7 @@ class JSSyntaxRegExp implements RegExp {
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
     // start < 0 || start > string.length
-    if (start.gtU(string.length)) {
-      throw new RangeError.range(start, 0, string.length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, string.length);
     return _AllMatchesIterable(this, string, start);
   }
 
@@ -181,9 +179,7 @@ class JSSyntaxRegExp implements RegExp {
 
   RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
     // start < 0 || start > string.length
-    if (start.gtU(string.length)) {
-      throw new RangeError.range(start, 0, string.length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, string.length);
     return _execAnchored(string, start);
   }
 }
@@ -207,9 +203,7 @@ class _MatchImplementation implements RegExpMatch {
 
   String? group(int index) {
     // index < 0 || index >= _match.length
-    if (index.geU(_match.length)) {
-      throw RangeError("Index $index is out of range ${_match.length}");
-    }
+    IndexErrorUtils.checkIndex(index, _match.length);
     return _match[index]?.toString();
   }
 

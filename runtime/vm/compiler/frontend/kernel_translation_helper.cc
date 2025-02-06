@@ -3586,6 +3586,14 @@ void TypeTranslator::BuildTypeParameterType() {
     const intptr_t class_type_parameter_count =
         active_class_->klass->NumTypeParameters();
     if (class_type_parameter_count > parameter_index) {
+      if (H.GetExpressionEvaluationClass().ptr() ==
+          active_class_->klass->ptr()) {
+        ASSERT(H.GetExpressionEvaluationClass().NumTypeParameters() ==
+               active_class_->klass->NumTypeParameters());
+        result_ = H.GetExpressionEvaluationRealClass().TypeParameterAt(
+            parameter_index, nullability);
+        return;
+      }
       result_ =
           active_class_->klass->TypeParameterAt(parameter_index, nullability);
       return;

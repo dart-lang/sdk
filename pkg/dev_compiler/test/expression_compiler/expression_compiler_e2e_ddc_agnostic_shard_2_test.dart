@@ -13,14 +13,13 @@ import 'expression_compiler_e2e_suite.dart';
 void main(List<String> args) async {
   var driver = await ExpressionEvaluationTestDriver.init();
 
-  group('(Sound null safety) (Agnostic code shard 2)', () {
+  group('(Agnostic code shard 2)', () {
     tearDownAll(() async {
       await driver.finish();
     });
 
     group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
-        soundNullSafety: true,
         moduleFormat: ModuleFormat.ddc,
         args: args,
       );

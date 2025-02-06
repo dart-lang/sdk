@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart';
+@pragma('vm:entry-point', 'call')
+void main(List<String> args) {
+  greet(args[0]);
+}
 
-@pragma('vm:entry-point')
-void main(List<String>? args) {
-  final greetee = args?.singleOrNull ?? 'world';
-  print('Hello, $greetee!');
+void greet(String person) {
+  print("hi, $person!");
 }

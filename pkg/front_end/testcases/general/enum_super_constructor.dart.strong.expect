@@ -34,10 +34,10 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::A> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
+  enum-element static const field self::A a = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'a'.
   a;
   ^";
-  enum-element static const field self::A a = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
+  static const field core::List<self::A> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'a'.
   a;
   ^";
   constructor •(core::int #index, core::String #name) → self::A
@@ -49,10 +49,10 @@ class A extends core::_Enum /*isEnum*/  {
     return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 class B extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::B> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+  enum-element static const field self::B b = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
   const B() : super();
               ^";
-  enum-element static const field self::B b = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+  static const field core::List<self::B> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
   const B() : super();
               ^";
   const constructor •(core::int #index, core::String #name) → self::B

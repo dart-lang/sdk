@@ -61,7 +61,7 @@ String jsStringToDartString(JSStringImpl jsString) {
 
 @pragma("wasm:import", "wasm:js-string.fromCharCodeArray")
 external WasmExternRef _jsStringFromCharCodeArray(
-  WasmArray<WasmI16> array,
+  WasmArray<WasmI16>? array,
   WasmI32 start,
   WasmI32 end,
 );

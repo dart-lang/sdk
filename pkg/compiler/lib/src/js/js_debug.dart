@@ -67,4 +67,7 @@ class LenientPrintingContext extends SimpleJavaScriptPrintingContext {
   void error(String message) {
     buffer.write('>>$message<<');
   }
+
+  @override
+  bool get isDebugContext => true;
 }

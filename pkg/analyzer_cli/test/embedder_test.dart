@@ -29,17 +29,20 @@ void main() {
       exitCode = savedExitCode;
     });
 
-    test('resolution', wrap(() async {
-      var testDir = path.join(testDirectory, 'data', 'embedder_client');
-      await Driver().start([
-        '--packages',
-        path.join(testDir, '_packages'),
-        path.join(testDir, 'embedder_yaml_user.dart')
-      ]);
+    test(
+      'resolution',
+      wrap(() async {
+        var testDir = path.join(testDirectory, 'data', 'embedder_client');
+        await Driver().start([
+          '--packages',
+          path.join(testDir, '_packages'),
+          path.join(testDir, 'embedder_yaml_user.dart'),
+        ]);
 
-      expect(exitCode, 0);
-      expect(outSink.toString(), contains('No issues found'));
-    }));
+        expect(exitCode, 0);
+        expect(outSink.toString(), contains('No issues found'));
+      }),
+    );
   });
 }
 

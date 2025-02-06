@@ -80,12 +80,12 @@ class IncrementalJavaScriptBundler {
 
   /// Update the incremental bundler from a partial component and the last full
   /// component.
-  Future<void> invalidate(
-      Component partialComponent,
-      Component lastFullComponent,
-      Uri mainUri,
-      PackageConfig packageConfig) async {
-    if (canaryFeatures && _moduleFormat == ModuleFormat.ddc) {
+  Future<void> invalidate(Component partialComponent,
+      Component lastFullComponent, Uri mainUri, PackageConfig packageConfig,
+      {required bool recompileRestart}) async {
+    if (canaryFeatures &&
+        _moduleFormat == ModuleFormat.ddc &&
+        !recompileRestart) {
       // Find any potential hot reload rejections before updating the strongly
       // connected component graph.
       final List<String> errors = _deltaInspector.compareGenerations(
@@ -221,7 +221,6 @@ class IncrementalJavaScriptBundler {
         emitDebugMetadata: emitDebugMetadata,
         emitDebugSymbols: emitDebugSymbols,
         moduleName: libraryBundleName,
-        soundNullSafety: true,
         canaryFeatures: canaryFeatures,
         moduleFormats: [_moduleFormat],
       );

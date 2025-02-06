@@ -1100,7 +1100,8 @@ class Primitives {
   static void trySetStackTrace(Error error, StackTrace stackTrace) {
     var jsError = JS('', r'#.$thrownJsError', error);
     if (jsError == null) {
-      jsError = wrapException(error);
+      jsError = JS('', 'new Error()');
+      initializeExceptionWrapper(error, jsError);
       JS('', r'#.$thrownJsError = #', error, jsError);
       JS('void', '#.stack = #', jsError, stackTrace.toString());
     }
@@ -1200,18 +1201,23 @@ String checkString(value) {
   return value;
 }
 
-/// Wrap the given Dart object as a JS `Error` that can carry a stack trace.
+/// Wrap the given Dart object as a JavaScript `Error` that can carry a stack
+/// trace.
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.
 @pragma('dart2js:never-inline')
 wrapException(ex) {
   final wrapper = JS('', 'new Error()');
-  return initializeExceptionWrapper(wrapper, ex);
+  return initializeExceptionWrapper(ex, wrapper);
 }
 
+/// Wrap the given Dart object with the recorded stack trace.
+///
+/// The code in [unwrapException] deals with getting the original Dart
+/// object out of the wrapper again. For convenience, returns [wrapper].
 @pragma('dart2js:never-inline')
-initializeExceptionWrapper(wrapper, ex) {
+initializeExceptionWrapper(ex, wrapper) {
   if (ex == null) ex = TypeError();
   // [unwrapException] looks for the property 'dartException'.
   JS('void', '#.dartException = #', wrapper, ex);
@@ -1240,18 +1246,14 @@ toStringWrapper() {
   return JS('', r'this.dartException').toString();
 }
 
-/// This wraps the exception and does the throw.  It is possible to call this in
-/// a JS expression context, where the throw statement is not allowed.  Helpers
-/// are never inlined, so we don't risk inlining the throw statement into an
-/// expression context.
+/// This wraps the exception and does the throw.  Since this is a function, it
+/// is possible to call this in a JavaScript expression context, where the throw
+/// statement is not allowed.  The wrapper may be passed in, but usually
+/// [throwExpression] is called with one argument, leaving `wrapper` undefined.
 @pragma('dart2js:never-inline')
-Never throwExpression(ex) {
-  // TODO(sra): Manually inline `wrapException` to remove one stack frame.
-  JS<Never>('', 'throw #', wrapException(ex));
-}
-
-Never throwExpressionWithWrapper(ex, wrapper) {
-  JS<Never>('', 'throw #', initializeExceptionWrapper(wrapper, ex));
+Never throwExpression(ex, [wrapper]) {
+  wrapper ??= JS('', 'new Error()');
+  JS<Never>('', 'throw #', initializeExceptionWrapper(ex, wrapper));
 }
 
 throwUnsupportedError(message) {
@@ -1272,8 +1274,7 @@ Never throwUnsupportedOperation(Object o, [Object? operation, Object? verb]) {
   operation ??= 0;
   verb ??= 0;
   final wrapper = JS('', 'Error()');
-  throwExpressionWithWrapper(
-      _diagnoseUnsupportedOperation(o, operation, verb), wrapper);
+  throwExpression(_diagnoseUnsupportedOperation(o, operation, verb), wrapper);
 }
 
 @pragma('dart2js:never-inline')
@@ -3564,7 +3565,7 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 ///
 /// Care needs to taken to ensure that the runtime does not get caught telling
 /// lies. Generally, a class's `runtimeType` lies by returning an abstract
-/// supertype of the class.  Since both the the marker interface and `get
+/// supertype of the class.  Since both the marker interface and `get
 /// runtimeType` are inherited, there should be no way in which a user can
 /// extend the class or implement interface of the class.
 // TODO(48585): Move this class back to the dart:_rti library when old DDC

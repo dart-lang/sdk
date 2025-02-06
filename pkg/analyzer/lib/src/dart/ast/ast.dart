@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -87,7 +88,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAdjacentStrings(this, contextType: contextType);
   }
 
@@ -426,7 +427,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The list must be the same length as the number of arguments, but can
   /// contain `null` entries if a given argument doesn't correspond to a formal
   /// parameter.
-  List<ParameterElement?>? _correspondingStaticParameters;
+  List<ParameterElementMixin?>? _correspondingStaticParameters;
 
   /// Initializes a newly created list of arguments.
   ArgumentListImpl({
@@ -443,10 +444,10 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   Token get beginToken => leftParenthesis;
 
-  List<ParameterElement?>? get correspondingStaticParameters =>
+  List<ParameterElementMixin?>? get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
-  set correspondingStaticParameters(List<ParameterElement?>? parameters) {
+  set correspondingStaticParameters(List<ParameterElementMixin?>? parameters) {
     if (parameters != null && parameters.length != _arguments.length) {
       throw ArgumentError(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
@@ -485,7 +486,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// - the function being invoked is known based on static type information
   /// - the expression corresponds to one of the parameters of the function
   ///   being invoked
-  ParameterElement? _getStaticParameterElementFor(Expression expression) {
+  ParameterElementMixin? _getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters!.length != _arguments.length) {
       // Either the AST structure hasn't been resolved, the invocation of which
@@ -569,7 +570,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAsExpression(this, contextType: contextType);
   }
 
@@ -821,7 +822,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var element = element2;
     if (element is PromotableElementImpl2) {
       return resolverVisitor
@@ -832,7 +833,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -896,6 +897,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken => _rightHandSide.endToken;
 
@@ -928,7 +933,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
-  ParameterElement? get _staticParameterElementForRightHandSide {
+  ParameterElementMixin? get _staticParameterElementForRightHandSide {
     Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = staticElement;
@@ -942,9 +947,11 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         return null;
       }
       if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
-        return parameters.length == 2 ? parameters[1] : null;
+        return parameters.length == 2
+            ? (parameters[1] as ParameterElementMixin)
+            : null;
       }
-      return parameters[0];
+      return parameters[0] as ParameterElementMixin;
     }
 
     return null;
@@ -955,7 +962,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
       visitor.visitAssignmentExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAssignmentExpression(this, contextType: contextType);
   }
 
@@ -1575,11 +1582,9 @@ abstract final class AugmentedExpression implements Expression {
   /// The referenced augmented element: getter, setter, variable.
   Element? get element;
 
-  /// The referenced augmented element: getter, setter, variable.
-  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
-  //  element. In this case I think that's closer to the right semantics.
+  /// The referenced augmented fragment: getter, setter, variable.
   @experimental
-  Element2? get element2;
+  Fragment? get fragment;
 }
 
 final class AugmentedExpressionImpl extends ExpressionImpl
@@ -1597,12 +1602,16 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
-  @experimental
-  @override
-  Element2? get element2 => (element as Fragment?)?.element;
-
   @override
   Token get endToken => augmentedKeyword;
+
+  @experimental
+  @override
+  Fragment? get fragment => element as Fragment?;
+
+  set fragment(Fragment? value) {
+    element = value as Element?;
+  }
 
   @override
   bool get isAssignable => true;
@@ -1618,7 +1627,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAugmentedExpression(this, contextType: contextType);
   }
 
@@ -1705,7 +1714,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAugmentedInvocation(this, contextType: contextType);
   }
 
@@ -1770,7 +1779,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAwaitExpression(this, contextType: contextType);
   }
 
@@ -1863,7 +1872,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBinaryExpression(this, contextType: contextType);
   }
 
@@ -1960,7 +1969,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -2055,7 +2064,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBooleanLiteral(this, contextType: contextType);
   }
 
@@ -2227,7 +2236,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitCascadeExpression(this, contextType: contextType);
   }
 
@@ -2351,12 +2360,12 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -2732,7 +2741,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token get leftBracket;
 
   /// The `macro` keyword, or `null` if the keyword was absent.
-  @experimental
+  @Deprecated('Support for macros was removed')
   Token? get macroKeyword;
 
   /// The members defined by the class.
@@ -2983,12 +2992,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   final Token? abstractKeyword;
 
-  /// The token for the `macro` keyword, or `null` if this isn't defining a
-  /// macro class.
-// TODO(brianwilkerson): Move this comment to the getter when it's added to
-  //  the public API.
-  final Token? macroKeyword;
-
   @override
   final Token? sealedKeyword;
 
@@ -3033,7 +3036,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -3061,7 +3063,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ??
-        macroKeyword ??
         sealedKeyword ??
         baseKeyword ??
         interfaceKeyword ??
@@ -3106,7 +3107,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
@@ -3690,10 +3690,10 @@ base mixin CompoundAssignmentExpressionImpl
   Element? writeElement;
 
   @override
-  DartType? readType;
+  TypeImpl? readType;
 
   @override
-  DartType? writeType;
+  TypeImpl? writeType;
 
   @experimental
   @override
@@ -3804,7 +3804,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
       visitor.visitConditionalExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConditionalExpression(this, contextType: contextType);
   }
 
@@ -4023,14 +4023,14 @@ final class ConstantPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeConstantPatternSchema()
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -4465,6 +4465,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   ConstructorElement2? get element => staticElement?.asElement2;
 
+  set element(ConstructorElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken {
     if (name case var name?) {
@@ -4551,7 +4555,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
       visitor.visitConstructorReference(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConstructorReference(this, contextType: contextType);
   }
 
@@ -4739,7 +4743,7 @@ sealed class DartPattern implements AstNode, ListPatternElement {
 sealed class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
-  DartType? matchedValueType;
+  TypeImpl? matchedValueType;
 
   /// The context for this pattern.
   ///
@@ -4781,7 +4785,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// The variable pattern, itself, or wrapped in a unary pattern.
   VariablePatternImpl? get variablePattern => null;
 
-  DartType computePatternSchema(ResolverVisitor resolverVisitor);
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor);
 
   /// Dispatches this pattern to the [resolverVisitor], with the given [context]
   /// information.
@@ -4789,7 +4793,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.dispatchPattern], which has some special logic for
   /// handling dynamic contexts.
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   );
@@ -5015,7 +5019,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       visitor.visitDeclaredVariablePattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
             type?.typeOrThrow.wrapSharedTypeView())
@@ -5023,7 +5027,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -5396,7 +5400,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDoubleLiteral(this, contextType: contextType);
   }
 
@@ -5442,7 +5446,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -5768,7 +5772,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  EnumFragment? get declaredFragment => declaredElement as EnumFragment?;
+  EnumElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -6082,7 +6086,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       visitor.visitExpressionFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -6093,7 +6097,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  DartType? _staticType;
+  TypeImpl? _staticType;
 
   @experimental
   @override
@@ -6114,7 +6118,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   bool get isAssignable => false;
 
   @override
-  ParameterElement? get staticParameterElement {
+  ParameterElementMixin? get staticParameterElement {
     var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
@@ -6127,7 +6131,9 @@ sealed class ExpressionImpl extends AstNodeImpl
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
-          return parameters[0];
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `BinaryExpressionImpl.staticInvokeType` to `FunctionTypeImpl`.
+          return parameters[0] as ParameterElementMixin;
         }
         return null;
       }
@@ -6148,7 +6154,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   }
 
   @override
-  DartType? get staticType => _staticType;
+  TypeImpl? get staticType => _staticType;
 
   @override
   ExpressionImpl get unParenthesized => this;
@@ -6221,7 +6227,9 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
-    _staticType = type;
+    // TODO(paulberry): remove this cast by changing the type of the parameter
+    // `type`.
+    _staticType = type as TypeImpl;
     if (type.isBottom) {
       resolver.flowAnalysis.flow?.handleExit();
     }
@@ -6243,7 +6251,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.dispatchExpression], which has some special logic
   /// for handling dynamic contexts.
-  void resolveExpression(ResolverVisitor resolver, DartType contextType);
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType);
 
   /// Records that the static type of `this` is [type], without triggering any
   /// [ResolverVisitor] behaviors.
@@ -6253,7 +6261,9 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// static type anyway (e.g. the [SimpleIdentifier] representing the method
   /// name in a method invocation).
   void setPseudoExpressionStaticType(DartType? type) {
-    _staticType = type;
+    // TODO(paulberry): remove this cast by changing the type of the parameter
+    // `type`.
+    _staticType = type as TypeImpl?;
   }
 }
 
@@ -6652,7 +6662,8 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @experimental
   @override
-  ExtensionElement2 get element2 => (element as ExtensionFragment).element;
+  ExtensionElementImpl2 get element2 =>
+      (element as ExtensionElementImpl).element;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -6687,7 +6698,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitExtensionOverride(this, contextType: contextType);
   }
 
@@ -6808,8 +6819,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ExtensionTypeFragment? get declaredFragment =>
-      declaredElement as ExtensionTypeFragment;
+  ExtensionTypeElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -8200,7 +8210,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// return type context for `return` statements.
   ///
   /// Returns value is the actual return type of the method.
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType);
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType);
 }
 
 /// A function declaration.
@@ -8522,7 +8532,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpression(this, contextType: contextType);
   }
 
@@ -8615,7 +8625,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
       visitor.visitFunctionExpressionInvocation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpressionInvocation(this, contextType: contextType);
   }
 
@@ -8711,7 +8721,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionReference(this, contextType: contextType);
   }
 
@@ -8789,8 +8799,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  TypeAliasFragment? get declaredFragment =>
-      declaredElement as TypeAliasFragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -9017,7 +9026,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   /// The element associated with the function type, or `null` if the AST
   /// structure hasn't been resolved.
@@ -9119,7 +9128,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  ElementImpl? declaredElement;
+  TypeAliasElementImpl? declaredElement;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -9145,7 +9154,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @experimental
   @override
-  Fragment? get declaredFragment => declaredElement as Fragment?;
+  TypeAliasElementImpl? get declaredFragment => declaredElement;
 
   @override
   GenericFunctionType? get functionType {
@@ -9711,11 +9720,11 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   List<DartType> typeArgumentTypes;
 
   @override
-  MethodElement staticElement;
+  MethodElement2 element;
 
   ImplicitCallReferenceImpl({
     required ExpressionImpl expression,
-    required this.staticElement,
+    required this.element,
     required TypeArgumentListImpl? typeArguments,
     required this.typeArgumentTypes,
   })  : _expression = expression,
@@ -9726,10 +9735,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @override
   Token get beginToken => expression.beginToken;
-
-  @experimental
-  @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => typeArguments?.endToken ?? expression.endToken;
@@ -9744,6 +9749,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   Precedence get precedence =>
       typeArguments == null ? expression.precedence : Precedence.postfix;
+
+  @experimental
+  @override
+  MethodElement get staticElement => element.asElement;
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
@@ -9763,7 +9772,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitImplicitCallReference(this);
   }
 
@@ -10218,7 +10227,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
   /// information.
-  ParameterElement? get _staticParameterElementForIndex {
+  ParameterElementMixin? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
     var parent = this.parent;
@@ -10226,12 +10235,15 @@ final class IndexExpressionImpl extends ExpressionImpl
       element = parent.writeElement ?? parent.readElement;
     }
 
-    if (element is ExecutableElement) {
+    if (element is ExecutableElementOrMember) {
       List<ParameterElement> parameters = element.parameters;
       if (parameters.isEmpty) {
         return null;
       }
-      return parameters[0];
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `ExecutableElementOrMember.parameters` to
+      // `List<ParameterElementMixin>`.
+      return parameters[0] as ParameterElementMixin;
     }
     return null;
   }
@@ -10268,7 +10280,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIndexExpression(this, contextType: contextType);
   }
 
@@ -10399,7 +10411,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
       visitor.visitInstanceCreationExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitInstanceCreationExpression(this, contextType: contextType);
   }
 
@@ -10470,7 +10482,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIntegerLiteral(this, contextType: contextType);
   }
 
@@ -10836,7 +10848,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIsExpression(this, contextType: contextType);
   }
 
@@ -11114,7 +11126,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitLibraryIdentifier(this);
   }
 
@@ -11197,7 +11209,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitListLiteral(this, contextType: contextType);
   }
 
@@ -11250,7 +11262,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   final Token rightBracket;
 
   @override
-  DartType? requiredType;
+  TypeImpl? requiredType;
 
   ListPatternImpl({
     required this.typeArguments,
@@ -11285,7 +11297,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var elementType = typeArguments?.arguments.elementAtOrNull(0)?.typeOrThrow;
     return resolverVisitor
         .analyzeListPatternSchema(
@@ -11296,7 +11308,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11393,14 +11405,14 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeLogicalAndPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11472,14 +11484,14 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeLogicalOrPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -11698,7 +11710,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   final Token rightBracket;
 
   @override
-  DartType? requiredType;
+  TypeImpl? requiredType;
 
   MapPatternImpl({
     required this.typeArguments,
@@ -11733,12 +11745,9 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     var typeArgumentNodes = this.typeArguments?.arguments;
-    ({
-      SharedTypeView<DartType> keyType,
-      SharedTypeView<DartType> valueType
-    })? typeArguments;
+    ({SharedTypeView keyType, SharedTypeView valueType})? typeArguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
       typeArguments = (
         keyType: SharedTypeView(typeArgumentNodes[0].typeOrThrow),
@@ -11754,7 +11763,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -12139,7 +12148,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitMethodInvocation(this, contextType: contextType);
   }
 
@@ -12472,7 +12481,7 @@ final class NamedExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNamedExpression(this, contextType: contextType);
   }
 
@@ -12544,7 +12553,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   /// Initializes a newly created type name.
   ///
@@ -12776,7 +12785,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -13059,7 +13068,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(
           pattern,
@@ -13069,7 +13078,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13195,7 +13204,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(
           pattern,
@@ -13205,7 +13214,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13255,7 +13264,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNullLiteral(this, contextType: contextType);
   }
 
@@ -13375,14 +13384,14 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13486,7 +13495,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
       visitor.visitParenthesizedExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitParenthesizedExpression(this, contextType: contextType);
   }
 
@@ -13562,14 +13571,14 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
       visitor.visitParenthesizedPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .dispatchPatternSchema(pattern)
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13790,7 +13799,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   /// The pattern type schema, used for downward inference of [expression];
   /// or `null` if the node isn't resolved yet.
-  DartType? patternTypeSchema;
+  TypeImpl? patternTypeSchema;
 
   PatternAssignmentImpl({
     required this.pattern,
@@ -13829,7 +13838,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPatternAssignment(this, contextType: contextType);
   }
 
@@ -14006,7 +14015,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   /// The pattern type schema, used for downward inference of [expression];
   /// or `null` if the node isn't resolved yet.
-  DartType? patternTypeSchema;
+  TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
   late final List<BindPatternVariableElementImpl> elements;
@@ -14160,6 +14169,10 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? value) {
+    staticElement = value?.asElement;
+  }
+
   @override
   Token get endToken => operator;
 
@@ -14184,7 +14197,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElement? get _staticParameterElementForOperand {
+  ParameterElementMixin? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14192,14 +14205,16 @@ final class PostfixExpressionImpl extends ExpressionImpl
     if (parameters.isEmpty) {
       return null;
     }
-    return parameters[0];
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `staticElement` to `MethodElementOrMember?`.
+    return parameters[0] as ParameterElementMixin;
   }
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPostfixExpression(this, contextType: contextType);
   }
 
@@ -14311,7 +14326,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPrefixedIdentifier(this, contextType: contextType);
   }
 
@@ -14371,6 +14386,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   MethodElement2? get element => staticElement?.asElement2;
 
+  set element(MethodElement2? element) {
+    staticElement = element?.asElement;
+  }
+
   @override
   Token get endToken => _operand.endToken;
 
@@ -14395,7 +14414,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElement? get _staticParameterElementForOperand {
+  ParameterElementMixin? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14403,14 +14422,16 @@ final class PrefixExpressionImpl extends ExpressionImpl
     if (parameters.isEmpty) {
       return null;
     }
-    return parameters[0];
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `staticElement` to `MethodElementOrMember?`.
+    return parameters[0] as ParameterElementMixin;
   }
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPrefixExpression(this, contextType: contextType);
   }
 
@@ -14563,7 +14584,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPropertyAccess(this, contextType: contextType);
   }
 
@@ -14651,7 +14672,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRecordLiteral(this, contextType: contextType);
   }
 
@@ -14717,7 +14738,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeRecordPatternSchema(
           fields: resolverVisitor.buildSharedPatternFields(
@@ -14729,7 +14750,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -14858,7 +14879,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   final Token? question;
 
   @override
-  DartType? type;
+  TypeImpl? type;
 
   RecordTypeAnnotationImpl({
     required this.leftParenthesis,
@@ -15174,14 +15195,14 @@ final class RelationalPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeRelationalPatternSchema()
         .unwrapTypeSchemaView();
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -15448,7 +15469,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRethrowExpression(this, contextType: contextType);
   }
 
@@ -15706,7 +15727,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSetOrMapLiteral(this, contextType: contextType);
   }
 
@@ -16092,7 +16113,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleIdentifier(this, contextType: contextType);
   }
 
@@ -16180,7 +16201,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
 
@@ -16424,7 +16445,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitStringInterpolation(this, contextType: contextType);
   }
 
@@ -16692,7 +16713,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSuperExpression(this, contextType: contextType);
   }
 
@@ -17115,7 +17136,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSwitchExpression(this, contextType: contextType);
   }
 
@@ -17429,7 +17450,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
   }
 
@@ -17491,7 +17512,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThisExpression(this, contextType: contextType);
   }
 
@@ -17555,7 +17576,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThrowExpression(this, contextType: contextType);
   }
 
@@ -17832,7 +17853,10 @@ sealed class TypeAnnotation implements AstNode {
   DartType? get type;
 }
 
-sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {}
+sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {
+  @override
+  TypeImpl? get type;
+}
 
 /// A list of type arguments.
 ///
@@ -18013,7 +18037,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitTypeLiteral(this, contextType: contextType);
   }
 
@@ -18090,8 +18114,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @experimental
   @override
-  TypeParameterFragment? get declaredFragment =>
-      declaredElement as TypeParameterFragment?;
+  TypeParameterElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken {
@@ -18363,11 +18386,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  VariableFragment? get declaredFragment {
-    if (declaredElement case VariableFragment fragment) {
-      return fragment;
-    }
-    return null;
+  VariableElementImpl? get declaredFragment {
+    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -18853,7 +18873,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+  TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
             type?.typeOrThrow.wrapSharedTypeView())
@@ -18861,7 +18881,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @override
-  PatternResult<DartType> resolvePattern(
+  PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {

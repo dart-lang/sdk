@@ -897,26 +897,6 @@ void f(A a) {
     expect(hover.propagatedType, isNull);
   }
 
-  Future<void> test_constructorInvocation_macroGenerated_named() async {
-    addMacros([declareInTypeMacro()]);
-    newFile(testFilePath, '''
-import 'macros.dart';
-
-@DeclareInType('  /// named\\n  C.named();')
-class C {}
-
-C f() => C.named(); //
-''');
-    var hover = await prepareHover('med(); //');
-    expect(hover.containingLibraryName, 'package:test/test.dart');
-    expect(hover.containingLibraryPath, testFile.path);
-    expect(hover.containingClassDescription, 'C');
-    expect(hover.dartdoc, 'named');
-    expect(hover.elementDescription, '(new) C C.named()');
-    expect(hover.elementKind, 'constructor');
-    expect(hover.staticType, isNull);
-  }
-
   Future<void>
   test_constructorInvocation_referenceFromAugmentation_default() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
@@ -1447,32 +1427,6 @@ void f() {
     // types
     expect(hover.staticType, 'int');
     expect(hover.propagatedType, null);
-  }
-
-  Future<void>
-  test_methodInvocation_macroGenerated_referenceToGenerated() async {
-    addMacros([declareInTypeMacro()]);
-    newFile(testFilePath, '''
-import 'macros.dart';
-
-@DeclareInType(\'''
-  /// method m
-  void m() {}
-\''')
-class C {}
-
-void f(C c) {
-  c.m();
-}
-''');
-    var hover = await prepareHover('m();');
-    expect(hover.containingLibraryName, 'package:test/test.dart');
-    expect(hover.containingLibraryPath, testFile.path);
-    expect(hover.containingClassDescription, 'C');
-    expect(hover.dartdoc, 'method m');
-    expect(hover.elementDescription, 'void m()');
-    expect(hover.elementKind, 'method');
-    expect(hover.staticType, 'void Function()');
   }
 
   Future<void> test_methodInvocation_recordType() async {

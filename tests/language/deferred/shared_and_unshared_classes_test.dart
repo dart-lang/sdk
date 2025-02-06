@@ -19,7 +19,7 @@ void main() {
       }),
       lib2.loadLibrary().then((_) {
         lib2.foo();
-      })
+      }),
     ]);
   });
 }

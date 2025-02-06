@@ -14,11 +14,11 @@ const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
 class InvalidCasePatterns extends LintRule {
   InvalidCasePatterns()
-      : super(
-          name: LintNames.invalid_case_patterns,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.invalid_case_patterns,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172
@@ -27,7 +27,9 @@ class InvalidCasePatterns extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     // This lint rule is only meant for code which does not have 'patterns'
     // enabled.
     if (context.isEnabled(Feature.patterns)) return;

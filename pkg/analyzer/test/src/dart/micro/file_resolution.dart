@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -122,14 +123,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(
+  Future<ResolvedUnitResultImpl> resolveFile(
     File file, {
     OperationPerformanceImpl? performance,
   }) async {
     result = await fileResolver.resolve(
       path: file.path,
       performance: performance,
-    );
+    ) as ResolvedUnitResultImpl;
     return result;
   }
 

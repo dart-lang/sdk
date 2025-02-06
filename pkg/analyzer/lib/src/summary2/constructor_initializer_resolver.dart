@@ -11,6 +11,7 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -30,8 +31,7 @@ class ConstructorInitializerResolver {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
             unitElement,
-            // TODO(scheglov): Avoid cast.
-            interfaceElement.augmented.firstFragment as InterfaceElementImpl,
+            interfaceElement.augmented.firstFragment,
             constructorElement,
           );
         }
@@ -52,7 +52,7 @@ class ConstructorInitializerResolver {
     var functionScope = LinkingNodeContext.get(node).scope;
     var initializerScope = ConstructorInitializerScope(
       functionScope,
-      element,
+      element.asElement2,
     );
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;

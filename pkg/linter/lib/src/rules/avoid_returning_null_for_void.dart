@@ -12,20 +12,19 @@ const _desc = r'Avoid returning `null` for `void`.';
 
 class AvoidReturningNullForVoid extends LintRule {
   AvoidReturningNullForVoid()
-      : super(
-          name: LintNames.avoid_returning_null_for_void,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.avoid_returning_null_for_void_from_function,
-        LinterLintCode.avoid_returning_null_for_void_from_method
-      ];
+    LinterLintCode.avoid_returning_null_for_void_from_function,
+    LinterLintCode.avoid_returning_null_for_void_from_method,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
@@ -53,20 +52,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is! NullLiteral) return;
 
     var parent = node.thisOrAncestorMatching(
-        (e) => e is FunctionExpression || e is MethodDeclaration);
+      (e) => e is FunctionExpression || e is MethodDeclaration,
+    );
     if (parent == null) return;
 
     var (type, isAsync, code) = switch (parent) {
       FunctionExpression() => (
-          parent.declaredFragment?.element.returnType,
-          parent.body.isAsynchronous,
-          LinterLintCode.avoid_returning_null_for_void_from_function,
-        ),
+        parent.declaredFragment?.element.returnType,
+        parent.body.isAsynchronous,
+        LinterLintCode.avoid_returning_null_for_void_from_function,
+      ),
       MethodDeclaration() => (
-          parent.declaredFragment?.element.returnType,
-          parent.body.isAsynchronous,
-          LinterLintCode.avoid_returning_null_for_void_from_method,
-        ),
+        parent.declaredFragment?.element.returnType,
+        parent.body.isAsynchronous,
+        LinterLintCode.avoid_returning_null_for_void_from_method,
+      ),
       _ => throw StateError('Unexpected type'),
     };
     if (type == null) return;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_error_utils';
 import 'dart:_internal';
 import 'dart:_string';
 
@@ -17,9 +18,7 @@ class BoxedInt {
 const _digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 String _intToRadixString(int value, int radix) {
-  if (radix < 2 || 36 < radix) {
-    throw new RangeError.range(radix, 2, 36, "radix");
-  }
+  RangeErrorUtils.checkValueInInterval(radix, 2, 36, "radix");
   if (radix & (radix - 1) == 0) {
     return _toPow2String(value, radix);
   }

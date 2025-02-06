@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -24,61 +22,61 @@ main() {
 class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   test_functionType_parameter() {
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: futureOrNone(objectNone)),
+          requiredParameter2(type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: objectNone),
-        ],
-      ),
-    );
-
-    _check(
-      functionTypeNone(
-        returnType: voidNone,
-        parameters: [
-          namedParameter(name: 'a', type: futureOrNone(objectNone)),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        parameters: [
-          namedParameter(name: 'a', type: objectNone),
+          requiredParameter2(type: objectNone),
         ],
       ),
     );
 
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          namedRequiredParameter(name: 'a', type: futureOrNone(objectNone)),
+          namedParameter2(name: 'a', type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          namedRequiredParameter(name: 'a', type: objectNone),
+          namedParameter2(name: 'a', type: objectNone),
         ],
       ),
     );
 
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          positionalParameter(type: futureOrNone(objectNone)),
+          namedRequiredParameter2(name: 'a', type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          positionalParameter(type: objectNone),
+          namedRequiredParameter2(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone2(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter2(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone2(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter2(type: objectNone),
         ],
       ),
     );
@@ -86,59 +84,59 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_functionType_parameter_covariant() {
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: futureOrNone(objectNone), isCovariant: true),
+          requiredParameter2(type: futureOrNone(objectNone), isCovariant: true),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         parameters: [
-          requiredParameter(type: objectNone, isCovariant: true),
+          requiredParameter2(type: objectNone, isCovariant: true),
         ],
       ),
     );
   }
 
   test_functionType_parameter_typeParameter() {
-    TypeParameterElement T;
-    TypeParameterElement T2;
+    TypeParameterElement2 T;
+    TypeParameterElement2 T2;
 
-    T = typeParameter('T', bound: neverNone);
-    T2 = typeParameter('T2', bound: neverNone);
+    T = typeParameter2('T', bound: neverNone);
+    T2 = typeParameter2('T2', bound: neverNone);
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         typeFormals: [T],
         parameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
+          requiredParameter2(type: typeParameterTypeNone2(T)),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         typeFormals: [T2],
         parameters: [
-          requiredParameter(type: neverNone),
+          requiredParameter2(type: neverNone),
         ],
       ),
     );
 
-    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicType)));
-    T2 = typeParameter('T2', bound: iterableNone(dynamicType));
+    T = typeParameter2('T', bound: iterableNone(futureOrNone(dynamicType)));
+    T2 = typeParameter2('T2', bound: iterableNone(dynamicType));
     _check(
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         typeFormals: [T],
         parameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
+          requiredParameter2(type: typeParameterTypeNone2(T)),
         ],
       ),
-      functionTypeNone(
+      functionTypeNone2(
         returnType: voidNone,
         typeFormals: [T2],
         parameters: [
-          requiredParameter(type: typeParameterTypeNone(T2)),
+          requiredParameter2(type: typeParameterTypeNone2(T2)),
         ],
       ),
     );
@@ -381,19 +379,19 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// NORM(X & T)
   /// * let S be NORM(T)
   test_typeParameter_bound() {
-    TypeParameterElement T;
+    TypeParameterElement2 T;
 
     // * if S is Never then Never
-    T = typeParameter('T', bound: neverNone);
-    _check(typeParameterTypeNone(T), neverNone);
+    T = typeParameter2('T', bound: neverNone);
+    _check(typeParameterTypeNone2(T), neverNone);
 
     // * else X
-    T = typeParameter('T');
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+    T = typeParameter2('T');
+    _check(typeParameterTypeNone2(T), typeParameterTypeNone2(T));
 
     // * else X
-    T = typeParameter('T', bound: futureOrNone(objectNone));
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+    T = typeParameter2('T', bound: futureOrNone(objectNone));
+    _check(typeParameterTypeNone2(T), typeParameterTypeNone2(T));
   }
 
   test_typeParameter_bound_recursive() {
@@ -474,8 +472,8 @@ actual: $resultStr
 
   void _checkFormalParametersIsCovariant(DartType T1, DartType T2) {
     if (T1 is FunctionType && T2 is FunctionType) {
-      var parameters1 = T1.parameters;
-      var parameters2 = T2.parameters;
+      var parameters1 = T1.formalParameters;
+      var parameters2 = T2.formalParameters;
       expect(parameters1, hasLength(parameters2.length));
       for (var i = 0; i < parameters1.length; i++) {
         var parameter1 = parameters1[i];

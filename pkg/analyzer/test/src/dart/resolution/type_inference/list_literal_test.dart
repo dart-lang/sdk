@@ -458,6 +458,16 @@ var a = <String>[1];
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
+  test_noContext_typeArgs_expression_conflict_nullable() async {
+    await assertErrorsInCode('''
+var a = <String>[(null as String?)];
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          17, 17),
+    ]);
+    assertType(findNode.listLiteral('['), 'List<String>');
+  }
+
   test_noContext_typeArgs_expression_noConflict() async {
     await assertNoErrorsInCode('''
 var a = <int>[1];

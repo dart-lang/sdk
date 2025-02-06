@@ -15,17 +15,16 @@ const _desc = r'Unnecessary parentheses can be removed.';
 
 class UnnecessaryParenthesis extends LintRule {
   UnnecessaryParenthesis()
-      : super(
-          name: LintNames.unnecessary_parenthesis,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addParenthesizedExpression(this, visitor);
   }
@@ -171,7 +170,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `a..b = (c..d)` is OK.
     if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
-                (n) => n is Statement || n is CascadeExpression)
+              (n) => n is Statement || n is CascadeExpression,
+            )
             is CascadeExpression) {
       return;
     }

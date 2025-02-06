@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart'
@@ -70,7 +69,6 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     analysisOptionsMap: optionsMap,
     externalSummaries: dataStore,
     packages: packages,
-    macroSupport: KernelMacroSupport(),
     shouldReportInconsistentAnalysisException: false,
   );
 

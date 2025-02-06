@@ -36,9 +36,9 @@ Future<void> main() async {
   Expect.equals(StaticsSetter.field, 5);
   Expect.equals(StaticsSetter.counter, 3);
 }
+
 /** DIFF **/
 /*
-@@ -27,15 +27,6 @@
  }
  
  Future<void> main() async {
@@ -54,7 +54,7 @@ Future<void> main() async {
    // Static setters of const fields should be properly reset.
    Expect.equals(StaticsSetter.counter, 0);
    Expect.equals(StaticsSetter.field, 5);
-@@ -44,6 +35,4 @@
+@@ -44,6 +35,4 @@ Future<void> main() async {
    StaticsSetter.field = 100;
    Expect.equals(StaticsSetter.field, 5);
    Expect.equals(StaticsSetter.counter, 3);

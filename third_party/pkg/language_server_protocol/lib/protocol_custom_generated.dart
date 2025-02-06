@@ -52,7 +52,6 @@ bool _canParseArgumentEdit(
     }
     if ((!nullCheck || value != null) &&
         !ArgumentEdit.canParse(value, reporter)) {
-      reporter.reportError('must be of type ArgumentEdit');
       return false;
     }
   } finally {
@@ -102,7 +101,6 @@ bool _canParseElement(
       return false;
     }
     if ((!nullCheck || value != null) && !Element.canParse(value, reporter)) {
-      reporter.reportError('must be of type Element');
       return false;
     }
   } finally {
@@ -128,7 +126,6 @@ bool _canParseErrorCodes(
     }
     if ((!nullCheck || value != null) &&
         !ErrorCodes.canParse(value, reporter)) {
-      reporter.reportError('must be of type ErrorCodes');
       return false;
     }
   } finally {
@@ -154,7 +151,6 @@ bool _canParseFlutterOutline(
     }
     if ((!nullCheck || value != null) &&
         !FlutterOutline.canParse(value, reporter)) {
-      reporter.reportError('must be of type FlutterOutline');
       return false;
     }
   } finally {
@@ -180,7 +176,6 @@ bool _canParseInsertTextFormat(
     }
     if ((!nullCheck || value != null) &&
         !InsertTextFormat.canParse(value, reporter)) {
-      reporter.reportError('must be of type InsertTextFormat');
       return false;
     }
   } finally {
@@ -501,7 +496,6 @@ bool _canParseMethod(
       return false;
     }
     if ((!nullCheck || value != null) && !Method.canParse(value, reporter)) {
-      reporter.reportError('must be of type Method');
       return false;
     }
   } finally {
@@ -526,7 +520,6 @@ bool _canParseOutline(
       return false;
     }
     if ((!nullCheck || value != null) && !Outline.canParse(value, reporter)) {
-      reporter.reportError('must be of type Outline');
       return false;
     }
   } finally {
@@ -551,7 +544,6 @@ bool _canParsePosition(
       return false;
     }
     if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
-      reporter.reportError('must be of type Position');
       return false;
     }
   } finally {
@@ -576,7 +568,6 @@ bool _canParseRange(
       return false;
     }
     if ((!nullCheck || value != null) && !Range.canParse(value, reporter)) {
-      reporter.reportError('must be of type Range');
       return false;
     }
   } finally {
@@ -602,7 +593,6 @@ bool _canParseResponseError(
     }
     if ((!nullCheck || value != null) &&
         !ResponseError.canParse(value, reporter)) {
-      reporter.reportError('must be of type ResponseError');
       return false;
     }
   } finally {
@@ -653,7 +643,6 @@ bool _canParseTextDocumentIdentifier(
     }
     if ((!nullCheck || value != null) &&
         !TextDocumentIdentifier.canParse(value, reporter)) {
-      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   } finally {
@@ -679,7 +668,6 @@ bool _canParseTypeHierarchyAnchor(
     }
     if ((!nullCheck || value != null) &&
         !TypeHierarchyAnchor.canParse(value, reporter)) {
-      reporter.reportError('must be of type TypeHierarchyAnchor');
       return false;
     }
   } finally {
@@ -1449,6 +1437,10 @@ class EditableArgument implements ToJsonable {
     EditableArgument.fromJson,
   );
 
+  /// The default value for this parameter if no argument is supplied. Setting
+  /// the argument to this value does not remove it from the argument list.
+  final Object? defaultValue;
+
   /// A string that can be displayed to indicate the value for this argument.
   /// This will be populated in cases where the source code is not literally the
   /// same as the value field, for example an expression or named constant.
@@ -1494,6 +1486,7 @@ class EditableArgument implements ToJsonable {
   /// and displayValue can be shown as the current value instead.
   final Object? value;
   EditableArgument({
+    this.defaultValue,
     this.displayValue,
     required this.hasArgument,
     required this.isDefault,
@@ -1508,6 +1501,7 @@ class EditableArgument implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
+        defaultValue,
         displayValue,
         hasArgument,
         isDefault,
@@ -1525,6 +1519,7 @@ class EditableArgument implements ToJsonable {
   bool operator ==(Object other) {
     return other is EditableArgument &&
         other.runtimeType == EditableArgument &&
+        defaultValue == other.defaultValue &&
         displayValue == other.displayValue &&
         hasArgument == other.hasArgument &&
         isDefault == other.isDefault &&
@@ -1541,6 +1536,9 @@ class EditableArgument implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (defaultValue != null) {
+      result['defaultValue'] = defaultValue;
+    }
     if (displayValue != null) {
       result['displayValue'] = displayValue;
     }
@@ -1613,6 +1611,8 @@ class EditableArgument implements ToJsonable {
   }
 
   static EditableArgument fromJson(Map<String, Object?> json) {
+    final defaultValueJson = json['defaultValue'];
+    final defaultValue = defaultValueJson;
     final displayValueJson = json['displayValue'];
     final displayValue = displayValueJson as String?;
     final hasArgumentJson = json['hasArgument'];
@@ -1637,6 +1637,7 @@ class EditableArgument implements ToJsonable {
     final valueJson = json['value'];
     final value = valueJson;
     return EditableArgument(
+      defaultValue: defaultValue,
       displayValue: displayValue,
       hasArgument: hasArgument,
       isDefault: isDefault,
@@ -1660,15 +1661,21 @@ class EditableArguments implements ToJsonable {
 
   final List<EditableArgument> arguments;
 
-  final TextDocumentIdentifier textDocument;
+  final String? documentation;
 
+  final String? name;
+  final TextDocumentIdentifier textDocument;
   EditableArguments({
     required this.arguments,
+    this.documentation,
+    this.name,
     required this.textDocument,
   });
   @override
   int get hashCode => Object.hash(
         lspHashCode(arguments),
+        documentation,
+        name,
         textDocument,
       );
 
@@ -1677,6 +1684,8 @@ class EditableArguments implements ToJsonable {
     return other is EditableArguments &&
         other.runtimeType == EditableArguments &&
         const DeepCollectionEquality().equals(arguments, other.arguments) &&
+        documentation == other.documentation &&
+        name == other.name &&
         textDocument == other.textDocument;
   }
 
@@ -1684,6 +1693,12 @@ class EditableArguments implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['arguments'] = arguments.map((item) => item.toJson()).toList();
+    if (documentation != null) {
+      result['documentation'] = documentation;
+    }
+    if (name != null) {
+      result['name'] = name;
+    }
     result['textDocument'] = textDocument.toJson();
     return result;
   }
@@ -1695,6 +1710,14 @@ class EditableArguments implements ToJsonable {
     if (obj is Map<String, Object?>) {
       if (!_canParseListEditableArgument(obj, reporter, 'arguments',
           allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'documentation',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
@@ -1710,11 +1733,17 @@ class EditableArguments implements ToJsonable {
     final arguments = (argumentsJson as List<Object?>)
         .map((item) => EditableArgument.fromJson(item as Map<String, Object?>))
         .toList();
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson as String?;
+    final nameJson = json['name'];
+    final name = nameJson as String?;
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     return EditableArguments(
       arguments: arguments,
+      documentation: documentation,
+      name: name,
       textDocument: textDocument,
     );
   }

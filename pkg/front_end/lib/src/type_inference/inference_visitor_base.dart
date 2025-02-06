@@ -154,7 +154,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis => _inferrer.flowAnalysis;
+      SharedTypeView> get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -213,7 +213,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// promoted, to be used when reporting an error for a larger expression
   /// containing [receiver].  [node] is the containing tree node.
   List<LocatedMessage>? getWhyNotPromotedContext(
-      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted,
+      Map<SharedTypeView, NonPromotionReason>? whyNotPromoted,
       TreeNode node,
       bool Function(DartType) typeFilter) {
     List<LocatedMessage>? context;
@@ -221,7 +221,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore-block(suite): Not run.
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
           new _WhyNotPromotedVisitor(this);
-      for (MapEntry<SharedTypeView<DartType>, NonPromotionReason> entry
+      for (MapEntry<SharedTypeView, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key.unwrapTypeView())) continue;
         List<LocatedMessage> messages =
@@ -381,8 +381,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     return ensureAssignableResult(expectedType,
             new ExpressionInferenceResult(expressionType, expression),
             fileOffset: fileOffset,
@@ -496,8 +495,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     // [errorTemplate], [nullabilityErrorTemplate], and
     // [nullabilityPartErrorTemplate] should be provided together.
     assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
@@ -657,8 +655,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     if (coerceExpression) {
       ExpressionInferenceResult? coercionResult = coerceExpressionForAssignment(
           contextType, inferenceResult,
@@ -1705,7 +1702,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return visitor.inferExpression(argumentExpression, inferredFormalType);
     }
 
-    List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo =
+    List<ExpressionInfo<SharedTypeView>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
@@ -2996,8 +2993,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
-    Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-        whyNotPromoted;
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted;
     if (target.isNullable) {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
@@ -3970,8 +3966,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? readType,
       required DartType? promotedReadType,
       required bool isThisReceiver,
-      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     Expression read;
     ExpressionInferenceResult? readResult;
 
@@ -4376,7 +4371,7 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<LocatedMessage>, Node,
-            VariableDeclaration, SharedTypeView<DartType>> {
+            VariableDeclaration, SharedTypeView> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -4403,8 +4398,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView<DartType>>
-          reason) {
+      PropertyNotPromotedForNonInherentReason<SharedTypeView> reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
@@ -4460,7 +4454,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView<DartType>> reason) {
+      PropertyNotPromotedForInherentReason<SharedTypeView> reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       if (member case Procedure(:var stubTarget?)) {
@@ -4507,7 +4501,7 @@ class _WhyNotPromotedVisitor
   }
 
   void _addFieldPromotionUnavailableMessage(
-      PropertyNotPromoted<SharedTypeView<DartType>> reason,
+      PropertyNotPromoted<SharedTypeView> reason,
       List<LocatedMessage> messages) {
     Object? member = reason.propertyMember;
     if (member is Member) {

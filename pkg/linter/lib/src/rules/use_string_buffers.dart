@@ -23,17 +23,16 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// so the bad case is N times slower than the good case.
 class UseStringBuffers extends LintRule {
   UseStringBuffers()
-      : super(
-          name: LintNames.use_string_buffers,
-          description: _desc,
-        );
+    : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_string_buffers;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);

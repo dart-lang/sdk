@@ -119,6 +119,14 @@ void [!^f!]() {}
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_importPrefix() async {
+    var contents = '''
+import 'dart:math' as [!^math!];
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_method() async {
     var contents = '''
 class A {
@@ -180,6 +188,15 @@ extension on String {
 extension StringExtension on String {
   String get [!myField!] => '';
 }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_importPrefix() async {
+    var contents = '''
+/// This is a comment for [^math]
+import 'dart:math' as [!math!];
 ''';
 
     await testContents(contents);
@@ -450,6 +467,91 @@ foo(Object pair) {
     await testContents(contents);
   }
 
+  Future<void> test_importPrefix() async {
+    var contents = '''
+import 'dart:math' as [!math!];
+
+^math.Random? r;
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_importPrefix_multiple() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+/*[2*/^math/*2]*/.Random? r;
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.last.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
+  }
+
+  Future<void> test_importPrefix_multiple_alone() async {
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+void foo() {
+  // ignore: prefix_identifier_not_followed_by_dot
+  /*[2*/^math/*2]*/;
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.range, equals(code.ranges[index].range));
+    }
+  }
+
+  Future<void> test_importPrefix_multiple_comment() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+import 'dart:math' as /*[0*/math/*0]*/;
+import 'dart:async' as /*[1*/math/*1]*/;
+
+/// This is a comment that talks about [/*[2*/^math/*2]*/].
+math.Random? r;
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.last.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
+  }
+
   Future<void> test_locationLink_class() async {
     setLocationLinkSupport();
 
@@ -672,96 +774,6 @@ void f() {
     expect(loc.targetRange, code.ranges[0].range);
     expect(loc.targetSelectionRange, code.ranges[1].range);
     expect(loc.originSelectionRange, code.ranges[2].range);
-  }
-
-  Future<void> test_macro_macroGeneratedFileToUserFile() async {
-    addMacros([declareInTypeMacro()]);
-
-    setLocationLinkSupport(); // To verify the full set of ranges.
-    setDartTextDocumentContentProviderSupport();
-
-    var code = TestCode.parse('''
-import 'macros.dart';
-
-@DeclareInType('  void foo() { bar(); }')
-class A {
-  /*[0*/void /*[1*/bar/*1]*/() {}/*0]*/
-}
-''');
-
-    await initialize();
-    await Future.wait([
-      openFile(mainFileUri, code.code),
-      waitForAnalysisComplete(),
-    ]);
-
-    // Find the location of the call to bar() in the macro file so we can
-    // invoke Definition on it.
-    var macroResponse = await getDartTextDocumentContent(mainFileMacroUri);
-    var macroContent = macroResponse!.content!;
-    var barInvocationRange = rangeOfStringInString(macroContent, 'bar');
-
-    // Invoke Definition in the macro file at the location of the call back to
-    // the main file.
-    var locations = await getDefinitionAsLocationLinks(
-      mainFileMacroUri,
-      barInvocationRange.start,
-    );
-    var location = locations.single;
-
-    // Check the origin selection range covers the text we'd expected in the
-    // generated file.
-    expect(
-      getTextForRange(macroContent, location.originSelectionRange!),
-      'bar',
-    );
-
-    // And the target matches our original file.
-    expect(location.targetUri, mainFileUri);
-    expect(location.targetRange, code.ranges[0].range);
-    expect(location.targetSelectionRange, code.ranges[1].range);
-  }
-
-  Future<void> test_macro_userFileToMacroGeneratedFile() async {
-    addMacros([declareInTypeMacro()]);
-
-    // TODO(dantup): Consider making LocationLink the default for tests (with
-    //  some specific tests for Location) because  it's what VS Code uses and
-    //  has more fields to verify.
-    setLocationLinkSupport(); // To verify the full set of ranges.
-    setDartTextDocumentContentProviderSupport();
-
-    var code = TestCode.parse('''
-import 'macros.dart';
-
-f() {
-  A().[!foo^!]();
-}
-
-@DeclareInType('void foo() {}')
-class A {}
-''');
-
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    var locations = await getDefinitionAsLocationLinks(
-      mainFileUri,
-      code.position.position,
-    );
-    var location = locations.single;
-
-    expect(location.originSelectionRange, code.range.range);
-    expect(location.targetUri, mainFileMacroUri);
-
-    // To verify the other ranges, fetch the content for the file and check
-    // those substrings are as expected.
-    var macroResponse = await getDartTextDocumentContent(location.targetUri);
-    var macroContent = macroResponse!.content!;
-    expect(
-      getTextForRange(macroContent, location.targetRange),
-      'void foo() {}',
-    );
-    expect(getTextForRange(macroContent, location.targetSelectionRange), 'foo');
   }
 
   Future<void> test_method_underscore() async {

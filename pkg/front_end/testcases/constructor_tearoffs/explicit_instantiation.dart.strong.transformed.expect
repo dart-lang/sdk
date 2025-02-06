@@ -48,8 +48,6 @@ abstract class _D&C&M extends self::C implements self::M /*isAnonymousMixin,isEl
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f3TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   }
-  static method mstat<T extends core::Object? = dynamic>(self::_D&C&M::mstat::T% value) → self::_D&C&M::mstat::T%
-    return value;
 }
 class D extends self::_D&C&M {
   synthetic constructor •() → self::D

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -22,7 +20,7 @@ class NormalizeHelper {
   final TypeSystemImpl typeSystem;
   final TypeProviderImpl typeProvider;
 
-  final Set<TypeParameterElement> _typeParameters = {};
+  final Set<TypeParameterElement2> _typeParameters = {};
 
   NormalizeHelper(this.typeSystem) : typeProvider = typeSystem.typeProvider;
 
@@ -35,7 +33,7 @@ class NormalizeHelper {
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
   FunctionTypeImpl _functionType(FunctionType functionType) {
-    var fresh = getFreshTypeParameters(functionType.typeFormals);
+    var fresh = getFreshTypeParameters2(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
       var bound = typeParameter.firstFragment.bound;
       if (bound != null) {
@@ -45,9 +43,9 @@ class NormalizeHelper {
 
     functionType = fresh.applyToFunctionType(functionType);
 
-    return FunctionTypeImpl(
-      typeFormals: functionType.typeFormals,
-      parameters: functionType.parameters.map((e) {
+    return FunctionTypeImpl.v2(
+      typeParameters: functionType.typeParameters,
+      formalParameters: functionType.formalParameters.map((e) {
         return e.copyWith(
           type: _normalize(e.type),
         );
@@ -134,7 +132,7 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceType) {
-      return T.element.instantiate(
+      return T.element3.instantiate(
         typeArguments: T.typeArguments.map(_normalize).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -202,7 +200,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   DartType _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element;
+    var element = T.element3;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -237,7 +235,7 @@ class NormalizeHelper {
 
   /// NORM(X & T)
   /// * let S be NORM(T)
-  DartType _typeParameterType_promoted(TypeParameterElement X, DartType S) {
+  DartType _typeParameterType_promoted(TypeParameterElement2 X, DartType S) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;
@@ -245,7 +243,7 @@ class NormalizeHelper {
 
     // * if S is a top type then X
     if (typeSystem.isTop(S)) {
-      return X.declaration.instantiate(
+      return X.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
@@ -253,20 +251,20 @@ class NormalizeHelper {
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element == X.declaration) {
-      return X.declaration.instantiate(
+        S.element3 == X) {
+      return X.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
 
     // * if S is Object and NORM(B) is Object where B is the bound of X then X
     if (S.nullabilitySuffix == NullabilitySuffix.none && S.isDartCoreObject) {
-      var B = X.declaration.bound;
+      var B = X.bound;
       if (B != null) {
         var B_norm = _normalize(B);
         if (B_norm.nullabilitySuffix == NullabilitySuffix.none &&
             B_norm.isDartCoreObject) {
-          return X.declaration.instantiate(
+          return X.instantiate(
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }
@@ -274,8 +272,8 @@ class NormalizeHelper {
     }
 
     // * else X & S
-    return TypeParameterTypeImpl(
-      element: X.declaration,
+    return TypeParameterTypeImpl.v2(
+      element: X,
       nullabilitySuffix: NullabilitySuffix.none,
       promotedBound: S,
     );

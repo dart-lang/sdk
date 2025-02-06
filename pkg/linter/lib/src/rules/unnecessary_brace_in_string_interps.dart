@@ -17,17 +17,19 @@ bool isIdentifierPart(Token? token) =>
 
 class UnnecessaryBraceInStringInterps extends LintRule {
   UnnecessaryBraceInStringInterps()
-      : super(
-          name: LintNames.unnecessary_brace_in_string_interps,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.unnecessary_brace_in_string_interps,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_brace_in_string_interps;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addStringInterpolation(this, visitor);
   }

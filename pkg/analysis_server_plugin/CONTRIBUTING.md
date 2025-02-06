@@ -20,5 +20,5 @@ document][coding style].
 
 [building]: https://github.com/dart-lang/sdk/wiki/Building
 [coding style]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/coding_style.md
-[contributing]: https://github.com/dart-lang/sdk/wiki/Contributing
+[contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
 [wiki]: https://github.com/dart-lang/sdk/wiki

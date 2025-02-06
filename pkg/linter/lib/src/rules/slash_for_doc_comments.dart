@@ -20,10 +20,7 @@ bool isJavaStyle(Comment comment) {
 
 class SlashForDocComments extends LintRule {
   SlashForDocComments()
-      : super(
-          name: LintNames.slash_for_doc_comments,
-          description: _desc,
-        );
+    : super(name: LintNames.slash_for_doc_comments, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -33,7 +30,9 @@ class SlashForDocComments extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);

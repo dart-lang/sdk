@@ -10,14 +10,16 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/editable_arguments/editable_arguments_mixin.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -46,6 +48,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     var editorClientCapabilities = server.editorClientCapabilities;
     if (editorClientCapabilities == null) {
       return serverNotInitializedError;
+    }
+
+    if (!editorClientCapabilities.applyEdit) {
+      return error(
+        ServerErrorCodes.EditsUnsupportedByEditor,
+        'The connected editor does not support applying edits',
+      );
     }
 
     var textDocument = params.textDocument;
@@ -77,12 +86,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       var invocation = getInvocationInfo(result, offset);
       if (invocation == null) {
         return error(
-          ErrorCodes.RequestFailed,
-          'No invocation was found at the position',
+          ServerErrorCodes.EditArgumentInvalidPosition,
+          'No invocation was found at the provided position',
         );
       }
 
       var (
+        :widgetName,
+        :widgetDocumentation,
         :parameters,
         :positionalParameterIndexes,
         :parameterArguments,
@@ -92,12 +103,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       ) = invocation;
 
       // Find the parameter we're editing the argument for.
-      var name = params.edit.name;
-      var parameter = parameters.firstWhereOrNull((p) => p.name3 == name);
+      var parameterName = params.edit.name;
+      var parameter = parameters.firstWhereOrNull(
+        (p) => p.name3 == parameterName,
+      );
       if (parameter == null) {
         return error(
-          ErrorCodes.RequestFailed,
-          'Parameter "$name" was not found in ${parameters.map((p) => p.name3).join(', ')}',
+          ServerErrorCodes.EditArgumentInvalidParameter,
+          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name3).join(', ')}",
         );
       }
 
@@ -116,9 +129,12 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         // This should never happen unless a client is broken, because either
         // they should have failed the version check, or they would've already
         // known this argument was not editable.
+        var notEditableReasonLower =
+            notEditableReason.substring(0, 1).toLowerCase() +
+            notEditableReason.substring(1);
         return error(
-          ErrorCodes.RequestFailed,
-          "Parameter '$name' is not editable: $notEditableReason",
+          ServerErrorCodes.EditArgumentInvalidParameter,
+          "The parameter '$parameterName' is not editable because $notEditableReasonLower",
         );
       }
 
@@ -170,8 +186,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         return success('null');
       } else {
         return error(
-          ErrorCodes.RequestFailed,
-          'Value for non-nullable parameter "${edit.name}" cannot be null',
+          ServerErrorCodes.EditArgumentInvalidValue,
+          "The value for the parameter '${edit.name}' cannot be null",
         );
       }
     }
@@ -200,14 +216,14 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         return success(value.toString());
       } else {
         return error(
-          ErrorCodes.RequestFailed,
-          'Value for parameter "${edit.name}" should be one of ${allowedValues.map((v) => '"$v"').join(', ')} but was "$value"',
+          ServerErrorCodes.EditArgumentInvalidValue,
+          "The value for the parameter '${edit.name}' should be one of ${allowedValues.map((v) => "'$v'").join(', ')} but was '$value'",
         );
       }
     } else {
       return error(
-        ErrorCodes.RequestFailed,
-        'Value for parameter "${edit.name}" should be $type but was ${value.runtimeType}',
+        ServerErrorCodes.EditArgumentInvalidValue,
+        "The value for the parameter '${edit.name}' should be $type but was ${value.runtimeType}",
       );
     }
   }
@@ -228,10 +244,13 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     );
 
     var changeBuilder = ChangeBuilder(session: result.session);
+    var utils = CorrectionUtils(result);
     await changeBuilder.addDartFileEdit(result.path, (builder) {
       if (argument == null) {
         _writeNewArgument(
           builder,
+          utils,
+          result.lineInfo,
           parameters,
           argumentList,
           parameter,
@@ -286,16 +305,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// Sends [workspaceEdit] to the client and returns `null` if applied
   /// successfully or an error otherwise.
   Future<ErrorOr<Null>> _sendEditToClient(WorkspaceEdit workspaceEdit) async {
-    var server = this.server;
-    if (server is! LspAnalysisServer) {
-      return error(
-        ErrorCodes.RequestFailed,
-        'Sending edits is currently only supported for clients using LSP directly',
-      );
-    }
-
     var editDescription = 'Edit argument';
-    var editResponse = await server.sendRequest(
+    var editResponse = await server.sendLspRequest(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams(label: editDescription, edit: workspaceEdit),
     );
@@ -304,7 +315,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     if (editResponse.error != null) {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client failed to apply workspace edit: $editDescription',
+        "The editor failed to apply the workspace edit '$editDescription'",
         editResponse.error.toString(),
       );
     }
@@ -323,7 +334,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       // changed.
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client did not apply workspace edit: $editDescription '
+        "The editor did not apply the workspace edit '$editDescription' "
         '(reason: ${failureReason ?? 'not given'})',
         workspaceEdit.toString(),
       );
@@ -354,6 +365,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// earlier missing positionals.
   void _writeNewArgument(
     DartFileEditBuilder builder,
+    CorrectionUtils utils,
+    LineInfo lineInfo,
     List<FormalParameterElement> parameters,
     ArgumentList argumentList,
     FormalParameterElement parameter,
@@ -379,9 +392,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     }
 
     var parameterName = parameter.name3;
-    var prefix =
+    var argumentNamePrefix =
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
-    var argumentCodeToInsert = '$prefix$newValueCode';
+    var argumentCode = '$argumentNamePrefix$newValueCode';
 
     // Usually we insert at the end (after the last argument), but if the last
     // argument is child/children we should go before it.
@@ -389,18 +402,54 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       _isNotNamedChildOrChildren,
     );
 
+    var hasArgumentsBefore = argumentToInsertAfter != null;
+    var hasArgumentsAfter =
+        (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) ||
+        (argumentToInsertAfter != null &&
+            argumentToInsertAfter != argumentList.arguments.last);
+    var commaFollowsInsertion =
+        argumentToInsertAfter?.endToken.next?.type == TokenType.COMMA;
+
+    // If the invocation is already across more than one line, we will format
+    // accordingly. If it is already on one line, keep it that way.
+    var isMultiline =
+        lineInfo.getLocation(argumentList.leftParenthesis.offset).lineNumber !=
+        lineInfo.getLocation(argumentList.rightParenthesis.offset).lineNumber;
+
+    // If we are multiline, indent one level more than the invocation.
+    var indent =
+        isMultiline
+            ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
+            : '';
+
+    // The prefix we need depends on whether there is an argument before us
+    // and whether we are multiline.
+    var codePrefix = switch ((isMultiline, hasArgumentsBefore)) {
+      (true, true) => ',${utils.endOfLine}$indent',
+      (true, false) => '${utils.endOfLine}$indent',
+      (false, true) => ', ',
+      (false, false) => '',
+    };
+
+    // The suffix depends on whether there is an argument after us and whether
+    // we are multiline. If there is an argument after us, there is already
+    // the correct whitespace and comma after our insertion point.
+    var codeSuffix = switch ((
+      isMultiline,
+      hasArgumentsAfter,
+      commaFollowsInsertion,
+    )) {
+      (_, true, _) => '',
+      (true, false, false) => ',',
+      (true, false, true) => '',
+      (false, false, _) => '',
+    };
+
     // Build the final code to insert.
     var newCode = StringBuffer();
-    if (argumentToInsertAfter != null) {
-      // If we're being inserted after an argument, put a new comma between us.
-      newCode.write(', ');
-    }
-    newCode.write(argumentCodeToInsert);
-    if (argumentToInsertAfter == null && argumentList.arguments.isNotEmpty) {
-      // If we're not inserted after an existing argument but there are future
-      // arguments, add a comma in between us.
-      newCode.write(', ');
-    }
+    newCode.write(codePrefix);
+    newCode.write(argumentCode);
+    newCode.write(codeSuffix);
 
     builder.addSimpleInsertion(
       argumentToInsertAfter?.end ?? argumentList.leftParenthesis.end,

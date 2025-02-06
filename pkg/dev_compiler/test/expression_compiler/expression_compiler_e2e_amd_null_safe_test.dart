@@ -15,14 +15,13 @@ void main(List<String> args) async {
   final debug = false;
   var driver = await ExpressionEvaluationTestDriver.init();
 
-  group('(Sound null safety)', () {
+  group('(Null safe code)', () {
     tearDownAll(() async {
       await driver.finish();
     });
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-        soundNullSafety: true,
         moduleFormat: ModuleFormat.amd,
         args: args,
       );

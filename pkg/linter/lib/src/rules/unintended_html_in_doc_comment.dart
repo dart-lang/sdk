@@ -8,7 +8,8 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use of angle brackets in a doc comment is treated as HTML by '
+const _desc =
+    r'Use of angle brackets in a doc comment is treated as HTML by '
     'Markdown.';
 
 /// Valid HTML tags that should not be linted.
@@ -118,17 +119,16 @@ const _validHtmlTags = [
 
 class UnintendedHtmlInDocComment extends LintRule {
   UnintendedHtmlInDocComment()
-      : super(
-          name: LintNames.unintended_html_in_doc_comment,
-          description: _desc,
-        );
+    : super(name: LintNames.unintended_html_in_doc_comment, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unintended_html_in_doc_comment;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addComment(this, visitor);
   }
@@ -152,52 +152,44 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// non-HTML sections in the same RegExp ensures that the HTML tag match
   /// will not be matched against the non-HTML content.
   static final _markdownTokenPattern = RegExp(
-      // Escaped Markdown character, including `\<` and `\\`.
-      r'\\.'
-
-      // Or a Markdown code span, from "`"*N to "`"*N.
-      // Also matches an unterminated start tag to avoid "```a``"
-      // being matched as "``a``".
-      // The ```-sequence is atomic.
-      r'|(?<cq>`+)(?:[^]+?\k<cq>)?'
-
-      // Or autolink, starting with scheme + `:`, followed by non-whitespace/
-      // control characters until a closing `>`.
-      r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
-
-      // Or HTML comments.
-      r'|<!--(?:-?>|[^]*?-->)'
-
-      // Or HTML declarations, like `<!DOCTYPE ...>`.
-      r'|<![a-z][^]*?!>'
-
-      // Or HTML processing instructions.
-      r'|<\?[^]*?\?>'
-
-      // Or HTML CDATA sections sections.
-      r'|<\[CDATA[^]*\]>'
-
-      // Or plain `[...]` which DartDoc interprets as Dart source links,
-      // and which can contain type parameters like `... [List<int>] ...`.
-      // Here recognized as `[...]` with no `]` inside, not preceded by `]`
-      // or followed by `(` or `[`.
-      r'|(?<!\])\[[^\]]*\](?![(\[])'
-
-      // Or valid HTML tag.
-      // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`
-      // and `</validTag ...>.
-      r'|<(?<et>/?)(?:'
-      '${_validHtmlTags.join('|')}'
-      r')'
-      r'(?:/(?=\k<et>)>|>|[\x20\r\n\t][^]*?>)'
-
-      // Or any of the following matches which are considered invalid tags.
-      // If the "nh" capture group is participating, one of these matched.
-      r'|(?<nh>)(?:'
-
-      // Any other `</?tag ...>` sequence.
-      r'</?[a-z][^]*?>'
-      r')', caseSensitive: false);
+    // Escaped Markdown character, including `\<` and `\\`.
+    r'\\.'
+    // Or a Markdown code span, from "`"*N to "`"*N.
+    // Also matches an unterminated start tag to avoid "```a``"
+    // being matched as "``a``".
+    // The ```-sequence is atomic.
+    r'|(?<cq>`+)(?:[^]+?\k<cq>)?'
+    // Or autolink, starting with scheme + `:`, followed by non-whitespace/
+    // control characters until a closing `>`.
+    r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
+    // Or HTML comments.
+    r'|<!--(?:-?>|[^]*?-->)'
+    // Or HTML declarations, like `<!DOCTYPE ...>`.
+    r'|<![a-z][^]*?!>'
+    // Or HTML processing instructions.
+    r'|<\?[^]*?\?>'
+    // Or HTML CDATA sections sections.
+    r'|<\[CDATA[^]*\]>'
+    // Or plain `[...]` which DartDoc interprets as Dart source links,
+    // and which can contain type parameters like `... [List<int>] ...`.
+    // Here recognized as `[...]` with no `]` inside, not preceded by `]`
+    // or followed by `(` or `[`.
+    r'|(?<!\])\[[^\]]*\](?![(\[])'
+    // Or valid HTML tag.
+    // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`
+    // and `</validTag ...>.
+    r'|<(?<et>/?)(?:'
+    '${_validHtmlTags.join('|')}'
+    r')'
+    r'(?:/(?=\k<et>)>|>|[\x20\r\n\t][^]*?>)'
+    // Or any of the following matches which are considered invalid tags.
+    // If the "nh" capture group is participating, one of these matched.
+    r'|(?<nh>)(?:'
+    // Any other `</?tag ...>` sequence.
+    r'</?[a-z][^]*?>'
+    r')',
+    caseSensitive: false,
+  );
 
   final LintRule rule;
 
@@ -212,9 +204,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Make sure that the current doc comment line isn't contained in a code
       // block.
       var offsetAfterSlash = token.offset + 3;
-      var inCodeBlock = codeBlockLines.any((codeBlockLine) =>
-          codeBlockLine.offset <= offsetAfterSlash &&
-          offsetAfterSlash <= codeBlockLine.offset + codeBlockLine.length);
+      var inCodeBlock = codeBlockLines.any(
+        (codeBlockLine) =>
+            codeBlockLine.offset <= offsetAfterSlash &&
+            offsetAfterSlash <= codeBlockLine.offset + codeBlockLine.length,
+      );
       if (inCodeBlock) continue;
 
       var tags = _findUnintendedHtmlTags(token.lexeme);

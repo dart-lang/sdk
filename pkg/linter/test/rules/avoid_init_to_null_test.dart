@@ -19,29 +19,32 @@ class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_init_to_null;
 
   test_forLoop() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   for (var i = null; i != null; i++) {
   }
 }
-''', [
-      lint(22, 8),
-    ]);
+''',
+      [lint(22, 8)],
+    );
   }
 
   test_nullableStringInit() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? a;
   A({this.a = null});
 }
-''', [
-      lint(28, 13),
-    ]);
+''',
+      [lint(28, 13)],
+    );
   }
 
   test_superInit_2() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? a;
   A({this.a = null});
@@ -49,10 +52,9 @@ class A {
 class B extends A {
   B({super.a = null});
 }
-''', [
-      lint(28, 13),
-      lint(72, 14),
-    ]);
+''',
+      [lint(28, 13), lint(72, 14)],
+    );
   }
 
   /// https://github.com/dart-lang/linter/issues/3349
@@ -78,14 +80,15 @@ class AvoidInitToNullTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_init_to_null;
 
   test_fieldFormalParameter_inferredType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int? i;
   C({this.i = null});
 }
-''', [
-      lint(25, 13),
-    ]);
+''',
+      [lint(25, 13)],
+    );
   }
 
   test_instanceField_inferredType_final() async {
@@ -106,65 +109,79 @@ class C {
   }
 
   test_instanceField_nullableIntType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int? i = null;
   C(): i = 1;
 }
-''', [
-      lint(17, 8),
-    ]);
+''',
+      [lint(17, 8)],
+    );
   }
 
   test_invalidAssignment_field() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class X {
   int x = null;
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 20, 4),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 20, 4),
+      ],
+    );
   }
 
   test_invalidAssignment_namedParameter() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class X {
   X({int a = null});
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 4),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 4),
+      ],
+    );
   }
 
   test_invalidAssignment_namedParameter_fieldFormal() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class X {
   int x;
   X({this.x = null});
 }
-''', [
-      // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 4),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 4),
+      ],
+    );
   }
 
   test_invalidAssignment_topLevelVariable() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int i = null;
-''', [
-      // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 4),
-    ]);
+''',
+      [
+        // No lint
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 4),
+      ],
+    );
   }
 
   test_namedParameter_inferredType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 foo({p = null}) {}
-''', [
-      lint(5, 8),
-    ]);
+''',
+      [lint(5, 8)],
+    );
   }
 
   test_namedParameter_inferredType_defaultValueIsInt() async {
@@ -180,19 +197,21 @@ foo({p}) {}
   }
 
   test_namedParameter_inferredType_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 foo({var p = null}) {}
-''', [
-      lint(5, 12),
-    ]);
+''',
+      [lint(5, 12)],
+    );
   }
 
   test_optionalParameter_inferredType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 foo([p = null]) {}
-''', [
-      lint(5, 8),
-    ]);
+''',
+      [lint(5, 8)],
+    );
   }
 
   test_optionalParameter_inferredType_defaultValueIsInt() async {
@@ -208,11 +227,12 @@ foo([p]) {}
   }
 
   test_optionalParameter_inferredType_var() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 foo([var p = null]) {}
-''', [
-      lint(5, 12),
-    ]);
+''',
+      [lint(5, 12)],
+    );
   }
 
   test_staticConstField_inferredType_final() async {
@@ -224,19 +244,21 @@ class C {
   }
 
   test_topLevelVariable_dynamic() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic i = null;
-''', [
-      lint(8, 8),
-    ]);
+''',
+      [lint(8, 8)],
+    );
   }
 
   test_topLevelVariable_inferredType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 var i = null;
-''', [
-      lint(4, 8),
-    ]);
+''',
+      [lint(4, 8)],
+    );
   }
 
   test_topLevelVariable_inferredType_const() async {
@@ -264,10 +286,11 @@ var i;
   }
 
   test_topLevelVariable_nullableType() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 int? ii = null;
-''', [
-      lint(5, 9),
-    ]);
+''',
+      [lint(5, 9)],
+    );
   }
 }

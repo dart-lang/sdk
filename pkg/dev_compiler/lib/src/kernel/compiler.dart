@@ -2479,11 +2479,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// own type parameters, this will need to be changed to call
     /// [_emitFunction] instead.
     var name = node.name.text;
-    var savedTypeEnvironment = _currentTypeEnvironment;
+    final savedTypeEnvironment = _currentTypeEnvironment;
     _currentTypeEnvironment = RtiTypeEnvironment([
       ...function.typeParameters,
       ..._currentTypeEnvironment.classTypeParameters
     ]);
+
     var jsBody = js_ast.Block(_withCurrentFunction(function, () {
       var block = _emitArgumentInitializers(function, name);
       block.add(_emitFunctionScopedBody(function));
@@ -3408,7 +3409,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var env =
               js.call('#.instanceType(this)', [_emitLibraryName(_rtiLibrary)]);
           return emitRtiEval(env, recipe);
-        case ExtendedClassTypeEnvironment():
+        case ExtendedTypeEnvironment():
           // Class type environments are already constructed and attached to the
           // instance of a generic class, but function type parameters need to
           // be bound.
@@ -3857,7 +3858,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
+    void initParameter(
+        VariableDeclaration p, js_ast.Identifier jsParam, bool isOptional) {
       // When the parameter is covariant, insert the null check before the
       // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
@@ -3870,7 +3872,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Eliminate it when possible.
         body.add(js.statement('if (# == null) return false;', [jsParam]));
       }
-      if (isCovariantParameter(p)) {
+      if (isCovariantParameter(p) ||
+          // TODO(52582): This should be unreachable once the CFE ensures that
+          // redirecting factories parameter types match the target constructor.
+          // Matches dart2js check semantics for redirecting factory tearoffs.
+          // If a non-nullable optional argument with a null initializer is
+          // detected, we add an additional covariant check at runtime.
+          (f.parent is Procedure &&
+              isOptional &&
+              isConstructorTearOffLowering(f.parent as Procedure) &&
+              !p.type.isPotentiallyNullable &&
+              !p.initializer!
+                  .getStaticType(_staticTypeContext)
+                  .isPotentiallyNonNullable)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
@@ -3884,11 +3898,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
+    var counter = 0;
     for (var p in f.positionalParameters) {
       var jsParam = _emitVariableRef(p);
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, counter >= f.requiredParameterCount);
       }
+      counter++;
     }
     for (var p in f.namedParameters) {
       // Parameters will be passed using their real names, not the (possibly
@@ -3906,7 +3922,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]));
 
       if (_checkParameters) {
-        initParameter(p, jsParam);
+        initParameter(p, jsParam, !p.isRequired);
       }
     }
 

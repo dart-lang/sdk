@@ -1473,6 +1473,9 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   }
 
   @override
+  bool get isCovariantByDeclaration => false;
+
+  @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       ClassTypeVariableAccess.none;
 }

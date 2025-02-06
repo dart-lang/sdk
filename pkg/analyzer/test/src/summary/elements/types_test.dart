@@ -1452,7 +1452,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -1643,7 +1643,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::c2::@parameter::_c2#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -1787,7 +1787,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -2117,7 +2117,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-    class B
+    notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
@@ -2592,6 +2592,8 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
+    if (!keepLinkingLibraries) return;
+
     newFile('$testPackageLibPath/a.dart', 'V() {}');
     newFile('$testPackageLibPath/b.dart', 'V() {}');
     var library = await buildLibrary('''
@@ -2622,7 +2624,9 @@ library
                 SimpleIdentifier
                   token: V @43
                   staticElement: <null>
-                  element: <null>
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
                   staticType: InvalidType
           returnType: dynamic
 ----------------------------------------

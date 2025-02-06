@@ -47,7 +47,11 @@ var z = 33;
         var source = MockSource(sourcePath);
 
         var error = AnalysisError.tmp(
-            source: source, offset: 10, length: 3, errorCode: code);
+          source: source,
+          offset: 10,
+          length: 3,
+          errorCode: code,
+        );
 
         info = AnalysisErrorInfo([error], lineInfo);
         out = StringBuffer();
@@ -69,12 +73,15 @@ files analyzed, 1 issue found.''');
       test('stats', () {
         out.clear();
         ReportFormatter([info], out).write();
-        expect(out.toString(), startsWith('''$sourcePath 3:2 [test] MSG
+        expect(
+          out.toString(),
+          startsWith('''$sourcePath 3:2 [test] MSG
 var z = 33;
  ^^^
 
 files analyzed, 1 issue found.
-'''));
+'''),
+        );
       });
     });
   });

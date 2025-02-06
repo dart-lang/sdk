@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,12 +44,15 @@ Set<Object> _computeExplicitlyTypedParameterSet(
 /// Given an iterable of parameters, computes a map whose keys are either the
 /// parameter name (for named parameters) or the zero-based integer index (for
 /// unnamed parameters), and whose values are the parameters themselves.
-Map<Object, ParameterElement> _computeParameterMap(
+Map<Object, ParameterElementMixin> _computeParameterMap(
     Iterable<ParameterElement> parameters) {
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name : unnamedParameterIndex++: parameter
+      parameter.isNamed ? parameter.name : unnamedParameterIndex++:
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
+          parameter as ParameterElementMixin
   };
 }
 
@@ -156,7 +160,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
 
   @override
-  DartType resolveInvocation({required FunctionType? rawType}) {
+  DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
     var typeArgumentList = _typeArguments;
     var originalType = rawType;
 
@@ -222,10 +226,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
-          // TODO(paulberry): make this cast unnecessary by changing `rawType`
-          // to `FunctionTypeImpl?`.
-          rawType.typeParameters.cast(),
-          rawType);
+          rawType.typeParameters, rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeParameters,
@@ -280,7 +281,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     if (inferrer != null) {
       typeArgumentTypes = inferrer.chooseFinalTypes();
     }
-    FunctionType? invokeType = typeArgumentTypes != null
+    FunctionTypeImpl? invokeType = typeArgumentTypes != null
         ? originalType?.instantiate(typeArgumentTypes)
         : originalType;
 
@@ -303,7 +304,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   /// parameters that were *not* deferred.
   List<_ParamInfo> _computeUndeferredParamInfo(
       FunctionType? rawType,
-      Map<Object, ParameterElement> parameterMap,
+      Map<Object, ParameterElementMixin> parameterMap,
       List<_DeferredParamInfo> deferredFunctionLiterals) {
     if (rawType == null) return const [];
     var parameterKeysAlreadyCovered = {
@@ -333,7 +334,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   }
 
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     return invokeType?.parameters;
   }
 }
@@ -390,7 +391,7 @@ class InstanceCreationInferrer
 
   @override
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
@@ -426,7 +427,7 @@ abstract class InvocationExpressionInferrer<
 
   @override
   List<ParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     node.typeArgumentTypes = typeArgumentTypes;
     node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
     return super._storeResult(typeArgumentTypes, invokeType);
@@ -442,7 +443,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
   final Node node;
   final ArgumentListImpl argumentList;
-  final DartType contextType;
+  final TypeImpl contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedArguments;
 
   /// Prepares to perform type inference on an invocation expression of type
@@ -461,7 +462,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Performs type inference on the invocation expression.  [rawType] should be
   /// the type of the function the invocation is resolved to (with type
   /// arguments not applied yet).
-  void resolveInvocation({required FunctionType? rawType}) {
+  void resolveInvocation({required FunctionTypeImpl? rawType}) {
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: _computeParameterMap(rawType?.parameters ?? const []));
     if (deferredFunctionLiterals != null) {
@@ -474,7 +475,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// argument of the invocation.  Usually this is just the type of the
   /// corresponding parameter, but it can be different for certain primitive
   /// numeric operations.
-  DartType _computeContextForArgument(DartType parameterType) => parameterType;
+  TypeImpl _computeContextForArgument(TypeImpl parameterType) => parameterType;
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
@@ -487,9 +488,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       flow?.equalityOperation_end(
           argumentList.parent as ExpressionImpl,
           leftOperandInfo.expressionInfo,
-          SharedTypeView<DartType>(leftOperandInfo.staticType),
+          SharedTypeView(leftOperandInfo.staticType),
           rightOperandInfo.expressionInfo,
-          SharedTypeView<DartType>(rightOperandInfo.staticType));
+          SharedTypeView(rightOperandInfo.staticType));
     }
   }
 
@@ -503,7 +504,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var arguments = argumentList.arguments;
     for (var deferredArgument in deferredFunctionLiterals) {
       var parameter = deferredArgument.parameter;
-      DartType parameterContextType;
+      TypeImpl parameterContextType;
       if (parameter != null) {
         var parameterType = parameter.type;
         if (substitution != null) {
@@ -534,7 +535,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
-      {required Map<Object, ParameterElement> parameterMap,
+      {required Map<Object, ParameterElementMixin> parameterMap,
       List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
@@ -547,7 +548,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
-      ParameterElement? parameter;
+      ParameterElementMixin? parameter;
       Object parameterKey;
       if (argument is NamedExpressionImpl) {
         value = argument.expression;
@@ -568,7 +569,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         // make sense.  So we store an innocuous value in the list.
         whyNotPromotedArguments.add(() => const {});
       } else {
-        DartType parameterContextType;
+        TypeImpl parameterContextType;
         if (parameter != null) {
           var parameterType = parameter.type;
           if (substitution != null) {
@@ -599,8 +600,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Computes the return type of the method or function represented by the
   /// given type that is being invoked.
-  static DartType computeInvokeReturnType(DartType? type) {
-    if (type is FunctionType) {
+  static TypeImpl computeInvokeReturnType(DartType? type) {
+    if (type is FunctionTypeImpl) {
       return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
@@ -629,7 +630,7 @@ class MethodInvocationInferrer
   }
 
   @override
-  DartType _computeContextForArgument(DartType parameterType) {
+  TypeImpl _computeContextForArgument(TypeImpl parameterType) {
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
@@ -692,7 +693,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   Iterable<TypeParameterElement> typeVarsFreeInParamParams(
       _DeferredParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       var parameterMap = _computeParameterMap(type.parameters);
       var explicitlyTypedParameters =
           _computeExplicitlyTypedParameterSet(paramInfo.value);
@@ -713,7 +714,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   Iterable<TypeParameterElement> typeVarsFreeInParamReturns(
       _ParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
-    if (type is FunctionType) {
+    if (type is FunctionTypeImpl) {
       return _typeSystem.getFreeParameters(type.returnType,
               candidates: _typeVariables) ??
           const [];
@@ -731,10 +732,10 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
 class _IdenticalArgumentInfo {
   /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
   /// the argument.
-  final ExpressionInfo<SharedTypeView<DartType>>? expressionInfo;
+  final ExpressionInfo<SharedTypeView>? expressionInfo;
 
   /// The static type of the argument.
-  final DartType staticType;
+  final TypeImpl staticType;
 
   _IdenticalArgumentInfo(
       {required this.expressionInfo, required this.staticType});
@@ -746,7 +747,7 @@ class _IdenticalArgumentInfo {
 class _ParamInfo {
   /// The function parameter corresponding to the argument, or `null` if we are
   /// resolving a dynamic invocation.
-  final ParameterElement? parameter;
+  final ParameterElementMixin? parameter;
 
   _ParamInfo(this.parameter);
 }

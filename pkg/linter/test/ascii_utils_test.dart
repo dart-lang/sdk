@@ -25,20 +25,11 @@ void main() {
   });
 
   group('isJustUnderscores', () {
-    test(
-      'empty is not',
-      () => expect(''.isJustUnderscores, isFalse),
-    );
+    test('empty is not', () => expect(''.isJustUnderscores, isFalse));
 
-    test(
-      'non-underscore is not',
-      () => expect('A'.isJustUnderscores, isFalse),
-    );
+    test('non-underscore is not', () => expect('A'.isJustUnderscores, isFalse));
 
-    test(
-      'one underscore is',
-      () => expect('_'.isJustUnderscores, isTrue),
-    );
+    test('one underscore is', () => expect('_'.isJustUnderscores, isTrue));
 
     test(
       'multiple underscores is',

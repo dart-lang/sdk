@@ -67,16 +67,18 @@ class _MockSdkElementsBuilder {
   ClassElementImpl? _symbolElement;
   ClassElementImpl? _typeElement;
 
-  InterfaceType? _boolType;
-  InterfaceType? _doubleType;
-  InterfaceType? _intType;
-  InterfaceType? _numType;
-  InterfaceType? _objectType;
-  InterfaceType? _stringType;
-  InterfaceType? _typeType;
+  InterfaceTypeImpl? _boolType;
+  InterfaceTypeImpl? _doubleType;
+  InterfaceTypeImpl? _intType;
+  InterfaceTypeImpl? _numType;
+  InterfaceTypeImpl? _objectType;
+  InterfaceTypeImpl? _stringType;
+  InterfaceTypeImpl? _typeType;
 
+  late LibraryElementImpl _asyncLibrary;
   late CompilationUnitElementImpl _asyncUnit;
 
+  late LibraryElementImpl _coreLibrary;
   late CompilationUnitElementImpl _coreUnit;
 
   _MockSdkElementsBuilder(
@@ -107,7 +109,7 @@ class _MockSdkElementsBuilder {
     return boolElement;
   }
 
-  InterfaceType get boolType {
+  InterfaceTypeImpl get boolType {
     return _boolType ??= _interfaceType(boolElement);
   }
 
@@ -236,7 +238,7 @@ class _MockSdkElementsBuilder {
     return doubleElement;
   }
 
-  InterfaceType get doubleType {
+  InterfaceTypeImpl get doubleType {
     return _doubleType ??= _interfaceType(doubleElement);
   }
 
@@ -257,7 +259,7 @@ class _MockSdkElementsBuilder {
     return functionElement;
   }
 
-  InterfaceType get functionType {
+  InterfaceTypeImpl get functionType {
     return _interfaceType(functionElement);
   }
 
@@ -378,7 +380,7 @@ class _MockSdkElementsBuilder {
     return intElement;
   }
 
-  InterfaceType get intType {
+  InterfaceTypeImpl get intType {
     return _intType ??= _interfaceType(intElement);
   }
 
@@ -613,7 +615,7 @@ class _MockSdkElementsBuilder {
     return numElement;
   }
 
-  InterfaceType get numType {
+  InterfaceTypeImpl get numType {
     return _numType ??= _interfaceType(numElement);
   }
 
@@ -649,7 +651,7 @@ class _MockSdkElementsBuilder {
     return objectElement;
   }
 
-  InterfaceType get objectType {
+  InterfaceTypeImpl get objectType {
     return _objectType ??= _interfaceType(objectElement);
   }
 
@@ -684,7 +686,7 @@ class _MockSdkElementsBuilder {
     return recordElement;
   }
 
-  InterfaceType get recordType {
+  InterfaceTypeImpl get recordType {
     return _interfaceType(recordElement);
   }
 
@@ -829,7 +831,7 @@ class _MockSdkElementsBuilder {
     return stringElement;
   }
 
-  InterfaceType get stringType {
+  InterfaceTypeImpl get stringType {
     return _stringType ??= _interfaceType(stringElement);
   }
 
@@ -873,48 +875,48 @@ class _MockSdkElementsBuilder {
     return typeElement;
   }
 
-  InterfaceType get typeType {
+  InterfaceTypeImpl get typeType {
     return _typeType ??= _interfaceType(typeElement);
   }
 
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
-  InterfaceType futureOrType(DartType elementType) {
+  InterfaceTypeImpl futureOrType(DartType elementType) {
     return _interfaceType(
       futureOrElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceType futureType(DartType elementType) {
+  InterfaceTypeImpl futureType(DartType elementType) {
     return _interfaceType(
       futureElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceType iterableType(DartType elementType) {
+  InterfaceTypeImpl iterableType(DartType elementType) {
     return _interfaceType(
       iterableElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceType iteratorType(DartType elementType) {
+  InterfaceTypeImpl iteratorType(DartType elementType) {
     return _interfaceType(
       iteratorElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceType listType(DartType elementType) {
+  InterfaceTypeImpl listType(DartType elementType) {
     return _interfaceType(
       listElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceType streamSubscriptionType(DartType valueType) {
+  InterfaceTypeImpl streamSubscriptionType(DartType valueType) {
     return _interfaceType(
       streamSubscriptionElement,
       typeArguments: [valueType],
@@ -923,7 +925,7 @@ class _MockSdkElementsBuilder {
 
   LibraryElementImpl _buildAsync() {
     var asyncSource = analysisContext.sourceFactory.forUri('dart:async')!;
-    var asyncLibrary = LibraryElementImpl(
+    _asyncLibrary = LibraryElementImpl(
       analysisContext,
       analysisSession,
       'dart.async',
@@ -933,17 +935,17 @@ class _MockSdkElementsBuilder {
     );
 
     _asyncUnit = CompilationUnitElementImpl(
-      library: asyncLibrary,
+      library: _asyncLibrary,
       source: asyncSource,
       lineInfo: LineInfo([0]),
     );
 
-    asyncLibrary.definingCompilationUnit = _asyncUnit;
-    return asyncLibrary;
+    _asyncLibrary.definingCompilationUnit = _asyncUnit;
+    return _asyncLibrary;
   }
 
   void _buildClassElement(ClassElementImpl fragment) {
-    var element = ClassElementImpl2(Reference.root(), fragment);
+    var element = fragment.element;
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
     element.fields = fragment.fields;
@@ -954,7 +956,7 @@ class _MockSdkElementsBuilder {
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
-    var coreLibrary = LibraryElementImpl(
+    _coreLibrary = LibraryElementImpl(
       analysisContext,
       analysisSession,
       'dart.core',
@@ -964,13 +966,13 @@ class _MockSdkElementsBuilder {
     );
 
     _coreUnit = CompilationUnitElementImpl(
-      library: coreLibrary,
+      library: _coreLibrary,
       source: coreSource,
       lineInfo: LineInfo([0]),
     );
 
-    coreLibrary.definingCompilationUnit = _coreUnit;
-    return coreLibrary;
+    _coreLibrary.definingCompilationUnit = _coreUnit;
+    return _coreLibrary;
   }
 
   ClassElementImpl _class({
@@ -979,13 +981,14 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeParameters = const [],
     required CompilationUnitElementImpl unit,
   }) {
-    var element = ClassElementImpl(name, 0);
-    element.typeParameters = typeParameters;
-    element.constructors = <ConstructorElementImpl>[
+    var fragment = ClassElementImpl(name, 0);
+    ClassElementImpl2(Reference.root(), fragment);
+    fragment.typeParameters = typeParameters;
+    fragment.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
-    unit.encloseElement(element);
-    return element;
+    unit.encloseElement(fragment);
+    return fragment;
   }
 
   ConstructorElementImpl _constructor({
@@ -1004,7 +1007,7 @@ class _MockSdkElementsBuilder {
 
   FieldElementImpl _field(
     String name,
-    DartType type, {
+    TypeImpl type, {
     bool isConst = false,
     bool isFinal = false,
     bool isStatic = false,
@@ -1018,13 +1021,15 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
-    return FunctionElementImpl(name, 0)
+    var fragment = FunctionElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
+    TopLevelFunctionElementImpl(Reference.root(), fragment);
+    return fragment;
   }
 
-  FunctionType _functionType({
+  FunctionTypeImpl _functionType({
     required DartType returnType,
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
@@ -1039,7 +1044,7 @@ class _MockSdkElementsBuilder {
 
   PropertyAccessorElementImpl _getter(
     String name,
-    DartType type, {
+    TypeImpl type, {
     bool isStatic = false,
   }) {
     var field = FieldElementImpl(name, -1);
@@ -1058,12 +1063,12 @@ class _MockSdkElementsBuilder {
     return getter;
   }
 
-  InterfaceType _interfaceType(
-    InterfaceElement element, {
+  InterfaceTypeImpl _interfaceType(
+    InterfaceElementImpl element, {
     List<DartType> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
-      element: element,
+      element: element.element,
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -1075,13 +1080,15 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
-    return MethodElementImpl(name, 0)
+    var fragment = MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
+    MethodElementImpl2(Reference.root(), name, fragment);
+    return fragment;
   }
 
-  ParameterElementImpl _namedParameter(String name, DartType type,
+  ParameterElementImpl _namedParameter(String name, TypeImpl type,
       {String? initializerCode}) {
     var parameter = DefaultParameterElementImpl(
       name: name,
@@ -1101,6 +1108,8 @@ class _MockSdkElementsBuilder {
       streamElement,
       streamSubscriptionElement
     ];
+
+    _fillLibraryFromFragment(_asyncLibrary, _asyncUnit);
   }
 
   void _populateCore() {
@@ -1151,13 +1160,16 @@ class _MockSdkElementsBuilder {
       deprecatedVariable.getter!,
       overrideVariable.getter!,
     ];
+
     _coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
     ];
+
+    _fillLibraryFromFragment(_coreLibrary, _coreUnit);
   }
 
-  ParameterElementImpl _positionalParameter(String name, DartType type) {
+  ParameterElementImpl _positionalParameter(String name, TypeImpl type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -1167,7 +1179,7 @@ class _MockSdkElementsBuilder {
     return parameter;
   }
 
-  ParameterElementImpl _requiredParameter(String name, DartType type) {
+  ParameterElementImpl _requiredParameter(String name, TypeImpl type) {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -1191,23 +1203,38 @@ class _MockSdkElementsBuilder {
 
   TopLevelVariableElementImpl _topLevelVariableConst(
     String name,
-    DartType type,
+    TypeImpl type,
   ) {
-    var variable = ConstTopLevelVariableElementImpl(name, -1)
+    var fragment = ConstTopLevelVariableElementImpl(name, -1)
       ..isConst = true
       ..type = type;
-    PropertyAccessorElementImpl_ImplicitGetter(variable);
-    return variable;
+    TopLevelVariableElementImpl2(Reference.root(), fragment);
+    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    return fragment;
   }
 
   TypeParameterElementImpl _typeParameter(String name) {
     return TypeParameterElementImpl(name, 0);
   }
 
-  TypeParameterType _typeParameterType(TypeParameterElement element) {
+  TypeParameterTypeImpl _typeParameterType(TypeParameterElement element) {
     return TypeParameterTypeImpl(
       element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
+  }
+
+  static void _fillLibraryFromFragment(
+    LibraryElementImpl library,
+    CompilationUnitElementImpl fragment,
+  ) {
+    library.classes = fragment.classes.map((f) => f.element).toList();
+
+    library.topLevelFunctions = fragment.functions.map((f) {
+      return f.element as TopLevelFunctionElementImpl;
+    }).toList();
+
+    library.topLevelVariables =
+        fragment.topLevelVariables.map((f) => f.element).toList();
   }
 }

@@ -12,7 +12,4 @@ main() {
   var v = 0.0;
   Expect.throwsRangeError(() => v.toStringAsFixed(-1));
   Expect.throwsRangeError(() => v.toStringAsFixed(21));
-
-
-
 }

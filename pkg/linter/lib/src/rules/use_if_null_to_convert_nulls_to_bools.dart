@@ -13,17 +13,19 @@ const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
 class UseIfNullToConvertNullsToBools extends LintRule {
   UseIfNullToConvertNullsToBools()
-      : super(
-          name: LintNames.use_if_null_to_convert_nulls_to_bools,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.use_if_null_to_convert_nulls_to_bools,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.use_if_null_to_convert_nulls_to_bools;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }

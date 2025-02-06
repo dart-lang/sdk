@@ -7,31 +7,45 @@
 
 import 'dart:isolate';
 
-main() {
-  try {
-    var receivePort = new RawReceivePort();
-    var expectedMsg = "Deferred Loaded.";
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 
-    receivePort.handler = (msg) {
-      if (msg != expectedMsg) {
-        print("Test failed.");
-        throw msg; // Fail the test if the message is not expected.
-      }
-      print('Test done.');
+void main() {
+  asyncStart(4);
+  var receivePort = RawReceivePort();
+  var nonce = "Deferred Loaded.";
+  int state = 0; // Incremented when reaching expected steps in communication.
+
+  receivePort.handler = (reply) {
+    if (reply == null) {
+      Expect.equals(2, state); // After isolate result message.
+      state = -1;
+      // Isolate exit.
       receivePort.close();
-    };
+      asyncEnd();
+    } else if (reply == true) {
+      Expect.equals(0, state); // Initial isolate-start message.
+      state = 1;
+      asyncEnd();
+    } else if (reply case [String error, String stack]) {
+      // Isolate unhandled or handled error.
+      var remoteError = RemoteError("@$state: $error", stack);
+      Error.throwWithStackTrace(remoteError, remoteError.stackTrace);
+    } else {
+      Expect.equals("*$nonce*", reply);
+      Expect.equals(1, state); // After isolate-start message.
+      state = 2;
+      asyncEnd();
+    }
+  };
 
-    var stopwatch = new Stopwatch()..start();
-    Isolate.spawnUri(new Uri(path: 'deferred_in_isolate_app.dart'),
-        [expectedMsg], [receivePort.sendPort]).then((isolate) {
-      print('Isolate spawn: ${stopwatch.elapsedMilliseconds}ms');
-    }).catchError((error) {
-      print(error);
-    });
-  } catch (exception, stackTrace) {
-    print('Test failed.');
-    print(exception);
-    print(stackTrace);
-    rethrow;
-  }
+  Isolate.spawnUri(
+    Uri(path: 'deferred_in_isolate_app.dart'),
+    [nonce],
+    receivePort.sendPort,
+    onError: receivePort.sendPort,
+    onExit: receivePort.sendPort,
+  ).then((_) {
+    asyncEnd();
+  });
 }

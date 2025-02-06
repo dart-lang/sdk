@@ -7,7 +7,6 @@
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -676,7 +675,7 @@ class AstBinaryReader {
       parameters: formalParameters,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
-    var type = _reader.readRequiredType() as FunctionType;
+    var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
     var element = GenericFunctionTypeElementImpl.forOffset(-1);
@@ -714,7 +713,7 @@ class AstBinaryReader {
 
     var node = ImplicitCallReferenceImpl(
       expression: expression,
-      staticElement: staticElement,
+      element: staticElement.asElement2,
       typeArguments: typeArguments,
       typeArgumentTypes: typeArgumentTypes,
     );

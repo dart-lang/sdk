@@ -10,7 +10,6 @@ import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
-import 'package:front_end/src/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart' show CanonicalName, Class;
 import 'package:vm_service/vm_service.dart' as vmService;
 import "package:vm_service/vm_service_io.dart" as vmServiceIo;
@@ -117,11 +116,9 @@ class KernelTargetTester extends KernelTargetTest {
 
   @override
   Future<BuildResult> buildComponent(
-      {required MacroApplications? macroApplications,
-      bool verify = false,
+      {bool verify = false,
       bool allowVerificationErrorForTesting = false}) async {
     BuildResult buildResult = await super.buildComponent(
-        macroApplications: macroApplications,
         verify: verify,
         allowVerificationErrorForTesting: allowVerificationErrorForTesting);
     print('buildComponent complete');

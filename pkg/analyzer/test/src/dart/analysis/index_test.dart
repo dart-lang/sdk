@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -930,7 +931,7 @@ typedef B = A<int>;
 27 3:13 |A| IS_REFERENCED_BY
 ''');
 
-    assertElementIndexText(intElement, r'''
+    assertElementIndexText(intElement.asElement, r'''
 29 3:15 |int| IS_REFERENCED_BY
 ''');
   }

@@ -16,17 +16,19 @@ const _desc = r'DO reference all public properties in debug methods.';
 
 class DiagnosticDescribeAllProperties extends LintRule {
   DiagnosticDescribeAllProperties()
-      : super(
-          name: LintNames.diagnostic_describe_all_properties,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.diagnostic_describe_all_properties,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.diagnostic_describe_all_properties;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
   }
@@ -44,7 +46,8 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
     if (node.name.startsWith(debugPrefix) &&
         node.name.length > debugPrefix.length) {
       debugName = node.name;
-      name = '${node.name[debugPrefix.length].toLowerCase()}'
+      name =
+          '${node.name[debugPrefix.length].toLowerCase()}'
           '${node.name.substring(debugPrefix.length + 1)}';
     } else {
       name = node.name;
@@ -52,7 +55,8 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
           '$debugPrefix${node.name[0].toUpperCase()}${node.name.substring(1)}';
     }
     properties.removeWhere(
-        (property) => property.lexeme == debugName || property.lexeme == name);
+      (property) => property.lexeme == debugName || property.lexeme == name,
+    );
 
     super.visitSimpleIdentifier(node);
   }

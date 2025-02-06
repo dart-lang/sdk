@@ -11,17 +11,16 @@ const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
 class EmptyConstructorBodies extends LintRule {
   EmptyConstructorBodies()
-      : super(
-          name: LintNames.empty_constructor_bodies,
-          description: _desc,
-        );
+    : super(name: LintNames.empty_constructor_bodies, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.empty_constructor_bodies;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }

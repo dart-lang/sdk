@@ -13,17 +13,16 @@ const _desc = r"Don't implement classes that override `==`.";
 
 class AvoidImplementingValueTypes extends LintRule {
   AvoidImplementingValueTypes()
-      : super(
-          name: LintNames.avoid_implementing_value_types,
-          description: _desc,
-        );
+    : super(name: LintNames.avoid_implementing_value_types, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_implementing_value_types;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
   }
@@ -54,8 +53,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _overridesEquals(InterfaceElement2 element) {
-    var member =
-        inheritanceManager.getMember4(element, equalsName, concrete: true);
+    var member = inheritanceManager.getMember4(
+      element,
+      equalsName,
+      concrete: true,
+    );
     var definingLibrary = member?.enclosingElement2?.library2;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }

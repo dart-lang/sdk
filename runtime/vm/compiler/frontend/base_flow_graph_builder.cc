@@ -224,6 +224,10 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
+Fragment BaseFlowGraphBuilder::Stop(const char* message) {
+  return Fragment(new (Z) StopInstr(message)).closed();
+}
+
 bool BaseFlowGraphBuilder::ShouldOmitCheckBoundsIn(const Function& function,
                                                    const Function* caller) {
   auto& state = CompilerState::Current();
@@ -1232,6 +1236,13 @@ Fragment BaseFlowGraphBuilder::ClosureCall(
   if (result_type != nullptr && result_type->IsConstant()) {
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
+  }
+  if (!target_function.IsNull()) {
+    const auto& return_type =
+        AbstractType::Handle(Z, target_function.result_type());
+    if (return_type.IsNeverType() && return_type.IsNonNullable()) {
+      instructions += Stop("unreachable after returning Never");
+    }
   }
   return instructions;
 }

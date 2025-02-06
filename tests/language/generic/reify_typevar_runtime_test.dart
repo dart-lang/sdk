@@ -11,19 +11,10 @@ class C<T> {
   final x;
   C([this.x]);
 
-  static staticFunction(bool b) =>
-
-      null;
-  factory C.factoryConstructor(bool b) => new C(
-
-      null);
-  C.redirectingConstructor(bool b) : this(
-
-            null);
-  C.ordinaryConstructor(bool b)
-      : x =
-
-            null;
+  static staticFunction(bool b) => null;
+  factory C.factoryConstructor(bool b) => new C(null);
+  C.redirectingConstructor(bool b) : this(null);
+  C.ordinaryConstructor(bool b) : x = null;
 }
 
 main() {

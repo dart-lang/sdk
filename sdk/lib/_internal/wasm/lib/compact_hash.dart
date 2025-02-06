@@ -763,7 +763,7 @@ class _CompactIterator<E> implements Iterator<E> {
   E? _current;
 
   _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -812,7 +812,7 @@ class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
   MapEntry<K, V>? _current;
 
   _CompactEntriesIterator(this._table, this._data, this._len)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -1248,13 +1248,13 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-    ..addAll(this);
+  Set<E> toSet() =>
+      CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+        ..addAll(this);
 }
 
 @pragma('wasm:prefer-inline')
 Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
   WasmArray<Object?> keyValuePairData,
   int usedData,
-) =>
-    DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);
+) => DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);

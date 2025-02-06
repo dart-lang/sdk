@@ -410,7 +410,6 @@ class Chrome extends Browser {
         "--use-mock-keychain",
         "--password-store=basic",
         "--user-data-dir=${userDir.path}",
-        "--js-flags=--experimental-wasm-imported-strings",
         url,
       ];
 

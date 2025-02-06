@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -584,93 +582,93 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_dynamic() {
-    var element = typeParameter('T', bound: dynamicType);
+    var element = typeParameter2('T', bound: dynamicType);
 
     _checkTypeParameter(
-      typeParameterTypeNone(element),
+      typeParameterTypeNone2(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_invalidType() {
-    var element = typeParameter('T', bound: invalidType);
+    var element = typeParameter2('T', bound: invalidType);
 
     _checkTypeParameter(
-      typeParameterTypeNone(element),
+      typeParameterTypeNone2(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_none() {
-    var element = typeParameter('T', bound: intNone);
+    var element = typeParameter2('T', bound: intNone);
 
     _checkTypeParameter(
-      typeParameterTypeNone(element),
+      typeParameterTypeNone2(element),
       element: element,
       promotedBound: null,
     );
 
     _checkTypeParameter(
-      typeParameterTypeQuestion(element),
+      typeParameterTypeQuestion2(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_null() {
-    var element = typeParameter('T');
+    var element = typeParameter2('T');
     _checkTypeParameter(
-      typeParameterTypeNone(element),
+      typeParameterTypeNone2(element),
       element: element,
       promotedBound: objectNone,
     );
   }
 
   test_typeParameter_bound_question() {
-    var element = typeParameter('T', bound: intQuestion);
+    var element = typeParameter2('T', bound: intQuestion);
 
     _checkTypeParameter(
-      typeParameterTypeNone(element),
+      typeParameterTypeNone2(element),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      typeParameterTypeQuestion(element),
+      typeParameterTypeQuestion2(element),
       element: element,
       promotedBound: intNone,
     );
   }
 
   test_typeParameter_promotedBound_none() {
-    var element = typeParameter('T', bound: numQuestion);
+    var element = typeParameter2('T', bound: numQuestion);
 
     _checkTypeParameter(
-      promotedTypeParameterTypeNone(element, intNone),
+      promotedTypeParameterTypeNone2(element, intNone),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      promotedTypeParameterTypeQuestion(element, intNone),
+      promotedTypeParameterTypeQuestion2(element, intNone),
       element: element,
       promotedBound: intNone,
     );
   }
 
   test_typeParameter_promotedBound_question() {
-    var element = typeParameter('T', bound: numQuestion);
+    var element = typeParameter2('T', bound: numQuestion);
 
     _checkTypeParameter(
-      promotedTypeParameterTypeNone(element, intQuestion),
+      promotedTypeParameterTypeNone2(element, intQuestion),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      promotedTypeParameterTypeQuestion(element, intQuestion),
+      promotedTypeParameterTypeQuestion2(element, intQuestion),
       element: element,
       promotedBound: intNone,
     );
@@ -687,11 +685,11 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   void _checkTypeParameter(
     TypeParameterType type, {
-    required TypeParameterElement element,
+    required TypeParameterElement2 element,
     required DartType? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
-    expect(actual.element, same(element));
+    expect(actual.element3, same(element));
     expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
   }

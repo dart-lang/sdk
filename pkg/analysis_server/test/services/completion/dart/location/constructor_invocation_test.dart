@@ -17,13 +17,11 @@ class ConstructorInvocationTest extends AbstractCompletionDriverTest
     with ConstructorInvocationTestCases {}
 
 mixin ConstructorInvocationTestCases on AbstractCompletionDriverTest {
-  Future<void> test_macroGeneratedMethod() async {
-    addMacros([declareInTypeMacro()]);
+  Future<void> test_it() async {
     await computeSuggestions('''
-import 'macros.dart';
-
-@DeclareInType('  C.c1();')
-class C {}
+class C {
+  C.c1();
+}
 
 void f() {
   C.^

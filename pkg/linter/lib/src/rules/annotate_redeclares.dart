@@ -12,18 +12,20 @@ const _desc = r'Annotate redeclared members.';
 
 class AnnotateRedeclares extends LintRule {
   AnnotateRedeclares()
-      : super(
-          name: LintNames.annotate_redeclares,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.annotate_redeclares,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.annotate_redeclares;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addExtensionTypeDeclaration(this, visitor);
   }
@@ -60,12 +62,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
   bool _redeclaresMember(
-      ExecutableElement2 member, InterfaceElement2 extensionType) {
+    ExecutableElement2 member,
+    InterfaceElement2 extensionType,
+  ) {
     // TODO(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
     var interface = context.inheritanceManager.getInterface2(extensionType);
     var memberName = member.name3;
     return memberName != null &&
-        interface.redeclared2
-            .containsKey(Name.forLibrary(member.library2, memberName));
+        interface.redeclared2.containsKey(
+          Name.forLibrary(member.library2, memberName),
+        );
   }
 }

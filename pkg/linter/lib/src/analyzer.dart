@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: implementation_imports
-
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/source/line_info.dart';
 export 'package:analyzer/src/dart/ast/token.dart';

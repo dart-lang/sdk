@@ -4,10 +4,10 @@
 
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 class BodyInferenceContext {
@@ -21,7 +21,7 @@ class BodyInferenceContext {
 
   /// The context type, computed from [imposedType].
   /// Might be `null` if an empty typing context.
-  final DartType? contextType;
+  final TypeImpl? contextType;
 
   /// Types of all `return` or `yield` statements in the body.
   final List<DartType> _returnTypes = [];
@@ -37,7 +37,7 @@ class BodyInferenceContext {
   factory BodyInferenceContext({
     required TypeSystemImpl typeSystem,
     required FunctionBodyImpl node,
-    required DartType? imposedType,
+    required TypeImpl? imposedType,
   }) {
     var contextType = _contextTypeForImposed(typeSystem, node, imposedType);
 
@@ -63,7 +63,7 @@ class BodyInferenceContext {
 
   bool get isSynchronous => !isAsynchronous;
 
-  TypeProvider get _typeProvider => _typeSystem.typeProvider;
+  TypeProviderImpl get _typeProvider => _typeSystem.typeProvider;
 
   void addReturnExpression(Expression? expression) {
     if (expression == null) {
@@ -134,7 +134,7 @@ class BodyInferenceContext {
     // `FutureOr<void>`, let `S` be `void`.
     if (R is VoidType ||
         isAsynchronous &&
-            R is InterfaceType &&
+            R is InterfaceTypeImpl &&
             R.isDartAsyncFutureOr &&
             R.typeArguments[0] is VoidType) {
       return VoidTypeImpl.instance;
@@ -149,34 +149,42 @@ class BodyInferenceContext {
     return R;
   }
 
-  DartType _computeActualReturnedType({
+  TypeImpl _computeActualReturnedType({
     required bool endOfBlockIsReachable,
   }) {
     if (isGenerator) {
       if (_returnTypes.isEmpty) {
         return DynamicTypeImpl.instance;
       }
-      return _returnTypes.reduce(_typeSystem.leastUpperBound);
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `_returnTypes` to `List<TypeImpl>`.
+      return _returnTypes.cast<TypeImpl>().reduce(_typeSystem.leastUpperBound);
     }
 
     var initialType = endOfBlockIsReachable
         ? _typeProvider.nullType
         : _typeProvider.neverType;
-    return _returnTypes.fold(initialType, _typeSystem.leastUpperBound);
+    // TODO(paulberry): eliminate this cast by changing the type of
+    // `_returnTypes` to `List<TypeImpl>`.
+    return _returnTypes
+        .cast<TypeImpl>()
+        .fold(initialType, _typeSystem.leastUpperBound);
   }
 
-  static DartType? _argumentOf(DartType type, InterfaceElement2 element) {
+  static TypeImpl? _argumentOf(DartType type, InterfaceElement2 element) {
     var elementType = type.asInstanceOf2(element);
     if (elementType != null) {
-      return elementType.typeArguments[0];
+      // TODO(paulberry): eliminate this cast by changing the type of the
+      // parameter `element` to `InterfaceElement2`.
+      return elementType.typeArguments[0] as TypeImpl?;
     }
     return null;
   }
 
-  static DartType? _contextTypeForImposed(
+  static TypeImpl? _contextTypeForImposed(
     TypeSystemImpl typeSystem,
     FunctionBody node,
-    DartType? imposedType,
+    TypeImpl? imposedType,
   ) {
     if (imposedType == null) {
       return null;

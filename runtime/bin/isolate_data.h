@@ -66,16 +66,6 @@ class IsolateGroupData {
     kernel_buffer_size_ = size;
   }
 
-  // Associate the given kernel buffer with this IsolateGroupData and give it
-  // ownership of the buffer. The buffer is already owned by another
-  // IsolateGroupData.
-  void SetKernelBufferAlreadyOwned(std::shared_ptr<uint8_t> buffer,
-                                   intptr_t size) {
-    ASSERT(kernel_buffer_.get() == nullptr);
-    kernel_buffer_ = std::move(buffer);
-    kernel_buffer_size_ = size;
-  }
-
   const char* resolved_packages_config() const {
     return resolved_packages_config_;
   }

@@ -15,17 +15,16 @@ const _desc = r'Prefer `const` with constant constructors.';
 
 class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
-      : super(
-          name: LintNames.prefer_const_constructors,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_const_constructors, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_const_constructors;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -58,11 +57,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (enclosingElement.typeParameters2.isNotEmpty &&
         node.constructorName.type.typeArguments == null) {
       var approximateContextType = node.approximateContextType;
-      var contextTypeAsInstanceOfEnclosing =
-          approximateContextType?.asInstanceOf2(enclosingElement);
+      var contextTypeAsInstanceOfEnclosing = approximateContextType
+          ?.asInstanceOf2(enclosingElement);
       if (contextTypeAsInstanceOfEnclosing != null) {
-        if (contextTypeAsInstanceOfEnclosing.typeArguments
-            .any((e) => e is TypeParameterType)) {
+        if (contextTypeAsInstanceOfEnclosing.typeArguments.any(
+          (e) => e is TypeParameterType,
+        )) {
           // The context type has type parameters, which may be substituted via
           // upward inference from the static type of `node`. Changing `node`
           // from non-const to const will affect inference to change its own

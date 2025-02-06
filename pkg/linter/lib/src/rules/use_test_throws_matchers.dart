@@ -12,17 +12,16 @@ const _desc = r'Use throwsA matcher instead of fail().';
 
 class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
-      : super(
-          name: LintNames.use_test_throws_matchers,
-          description: _desc,
-        );
+    : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_test_throws_matchers;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addTryStatement(this, visitor);
   }

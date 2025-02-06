@@ -360,7 +360,7 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
-  Element2? get2(String name) => Namespace._convert(_definedNames[name]);
+  Element2? get2(String name) => Namespace._convert(get(name));
 
   @override
   Element? getPrefixed(String prefix, String name) {

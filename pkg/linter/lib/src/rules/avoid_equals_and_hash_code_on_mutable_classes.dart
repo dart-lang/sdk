@@ -16,10 +16,10 @@ const _desc =
 
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   AvoidEqualsAndHashCodeOnMutableClasses()
-      : super(
-          name: LintNames.avoid_equals_and_hash_code_on_mutable_classes,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_equals_and_hash_code_on_mutable_classes,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -27,7 +27,9 @@ class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -45,8 +47,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = node.classElement;
       if (classElement != null && !classElement.hasImmutableAnnotation) {
-        rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata,
-            arguments: [node.name.lexeme]);
+        rule.reportLintForToken(
+          node.firstTokenAfterCommentAndMetadata,
+          arguments: [node.name.lexeme],
+        );
       }
     }
   }

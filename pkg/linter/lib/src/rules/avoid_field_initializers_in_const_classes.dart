@@ -13,10 +13,10 @@ const _desc = r'Avoid field initializers in const classes.';
 
 class AvoidFieldInitializersInConstClasses extends LintRule {
   AvoidFieldInitializersInConstClasses()
-      : super(
-          name: LintNames.avoid_field_initializers_in_const_classes,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_field_initializers_in_const_classes,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -24,7 +24,9 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
@@ -37,8 +39,8 @@ class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
   bool useParameter = false;
 
   HasParameterReferenceVisitor(
-      Iterable<FormalParameterFragment?> fragmentParameters)
-      : parameters = fragmentParameters.map((p) => p?.element);
+    Iterable<FormalParameterFragment?> fragmentParameters,
+  ) : parameters = fragmentParameters.map((p) => p?.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -70,7 +72,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element.constructors2.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
-          declaration.parameters.parameterFragments);
+        declaration.parameters.parameterFragments,
+      );
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
         rule.reportLint(node);

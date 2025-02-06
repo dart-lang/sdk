@@ -5,7 +5,6 @@
 /// @docImport 'package:analyzer/dart/analysis/analysis_options.dart';
 library;
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
@@ -49,7 +48,6 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
@@ -394,12 +392,6 @@ abstract class FileKind {
 
   /// Dispose the containing [LibraryFileKind] cycle.
   void disposeLibraryCycle() {
-    // Macro generated files never add new dependencies.
-    // So, there is no reason to dispose.
-    if (file.isMacroPart) {
-      return;
-    }
-
     // Take referencing files, stop potential recursion.
     var referencingFiles = file.referencingFiles;
     file.referencingFiles = {};
@@ -529,19 +521,12 @@ class FileState {
 
   FileKind? _kind;
 
-  bool isMacroPart = false;
-
   /// Files that reference this file.
   Set<FileState> referencingFiles = {};
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
   bool hasErrorOrWarning = false;
-
-  /// Set to `true` if this file contains code that might be executed by
-  /// a macro - declares a macro class itself, or is directly or indirectly
-  /// imported into a library that declares one.
-  bool mightBeExecutedByMacroClass = false;
 
   FileState._(
     this._fsState,
@@ -710,15 +695,7 @@ class FileState {
     performance ??= OperationPerformanceImpl('<root>');
     _invalidateCurrentUnresolvedData();
 
-    FileContent rawFileState;
-    if (_fsState._macroFileContent case var macroFileContent?) {
-      _fsState._macroFileContent = null;
-      rawFileState = macroFileContent;
-      isMacroPart = true;
-    } else {
-      rawFileState = _fsState.fileContentStrategy.get(path);
-    }
-
+    var rawFileState = _fsState.fileContentStrategy.get(path);
     var contentChanged = _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
     _fsState.parsedFileStateCache.remove(this);
@@ -1051,7 +1028,6 @@ class FileState {
     var exports = <UnlinkedLibraryExportDirective>[];
     var imports = <UnlinkedLibraryImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
-    var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
@@ -1095,25 +1071,6 @@ class FileState {
               length: uri.length,
             ),
           );
-        }
-      }
-    }
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclarationImpl) {
-        if (declaration.macroKeyword != null) {
-          var constructors = declaration.members
-              .whereType<ConstructorDeclaration>()
-              .map((e) => e.name?.lexeme ?? '')
-              .where((e) => !e.startsWith('_'))
-              .toFixedList();
-          if (constructors.isNotEmpty) {
-            macroClasses.add(
-              MacroClass(
-                name: declaration.name.lexeme,
-                constructors: constructors,
-              ),
-            );
-          }
         }
       }
     }
@@ -1165,7 +1122,6 @@ class FileState {
       isDartCore: isDartCore,
       libraryDirective: libraryDirective,
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
-      macroClasses: macroClasses.toFixedList(),
       parts: parts.toFixedList(),
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
@@ -1356,10 +1312,6 @@ class FileSystemState {
   late final FileSystemStateTestView _testView;
 
   final FileSystemTestData? testData;
-
-  /// We set a value for this field when we are about to refresh the current
-  /// macro [FileState]. During the refresh, this will is reset back to `null`.
-  FileContent? _macroFileContent;
 
   /// Used for looking up options to associate with created file states.
   final AnalysisOptionsMap _analysisOptionsMap;
@@ -1917,11 +1869,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The [FileKind] that created this object in [FileKind.asLibrary].
   final FileKind? recoveredFrom;
 
-  /// The synthetic part includes added to [partIncludes] for the macro
-  /// application results of this library. It is filled only if the library
-  /// uses any macros.
-  List<PartIncludeWithFile> _macroPartIncludes = const [];
-
   /// The cache for [apiSignature].
   Uint8List? _apiSignature;
 
@@ -1998,88 +1945,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return file.unlinked2.libraryDirective?.docImports ?? const [];
   }
 
-  /// [partialIndex] is provided while we run phases of macros, and accumulate
-  /// results in separate augmentation libraries with names `foo.macroX.dart`.
-  /// For the merged augmentation we pass `null` here, so a single
-  /// `foo.macro.dart` is created.
-  PartIncludeWithFile addMacroPart(
-    String code, {
-    required int? partialIndex,
-    required OperationPerformanceImpl performance,
-  }) {
-    var pathContext = file._fsState.pathContext;
-    var libraryFileName = pathContext.basename(file.path);
-
-    String macroFileName = pathContext.setExtension(
-      libraryFileName,
-      '.macro${partialIndex != null ? '$partialIndex' : ''}.dart',
-    );
-
-    var macroRelativeUri = uriCache.parse(macroFileName);
-    var macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
-
-    var contentBytes = utf8.encoder.convert(code);
-    var hashBytes = md5.convert(contentBytes).bytes;
-    var hashStr = hex.encode(hashBytes);
-    var fileContent = StoredFileContent(
-      content: code,
-      contentHash: hashStr,
-      exists: true,
-    );
-
-    // This content will be consumed by the next `refresh()`.
-    // This might happen during `getFileForUri()` below.
-    // Or this happens during the explicit `refresh()`, more below.
-    file._fsState._macroFileContent = fileContent;
-
-    var macroFileResolution = performance.run(
-      'getFileForUri',
-      (performance) {
-        return file._fsState.getFileForUri(
-          macroUri,
-          performance: performance,
-        );
-      },
-    );
-    macroFileResolution as UriResolutionFile;
-    var macroFile = macroFileResolution.file;
-
-    // If the file existed, and has different content, force `refresh()`.
-    // This will ensure that the file has the required content.
-    if (macroFile.content != fileContent.content) {
-      macroFile.refresh();
-    }
-
-    // We are done with the file, stop forcing its content.
-    file._fsState._macroFileContent = null;
-
-    var partUri = DirectiveUriWithFile(
-      relativeUriStr: macroFileName,
-      relativeUri: macroRelativeUri,
-      file: macroFile,
-    );
-
-    var partInclude = PartIncludeWithFile(
-      container: this,
-      unlinked: UnlinkedPartDirective(
-        configurations: [],
-        uri: macroFileName,
-      ),
-      selectedUri: partUri,
-      uris: DirectiveUris(
-        primary: partUri,
-        configurations: [],
-        selected: partUri,
-      ),
-    );
-    _macroPartIncludes = [..._macroPartIncludes, partInclude].toFixedList();
-
-    // We cannot add, because the list is not growable.
-    _partIncludes = [...partIncludes, partInclude].toFixedList();
-
-    return partInclude;
-  }
-
   @override
   void dispose() {
     file._fsState._libraryNameToFiles.remove(this);
@@ -2092,43 +1957,13 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     _libraryCycle = null;
   }
 
-  /// When the library cycle that contains this library is disposed, the
-  /// macros might potentially generate different code, or no code at all. So,
-  /// we discard the existing macro augmentation library, it will be rebuilt
-  /// during linking.
-  void disposeMacroAugmentations({
-    required bool disposeFiles,
-  }) {
-    for (var macroInclude in _macroPartIncludes) {
-      _partIncludes = partIncludes.withoutLast.toFixedList();
-      if (disposeFiles) {
-        _disposeMacroFile(macroInclude.includedFile);
-      }
-    }
-    _macroPartIncludes = const [];
-  }
-
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
-    // Keep the merged augmentation file, as we do for normal files.
-    disposeMacroAugmentations(disposeFiles: false);
-  }
-
-  void removeLastMacroPartInclude() {
-    _macroPartIncludes = _macroPartIncludes.withoutLast.toFixedList();
-    _partIncludes = partIncludes.withoutLast.toFixedList();
   }
 
   @override
   String toString() {
     return 'LibraryFileKind($file)';
-  }
-
-  void _disposeMacroFile(FileState macroFile) {
-    macroFile.kind.dispose();
-    file._fsState._pathToFile.remove(macroFile.path);
-    file._fsState._uriToFile.remove(macroFile.uri);
-    file._fsState.knownFiles.remove(macroFile);
   }
 }
 

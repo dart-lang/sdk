@@ -6,7 +6,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -214,7 +213,7 @@ class _PropertyInducingElementTypeInference
       this._libraryBuilder);
 
   @override
-  DartType perform() {
+  TypeImpl perform() {
     if (_node.initializer == null) {
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
@@ -280,7 +279,7 @@ class _PropertyInducingElementTypeInference
     return _refineType(initializerType);
   }
 
-  DartType _refineType(DartType type) {
+  TypeImpl _refineType(TypeImpl type) {
     if (type.isDartCoreNull) {
       return DynamicTypeImpl.instance;
     }

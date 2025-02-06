@@ -3044,7 +3044,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3118,7 +3118,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3189,7 +3189,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3354,7 +3354,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -3425,7 +3425,7 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    notSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
@@ -7632,7 +7632,7 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       typeAliases
-        augment A @37
+        augment notSimplyBounded A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTarget: <testLibraryFragment>::@typeAlias::A

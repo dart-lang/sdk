@@ -249,7 +249,7 @@ Monitor* ExitCodeHandler::monitor_ = nullptr;
 class ProcessStarter {
  public:
   ProcessStarter(const char* path,
-                 char* arguments[],
+                 const char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
                  char* environment[],
@@ -279,7 +279,7 @@ class ProcessStarter {
     exec_control_[0] = -1;
     exec_control_[1] = -1;
 
-    program_arguments_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
+    program_arguments_ = reinterpret_cast<const char**>(Dart_ScopeAllocate(
         (arguments_length + 2) * sizeof(*program_arguments_)));
     program_arguments_[0] = const_cast<char*>(path_);
     for (int i = 0; i < arguments_length; i++) {
@@ -740,7 +740,7 @@ class ProcessStarter {
   int write_out_[2];     // Pipe for stdin to child process.
   int exec_control_[2];  // Pipe to get the result from exec.
 
-  char** program_arguments_;
+  const char** program_arguments_;
   char** program_environment_;
 
   const char* path_;
@@ -760,7 +760,7 @@ class ProcessStarter {
 
 int Process::Start(Namespace* namespc,
                    const char* path,
-                   char* arguments[],
+                   const char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
@@ -896,6 +896,24 @@ bool Process::Wait(intptr_t pid,
 
   return true;
 #endif  // defined(DART_HOST_OS_IOS)
+}
+
+int Process::Exec(Namespace* namespc,
+                  const char* path,
+                  const char* arguments[],
+                  intptr_t arguments_length,
+                  const char* working_directory,
+                  char* errmsg,
+                  intptr_t errmsg_len) {
+  if (working_directory != nullptr &&
+      TEMP_FAILURE_RETRY(chdir(working_directory)) == -1) {
+    Utils::StrError(errno, errmsg, errmsg_len);
+    return -1;
+  }
+
+  execvp(const_cast<const char*>(path), const_cast<char* const*>(arguments));
+  Utils::StrError(errno, errmsg, errmsg_len);
+  return -1;
 }
 
 static int SignalMap(intptr_t id) {

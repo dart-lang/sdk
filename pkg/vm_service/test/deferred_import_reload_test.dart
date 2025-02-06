@@ -22,7 +22,7 @@ import 'common/test_helper.dart';
 //
 // Update these constants by running:
 //
-// dart pkg/vm_service/test/update_line_numbers.dart <test.dart>
+// dart pkg/vm_service/test/update_line_numbers.dart pkg/vm_service/test/deferred_import_reload_test.dart
 //
 const LINE_A = 41;
 const LINE_B = 56;

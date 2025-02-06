@@ -17,17 +17,19 @@ Future<void> main() async {
     Expect.equals(2, hotRestartGeneration);
   });
   Future<Null>.microtask(() {
-    throw x;
-  }).catchError((e, stackTrace) {
-    Expect.equals("Hello Bar", e);
-    Expect.equals(2, hotRestartGeneration);
-  }).then((_) {
-    Expect.equals(2, hotRestartGeneration);
-  });
+        throw x;
+      })
+      .catchError((e, stackTrace) {
+        Expect.equals("Hello Bar", e);
+        Expect.equals(2, hotRestartGeneration);
+      })
+      .then((_) {
+        Expect.equals(2, hotRestartGeneration);
+      });
 }
+
 /** DIFF **/
 /*
-@@ -7,27 +7,21 @@
  import 'package:expect/expect.dart';
  import 'package:reload_test/reload_test_utils.dart';
  
@@ -45,19 +47,23 @@ Future<void> main() async {
 +    Expect.equals(2, hotRestartGeneration);
    });
    Future<Null>.microtask(() {
-     throw x;
-   }).catchError((e, stackTrace) {
--    Expect.equals("Hello Foo", e);
--    Expect.equals(1, hotRestartGeneration);
-+    Expect.equals("Hello Bar", e);
-+    Expect.equals(2, hotRestartGeneration);
-   }).then((_) {
--    Expect.equals(1, hotRestartGeneration);
-+    Expect.equals(2, hotRestartGeneration);
-   });
+         throw x;
+       })
+       .catchError((e, stackTrace) {
+-        Expect.equals("Hello Foo", e);
+-        Expect.equals(1, hotRestartGeneration);
++        Expect.equals("Hello Bar", e);
++        Expect.equals(2, hotRestartGeneration);
+       })
+       .then((_) {
+-        Expect.equals(1, hotRestartGeneration);
++        Expect.equals(2, hotRestartGeneration);
+       });
 -  Future.delayed(Duration(seconds: 5), () {
--    throw Exception('Future from main.1.dart before hot restart. '
--        'This should never run.');
+-    throw Exception(
+-      'Future from main.1.dart before hot restart. '
+-      'This should never run.',
+-    );
 -  });
 -
 -  await hotRestart();

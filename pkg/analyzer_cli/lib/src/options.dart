@@ -103,20 +103,20 @@ class CommandLineOptions {
   CommandLineOptions._fromArgs(
     ResourceProvider resourceProvider,
     ArgResults args,
-  )   : _argResults = args,
-        dartSdkPath = args.option(_sdkPathOption),
-        disableCacheFlushing = args.flag('disable-cache-flushing'),
-        displayVersion = args.flag('version'),
-        ignoreUnrecognizedFlags = args.flag(_ignoreUnrecognizedFlagsFlag),
-        log = args.flag('log'),
-        jsonFormat = args['format'] == 'json',
-        machineFormat = args['format'] == 'machine',
-        perfReport = args.option('x-perf-report'),
-        batchMode = args.flag('batch'),
-        sourceFiles = args.rest,
-        trainSnapshot = args.flag('train-snapshot'),
-        verbose = args.flag('verbose'),
-        color = args.flag('color') {
+  ) : _argResults = args,
+      dartSdkPath = args.option(_sdkPathOption),
+      disableCacheFlushing = args.flag('disable-cache-flushing'),
+      displayVersion = args.flag('version'),
+      ignoreUnrecognizedFlags = args.flag(_ignoreUnrecognizedFlagsFlag),
+      log = args.flag('log'),
+      jsonFormat = args['format'] == 'json',
+      machineFormat = args['format'] == 'machine',
+      perfReport = args.option('x-perf-report'),
+      batchMode = args.flag('batch'),
+      sourceFiles = args.rest,
+      trainSnapshot = args.flag('train-snapshot'),
+      verbose = args.flag('verbose'),
+      color = args.flag('color') {
     //
     // File locations.
     //
@@ -124,8 +124,10 @@ class CommandLineOptions {
       resourceProvider,
       args.option(_analysisOptionsFileOption),
     );
-    defaultPackagesPath =
-        _absoluteNormalizedPath(resourceProvider, args.option(_packagesOption));
+    defaultPackagesPath = _absoluteNormalizedPath(
+      resourceProvider,
+      args.option(_packagesOption),
+    );
 
     //
     // Declared variables.
@@ -162,10 +164,12 @@ class CommandLineOptions {
   /// so override the corresponding options.
   void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
     if (enabledExperiments.isNotEmpty) {
-      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: enabledExperiments,
-      ) as ExperimentStatus;
+      analysisOptions.contextFeatures =
+          FeatureSet.fromEnableFlags2(
+                sdkLanguageVersion: ExperimentStatus.currentVersion,
+                flags: enabledExperiments,
+              )
+              as ExperimentStatus;
     }
   }
 
@@ -181,7 +185,9 @@ class CommandLineOptions {
   /// This function allows command-line tools to implement the
   /// '--ignore-unrecognized-flags' option.
   static List<String> filterUnknownArguments(
-      List<String> args, ArgParser parser) {
+    List<String> args,
+    ArgParser parser,
+  ) {
     var knownOptions = <String>{};
     var knownAbbreviations = <String>{};
     parser.options.forEach((String name, Option option) {
@@ -227,8 +233,10 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions? parse(
-      ResourceProvider resourceProvider, List<String> args,
-      {void Function(String msg) printAndFail = printAndFail}) {
+    ResourceProvider resourceProvider,
+    List<String> args, {
+    void Function(String msg) printAndFail = printAndFail,
+  }) {
     var options = _parse(resourceProvider, args);
 
     /// Only happens in testing.
@@ -266,9 +274,7 @@ class CommandLineOptions {
       return null;
     }
     var pathContext = resourceProvider.pathContext;
-    return pathContext.normalize(
-      pathContext.absolute(path),
-    );
+    return pathContext.normalize(pathContext.absolute(path));
   }
 
   /// Add the standard flags and options to the given [parser]. The standard flags
@@ -277,37 +283,56 @@ class CommandLineOptions {
   ///
   // TODO(danrubel): Update DDC to support all the options defined in this method
   // then remove the [ddc] named argument from this method.
-  static void _defineAnalysisArguments(ArgParser parser,
-      {bool hide = true, bool ddc = false}) {
-    parser.addOption(_sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: ddc && hide);
-    parser.addOption(_analysisOptionsFileOption,
-        help: 'Path to an analysis options file.', hide: ddc && hide);
-    parser.addMultiOption(_enableExperimentOption,
-        help: 'Enable one or more experimental features. If multiple features '
-            'are being added, they should be comma separated.',
-        splitCommas: true);
+  static void _defineAnalysisArguments(
+    ArgParser parser, {
+    bool hide = true,
+    bool ddc = false,
+  }) {
+    parser.addOption(
+      _sdkPathOption,
+      help: 'The path to the Dart SDK.',
+      hide: ddc && hide,
+    );
+    parser.addOption(
+      _analysisOptionsFileOption,
+      help: 'Path to an analysis options file.',
+      hide: ddc && hide,
+    );
+    parser.addMultiOption(
+      _enableExperimentOption,
+      help:
+          'Enable one or more experimental features. If multiple features '
+          'are being added, they should be comma separated.',
+      splitCommas: true,
+    );
 
     //
     // Hidden flags and options.
     //
-    parser.addMultiOption(_defineVariableOption,
-        abbr: 'D',
-        help:
-            'Define an environment declaration. For example, "-Dfoo=bar" defines '
-            'an environment declaration named "foo" whose value is "bar".',
-        hide: hide);
-    parser.addOption(_packagesOption,
-        help: 'The path to the package resolution configuration file, which '
-            'supplies a mapping of package names\ninto paths.',
-        hide: ddc);
-    parser.addFlag(_enableInitializingFormalAccessFlag,
-        help:
-            'Enable support for allowing access to field formal parameters in a '
-            'constructor\'s initializer list (deprecated).',
-        defaultsTo: false,
-        negatable: false,
-        hide: hide || ddc);
+    parser.addMultiOption(
+      _defineVariableOption,
+      abbr: 'D',
+      help:
+          'Define an environment declaration. For example, "-Dfoo=bar" defines '
+          'an environment declaration named "foo" whose value is "bar".',
+      hide: hide,
+    );
+    parser.addOption(
+      _packagesOption,
+      help:
+          'The path to the package resolution configuration file, which '
+          'supplies a mapping of package names\ninto paths.',
+      hide: ddc,
+    );
+    parser.addFlag(
+      _enableInitializingFormalAccessFlag,
+      help:
+          'Enable support for allowing access to field formal parameters in a '
+          'constructor\'s initializer list (deprecated).',
+      defaultsTo: false,
+      negatable: false,
+      hide: hide || ddc,
+    );
   }
 
   static String _getVersion() {
@@ -342,29 +367,40 @@ class CommandLineOptions {
     _defineAnalysisArguments(parser, hide: hide);
 
     parser
-      ..addOption('format',
-          help: 'Specifies the format in which errors are displayed; the only '
-              'currently recognized values are \'json\' and \'machine\'.')
-      ..addFlag('version',
-          help: 'Print the analyzer version.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('help',
-          abbr: 'h',
-          help:
-              'Display this help message. Add --verbose to show hidden options.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('verbose',
-          abbr: 'v',
-          defaultsTo: false,
-          help: 'Verbose output.',
-          negatable: false);
+      ..addOption(
+        'format',
+        help:
+            'Specifies the format in which errors are displayed; the only '
+            'currently recognized values are \'json\' and \'machine\'.',
+      )
+      ..addFlag(
+        'version',
+        help: 'Print the analyzer version.',
+        defaultsTo: false,
+        negatable: false,
+      )
+      ..addFlag(
+        'help',
+        abbr: 'h',
+        help:
+            'Display this help message. Add --verbose to show hidden options.',
+        defaultsTo: false,
+        negatable: false,
+      )
+      ..addFlag(
+        'verbose',
+        abbr: 'v',
+        defaultsTo: false,
+        help: 'Verbose output.',
+        negatable: false,
+      );
 
-    parser.addFlag('color',
-        help: 'Use ansi colors when printing messages.',
-        defaultsTo: ansi.terminalSupportsAnsi(),
-        hide: hide);
+    parser.addFlag(
+      'color',
+      help: 'Use ansi colors when printing messages.',
+      defaultsTo: ansi.terminalSupportsAnsi(),
+      hide: hide,
+    );
 
     // Hidden flags.
     if (!hide) {
@@ -372,47 +408,65 @@ class CommandLineOptions {
     }
 
     parser
-      ..addFlag('batch',
-          help: 'Read commands from standard input (for testing).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag(_ignoreUnrecognizedFlagsFlag,
-          help: 'Ignore unrecognized command line flags.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
+      ..addFlag(
+        'batch',
+        help: 'Read commands from standard input (for testing).',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide,
+      )
+      ..addFlag(
+        _ignoreUnrecognizedFlagsFlag,
+        help: 'Ignore unrecognized command line flags.',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide,
+      )
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
-      ..addOption('x-perf-report',
-          help: 'Writes a performance report to the given file (experimental).',
-          hide: hide)
-      ..addFlag('enable-conditional-directives',
-          help:
-              'deprecated -- Enable support for conditional directives (DEP 40).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('log',
-          help: 'Log additional messages and exceptions.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('use-analysis-driver-memory-byte-store',
-          help: 'Use memory byte store, not the file system cache.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addMultiOption('url-mapping',
-          help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
-              'analyzer to use "library.dart" as the source for an import '
-              'of "libraryUri".',
-          splitCommas: false,
-          hide: hide)
-      ..addFlag('train-snapshot',
-          help: 'Analyze the given source for the purposes of training a '
-              'dartanalyzer snapshot.',
-          hide: hide,
-          negatable: false);
+      ..addOption(
+        'x-perf-report',
+        help: 'Writes a performance report to the given file (experimental).',
+        hide: hide,
+      )
+      ..addFlag(
+        'enable-conditional-directives',
+        help:
+            'deprecated -- Enable support for conditional directives (DEP 40).',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide,
+      )
+      ..addFlag(
+        'log',
+        help: 'Log additional messages and exceptions.',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide,
+      )
+      ..addFlag(
+        'use-analysis-driver-memory-byte-store',
+        help: 'Use memory byte store, not the file system cache.',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide,
+      )
+      ..addMultiOption(
+        'url-mapping',
+        help:
+            '--url-mapping=libraryUri,/path/to/library.dart directs the '
+            'analyzer to use "library.dart" as the source for an import '
+            'of "libraryUri".',
+        splitCommas: false,
+        hide: hide,
+      )
+      ..addFlag(
+        'train-snapshot',
+        help:
+            'Analyze the given source for the purposes of training a '
+            'dartanalyzer snapshot.',
+        hide: hide,
+        negatable: false,
+      );
 
     try {
       if (args.contains('--$_ignoreUnrecognizedFlagsFlag')) {
@@ -475,7 +529,8 @@ class CommandLineOptions {
 
   static void _showUsage(ArgParser parser, {bool fromHelp = false}) {
     errorSink.writeln(
-        'Usage: $_binaryName [options...] <directory or list of files>');
+      'Usage: $_binaryName [options...] <directory or list of files>',
+    );
 
     errorSink.writeln('');
     errorSink.writeln(parser.usage);

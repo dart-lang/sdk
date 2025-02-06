@@ -190,7 +190,7 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 part 'a.dart';
 
 class A<T> {
@@ -200,7 +200,9 @@ class A<T> {
 void f() {
   A(0);
 }
-''');
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 33, 1),
+    ]);
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -533,7 +535,7 @@ augment class A {
   A();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 part 'a.dart';
 
 class A {
@@ -543,7 +545,9 @@ class A {
 void f() {
   A();
 }
-''');
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 30, 1),
+    ]);
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2048,7 +2052,7 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 part 'a.dart';
 
 class A<T> {
@@ -2060,7 +2064,9 @@ typedef X<U> = A<U>;
 void f() {
   X(0);
 }
-''');
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 33, 1),
+    ]);
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2415,7 +2421,7 @@ augment class A {
   A();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 part 'a.dart';
 
 class A {
@@ -2427,7 +2433,9 @@ typedef X = A;
 void f() {
   X();
 }
-''');
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 30, 1),
+    ]);
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''

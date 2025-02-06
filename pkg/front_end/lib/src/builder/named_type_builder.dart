@@ -459,8 +459,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Coverage-ignore(suite): Not run.
         case TypeUse.enumSelfType:
         // Coverage-ignore(suite): Not run.
-        case TypeUse.macroTypeArgument:
-        // Coverage-ignore(suite): Not run.
         case TypeUse.typeParameterDefaultType:
         // Coverage-ignore(suite): Not run.
         case TypeUse.defaultTypeAsTypeArgument:
@@ -625,9 +623,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionTypeDeclarationBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(library);
   }
@@ -662,9 +657,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(libraryBuilder);
   }
@@ -805,9 +797,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
     }
     return VarianceCalculationValue.calculatedUnrelated;
   }
@@ -921,8 +910,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // Coverage-ignore(suite): Not run.
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
         assert(
             false, "Unexpected named type builder declaration: $declaration.");
     }
@@ -1064,9 +1051,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
       }
     } else {
       for (TypeBuilder argument in arguments) {

@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = #C4;
   enum-element static const field self::E1 bar = #C3;
+  static const field core::List<self::E1> values = #C4;
   const constructor •(core::int #index, core::String #name, (core::int) → core::int f) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -12,8 +12,8 @@ class E1 extends core::_Enum /*isEnum*/  {
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E2<dynamic>> values = #C6;
   enum-element static const field self::E2<<X extends core::Object? = dynamic>(X%) → X%> bar = #C5;
+  static const field core::List<self::E2<dynamic>> values = #C6;
   const constructor •(core::int #index, core::String #name, self::E2::X% f) → self::E2<self::E2::X%>
     : super core::_Enum::•(#index, #name)
     ;
@@ -21,8 +21,8 @@ class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3<X extends core::num, Y extends core::String, Z extends (self::E3::X, self::E3::Y) → dynamic = (Never, Never) → dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E3<core::num, core::String, (Never, Never) → dynamic>> values = #C9;
   enum-element static const field self::E3<core::num, core::String, (core::num, core::String) → dynamic> element = #C8;
+  static const field core::List<self::E3<core::num, core::String, (Never, Never) → dynamic>> values = #C9;
   const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::X, self::E3::Y, self::E3::Z>
     : super core::_Enum::•(#index, #name)
     ;

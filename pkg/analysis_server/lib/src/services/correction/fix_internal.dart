@@ -69,6 +69,9 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_list_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_map_entry.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_set_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
@@ -131,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comma.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_comment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor.dart';
@@ -146,6 +150,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_else.d
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_ignored_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
@@ -485,6 +490,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.unnecessary_final_with_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_final_without_type: [ReplaceFinalWithVar.new],
   LinterLintCode.unnecessary_getters_setters: [MakeFieldPublic.new],
+  LinterLintCode.unnecessary_ignore_name: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessary_ignore_name_file: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessary_ignore: [RemoveComment.ignore],
+  LinterLintCode.unnecessary_ignore_file: [RemoveComment.ignore],
   LinterLintCode.unnecessary_lambdas: [ReplaceWithTearOff.new],
   LinterLintCode.unnecessary_late: [RemoveUnnecessaryLate.new],
   LinterLintCode.unnecessary_library_directive: [
@@ -842,6 +851,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED: [
     MakeVariableNotFinal.new,
   ],
+  CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareListElement.new,
+  ],
+  CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryKey.new,
+  ],
+  CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareMapEntryValue.new,
+  ],
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
@@ -964,6 +982,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+  ],
+  CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+    ConvertToNullAwareSetElement.new,
   ],
   CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
     AddClassModifier.baseModifier,

@@ -46,19 +46,30 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String? _selfPackageName;
 
-  AnalyzerImpl(this.analysisOptions, this.analysisDriver, this.libraryFile,
-      this.options, this.stats, this.startTime);
+  AnalyzerImpl(
+    this.analysisOptions,
+    this.analysisDriver,
+    this.libraryFile,
+    this.options,
+    this.stats,
+    this.startTime,
+  );
 
   void addCompilationUnitSource(
-      LibraryFragment unit, Set<LibraryFragment> units) {
+    LibraryFragment unit,
+    Set<LibraryFragment> units,
+  ) {
     if (!units.add(unit)) {
       return;
     }
     files.add(unit.source.fullName);
   }
 
-  void addLibrarySources(LibraryElement2 library,
-      Set<LibraryElement2> libraries, Set<LibraryFragment> units) {
+  void addLibrarySources(
+    LibraryElement2 library,
+    Set<LibraryElement2> libraries,
+    Set<LibraryFragment> units,
+  ) {
     if (!libraries.add(library)) {
       return;
     }
@@ -93,8 +104,10 @@ class AnalyzerImpl {
   /// information is printed. If [printMode] is `1`, then errors will be printed.
   /// If [printMode] is `2`, then performance information will be printed, and
   /// it will be marked as being for a cold VM.
-  Future<ErrorSeverity> analyze(ErrorFormatter formatter,
-      {int printMode = 1}) async {
+  Future<ErrorSeverity> analyze(
+    ErrorFormatter formatter, {
+    int printMode = 1,
+  }) async {
     setupForAnalysis();
     return await _analyze(printMode, formatter);
   }
@@ -141,7 +154,9 @@ class AnalyzerImpl {
   }
 
   Future<ErrorSeverity> _analyze(
-      int printMode, ErrorFormatter formatter) async {
+    int printMode,
+    ErrorFormatter formatter,
+  ) async {
     // Don't try to analyze parts.
     if (libraryFile.kind is! LibraryFileKind) {
       var libraryPath = libraryFile.path;
@@ -235,9 +250,11 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception,
-      [StackTrace? stackTrace,
-      List<InstrumentationServiceAttachment>? attachments = const []]) {
+  void logException(
+    dynamic exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments = const [],
+  ]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }

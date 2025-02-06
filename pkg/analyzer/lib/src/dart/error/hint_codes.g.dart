@@ -95,14 +95,6 @@ class HintCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Reported when the macro uses `Builder.report()` with `Severity.info`.
-  ///  Parameters:
-  ///  0: the message
-  static const HintCode MACRO_INFO = HintCode(
-    'MACRO_INFO',
-    "{0}",
-  );
-
   ///  Parameters:
   ///  0: the URI that is not necessary
   ///  1: the URI that makes it unnecessary

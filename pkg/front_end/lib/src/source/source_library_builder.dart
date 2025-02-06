@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonEncode, utf8;
-import 'dart:typed_data';
+import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
@@ -50,7 +49,6 @@ import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/macro/macro.dart';
 import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
@@ -221,7 +219,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// in the right order.
   ///
   /// See [SourceLoader.buildOutlineExpressions] for details.
-  List<RedirectingFactoryBuilder>? redirectingFactoryBuilders;
+  List<SourceFactoryBuilder>? redirectingFactoryBuilders;
 
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? augmentations;
@@ -250,7 +248,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      Map<String, Builder>? omittedTypes,
       required NameSpace importNameSpace,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder}) {
     Library library = target ??
@@ -265,9 +262,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     LookupScope importScope = new NameSpaceLookupScope(
         importNameSpace, ScopeKind.import, 'import',
         parent: parentScope);
-    importScope = new FixedLookupScope(
-        ScopeKind.typeParameters, 'omitted-types',
-        getables: omittedTypes, parent: importScope);
     NameSpace prefixNameSpace = new NameSpaceImpl();
     LookupScope prefixScope = new NameSpaceLookupScope(
         prefixNameSpace, ScopeKind.prefix, 'prefix',
@@ -294,7 +288,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isUnsupported: isUnsupported,
         isAugmentation: isAugmentation,
         isPatch: isPatch,
-        omittedTypes: omittedTypes,
         augmentations: libraryNameSpaceBuilder.augmentations,
         setterAugmentations: libraryNameSpaceBuilder.setterAugmentations);
   }
@@ -320,7 +313,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      required Map<String, Builder>? omittedTypes,
       required this.augmentations,
       required this.setterAugmentations})
       : _packageUri = packageUri,
@@ -462,67 +454,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Augmentation library ${augmentationLibrary} cannot be a part .");
     (_augmentationLibraries ??= []).add(augmentationLibrary);
     augmentationLibrary.augmentationIndex = _augmentationLibraries!.length;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Creates a synthesized augmentation library for the [source] code and
-  /// attach it as an augmentation library of this library.
-  ///
-  /// To support the parser of the [source], the library is registered as an
-  /// unparsed library on the [loader].
-  SourceLibraryBuilder createAugmentationLibrary(String source,
-      {Map<String, OmittedTypeBuilder>? omittedTypes}) {
-    assert(!isAugmenting,
-        "createAugmentationLibrary is only supported on the origin library.");
-    int index = _augmentationLibraries?.length ?? 0;
-    Uri uri = new Uri(
-        scheme: intermediateAugmentationScheme, path: '${fileUri.path}-$index');
-
-    if (loader.target.context.options.showGeneratedMacroSourcesForTesting) {
-      print('==============================================================');
-      print('Origin library: ${importUri}');
-      print('Intermediate augmentation library: $uri');
-      print('---------------------------source-----------------------------');
-      print(source);
-      print('==============================================================');
-    }
-
-    Map<String, Builder>? omittedTypeDeclarationBuilders;
-    if (omittedTypes != null && omittedTypes.isNotEmpty) {
-      omittedTypeDeclarationBuilders = {};
-      for (MapEntry<String, OmittedTypeBuilder> entry in omittedTypes.entries) {
-        omittedTypeDeclarationBuilders[entry.key] =
-            new OmittedTypeDeclarationBuilder(entry.key, entry.value, this);
-      }
-    }
-    SourceCompilationUnit augmentationCompilationUnit =
-        new SourceCompilationUnitImpl(
-      fileUri: uri,
-      importUri: uri,
-      originImportUri: importUri,
-      packageLanguageVersion: compilationUnit.packageLanguageVersion,
-      loader: loader,
-      isUnsupported: false,
-      augmentationRoot: compilationUnit,
-      forAugmentationLibrary: true,
-      isAugmenting: true,
-      forPatchLibrary: false,
-      indexedLibrary: indexedLibrary,
-      omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
-      referenceIsPartOwner: null,
-      // TODO(johnniwinther): Shouldn't these be the copied from this
-      // library?
-      packageUri: null,
-      nameOrigin: null,
-      mayImplementRestrictedTypes: false,
-    );
-    SourceLibraryBuilder augmentationLibrary =
-        augmentationCompilationUnit.createLibrary(library);
-    addAugmentationLibrary(augmentationLibrary);
-    Uint8List sourceUtf8 = utf8.encode(source);
-    loader.registerUnparsedLibrarySource(
-        augmentationCompilationUnit, sourceUtf8);
-    return augmentationLibrary;
   }
 
   @override
@@ -684,8 +615,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     {})[name] = exportNeverSentinel;
               }
             // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
             case NominalParameterBuilder():
             case StructuralParameterBuilder():
               unhandled(
@@ -1001,16 +930,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       library.problemsAsJson!.add(formattedMessage.toJsonString());
     }
     return formattedMessage;
-  }
-
-  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
-      Message message, int charOffset, int length, Uri fileUri) {
-    addProblem(message, charOffset, length, fileUri);
-    String text = loader.target.context
-        .format(
-            message.withLocation(fileUri, charOffset, length), Severity.error)
-        .plain;
-    factory.setRedirectingFactoryError(text);
   }
 
   void checkGetterSetterTypes(TypeEnvironment typeEnvironment,
@@ -2131,7 +2050,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 allowSuperBounded: false);
           */
           break;
-        case TypeUse.macroTypeArgument:
         case TypeUse.typeParameterDefaultType:
         case TypeUse.defaultTypeAsTypeArgument:
         // Coverage-ignore(suite): Not run.

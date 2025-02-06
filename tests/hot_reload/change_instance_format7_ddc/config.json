@@ -1,0 +1,6 @@
+{
+  "exclude": ["vm"],
+  "expectedErrors": {
+    "1": "type parameters have changed"
+  }
+}

@@ -35,7 +35,6 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
-@@ -8,11 +8,23 @@
  // Adapted from:
  // https://github.com/dart-lang/sdk/blob/be2aabd91c67f7f331c49cb74e18fe5e469f04db/runtime/vm/isolate_reload_test.cc#L2339
  
@@ -44,12 +43,12 @@ Future<void> main() async {
 +  Apple('Apple', 'A'),
 +  Banana('Banana', 'B'),
 +  Cherry('Cherry', 'C');
- 
++
 +  const Fruit(this.name, this.initial);
 +  final String name;
 +  final String initial;
 +}
-+
+ 
  var retained;
  
 -helper() {}
@@ -61,9 +60,4 @@ Future<void> main() async {
  
  Future<void> main() async {
    retained = Fruit.Apple;
-@@ -20,3 +32,4 @@
-   await hotReload();
-   helper();
- }
-+
 */

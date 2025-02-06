@@ -23,9 +23,9 @@ Future<void> main() async {
   await hotReload(expectRejection: true);
   helper();
 }
+
 /** DIFF **/
 /*
-@@ -8,11 +8,12 @@
  // https://github.com/dart-lang/sdk/blob/368cb645e5ff5baa1d1ed86bfd2e7d818471a652/runtime/vm/isolate_reload_test.cc#L4603
  
  void helper() {

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -80,7 +78,7 @@ class ImportsVerifier {
           ),
         );
       } else if (directive is ExportDirective) {
-        var libraryElement = directive.element?.exportedLibrary;
+        var libraryElement = directive.libraryExport?.exportedLibrary2;
         if (libraryElement == null) {
           continue;
         }
@@ -180,6 +178,9 @@ class ImportsVerifier {
     for (var firstDirective in usedImports) {
       var firstElement = firstDirective.element!;
       var tracker = importsTracking.trackerOf(firstElement);
+      if (tracker == null) {
+        continue;
+      }
 
       // Ignore unresolved imports.
       var importedLibrary = firstElement.importedLibrary;
@@ -243,8 +244,12 @@ class ImportsVerifier {
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
         var importElement = importDirective.element!;
-        var prefixElement = importElement.prefix?.element;
-        var tracking = importsTracking.map[prefixElement]!;
+        var prefixElement = importElement.prefix2?.element;
+
+        var tracking = importsTracking.map[prefixElement];
+        if (tracking == null) {
+          continue;
+        }
 
         // Ignore the group of imports with a prefix in a comment reference.
         if (tracking.hasPrefixUsedInCommentReference) {
@@ -309,14 +314,14 @@ class ImportsVerifier {
       for (var combinator in importDirective.combinators) {
         if (combinator is ShowCombinatorImpl) {
           for (var identifier in combinator.shownNames) {
-            var element = identifier.staticElement;
+            var element = identifier.element;
             if (element != null) {
               var importElements = importsTracking.elementsOf(importElement);
 
               var isUsed = importElements.contains(element);
-              if (element is PropertyInducingElement) {
-                isUsed = importElements.contains(element.getter) ||
-                    importElements.contains(element.setter);
+              if (element is PropertyInducingElement2) {
+                isUsed = importElements.contains(element.getter2) ||
+                    importElements.contains(element.setter2);
               }
 
               if (!isUsed) {
@@ -338,10 +343,10 @@ class ImportsVerifier {
   void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
     for (var combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
-      var identifiers = <Element>{};
+      var identifiers = <Element2>{};
       if (combinator is HideCombinator) {
         for (var name in combinator.hiddenNames) {
-          var element = name.staticElement;
+          var element = name.element;
           if (element != null) {
             if (!identifiers.add(element)) {
               // [name] is a duplicate.
@@ -353,7 +358,7 @@ class ImportsVerifier {
         }
       } else if (combinator is ShowCombinator) {
         for (var name in combinator.shownNames) {
-          var element = name.staticElement;
+          var element = name.element;
           if (element != null) {
             if (!identifiers.add(element)) {
               // [name] is a duplicate.
@@ -400,10 +405,10 @@ class ImportsVerifier {
   }
 }
 
-/// [NamespaceDirective] with non-null imported or exported [LibraryElement].
+/// [NamespaceDirective] with non-null imported or exported [LibraryElement2].
 class _NamespaceDirective {
   final NamespaceDirective node;
-  final LibraryElement library;
+  final LibraryElement2 library;
 
   _NamespaceDirective({
     required this.node,
@@ -411,5 +416,5 @@ class _NamespaceDirective {
   });
 
   /// Returns the absolute URI of the library.
-  String get libraryUriStr => '${library.source.uri}';
+  String get libraryUriStr => '${library.uri}';
 }

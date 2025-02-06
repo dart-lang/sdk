@@ -9,7 +9,8 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        UnnecessaryNullAwareOperatorOnExtensionOnNullableTest);
+      UnnecessaryNullAwareOperatorOnExtensionOnNullableTest,
+    );
   });
 }
 
@@ -32,16 +33,17 @@ void f(int? i) {
   }
 
   test_extensionOverride_getter_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   int get foo => 1;
 }
 void f(int? i) {
   E(i)?.foo;
 }
-''', [
-      lint(67, 2),
-    ]);
+''',
+      [lint(67, 2)],
+    );
   }
 
   test_extensionOverride_indexAssignment() async {
@@ -56,16 +58,17 @@ void f(int? i) {
   }
 
   test_extensionOverride_indexAssignment_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   void operator []=(int i, String v) {}
 }
 void f(int? i) {
   E(i)?[0] = '';
 }
-''', [
-      lint(87, 1),
-    ]);
+''',
+      [lint(87, 1)],
+    );
   }
 
   test_extensionOverride_indexOperator() async {
@@ -80,16 +83,17 @@ void f(int? i) {
   }
 
   test_extensionOverride_indexOperator_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   String operator [](int i) => '';
 }
 void f(int? i) {
   E(i)?[0];
 }
-''', [
-      lint(82, 1),
-    ]);
+''',
+      [lint(82, 1)],
+    );
   }
 
   test_extensionOverride_methodCall() async {
@@ -104,16 +108,17 @@ void f(int? i) {
   }
 
   test_extensionOverride_methodCall_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   int m() => 1;
 }
 void f(int? i) {
   E(i)?.m();
 }
-''', [
-      lint(63, 2),
-    ]);
+''',
+      [lint(63, 2)],
+    );
   }
 
   test_extensionOverride_setter() async {
@@ -128,16 +133,17 @@ void f(int? i) {
   }
 
   test_extensionOverride_setter_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   void set foo(int v) {}
 }
 void f(int? i) {
   E(i)?.foo = 1;
 }
-''', [
-      lint(72, 2),
-    ]);
+''',
+      [lint(72, 2)],
+    );
   }
 
   test_getter() async {
@@ -152,16 +158,17 @@ void f(int? i) {
   }
 
   test_getter_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   int get foo => 1;
 }
 void f(int? i) {
   i?.foo;
 }
-''', [
-      lint(64, 2),
-    ]);
+''',
+      [lint(64, 2)],
+    );
   }
 
   test_indexAssignment() async {
@@ -176,16 +183,17 @@ void f(int? i) {
   }
 
   test_indexAssignment_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   void operator []=(int i, String v) {}
 }
 void f(int? i) {
   i?[0] = '';
 }
-''', [
-      lint(84, 1),
-    ]);
+''',
+      [lint(84, 1)],
+    );
   }
 
   test_indexOperator() async {
@@ -200,16 +208,17 @@ void f(int? i) {
   }
 
   test_indexOperator_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   String operator [](int i) => '';
 }
 void f(int? i) {
   i?[0];
 }
-''', [
-      lint(79, 1),
-    ]);
+''',
+      [lint(79, 1)],
+    );
   }
 
   test_methodCall() async {
@@ -224,16 +233,17 @@ void f(int? i) {
   }
 
   test_methodCall_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   int m() => 1;
 }
 void f(int? i) {
   i?.m();
 }
-''', [
-      lint(60, 2),
-    ]);
+''',
+      [lint(60, 2)],
+    );
   }
 
   test_setter() async {
@@ -248,15 +258,16 @@ void f(int? i) {
   }
 
   test_setter_nullAware() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 extension E on int? {
   void set foo(int v) {}
 }
 void f(int? i) {
   i?.foo = 1;
 }
-''', [
-      lint(69, 2),
-    ]);
+''',
+      [lint(69, 2)],
+    );
   }
 }

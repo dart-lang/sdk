@@ -5,43 +5,42 @@
 library _late_helper;
 
 import 'dart:_internal' show LateError, createSentinel, isSentinel;
-import 'dart:_js_helper' show throwExpressionWithWrapper;
 import 'dart:_foreign_helper' show JS;
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwLateFieldNI(String fieldName) {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldNI(fieldName), wrapper);
+  throw LateError.fieldNI(fieldName);
 }
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwLateFieldAI(String fieldName) {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldAI(fieldName), wrapper);
+  throw LateError.fieldAI(fieldName);
 }
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwLateFieldADI(String fieldName) {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldADI(fieldName), wrapper);
+  throw LateError.fieldADI(fieldName);
 }
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwUnnamedLateFieldNI() {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldNI(''), wrapper);
+  throw LateError.fieldNI('');
 }
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwUnnamedLateFieldAI() {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldAI(''), wrapper);
+  throw LateError.fieldAI('');
 }
 
 @pragma('dart2js:never-inline')
+@pragma('dart2js:stack-starts-at-throw')
 void throwUnnamedLateFieldADI() {
-  final wrapper = JS('', 'new Error()');
-  throwExpressionWithWrapper(LateError.fieldADI(''), wrapper);
+  throw LateError.fieldADI('');
 }
 
 /// A boxed variable used for lowering uninitialized `late` variables when they

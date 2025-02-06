@@ -56,9 +56,22 @@ class LiteralElementVerifier {
 
     if (!typeSystem.isAssignableTo(type, elementType!,
         strictCasts: _strictCasts)) {
-      var errorCode = forList
-          ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-          : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
+      bool assignableWhenNullable = typeSystem.isAssignableTo(
+          type, typeSystem.makeNullable(elementType),
+          strictCasts: _strictCasts);
+      var errorCode = switch ((
+        forList: forList,
+        assignableWhenNullable: assignableWhenNullable
+      )) {
+        (forList: false, assignableWhenNullable: false) =>
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        (forList: false, assignableWhenNullable: true) =>
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+        (forList: true, assignableWhenNullable: false) =>
+          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        (forList: true, assignableWhenNullable: true) =>
+          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+      };
       errorReporter.atNode(
         errorNode,
         errorCode,
@@ -148,11 +161,22 @@ class LiteralElementVerifier {
     }
     if (!typeSystem.isAssignableTo(keyType, mapKeyType,
         strictCasts: _strictCasts)) {
-      errorReporter.atNode(
-        entry.key,
-        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-        arguments: [keyType, mapKeyType],
-      );
+      if (entry.keyQuestion == null &&
+          typeSystem.isAssignableTo(
+              keyType, typeSystem.makeNullable(mapKeyType),
+              strictCasts: _strictCasts)) {
+        errorReporter.atNode(
+          entry.key,
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          arguments: [keyType, mapKeyType],
+        );
+      } else {
+        errorReporter.atNode(
+          entry.key,
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+          arguments: [keyType, mapKeyType],
+        );
+      }
     }
 
     var valueType = entry.value.typeOrThrow;
@@ -163,11 +187,22 @@ class LiteralElementVerifier {
     }
     if (!typeSystem.isAssignableTo(valueType, mapValueType,
         strictCasts: _strictCasts)) {
-      errorReporter.atNode(
-        entry.value,
-        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-        arguments: [valueType, mapValueType],
-      );
+      if (entry.valueQuestion == null &&
+          typeSystem.isAssignableTo(
+              valueType, typeSystem.makeNullable(mapValueType),
+              strictCasts: _strictCasts)) {
+        errorReporter.atNode(
+          entry.value,
+          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          arguments: [valueType, mapValueType],
+        );
+      } else {
+        errorReporter.atNode(
+          entry.value,
+          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+          arguments: [valueType, mapValueType],
+        );
+      }
     }
   }
 
@@ -232,7 +267,7 @@ class LiteralElementVerifier {
         var tearoffType = implicitCallMethod.type;
         if (featureSet.isEnabled(Feature.constructor_tearoffs)) {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
-            elementType as FunctionType,
+            elementType as FunctionTypeImpl,
             tearoffType,
             errorReporter: errorReporter,
             errorNode: expression,

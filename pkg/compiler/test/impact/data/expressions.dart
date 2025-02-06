@@ -358,8 +358,11 @@ testAsGenericRaw(dynamic o) => o as GenericClass;
 testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
 
 /*member: testThrow:
- static=[throwExpression(1),wrapException(1)],
- type=[inst:JSString]*/
+ static=[
+  throwExpression(2),
+  wrapException(1)],
+ type=[inst:JSString]
+*/
 testThrow() => throw '';
 
 /*member: testIfNotNull:

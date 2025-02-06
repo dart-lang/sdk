@@ -136,6 +136,13 @@ class _DartNavigationCollector {
     var offset = nodeOrToken.offset;
     var length = nodeOrToken.length;
 
+    _addRegionForFragmentRange(offset, length, fragment);
+  }
+
+  void _addRegionForFragmentRange(
+      int? offset, int? length, Fragment? fragment) {
+    if (offset == null || length == null || fragment == null) return;
+
     // If this fragment is for a synthetic element, use the first fragment for
     // the non-synthetic element.
     if (fragment.element.isSynthetic) {
@@ -424,7 +431,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    computer._addRegionForElement(node.name, node.element2);
+    var element = node.element2;
+    if (element == null) return;
+    for (var fragment in element.fragments) {
+      computer._addRegionForFragment(node.name, fragment);
+    }
   }
 
   @override
@@ -438,6 +449,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForElement(node.name2, node.element2);
+    super.visitLibraryDirective(node);
   }
 
   @override
@@ -558,7 +570,17 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement2;
-    computer._addRegionForElement(node, element);
+    if (element case PrefixElement2(:var fragments, :var name3)) {
+      for (var fragment in fragments) {
+        computer._addRegionForFragmentRange(
+          node.offset,
+          name3?.length,
+          fragment,
+        );
+      }
+    } else {
+      computer._addRegionForElement(node, element);
+    }
   }
 
   @override

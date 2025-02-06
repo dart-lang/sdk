@@ -11,13 +11,9 @@ import 'package:kernel/ast.dart' show Component, Version;
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
 import 'package:kernel/target/targets.dart' show Target;
-import 'package:macros/src/executor/multi_executor.dart';
-import 'package:macros/src/executor/serialization.dart' as macros
-    show SerializationMode;
 
 import '../api_unstable/util.dart';
 import '../base/nnbd_mode.dart';
-import '../macros/macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -109,42 +105,6 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
-
-  /// The [MultiMacroExecutor] for loading and executing macros if supported.
-  ///
-  /// This is part of the experimental macro feature.
-  MultiMacroExecutor? macroExecutor;
-
-  /// If true, all macro applications must have a corresponding prebuilt macro
-  /// supplied via `precompiledMacros`.
-  ///
-  /// Otherwise, that's an error.
-  ///
-  /// This is part of the experimental macro feature.
-  bool requirePrebuiltMacros = false;
-
-  /// Function that can create a [Uri] for the serialized result of a
-  /// [Component].
-  ///
-  /// This is used to turn a precompiled macro into a [Uri] that can be loaded
-  /// by the [macroExecutor].
-  ///
-  /// If `null` then an appropriate macro serializer will be created.
-  ///
-  /// [MacroSerializer.close] will be called when `Uri`s created are no longer
-  /// needed.
-  ///
-  /// This is part of the experimental macro feature.
-  MacroSerializer? macroSerializer;
-
-  /// Raw precompiled macro options, each of the format
-  /// `<program-uri>;<macro-library-uri>`.
-  ///
-  /// Multiple library URIs may be provided separated by additional semicolons.
-  List<String>? precompiledMacros;
-
-  /// The serialization mode to use for macro communication.
-  macros.SerializationMode? macroSerializationMode;
 
   /// Whether to generate code for the SDK.
   ///
@@ -257,9 +217,6 @@ class CompilerOptions {
   /// order to ensure a stable output for testing.
   bool omitOsMessageForTesting = false;
 
-  /// If `true`, macro generated libraries will be printed during compilation.
-  bool showGeneratedMacroSourcesForTesting = false;
-
   /// Object used for hooking into the compilation pipeline during testing.
   HooksForTesting? hooksForTesting;
 
@@ -298,16 +255,6 @@ class CompilerOptions {
       experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
       experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
       allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
-
-  /// The precompilations already in progress in an outer compile or that will
-  /// be built in the current compile.
-  ///
-  /// When a compile discovers macros that are not prebuilt it launches a new
-  /// nested compile to build them, a precompilation. That precompilation must
-  /// itself launch more compilations if it encounters more macros. This set
-  /// tracks what is running so that already-running precompilations are not
-  /// launched again.
-  Set<Uri> runningPrecompilations = {};
 
   // Coverage-ignore(suite): Not run.
   /// Returns the minimum language version needed for a library with the given
@@ -667,22 +614,6 @@ class Verbosity {
 // Coverage-ignore(suite): Not run.
 /// Interface for hooking into the compilation pipeline for testing.
 class HooksForTesting {
-  /// Called before the intermediate macro augmentation libraries have been
-  /// replaced by the merged macro augmentation libraries.
-  ///
-  /// [Component] is the fully built component at this stage of the compilation.
-  ///
-  /// If macros are not applied, this is not called.
-  void beforeMergingMacroAugmentations(Component component) {}
-
-  /// Called after the intermediate macro augmentation libraries have been
-  /// replaced by the merged macro augmentation libraries.
-  ///
-  /// [Component] is the fully built component at this stage of the compilation.
-  ///
-  /// If macros are not applied, this is not called.
-  void afterMergingMacroAugmentations(Component component) {}
-
   /// Called at the end of full compilation in the `KernelTarget.buildComponent`
   /// method.
   ///

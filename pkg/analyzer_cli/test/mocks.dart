@@ -41,11 +41,12 @@ class MockAnalysisError implements AnalysisError {
 
   @override
   DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: message,
-      offset: offset,
-      url: null);
+    filePath: source.fullName,
+    length: length,
+    message: message,
+    offset: offset,
+    url: null,
+  );
 
   @override
   Severity get severity => Severity.error;

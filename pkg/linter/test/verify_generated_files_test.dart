@@ -13,7 +13,8 @@ void main() {
       expect(
         await generatedNamesFile.check(linterPackageRoot),
         isTrue,
-        reason: "The generated lint codes at 'lib/src/lint_names.dart' need to "
+        reason:
+            "The generated lint codes at 'lib/src/lint_names.dart' need to "
             'be regenerated. '
             "Run 'dart run pkg/linter/tool/generate_lints.dart' to update.",
       );
@@ -23,7 +24,8 @@ void main() {
       expect(
         await generatedCodesFile.check(linterPackageRoot),
         isTrue,
-        reason: "The generated lint codes at 'lib/src/lint_codes.g.dart' need "
+        reason:
+            "The generated lint codes at 'lib/src/lint_codes.g.dart' need "
             'to be regenerated. '
             "Run 'dart run pkg/linter/tool/generate_lints.dart' to update.",
       );

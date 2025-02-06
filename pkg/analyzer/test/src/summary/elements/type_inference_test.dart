@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -4349,13 +4346,16 @@ library
             requiredPositional hasImplicitType p
               type: Stream<dynamic>
 ''');
-    ClassElement b = library.definingCompilationUnit.classes[0];
-    ParameterElement p = b.methods[0].parameters[0];
+    var b = library.classes[0];
+    var p = b.methods2[0].formalParameters[0];
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    var streamElement = (p.type as InterfaceType).element;
-    expect(streamElement.source, isNot(streamElement.library.source));
+    var streamElement = (p.type as InterfaceType).element3;
+    expect(
+      streamElement.firstFragment.libraryFragment.source,
+      isNot(streamElement.library2.firstFragment.source),
+    );
   }
 
   test_inferredType_implicitCreation() async {

@@ -130,9 +130,9 @@ class CreateCommand extends DartdevCommand {
           }
         },
       );
-      if (exitCode != 0) return exitCode;
       progress.finish(showTiming: true);
       log.stdout(buffer.toString().trimRight());
+      if (exitCode != 0) return exitCode;
     }
 
     log.stdout('');

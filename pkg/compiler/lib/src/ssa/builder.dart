@@ -2529,7 +2529,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sourceInformation = _sourceInformationBuilder.buildThrow(
         node.expression,
       );
-      _closeAndGotoExit(HThrow(pop(), sourceInformation));
+      _closeAndGotoExit(
+        HThrow(
+          pop(),
+          sourceInformation,
+          withoutHelperFrame: closedWorld.annotationsData
+              .throwWithoutHelperFrame(node),
+        ),
+      );
     } else {
       expression.accept(this);
       pop();
@@ -7039,7 +7046,19 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (node is ir.InstanceInvocation) {
       invoke.isInvariant = node.isInvariant;
       invoke.isBoundsSafe = node.isBoundsSafe;
+      if (node.receiver is ir.ThisExpression) {
+        // If the receiver of an instance invocation is `this` then the call is
+        // invariant with respect to the class type variables.
+        invoke.isInvariant = true;
+      }
+    } else if (node is ir.InstanceSet) {
+      if (node.receiver is ir.ThisExpression) {
+        // If the receiver of an instance invocation is `this` then the call is
+        // invariant with respect to the class type variables.
+        invoke.isInvariant = true;
+      }
     }
+
     if (node is ir.InstanceInvocation || node is ir.FunctionInvocation) {
       final staticType =
           _abstractValueDomain
@@ -7747,6 +7766,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           pop(),
           _abstractValueDomain.emptyType,
           sourceInformation,
+          withoutHelperFrame: closedWorld.annotationsData
+              .throwWithoutHelperFrame(node),
         ),
       );
       _isReachable = false;

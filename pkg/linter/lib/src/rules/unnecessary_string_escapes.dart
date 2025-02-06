@@ -12,10 +12,7 @@ const _desc = r'Remove unnecessary backslashes in strings.';
 
 class UnnecessaryStringEscapes extends LintRule {
   UnnecessaryStringEscapes()
-      : super(
-          name: LintNames.unnecessary_string_escapes,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_string_escapes, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -25,7 +22,9 @@ class UnnecessaryStringEscapes extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
@@ -66,8 +65,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var pendingQuotes = <int, bool>{};
     void checkPendingQuotes() {
       if (isMultiline && pendingQuotes.length < 3) {
-        var escapeIndexes =
-            pendingQuotes.entries.where((e) => e.value).map((e) => e.key);
+        var escapeIndexes = pendingQuotes.entries
+            .where((e) => e.value)
+            .map((e) => e.key);
         for (var index in escapeIndexes) {
           // case for '''___\'''' : without last backslash it leads a parsing error
           if (contentsEnd != token.end && index + 2 == contentsEnd) continue;
@@ -76,8 +76,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    var lexeme = token.lexeme
-        .substring(contentsOffset - token.offset, contentsEnd - token.offset);
+    var lexeme = token.lexeme.substring(
+      contentsOffset - token.offset,
+      contentsEnd - token.offset,
+    );
     for (var i = 0; i < lexeme.length; i++) {
       var current = lexeme[i];
       var escaped = false;

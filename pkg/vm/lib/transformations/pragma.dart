@@ -26,6 +26,8 @@ const kDynModuleExtendablePragmaName = "dyn-module:extendable";
 const kDynModuleImplicitlyExtendablePragmaName =
     "dyn-module:implicitly-extendable";
 const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
+const kDynModuleCanBeOverriddenImplicitlyPragmaName =
+    "dyn-module:can-be-overridden-implicitly";
 const kDynModuleCallablePragmaName = "dyn-module:callable";
 const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
 const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";

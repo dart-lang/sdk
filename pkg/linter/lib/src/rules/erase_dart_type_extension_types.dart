@@ -13,18 +13,20 @@ const _desc = r"Don't do 'is' checks on DartTypes.";
 
 class EraseDartTypeExtensionTypes extends LintRule {
   EraseDartTypeExtensionTypes()
-      : super(
-          name: LintNames.erase_dart_type_extension_types,
-          description: _desc,
-          state: const State.internal(),
-        );
+    : super(
+        name: LintNames.erase_dart_type_extension_types,
+        description: _desc,
+        state: const State.internal(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.erase_dart_type_extension_types;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addIsExpression(this, visitor);
   }

@@ -21,14 +21,15 @@ class AvoidUnnecessaryContainersTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_unnecessary_containers;
 
   test_childOnly() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(child: Row());
 }
-''', [
-      lint(61, 9),
-    ]);
+''',
+      [lint(61, 9)],
+    );
   }
 
   test_noArguments() async {

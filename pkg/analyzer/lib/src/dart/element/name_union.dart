@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 
 /// Union of a set of names.
 class ElementNameUnion {
@@ -92,33 +90,45 @@ class ElementNameUnion {
     return true;
   }
 
-  static ElementNameUnion forLibrary(LibraryElement libraryElement) {
+  static ElementNameUnion forLibrary(LibraryElement2 libraryElement) {
     var result = ElementNameUnion.empty();
-    libraryElement.accept(
-      _ElementVisitor(result),
+    libraryElement.accept2(
+      _ElementVisitor2(result),
     );
     return result;
   }
+
+  static bool _hasInterestingElements(Element2 element) {
+    if (element is ExecutableElement2) {
+      return false;
+    }
+    return true;
+  }
+
+  static bool _isInterestingElement(Element2 element) {
+    return element.enclosingElement2 is LibraryElement2 ||
+        element is FieldElement2 ||
+        element is MethodElement2 ||
+        element is PropertyAccessorElement2;
+  }
 }
 
-class _ElementVisitor extends GeneralizingElementVisitor<void> {
+class _ElementVisitor2 extends GeneralizingElementVisitor2<void> {
   final ElementNameUnion union;
 
-  _ElementVisitor(this.union);
+  _ElementVisitor2(this.union);
 
   @override
-  void visitElement(Element element) {
-    var enclosing = element.enclosingElement3;
-    if (enclosing is CompilationUnitElement ||
-        element is FieldElement ||
-        element is MethodElement ||
-        element is PropertyAccessorElement) {
-      var name = element.name;
+  void visitElement(Element2 element) {
+    if (ElementNameUnion._isInterestingElement(element)) {
+      var name = element.name3;
       if (name != null) {
         union.add(name);
       }
     }
 
-    super.visitElement(element);
+    if (ElementNameUnion._hasInterestingElements(element)) {
+      super.visitElement(element);
+    }
   }
 }

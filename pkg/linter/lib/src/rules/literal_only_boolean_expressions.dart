@@ -30,17 +30,19 @@ bool _onlyLiterals(Expression? rawExpression) {
 
 class LiteralOnlyBooleanExpressions extends LintRule {
   LiteralOnlyBooleanExpressions()
-      : super(
-          name: LintNames.literal_only_boolean_expressions,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.literal_only_boolean_expressions,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);

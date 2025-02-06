@@ -10,10 +10,10 @@ enum Enum2 { A }
 
 enum Enum3 { B, C }
 
-enum Enum4 {
-  D,
-  E,
-}
+// Don't format to preserve the trailing comma.
+// dart format off
+enum Enum4 { D, E, }
+// dart format on
 
 enum Enum5 { F, G, H }
 
@@ -35,7 +35,7 @@ enum JSFunctionPrototype {
   constructor,
   apply,
   bind,
-  call
+  call,
 }
 
 void expectIs<T>(T t, bool Function(Object?) test) {

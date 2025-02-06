@@ -36,10 +36,10 @@ bool _isIterable(DartType? type) =>
 
 class AvoidFunctionLiteralsInForeachCalls extends LintRule {
   AvoidFunctionLiteralsInForeachCalls()
-      : super(
-          name: LintNames.avoid_function_literals_in_foreach_calls,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_function_literals_in_foreach_calls,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -47,7 +47,9 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

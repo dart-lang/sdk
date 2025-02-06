@@ -773,11 +773,14 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   }
 
   bool get _shouldAuthenticate {
-    // Only try to authenticate if there is a challenge in the response.
+    // Only try to authenticate if there is a challenge in the response and
+    // the client has credentials or an authentication function.
     List<String>? challenge = headers[HttpHeaders.wwwAuthenticateHeader];
     return statusCode == HttpStatus.unauthorized &&
         challenge != null &&
-        challenge.length == 1;
+        challenge.length == 1 &&
+        (_httpClient._credentials.isNotEmpty ||
+            _httpClient._authenticate != null);
   }
 
   Future<HttpClientResponse> _authenticate(bool proxyAuth) {

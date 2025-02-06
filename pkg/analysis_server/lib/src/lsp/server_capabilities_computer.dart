@@ -305,7 +305,7 @@ class ServerCapabilitiesComputer {
       // we cannot re-enter this method until we have sent both the unregister
       // and register requests to the client atomically.
       // https://github.com/dart-lang/sdk/issues/47851#issuecomment-988093109
-      unregistrationRequest = _server.sendRequest(
+      unregistrationRequest = _server.sendLspRequest(
         Method.client_unregisterCapability,
         UnregistrationParams(unregisterations: unregistrations),
       );
@@ -316,7 +316,7 @@ class ServerCapabilitiesComputer {
     // otherwise we don't know that the client supports registerCapability).
     if (registrationsToAdd.isNotEmpty) {
       registrationRequest = _server
-          .sendRequest(
+          .sendLspRequest(
             Method.client_registerCapability,
             RegistrationParams(registrations: registrationsToAdd),
           )

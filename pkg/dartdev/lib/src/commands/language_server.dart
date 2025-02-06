@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import '../core.dart';
 import '../sdk.dart';
 import '../utils.dart';
+import '../vm_interop_handler.dart';
 
 class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
@@ -45,16 +46,22 @@ For more information about the server's capabilities and configuration, see:
     var args = argResults!.arguments;
     if (!args.any((arg) => arg.startsWith('--$protocol'))) {
       args = [...args, '--$protocol=$lsp'];
-    } else {
-      // Need to make a copy as argResults!.arguments is an
-      // UnmodifiableListView object which cannot be passed as
-      // the args for spawnUri.
-      args = [...args];
     }
-    return await runFromSnapshot(
-      snapshot: sdk.analysisServerSnapshot,
-      args: args,
-      verbose: verbose,
-    );
+    try {
+      VmInteropHandler.run(
+        sdk.analysisServerSnapshot,
+        args,
+        packageConfigOverride: null,
+        useExecProcess: false,
+      );
+      return 0;
+    } catch (e, st) {
+      log.stderr('Error: launching language analysis server failed');
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      return 255;
+    }
   }
 }

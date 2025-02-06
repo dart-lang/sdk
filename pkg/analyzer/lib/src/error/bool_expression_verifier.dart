@@ -36,7 +36,7 @@ class BoolExpressionVerifier {
   ///
   /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
   void checkForNonBoolCondition(Expression condition,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     checkForNonBoolExpression(
       condition,
@@ -50,7 +50,7 @@ class BoolExpressionVerifier {
   void checkForNonBoolExpression(Expression expression,
       {required ErrorCode errorCode,
       List<Object> arguments = const [],
-      required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
@@ -75,7 +75,7 @@ class BoolExpressionVerifier {
 
   /// Checks to ensure that the given [expression] is assignable to bool.
   void checkForNonBoolNegationExpression(Expression expression,
-      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+      {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted}) {
     checkForNonBoolExpression(
       expression,

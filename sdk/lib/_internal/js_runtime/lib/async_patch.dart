@@ -12,7 +12,6 @@ import 'dart:_js_helper'
         getTraceFromException,
         Primitives,
         requiresPreamble,
-        wrapException,
         unwrapException;
 
 import 'dart:_foreign_helper'

@@ -14,17 +14,16 @@ const _desc =
 
 class PreferVoidToNull extends LintRule {
   PreferVoidToNull()
-      : super(
-          name: LintNames.prefer_void_to_null,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_void_to_null;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addNamedType(this, visitor);
   }
@@ -45,8 +44,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member = context.inheritanceManager
-        .overriddenMember(parent.declaredFragment?.element);
+    var member = context.inheritanceManager.overriddenMember(
+      parent.declaredFragment?.element,
+    );
     if (member == null) return false;
 
     var returnType = member.returnType;

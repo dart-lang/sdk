@@ -300,10 +300,6 @@ enum TypeUse {
   ///   prefix.X field;
   ///
   deferredTypeError,
-
-  /// A type used as a type argument in the construction of a type through the
-  /// macro API.
-  macroTypeArgument,
 }
 
 // TODO(johnniwinther): Change from sealed to abstract.

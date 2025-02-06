@@ -35,7 +35,7 @@ import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 typedef SharedMatchContext = shared.MatchContext<TreeNode, Expression, Pattern,
-    SharedTypeView<DartType>, VariableDeclaration>;
+    SharedTypeView, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {

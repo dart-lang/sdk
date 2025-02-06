@@ -50,7 +50,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     expect(testOccurrences.element.name, elementName ?? range.text);
     expect(
       testOccurrences.offsets,
-      containsAll(code.ranges.map((r) => r.sourceRange.offset)),
+      unorderedEquals(code.ranges.map((r) => r.sourceRange.offset)),
     );
   }
 
@@ -421,8 +421,8 @@ void f(List<int> x, num /*[0*/a/*0]*/) {
 
   Future<void> test_pattern_cast_typeName() async {
     await assertOccurrences(kind: ElementKind.CLASS, '''
-String f((num, /*[0*/String/*0]*/) record) {
-  var (i as int, s as /*[1*/String/*1]*/) = record;
+/*[0*/String/*0]*/ f((num, /*[1*/String/*1]*/) record) {
+  var (i as int, s as /*[2*/String/*2]*/) = record;
 }
     );
      ''');
@@ -576,6 +576,23 @@ String f(int char) {
       ''');
   }
 
+  Future<void> test_prefix() async {
+    await assertOccurrences(kind: ElementKind.PREFIX, '''
+import '' as /*[0*/p/*0]*/;
+
+class A {
+  void m() {
+    /*[1*/p/*1]*/.foo();
+    print(/*[2*/p/*2]*/.a);
+  }
+}
+
+void foo() {}
+
+/*[3*/p/*3]*/.A? a;
+''');
+  }
+
   Future<void> test_prefix_wildcard() async {
     // Ensure no crash.
     await assertOccurrences(kind: ElementKind.PREFIX, '''
@@ -644,6 +661,38 @@ void f() {
   /*[2*/int/*2]*/ c = 3;
 }
 /*[3*/int/*3]*/ VVV = 4;
+      ''');
+  }
+
+  Future<void> test_type_class_constructors() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/A/*0]*/ {
+  A(); // Unnamed constructor is own entity
+  /*[1*/A/*1]*/.named();
+}
+
+/*[2*/A/*2]*/ a = A(); // Unnamed constructor is own entity
+var b = /*[3*/A/*3]*/.new();
+var c = /*[4*/A/*4]*/.new;
+      ''');
+  }
+
+  /// The type name in unnamed constructors are their own entity and not
+  /// part of the type name.
+  ///
+  /// For the legacy protocol, "new" is not treated as a reference to the
+  /// constructor because the protocol currently only supports same-length
+  /// occurrences.
+  Future<void> test_type_class_constructors_unnamed() async {
+    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+class A {
+  /*[0*/A/*0]*/();
+  A.named();
+}
+
+A a = /*[1*/A/*1]*/();
+var b = A.new();
+var c = A.new;
       ''');
   }
 

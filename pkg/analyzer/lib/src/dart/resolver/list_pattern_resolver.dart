@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -15,7 +14,7 @@ class ListPatternResolver {
 
   ListPatternResolver(this.resolverVisitor);
 
-  PatternResult<DartType> resolve({
+  PatternResult resolve({
     required ListPatternImpl node,
     required SharedMatchContext context,
   }) {
@@ -33,7 +32,7 @@ class ListPatternResolver {
       }
     }
 
-    DartType? elementType = typeArguments?.arguments.first.typeOrThrow;
+    var elementType = typeArguments?.arguments.first.typeOrThrow;
     var result = resolverVisitor.analyzeListPattern(context, node,
         elementType: elementType?.wrapSharedTypeView(),
         elements: node.elements);

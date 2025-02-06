@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
@@ -172,7 +173,16 @@ extension ExpressionExtension on Expression {
   /// This accessor should be used on expressions that are expected to
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
-  DartType get typeOrThrow {
+  TypeImpl get typeOrThrow => (this as ExpressionImpl).typeOrThrow;
+}
+
+extension ExpressionImplExtension on ExpressionImpl {
+  /// Return the static type of this expression.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  TypeImpl get typeOrThrow {
     var type = staticType;
     if (type == null) {
       throw StateError('No type: $this');
@@ -220,6 +230,10 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  Element2? get readElement2 {
+    return _readElement(this).asElement2;
+  }
+
   SimpleIdentifier get simpleName {
     var self = this;
     if (self is SimpleIdentifier) {
@@ -231,6 +245,10 @@ extension IdentifierExtension on Identifier {
 
   Element? get writeElement {
     return _writeElement(this);
+  }
+
+  Element2? get writeElement2 {
+    return _writeElement(this).asElement2;
   }
 
   Element? get writeOrReadElement {
@@ -261,14 +279,14 @@ extension IdentifierImplExtension on IdentifierImpl {
         name2: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.identifier.staticElement.asElement2;
+      )..element2 = self.identifier.staticElement?.asElement2;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
         name2: self.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.staticElement.asElement2;
+      )..element2 = self.staticElement?.asElement2;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
     }
@@ -358,7 +376,16 @@ extension TypeAnnotationExtension on TypeAnnotation {
   /// This accessor should be used on expressions that are expected to
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
-  DartType get typeOrThrow {
+  TypeImpl get typeOrThrow => (this as TypeAnnotationImpl).typeOrThrow;
+}
+
+extension TypeAnnotationImplExtension on TypeAnnotationImpl {
+  /// Return the static type of this type annotation.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  TypeImpl get typeOrThrow {
     var type = this.type;
     if (type == null) {
       throw StateError('No type: $this');

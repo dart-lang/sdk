@@ -10,10 +10,7 @@ import 'package:expect/expect.dart';
 
 import 'private_lib.dart';
 
-enum Enum1 {
-  _A,
-  _B,
-}
+enum Enum1 { _A, _B }
 
 main() {
   Expect.equals('Enum1._A,Enum1._B', Enum1.values.join(','));

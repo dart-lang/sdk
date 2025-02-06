@@ -22,5 +22,4 @@ class C2 = A<String> with B;
 void main() {
   var v = 0;
   checkNoDynamicTypeError(() => new C1(v));
-
 }

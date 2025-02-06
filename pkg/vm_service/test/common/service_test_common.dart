@@ -889,3 +889,41 @@ IsolateTest expectUnhandledExceptionWithFrames({
     }
   };
 }
+
+/// This helper does 3 things:
+/// 1) makes sure it's at the expected frame ([topFrameName]).
+/// 2) checks that the expected variables are available (by name)
+///    ([availableVariables]).
+/// 3) Evaluates the given expression(s) and checks their (valueAsString) result
+///    ([evaluations]).
+IsolateTest testExpressionEvaluationAndAvailableVariables(
+  String topFrameName,
+  List<String> availableVariables,
+  List<(String evaluate, String evaluationResult)> evaluations,
+) {
+  return (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final stack = await service.getStack(isolateId);
+
+    // Make sure we are in the right place.
+    expect(stack.frames!.length, greaterThanOrEqualTo(1));
+    expect(stack.frames![0].function!.name, topFrameName);
+
+    // Check variables.
+    expect(
+      (stack.frames![0].vars ?? []).map((v) => v.name).toList(),
+      equals(availableVariables),
+    );
+
+    // Evaluate.
+    for (final (expression, expectedResult) in evaluations) {
+      final result = await service.evaluateInFrame(
+        isolateId,
+        /* frame = */ 0,
+        expression,
+      ) as InstanceRef;
+      print(result.valueAsString);
+      expect(result.valueAsString, equals(expectedResult));
+    }
+  };
+}

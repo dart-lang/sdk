@@ -206,6 +206,7 @@ import 'rules/unnecessary_const.dart';
 import 'rules/unnecessary_constructor_name.dart';
 import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
+import 'rules/unnecessary_ignore.dart';
 import 'rules/unnecessary_lambdas.dart';
 import 'rules/unnecessary_late.dart';
 import 'rules/unnecessary_library_directive.dart';
@@ -455,6 +456,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryConstructorName())
     ..registerLintRule(UnnecessaryFinal())
     ..registerLintRule(UnnecessaryGettersSetters())
+    ..registerLintRule(UnnecessaryIgnore())
     ..registerLintRule(UnnecessaryLambdas())
     ..registerLintRule(UnnecessaryLate())
     ..registerLintRule(UnnecessaryLibraryDirective())

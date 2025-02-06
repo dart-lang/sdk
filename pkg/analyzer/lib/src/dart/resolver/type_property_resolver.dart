@@ -14,12 +14,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -35,8 +37,8 @@ class TypePropertyResolver {
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
-  ExecutableElement? _getterRequested;
-  ExecutableElement? _getterRecovery;
+  ExecutableElementOrMember? _getterRequested;
+  ExecutableElementOrMember? _getterRecovery;
 
   bool _needsSetterError = false;
   bool _reportedSetterError = false;
@@ -63,7 +65,7 @@ class TypePropertyResolver {
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
     required ExpressionImpl? receiver,
-    required DartType receiverType,
+    required TypeImpl receiverType,
     required String name,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
@@ -172,7 +174,7 @@ class TypePropertyResolver {
 
       // Recovery, get some resolution.
       receiverType = _typeSystem.resolveToBound(receiverType);
-      if (receiverType is InterfaceType) {
+      if (receiverType is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverType);
       }
 
@@ -180,7 +182,7 @@ class TypePropertyResolver {
     } else {
       var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
 
-      if (receiverTypeResolved is InterfaceType) {
+      if (receiverTypeResolved is InterfaceTypeImpl) {
         _lookupInterfaceType(receiverTypeResolved);
         if (_hasGetterOrSetter) {
           return _toResult();
@@ -193,7 +195,7 @@ class TypePropertyResolver {
         }
       }
 
-      if (receiverTypeResolved is FunctionType &&
+      if (receiverTypeResolved is FunctionTypeImpl &&
           _name == FunctionElement.CALL_METHOD_NAME) {
         return ResolutionResult(
           needsGetterError: false,
@@ -209,7 +211,7 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      if (receiverTypeResolved is RecordType) {
+      if (receiverTypeResolved is RecordTypeImpl) {
         var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
           return ResolutionResult(
@@ -234,19 +236,22 @@ class TypePropertyResolver {
 
   void _lookupExtension(DartType type) {
     var getterName = Name(_definingLibrary.source.uri, _name);
-    var result =
-        _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
+    var result = _extensionResolver.findExtension(
+        // TODO(paulberry): eliminate this cast by changing the type of the `type` parameter.
+        type as TypeImpl,
+        _nameErrorEntity,
+        getterName);
     _reportedGetterError = result == ExtensionResolutionError.ambiguous;
     _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 
-    if (result.getter != null) {
+    if (result.getter2 != null) {
       _needsGetterError = false;
-      _getterRequested = result.getter;
+      _getterRequested = result.getter2?.asElement;
     }
 
-    if (result.setter != null) {
+    if (result.setter2 != null) {
       _needsSetterError = false;
-      _setterRequested = result.setter;
+      _setterRequested = result.setter2?.asElement;
     }
   }
 
@@ -299,13 +304,13 @@ class TypePropertyResolver {
     var setter = _setterRequested ?? _setterRecovery;
 
     return ResolutionResult(
-      getter: getter,
+      getter2: getter?.asElement2,
       // Parser recovery resulting in an empty property name should not be
       // reported as an undefined getter.
       needsGetterError:
           _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
       isGetterInvalid: _needsGetterError || _reportedGetterError,
-      setter: setter,
+      setter2: setter?.asElement2,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
   }

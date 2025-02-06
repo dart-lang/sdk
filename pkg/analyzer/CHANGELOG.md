@@ -1,4 +1,7 @@
-## 7.2.0-dev
+## 7.3.0-dev
+* Add `flags` optional named parameter to `FeatureSet.latestLanguageVersion()`.
+
+## 7.2.0
 * Add `ElementDirective` as superinterface for `LibraryExport`, `LibraryImport`,
   and `PartInclude`. It implements `Annotatable`.
 

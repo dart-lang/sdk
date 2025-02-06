@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.38.0</version>
+  <version>1.39.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -142,6 +142,10 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.39.0</h4>
+<ul>
+  <li>Added a new <tt>lspCapabilities</tt> field to the <tt>setClientCapabilities</tt> parameters to allow clients to provide their LSP capabilities. These capabilities can indicate that a client can support <tt>lsp.handle</tt> requests in the server-to-client direction.</li>
+</ul>
 <h4>1.38.0</h4>
 <ul>
   <li>Deprecated the <tt>analytics.enable</tt> request.</li>
@@ -425,6 +429,18 @@
         </p>
         <p>
           LSP notifications are automatically enabled when the client sets this capability.
+        </p>
+      </field>
+      <field name="lspCapabilities" optional="true">
+        <ref>object</ref>
+        <p>
+          LSP capabilities of the client as defined by the Language Server Protocol specification.
+        </p>
+        <p>
+          If custom LSP capabilities are to be used, the setClientCapabilities request should be called before any LSP requests are made to the server.
+        </p>
+        <p>
+          If LSP capabilities are not provided or no setClientCapabilities request is made, a very basic set of capabilities will be assumed.
         </p>
       </field>
     </params>
@@ -3435,6 +3451,9 @@
   <request method="handle" experimental="true">
     <p>
       Call an LSP handler. Message can be requests or notifications.
+    </p>
+    <p>
+      This request can be called in either direction, either by the client to the server, or by the server to the client. The server will only call the client if the client has indicated it supports the associated LSP request via <tt>lspCapabilities</tt> in the <tt>setClientCapabilities</tt> request.
     </p>
     <params>
       <field name="lspMessage">

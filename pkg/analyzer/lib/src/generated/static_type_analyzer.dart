@@ -30,7 +30,7 @@ class StaticTypeAnalyzer {
   late TypeSystemImpl _typeSystem;
 
   /// The type representing the type 'dynamic'.
-  late DartType _dynamicType;
+  late TypeImpl _dynamicType;
 
   /// Initialize a newly created static type analyzer to analyze types for the
   /// [_resolver] based on the

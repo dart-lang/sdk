@@ -27,13 +27,14 @@ void f(int p) {
   }
 
   test_singleCascade() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(int p) {
   p..toString();
 }
-''', [
-      lint(18, 13),
-    ]);
+''',
+      [lint(18, 13)],
+    );
   }
 
   test_singleCascade_asArgument() async {

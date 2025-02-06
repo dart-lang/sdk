@@ -523,6 +523,7 @@ class _Utf8Decoder {
   static const int errorUnfinished = E7;
 
   @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
   static bool isErrorState(int state) => (state & 1) != 0;
 
   static String errorDescription(int state) {
@@ -551,38 +552,6 @@ class _Utf8Decoder {
   external String convertSingle(List<int> codeUnits, int start, int? maybeEnd);
 
   external String convertChunked(List<int> codeUnits, int start, int? maybeEnd);
-
-  String convertGeneral(
-    List<int> codeUnits,
-    int start,
-    int? maybeEnd,
-    bool single,
-  ) {
-    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
-
-    if (start == end) return "";
-
-    // Have bytes as Uint8List.
-    Uint8List bytes;
-    int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = codeUnits;
-      errorOffset = 0;
-    } else {
-      bytes = _makeUint8List(codeUnits, start, end);
-      errorOffset = start;
-      end -= start;
-      start = 0;
-    }
-
-    String result = decodeGeneral(bytes, start, end, single);
-    if (isErrorState(_state)) {
-      String message = errorDescription(_state);
-      _state = initial; // Ready for more input.
-      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
-    }
-    return result;
-  }
 
   /// Flushes this decoder as if closed.
   ///

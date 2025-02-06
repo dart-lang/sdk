@@ -11,17 +11,16 @@ const _desc = r'Provide a deprecation message, via `@Deprecated("message")`.';
 
 class ProvideDeprecationMessage extends LintRule {
   ProvideDeprecationMessage()
-      : super(
-          name: LintNames.provide_deprecation_message,
-          description: _desc,
-        );
+    : super(name: LintNames.provide_deprecation_message, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.provide_deprecation_message;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAnnotation(this, visitor);
   }

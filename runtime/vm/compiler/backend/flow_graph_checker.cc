@@ -117,6 +117,7 @@ static bool DefDominatesUse(Definition* def, Instruction* instruction) {
 static bool IsControlFlow(Instruction* instruction) {
   return instruction->IsBranch() || instruction->IsGoto() ||
          instruction->IsIndirectGoto() || instruction->IsReturnBase() ||
+         (instruction->IsStop() && instruction->next() == nullptr) ||
          instruction->IsThrow() || instruction->IsReThrow() ||
          instruction->IsTailCall();
 }

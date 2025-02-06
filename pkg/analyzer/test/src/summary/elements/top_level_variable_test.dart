@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
@@ -2004,19 +2001,13 @@ library
 
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
-    var getter = _elementOfDefiningUnit(library, ['@getter', 'x'])
-        as PropertyAccessorElementImpl;
-    var variable = getter.variable2 as TopLevelVariableElementImpl;
+    var getter = library.getters.single;
+    var variable = getter.variable3 as TopLevelVariableElementImpl2;
     expect(variable, isNotNull);
     expect(variable.isFinal, isFalse);
-    expect(variable.getter, same(getter));
+    expect(variable.getter2, same(getter));
     _assertTypeStr(variable.type, 'int');
-    expect(
-      variable,
-      same(
-        _elementOfDefiningUnit(library, ['@topLevelVariable', 'x']),
-      ),
-    );
+    expect(variable, same(library.topLevelVariables.single));
   }
 
   test_variable_implicit_type() async {
@@ -3638,23 +3629,6 @@ library
     var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
-
-  // TODO(scheglov): This is duplicate.
-  Element _elementOfDefiningUnit(
-      LibraryElementImpl library, List<String> names) {
-    var reference = library.definingCompilationUnit.reference!;
-    for (var name in names) {
-      reference = reference.getChild(name);
-    }
-
-    var element = reference.element;
-    if (element != null) {
-      return element;
-    }
-
-    var elementFactory = library.linkedData!.elementFactory;
-    return elementFactory.elementOfReference(reference)!;
-  }
 }
 
 abstract class TopLevelVariableElementTest_augmentation
@@ -4213,7 +4187,7 @@ library
               leftOperand: AugmentedExpression
                 augmentedKeyword: augmented @45
                 element: <testLibraryFragment>::@topLevelVariable::foo
-                element2: <testLibrary>::@topLevelVariable::foo
+                fragment: <testLibraryFragment>::@topLevelVariable::foo
                 staticType: int
               operator: + @55
               rightOperand: IntegerLiteral

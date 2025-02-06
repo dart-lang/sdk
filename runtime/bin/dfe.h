@@ -7,12 +7,10 @@
 
 #include <memory>
 
-#include "bin/thread.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -97,16 +95,12 @@ class DFE {
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, sets 'kernel_buffer' to nullptr otherwise.
   //
-  // If 'kernel_blob_ptr' is not nullptr, then this function can also
-  // read kernel blobs. In such case it sets 'kernel_blob_ptr'
-  // to a shared pointer which owns the kernel buffer.
-  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'.
+  // The caller is responsible for free()ing 'kernel_buffer'.
   void ReadScript(const char* script_uri,
                   const AppSnapshot* app_snapshot,
                   uint8_t** kernel_buffer,
                   intptr_t* kernel_buffer_size,
-                  bool decode_uri = true,
-                  std::shared_ptr<uint8_t>* kernel_blob_ptr = nullptr);
+                  bool decode_uri = true) const;
 
   bool KernelServiceDillAvailable() const;
 
@@ -114,17 +108,13 @@ class DFE {
   // Returns `true` if successful and sets 'kernel_buffer' and 'kernel_length'
   // to be the kernel IR contents.
   //
-  // If 'kernel_blob_ptr' is not nullptr, then this function can also
-  // read kernel blobs. In such case it sets 'kernel_blob_ptr'
-  // to a shared pointer which owns the kernel buffer.
-  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'
+  // The caller is responsible for free()ing 'kernel_buffer'
   // if `true` was returned.
   bool TryReadKernelFile(const char* script_uri,
                          const AppSnapshot* app_snapshot,
                          uint8_t** kernel_buffer,
                          intptr_t* kernel_buffer_size,
-                         bool decode_uri = true,
-                         std::shared_ptr<uint8_t>* kernel_blob_ptr = nullptr);
+                         bool decode_uri = true) const;
 
   // We distinguish between "intent to use Dart frontend" vs "can actually
   // use Dart frontend". The method UseDartFrontend tells us about the
@@ -137,22 +127,6 @@ class DFE {
   void LoadKernelService(const uint8_t** kernel_service_buffer,
                          intptr_t* kernel_service_buffer_size);
 
-  // Registers given kernel blob and returns blob URI which
-  // can be used in TryReadKernelFile later to load the given kernel.
-  // Data from [kernel_buffer] is copied, it doesn't need to stay alive.
-  // Returns nullptr if failed to allocate memory.
-  const char* RegisterKernelBlob(const uint8_t* kernel_buffer,
-                                 intptr_t kernel_buffer_size);
-
-  // Looks for kernel blob using the given [uri].
-  // Returns non-null pointer to the kernel blob if successful and
-  // sets [kernel_length].
-  std::shared_ptr<uint8_t> TryFindKernelBlob(const char* uri,
-                                             intptr_t* kernel_length);
-
-  // Unregisters kernel blob with given URI.
-  void UnregisterKernelBlob(const char* uri);
-
  private:
   bool use_dfe_;
   bool use_incremental_compiler_;
@@ -164,31 +138,9 @@ class DFE {
   uint8_t* application_kernel_buffer_;
   intptr_t application_kernel_buffer_size_;
 
-  // Registry of kernel blobs. Maps URI (char *) to KernelBlob.
-  SimpleHashMap kernel_blobs_;
-  intptr_t kernel_blob_counter_ = 0;
-  Mutex kernel_blobs_lock_;
-
   void InitKernelServiceAndPlatformDills();
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
-};
-
-class KernelBlob {
- public:
-  // Takes ownership over [uri] and [buffer].
-  KernelBlob(char* uri, uint8_t* buffer, intptr_t size)
-      : uri_(uri), buffer_(buffer, std::free), size_(size) {}
-
-  std::shared_ptr<uint8_t> buffer() { return buffer_; }
-  intptr_t size() const { return size_; }
-
- private:
-  CStringUniquePtr uri_;
-  std::shared_ptr<uint8_t> buffer_;
-  const intptr_t size_;
-
-  DISALLOW_COPY_AND_ASSIGN(KernelBlob);
 };
 
 class PathSanitizer {

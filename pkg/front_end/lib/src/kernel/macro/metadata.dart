@@ -17,7 +17,6 @@ import '../../base/scope.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/dynamic_type_declaration_builder.dart';
-import '../../builder/field_builder.dart';
 import '../../builder/future_or_type_declaration_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/never_type_declaration_builder.dart';
@@ -25,7 +24,6 @@ import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/procedure_builder.dart';
 import '../../builder/property_builder.dart';
-import '../../source/source_field_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_property_builder.dart';
 
@@ -76,12 +74,7 @@ shared.Expression parseFieldInitializer(Loader loader, Token initializerToken,
 // Coverage-ignore(suite): Not run.
 /// Returns the [shared.Expression] for the constant initializer of [reference].
 shared.Expression? getFieldInitializer(shared.FieldReference reference) {
-  if (reference is FieldReference) {
-    FieldBuilder element = reference.builder;
-    if (element is SourceFieldBuilder) {
-      return element.initializerExpression;
-    }
-  } else if (reference is PropertyReference) {
+  if (reference is PropertyReference) {
     PropertyBuilder element = reference.builder;
     if (element is SourcePropertyBuilder) {
       return element.initializerExpression;
@@ -95,9 +88,7 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
 
 // Coverage-ignore(suite): Not run.
 shared.Proto builderToProto(Builder builder, String name) {
-  if (builder is FieldBuilder) {
-    return new shared.FieldProto(new FieldReference(builder));
-  } else if (builder is PropertyBuilder) {
+  if (builder is PropertyBuilder) {
     return new shared.FieldProto(new PropertyReference(builder));
   } else if (builder is ProcedureBuilder) {
     return new shared.FunctionProto(new FunctionReference(builder));
@@ -349,16 +340,6 @@ class PrefixScope implements shared.Scope {
       return builderToProto(builder, name);
     }
   }
-}
-
-// Coverage-ignore(suite): Not run.
-class FieldReference extends shared.FieldReference {
-  final FieldBuilder builder;
-
-  FieldReference(this.builder);
-
-  @override
-  String get name => builder.name;
 }
 
 // Coverage-ignore(suite): Not run.

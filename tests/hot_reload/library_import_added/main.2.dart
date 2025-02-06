@@ -22,9 +22,9 @@ Future<void> main() async {
 
   Expect.equals(4, helper());
 }
+
 /** DIFF **/
 /*
-@@ -2,6 +2,7 @@
  // for details. All rights reserved. Use of this source code is governed by a
  // BSD-style license that can be found in the LICENSE file.
  

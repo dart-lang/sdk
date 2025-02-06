@@ -132,22 +132,6 @@ Future<int> runProcess(
   return exitCode;
 }
 
-Future<int> runProcessInheritStdio(
-  List<String> command, {
-  bool logToTrace = false,
-  void Function(String str)? listener,
-  String? cwd,
-}) async {
-  log.trace(command.join(' '));
-  final process = await Process.start(
-    command.first,
-    command.skip(1).toList(),
-    workingDirectory: cwd,
-    mode: ProcessStartMode.inheritStdio,
-  );
-  return await process.exitCode;
-}
-
 Future _streamLineTransform(
   Stream<List<int>> stream,
   Function(String line) handler,

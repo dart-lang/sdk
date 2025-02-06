@@ -575,16 +575,16 @@ abstract class HotReloadSuiteRunner {
             }
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            var (filteredDiffOutput, filteredCurrentDiff) =
-                _filterLineDeltas(diffOutput, currentDiff);
-            if (filteredDiffOutput != filteredCurrentDiff) {
+            if (diffOutput != currentDiff) {
               reportDiffOutcome(
                   test.name,
                   currentEdit.fileUri,
@@ -623,16 +623,18 @@ abstract class HotReloadSuiteRunner {
             (currentCode, currentDiff) = _splitTestByDiff(currentEdit.fileUri);
             final previousTempUri = generatedCodeDir.uri.resolve('__previous');
             final currentTempUri = generatedCodeDir.uri.resolve('__current');
-            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            // Avoid 'No newline at end of file' messages in the output by
+            // appending a newline to the trimmed source code strings.
+            File.fromUri(previousTempUri).writeAsStringSync('$previousCode\n');
+            File.fromUri(currentTempUri).writeAsStringSync('$currentCode\n');
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
                 label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            final newCurrentText = '$currentCode'
-                '${currentCode.endsWith('\n') ? '' : '\n'}'
-                '$diffOutput\n';
+            // Write an empty line between the code and the diff comment to
+            // agree with the dart formatter.
+            final newCurrentText = '$currentCode\n\n$diffOutput\n';
             File.fromUri(currentEdit.fileUri).writeAsStringSync(newCurrentText);
             _print('Writing updated diff to $currentEdit.fileUri',
                 label: test.name);
@@ -902,57 +904,32 @@ abstract class HotReloadSuiteRunner {
       {String label = '', bool commented = true, bool trimHeaders = true}) {
     final file1Path = file1.toFilePath();
     final file2Path = file2.toFilePath();
-    final diffArgs = [
-      '-u',
-      '--width=120',
-      '--expand-tabs',
-      file1Path,
-      file2Path
-    ];
-    _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.",
+    final diffArgs = ['diff', '-u', file1Path, file2Path];
+    _debugPrint("Running diff with 'git diff ${diffArgs.join(' ')}'.",
         label: label);
-    final diffProcess = Process.runSync('diff', diffArgs);
+    final diffProcess = Process.runSync('git', diffArgs);
     final errOutput = diffProcess.stderr as String;
     if (errOutput.isNotEmpty) {
-      throw Exception('diff failed with:\n$errOutput');
+      throw Exception('git diff failed with:\n$errOutput');
     }
     var output = diffProcess.stdout as String;
     if (trimHeaders) {
-      // Skip the first two lines.
+      // Skip the diff header. 'git diff' has 5 lines in its header.
       // TODO(markzipan): Add support for Windows-style line endings.
-      output = output.split('\n').skip(2).join('\n');
+      output = output.split('\n').skip(5).join('\n');
     }
     return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
   }
 
-  /// Removes diff lines that show added or removed newlines.
-  ///
-  /// 'diff' can be unstable across platforms around newline offsets.
-  (String, String) _filterLineDeltas(String diff1, String diff2) {
-    bool isBlankLineOrDelta(String s) {
-      var trimmed = s.trim();
-      return trimmed.isEmpty ||
-          (trimmed.startsWith('+') || trimmed.startsWith('-')) &&
-              trimmed.length == 1;
-    }
-
-    var diff1Lines = LineSplitter().convert(diff1)
-      ..removeWhere(isBlankLineOrDelta);
-    var diff2Lines = LineSplitter().convert(diff2)
-      ..removeWhere(isBlankLineOrDelta);
-    return (diff1Lines.join('\n'), diff2Lines.join('\n'));
-  }
-
-  /// Returns the code and diff portions of [file].
+  /// Returns the code and diff portions of [file] with all leading and trailing
+  /// whitespace trimmed.
   (String, String) _splitTestByDiff(Uri file) {
     final text = File.fromUri(file).readAsStringSync();
     final diffIndex = text.indexOf(testDiffSeparator);
     final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
-    final codeText = text.substring(0, diffSplitIndex);
-    final diffText = text.substring(diffSplitIndex, text.length - 1);
-    // Avoid 'No newline at end of file' messages in the output by appending a
-    // newline if one is not already trailing.
-    return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
+    final codeText = text.substring(0, diffSplitIndex).trim();
+    final diffText = text.substring(diffSplitIndex, text.length - 1).trim();
+    return (codeText, diffText);
   }
 }
 

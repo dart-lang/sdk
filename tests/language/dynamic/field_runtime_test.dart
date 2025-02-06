@@ -15,20 +15,12 @@ class A extends C {
 }
 
 class C {
-  foo() {
-
-
-  }
-  bar() {
-
-
-  }
+  foo() {}
+  bar() {}
 }
 
 main() {
   var a = new A();
   a.a = 1;
   a.b = a;
-
-
 }

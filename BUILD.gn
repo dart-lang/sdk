@@ -52,7 +52,7 @@ group("runtime") {
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/vm:kernel_platform_files($host_toolchain)",
-    "samples/embedder:all",
+    "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
     "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
@@ -65,6 +65,12 @@ group("runtime") {
     deps += [ "runtime/bin:dartaotruntime_product" ]
   } else {
     deps += [ "utils/kernel-service:frontend_server" ]
+  }
+
+  # AOT samples use dlopen to load AOT snapshots and it works only on
+  # 64-bit Linux right now.
+  if (is_linux && (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
+    deps += [ "samples/embedder:aot" ]
   }
 
   if (!is_win) {

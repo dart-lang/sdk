@@ -29,9 +29,9 @@ class C = C1 with lib.Foo;
 class D {
   D();
   factory D.factory() = lib.Foo2;
-//                      ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
-// [cfe] The constructor function type 'Foo2 Function()' isn't a subtype of 'D Function()'.
+  //                    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] The constructor function type 'Foo2 Function()' isn't a subtype of 'D Function()'.
 }
 
 void main() {

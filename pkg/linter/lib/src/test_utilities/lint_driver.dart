@@ -45,8 +45,9 @@ class LintDriver {
       }) {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
-        analysisOptions.lintRules =
-            _options.enabledRules.toList(growable: false);
+        analysisOptions.lintRules = _options.enabledRules.toList(
+          growable: false,
+        );
       },
       enableLintRuleTiming: _options.enableTiming,
     );

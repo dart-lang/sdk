@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 
 /// Class containing static methods for performing lexical resolution of
 /// identifiers.
@@ -21,8 +20,8 @@ class LexicalLookup {
   /// a getter.  If a matching element is found, a [LexicalLookupResult] is
   /// returned.  Otherwise `null` is returned.
   static LexicalLookupResult? resolveGetter(ScopeLookupResult scopeResult) {
-    var scopeGetter = scopeResult.getter;
-    var scopeSetter = scopeResult.setter;
+    var scopeGetter = scopeResult.getter2;
+    var scopeSetter = scopeResult.setter2;
     if (scopeGetter != null || scopeSetter != null) {
       if (scopeGetter != null) {
         return LexicalLookupResult(requested: scopeGetter);
@@ -39,10 +38,10 @@ class LexicalLookup {
   /// a setter.  If a matching element is found, a [LexicalLookupResult] is
   /// returned.  Otherwise `null` is returned.
   static LexicalLookupResult? resolveSetter(ScopeLookupResult scopeResult) {
-    var scopeGetter = scopeResult.getter;
-    var scopeSetter = scopeResult.setter;
+    var scopeGetter = scopeResult.getter2;
+    var scopeSetter = scopeResult.setter2;
     if (scopeGetter != null || scopeSetter != null) {
-      if (scopeGetter is VariableElement) {
+      if (scopeGetter is VariableElement2) {
         return LexicalLookupResult(requested: scopeGetter);
       }
       if (scopeSetter != null) {
@@ -58,14 +57,14 @@ class LexicalLookup {
 }
 
 class LexicalLookupResult {
-  final Element? requested;
-  final Element? recovery;
+  final Element2? requested;
+  final Element2? recovery;
 
   /// The type, usually [FunctionType] referenced with `call`.
   final DartType? callFunctionType;
 
   /// The field referenced in a [RecordType].
-  final RecordTypeField? recordField;
+  final RecordTypeFieldImpl? recordField;
 
   LexicalLookupResult({
     this.requested,

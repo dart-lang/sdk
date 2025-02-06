@@ -17,18 +17,20 @@ const _desc = r'Unsafe type: Has a type variable in a non-covariant position.';
 
 class UnsafeVariance extends LintRule {
   UnsafeVariance()
-      : super(
-          name: LintNames.unsafe_variance,
-          description: _desc,
-          state: const State.experimental(),
-        );
+    : super(
+        name: LintNames.unsafe_variance,
+        description: _desc,
+        state: const State.experimental(),
+      );
 
   @override
   LintCode get lintCode => LinterLintCode.unsafe_variance;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);

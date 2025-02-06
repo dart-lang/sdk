@@ -196,6 +196,7 @@ class NativeArguments {
         argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
         argv_(argv),
         retval_(retval) {}
+  NativeArguments() = default;
 #endif  // defined(DART_DYNAMIC_MODULES)
 
   // Since this function is passed an ObjectPtr directly, we need to be

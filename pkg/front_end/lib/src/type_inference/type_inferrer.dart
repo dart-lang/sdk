@@ -34,7 +34,7 @@ abstract class TypeInferrer {
 
   /// Returns the [FlowAnalysis] used during inference.
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis;
+      SharedTypeView> get flowAnalysis;
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
@@ -86,8 +86,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-          SharedTypeView<DartType>> flowAnalysis =
-      new FlowAnalysis(operations, assignedVariables,
+          SharedTypeView> flowAnalysis =
+      new FlowAnalysis(
+          operations, assignedVariables,
           respectImplicitlyTypedVarInitializers:
               libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
           fieldPromotionEnabled:
@@ -313,7 +314,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 
   @override
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      SharedTypeView<DartType>> get flowAnalysis => impl.flowAnalysis;
+      SharedTypeView> get flowAnalysis => impl.flowAnalysis;
 
   @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;

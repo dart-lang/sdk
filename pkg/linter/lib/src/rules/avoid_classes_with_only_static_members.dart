@@ -12,10 +12,10 @@ const _desc = r'Avoid defining a class that contains only static members.';
 
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
-      : super(
-          name: LintNames.avoid_classes_with_only_static_members,
-          description: _desc,
-        );
+    : super(
+        name: LintNames.avoid_classes_with_only_static_members,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -23,7 +23,9 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
   }

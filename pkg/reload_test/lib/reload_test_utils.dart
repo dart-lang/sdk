@@ -9,3 +9,7 @@
 export 'src/_reload_utils_api.dart'
     if (dart.library.io) 'src/_vm_reload_utils.dart'
     if (dart.library.js_interop) 'src/_ddc_reload_utils.dart';
+
+bool get isVmRuntime => const bool.fromEnvironment('dart.library.io');
+
+bool get isDdcRuntime => const bool.fromEnvironment('dart.library.js_interop');

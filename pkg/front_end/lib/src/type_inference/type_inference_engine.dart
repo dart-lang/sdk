@@ -395,9 +395,8 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
 }
 
 // TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
-class InferenceDataForTesting
-    extends shared.TypeConstraintGenerationDataForTesting<DartType,
-        StructuralParameter, VariableDeclaration, TreeNode> {
+class InferenceDataForTesting extends shared
+    .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
 
   final TypeInferenceResultForTesting typeInferenceResult =
@@ -437,11 +436,11 @@ class FlowAnalysisResult {
 /// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
     with
-        TypeAnalyzerOperationsMixin<DartType, VariableDeclaration,
-            StructuralParameter, TypeDeclarationType, TypeDeclaration>
+        TypeAnalyzerOperationsMixin<VariableDeclaration, TypeDeclarationType,
+            TypeDeclaration>
     implements
-        TypeAnalyzerOperations<DartType, VariableDeclaration,
-            StructuralParameter, TypeDeclarationType, TypeDeclaration> {
+        TypeAnalyzerOperations<VariableDeclaration, TypeDeclarationType,
+            TypeDeclaration> {
   final TypeEnvironment typeEnvironment;
 
   /// Information about which fields are promotable in this library.
@@ -466,59 +465,59 @@ class OperationsCfe
       required this.typeCacheLegacy});
 
   @override
-  SharedTypeView<DartType> get boolType {
+  SharedTypeView get boolType {
     return new SharedTypeView(
         typeEnvironment.coreTypes.boolRawType(Nullability.nonNullable));
   }
 
   @override
-  SharedTypeView<DartType> get doubleType {
+  SharedTypeView get doubleType {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SharedTypeView<DartType> get dynamicType {
+  SharedTypeView get dynamicType {
     return new SharedTypeView(const DynamicType());
   }
 
   @override
-  SharedTypeView<DartType> get errorType {
+  SharedTypeView get errorType {
     return new SharedTypeView(const InvalidType());
   }
 
   @override
-  SharedTypeView<DartType> get intType {
+  SharedTypeView get intType {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override
-  SharedTypeView<DartType> get neverType {
+  SharedTypeView get neverType {
     return new SharedTypeView(const NeverType.nonNullable());
   }
 
   @override
-  SharedTypeView<DartType> get nullType {
+  SharedTypeView get nullType {
     return new SharedTypeView(const NullType());
   }
 
   @override
-  SharedTypeView<DartType> get objectQuestionType {
+  SharedTypeView get objectQuestionType {
     return new SharedTypeView(typeEnvironment.coreTypes.objectNullableRawType);
   }
 
   @override
-  SharedTypeView<DartType> get objectType {
+  SharedTypeView get objectType {
     return new SharedTypeView(
         typeEnvironment.coreTypes.objectNonNullableRawType);
   }
 
   @override
-  SharedTypeSchemaView<DartType> get unknownType {
+  SharedTypeSchemaView get unknownType {
     return new SharedTypeSchemaView(const UnknownType());
   }
 
   @override
-  TypeClassification classifyType(SharedTypeView<DartType>? type) {
+  TypeClassification classifyType(SharedTypeView? type) {
     DartType? unwrapped = type?.unwrapTypeView();
     if (unwrapped == null) {
       // Note: this can happen during top-level inference.
@@ -534,22 +533,20 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> factor(
-      SharedTypeView<DartType> from, SharedTypeView<DartType> what) {
+  SharedTypeView factor(SharedTypeView from, SharedTypeView what) {
     return new SharedTypeView(factorType(
         typeEnvironment, from.unwrapTypeView(), what.unwrapTypeView()));
   }
 
   @override
-  SharedTypeView<DartType> greatestClosure(
-      SharedTypeSchemaView<DartType> schema) {
+  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
     return new SharedTypeView(type_schema_elimination.greatestClosure(
         schema.unwrapTypeSchemaView(),
         topType: const DynamicType()));
   }
 
   @override
-  bool isAlwaysExhaustiveType(SharedTypeView<DartType> type) {
+  bool isAlwaysExhaustiveType(SharedTypeView type) {
     return computeIsAlwaysExhaustiveType(
         type.unwrapTypeView(), typeEnvironment.coreTypes);
   }
@@ -570,13 +567,13 @@ class OperationsCfe
   }
 
   @override
-  bool isNever(SharedTypeView<DartType> type) {
+  bool isNever(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool isObject(SharedTypeView<DartType> type) {
+  bool isObject(SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();
     return unwrappedType is InterfaceType &&
         unwrappedType.classNode == typeEnvironment.objectClass &&
@@ -627,7 +624,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> promoteToNonNull(SharedTypeView<DartType> type) {
+  SharedTypeView promoteToNonNull(SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType.nullability == Nullability.nonNullable) {
       return type;
@@ -642,7 +639,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> variableType(VariableDeclaration variable) {
+  SharedTypeView variableType(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
       // When late variables get lowered, their type is changed, but the
       // original type is stored in `VariableDeclarationImpl.lateType`, so we
@@ -653,14 +650,13 @@ class OperationsCfe
   }
 
   @override
-  bool isTypeParameterType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is TypeParameterType ||
-        type.unwrapTypeView() is IntersectionType;
+  bool isTypeParameterType(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>() is TypeParameterType ||
+        type.unwrapTypeView<DartType>() is IntersectionType;
   }
 
   @override
-  SharedTypeView<DartType> tryPromoteToType(
-      SharedTypeView<DartType> to, SharedTypeView<DartType> from) {
+  SharedTypeView tryPromoteToType(SharedTypeView to, SharedTypeView from) {
     DartType unwrappedTo = to.unwrapTypeView();
     DartType unwrappedFrom = from.unwrapTypeView();
     if (isSubtypeOfInternal(unwrappedTo, unwrappedFrom)) {
@@ -668,7 +664,7 @@ class OperationsCfe
     }
     if (unwrappedFrom is TypeParameterType) {
       if (isSubtypeOfInternal(unwrappedTo, unwrappedFrom.bound)) {
-        if (to.unwrapTypeView().nullability != Nullability.nullable) {
+        if (to.unwrapTypeView<DartType>().nullability != Nullability.nullable) {
           // We treat promotions of the form `x is T`, where `T` is not
           // nullable, as a two-step promotions equivalent to
           // `x != null && x is T`.
@@ -697,8 +693,7 @@ class OperationsCfe
   }
 
   @override
-  bool isAssignableTo(
-      SharedTypeView<DartType> fromType, SharedTypeView<DartType> toType) {
+  bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     if (fromType is DynamicType) return true;
     return typeEnvironment
         .performNullabilityAwareSubtypeCheck(
@@ -718,8 +713,8 @@ class OperationsCfe
   @override
   // Coverage-ignore(suite): Not run.
   bool isTypeSchemaSatisfied(
-      {required SharedTypeSchemaView<DartType> typeSchema,
-      required SharedTypeView<DartType> type}) {
+      {required SharedTypeSchemaView typeSchema,
+      required SharedTypeView type}) {
     return isSubtypeOfInternal(
         type.unwrapTypeView(), typeSchema.unwrapTypeSchemaView());
   }
@@ -730,8 +725,8 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeSchemaView<DartType> iterableTypeSchema(
-      SharedTypeSchemaView<DartType> elementTypeSchema) {
+  SharedTypeSchemaView iterableTypeSchema(
+      SharedTypeSchemaView elementTypeSchema) {
     return new SharedTypeSchemaView(new InterfaceType(
         typeEnvironment.coreTypes.iterableClass,
         Nullability.nonNullable,
@@ -777,7 +772,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType>? matchListType(SharedTypeView<DartType> type) {
+  SharedTypeView? matchListType(SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is TypeDeclarationType) {
       List<DartType>? typeArguments =
@@ -794,8 +789,8 @@ class OperationsCfe
   }
 
   @override
-  ({SharedTypeView<DartType> keyType, SharedTypeView<DartType> valueType})?
-      matchMapType(SharedTypeView<DartType> type) {
+  ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
+      SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is! TypeDeclarationType) {
       return null;
@@ -816,7 +811,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType>? matchStreamType(SharedTypeView<DartType> type) {
+  SharedTypeView? matchStreamType(SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is TypeDeclarationType) {
       List<DartType>? typeArguments =
@@ -833,7 +828,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> normalize(SharedTypeView<DartType> type) {
+  SharedTypeView normalize(SharedTypeView type) {
     return new SharedTypeView(
         norm(typeEnvironment.coreTypes, type.unwrapTypeView()));
   }
@@ -857,19 +852,20 @@ class OperationsCfe
 
   @override
   DartType recordTypeInternal(
-      {required List<DartType> positional,
-      required List<(String, DartType)> named}) {
+      {required List<SharedType> positional,
+      required List<(String, SharedType)> named}) {
     List<NamedType> namedFields = [];
     for (var (name, type) in named) {
-      namedFields.add(new NamedType(name, type));
+      namedFields.add(new NamedType(name, type as DartType));
     }
     namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
-    return new RecordType(positional, namedFields, Nullability.nonNullable);
+    return new RecordType(
+        positional.cast<DartType>(), namedFields, Nullability.nonNullable);
   }
 
   @override
-  SharedTypeSchemaView<DartType> streamTypeSchema(
-      SharedTypeSchemaView<DartType> elementTypeSchema) {
+  SharedTypeSchemaView streamTypeSchema(
+      SharedTypeSchemaView elementTypeSchema) {
     return new SharedTypeSchemaView(new InterfaceType(
         typeEnvironment.coreTypes.streamClass,
         Nullability.nonNullable,
@@ -877,12 +873,13 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> extensionTypeErasure(SharedTypeView<DartType> type) {
-    return new SharedTypeView(type.unwrapTypeView().extensionTypeErasure);
+  SharedTypeView extensionTypeErasure(SharedTypeView type) {
+    return new SharedTypeView(
+        type.unwrapTypeView<DartType>().extensionTypeErasure);
   }
 
   @override
-  SharedTypeSchemaView<DartType> typeToSchema(SharedTypeView<DartType> type) {
+  SharedTypeSchemaView typeToSchema(SharedTypeView type) {
     return new SharedTypeSchemaView(type.unwrapTypeView());
   }
 
@@ -932,7 +929,7 @@ class OperationsCfe
   }
 
   @override
-  TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration, DartType>?
+  TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration>?
       matchTypeDeclarationTypeInternal(DartType type) {
     if (type is TypeDeclarationType) {
       switch (type) {
@@ -974,16 +971,16 @@ class OperationsCfe
   }
 
   @override
-  DartType greatestClosureOfTypeInternal(DartType type,
-      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+  DartType greatestClosureOfTypeInternal(
+      DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
     return new NullabilityAwareFreeTypeParameterEliminator(
             coreTypes: typeEnvironment.coreTypes)
         .eliminateToGreatest(type);
   }
 
   @override
-  DartType leastClosureOfTypeInternal(DartType type,
-      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+  DartType leastClosureOfTypeInternal(
+      DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
     return new NullabilityAwareFreeTypeParameterEliminator(
             coreTypes: typeEnvironment.coreTypes)
         .eliminateToLeast(type);
@@ -1017,19 +1014,19 @@ class OperationsCfe
   }
 
   @override
-  TypeConstraintGenerator<DartType, NamedType, VariableDeclaration,
-          StructuralParameter, TypeDeclarationType, TypeDeclaration, TreeNode>
+  TypeConstraintGenerator<VariableDeclaration, TypeDeclarationType,
+          TypeDeclaration, TreeNode>
       createTypeConstraintGenerator(
           {required covariant TypeInferenceResultForTesting?
               typeConstraintGenerationDataForTesting,
-          required List<StructuralParameter> typeParametersToInfer,
+          required List<SharedTypeParameterView> typeParametersToInfer,
           required covariant OperationsCfe typeAnalyzerOperations,
           required bool inferenceUsingBoundsIsEnabled}) {
     // TODO(cstefantsova): Pass [typeConstraintGenerationDataForTesting] when
     // [InferenceDataForTesting] is merged with [TypeInferenceResultForTesting].
     return new TypeConstraintGatherer(
         typeAnalyzerOperations.typeEnvironment as TypeSchemaEnvironment,
-        typeParametersToInfer,
+        typeParametersToInfer.cast<StructuralParameter>(),
         typeOperations: typeAnalyzerOperations,
         inferenceResultForTesting: null,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
@@ -1037,9 +1034,8 @@ class OperationsCfe
 }
 
 /// Type inference results used for testing.
-class TypeInferenceResultForTesting
-    extends shared.TypeConstraintGenerationDataForTesting<DartType,
-        StructuralParameter, VariableDeclaration, TreeNode> {
+class TypeInferenceResultForTesting extends shared
+    .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

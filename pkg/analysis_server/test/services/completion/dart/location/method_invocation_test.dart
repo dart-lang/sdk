@@ -34,23 +34,4 @@ class A { foo() {int x; x.^ print("foo");}}
 suggestions
 ''');
   }
-
-  Future<void> test_macroGeneratedMethod() async {
-    addMacros([declareInTypeMacro()]);
-    await computeSuggestions('''
-import 'macros.dart';
-
-@DeclareInType('  void m0() {}')
-class C {}
-
-void f(C c) {
-  c.^
-}
-''');
-    assertResponse(r'''
-suggestions
-  m0
-    kind: methodInvocation
-''');
-  }
 }

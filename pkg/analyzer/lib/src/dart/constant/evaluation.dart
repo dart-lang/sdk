@@ -808,7 +808,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitConstructorReference(ConstructorReference node) {
     var constructorFunctionType = node.typeOrThrow;
-    if (constructorFunctionType is! FunctionType) {
+    if (constructorFunctionType is! FunctionTypeImpl) {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.INVALID_CONSTANT);
     }

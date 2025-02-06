@@ -53,8 +53,10 @@ String? checkAllYaml() {
   registerLintRules();
 
   var registeredRules = Registry.ruleRegistry
-      .where((r) =>
-          !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved)
+      .where(
+        (r) =>
+            !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved,
+      )
       .map((r) => r.name);
 
   var extraRules = <String>[];
@@ -102,7 +104,8 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
   }
   if (doc is! YamlMap) {
     throw Exception(
-        'Bad options file format (expected map, got ${doc.runtimeType})');
+      'Bad options file format (expected map, got ${doc.runtimeType})',
+    );
   }
   doc.nodes.forEach((k, YamlNode v) {
     if (k is! YamlScalar) {

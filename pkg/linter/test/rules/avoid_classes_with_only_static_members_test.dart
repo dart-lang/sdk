@@ -54,9 +54,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 10),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 10)]);
 
     await assertNoDiagnosticsInFile(b.path);
   }
@@ -76,21 +74,20 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [
-      lint(16, 10),
-    ]);
+    await assertDiagnosticsInFile(a.path, [lint(16, 10)]);
 
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_basicClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   static void f() {}
 }
-''', [
-      lint(0, 32),
-    ]);
+''',
+      [lint(0, 32)],
+    );
   }
 
   test_class_empty() async {
@@ -184,13 +181,14 @@ class C {
   }
 
   test_finalClass() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 final class C {
   static void f() {}
 }
-''', [
-      lint(0, 38),
-    ]);
+''',
+      [lint(0, 38)],
+    );
   }
 
   test_sealedClass() async {

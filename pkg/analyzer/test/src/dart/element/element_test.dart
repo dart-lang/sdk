@@ -1116,7 +1116,10 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var B = class_(name: 'B', interfaces: [AofC],);
+    var B = class_(
+      name: 'B',
+      interfaces: [AofC],
+    );
     var targetType = interfaceTypeNone(B);
     var result = targetType.asInstanceOf(A);
     expect(result, AofC);
@@ -1219,7 +1222,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     var AE = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [AE]);
 
-    DartType typeAE = typeParameterTypeNone(AE);
+    var typeAE = typeParameterTypeNone(AE);
     String getterName = "g";
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
@@ -1338,7 +1341,7 @@ A<int>?
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterTypeNone(E);
+    var typeE = typeParameterTypeNone(E);
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
@@ -1466,7 +1469,7 @@ A<int>?
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterTypeNone(E);
+    var typeE = typeParameterTypeNone(E);
     String setterName = "s";
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
@@ -1540,7 +1543,7 @@ A<int>?
   }
 
   void test_hashCode() {
-    ClassElement classA = class_(name: 'A');
+    var classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeNone(classA);
     expect(0 == typeA.hashCode, isFalse);
   }

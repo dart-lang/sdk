@@ -127,7 +127,7 @@ class InstanceMemberInferrer {
     );
     overriddenSetters ??= const [];
 
-    DartType combinedGetterType() {
+    TypeImpl combinedGetterType() {
       var combinedGetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenGetters!,
@@ -140,7 +140,7 @@ class InstanceMemberInferrer {
       return DynamicTypeImpl.instance;
     }
 
-    DartType combinedSetterType() {
+    TypeImpl combinedSetterType() {
       var combinedSetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenSetters!,
@@ -150,7 +150,9 @@ class InstanceMemberInferrer {
       if (combinedSetter != null) {
         var parameters = combinedSetter.parameters;
         if (parameters.isNotEmpty) {
-          return parameters[0].type;
+          // TODO(paulberry): eliminate this cast by changing the return type of
+          // `InheritanceManager3.combineSignatures`.
+          return parameters[0].type as TypeImpl;
         }
       }
       return DynamicTypeImpl.instance;
@@ -373,12 +375,16 @@ class InstanceMemberInferrer {
         if (parameter is FieldFormalParameterElementImpl) {
           var field = parameter.field;
           if (field != null) {
-            parameter.type = field.type;
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `FieldFormalParameterElementImpl.field`.
+            parameter.type = field.type as TypeImpl;
           }
         } else if (parameter is SuperFormalParameterElementImpl) {
           var superParameter = parameter.superConstructorParameter;
           if (superParameter != null) {
-            parameter.type = superParameter.type;
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `SuperFormalParameterElementImpl.superConstructorParameter`.
+            parameter.type = superParameter.type as TypeImpl;
           } else {
             parameter.type = DynamicTypeImpl.instance;
           }
@@ -544,7 +550,9 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
-        parameter.type = matchingParameter.type;
+        // TODO(paulberry): eliminate this cast by changing the return type of
+        // `_getCorrespondingParameter`.
+        parameter.type = matchingParameter.type as TypeImpl;
       } else {
         parameter.type = DynamicTypeImpl.instance;
       }
@@ -724,7 +732,7 @@ class InstanceMemberInferrer {
     return false;
   }
 
-  static void _setFieldType(FieldElementImpl field, DartType type) {
+  static void _setFieldType(FieldElementImpl field, TypeImpl type) {
     field.type = type;
   }
 }

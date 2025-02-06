@@ -17,16 +17,6 @@ class B extends A {}
 class C extends B {}
 
 void foo(H<A> ha, H<B> hb, H<C> hc) {
-
-
-
-
-
-
-
-
-
-
   H<C> hcc = hc;
 }
 

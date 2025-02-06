@@ -17,16 +17,20 @@ Future<void> main() async {
     Expect.equals(0, hotRestartGeneration);
   });
   Future<Null>.microtask(() {
-    throw x;
-  }).catchError((e, stackTrace) {
-    Expect.equals("Hello World", e);
-    Expect.equals(0, hotRestartGeneration);
-  }).then((_) {
-    Expect.equals(0, hotRestartGeneration);
-  });
+        throw x;
+      })
+      .catchError((e, stackTrace) {
+        Expect.equals("Hello World", e);
+        Expect.equals(0, hotRestartGeneration);
+      })
+      .then((_) {
+        Expect.equals(0, hotRestartGeneration);
+      });
   Future.delayed(Duration(seconds: 5), () {
-    throw Exception('Future from main.0.dart before hot restart. '
-        'This should never run.');
+    throw Exception(
+      'Future from main.0.dart before hot restart. '
+      'This should never run.',
+    );
   });
 
   await hotRestart();

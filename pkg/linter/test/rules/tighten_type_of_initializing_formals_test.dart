@@ -18,7 +18,8 @@ class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.tighten_type_of_initializing_formals;
 
   test_superInit() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? a;
   A(this.a);
@@ -31,26 +32,27 @@ class B extends A {
 class C extends A {
   C(super.a) : assert(a != null);
 }
-''', [
-      lint(107, 7),
-    ]);
+''',
+      [lint(107, 7)],
+    );
   }
 
   test_thisInit_asserts() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? p;
   A(this.p) : assert(p != null);
   A.a(this.p) : assert(null != p);
 }
-''', [
-      lint(27, 6),
-      lint(62, 6),
-    ]);
+''',
+      [lint(27, 6), lint(62, 6)],
+    );
   }
 
   test_thisInit_asserts_positionalParams() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   A(
     this.p1,
@@ -69,10 +71,9 @@ class A {
   String? p4;
   String? p5;
 }
-''', [
-      lint(19, 7),
-      lint(63, 7),
-    ]);
+''',
+      [lint(19, 7), lint(63, 7)],
+    );
   }
 
   test_thisInit_noAssert() async {
@@ -85,16 +86,19 @@ class A {
   }
 
   test_thisInit_tightens() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   String? p;
   A(String this.p) : assert(p != null);
   A.a(String this.p) : assert(null != p);
 }
-''', [
-      // No lint
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 53, 7),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 93, 7),
-    ]);
+''',
+      [
+        // No lint
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 53, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 93, 7),
+      ],
+    );
   }
 }

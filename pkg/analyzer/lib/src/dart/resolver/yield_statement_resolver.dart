@@ -4,11 +4,11 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -25,7 +25,7 @@ class YieldStatementResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -142,7 +142,7 @@ class YieldStatementResolver {
     }
   }
 
-  DartType _computeContextType(
+  TypeImpl _computeContextType(
     BodyInferenceContext bodyContext,
     YieldStatement node,
   ) {

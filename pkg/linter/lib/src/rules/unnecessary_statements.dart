@@ -13,17 +13,16 @@ const _desc = r'Avoid using unnecessary statements.';
 
 class UnnecessaryStatements extends LintRule {
   UnnecessaryStatements()
-      : super(
-          name: LintNames.unnecessary_statements,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_statements;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(_ReportNoClearEffectVisitor(this));
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);

@@ -128,9 +128,7 @@ Future<BuildResult> compile(
       kernelTarget.setEntryPoints(c.options.inputs);
       dillTarget.buildOutlines();
       BuildResult buildResult = await kernelTarget.buildOutlines();
-      buildResult = await kernelTarget.buildComponent(
-          macroApplications: buildResult.macroApplications);
-      buildResult.macroApplications?.close();
+      buildResult = await kernelTarget.buildComponent();
       return buildResult;
     }
   });

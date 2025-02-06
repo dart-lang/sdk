@@ -12,10 +12,7 @@ const _desc = r'Sort combinator names alphabetically.';
 
 class CombinatorsOrdering extends LintRule {
   CombinatorsOrdering()
-      : super(
-          name: LintNames.combinators_ordering,
-          description: _desc,
-        );
+    : super(name: LintNames.combinators_ordering, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.combinators_ordering;

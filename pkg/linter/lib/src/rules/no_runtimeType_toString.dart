@@ -14,17 +14,16 @@ const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
 class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
-      : super(
-          name: LintNames.no_runtimeType_toString,
-          description: _desc,
-        );
+    : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.no_runtimeType_toString;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addInterpolationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);

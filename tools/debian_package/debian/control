@@ -1,0 +1,11 @@
+Source: dart
+Maintainer: Dart Team <misc@dartlang.org>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: python3:native
+
+Package: dart
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Dart SDK

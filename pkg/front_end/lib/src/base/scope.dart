@@ -363,6 +363,7 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class FixedLookupScope implements LookupScope {
   final LookupScope? _parent;
   @override
@@ -382,12 +383,8 @@ class FixedLookupScope implements LookupScope {
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables
-            // Coverage-ignore(suite): Not run.
-            ?[name],
-        setable: _setables
-            // Coverage-ignore(suite): Not run.
-            ?[name],
+        getable: _getables?[name],
+        setable: _setables?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
@@ -399,12 +396,8 @@ class FixedLookupScope implements LookupScope {
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables
-            // Coverage-ignore(suite): Not run.
-            ?[name],
-        setable: _setables
-            // Coverage-ignore(suite): Not run.
-            ?[name],
+        getable: _getables?[name],
+        setable: _setables?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
@@ -694,6 +687,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   bool get isConflictingSetter => false;

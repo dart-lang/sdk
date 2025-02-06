@@ -15,10 +15,7 @@ const _desc =
 
 class PreferFinalLocals extends LintRule {
   PreferFinalLocals()
-      : super(
-          name: LintNames.prefer_final_locals,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
@@ -28,7 +25,9 @@ class PreferFinalLocals extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
@@ -82,8 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else {
       var forEachPattern = node.thisOrAncestorOfType<ForEachPartsWithPattern>();
       if (forEachPattern != null) {
-        if (forEachPattern
-            .hasPotentiallyMutatedDeclaredVariableInScope(function)) {
+        if (forEachPattern.hasPotentiallyMutatedDeclaredVariableInScope(
+          function,
+        )) {
           return;
         }
       } else {
@@ -148,15 +148,19 @@ extension on DartPattern {
   bool get containsJustWildcards {
     var pattern = this;
     return switch (pattern) {
-      ListPattern() => pattern.elements
-          .every((e) => e is DartPattern && e.containsJustWildcards),
-      MapPattern() => pattern.elements
-          .every((e) => e is MapPatternEntry && e.value is WildcardPattern),
-      ObjectPattern() =>
-        pattern.fields.every((e) => e.pattern.containsJustWildcards),
+      ListPattern() => pattern.elements.every(
+        (e) => e is DartPattern && e.containsJustWildcards,
+      ),
+      MapPattern() => pattern.elements.every(
+        (e) => e is MapPatternEntry && e.value is WildcardPattern,
+      ),
+      ObjectPattern() => pattern.fields.every(
+        (e) => e.pattern.containsJustWildcards,
+      ),
       ParenthesizedPattern() => pattern.pattern.containsJustWildcards,
-      RecordPattern() =>
-        pattern.fields.every((e) => e.pattern.containsJustWildcards),
+      RecordPattern() => pattern.fields.every(
+        (e) => e.pattern.containsJustWildcards,
+      ),
       WildcardPattern() => true,
       _ => false,
     };

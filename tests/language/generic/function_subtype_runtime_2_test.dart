@@ -14,10 +14,6 @@ void f1<Y1 extends num>() {}
 void f2<Y2 extends String>() {}
 
 void foo() {
-
-
-
-
   F2 f22 = f2;
 }
 

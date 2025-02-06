@@ -1124,6 +1124,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
 
 abstract class JFieldData extends JMemberData {
   DartType getFieldType(IrToElementMap elementMap);
+  bool get isCovariantByDeclaration;
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
@@ -1161,6 +1162,11 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   @override
   DartType getFieldType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getDartType(node.type);
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    return node.isCovariantByDeclaration;
   }
 
   @override

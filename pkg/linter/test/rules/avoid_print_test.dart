@@ -21,13 +21,14 @@ class AvoidPrintTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_print;
 
   test_directCall() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   print('ha');
 }
-''', [
-      lint(13, 5),
-    ]);
+''',
+      [lint(13, 5)],
+    );
   }
 
   test_kDebugMode_blockStatement() async {
@@ -62,23 +63,25 @@ void f(A a) {
   }
 
   test_tearoff() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   [1,2,3].forEach(print);
 }
-''', [
-      lint(29, 5),
-    ]);
+''',
+      [lint(29, 5)],
+    );
   }
 
   test_tearoff2() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   Future.value('hello').then(print);
 }
-''', [
-      lint(40, 5),
-    ]);
+''',
+      [lint(40, 5)],
+    );
   }
 
   test_tearoff_assigned_thenCalled() async {

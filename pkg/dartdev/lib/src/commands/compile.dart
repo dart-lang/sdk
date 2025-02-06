@@ -17,6 +17,7 @@ import '../experiments.dart';
 import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
+import '../vm_interop_handler.dart';
 
 const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 254;
@@ -92,19 +93,19 @@ class CompileJSCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    var runtime = sdk.dartAotRuntime;
+    var script = sdk.dartAotRuntime;
+    var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      snapshot = sdk.dart2jsSnapshot;
-      runtime = sdk.dart;
-      if (!Sdk.checkArtifactExists(snapshot)) {
+      script = sdk.dart2jsSnapshot;
+      if (!Sdk.checkArtifactExists(script)) {
         return genericErrorExitCode;
       }
+      useExecProcess = false;
     }
     final dart2jsCommand = [
-      runtime,
-      snapshot,
+      if (useExecProcess) snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
@@ -112,8 +113,13 @@ class CompileJSCommand extends CompileSubcommandCommand {
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
-      final exitCode = await runProcessInheritStdio(dart2jsCommand);
-      return exitCode;
+      VmInteropHandler.run(
+        script,
+        dart2jsCommand,
+        packageConfigOverride: null,
+        useExecProcess: useExecProcess,
+      );
+      return 0;
     } catch (e, st) {
       log.stderr('Error: JS compilation failed');
       log.stderr(e.toString());
@@ -135,8 +141,12 @@ class CompileDDCCommand extends CompileSubcommandCommand {
   // This command is an internal developer command used by tools and is
   // hidden in the help message.
   CompileDDCCommand({bool verbose = false})
-      : super(cmdName, 'Compile Dart to JavaScript using ddc.', verbose,
-              hidden:true,);
+      : super(
+          cmdName,
+          'Compile Dart to JavaScript using ddc.',
+          verbose,
+          hidden: true,
+        );
 
   @override
   String get invocation => '${super.invocation} <dart entry point>';
@@ -148,24 +158,30 @@ class CompileDDCCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    var runtime = sdk.dartAotRuntime;
+    var script = sdk.dartAotRuntime;
+    var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      snapshot = sdk.ddcSnapshot;
-      runtime = sdk.dart;
-      if (!Sdk.checkArtifactExists(snapshot)) {
+      script = sdk.ddcSnapshot;
+      if (!Sdk.checkArtifactExists(script)) {
         return genericErrorExitCode;
       }
+      useExecProcess = false;
     }
     final ddcCommand = <String>[
-      runtime,
-      snapshot,
+      if (useExecProcess) snapshot,
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
-      return await runProcessInheritStdio(ddcCommand);
+      VmInteropHandler.run(
+        script,
+        ddcCommand,
+        packageConfigOverride: null,
+        useExecProcess: useExecProcess,
+      );
+      return 0;
     } catch (e, st) {
       log.stderr('Error: JS compilation failed');
       log.stderr(e.toString());
@@ -547,20 +563,35 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return 255;
-      }
-    } else {
-      final assets = await compileNativeAssetsJit(verbose: verbose);
-      if (assets == null) {
-        stderr.writeln('Native assets build failed.');
-        return 255;
-      }
-      if (assets.isNotEmpty) {
-        stderr.writeln(
-            "'dart compile' does currently not support native assets.");
-        return 255;
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
+        Directory.current.uri,
+      );
+      if (runPackageName != null) {
+        final builder = DartNativeAssetsBuilder(
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return 255;
+          }
+        } else {
+          final assets = await builder.compileNativeAssetsJit();
+          if (assets == null) {
+            stderr.writeln('Native assets build failed.');
+            return 255;
+          }
+          if (assets.isNotEmpty) {
+            stderr.writeln(
+                "'dart compile' does currently not support native assets.");
+            return 255;
+          }
+        }
       }
     }
 
@@ -845,7 +876,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       flags.removeWhere((option) => option == '--no-$name');
       flags.removeWhere((option) => option == '--$name');
 
-      // Explicitly use the the flag value, irrespective of -O settings.
+      // Explicitly use the flag value, irrespective of -O settings.
       value ? flags.add('--$name') : flags.add('--no-$name');
     }
 

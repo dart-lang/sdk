@@ -25,8 +25,11 @@ abstract class Comparable<T> {
 }
 
 abstract class String implements Comparable<String> {
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]);
+  external factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int end,
+  ]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
@@ -56,8 +59,11 @@ abstract class num implements Comparable<num> {
 abstract class int extends num {
   bool get isEven => false;
   int operator -();
-  external static int parse(String source,
-      {int radix, int onError(String source)});
+  external static int parse(
+    String source, {
+    int radix,
+    int onError(String source),
+  });
 }
 
 class double extends num {}

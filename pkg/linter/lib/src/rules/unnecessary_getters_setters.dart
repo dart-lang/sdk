@@ -14,17 +14,16 @@ const _desc =
 
 class UnnecessaryGettersSetters extends LintRule {
   UnnecessaryGettersSetters()
-      : super(
-          name: LintNames.unnecessary_getters_setters,
-          description: _desc,
-        );
+    : super(name: LintNames.unnecessary_getters_setters, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_getters_setters;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);

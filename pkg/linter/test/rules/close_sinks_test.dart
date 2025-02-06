@@ -110,7 +110,8 @@ class C {
   }
 
   test_field_initializedInMethod_notClosed() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:io';
 class C {
   // ignore: unused_field
@@ -119,9 +120,9 @@ class C {
     _sink = File('').openWrite();
   }
 }
-''', [
-      lint(68, 5),
-    ]);
+''',
+      [lint(68, 5)],
+    );
   }
 
   test_localVariable_closed() async {
@@ -135,14 +136,15 @@ void f() {
   }
 
   test_localVariable_inFunction_notInitialized() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'dart:io';
 void someFunction() {
   IOSink sink;
 }
-''', [
-      lint(49, 4),
-    ]);
+''',
+      [lint(49, 4)],
+    );
   }
 
   test_localVariable_inMethod_returned_notClosed() async {

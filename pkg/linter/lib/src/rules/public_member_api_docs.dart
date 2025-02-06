@@ -18,17 +18,16 @@ const _desc = r'Document all public members.';
 
 class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
-      : super(
-          name: LintNames.public_member_api_docs,
-          description: _desc,
-        );
+    : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.public_member_api_docs;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var package = context.package;
     if (package != null && !package.canHavePublicApi) {
       return;
@@ -111,8 +110,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Whether [node] overrides some other member.
   bool isOverridingMember(Declaration node) =>
-      context.inheritanceManager
-          .overriddenMember(node.declaredFragment?.element) !=
+      context.inheritanceManager.overriddenMember(
+        node.declaredFragment?.element,
+      ) !=
       null;
 
   @override

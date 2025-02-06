@@ -1310,6 +1310,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
     klass->set_is_abstract();
   }
   if (class_helper->is_transformed_mixin_application()) {
+    ASSERT(interface_count > 0);
     klass->set_is_transformed_mixin_application();
   }
   if (class_helper->has_const_constructor()) {
@@ -1382,8 +1383,9 @@ void KernelLoader::LoadClass(const Library& library,
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
-  if (DynModuleExtendablePragma::decode(pragma_bits)) {
-    out_class->set_is_dynamically_extendable(true);
+  if (DynModuleExtendablePragma::decode(pragma_bits) ||
+      DynModuleImplicitlyExtendablePragma::decode(pragma_bits)) {
+    out_class->set_has_dynamically_extendable_subtypes(true);
     IG->set_has_dynamically_extendable_classes(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
@@ -1621,8 +1623,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(HasPragma::decode(pragma_bits));
     function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
-    function.SetIsDynamicallyOverridden(
-        DynModuleCanBeOverriddenPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1805,10 +1805,20 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
                                              "dyn-module:extendable")) {
           *pragma_bits = DynModuleExtendablePragma::update(true, *pragma_bits);
         }
+        if (constant_reader.IsStringConstant(
+                name_index, "dyn-module:implicitly-extendable")) {
+          *pragma_bits =
+              DynModuleImplicitlyExtendablePragma::update(true, *pragma_bits);
+        }
         if (constant_reader.IsStringConstant(name_index,
                                              "dyn-module:can-be-overridden")) {
           *pragma_bits =
               DynModuleCanBeOverriddenPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(
+                name_index, "dyn-module:can-be-overridden-implicitly")) {
+          *pragma_bits = DynModuleCanBeOverriddenImplicitlyPragma::update(
+              true, *pragma_bits);
         }
       }
     } else {
@@ -1876,7 +1886,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                             is_synthetic);
   function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
   function.SetIsDynamicallyOverridden(
-      DynModuleCanBeOverriddenPragma::decode(pragma_bits));
+      DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
+      DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {

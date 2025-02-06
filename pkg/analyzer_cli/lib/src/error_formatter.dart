@@ -156,7 +156,9 @@ class CLIError implements Comparable<CLIError> {
 
     // path
     compare = Comparable.compare(
-        sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
+      sourcePath.toLowerCase(),
+      other.sourcePath.toLowerCase(),
+    );
     if (compare != 0) return compare;
 
     // offset
@@ -182,15 +184,20 @@ abstract class ErrorFormatter {
   final AnalysisStats stats;
   final SeverityProcessor _severityProcessor;
 
-  ErrorFormatter(this.out, this.options, this.stats,
-      {SeverityProcessor? severityProcessor})
-      : _severityProcessor = severityProcessor ?? _severityIdentity;
+  ErrorFormatter(
+    this.out,
+    this.options,
+    this.stats, {
+    SeverityProcessor? severityProcessor,
+  }) : _severityProcessor = severityProcessor ?? _severityIdentity;
 
   /// Call to write any batched up errors from [formatErrors].
   void flush();
 
   Future<void> formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error);
+    Map<AnalysisError, ErrorsResult> errorToLine,
+    AnalysisError error,
+  );
 
   Future<void> formatErrors(List<ErrorsResult> results) async {
     stats.unfilteredCount += results.length;
@@ -223,8 +230,12 @@ class HumanErrorFormatter extends ErrorFormatter {
   // This is a Set in order to de-dup CLI errors.
   final Set<CLIError> batchedErrors = {};
 
-  HumanErrorFormatter(super.out, super.options, super.stats,
-      {super.severityProcessor});
+  HumanErrorFormatter(
+    super.out,
+    super.options,
+    super.stats, {
+    super.severityProcessor,
+  });
 
   @override
   void flush() {
@@ -245,8 +256,10 @@ class HumanErrorFormatter extends ErrorFormatter {
 
       // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
       var issueColor = (error.isError || error.isWarning) ? ansi.red : '';
-      out.write('  $issueColor${error.severity}${ansi.none} '
-          '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
+      out.write(
+        '  $issueColor${error.severity}${ansi.none} '
+        '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ',
+      );
       out.write('${ansi.bullet} ${error.sourcePath}');
       out.write(':${error.line}:${error.column} ');
       out.write('${ansi.bullet} ${error.errorCode}');
@@ -275,7 +288,9 @@ class HumanErrorFormatter extends ErrorFormatter {
 
   @override
   Future<void> formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
+    Map<AnalysisError, ErrorsResult> errorToLine,
+    AnalysisError error,
+  ) async {
     var source = error.source;
     var result = errorToLine[error]!;
     var location = result.lineInfo.getLocation(error.offset);
@@ -313,60 +328,73 @@ class HumanErrorFormatter extends ErrorFormatter {
         if (fileResult is FileResult) {
           var lineInfo = fileResult.lineInfo;
           var location = lineInfo.getLocation(message.offset);
-          contextMessages.add(ContextMessage(
+          contextMessages.add(
+            ContextMessage(
               message.filePath,
               message.messageText(includeUrl: true),
               location.lineNumber,
-              location.columnNumber));
+              location.columnNumber,
+            ),
+          );
         }
       }
     }
 
-    batchedErrors.add(CLIError(
-      severity: errorType,
-      sourcePath: sourcePath,
-      offset: error.offset,
-      line: location.lineNumber,
-      column: location.columnNumber,
-      message: error.message,
-      contextMessages: contextMessages,
-      errorCode: error.errorCode.name.toLowerCase(),
-      correction: error.correction,
-      url: error.errorCode.url,
-    ));
+    batchedErrors.add(
+      CLIError(
+        severity: errorType,
+        sourcePath: sourcePath,
+        offset: error.offset,
+        line: location.lineNumber,
+        column: location.columnNumber,
+        message: error.message,
+        contextMessages: contextMessages,
+        errorCode: error.errorCode.name.toLowerCase(),
+        correction: error.correction,
+        url: error.errorCode.url,
+      ),
+    );
   }
 }
 
 class JsonErrorFormatter extends ErrorFormatter {
-  JsonErrorFormatter(super.out, super.options, super.stats,
-      {super.severityProcessor});
+  JsonErrorFormatter(
+    super.out,
+    super.options,
+    super.stats, {
+    super.severityProcessor,
+  });
 
   @override
   void flush() {}
 
   @override
   Future<void> formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
+    Map<AnalysisError, ErrorsResult> errorToLine,
+    AnalysisError error,
+  ) async {
     throw UnsupportedError('Cannot format a single error');
   }
 
   @override
   Future<void> formatErrors(List<ErrorsResult> results) async {
     Map<String, dynamic> range(
-            Map<String, dynamic> start, Map<String, dynamic> end) =>
-        {
-          'start': start,
-          'end': end,
-        };
+      Map<String, dynamic> start,
+      Map<String, dynamic> end,
+    ) => {'start': start, 'end': end};
 
     Map<String, dynamic> position(int offset, int line, int column) => {
-          'offset': offset,
-          'line': line,
-          'column': column,
-        };
+      'offset': offset,
+      'line': line,
+      'column': column,
+    };
 
     Map<String, dynamic> location(
-        String filePath, int offset, int length, LineInfo lineInfo) {
+      String filePath,
+      int offset,
+      int length,
+      LineInfo lineInfo,
+    ) {
       var startLocation = lineInfo.getLocation(offset);
       var startLine = startLocation.lineNumber;
       var startColumn = startLocation.columnNumber;
@@ -375,8 +403,10 @@ class JsonErrorFormatter extends ErrorFormatter {
       var endColumn = endLocation.columnNumber;
       return {
         'file': filePath,
-        'range': range(position(offset, startLine, startColumn),
-            position(offset + length, endLine, endColumn)),
+        'range': range(
+          position(offset, startLine, startColumn),
+          position(offset + length, endLine, endColumn),
+        ),
       };
     }
 
@@ -392,8 +422,12 @@ class JsonErrorFormatter extends ErrorFormatter {
         var contextMessages = <Map<String, dynamic>>[];
         for (var contextMessage in error.contextMessages) {
           contextMessages.add({
-            'location': location(contextMessage.filePath, contextMessage.offset,
-                contextMessage.length, lineInfo),
+            'location': location(
+              contextMessage.filePath,
+              contextMessage.offset,
+              contextMessage.length,
+              lineInfo,
+            ),
             'message': contextMessage.messageText(includeUrl: true),
           });
         }
@@ -404,8 +438,12 @@ class JsonErrorFormatter extends ErrorFormatter {
           'code': errorCode.name.toLowerCase(),
           'severity': severity.name,
           'type': errorCode.type.name,
-          'location': location(problemMessage.filePath, problemMessage.offset,
-              problemMessage.length, lineInfo),
+          'location': location(
+            problemMessage.filePath,
+            problemMessage.offset,
+            problemMessage.length,
+            lineInfo,
+          ),
           'problemMessage': problemMessage.messageText(includeUrl: true),
           if (error.correction != null) 'correctionMessage': error.correction,
           if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
@@ -413,10 +451,7 @@ class JsonErrorFormatter extends ErrorFormatter {
         });
       }
     }
-    out.writeln(json.encode({
-      'version': 1,
-      'diagnostics': diagnostics,
-    }));
+    out.writeln(json.encode({'version': 1, 'diagnostics': diagnostics}));
   }
 }
 
@@ -427,15 +462,21 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _return = '\r'.codeUnitAt(0);
   final Set<AnalysisError> _seenErrors = <AnalysisError>{};
 
-  MachineErrorFormatter(super.out, super.options, super.stats,
-      {super.severityProcessor});
+  MachineErrorFormatter(
+    super.out,
+    super.options,
+    super.stats, {
+    super.severityProcessor,
+  });
 
   @override
   void flush() {}
 
   @override
   Future<void> formatError(
-      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) async {
+    Map<AnalysisError, ErrorsResult> errorToLine,
+    AnalysisError error,
+  ) async {
     // Ensure we don't over-report (#36062).
     if (!_seenErrors.add(error)) {
       return;

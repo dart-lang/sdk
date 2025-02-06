@@ -22,17 +22,16 @@ bool _isVoid(TypeAnnotation? returnType) =>
 
 class UseToAndAsIfApplicable extends LintRule {
   UseToAndAsIfApplicable()
-      : super(
-          name: LintNames.use_to_and_as_if_applicable,
-          description: _desc,
-        );
+    : super(name: LintNames.use_to_and_as_if_applicable, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_to_and_as_if_applicable;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context.inheritanceManager);
     registry.addMethodDeclaration(this, visitor);
   }

@@ -22,7 +22,6 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   static const field core::int value = #C1;
 }
 abstract class _C1&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  static const field core::int value = #C1;
   const synthetic constructor •() → self::_C1&A&B
     : super self::A::•()
     ;
@@ -33,7 +32,6 @@ class C1 extends self::_C1&A&B /*hasConstConstructor*/  {
     ;
 }
 class C2 extends self::A implements self::B /*isEliminatedMixin,hasConstConstructor*/  {
-  static const field core::int value = #C1;
   const synthetic constructor •() → self::C2
     : super self::A::•()
     ;

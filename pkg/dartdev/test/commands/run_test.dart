@@ -589,11 +589,17 @@ void main(List<String> args) => print("$b $args");
     expect(result.stdout, isEmpty);
     expect(
       result.stderr,
-      contains(
-        'Error encountered while parsing package_config.json: Duplicate package name',
+      stringContainsInOrder(
+        [
+          'Error encountered while parsing ',
+          'package_config.json:',
+          ' Duplicate package name',
+        ],
       ),
     );
-    expect(result.exitCode, 255);
+    printOnFailure(result.stderr);
+    const int compileErrorExitCode = 254;
+    expect(result.exitCode, compileErrorExitCode);
   });
 
   test('workspace', () async {

@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -110,7 +111,8 @@ class AstResolver {
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
-    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
+    _resolverVisitor.analyzeExpression(
+        node, SharedTypeSchemaView(contextType as TypeImpl));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();

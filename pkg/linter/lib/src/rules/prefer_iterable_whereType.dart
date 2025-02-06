@@ -13,17 +13,16 @@ const _desc = r'Prefer to use `whereType` on iterable.';
 
 class PreferIterableWhereType extends LintRule {
   PreferIterableWhereType()
-      : super(
-          name: LintNames.prefer_iterable_whereType,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_iterable_whereType, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_iterable_whereType;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

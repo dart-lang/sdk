@@ -116,8 +116,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final bool mayImplementRestrictedTypes;
 
-  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
-
   factory SourceCompilationUnitImpl(
       {required Uri importUri,
       required Uri fileUri,
@@ -146,7 +144,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         packageLanguageVersion: packageLanguageVersion,
         originImportUri: originImportUri,
         indexedLibrary: indexedLibrary,
-        omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
         parentScope: parentScope,
         importNameSpace: importNameSpace,
         forAugmentationLibrary: forAugmentationLibrary,
@@ -167,7 +164,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.packageLanguageVersion,
       required this.originImportUri,
       required this.indexedLibrary,
-      Map<String, Builder>? omittedTypeDeclarationBuilders,
       LookupScope? parentScope,
       required NameSpace importNameSpace,
       required this.forAugmentationLibrary,
@@ -187,7 +183,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _nameOrigin = nameOrigin,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _problemReporting = new LibraryProblemReporting(loader, fileUri) {
     _scope = new SourceLibraryBuilderScope(
         this, ScopeKind.typeParameters, 'library');
@@ -199,8 +194,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
         scope: _scope,
-        indexedLibrary: indexedLibrary,
-        omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
+        indexedLibrary: indexedLibrary);
   }
 
   SourceCompilationUnitState get state => _state;
@@ -471,8 +465,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             isPatch: forPatchLibrary,
             parentScope: _parentScope,
             importNameSpace: _importNameSpace,
-            libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
-            omittedTypes: _omittedTypeDeclarationBuilders);
+            libraryNameSpaceBuilder: _libraryNameSpaceBuilder);
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // Coverage-ignore-block(suite): Not run.

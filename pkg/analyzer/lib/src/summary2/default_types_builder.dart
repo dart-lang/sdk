@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -26,52 +24,52 @@ class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is EnumDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is GenericTypeAlias) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is MixinDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is MethodDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is FunctionDeclaration) {
-        var element = node.declaredElement!;
+        var element = node.declaredFragment!.element;
         _breakSelfCycles(node.functionExpression.typeParameters);
         _breakRawTypeCycles(element, node.functionExpression.typeParameters);
         _computeBounds(element, node.functionExpression.typeParameters);
@@ -103,7 +101,7 @@ class DefaultTypesBuilder {
   }
 
   void _breakRawTypeCycles(
-    Element declarationElement,
+    Element2 declarationElement,
     TypeParameterList? parameterList,
   ) {
     if (parameterList == null) return;
@@ -117,7 +115,7 @@ class DefaultTypesBuilder {
         parameter,
         boundNode.typeOrThrow,
         declarationElement,
-        Set<Element>.identity(),
+        Set<Element2>.identity(),
       );
       allCycles.addAll(cycles);
     }
@@ -180,7 +178,7 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredElement as TypeParameterElementImpl;
+      var element = parameter.declaredFragment as TypeParameterElementImpl;
       var defaultType = element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
@@ -192,7 +190,7 @@ class DefaultTypesBuilder {
   /// Compute bounds to be provided as type arguments in place of missing type
   /// arguments on raw types with the given type parameters.
   void _computeBounds(
-    Element declarationElement,
+    Element2 declarationElement,
     TypeParameterList? parameterList,
   ) {
     if (parameterList == null) return;
@@ -202,19 +200,19 @@ class DefaultTypesBuilder {
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
-    var elements = <TypeParameterElementImpl>[];
+    var elements = <TypeParameterElementImpl2>[];
     var bounds = <DartType>[];
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
-      elements.add(node.declaredElement as TypeParameterElementImpl);
+      elements.add(node.declaredFragment!.element as TypeParameterElementImpl2);
       bounds.add(node.bound?.type ?? dynamicType);
     }
 
     var graph = _TypeParametersGraph(elements, bounds);
     var stronglyConnected = computeStrongComponents(graph);
     for (var component in stronglyConnected) {
-      var dynamicSubstitution = <TypeParameterElement, DartType>{};
-      var nullSubstitution = <TypeParameterElement, DartType>{};
+      var dynamicSubstitution = <TypeParameterElement2, DartType>{};
+      var nullSubstitution = <TypeParameterElement2, DartType>{};
       for (var i in component) {
         var element = elements[i];
         dynamicSubstitution[element] = dynamicType;
@@ -233,8 +231,8 @@ class DefaultTypesBuilder {
     }
 
     for (var i = 0; i < length; i++) {
-      var thisSubstitution = <TypeParameterElement, DartType>{};
-      var nullSubstitution = <TypeParameterElement, DartType>{};
+      var thisSubstitution = <TypeParameterElement2, DartType>{};
+      var nullSubstitution = <TypeParameterElement2, DartType>{};
       var element = elements[i];
       thisSubstitution[element] = bounds[i];
       nullSubstitution[element] = bottomType;
@@ -252,7 +250,7 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredElement as TypeParameterElementImpl;
+      var element = nodes[i].declaredFragment as TypeParameterElementImpl;
       element.defaultType = bounds[i];
     }
   }
@@ -262,21 +260,21 @@ class DefaultTypesBuilder {
   List<List<_CycleElement>> _findRawTypePathsToDeclaration(
     TypeParameter startParameter,
     DartType startType,
-    Element end,
-    Set<Element> visited,
+    Element2 end,
+    Set<Element2> visited,
   ) {
     var paths = <List<_CycleElement>>[];
     if (startType is NamedTypeBuilder) {
-      var declaration = startType.element;
+      var declaration = startType.element3;
       if (startType.arguments.isEmpty) {
-        if (startType.element == end) {
+        if (startType.element3 == end) {
           paths.add([
             _CycleElement(startParameter, startType),
           ]);
-        } else if (visited.add(startType.element)) {
-          void recurseParameters(List<TypeParameterElement> parameters) {
+        } else if (visited.add(startType.element3)) {
+          void recurseParameters(List<TypeParameterElement2> parameters) {
             for (var parameter in parameters) {
-              var parameterNode = _linker.getLinkingNode(parameter);
+              var parameterNode = _linker.getLinkingNode2(parameter);
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {
@@ -297,12 +295,12 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is InterfaceElement) {
-            recurseParameters(declaration.typeParameters);
-          } else if (declaration is TypeAliasElement) {
-            recurseParameters(declaration.typeParameters);
+          if (declaration is InterfaceElement2) {
+            recurseParameters(declaration.typeParameters2);
+          } else if (declaration is TypeAliasElement2) {
+            recurseParameters(declaration.typeParameters2);
           }
-          visited.remove(startType.element);
+          visited.remove(startType.element3);
         }
       } else {
         for (var argument in startType.arguments) {
@@ -325,7 +323,7 @@ class DefaultTypesBuilder {
           visited,
         ),
       );
-      for (var typeParameter in startType.typeFormals) {
+      for (var typeParameter in startType.typeParameters) {
         var bound = typeParameter.bound;
         if (bound != null) {
           paths.addAll(
@@ -338,7 +336,7 @@ class DefaultTypesBuilder {
           );
         }
       }
-      for (var formalParameter in startType.parameters) {
+      for (var formalParameter in startType.formalParameters) {
         paths.addAll(
           _findRawTypePathsToDeclaration(
             startParameter,
@@ -371,10 +369,10 @@ class _TypeParametersGraph implements Graph<int> {
   // the type parameter with the index `i` in their bounds.
   final List<List<int>> _edges = [];
 
-  final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
+  final Map<TypeParameterElement2, int> _parameterToIndex = Map.identity();
 
   _TypeParametersGraph(
-    List<TypeParameterElement> parameters,
+    List<TypeParameterElement2> parameters,
     List<DartType> bounds,
   ) {
     assert(parameters.length == bounds.length);
@@ -399,10 +397,10 @@ class _TypeParametersGraph implements Graph<int> {
   /// Collect references to the [index]th type parameter from the [type].
   void _collectReferencesFrom(int index, DartType? type) {
     if (type is FunctionTypeBuilder) {
-      for (var parameter in type.typeFormals) {
+      for (var parameter in type.typeParameters) {
         _collectReferencesFrom(index, parameter.bound);
       }
-      for (var parameter in type.parameters) {
+      for (var parameter in type.formalParameters) {
         _collectReferencesFrom(index, parameter.type);
       }
       _collectReferencesFrom(index, type.returnType);
@@ -411,7 +409,7 @@ class _TypeParametersGraph implements Graph<int> {
         _collectReferencesFrom(index, argument);
       }
     } else if (type is TypeParameterType) {
-      var typeIndex = _parameterToIndex[type.element];
+      var typeIndex = _parameterToIndex[type.element3];
       if (typeIndex != null) {
         _edges[typeIndex].add(index);
       }
@@ -420,13 +418,13 @@ class _TypeParametersGraph implements Graph<int> {
 }
 
 class _UpperLowerReplacementVisitor extends ReplacementVisitor {
-  final Map<TypeParameterElement, DartType> _upper;
-  final Map<TypeParameterElement, DartType> _lower;
+  final Map<TypeParameterElement2, DartType> _upper;
+  final Map<TypeParameterElement2, DartType> _lower;
   Variance _variance;
 
   _UpperLowerReplacementVisitor({
-    required Map<TypeParameterElement, DartType> upper,
-    required Map<TypeParameterElement, DartType> lower,
+    required Map<TypeParameterElement2, DartType> upper,
+    required Map<TypeParameterElement2, DartType> lower,
     required Variance variance,
   })  : _upper = upper,
         _lower = lower,
@@ -447,13 +445,13 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
 
   @override
   DartType? visitTypeArgument(
-    TypeParameterElement parameter,
+    TypeParameterElement2 parameter,
     DartType argument,
   ) {
     var savedVariance = _variance;
     try {
       _variance = _variance.combine(
-        (parameter as TypeParameterElementImpl).variance,
+        (parameter as TypeParameterElementImpl2).variance,
       );
       return super.visitTypeArgument(parameter, argument);
     } finally {
@@ -464,9 +462,9 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
-      return _lower[type.element];
+      return _lower[type.element3];
     } else {
-      return _upper[type.element];
+      return _upper[type.element3];
     }
   }
 }

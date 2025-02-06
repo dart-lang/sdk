@@ -371,21 +371,34 @@ class RunCommand extends DartdevCommand {
     }
 
     String? nativeAssets;
-    if (!nativeAssetsExperimentEnabled) {
-      if (await warnOnNativeAssets()) {
-        return errorExitCode;
+    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+      Directory.current.uri,
+    );
+    if (packageConfig != null) {
+      final runPackageName = getPackageForCommand(mainCommand) ??
+          await DartNativeAssetsBuilder.findRootPackageName(
+            Directory.current.uri,
+          );
+      if (runPackageName != null) {
+        final builder = DartNativeAssetsBuilder(
+          packageConfigUri: packageConfig,
+          runPackageName: runPackageName,
+          verbose: verbose,
+        );
+        if (!nativeAssetsExperimentEnabled) {
+          if (await builder.warnOnNativeAssets()) {
+            return errorExitCode;
+          }
+        } else {
+          final assetsYamlFileUri =
+              await builder.compileNativeAssetsJitYamlFile();
+          if (assetsYamlFileUri == null) {
+            log.stderr('Error: Compiling native assets failed.');
+            return errorExitCode;
+          }
+          nativeAssets = assetsYamlFileUri.toFilePath();
+        }
       }
-    } else {
-      final runPackageName = getPackageForCommand(mainCommand);
-      final assetsYamlFileUri = await compileNativeAssetsJitYamlFile(
-        verbose: verbose,
-        runPackageName: runPackageName,
-      );
-      if (assetsYamlFileUri == null) {
-        log.stderr('Error: Compiling native assets failed.');
-        return errorExitCode;
-      }
-      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     final String? residentCompilerInfoFileArg =

@@ -26,7 +26,9 @@ class C {
     Expect.identical(staticMethod<int, String>, staticTearOff);
 
     Expect.equals(
-        instanceMethod<int, String>, this.instanceMethod<int, String>);
+      instanceMethod<int, String>,
+      this.instanceMethod<int, String>,
+    );
   }
 }
 
@@ -45,8 +47,10 @@ mixin M on C {
 
     Expect.identical(staticMethod<int, String>, staticTearOff);
 
-    Expect.equals(mixinInstanceMethod<int, String>,
-        this.mixinInstanceMethod<int, String>);
+    Expect.equals(
+      mixinInstanceMethod<int, String>,
+      this.mixinInstanceMethod<int, String>,
+    );
   }
 }
 
@@ -72,7 +76,9 @@ class D extends C with M {
     super.instanceMethod<int, String>
         .expectStaticType<Exactly<int Function(String, [String?])>>();
     Expect.equals(
-        super.instanceMethod<int, String>, super.instanceMethod<int, String>);
+      super.instanceMethod<int, String>,
+      super.instanceMethod<int, String>,
+    );
   }
 }
 
@@ -118,7 +124,9 @@ void main() {
   // Specification requires equality.
   Expect.equals(o.instanceMethod<int, String>, o.instanceMethod<int, String>);
   Expect.equals(
-      o.mixinInstanceMethod<int, String>, o.mixinInstanceMethod<int, String>);
+    o.mixinInstanceMethod<int, String>,
+    o.mixinInstanceMethod<int, String>,
+  );
 
   // Instantiated extension methods do not specify equality.
 
@@ -127,7 +135,9 @@ void main() {
   Expect.notEquals(C.staticMethod<int, String>, C.staticMethod<num, String>);
   Expect.notEquals(local<int, String>, local<num, String>);
   Expect.notEquals(
-      o.instanceMethod<int, String>, o.instanceMethod<num, String>);
+    o.instanceMethod<int, String>,
+    o.instanceMethod<num, String>,
+  );
 
   (<T>() {
     // Not canonicalized if any type is non-constant.

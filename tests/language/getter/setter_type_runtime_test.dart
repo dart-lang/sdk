@@ -11,12 +11,9 @@ import "package:expect/expect.dart";
 
 int bar = 499;
 
-
 get foo => bar;
 
-void set foo(
-
-    str) {
+void set foo(str) {
   bar = str.length;
 }
 

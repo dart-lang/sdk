@@ -11,17 +11,16 @@ const _desc = r'Prefer asserts with message.';
 
 class PreferAssertsWithMessage extends LintRule {
   PreferAssertsWithMessage()
-      : super(
-          name: LintNames.prefer_asserts_with_message,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_asserts_with_message, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_asserts_with_message;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addAssertInitializer(this, visitor);
     registry.addAssertStatement(this, visitor);

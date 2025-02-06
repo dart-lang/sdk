@@ -23,5 +23,4 @@ class D<Y> = A<Y> with B, C;
 void main() {
   var v = 0;
   checkNoDynamicTypeError(() => new D<int>(v));
-
 }

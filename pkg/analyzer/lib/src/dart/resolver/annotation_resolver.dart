@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -139,7 +140,10 @@ class AnnotationResolver {
             contextType: UnknownInferredType.instance,
             whyNotPromotedArguments: whyNotPromotedArguments,
             constructorName: constructorName)
-        .resolveInvocation(rawType: constructorRawType);
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            rawType: constructorRawType as FunctionTypeImpl);
   }
 
   void _extensionGetter(

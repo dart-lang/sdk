@@ -28,7 +28,8 @@ void ae(ActualEnum e) {
   String get lintRule => LintNames.exhaustive_cases;
 
   test_enumLike() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class E {
   final int i;
   const E._(this.i);
@@ -45,9 +46,9 @@ void e(E e) {
     case E.f:
   }
 }
-''', [
-      lint(147, 10),
-    ]);
+''',
+      [lint(147, 10)],
+    );
   }
 
   test_enumLike_default_ok() async {
@@ -73,7 +74,8 @@ void okDefault(E e) {
   }
 
   test_enumLike_deprecatedFields() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class DeprecatedFields {
   final int i;
   const DeprecatedFields._(this.i);
@@ -111,10 +113,12 @@ void dep(DeprecatedFields e) {
       break;
   }
 }
-''', [
-      lint(449, 10),
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
-    ]);
+''',
+      [
+        lint(449, 10),
+        error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
+      ],
+    );
   }
 
   test_enumLike_ok() async {
@@ -177,7 +181,8 @@ class E {
 }
 ''');
 
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'e.dart' as prefixed;
 
 void e(prefixed.E e) {
@@ -189,9 +194,9 @@ void e(prefixed.E e) {
       print('e');
   }
 }
-''', [
-      lint(55, 9),
-    ]);
+''',
+      [lint(55, 9)],
+    );
   }
 
   test_notEnumLike_ok() async {

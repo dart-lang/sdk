@@ -31,18 +31,15 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
 import 'package:unified_analytics/unified_analytics.dart';
 
+import '../constants.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
-import '../test_macros.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
-
-/// Useful for debugging locally, setting this to true will cause all JSON
-/// communication to be printed to stdout.
-const debugPrintCommunication = false;
 
 abstract class AbstractLspAnalysisServerTest
     with
@@ -53,8 +50,7 @@ abstract class AbstractLspAnalysisServerTest
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
-        ConfigurationFilesMixin,
-        TestMacros {
+        ConfigurationFilesMixin {
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
@@ -67,6 +63,10 @@ abstract class AbstractLspAnalysisServerTest
   int _previousContextBuilds = 0;
 
   DartFixPromptManager? get dartFixPromptManager => null;
+
+  @override
+  LspClientCapabilities get editorClientCapabilities =>
+      server.editorClientCapabilities!;
 
   String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
 
@@ -141,45 +141,6 @@ abstract class AbstractLspAnalysisServerTest
     return executeForEdits(
       () => executeCommand(command, workDoneToken: workDoneToken),
     );
-  }
-
-  /// Executes a function which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Returns a [LspChangeVerifier] that can be used to verify changes.
-  Future<LspChangeVerifier> executeForEdits(
-    Future<Object?> Function() function,
-  ) async {
-    ApplyWorkspaceEditParams? editParams;
-
-    var commandResponse = await handleExpectedRequest<
-      Object?,
-      ApplyWorkspaceEditParams,
-      ApplyWorkspaceEditResult
-    >(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      function,
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified by the caller).
-        editParams = edit;
-        return ApplyWorkspaceEditResult(applied: true);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the expected change type.
-    expect(editParams, isNotNull);
-    var edit = editParams!.edit;
-
-    var expectDocumentChanges =
-        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
-    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
-    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
-
-    return LspChangeVerifier(this, edit);
   }
 
   void expectContextBuilds() => expect(
@@ -281,6 +242,10 @@ abstract class AbstractLspAnalysisServerTest
 
   void resetContextBuildCounter() {
     _previousContextBuilds = server.contextBuilds;
+  }
+
+  Future<ResponseMessage> sendLspRequest(Method method, Object params) {
+    return server.sendLspRequest(method, params);
   }
 
   @override
@@ -917,8 +882,18 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   /// server.
   bool failTestOnErrorDiagnostic = true;
 
+  /// A completer for [initialAnalysis].
+  final Completer<void> _initialAnalysisCompleter = Completer<void>();
+
+  /// A completer for [currentAnalysis].
+  Completer<void> _currentAnalysisCompleter = Completer<void>()..complete();
+
   /// [analysisOptionsPath] as a 'file:///' [Uri].
   Uri get analysisOptionsUri => pathContext.toUri(analysisOptionsPath);
+
+  /// A [Future] that completes when the current analysis completes (or is
+  /// already completed if no analysis is in progress).
+  Future<void> get currentAnalysis => _currentAnalysisCompleter.future;
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -930,8 +905,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
       serverCapabilities.experimental as Map<String, Object?>? ?? {};
 
   /// A [Future] that completes with the first analysis after initialization.
-  Future<void> get initialAnalysis =>
-      initialized ? Future.value() : waitForAnalysisComplete();
+  Future<void> get initialAnalysis => _initialAnalysisCompleter.future;
 
   bool get initialized => _clientCapabilities != null;
 
@@ -988,6 +962,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   Uri get pubspecFileUri => pathContext.toUri(pubspecFilePath);
 
   /// A stream of [RequestMessage]s from the server.
+  @override
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
         .where((m) => m is RequestMessage)
@@ -1125,100 +1100,12 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return notificationFromServer.params as T;
   }
 
-  /// Expects a [method] request from the server after executing [f].
-  Future<RequestMessage> expectRequest(
-    Method method,
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
-    await f();
-
-    var requestFromServer = await firstRequest.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Did not receive the expected $method request from the server in the timeout period',
-                timeout,
-              ),
-    );
-
-    expect(requestFromServer, isNotNull);
-    return requestFromServer;
-  }
-
   /// Gets the current contents of a file.
   ///
   /// This is used to apply edits when the server sends workspace/applyEdit. It
   /// should reflect the content that the client would have in this case, which
   /// would be an overlay (if the file is open) or the underlying file.
   String? getCurrentFileContent(Uri uri);
-
-  /// Executes [f] then waits for a request of type [method] from the server which
-  /// is passed to [handler] to process, then waits for (and returns) the
-  /// response to the original request.
-  ///
-  /// This is used for testing things like code actions, where the client initiates
-  /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it received a response.
-  ///
-  ///     Client                                 Server
-  ///     1. |- Req: textDocument/codeAction      ->
-  ///     1. <- Resp: textDocument/codeAction     -|
-  ///
-  ///     2. |- Req: workspace/executeCommand  ->
-  ///           3. <- Req: textDocument/applyEdits  -|
-  ///           3. |- Resp: textDocument/applyEdits ->
-  ///     2. <- Resp: workspace/executeCommand -|
-  ///
-  /// Request 2 from the client is not responded to until the server has its own
-  /// response to the request it sends (3).
-  Future<T> handleExpectedRequest<T, R, RR>(
-    Method method,
-    R Function(Map<String, dynamic>) fromJson,
-    Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    late Future<T> outboundRequest;
-    Object? outboundRequestError;
-
-    // Run [f] and wait for the incoming request from the server.
-    var incomingRequest = await expectRequest(method, () {
-      // Don't return/await the response yet, as this may not complete until
-      // after we have handled the request that comes from the server.
-      outboundRequest = f();
-
-      // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test even if expected.
-      // Instead, capture the error and suppress it. But if we time out (in
-      // which case we will never return outboundRequest), then we'll raise this
-      // error.
-      outboundRequest.then(
-        (_) {},
-        onError: (e) {
-          outboundRequestError = e;
-          return null;
-        },
-      );
-    }, timeout: timeout).catchError((Object timeoutException) {
-      // We timed out waiting for the request from the server. Probably this is
-      // because our outbound request for some reason, so if we have an error
-      // for that, then throw it. Otherwise, propogate the timeout.
-      throw outboundRequestError ?? timeoutException;
-    }, test: (e) => e is TimeoutException);
-
-    // Handle the request from the server and send the response back.
-    var clientsResponse = await handler(
-      fromJson(incomingRequest.params as Map<String, Object?>),
-    );
-    respondTo(incomingRequest, clientsResponse);
-
-    // Return a future that completes when the response to the original request
-    // (from [f]) returns.
-    return outboundRequest;
-  }
 
   /// A helper that initializes the server with common values, since the server
   /// will reject any other requests until it is initialized.
@@ -1274,6 +1161,16 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     notificationsFromServer.listen((notification) async {
       if (notification.method == Method.progress) {
         await _handleProgress(notification);
+      } else if (notification.method == CustomMethods.analyzerStatus) {
+        var params = AnalyzerStatusParams.fromJson(
+          notification.params as Map<String, Object?>,
+        );
+
+        if (params.isAnalyzing) {
+          _handleAnalysisBegin();
+        } else {
+          _handleAnalysisEnd();
+        }
       }
     });
 
@@ -1541,18 +1438,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     ]);
   }
 
-  /// Sends [responseParams] to the server as a successful response to
-  /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(
-      ResponseMessage(
-        id: request.id,
-        result: responseParams,
-        jsonrpc: jsonRpcVersion,
-      ),
-    );
-  }
-
   Future<ResponseMessage> sendDidChangeConfiguration() {
     var request = makeRequest(
       Method.workspace_didChangeConfiguration,
@@ -1570,11 +1455,8 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
 
   Future<ResponseMessage> sendRequestToServer(RequestMessage request);
 
-  void sendResponseToServer(ResponseMessage response);
-
   // This is the signature expected for LSP.
   // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
-  // ignore: prefer_void_to_null
   Future<Null> sendShutdown() {
     var request = makeRequest(Method.shutdown, null);
     return expectSuccessfulResponseTo(request, (result) => result as Null);
@@ -1729,6 +1611,19 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return outlineParams.outline;
   }
 
+  void _handleAnalysisBegin() async {
+    assert(_currentAnalysisCompleter.isCompleted);
+    _currentAnalysisCompleter = Completer<void>();
+  }
+
+  void _handleAnalysisEnd() async {
+    if (!_initialAnalysisCompleter.isCompleted) {
+      _initialAnalysisCompleter.complete();
+    }
+    assert(!_currentAnalysisCompleter.isCompleted);
+    _currentAnalysisCompleter.complete();
+  }
+
   Future<void> _handleProgress(NotificationMessage request) async {
     var params = ProgressParams.fromJson(
       request.params as Map<String, Object?>,
@@ -1743,6 +1638,15 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
       validProgressTokens.remove(params.token);
+    }
+
+    if (params.token == analyzingProgressToken) {
+      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
+        _handleAnalysisBegin();
+      }
+      if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
+        _handleAnalysisEnd();
+      }
     }
   }
 
@@ -1776,5 +1680,28 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     } else {
       return false;
     }
+  }
+}
+
+/// An [AbstractLspAnalysisServerTest] that provides an implementation of
+/// [SharedTestInterface] to allow tests to be shared between server/test kinds.
+abstract class SharedAbstractLspAnalysisServerTest
+    extends AbstractLspAnalysisServerTest
+    implements SharedTestInterface {
+  @override
+  String get testFilePath => join(projectFolderPath, 'lib', 'test.dart');
+
+  @override
+  Uri get testFileUri => toUri(testFilePath);
+
+  @override
+  void createFile(String path, String content) {
+    newFile(path, content);
+  }
+
+  @override
+  Future<void> initializeServer() async {
+    await initialize();
+    await currentAnalysis;
   }
 }

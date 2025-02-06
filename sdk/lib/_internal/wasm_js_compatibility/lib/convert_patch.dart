@@ -1503,12 +1503,44 @@ class _Utf8Decoder {
       if (decoded != null) return decoded;
     }
 
-    return convertGeneral(codeUnits, start, maybeEnd, true);
+    return _convertGeneral(codeUnits, start, maybeEnd, true);
   }
 
   @patch
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
-    return convertGeneral(codeUnits, start, maybeEnd, false);
+    return _convertGeneral(codeUnits, start, maybeEnd, false);
+  }
+
+  String _convertGeneral(
+    List<int> codeUnits,
+    int start,
+    int? maybeEnd,
+    bool single,
+  ) {
+    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+
+    if (start == end) return "";
+
+    // Have bytes as Uint8List.
+    Uint8List bytes;
+    int errorOffset;
+    if (codeUnits is Uint8List) {
+      bytes = codeUnits;
+      errorOffset = 0;
+    } else {
+      bytes = _makeUint8List(codeUnits, start, end);
+      errorOffset = start;
+      end -= start;
+      start = 0;
+    }
+
+    String result = decodeGeneral(bytes, start, end, single);
+    if (isErrorState(_state)) {
+      String message = errorDescription(_state);
+      _state = initial; // Ready for more input.
+      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
+    }
+    return result;
   }
 }
 

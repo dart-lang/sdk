@@ -7,6 +7,7 @@ import 'dart:io';
 
 import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 class Server {
@@ -37,6 +38,15 @@ class Server {
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
+        if (request.uri.path == "/malformedAuthenticate") {
+          request.response.statusCode = HttpStatus.unauthorized;
+          // This authenticate header is malformed because of missing commas
+          request.response.headers.set(HttpHeaders.wwwAuthenticateHeader,
+              'Digest realm="$realm" nonce="$nonce" domain="/digest/"');
+          request.response.close();
+          return;
+        }
+
         sendUnauthorizedResponse(HttpResponse response, {stale = false}) {
           response.statusCode = HttpStatus.unauthorized;
           StringBuffer authHeader = new StringBuffer();
@@ -309,6 +319,54 @@ void testNextNonce() {
   });
 }
 
+void testMalformedAuthenticateHeaderNoAuthHandler() {
+  Server.start('MD5', 'auth').then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should resolve normally if no authentication is configured
+    await client.getUrl(uri).then((request) => request.close());
+
+    server.shutdown();
+    client.close();
+  });
+}
+
+void testMalformedAuthenticateHeaderWithAuthHandler() {
+  Server.start('MD5', 'auth').then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should throw an exception if the authenticate handler is set
+    client.authenticate =
+        (Uri url, String scheme, String? realm) async => false;
+    await asyncExpectThrows<HttpException>(
+      client.getUrl(uri).then((request) => request.close()));
+
+    server.shutdown();
+    client.close();
+  });
+}
+
+void testMalformedAuthenticateHeaderWithCredentials() {
+  Server.start('MD5', 'auth').then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should throw an exception if credentials have been added
+    client.addCredentials(
+        uri, 'realm', HttpClientDigestCredentials('dart', 'password'));
+    await asyncExpectThrows<HttpException>(
+      client.getUrl(uri).then((request) => request.close()));
+
+    server.shutdown();
+    client.close();
+  });
+}
+
 // An Apache virtual directory configuration like this can be used for
 // running the local server tests.
 //
@@ -375,6 +433,9 @@ main() {
   testAuthenticateCallback("MD5", "auth-int");
   testStaleNonce();
   testNextNonce();
+  testMalformedAuthenticateHeaderNoAuthHandler();
+  testMalformedAuthenticateHeaderWithAuthHandler();
+  testMalformedAuthenticateHeaderWithCredentials();
   // These teste are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerDigest();

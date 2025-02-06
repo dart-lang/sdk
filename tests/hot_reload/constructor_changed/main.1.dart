@@ -28,9 +28,9 @@ Future<void> main() async {
   Expect.equals(20, savedA.field);
   Expect.equals(10, helper().field);
 }
+
 /** DIFF **/
 /*
-@@ -11,7 +11,7 @@
  class A {
    late int field;
    A() {

@@ -14,10 +14,10 @@ const desc =
 
 class PreferConstLiteralsToCreateImmutables extends LintRule {
   PreferConstLiteralsToCreateImmutables()
-      : super(
-          name: LintNames.prefer_const_literals_to_create_immutables,
-          description: desc,
-        );
+    : super(
+        name: LintNames.prefer_const_literals_to_create_immutables,
+        description: desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +25,9 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);

@@ -507,11 +507,6 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     return new _in::ReversedListIterable::•<core::int>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
-  }
-  static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
-    return core::Iterable::iterableToFullString(list, "[", "]");
 }
 class A extends self::_A&Object&ListMixin {
   field core::int count = 0;
@@ -571,4 +566,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1108, effectively constant: 4
+Extra constant evaluation: evaluated: 1101, effectively constant: 4

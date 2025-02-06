@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
@@ -73,7 +74,7 @@ class ElementHolder {
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final LibraryElementImpl _libraryElement;
-  final TypeProvider _typeProvider;
+  final TypeProviderImpl _typeProvider;
   final CompilationUnitElementImpl _unitElement;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
@@ -177,7 +178,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this.dataForTesting,
   );
 
-  DartType get _dynamicType => _typeProvider.dynamicType;
+  TypeImpl get _dynamicType => _typeProvider.dynamicType;
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
@@ -674,7 +675,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement as BindPatternVariableElementImpl)
+        .map((e) => e.asElement)
         .toList();
   }
 
@@ -1153,7 +1154,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement as BindPatternVariableElementImpl)
+        .map((e) => e.asElement)
         .toList();
   }
 
@@ -1402,7 +1403,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var localElement = node.declaredElement as LocalVariableElementImpl;
       element = localElement;
 
-      var varList = node.parent as VariableDeclarationList;
+      var varList = node.parent as VariableDeclarationListImpl;
       localElement.hasImplicitType = varList.type == null;
       localElement.hasInitializer = initializerNode != null;
       localElement.type = varList.type?.type ?? _dynamicType;
@@ -1570,7 +1571,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _define(Element element) {
     if (_nameScope case LocalScope nameScope) {
-      nameScope.add(element);
+      nameScope.add(element.asElement2!);
     }
   }
 

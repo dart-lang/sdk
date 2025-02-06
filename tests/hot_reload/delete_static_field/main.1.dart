@@ -29,9 +29,9 @@ Future<void> main() async {
 
   Expect.throws(closure);
 }
+
 /** DIFF **/
 /*
-@@ -16,15 +16,11 @@
    int value = 42;
  }
  

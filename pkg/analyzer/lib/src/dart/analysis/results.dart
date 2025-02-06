@@ -186,9 +186,6 @@ class ErrorsResultImpl implements ErrorsResult {
   final bool isLibrary;
 
   @override
-  final bool isMacroPart;
-
-  @override
   final bool isPart;
 
   @override
@@ -216,7 +213,6 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.uri,
     required this.lineInfo,
     required this.isLibrary,
-    required this.isMacroPart,
     required this.isPart,
     required this.errors,
     required this.analysisOptions,
@@ -254,11 +250,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   @override
   File get file => fileState.resource;
-
-  @override
-  bool get isMacroPart {
-    return fileState.isMacroPart;
-  }
 
   @override
   String get path => fileState.path;
@@ -495,7 +486,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
-  LibraryElement2 get libraryElement2 => libraryFragment.element;
+  LibraryElementImpl get libraryElement2 {
+    return libraryFragment.element as LibraryElementImpl;
+  }
 
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;

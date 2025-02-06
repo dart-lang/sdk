@@ -51,13 +51,11 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
@@ -99,7 +97,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 426;
+  static const int DATA_VERSION = 429;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -146,9 +144,6 @@ class AnalysisDriver {
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
   final SourceFactory _sourceFactory;
-
-  /// The support for executing macros.
-  final MacroSupport? macroSupport;
 
   /// The container, shared with other drivers within the same collection,
   /// into which all drivers record files ownership.
@@ -281,7 +276,6 @@ class AnalysisDriver {
     required ByteStore byteStore,
     required SourceFactory sourceFactory,
     required Packages packages,
-    this.macroSupport,
     this.ownedFiles,
     this.analysisContext,
     @Deprecated("Use 'analysisOptionsMap' instead")
@@ -394,7 +388,6 @@ class AnalysisDriver {
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
-      macroSupport: macroSupport,
       packagesFile: analysisContext?.contextRoot.packagesFile,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
@@ -803,12 +796,6 @@ class AnalysisDriver {
       );
     }
 
-    // If a macro generated file, request its library instead.
-    var file = resourceProvider.getFile(path);
-    if (file.libraryForMacro case var library?) {
-      _errorsRequestedFiles.addKey(library.path);
-    }
-
     // Schedule analysis.
     var completer = Completer<SomeErrorsResult>();
     _errorsRequestedFiles.add(path, completer);
@@ -864,12 +851,6 @@ class AnalysisDriver {
     }
     if (!_fsState.hasUri(path)) {
       return Future.value();
-    }
-
-    // If a macro generated file, request its library instead.
-    var file = resourceProvider.getFile(path);
-    if (file.libraryForMacro case var library?) {
-      _indexRequestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
@@ -1096,12 +1077,6 @@ class AnalysisDriver {
       );
     }
 
-    // If a macro generated file, request its library instead.
-    var file = resourceProvider.getFile(path);
-    if (file.libraryForMacro case var library?) {
-      _requestedFiles.addKey(library.path);
-    }
-
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
     _requestedFiles.add(path, completer);
@@ -1137,13 +1112,6 @@ class AnalysisDriver {
       return Future.value(
         DisposedAnalysisContextResult(),
       );
-    }
-
-    // If a macro generated file, request its library.
-    // Once the library is ready, we can return the requested result.
-    var file = resourceProvider.getFile(path);
-    if (file.libraryForMacro case var library?) {
-      _unitElementRequestedFiles.addKey(library.path);
     }
 
     // Schedule analysis.
@@ -1364,20 +1332,17 @@ class AnalysisDriver {
           return;
         }
 
-        await performance.runAsync(
-          'libraryContext',
-          (performance) async {
-            await libraryContext.load(
-              targetLibrary: library,
-              performance: performance,
-            );
-          },
-        );
+        performance.run('libraryContext', (performance) {
+          libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
+        });
 
         for (var import in library.docLibraryImports) {
           if (import is LibraryImportWithFile) {
             if (import.importedLibrary case var libraryFileKind?) {
-              await libraryContext.load(
+              libraryContext.load(
                 targetLibrary: libraryFileKind,
                 performance: OperationPerformanceImpl('<root>'),
               );
@@ -1392,16 +1357,19 @@ class AnalysisDriver {
             libraryElement.typeSystem,
             strictCasts: analysisOptions.strictCasts);
 
-        var results = LibraryAnalyzer(
-          analysisOptions,
-          declaredVariables,
-          libraryElement,
-          libraryContext.elementFactory.analysisSession.inheritanceManager,
-          library,
-          testingData: testingData,
-          typeSystemOperations: typeSystemOperations,
-          enableLintRuleTiming: _enableLintRuleTiming,
-        ).analyze();
+        var results = performance.run('LibraryAnalyzer', (performance) {
+          return LibraryAnalyzer(
+            analysisOptions,
+            declaredVariables,
+            libraryElement,
+            libraryContext.elementFactory.analysisSession.inheritanceManager,
+            library,
+            performance: performance,
+            testingData: testingData,
+            typeSystemOperations: typeSystemOperations,
+            enableLintRuleTiming: _enableLintRuleTiming,
+          ).analyze();
+        });
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
 
@@ -1582,7 +1550,6 @@ class AnalysisDriver {
       lineInfo: file.lineInfo,
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: errors,
       analysisOptions: file.analysisOptions,
@@ -1670,24 +1637,6 @@ class AnalysisDriver {
     }
   }
 
-  Future<void> _ensureMacroGeneratedFiles() async {
-    for (var file in knownFiles.toList()) {
-      if (file.kind case LibraryFileKind libraryKind) {
-        var libraryCycle = libraryKind.libraryCycle;
-        if (libraryCycle.importsMacroClass) {
-          if (!libraryCycle.hasMacroFilesCreated) {
-            libraryCycle.hasMacroFilesCreated = true;
-            // We create macro-generated FileState(s) when load bundles.
-            await libraryContext.load(
-              targetLibrary: libraryKind,
-              performance: OperationPerformanceImpl('<root>'),
-            );
-          }
-        }
-      }
-    }
-  }
-
   Future<void> _getErrors(String path) async {
     var file = _fsState.getFileForPath(path);
 
@@ -1725,8 +1674,6 @@ class AnalysisDriver {
   Future<void> _getFilesDefiningClassMemberName(
     _GetFilesDefiningClassMemberNameRequest request,
   ) async {
-    await _ensureMacroGeneratedFiles();
-
     var result = <FileState>[];
     for (var file in knownFiles) {
       if (file.definedClassMemberNames.contains(request.name)) {
@@ -1739,8 +1686,6 @@ class AnalysisDriver {
   Future<void> _getFilesReferencingName(
     _GetFilesReferencingNameRequest request,
   ) async {
-    await _ensureMacroGeneratedFiles();
-
     var result = <FileState>[];
     for (var file in knownFiles) {
       if (file.referencedNames.contains(request.name)) {
@@ -1828,15 +1773,12 @@ class AnalysisDriver {
         var kind = file.kind;
         var library = kind.library ?? kind.asLibrary;
 
-        await performance.runAsync(
-          'libraryContext',
-          (performance) async {
-            await libraryContext.load(
-              targetLibrary: library,
-              performance: performance,
-            );
-          },
-        );
+        performance.run('libraryContext', (performance) {
+          libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
+        });
 
         var element = libraryContext.computeUnitElement(library, file);
         var result = UnitElementResultImpl(
@@ -1896,7 +1838,6 @@ class AnalysisDriver {
       lineInfo: file.lineInfo,
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError.tmp(
@@ -1930,7 +1871,7 @@ class AnalysisDriver {
     var library = kind.library ?? kind.asLibrary;
 
     // Errors are based on elements, so load them.
-    await libraryContext.load(
+    libraryContext.load(
       targetLibrary: library,
       performance: OperationPerformanceImpl('<root>'),
     );
@@ -2065,15 +2006,12 @@ class AnalysisDriver {
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
 
-      await performance.runAsync(
-        'libraryContext',
-        (performance) async {
-          await libraryContext.load(
-            targetLibrary: library,
-            performance: performance,
-          );
-        },
-      );
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(
+          targetLibrary: library,
+          performance: performance,
+        );
+      });
       var unitElement = libraryContext.computeUnitElement(library, file);
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(file.resource);
@@ -2082,20 +2020,23 @@ class AnalysisDriver {
       var typeSystemOperations = TypeSystemOperations(libraryElement.typeSystem,
           strictCasts: analysisOptions.strictCasts);
 
-      var analysisResult = LibraryAnalyzer(
-        analysisOptions as AnalysisOptionsImpl,
-        declaredVariables,
-        libraryElement,
-        libraryContext.elementFactory.analysisSession.inheritanceManager,
-        library,
-        testingData: testingData,
-        typeSystemOperations: typeSystemOperations,
-      ).analyzeForCompletion(
-        file: file,
-        offset: request.offset,
-        unitElement: unitElement,
-        performance: performance,
-      );
+      var analysisResult = performance.run('LibraryAnalyzer', (performance) {
+        return LibraryAnalyzer(
+          analysisOptions as AnalysisOptionsImpl,
+          declaredVariables,
+          libraryElement,
+          libraryContext.elementFactory.analysisSession.inheritanceManager,
+          library,
+          performance: OperationPerformanceImpl('<root>'),
+          testingData: testingData,
+          typeSystemOperations: typeSystemOperations,
+        ).analyzeForCompletion(
+          file: file,
+          offset: request.offset,
+          unitElement: unitElement,
+          performance: performance,
+        );
+      });
 
       return ResolvedForCompletionResultImpl(
         analysisSession: currentSession,
@@ -2665,23 +2606,5 @@ class _ResolveForCompletionRequest {
 extension<K, V> on Map<K, List<Completer<V>>> {
   void completeAll(K key, V value) {
     remove(key)?.completeAll(value);
-  }
-}
-
-extension FileExtension on File {
-  File? get libraryForMacro {
-    if (path.removeSuffix('.macro.dart') case var noExtPath?) {
-      var libraryPath = '$noExtPath.dart';
-      return provider.getFile(libraryPath);
-    }
-    return null;
-  }
-
-  File? get macroForLibrary {
-    if (path.removeSuffix('.dart') case var noExtPath?) {
-      var libraryPath = '$noExtPath.macro.dart';
-      return provider.getFile(libraryPath);
-    }
-    return null;
   }
 }

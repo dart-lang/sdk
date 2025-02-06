@@ -106,8 +106,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isAbstract;
 
-  bool get isMacro;
-
   bool get isSealed;
 
   bool get isBase;
@@ -232,6 +230,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return builder;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
   /// declared. The [scope] should be used for that. This method is used to

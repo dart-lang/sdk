@@ -216,7 +216,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
-            case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -535,9 +534,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
-      // Coverage-ignore(suite): Not run.
-      // TODO(johnniwinther): How should we handle this case?
-      case OmittedTypeDeclarationBuilder():
       case null:
     }
 

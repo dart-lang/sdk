@@ -88,9 +88,9 @@ class TestErrorCode extends ErrorCode {
   late ErrorType type;
 
   TestErrorCode(String name, String message)
-      : super(
-          problemMessage: message,
-          name: name,
-          uniqueName: 'TestErrorCode.$name',
-        );
+    : super(
+        problemMessage: message,
+        name: name,
+        uniqueName: 'TestErrorCode.$name',
+      );
 }

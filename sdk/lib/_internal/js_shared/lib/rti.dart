@@ -1531,6 +1531,7 @@ bool _isListTestViaProperty(Object? object) {
 
 /// General unspecialized 'as' check that works for any type.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _generalAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
@@ -1543,7 +1544,7 @@ Object? _generalAsCheckImplementation(Object? object) {
     if (JS_GET_FLAG('LEGACY')) {
       if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
         _onExtraNullSafetyError(
-          _failedAsCheckError(object, testRti),
+          _errorForAsCheck(object, testRti),
           StackTrace.current,
         );
       }
@@ -1551,11 +1552,12 @@ Object? _generalAsCheckImplementation(Object? object) {
     }
   } else if (Rti._isCheck(testRti, object))
     return object;
-  _failedAsCheck(object, testRti);
+  throw _errorForAsCheck(object, testRti);
 }
 
 /// General 'as' check for types that accept `null`.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _generalNullableAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
@@ -1564,20 +1566,16 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
     return object;
   } else if (Rti._isCheck(testRti, object))
     return object;
-  _failedAsCheck(object, testRti);
+  throw _errorForAsCheck(object, testRti);
 }
 
-_TypeError _failedAsCheckError(Object? object, Rti testRti) {
+_TypeError _errorForAsCheck(Object? object, Rti testRti) {
   String message = _Error.compose(object, _rtiToString(testRti, null));
   return _TypeError.fromMessage(message);
 }
 
-@pragma('dart2js:prefer-inline')
-Never _failedAsCheck(Object? object, Rti testRti) {
-  throw _failedAsCheckError(object, testRti);
-}
-
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
   if (isSubtype(_theUniverse(), type, bound)) return type;
   String message =
@@ -1588,6 +1586,7 @@ Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
 }
 
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 Never throwTypeError(String message) {
   throw _TypeError.fromMessage(message);
 }
@@ -1646,6 +1645,7 @@ bool _isObject(Object? object) {
 
 /// Specialization for 'as Object'.
 /// Called from generated code via Rti `_as` method.
+@pragma('dart2js:stack-starts-at-throw')
 Object? _asObject(Object? object) {
   if (object != null) return object;
   if (JS_GET_FLAG('LEGACY')) {
@@ -1688,6 +1688,7 @@ bool _isBool(Object? object) {
 
 /// Specialization for 'as bool'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 bool _asBool(Object? object) {
   if (true == object) return true;
   if (false == object) return false;
@@ -1696,6 +1697,7 @@ bool _asBool(Object? object) {
 
 /// Specialization for 'as bool*'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 bool? _asBoolS(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
@@ -1713,6 +1715,7 @@ bool? _asBoolS(dynamic object) {
 
 /// Specialization for 'as bool?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 bool? _asBoolQ(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
@@ -1722,6 +1725,7 @@ bool? _asBoolQ(dynamic object) {
 
 /// Specialization for 'as double'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 double _asDouble(Object? object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   throw _TypeError.forType(object, 'double');
@@ -1729,6 +1733,7 @@ double _asDouble(Object? object) {
 
 /// Specialization for 'as double*'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) {
@@ -1745,6 +1750,7 @@ double? _asDoubleS(dynamic object) {
 
 /// Specialization for 'as double?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 double? _asDoubleQ(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return _Utils.asNull(object);
@@ -1760,6 +1766,7 @@ bool _isInt(Object? object) {
 
 /// Specialization for 'as int'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 int _asInt(Object? object) {
   if (_isInt(object)) return _Utils.asInt(object);
   throw _TypeError.forType(object, 'int');
@@ -1767,6 +1774,7 @@ int _asInt(Object? object) {
 
 /// Specialization for 'as int*'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) {
@@ -1783,6 +1791,7 @@ int? _asIntS(dynamic object) {
 
 /// Specialization for 'as int?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 int? _asIntQ(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return _Utils.asNull(object);
@@ -1797,6 +1806,7 @@ bool _isNum(Object? object) {
 
 /// Specialization for 'as num'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 num _asNum(Object? object) {
   if (_isNum(object)) return _Utils.asNum(object);
   throw _TypeError.forType(object, 'num');
@@ -1804,6 +1814,7 @@ num _asNum(Object? object) {
 
 /// Specialization for 'as num*'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) {
@@ -1820,6 +1831,7 @@ num? _asNumS(dynamic object) {
 
 /// Specialization for 'as num?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 num? _asNumQ(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return _Utils.asNull(object);
@@ -1834,6 +1846,7 @@ bool _isString(Object? object) {
 
 /// Specialization for 'as String'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 String _asString(Object? object) {
   if (_isString(object)) return _Utils.asString(object);
   throw _TypeError.forType(object, 'String');
@@ -1841,6 +1854,7 @@ String _asString(Object? object) {
 
 /// Specialization for 'as String*'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) {
@@ -1857,6 +1871,7 @@ String? _asStringS(dynamic object) {
 
 /// Specialization for 'as String?'.
 /// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
 String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return _Utils.asNull(object);

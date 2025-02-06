@@ -28689,6 +28689,36 @@ class C {
 }
 ```
 
+### unnecessary_ignore
+
+_The diagnostic '{0}' isn't produced at this location so it doesn't need to be
+ignored._
+
+_The diagnostic '{0}' isn't produced in this file so it doesn't need to be
+ignored._
+
+#### Description
+
+The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.
+
+#### Example
+
+The following code produces this diagnostic because the `unused_local_variable`
+diagnostic isn't reported at the ignored location:
+
+```dart
+// ignore: [!unused_local_variable!]
+void f() {}
+```
+
+#### Common fixes
+
+Remove the ignore comment:
+
+```dart
+void f() {}
+```
+
 ### unnecessary_lambdas
 
 _Closure should be a tearoff._

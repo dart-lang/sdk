@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/cyclic.dart:6:3: Error: Can't infer the type of 'e1': circularity found during type inference.
+// Specify the type explicitly.
+//   e1(e2),
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_enums/cyclic.dart:6:3: Error: Constant evaluation error:
+//   e1(e2),
+//   ^
+// pkg/front_end/testcases/enhanced_enums/cyclic.dart:6:3: Context: Constant expression depends on itself.
+//   e1(e2),
+//   ^
+// pkg/front_end/testcases/enhanced_enums/cyclic.dart:6:3: Context: While analyzing:
+//   e1(e2),
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class CyclicReference extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::CyclicReference e1 = invalid-expression "Constant expression depends on itself.";
+  enum-element static const field self::CyclicReference e2 = invalid-expression "Constant expression depends on itself.";
+  final field self::CyclicReference other;
+  static const field core::List<self::CyclicReference> values = invalid-expression "Constant expression depends on itself.";
+  const constructor •(core::int #index, core::String #name, self::CyclicReference other) → self::CyclicReference
+    : self::CyclicReference::other = other, super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "CyclicReference.${this.{core::_Enum::_name}{core::String}}";
+}

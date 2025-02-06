@@ -12,18 +12,16 @@ import '../analyzer.dart';
 const _desc = r'Prefer using mixins.';
 
 class PreferMixin extends LintRule {
-  PreferMixin()
-      : super(
-          name: LintNames.prefer_mixin,
-          description: _desc,
-        );
+  PreferMixin() : super(name: LintNames.prefer_mixin, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_mixin;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addWithClause(this, visitor);
   }

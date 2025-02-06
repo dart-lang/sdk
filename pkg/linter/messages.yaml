@@ -286,7 +286,7 @@ LintCode:
       const int quux = 20;
       ```
 
-      NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
+      NOTE: Using the `@optionalTypeArgs` annotation in the `meta` package, API
       authors can special-case type parameters whose type needs to be dynamic but whose
       declaration should be treated as optional.  For example, suppose you have a
       `Key` object whose type parameter you'd like to treat as optional.  Using the
@@ -4692,7 +4692,7 @@ LintCode:
       it's possible, or open an issue asking the package authors to make it part
       of the public API.
     deprecatedDetails: |-
-      From the the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
+      From the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
 
       **DON'T** import implementation files from another package.
 
@@ -12054,6 +12054,53 @@ LintCode:
         var contents;
       }
       ```
+  unnecessary_ignore:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: "Try removing the ignore comment."
+    state:
+      experimental: "3.8"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.
+
+      #### Example
+
+      The following code produces this diagnostic because the `unused_local_variable`
+      diagnostic isn't reported at the ignored location:
+
+      ```dart
+      // ignore: [!unused_local_variable!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Remove the ignore comment:
+
+      ```dart
+      void f() {}
+      ```
+    deprecatedDetails: |-
+      **DON'T** specify an ignore for a diagnostic that is not produced.
+  unnecessary_ignore_file:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced in this file so it doesn't need to be ignored."
+    correctionMessage: "Try removing the ignore comment."
+    hasPublishedDocs: false
+  unnecessary_ignore_name:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: "Try removing the name from the list."
+    hasPublishedDocs: false
+  unnecessary_ignore_name_file:
+    sharedName: unnecessary_ignore
+    problemMessage: "The diagnostic '{0}' isn't produced in this file so it doesn't need to be ignored."
+    correctionMessage: "Try removing the name from the list."
+    hasPublishedDocs: false
   unnecessary_lambdas:
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."

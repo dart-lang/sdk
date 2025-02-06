@@ -6,6 +6,7 @@ library dart._list;
 
 import 'dart:_internal';
 import 'dart:_wasm';
+import 'dart:_error_utils';
 import 'dart:collection';
 
 const int _maxWasmArrayLength = 2147483647; // max i32
@@ -21,14 +22,14 @@ abstract class WasmListBase<E> extends ListBase<E> {
   WasmListBase(int length, int capacity)
     : _length = length,
       _data = WasmArray<Object?>(
-        RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength),
+        RangeErrorUtils.checkValueInInterval(capacity, 0, _maxWasmArrayLength),
       );
 
   WasmListBase._withData(this._length, this._data);
 
   @pragma('wasm:prefer-inline')
   E operator [](int index) {
-    indexCheckWithName(index, _length, "[]");
+    IndexErrorUtils.checkIndexBCE(index, _length, "[]");
     return unsafeCast(_data[index]);
   }
 
@@ -37,7 +38,13 @@ abstract class WasmListBase<E> extends ListBase<E> {
 
   List<E> sublist(int start, [int? end]) {
     final int listLength = this.length;
-    final int actualEnd = RangeError.checkValidRange(start, end, listLength);
+    final int actualEnd = RangeErrorUtils.checkValidRange(
+      start,
+      end,
+      listLength,
+      'start',
+      'end',
+    );
     int length = actualEnd - start;
     if (length == 0) return <E>[];
     return GrowableList<E>(length)..setRange(0, length, this, start);
@@ -70,16 +77,16 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
   @pragma('wasm:prefer-inline')
   @override
   void operator []=(int index, E value) {
-    indexCheckWithName(index, _length, "[]=");
+    IndexErrorUtils.checkIndexBCE(index, _length, "[]=");
     _data[index] = value;
   }
 
   @override
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    RangeError.checkValidRange(start, end, this.length);
+    RangeErrorUtils.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
-    RangeError.checkNotNegative(skipCount, "skipCount");
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
 
     // Look through `SubListIterable`s while still testing for the fast case as
     // first thing.
@@ -130,48 +137,21 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
   void setAll(int index, Iterable<E> iterable) {
     final length = this.length;
 
-    // index < 0 || index > length
-    if (index.gtU(length)) {
-      throw RangeError.range(index, 0, length, "index");
-    }
-
     if (iterable is WasmListBase) {
       final iterableWasmList = unsafeCast<WasmListBase>(iterable);
       final elementCount = iterableWasmList.length;
-
-      // Elements to copy = min(length - index, elementCount).
-      int copyCount = length - index;
-      if (copyCount > elementCount) {
-        copyCount = elementCount;
-      }
-
-      _data.copy(index, iterableWasmList._data, 0, copyCount);
-
-      if (elementCount > copyCount) {
-        throw IndexError.withLength(length, length);
-      }
-
+      RangeErrorUtils.checkValidRange(index, index + elementCount, length);
+      _data.copy(index, iterableWasmList._data, 0, elementCount);
       return;
     }
 
     if (iterable is List) {
       final iterableList = unsafeCast<List<E>>(iterable);
       final elementCount = iterableList.length;
-
-      // Elements to copy = min(length - index, elementCount).
-      int copyCount = length - index;
-      if (copyCount > elementCount) {
-        copyCount = elementCount;
-      }
-
-      for (int i = 0, j = index; i < copyCount; i++, j++) {
+      RangeErrorUtils.checkValidRange(index, index + elementCount, length);
+      for (int i = 0, j = index; i < elementCount; i++, j++) {
         _data[j] = iterableList[i];
       }
-
-      if (elementCount > copyCount) {
-        throw IndexError.withLength(length, length);
-      }
-
       return;
     }
 
@@ -184,7 +164,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
   void fillRange(int start, int end, [E? fill]) {
     // Check for nulls the same way as `ListBase.fillRange`.
     final E value = fill as E;
-    RangeError.checkValidRange(start, end, this.length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     _data.fill(start, value, end - start);
   }
 }
@@ -532,9 +512,7 @@ class GrowableList<E> extends _ModifiableList<E> {
     }
 
     // index < 0 || index > length
-    if (index.gtU(length)) {
-      throw RangeError.range(index, 0, length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
 
     final WasmArray<Object?> data;
     if (length == _capacity) {
@@ -583,9 +561,7 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   void insertAll(int index, Iterable<E> iterable) {
     // index < 0 || index > length
-    if (index.gtU(length)) {
-      throw RangeError.range(index, 0, length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     if (iterable is! WasmListBase) {
       // Read out all elements before making room to ensure consistency of the
       // modified list in case the iterator throws.
@@ -606,41 +582,41 @@ class GrowableList<E> extends _ModifiableList<E> {
   }
 
   void removeRange(int start, int end) {
-    RangeError.checkValidRange(start, end, this.length);
+    RangeErrorUtils.checkValidRange(start, end, length);
     _data.copy(start, _data, end, length - end);
     this.length = this.length - (end - start);
   }
 
   int get _capacity => _data.length;
 
-  void set length(int new_length) {
-    if (new_length > length) {
+  void set length(int newLength) {
+    if (newLength > length) {
       // Verify that element type is nullable.
       null as E;
-      if (new_length > _capacity) {
-        _grow(new_length);
+      if (newLength > _capacity) {
+        _grow(newLength);
       }
-      _setLength(new_length);
+      _setLength(newLength);
       return;
     }
-    final int new_capacity = new_length;
+    final int newCapacity = newLength;
     // We are shrinking. Pick the method which has fewer writes.
-    // In the shrink-to-fit path, we write |new_capacity + new_length| words
+    // In the shrink-to-fit path, we write |newCapacity + newLength| words
     // (null init + copy).
-    // In the non-shrink-to-fit path, we write |length - new_length| words
+    // In the non-shrink-to-fit path, we write |length - newLength| words
     // (null overwrite).
     final bool shouldShrinkToFit =
-        (new_capacity + new_length) < (length - new_length);
+        (newCapacity + newLength) < (length - newLength);
     if (shouldShrinkToFit) {
-      _shrink(new_capacity, new_length);
+      _shrink(newCapacity, newLength);
     } else {
-      _data.fill(new_length, null, length - new_length);
+      _data.fill(newLength, null, length - newLength);
     }
-    _setLength(new_length);
+    _setLength(newLength);
   }
 
-  void _setLength(int new_length) {
-    _length = new_length;
+  void _setLength(int newLength) {
+    _length = newLength;
   }
 
   void add(E value) {
@@ -698,21 +674,22 @@ class GrowableList<E> extends _ModifiableList<E> {
   static final WasmArray<Object?> _emptyData = WasmArray<Object?>(0);
 
   static WasmArray<Object?> _allocateData(int capacity) {
-    if (capacity < 0) {
-      throw RangeError.range(capacity, 0, _maxWasmArrayLength);
-    }
     if (capacity == 0) {
       // Use shared empty list as backing.
       return _emptyData;
     }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(
+      capacity,
+      _maxWasmArrayLength,
+    );
     return WasmArray<Object?>(capacity);
   }
 
   // Grow from 0 to 3, and then double + 1.
-  int _nextCapacity(int old_capacity) => (old_capacity * 2) | 3;
+  int _nextCapacity(int oldCapacity) => (oldCapacity * 2) | 3;
 
-  void _grow(int new_capacity) {
-    var newData = WasmArray<Object?>(new_capacity);
+  void _grow(int newCapacity) {
+    var newData = WasmArray<Object?>(newCapacity);
     newData.copy(0, _data, 0, length);
     _data = newData;
   }
@@ -721,9 +698,9 @@ class GrowableList<E> extends _ModifiableList<E> {
     _grow(_nextCapacity(_capacity));
   }
 
-  void _shrink(int new_capacity, int new_length) {
-    var newData = _allocateData(new_capacity);
-    newData.copy(0, _data, 0, new_length);
+  void _shrink(int newCapacity, int newLength) {
+    var newData = _allocateData(newCapacity);
+    newData.copy(0, _data, 0, newLength);
     _data = newData;
   }
 

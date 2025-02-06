@@ -11,17 +11,16 @@ const _desc = r'Avoid control flow in `finally` blocks.';
 
 class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
-      : super(
-          name: LintNames.control_flow_in_finally,
-          description: _desc,
-        );
+    : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.control_flow_in_finally;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);
     registry.addContinueStatement(this, visitor);
@@ -36,8 +35,11 @@ class ControlFlowInFinally extends LintRule {
 mixin ControlFlowInFinallyBlockReporter {
   LintRule get rule;
 
-  void reportIfFinallyAncestorExists(AstNode node,
-      {required String kind, AstNode? ancestor}) {
+  void reportIfFinallyAncestorExists(
+    AstNode node, {
+    required String kind,
+    AstNode? ancestor,
+  }) {
     var tryStatement = node.thisOrAncestorOfType<TryStatement>();
     var finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
@@ -48,17 +50,22 @@ mixin ControlFlowInFinallyBlockReporter {
     }
 
     var enablerNode = _findEnablerNode(
-        ancestor, finallyBlockAncestorPredicate, node, tryStatement);
+      ancestor,
+      finallyBlockAncestorPredicate,
+      node,
+      tryStatement,
+    );
     if (enablerNode == null) {
       rule.reportLint(node, arguments: [kind]);
     }
   }
 
   AstNode? _findEnablerNode(
-      AstNode? ancestor,
-      bool Function(AstNode n) finallyBlockAncestorPredicate,
-      AstNode node,
-      TryStatement tryStatement) {
+    AstNode? ancestor,
+    bool Function(AstNode n) finallyBlockAncestorPredicate,
+    AstNode node,
+    TryStatement tryStatement,
+  ) {
     AstNode? enablerNode;
     if (ancestor == null) {
       bool functionBlockPredicate(AstNode n) =>
@@ -87,8 +94,11 @@ class _Visitor extends SimpleAstVisitor<void>
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    reportIfFinallyAncestorExists(node,
-        ancestor: node.target, kind: 'continue');
+    reportIfFinallyAncestorExists(
+      node,
+      ancestor: node.target,
+      kind: 'continue',
+    );
   }
 
   @override

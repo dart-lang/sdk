@@ -108,15 +108,6 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// `true`, the getters [isPart] and [isMacroPart] return `false`.
   bool get isLibrary;
 
-  /// Whether the file is a macro part.
-  ///
-  /// A macro part is a part, so when this getter returns `true`, [isPart]
-  /// also results `true`.
-  ///
-  /// A file can't be both a library and a part, so when this getter returns
-  /// `true`, the getter [isLibrary] returns `false`.
-  bool get isMacroPart;
-
   /// Whether the file is a part.
   ///
   /// A file can't be both a library and a part, so when this getter returns

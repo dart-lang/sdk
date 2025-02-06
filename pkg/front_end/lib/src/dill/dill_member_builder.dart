@@ -18,9 +18,9 @@ import 'package:kernel/canonical_name.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/property_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
@@ -122,8 +122,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   Iterable<Annotatable> get annotatables => [member];
 }
 
-class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
-  @override
+class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
   final Field field;
 
   DillFieldBuilder(this.field, super.libraryBuilder,
@@ -170,6 +169,10 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => field.isEnumElement;
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -229,6 +232,10 @@ class DillGetterBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DillSetterBuilder extends DillProcedureBuilder {
@@ -262,6 +269,10 @@ class DillSetterBuilder extends DillProcedureBuilder {
 
   @override
   Reference? get invokeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DillMethodBuilder extends DillProcedureBuilder {
@@ -295,6 +306,10 @@ class DillMethodBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DillOperatorBuilder extends DillProcedureBuilder {
@@ -332,6 +347,10 @@ class DillOperatorBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DillFactoryBuilder extends DillProcedureBuilder {
@@ -368,6 +387,10 @@ class DillFactoryBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 }
 
 class DillConstructorBuilder extends DillMemberBuilder
@@ -414,6 +437,10 @@ class DillConstructorBuilder extends DillMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isConst => constructor.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

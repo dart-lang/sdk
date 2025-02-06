@@ -5,6 +5,7 @@
 // Helpers for working with JS.
 library dart._js_helper;
 
+import 'dart:_error_utils';
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;

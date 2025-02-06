@@ -122,6 +122,9 @@ class MixinFullResolution {
       }
 
       for (var field in class_.mixin.fields) {
+        if (field.isStatic) {
+          continue;
+        }
         Reference? fieldReference =
             indexedClass?.lookupFieldReference(field.name);
         Reference? getterReference =
@@ -161,6 +164,7 @@ class MixinFullResolution {
     int originalLength = class_.procedures.length;
     outer:
     for (var procedure in class_.mixin.procedures) {
+      if (procedure.isStatic) continue;
       if (procedure.isSynthetic) continue;
       // Forwarding stubs in the mixin class are used when calling through the
       // mixin class's interface, not when calling through the mixin

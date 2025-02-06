@@ -26,13 +26,14 @@ class C {
   }
 
   test_forEachLoopVariable_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   for (final x in []) {}
 }
-''', [
-      lint(18, 5),
-    ]);
+''',
+      [lint(18, 5)],
+    );
   }
 
   test_forEachLoopVariable_var() async {
@@ -44,56 +45,61 @@ void f() {
   }
 
   test_listPattern_destructured() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   final [a] = [1];
 }
-''', [
-      lint(8, 5),
-    ]);
+''',
+      [lint(8, 5)],
+    );
   }
 
   test_listPattern_ifCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case [int x, final int y]) {}
 }
-''', [
-      lint(35, 5),
-    ]);
+''',
+      [lint(35, 5)],
+    );
   }
 
   test_localVariable_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final x = 1;
 }
-''', [
-      lint(13, 5),
-    ]);
+''',
+      [lint(13, 5)],
+    );
   }
 
   test_localVariable_final_wildcard() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   final _ = '';
 }
-''', [
-      lint(13, 5),
-    ]);
+''',
+      [lint(13, 5)],
+    );
   }
 
   test_localVariable_final_wildcard_preWildcards() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 void f() {
   final _ = '';
 }
-''', [
-      lint(57, 5),
-    ]);
+''',
+      [lint(57, 5)],
+    );
   }
 
   test_localVariable_var() async {
@@ -105,27 +111,30 @@ void f() {
   }
 
   test_mapPattern_destructured() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   final {'a': a} = {'a': 1};
 }
-''', [
-      lint(8, 5),
-    ]);
+''',
+      [lint(8, 5)],
+    );
   }
 
   test_mapPattern_ifCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case {'x': final x, 'y' : var y}) {}
 }
-''', [
-      lint(33, 5),
-    ]);
+''',
+      [lint(33, 5)],
+    );
   }
 
   test_objectPattern_destructured() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int c;
   C(this.c);
@@ -134,9 +143,9 @@ class C {
 f() {
   final C(:c) = C(1);
 }
-''', [
-      lint(43, 5),
-    ]);
+''',
+      [lint(43, 5)],
+    );
   }
 
   test_objectPattern_destructured_ok() async {
@@ -153,7 +162,8 @@ f() {
   }
 
   test_objectPattern_ifCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   int c;
   int d;
@@ -163,13 +173,14 @@ class C {
 f(Object o) {
   if (o case C(c: final x, d: var y)) {}
 }
-''', [
-      lint(84, 5),
-    ]);
+''',
+      [lint(84, 5)],
+    );
   }
 
   test_objectPattern_switch() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class A {
   int a;
   A(this.a);
@@ -180,17 +191,18 @@ f() {
     case A(a: >0 && final b):
   }
 }
-''', [
-      lint(79, 5),
-    ]);
+''',
+      [lint(79, 5)],
+    );
   }
 
   test_parameter_function_finalTyped() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f(final int x) {}
-''', [
-      lint(7, 5),
-    ]);
+''',
+      [lint(7, 5)],
+    );
   }
 
   test_parameter_function_typed() async {
@@ -201,13 +213,14 @@ void f(int x) {
   }
 
   test_parameter_functionExpression_final() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 void f() {
   (final c) => c.length;
 }
-''', [
-      lint(14, 5),
-    ]);
+''',
+      [lint(14, 5)],
+    );
   }
 
   test_parameter_functionExpression_typed() async {
@@ -219,23 +232,25 @@ void f() {
   }
 
   test_recordPattern_destructured() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   final (a, b) = (1, 2);
 }
-''', [
-      lint(8, 5),
-    ]);
+''',
+      [lint(8, 5)],
+    );
   }
 
   test_recordPattern_destructured_forEach() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   for (final (a, b) in [(1, 2)]) { }
 }
-''', [
-      lint(13, 5),
-    ]);
+''',
+      [lint(13, 5)],
+    );
   }
 
   test_recordPattern_destructured_ok() async {
@@ -247,13 +262,14 @@ f() {
   }
 
   test_recordPattern_ifCase() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f(Object o) {
   if (o case (final int x, int y)) {}
 }
-''', [
-      lint(28, 5),
-    ]);
+''',
+      [lint(28, 5)],
+    );
   }
 
   test_recordPattern_ifCase_ok() async {
@@ -265,15 +281,15 @@ f(Object o) {
   }
 
   test_recordPattern_switch() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 f() {
   switch ((1, 2)) {
     case (final a, final b):
   }
 }
-''', [
-      lint(36, 5),
-      lint(45, 5),
-    ]);
+''',
+      [lint(36, 5), lint(45, 5)],
+    );
   }
 }

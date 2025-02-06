@@ -67,7 +67,6 @@ class DriverEventsPrinter {
 
           sink.writeFlags({
             'isLibrary': result.isLibrary,
-            'isMacroPart': result.isMacroPart,
             'isPart': result.isPart,
           });
 
@@ -276,7 +275,6 @@ class DriverEventsPrinter {
 
     sink.writeFlags({
       'isLibrary': result.isLibrary,
-      'isMacroPart': result.isMacroPart,
       'isPart': result.isPart,
     });
 
@@ -541,7 +539,6 @@ class ResolvedUnitResultPrinter {
       sink.writeFlags({
         'exists': result.exists,
         'isLibrary': result.isLibrary,
-        'isMacroPart': result.isMacroPart,
         'isPart': result.isPart,
       });
 

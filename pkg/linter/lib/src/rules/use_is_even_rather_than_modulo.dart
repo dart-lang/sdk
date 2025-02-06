@@ -13,17 +13,16 @@ const _desc =
 
 class UseIsEvenRatherThanModulo extends LintRule {
   UseIsEvenRatherThanModulo()
-      : super(
-          name: LintNames.use_is_even_rather_than_modulo,
-          description: _desc,
-        );
+    : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.use_is_even_rather_than_modulo;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

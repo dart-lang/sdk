@@ -18,10 +18,8 @@ import '../mini_types.dart';
 Expression getSsaNodes(void Function(SsaNodeHarness) callback) =>
     new _GetSsaNodes(callback, location: computeLocation());
 
-Expression implicitThis_whyNotPromoted(
-        String staticType,
-        void Function(Map<SharedTypeView<Type>, NonPromotionReason>)
-            callback) =>
+Expression implicitThis_whyNotPromoted(String staticType,
+        void Function(Map<SharedTypeView, NonPromotionReason>) callback) =>
     new _WhyNotPromoted_ImplicitThis(Type(staticType), callback,
         location: computeLocation());
 
@@ -29,15 +27,15 @@ Expression implicitThis_whyNotPromoted(
 /// the [FlowAnalysisOperations] needed by flow analysis, as well as other
 /// methods needed for testing.
 class FlowAnalysisTestHarness extends Harness
-    with FlowModelHelper<SharedTypeView<Type>> {
+    with FlowModelHelper<SharedTypeView> {
   @override
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
   @override
-  final SharedTypeView<Type> boolType = SharedTypeView(Type('bool'));
+  final SharedTypeView boolType = SharedTypeView(Type('bool'));
 
   @override
-  FlowAnalysisOperations<Var, SharedTypeView<Type>> get typeOperations =>
+  FlowAnalysisOperations<Var, SharedTypeView> get typeOperations =>
       typeAnalyzer.operations;
 
   @override
@@ -50,21 +48,20 @@ class FlowAnalysisTestHarness extends Harness
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
 class SsaNodeHarness {
-  final FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView<Type>>
-      _flow;
+  final FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView> _flow;
 
   SsaNodeHarness(this._flow);
 
   /// Gets the SSA node associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
-  SsaNode<SharedTypeView<Type>>? operator [](Var variable) =>
+  SsaNode<SharedTypeView>? operator [](Var variable) =>
       _flow.ssaNodeForTesting(variable);
 }
 
 class _GetExpressionInfo extends Expression {
   final Expression target;
 
-  final void Function(ExpressionInfo<SharedTypeView<Type>>?) callback;
+  final void Function(ExpressionInfo<SharedTypeView>?) callback;
 
   _GetExpressionInfo(this.target, this.callback, {required super.location});
 
@@ -74,13 +71,12 @@ class _GetExpressionInfo extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var type =
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
-    return new ExpressionTypeAnalysisResult<Type>(type: type);
+    return new ExpressionTypeAnalysisResult(type: type);
   }
 }
 
@@ -93,8 +89,7 @@ class _GetSsaNodes extends Expression {
   void preVisit(PreVisitor visitor) {}
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     callback(SsaNodeHarness(h.flow));
     h.irBuilder.atom('null', Kind.expression, location: location);
     return ExpressionTypeAnalysisResult(
@@ -105,7 +100,7 @@ class _GetSsaNodes extends Expression {
 class _WhyNotPromoted extends Expression {
   final Expression target;
 
-  final void Function(Map<SharedTypeView<Type>, NonPromotionReason>) callback;
+  final void Function(Map<SharedTypeView, NonPromotionReason>) callback;
 
   _WhyNotPromoted(this.target, this.callback, {required super.location});
 
@@ -118,20 +113,19 @@ class _WhyNotPromoted extends Expression {
   String toString() => '$target (whyNotPromoted)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var type =
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.whyNotPromoted(this)());
-    return new ExpressionTypeAnalysisResult<Type>(type: type);
+    return new ExpressionTypeAnalysisResult(type: type);
   }
 }
 
 class _WhyNotPromoted_ImplicitThis extends Expression {
   final Type staticType;
 
-  final void Function(Map<SharedTypeView<Type>, NonPromotionReason>) callback;
+  final void Function(Map<SharedTypeView, NonPromotionReason>) callback;
 
   _WhyNotPromoted_ImplicitThis(this.staticType, this.callback,
       {required super.location});
@@ -143,8 +137,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
   String toString() => 'implicit this (whyNotPromoted)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     callback(h.flow.whyNotPromotedImplicitThis(SharedTypeView(staticType))());
     h.irBuilder.atom('noop', Kind.expression, location: location);
     return ExpressionTypeAnalysisResult(
@@ -159,7 +152,7 @@ extension ExpressionExtensionForFlowAnalysisTesting on ProtoExpression {
   /// analysis information associated with it, `null` will be passed to
   /// [callback].
   Expression getExpressionInfo(
-      void Function(ExpressionInfo<SharedTypeView<Type>>?) callback) {
+      void Function(ExpressionInfo<SharedTypeView>?) callback) {
     var location = computeLocation();
     return new _GetExpressionInfo(asExpression(location: location), callback,
         location: location);
@@ -170,7 +163,7 @@ extension ExpressionExtensionForFlowAnalysisTesting on ProtoExpression {
   /// non-promotion info associated with it.  If the expression has no
   /// non-promotion info, an empty map will be passed to [callback].
   Expression whyNotPromoted(
-      void Function(Map<SharedTypeView<Type>, NonPromotionReason>) callback) {
+      void Function(Map<SharedTypeView, NonPromotionReason>) callback) {
     var location = computeLocation();
     return new _WhyNotPromoted(asExpression(location: location), callback,
         location: location);

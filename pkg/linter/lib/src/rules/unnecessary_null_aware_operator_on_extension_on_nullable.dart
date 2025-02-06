@@ -13,11 +13,11 @@ const _desc =
 
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
-      : super(
-          name: LintNames
-              .unnecessary_null_aware_operator_on_extension_on_nullable,
-          description: _desc,
-        );
+    : super(
+        name:
+            LintNames.unnecessary_null_aware_operator_on_extension_on_nullable,
+        description: _desc,
+      );
 
   @override
   LintCode get lintCode =>
@@ -25,7 +25,9 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -42,12 +44,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isNullAware &&
-        _isExtensionOnNullableType(node.inSetterContext()
-            ? node
-                .thisOrAncestorOfType<AssignmentExpression>()
-                ?.writeElement2
-                ?.enclosingElement2
-            : node.element?.enclosingElement2)) {
+        _isExtensionOnNullableType(
+          node.inSetterContext()
+              ? node
+                  .thisOrAncestorOfType<AssignmentExpression>()
+                  ?.writeElement2
+                  ?.enclosingElement2
+              : node.element?.enclosingElement2,
+        )) {
       rule.reportLintForToken(node.question);
     }
   }
@@ -56,7 +60,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isNullAware &&
         _isExtensionOnNullableType(
-            node.methodName.element?.enclosingElement2)) {
+          node.methodName.element?.enclosingElement2,
+        )) {
       rule.reportLintForToken(node.operator);
     }
   }
@@ -65,10 +70,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     if (node.isNullAware) {
       var realParent = node.thisOrAncestorMatching(
-          (p) => p != node && p is! ParenthesizedExpression);
-      if (_isExtensionOnNullableType(realParent is AssignmentExpression
-          ? realParent.writeElement2?.enclosingElement2
-          : node.propertyName.element?.enclosingElement2)) {
+        (p) => p != node && p is! ParenthesizedExpression,
+      );
+      if (_isExtensionOnNullableType(
+        realParent is AssignmentExpression
+            ? realParent.writeElement2?.enclosingElement2
+            : node.propertyName.element?.enclosingElement2,
+      )) {
         rule.reportLintForToken(node.operator);
       }
     }

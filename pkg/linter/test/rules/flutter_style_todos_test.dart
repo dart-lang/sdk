@@ -48,94 +48,50 @@ class FlutterStyleTodosTest extends LintRuleTest {
   }
 
   test_badUsername_comma() async {
-    await assertDiagnostics(
-      r'// TODO(user1,user2): bla',
-      [
-        lint(0, 25),
-      ],
-    );
+    await assertDiagnostics(r'// TODO(user1,user2): bla', [lint(0, 25)]);
   }
 
   test_badUsername_extraSymbols() async {
-    await assertDiagnostics(
-      r'// TODO(#12357): bla',
-      [
-        lint(0, 20),
-      ],
-    );
+    await assertDiagnostics(r'// TODO(#12357): bla', [lint(0, 20)]);
   }
 
   test_charactersBeforeTODO() async {
-    await assertNoDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 // comment TODO(user): bla
 /// final todo = Todo(name: 'test todo', description: 'todo description');
 /// Something interesting. TODO(someone): this is an ugly test case.
-''',
-    );
+''');
   }
 
   test_docComment() async {
-    await assertDiagnostics(
-      r'/// TODO(user): bla',
-      [
-        lint(0, 19),
-      ],
-    );
+    await assertDiagnostics(r'/// TODO(user): bla', [lint(0, 19)]);
   }
 
   test_extraColon() async {
-    await assertDiagnostics(
-      r'// TODO:(user): bla',
-      [
-        lint(0, 19),
-      ],
-    );
+    await assertDiagnostics(r'// TODO:(user): bla', [lint(0, 19)]);
   }
 
   test_goodPatterns() async {
-    await assertNoDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 // TODO(somebody): something
 // TODO(somebody): something, https://github.com/flutter/flutter
-''',
-    );
+''');
   }
 
   test_justTodo() async {
-    await assertDiagnostics(
-      r'// TODO',
-      [
-        lint(0, 7),
-      ],
-    );
+    await assertDiagnostics(r'// TODO', [lint(0, 7)]);
   }
 
   test_justTodo_noLeadingSpace() async {
-    await assertDiagnostics(
-      r'//TODO',
-      [
-        lint(0, 6),
-      ],
-    );
+    await assertDiagnostics(r'//TODO', [lint(0, 6)]);
   }
 
   test_missingColon() async {
-    await assertDiagnostics(
-      r'// TODO(user) bla',
-      [
-        lint(0, 17),
-      ],
-    );
+    await assertDiagnostics(r'// TODO(user) bla', [lint(0, 17)]);
   }
 
   test_missingParens() async {
-    await assertDiagnostics(
-      r'// TODO: bla',
-      [
-        lint(0, 12),
-      ],
-    );
+    await assertDiagnostics(r'// TODO: bla', [lint(0, 12)]);
   }
 
   test_properFormat_dottedUsername() async {
@@ -159,11 +115,6 @@ class FlutterStyleTodosTest extends LintRuleTest {
   }
 
   test_spaceBeforeColon() async {
-    await assertDiagnostics(
-      r'// TODO(user) : bla',
-      [
-        lint(0, 19),
-      ],
-    );
+    await assertDiagnostics(r'// TODO(user) : bla', [lint(0, 19)]);
   }
 }

@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
@@ -88,10 +89,15 @@ class ImportLibrary extends MultiCorrectionProducer {
       foundImport = true;
       var instantiatedExtensions = importedLibrary.exportedExtensions
           .havingMemberWithBaseName(memberName)
-          .applicableTo(targetLibrary: libraryElement2, targetType: targetType);
+          .applicableTo(
+            targetLibrary: libraryElement2,
+            targetType: targetType as TypeImpl,
+          );
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
+        // TODO(FMorschel): We should fix all combinators for the import, if
+        // we don't, we may not import at all.
         var combinators = import.combinators;
         if (combinators.length == 1) {
           var combinator = combinators[0];
@@ -620,7 +626,7 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithAbsoluteUri(
           _library,
           prefix: _prefix,
-          shownName: _show,
+          showName: _show,
           useShow: _show != null,
         );
       }
@@ -755,7 +761,10 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var instantiatedExtensions = library.exportedExtensions
         .havingMemberWithBaseName(memberName)
-        .applicableTo(targetLibrary: libraryElement2, targetType: targetType);
+        .applicableTo(
+          targetLibrary: libraryElement2,
+          targetType: targetType as TypeImpl,
+        );
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.uri);
@@ -866,7 +875,7 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithRelativeUri(
           _library,
           prefix: _prefix,
-          shownName: _show,
+          showName: _show,
           useShow: _show != null,
         );
       }

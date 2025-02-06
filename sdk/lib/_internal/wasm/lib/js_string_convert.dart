@@ -20,27 +20,13 @@ JSStringImpl? decodeUtf8JS(
   bool allowMalformed,
 ) {
   final length = end - start;
-  if (length >= _shortInputThreshold) {
-    final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
-    if (decoder != null) {
-      final arrayRef = codeUnits.toJSArrayExternRef(start, length);
-      final textDecoderResult = _useTextDecoder(
-        externRefForJSAny(decoder),
-        arrayRef,
-      );
-      if (textDecoderResult != null) {
-        return textDecoderResult;
-      }
-    }
+  final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
+  if (decoder != null) {
+    final arrayRef = codeUnits.toJSArrayExternRef(start, length);
+    return _useTextDecoder(externRefForJSAny(decoder), arrayRef);
   }
   return null;
 }
-
-// Always fall back to the Dart implementation for strings shorter than this
-// threshold, as there is a large, constant overhead for using `TextDecoder`.
-// TODO(omersa): This is copied from dart2js runtime, make sure the value is
-// right for dart2wasm.
-const int _shortInputThreshold = 15;
 
 JSStringImpl? _useTextDecoder(
   WasmExternRef? decoder,

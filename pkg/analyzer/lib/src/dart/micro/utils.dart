@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -49,6 +50,46 @@ Element? getElementOfNode(AstNode? node) {
   }
 
   return element;
+}
+
+/// Return the [Element] of the given [node], or `null` if [node] is `null` or
+/// does not have an element.
+Element2? getElementOfNode2(AstNode? node) {
+  if (node == null) {
+    return null;
+  }
+  if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+    node = node.parent;
+  }
+  if (node is LibraryIdentifier) {
+    node = node.parent;
+  }
+  if (node is StringLiteral && node.parent is UriBasedDirective) {
+    return null;
+  }
+
+  Element? element;
+  switch (node) {
+    case ExportDirective():
+      element = node.element;
+    case ImportDirective():
+      element = node.element;
+    case PartOfDirective():
+      element = node.element;
+    default:
+      element = ElementLocator.locate2(node).asElement;
+  }
+
+  if (node is SimpleIdentifier && element is PrefixElement) {
+    var parent = node.parent;
+    if (parent is ImportDirective) {
+      element = parent.element;
+    } else {
+      element = _getImportElementInfo(node);
+    }
+  }
+
+  return element.asElement2;
 }
 
 /// If the given [constructor] is a synthetic constructor created for a

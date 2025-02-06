@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -17,6 +15,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [FunctionExpressionInvocation]s.
 class FunctionExpressionInvocationResolver {
@@ -39,7 +38,7 @@ class FunctionExpressionInvocationResolver {
 
   void resolve(FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
@@ -56,7 +55,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     receiverType = _typeSystem.resolveToBound(receiverType);
-    if (receiverType is FunctionType) {
+    if (receiverType is FunctionTypeImpl) {
       _nullableDereferenceVerifier.expression(
         CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
         function,
@@ -79,11 +78,11 @@ class FunctionExpressionInvocationResolver {
     var result = _typePropertyResolver.resolve(
       receiver: function,
       receiverType: receiverType,
-      name: FunctionElement.CALL_METHOD_NAME,
+      name: MethodElement2.CALL_METHOD_NAME,
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );
-    var callElement = result.getter;
+    var callElement = result.getter2?.asElement;
 
     if (callElement == null) {
       if (result.needsGetterError) {
@@ -145,14 +144,17 @@ class FunctionExpressionInvocationResolver {
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var returnType = FunctionExpressionInvocationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation(
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `rawType`.
+        rawType: rawType as FunctionTypeImpl);
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
@@ -161,12 +163,12 @@ class FunctionExpressionInvocationResolver {
       FunctionExpressionInvocationImpl node,
       ExtensionOverride function,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(
       function,
-      FunctionElement.CALL_METHOD_NAME,
+      MethodElement2.CALL_METHOD_NAME,
     );
-    var callElement = result.getter;
+    var callElement = result.getter2?.asElement;
     node.staticElement = callElement;
 
     if (callElement == null) {
@@ -193,7 +195,7 @@ class FunctionExpressionInvocationResolver {
 
   void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     _setExplicitTypeArgumentTypes(node);
     FunctionExpressionInvocationInferrer(
             resolver: _resolver,

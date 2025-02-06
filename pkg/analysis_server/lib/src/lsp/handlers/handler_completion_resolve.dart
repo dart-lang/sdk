@@ -86,10 +86,17 @@ class CompletionResolveHandler
           return cancelled(token);
         }
 
+        var element =
+            elementReference != null
+                ? await ElementLocation2.decode(
+                  elementReference,
+                ).locateIn(session)
+                : null;
+
         var builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
           for (var uri in importUris) {
-            builder.importLibraryElement(uri);
+            builder.importLibraryElement(uri, showName: element?.name3);
           }
         });
 
@@ -123,12 +130,6 @@ class CompletionResolveHandler
 
         // Look up documentation if we can get an element for this item.
         Either2<MarkupContent, String>? documentation;
-        var element =
-            elementReference != null
-                ? await ElementLocation2.decode(
-                  elementReference,
-                ).locateIn(session)
-                : null;
         if (element != null) {
           var formats = clientCapabilities.completionDocumentationFormats;
           var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);

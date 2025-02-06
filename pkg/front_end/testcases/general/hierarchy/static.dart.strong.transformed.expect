@@ -121,9 +121,6 @@ abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*i
   method mixedInInstanceDeclaredStaticMethod() → void {}
   method mixedInInstanceImplementedStaticMethod() → void {}
   method extendedStaticMixedInInstanceMethod() → void {}
-  static method mixedInStaticDeclaredInstanceMethod() → void {}
-  static method mixedInStaticImplementedInstanceMethod() → void {}
-  static method extendedInstanceMixedInStaticMethod() → void {}
 }
 abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
   synthetic constructor •() → self::Class

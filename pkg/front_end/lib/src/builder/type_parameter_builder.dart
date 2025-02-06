@@ -482,9 +482,6 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
         case ExtensionBuilder():
         case BuiltinTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
         case null:
       }
     case FunctionTypeBuilder(

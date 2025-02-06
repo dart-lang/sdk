@@ -12,17 +12,16 @@ const _desc = 'Prefer int literals over double literals.';
 
 class PreferIntLiterals extends LintRule {
   PreferIntLiterals()
-      : super(
-          name: LintNames.prefer_int_literals,
-          description: _desc,
-        );
+    : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_int_literals;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     registry.addDoubleLiteral(this, _Visitor(this));
   }
 }

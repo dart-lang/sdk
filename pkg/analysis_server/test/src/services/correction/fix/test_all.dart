@@ -92,6 +92,12 @@ import 'convert_to_initializing_formal_test.dart'
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_list_element_test.dart'
+    as convert_to_null_aware_list_element_test;
+import 'convert_to_null_aware_map_entry_test.dart'
+    as convert_to_null_aware_map_entry_test;
+import 'convert_to_null_aware_set_element_test.dart'
+    as convert_to_null_aware_set_element_test;
 import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
@@ -187,6 +193,8 @@ import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_extends_clause_test.dart' as remove_extends_clause;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
+import 'remove_ignore_comment_test.dart' as remove_ignore_comment;
+import 'remove_ignored_diagnostic_test.dart' as remove_ignored_diagnostic;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_invocation_test.dart' as remove_invocation;
@@ -379,6 +387,9 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_list_element_test.main();
+    convert_to_null_aware_map_entry_test.main();
+    convert_to_null_aware_set_element_test.main();
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
@@ -465,6 +476,8 @@ void main() {
     remove_empty_statement.main();
     remove_extends_clause.main();
     remove_if_null_operator.main();
+    remove_ignore_comment.main();
+    remove_ignored_diagnostic.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_invocation.main();

@@ -2,16 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/context_collection_resolution.dart';
+import '../../summary/elements_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,54 +14,99 @@ main() {
 }
 
 @reflectiveTest
-class ElementNameUnionTest extends PubPackageResolutionTest {
-  test_it() async {
-    await _checkLibrary('dart:async');
-    await _checkLibrary('dart:core');
-    await _checkLibrary('dart:math');
-  }
-
-  Future<void> _checkLibrary(String uriStr) async {
-    var analysisContext = contextFor(testFile);
-    var analysisSession = analysisContext.currentSession;
-
-    var result = await analysisSession.getLibraryByUri(uriStr);
-    result as LibraryElementResult;
-    var element = result.element;
-
-    var union = ElementNameUnion.forLibrary(element);
-    element.accept(
-      _ElementVisitor(union),
-    );
-  }
-}
-
-/// Checks that the name of every interesting element is in [union].
-class _ElementVisitor extends GeneralizingElementVisitor<void> {
-  final ElementNameUnion union;
-
-  _ElementVisitor(this.union);
-
+class ElementNameUnionTest extends ElementsBaseTest {
   @override
-  void visitElement(Element element) {
-    var enclosing = element.enclosingElement3;
-    if (enclosing is CompilationUnitElement ||
-        element is FieldElement ||
-        element is MethodElement ||
-        element is PropertyAccessorElement) {
-      var name = element.name;
-      if (name != null) {
-        expect(union.contains(name), isTrue, reason: 'Expected to find $name');
-        // This might fail, but the probability is low. If this does fail, try
-        // adding another `z` to the prefix.
-        expect(
-          union.contains('zz$name'),
-          isFalse,
-          reason: 'Expected to not find $name',
-        );
-      }
-    }
+  bool get keepLinkingLibraries => false;
 
-    super.visitElement(element);
+  test_class() async {
+    var library = await buildLibrary(r'''
+class MyClass {
+  final myField = 0;
+  int get myGetter => 0;
+  set mySetter(int _) {}
+  void myMethod() {}
+}
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyClass'), isTrue);
+    expect(nameUnion.contains('NotMyClass'), isFalse);
+
+    expect(nameUnion.contains('myField'), isTrue);
+    expect(nameUnion.contains('NotMyField'), isFalse);
+
+    expect(nameUnion.contains('myGetter'), isTrue);
+    expect(nameUnion.contains('NotMyGetter'), isFalse);
+
+    expect(nameUnion.contains('mySetter'), isTrue);
+    expect(nameUnion.contains('NotMySetter'), isFalse);
+
+    expect(nameUnion.contains('myMethod'), isTrue);
+    expect(nameUnion.contains('NotMyMethod'), isFalse);
+  }
+
+  test_enum() async {
+    var library = await buildLibrary(r'''
+enum MyEnum {
+  myValue
+}
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyEnum'), isTrue);
+    expect(nameUnion.contains('NotMyEnum'), isFalse);
+
+    expect(nameUnion.contains('MyValue'), isTrue);
+    expect(nameUnion.contains('NotMyValue'), isFalse);
+  }
+
+  test_extension() async {
+    var library = await buildLibrary(r'''
+extension MyExtension on int {}
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyExtension'), isTrue);
+    expect(nameUnion.contains('NotMyExtension'), isFalse);
+  }
+
+  test_extensionType() async {
+    var library = await buildLibrary(r'''
+extension type MyExtensionType(int it) {}
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyExtensionType'), isTrue);
+    expect(nameUnion.contains('NotMyExtensionType'), isFalse);
+  }
+
+  test_mixin() async {
+    var library = await buildLibrary(r'''
+mixin MyMixin {}
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyMixin'), isTrue);
+    expect(nameUnion.contains('NotMyMixin'), isFalse);
+  }
+
+  test_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+final myVariable = 0;
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('myVariable'), isTrue);
+    expect(nameUnion.contains('NotMyVariable'), isFalse);
+  }
+
+  test_typedef() async {
+    var library = await buildLibrary(r'''
+typedef MyTypedef = int;
+''');
+
+    var nameUnion = library.nameUnion;
+    expect(nameUnion.contains('MyTypedef'), isTrue);
+    expect(nameUnion.contains('NotMyTypedef'), isFalse);
   }
 }

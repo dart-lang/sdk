@@ -9,12 +9,12 @@ import "dart:_internal"
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
-        indexCheckWithName,
         intBitsToDouble,
         IterableElementError,
         jsonEncode,
         ListIterator,
         Lists,
+        minify,
         mix64,
         patch,
         POWERS_OF_TEN,
@@ -25,6 +25,7 @@ import "dart:_internal"
         WasmStringBase,
         WasmTypedDataBase;
 
+import 'dart:_error_utils';
 import "dart:_internal" as _internal;
 
 import 'dart:_js_helper'

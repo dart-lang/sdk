@@ -14,17 +14,16 @@ const _desc = r'Annotate overridden members.';
 
 class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
-      : super(
-          name: LintNames.annotate_overrides,
-          description: _desc,
-        );
+    : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.annotate_overrides;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

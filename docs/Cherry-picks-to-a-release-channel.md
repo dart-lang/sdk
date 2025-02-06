@@ -1,13 +1,6 @@
-> [!IMPORTANT]
-> This page was copied from https://github.com/dart-lang/sdk/wiki and needs review.
-> Please [contribute](../CONTRIBUTING.md) changes to bring it up-to-date -
-> removing this header - or send a CL to delete the file.
-
----
+# Cherry-picks to a Release Channel
 
 Cherry-picking is the process of selecting and merging an existing bug fix from our main development branch into a release branch (e.g. from `main` to `beta` or `stable`) for inclusion into the next hotfix release.
-
-With the Dart and Flutter joint release process, we're using a combined [Dart & Flutter Cherrypick Review and Approval Process](https://github.com/flutter/flutter/wiki/Flutter-Cherrypick-Process). This document is a supplement to the main process and describes the process and flow within the Dart team.
 
 **Note**: This process applies to bugs and regressions. Feature work is not considered for cherry picking and will need to wait for the next release.
 
@@ -34,31 +27,46 @@ Update the commit message accordingly:
 1. Add a `[beta]` or `[stable]` gerrit hashtag at the start of the first line.
 2. Rename the `Reviewed-on` field to `Cherry-pick` to link to the original
    changelist being cherry-picked.\
-3. Add a temporary `Cherry-pick-request` field to be filled in later.
-4. Remove the conflicting fields `Change-id`, `Commit-queue`, `Reviewed-by` that
+3. Remove the conflicting fields `Change-id`, `Commit-queue`, `Reviewed-by` that
    are not true of the new changelist.
+4. Fill out the changelist description with the following information:
+   1. Issue description: (Brief description of the issue. What is the issue?
+      What platforms are the problems occurring on?)
+   2. What is the fix: (Brief description of the fix)
+   3. Why cherry-pick: (Describe the reasons, impacted users and functional
+      issues to explain why this should be cherry-picked.)
+   4. Risk: (Describe the risks associated with this cherry-pick.)
+   5. Issue link(s): (Add links to the original issues fixed by this
+      cherry-pick.)
 
 E.g.:
 
 ```
 [stable] Fix foo crash.
 
-Avoid foo doing bar instead.
+Issue description: When attempting to use foo under certain conditions, users are unable to
+compile.
+What is the fix: foo is now evaluated at runtime.
+Why cherry-pick: Users of foo are no longer able to compile to bar.
+Risk: Low, this fix has landed on the main channel and is tested on the same infrastructure. 
+Issue link(s): https://github.com/dart-lang/sdk/issues/12345678
 
-Add reproducing test case.
-
-Bug: https://github.com/dart-lang/sdk/issues/12345678
 Cherry-pick: https://dart-review.googlesource.com/c/sdk/+/12345678
-Cherry-pick-request: TBA
 ```
 
 ## Changelog
 
-Stable cherry-picks [must have CHANGELOG.md entries](Gerrit-Submit-Requirements#changelog) explaining the changes. The release engineers don't have your full context and rely on this information.
+Stable cherry-picks [must have CHANGELOG.md entries](Gerrit-Submit-Requirements#changelog)
+explaining the changes. The release engineers don't have your full context and rely on this
+information.
 
 Beta releases don't have changelog entries.
 
-If the `CHANGELOG.md` does not already have a section for the next stable hotfix, add such a section and increase the patch number (e.g. `3.0.4` -> `3.0.5`) without a date. If a section has a release date, it has already been released and should not be modified. The date will be added when the stable release is authored and it is decided when the release will be published.
+If the `CHANGELOG.md` does not already have a section for the next stable
+hotfix, add such a section and increase the patch number (e.g. `3.0.4` ->
+`3.0.5`) without a date. If a section has a release date, it has already been
+released and should not be modified. The date will be added when the stable
+release is authored and it is decided when the release will be published.
 
 ```markdown
 ## 3.0.5
@@ -67,18 +75,19 @@ This is a patch release that:
 
 - Fixes all bugs in the Dart SDK (issue [#123456])
 
-[#123456]: https://github.com/dart-lang/sdk/issues/123456
+[#123456]: https://dart-review.googlesource.com/c/sdk/+/123456
 
-## 3.0.4 - 2023-06-07
+## 3.0.4
+**Released on:** 2025-01-08
 
 This is a patch release that:
 
 ...
 ```
 
-Link to your cherry-pick request as subsequently filed below. You can upload the changelist again with the final link once the GitHub issue has been filed. The cherry-pick request on GitHub is often more useful for users than the original bug, since it explains the rationale concisely and links to the underlying bug for more information.
-
-If the cherry-pick is infrastructure only and is invisible to users, the `Changelog-Exempt: ...` footer exempts the change from the changelog requirement.
+If the cherry-pick is infrastructure only and is invisible to users, the
+`Changelog-Exempt: ...` footer exempts the change from the changelog
+requirement.
 
 ## Uploading the cherry-pick changelist
 
@@ -91,43 +100,14 @@ git cl upload
 Trigger a commit queue dry run and add any appropriate try builders to confirm
 the fix is correct.
 
-## Request cherry-pick approval
-
-Request approval for releasing the fix to beta/stable using
-this [cherry-pick to beta/stable request template][cherry-pick-template]:
-
-* Brief description of the problem.
-* The reason for cherry pick, user impact, and a brief risk assessment
-  (low/medium/high).
-* Link to the changelist.
-* The `cherry-pick-review` label.
-
-Edit the changelist's commit message with a link to the cherry-pick request:
-
-```
-Cherry-pick-request: https://github.com/dart/sdk/issues/56781234
-```
-
-Send the changelist for review. Await the appropriate consensus and approval via the
-`cherry-pick-request` for them or any OWNER to review the changelist.
-
 ## Submitting the cherry-pick
 
-Once the cherry-pick issue is approved and the changelist is reviewed, the 
-cherry-pick author will submit it to the commit queue. The tryjobs will compare 
-the test results with the previous commit on the beta/stable branch and fail if 
-any regressions are introduced. If any regressions must be introduced, or the 
-try builders don't work on the older beta/stable code, then bypass the commit queue 
-by force submitting.
-
-The release engineers will apply the `cherry-pick-merged` label and the cherry-pick 
-will be automatically bundled into the next hotfix release of beta/stable and no 
-further actions are required.
-
-Once the cherry-pick has landed in a hotfix release, the release engineering team
-will close the cherry-pick issue.
-
-[cherry-pick-template]: https://github.com/dart-lang/sdk/issues/new?assignees=mit-mit%2Cwhesse%2Cathomas%2Cvsmenon%2Citsjustkevin&labels=cherry-pick-review&template=2_cherry_pick.yml&title=%5BCP%5D+%3Ctitle%3E
+Once the cherry-pick changelist is reviewed by an area subject matter expert and
+a Dart team lead, the cherry-pick author will submit it to the commit queue. The
+tryjobs will compare the test results with the previous commit on the
+beta/stable branch and fail if any regressions are introduced. If any
+regressions must be introduced, or the try builders don't work on the older
+beta/stable code, then bypass the commit queue by force submitting.
 
 ## Cherry-picking a commit in a dependency
 

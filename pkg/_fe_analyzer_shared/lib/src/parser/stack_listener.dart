@@ -66,7 +66,6 @@ enum NullValues implements NullValue<Object> {
   Initializers,
   Labels,
   Metadata,
-  MixinApplicationBuilder,
   Modifiers,
   Name,
   NominalVariable,

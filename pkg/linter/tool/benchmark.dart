@@ -45,8 +45,10 @@ Iterable<File> collectFiles(String entityPtah) {
   } else {
     var directory = Directory(entityPtah);
     if (directory.existsSync()) {
-      for (var entry
-          in directory.listSync(recursive: true, followLinks: false)) {
+      for (var entry in directory.listSync(
+        recursive: true,
+        followLinks: false,
+      )) {
         var relative = path.relative(entry.path, from: directory.path);
 
         if (entry is File && entry.path.isLintable && !relative.isInHiddenDir) {
@@ -89,13 +91,20 @@ Future<void> runLinter(List<String> args) async {
 
   var parser = ArgParser();
   parser
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Show usage information.')
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Show usage information.',
+    )
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
-    ..addMultiOption('rules',
-        help: 'A list of lint rules to run. For example: '
-            'annotate_overrides, avoid_catching_errors');
+    ..addMultiOption(
+      'rules',
+      help:
+          'A list of lint rules to run. For example: '
+          'annotate_overrides, avoid_catching_errors',
+    );
 
   ArgResults options;
   try {
@@ -113,8 +122,11 @@ Future<void> runLinter(List<String> args) async {
 
   var paths = options.rest;
   if (paths.isEmpty) {
-    printUsage(parser, errorSink,
-        'Please provide at least one file or directory to lint.');
+    printUsage(
+      parser,
+      errorSink,
+      'Please provide at least one file or directory to lint.',
+    );
     exitCode = unableToProcessExitCode;
     return;
   }
@@ -127,8 +139,9 @@ Future<void> runLinter(List<String> args) async {
     var optionsContent = readFile(configFile);
     var options = loadYamlNode(optionsContent) as YamlMap;
     var ruleConfigs = parseLinterSection(options)!.values;
-    var enabledRules = Registry.ruleRegistry
-        .where((rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)));
+    var enabledRules = Registry.ruleRegistry.where(
+      (rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)),
+    );
 
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
@@ -155,20 +168,19 @@ Future<void> runLinter(List<String> args) async {
 
   var filesToLint = [
     for (var path in paths)
-      ...collectFiles(path)
-          .map((file) => file.path.toAbsoluteNormalizedPath())
-          .map(File.new),
+      ...collectFiles(
+        path,
+      ).map((file) => file.path.toAbsoluteNormalizedPath()).map(File.new),
   ];
 
-  await writeBenchmarks(
-    outSink,
-    filesToLint,
-    linterOptions,
-  );
+  await writeBenchmarks(outSink, filesToLint, linterOptions);
 }
 
 Future<void> writeBenchmarks(
-    StringSink out, List<File> filesToLint, LinterOptions linterOptions) async {
+  StringSink out,
+  List<File> filesToLint,
+  LinterOptions linterOptions,
+) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
     await lintFiles(TestLinter(linterOptions), filesToLint);
@@ -183,28 +195,31 @@ Future<void> writeBenchmarks(
   var recommendedRuleset = await dartRecommendedLints;
   var flutterRuleset = await flutterUserLints;
 
-  var stats = timings.keys.map((t) {
-    var sets = <String>[];
-    if (coreRuleset.contains(t)) {
-      sets.add('core');
-    }
-    if (recommendedRuleset.contains(t)) {
-      sets.add('recommended');
-    }
-    if (flutterRuleset.contains(t)) {
-      sets.add('flutter');
-    }
+  var stats =
+      timings.keys.map((t) {
+        var sets = <String>[];
+        if (coreRuleset.contains(t)) {
+          sets.add('core');
+        }
+        if (recommendedRuleset.contains(t)) {
+          sets.add('recommended');
+        }
+        if (flutterRuleset.contains(t)) {
+          sets.add('flutter');
+        }
 
-    var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
-    return Stat('$t$details', timings[t] ?? 0);
-  }).toList();
+        var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
+        return Stat('$t$details', timings[t] ?? 0);
+      }).toList();
   out.writeTimings(stats, 0);
 }
 
 int _maxSeverity(List<AnalysisErrorInfo> infos) {
   var filteredErrors = infos.expand((i) => i.errors);
   return filteredErrors.fold(
-      0, (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal));
+    0,
+    (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal),
+  );
 }
 
 class Stat implements Comparable<Stat> {
@@ -258,8 +273,10 @@ extension on StringSink {
   void writeTimings(List<Stat> timings, int summaryLength) {
     var names = timings.map((s) => s.name).toList();
 
-    var longestName =
-        names.fold<int>(0, (prev, element) => math.max(prev, element.length));
+    var longestName = names.fold<int>(
+      0,
+      (prev, element) => math.max(prev, element.length),
+    );
     var longestTime = 8;
     var tableWidth = math.max(summaryLength, longestName + longestTime);
     var pad = tableWidth - longestName;
@@ -275,12 +292,14 @@ extension on StringSink {
     for (var stat in timings) {
       totalTime += stat.elapsed;
       writeln(
-          '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
+        '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}',
+      );
     }
 
     writeln(line);
     writeln(
-        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}');
+      '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}',
+    );
     writeln(line);
   }
 }

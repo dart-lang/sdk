@@ -22,6 +22,7 @@ class C {
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'a' isn't defined for the class 'C'.
   }
+
   bar() {
     print(b.a);
     //    ^

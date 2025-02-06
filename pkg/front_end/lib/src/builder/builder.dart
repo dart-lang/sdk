@@ -226,8 +226,7 @@ abstract class Builder {
   /// A class/member builder can be augmented through 'augment' modifier in
   /// augmentation libraries or through the `@patch` annotation in patch
   /// libraries. A library builder can be augmented through the augmentation
-  /// libraries feature, through macro generated augmentation libraries or
-  /// through patch libraries.
+  /// libraries feature or through patch libraries.
   bool get isAugmenting;
 
   /// Returns `true` if the related declaration is marked `augment`

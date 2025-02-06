@@ -11,7 +11,22 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
+
+extension BindPatternVariableElementImpl2Extension
+    on BindPatternVariableElementImpl2 {
+  BindPatternVariableElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension BindPatternVariableElementImplExtension
+    on BindPatternVariableElementImpl {
+  BindPatternVariableElementImpl2 get asElement2 {
+    return element;
+  }
+}
 
 extension ClassElement2Extension on ClassElement2 {
   ClassElement get asElement {
@@ -22,6 +37,18 @@ extension ClassElement2Extension on ClassElement2 {
 extension ClassElementExtension on ClassElement {
   ClassElement2 get asElement2 {
     return (this as ClassElementImpl).element;
+  }
+}
+
+extension ClassElementImpl2Extension on ClassElementImpl2 {
+  ClassElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension ClassElementImplExtension on ClassElementImpl {
+  ClassElementImpl2 get asElement2 {
+    return element;
   }
 }
 
@@ -51,7 +78,7 @@ extension ConstructorElement2Extension on ConstructorElement2 {
     if (this case ConstructorMember member) {
       return member;
     }
-    return baseElement.firstFragment as ConstructorElement;
+    return (this as ConstructorElementImpl2).lastFragment;
   }
 }
 
@@ -66,15 +93,6 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension Element2Extension on Element2 {
-  List<Fragment> get fragments {
-    return [
-      for (Fragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
-        fragment,
-    ];
-  }
-
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
@@ -142,46 +160,48 @@ extension Element2OrNullExtension on Element2? {
     switch (self) {
       case null:
         return null;
-      case ConstructorElementImpl2():
-        return self.firstFragment as Element;
+      case BindPatternVariableElementImpl2 element2:
+        return element2.asElement;
+      case ConstructorElementImpl2 element2:
+        return element2.asElement;
       case DynamicElementImpl2():
         return self.firstFragment;
-      case ExecutableMember():
-        return self.declaration as Element;
-      case ExtensionElementImpl2():
-        return self.firstFragment as Element;
-      case FieldElementImpl2():
-        return self.firstFragment as Element;
+      case ExecutableMember element2:
+        return element2.asElement;
+      case ExtensionElementImpl2 element2:
+        return element2.asElement;
+      case FieldElementImpl2 element2:
+        return element2.asElement;
       case FieldMember():
         return self.declaration as Element;
       case FormalParameterElement element2:
         return element2.asElement;
-      case GetterElementImpl():
-        return self.firstFragment as Element;
+      case GetterElementImpl element2:
+        return element2.asElement;
       case LabelElementImpl2 element2:
         return element2.asElement;
       case LibraryElementImpl():
         return self as Element;
       case LibraryImportElementImpl():
         return self as Element;
-      case LocalFunctionElementImpl():
-        return self.wrappedElement as Element;
+      case LocalFunctionElementImpl element2:
+        return element2.asElement;
       case LocalVariableElementImpl2():
         return self.wrappedElement as Element;
-      case MethodElementImpl2():
-        return self.firstFragment as Element;
+      case MethodElementImpl2 element2:
+        return element2.asElement;
       case MultiplyDefinedElementImpl2 element2:
         return element2.asElement;
       case NeverElementImpl2():
         return NeverElementImpl.instance;
       case PrefixElement2 element2:
         return element2.asElement;
-      case SetterElementImpl():
-        return self.firstFragment as Element;
-      case TopLevelFunctionElementImpl():
-        return self.firstFragment as Element;
-      case TopLevelVariableElementImpl2():
-        return self.firstFragment as Element;
+      case SetterElementImpl element2:
+        return element2.asElement;
+      case TopLevelFunctionElementImpl element2:
+        return element2.asElement;
+      case TopLevelVariableElementImpl2 element2:
+        return element2.asElement;
       case TypeDefiningElement2():
         return self.firstFragment as Element;
       default:
@@ -281,12 +301,18 @@ extension EnumElementExtension on EnumElement {
   }
 }
 
+extension EnumElementImplExtension on EnumElementImpl {
+  EnumElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ExecutableElement2Extension on ExecutableElement2 {
-  ExecutableElement get asElement {
+  ExecutableElementOrMember get asElement {
     if (this case ExecutableMember member) {
       return member;
     }
-    return firstFragment as ExecutableElement;
+    return firstFragment as ExecutableElementOrMember;
   }
 }
 
@@ -297,12 +323,15 @@ extension ExecutableElement2OrNullExtension on ExecutableElement2? {
 }
 
 extension ExecutableElementExtension on ExecutableElement {
-  ExecutableElement2 get asElement2 {
+  ExecutableElement2OrMember get asElement2 {
     return switch (this) {
       ExecutableFragment(:var element) => element,
       ExecutableMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
+    }
+        // TODO(paulberry): eliminate this cast by using impl types in the
+        // switch patterns above.
+        as ExecutableElement2OrMember;
   }
 }
 
@@ -349,7 +378,7 @@ extension FieldElementExtension on FieldElement {
   }
 }
 
-extension FormalParameterExtension on FormalParameterElement {
+extension FormalParameterElementExtension on FormalParameterElement {
   ParameterElement get asElement {
     if (this case ParameterMember member) {
       return member;
@@ -377,6 +406,12 @@ extension FormalParameterExtension on FormalParameterElement {
   }
 }
 
+extension FormalParameterElementImplExtension on FormalParameterElementImpl {
+  ParameterElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
 extension InterfaceElement2Extension on InterfaceElement2 {
   InterfaceElement get asElement {
     return firstFragment as InterfaceElement;
@@ -386,6 +421,18 @@ extension InterfaceElement2Extension on InterfaceElement2 {
 extension InterfaceElementExtension on InterfaceElement {
   InterfaceElement2 get asElement2 {
     return (this as InterfaceElementImpl).element;
+  }
+}
+
+extension InterfaceElementImpl2Extension on InterfaceElementImpl2 {
+  InterfaceElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
+extension InterfaceElementImplExtension on InterfaceElementImpl {
+  InterfaceElementImpl2 get asElement2 {
+    return element;
   }
 }
 
@@ -454,7 +501,7 @@ extension MethodElement2Extension on MethodElement2 {
     if (this case MethodMember member) {
       return member;
     }
-    return baseElement.firstFragment as MethodElement;
+    return (this as MethodElementImpl2).lastFragment;
   }
 }
 
@@ -480,10 +527,16 @@ extension MixinElementExtension on MixinElement {
   }
 }
 
+extension MixinElementImplExtension on MixinElementImpl {
+  MixinElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ParameterElementExtension on ParameterElement {
-  FormalParameterElement get asElement2 {
+  FormalParameterElementMixin get asElement2 {
     return switch (this) {
-      FormalParameterFragment(:var element) => element,
+      ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
@@ -511,7 +564,7 @@ extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
     if (this case PropertyAccessorMember member) {
       return member;
     }
-    return firstFragment as PropertyAccessorElement;
+    return (this as PropertyAccessorElementImpl2).lastFragment;
   }
 }
 
@@ -527,7 +580,7 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
 
 extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
   FunctionElement get asElement {
-    return firstFragment as FunctionElement;
+    return (this as TopLevelFunctionElementImpl).lastFragment;
   }
 }
 
@@ -555,9 +608,30 @@ extension TypeAliasElementExtension on TypeAliasElement {
   }
 }
 
+extension TypeAliasElementImplExtension on TypeAliasElementImpl {
+  TypeAliasElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;
+  }
+
+  TypeParameterElementImpl2 freshCopy() {
+    var fragment = TypeParameterElementImpl(
+      name3 ?? '',
+      -1,
+    );
+    fragment.bound = bound;
+    return TypeParameterElementImpl2(
+      firstFragment: fragment,
+      name3: name3,
+      // TODO(paulberry): eliminate this cast by changing this extension to
+      // apply to `TypeParameterElementImpl2`.
+      bound: bound as TypeImpl?,
+    );
   }
 }
 

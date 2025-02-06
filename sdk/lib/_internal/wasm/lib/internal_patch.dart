@@ -181,33 +181,24 @@ String jsonEncode(String object) => jsStringToDartString(
   ),
 );
 
-/// Whether to check bounds in [indexCheck] and [indexCheckWithName], which are
-/// used in list and typed data implementations.
+/// Whether to check bounds in [IndexErrorUtils.checkIndex],
+/// which are  used in list and typed data implementations.
 ///
 /// Bounds checks are disabled with `--omit-bounds-checks`, which is implied by
 /// `-O4`.
 ///
 /// Reads of this variable is evaluated before the TFA by the constant
 /// evaluator, and its value depends on `--omit-bounds-checks`.
-external bool get _checkBounds;
+external bool get checkBounds;
 
-/// Index check that can be disabled with `--omit-bounds-checks`.
+/// Whether minification mode is on.
 ///
-/// Assumes that [length] is positive.
-@pragma("wasm:prefer-inline")
-void indexCheck(int index, int length) {
-  if (_checkBounds && length.leU(index)) {
-    throw IndexError.withLength(index, length);
-  }
-}
-
-/// Same as [indexCheck], but passes [name] to [IndexError].
-@pragma("wasm:prefer-inline")
-void indexCheckWithName(int index, int length, String name) {
-  if (_checkBounds && length.leU(index)) {
-    throw IndexError.withLength(index, length, name: name);
-  }
-}
+/// If minification is on we do not retain specific error message details (e.g.
+/// omit the index in index errors).
+///
+/// Reads of this variable is evaluated before the TFA by the constant
+/// evaluator, and its value depends on `--minify`.
+external bool get minify;
 
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>

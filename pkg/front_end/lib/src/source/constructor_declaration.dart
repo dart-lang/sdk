@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart';
 
-import '../builder/property_builder.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../type_inference/inference_results.dart';
 import 'source_function_builder.dart';
+import 'source_property_builder.dart';
 
 /// Common interface for builders for generative constructor declarations in
 /// source code, such as a generative constructor in a regular class or a
@@ -41,14 +41,14 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   ///
   /// The field can be initialized either via an initializing formal or via an
   /// entry in the constructor initializer list.
-  void registerInitializedField(PropertyBuilder fieldBuilder);
+  void registerInitializedField(SourcePropertyBuilder fieldBuilder);
 
   /// Returns the fields registered as initialized by this constructor.
   ///
   /// Returns the set of fields previously registered via
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
-  Set<PropertyBuilder>? takeInitializedFields();
+  Set<SourcePropertyBuilder>? takeInitializedFields();
 
   /// Substitute [fieldType] from the context of the enclosing class or
   /// extension type declaration to this constructor.

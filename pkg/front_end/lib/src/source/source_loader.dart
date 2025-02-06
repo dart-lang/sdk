@@ -33,7 +33,6 @@ import 'package:package_config/package_config.dart' as package_config;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
-import '../base/builder_graph.dart';
 import '../base/common.dart';
 import '../base/export.dart' show Export;
 import '../base/import_chains.dart';
@@ -71,9 +70,7 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/macro/macro.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-import '../macros/macro_injected_impl.dart' as injected;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import 'diet_listener.dart' show DietListener;
@@ -228,11 +225,6 @@ class SourceLoader extends Loader {
   int byteCount = 0;
 
   UriOffset? currentUriForCrashReporting;
-
-  ClassBuilder? _macroClassBuilder;
-
-  /// The macro declarations that are currently being compiled.
-  Set<ClassBuilder> _macroDeclarations = {};
 
   final List<String> _expectedOutlineFutureProblems = [];
   final List<String> _expectedBodyBuildingFutureProblems = [];
@@ -1354,8 +1346,6 @@ severity: $severity
           case StructuralParameterBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
-          // TODO(johnniwinther): How should we handle this case?
-          case OmittedTypeDeclarationBuilder():
         }
       }
     }
@@ -1564,246 +1554,6 @@ severity: $severity
       typeCount += library.resolveTypes();
     }
     ticker.logMs("Resolved $typeCount types");
-  }
-
-  /// Computes which macro declarations that needs to be precompiled in order
-  /// to support macro application during compilation.
-  ///
-  /// If no macros need precompilation, `null` is returned.
-  NeededPrecompilations? computeMacroDeclarations() {
-    LibraryBuilder? macroLibraryBuilder =
-        lookupLoadedLibraryBuilder(macroLibraryUri);
-    if (macroLibraryBuilder == null) {
-      // The macro library might not be directly imported by the source
-      // libraries, so we look up in the dill loader as well.
-      macroLibraryBuilder =
-          target.dillTarget.loader.lookupLibraryBuilder(macroLibraryUri);
-      if (macroLibraryBuilder == null) {
-        return null;
-      }
-    }
-
-    // Coverage-ignore-block(suite): Not run.
-    Builder? macroClassBuilder =
-        macroLibraryBuilder.lookupLocalMember(macroClassName);
-    if (macroClassBuilder is! ClassBuilder) {
-      // TODO(johnniwinther): Report this when the actual macro builder package
-      // exists. It should at least be a warning.
-      return null;
-    }
-
-    _macroClassBuilder = macroClassBuilder;
-    if (retainDataForTesting) {
-      dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
-    }
-
-    /// Libraries containing macros that need compilation mapped to the
-    /// [ClassBuilder]s for the macro classes.
-    Map<Uri, List<ClassBuilder>> macroLibraries = {};
-
-    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-      Iterator<ClassBuilder> iterator =
-          libraryBuilder.localMembersIteratorOfType();
-      while (iterator.moveNext()) {
-        ClassBuilder builder = iterator.current;
-        if (builder.isMacro) {
-          Uri libraryUri = builder.libraryBuilder.importUri;
-          if (target.context.options.runningPrecompilations
-              .contains(libraryUri)) {
-            // We are explicitly compiling this macro.
-            _macroDeclarations.add(builder);
-          } else if (!target.context.options.macroExecutor
-              .libraryIsRegistered(libraryUri)) {
-            (macroLibraries[libraryUri] ??= []).add(builder);
-            if (retainDataForTesting) {
-              (dataForTesting!.macroDeclarationData
-                      .macroDeclarations[libraryUri] ??= [])
-                  .add(builder.name);
-            }
-          }
-        }
-      }
-    }
-
-    if (macroLibraries.isEmpty) {
-      return null;
-    }
-
-    List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
-        {required bool Function(Uri) filter}) {
-      List<List<Uri>> stronglyConnectedComponents =
-          computeStrongComponents(libraryGraph);
-
-      Graph<List<Uri>> strongGraph =
-          new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
-      List<List<List<Uri>>> componentLayers =
-          topologicalSort(strongGraph).layers;
-      List<List<Uri>> layeredComponents = [];
-      List<Uri> currentLayer = [];
-      for (List<List<Uri>> layer in componentLayers) {
-        bool declaresMacro = false;
-        for (List<Uri> component in layer) {
-          for (Uri uri in component) {
-            if (filter(uri)) continue;
-            if (macroLibraries.containsKey(uri)) {
-              declaresMacro = true;
-            }
-            currentLayer.add(uri);
-          }
-        }
-        if (declaresMacro) {
-          layeredComponents.add(currentLayer);
-          currentLayer = [];
-        }
-      }
-      if (currentLayer.isNotEmpty) {
-        layeredComponents.add(currentLayer);
-      }
-      return layeredComponents;
-    }
-
-    Graph<Uri> graph = new BuilderGraph(_loadedLibraryBuilders);
-
-    /// Libraries that are considered precompiled. These are libraries that are
-    /// either given as precompiled macro libraries, or libraries that these
-    /// depend upon.
-    // TODO(johnniwinther): Can we assume that the precompiled dills are
-    // self-contained?
-    Set<Uri> precompiledLibraries = {};
-
-    void addPrecompiledLibrary(Uri uri) {
-      if (precompiledLibraries.add(uri)) {
-        for (Uri neighbor in graph.neighborsOf(uri)) {
-          addPrecompiledLibrary(neighbor);
-        }
-      }
-    }
-
-    for (CompilationUnit builder in _compilationUnits.values) {
-      if (builder.importUri.isScheme("dart") && !builder.isSynthetic) {
-        // Assume the platform is precompiled.
-        addPrecompiledLibrary(builder.importUri);
-      } else if (target.context.options.macroExecutor
-          .libraryIsRegistered(builder.importUri)) {
-        // The precompiled macros given are also precompiled.
-        assert(
-            !macroLibraries.containsKey(builder.importUri),
-            "Macro library ${builder.importUri} is only partially "
-            "precompiled.");
-        addPrecompiledLibrary(builder.importUri);
-      }
-    }
-
-    bool isPrecompiledLibrary(Uri uri) => precompiledLibraries.contains(uri);
-
-    List<List<Uri>> compilationSteps =
-        computeCompilationSequence(graph, filter: isPrecompiledLibrary);
-    if (retainDataForTesting) {
-      dataForTesting!.macroDeclarationData.compilationSequence =
-          compilationSteps;
-    }
-
-    if (compilationSteps.length > 1) {
-      // We have at least 1 layer of macros that need to be precompiled before
-      // we can compile the program itself.
-      Map<Uri, Map<String, List<String>>> neededPrecompilations = {};
-      for (int i = 0; i < compilationSteps.length - 1; i++) {
-        List<Uri> compilationStep = compilationSteps[i];
-        for (Uri uri in compilationStep) {
-          List<ClassBuilder>? macroClasses = macroLibraries[uri];
-          // [uri] might not itself declare any macros but instead a part of the
-          // libraries that macros depend upon.
-          if (macroClasses != null) {
-            Map<String, List<String>>? constructorMap;
-            for (ClassBuilder macroClass in macroClasses) {
-              List<String> constructors = [];
-              NameIterator<MemberBuilder> iterator = macroClass.nameSpace
-                  .filteredConstructorNameIterator(
-                      includeDuplicates: false, includeAugmentations: true);
-              while (iterator.moveNext()) {
-                constructors.add(iterator.name);
-              }
-              if (constructors.isNotEmpty) {
-                // TODO(johnniwinther): If there is no constructor here, it
-                // means the macro had no _explicit_ constructors. Since macro
-                // constructor are required to be const, this would be an error
-                // case. We need to handle that precompilation could result in
-                // errors like this. For this case we should probably add 'new'
-                // in case of [constructors] being empty in expectation of
-                // triggering the error during precompilation.
-                (constructorMap ??= {})[macroClass.name] = constructors;
-              }
-            }
-            if (constructorMap != null) {
-              neededPrecompilations[uri] = constructorMap;
-            }
-          }
-        }
-        if (neededPrecompilations.isNotEmpty) {
-          if (retainDataForTesting) {
-            dataForTesting!.macroDeclarationData.neededPrecompilations
-                .add(neededPrecompilations);
-          }
-          // We have found the first needed layer of precompilation. There might
-          // be more layers but we'll compute these at the next attempt at
-          // compilation, when this layer has been precompiled.
-          return new NeededPrecompilations(neededPrecompilations);
-        }
-      }
-    }
-    if (compilationSteps.isNotEmpty) {
-      for (List<Uri> compilationStep in compilationSteps) {
-        for (Uri uri in compilationStep) {
-          List<ClassBuilder>? macroClasses = macroLibraries[uri];
-          if (macroClasses != null) {
-            // These macros are to be compiled during this (last) compilation
-            // step.
-            _macroDeclarations.addAll(macroClasses);
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  Class? get macroClass => _macroClassBuilder
-      // Coverage-ignore(suite): Not run.
-      ?.cls;
-
-  Future<MacroApplications?> computeMacroApplications() async {
-    if (injected.macroImplementation == null && _macroClassBuilder == null) {
-      return null;
-    }
-
-    // Coverage-ignore-block(suite): Not run.
-    MacroApplications macroApplications = new MacroApplications(
-        this,
-        target.context.options.macroExecutor,
-        dataForTesting?.macroApplicationData);
-    macroApplications.computeLibrariesMacroApplicationData(
-        sourceLibraryBuilders, _macroDeclarations);
-    if (macroApplications.hasLoadableMacroIds) {
-      target.benchmarker?.beginSubdivide(
-          BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
-      await macroApplications.loadMacroIds(target.benchmarker);
-      target.benchmarker?.endSubdivide();
-      return macroApplications;
-    }
-    return null;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Future<void> computeAdditionalMacroApplications(
-      MacroApplications macroApplications,
-      Iterable<SourceLibraryBuilder> sourceLibraryBuilders) async {
-    macroApplications.computeLibrariesMacroApplicationData(
-        sourceLibraryBuilders, _macroDeclarations);
-    if (macroApplications.hasLoadableMacroIds) {
-      target.benchmarker?.beginSubdivide(
-          BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
-      await macroApplications.loadMacroIds(target.benchmarker);
-      target.benchmarker?.endSubdivide();
-    }
   }
 
   void finishDeferredLoadTearoffs() {
@@ -2661,15 +2411,8 @@ severity: $severity
       Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
-      builder.checkSupertypes(
-          coreTypes,
-          hierarchyBuilder,
-          objectClass,
-          enumClass,
-          underscoreEnumClass,
-          _macroClassBuilder
-              // Coverage-ignore(suite): Not run.
-              ?.cls);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
+          enumClass, underscoreEnumClass);
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarations) {
@@ -2921,10 +2664,10 @@ severity: $severity
     // the target and possibly some type arguments, and don't depend on other
     // kinds of outline expressions themselves.
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      List<RedirectingFactoryBuilder>? redirectingFactoryBuilders =
+      List<SourceFactoryBuilder>? redirectingFactoryBuilders =
           library.redirectingFactoryBuilders;
       if (redirectingFactoryBuilders != null) {
-        for (RedirectingFactoryBuilder redirectingFactoryBuilder
+        for (SourceFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
           if (redirectingFactoryBuilder.parent.isExtension) {
             // Extensions don't build their redirecting factories so we can't
@@ -3391,11 +3134,6 @@ class SourceLoaderDataForTesting {
   TreeNode toOriginal(TreeNode alias) {
     return _aliasMap[alias] ?? alias;
   }
-
-  final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
-
-  final MacroApplicationDataForTesting macroApplicationData =
-      new MacroApplicationDataForTesting();
 
   final ExhaustivenessDataForTesting exhaustivenessData =
       new ExhaustivenessDataForTesting();

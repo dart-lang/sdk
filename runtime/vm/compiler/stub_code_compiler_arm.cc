@@ -2790,7 +2790,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -2799,10 +2799,9 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
 #endif
 
   // Adjust arguments count for type arguments vector.
-  __ LoadFieldFromOffset(kWord, R2, R4,
-                         target::ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
   __ SmiUntag(R2);
-  __ LoadFieldFromOffset(kWord, R1, R4,
+  __ LoadFieldFromOffset(R1, R4,
                          target::ArgumentsDescriptor::type_args_len_offset());
   __ cmp(R1, Operand(0));
   __ AddImmediate(R2, R2, 1, NE);  // Include the type arguments.
@@ -2828,31 +2827,29 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread exited generated code through a runtime call.
   __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(kWord, R5, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R5, THR, target::Thread::exit_through_ffi_offset());
 
   // Mark that the thread is executing VM code.
-  __ LoadFromOffset(kWord, R5, THR,
+  __ LoadFromOffset(R5, THR,
                     target::Thread::interpret_call_entry_point_offset());
-  __ StoreToOffset(kWord, R5, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
 
   __ blx(R5);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R2, THR, target::Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();

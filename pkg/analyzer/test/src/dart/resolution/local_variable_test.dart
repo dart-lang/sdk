@@ -27,13 +27,13 @@ void f() {
 ''');
 
     var x = findElement2.localVar('x');
-    assertElement3(
+    assertElement(
       x.metadata2.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );
 
     var y = findElement2.localVar('y');
-    assertElement3(
+    assertElement(
       y.metadata2.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );

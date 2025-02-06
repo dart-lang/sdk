@@ -5,14 +5,10 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
-import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
@@ -20,29 +16,21 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart'
     as element_model;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/summary2/augmentation.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/macro_application.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_merge.dart';
-import 'package:analyzer/src/summary2/macro_not_allowed_declaration.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:collection/collection.dart';
-import 'package:macros/src/executor.dart' as macro;
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
@@ -70,9 +58,7 @@ class ImplicitEnumNodes {
   });
 }
 
-class LibraryBuilder with MacroApplicationsContainer {
-  static const _enableMacroCodeOptimizer = false;
-
+class LibraryBuilder {
   final Linker linker;
   final LibraryFileKind kind;
   final Uri uri;
@@ -102,17 +88,8 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// The fields that were speculatively created as [ConstFieldElementImpl],
   /// but we want to clear [ConstVariableElement.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
-  /// at the time when we create them, because of future augmentations, user
-  /// written or macro generated.
+  /// at the time when we create them, because of future augmentations.
   final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
-
-  /// Set if the library reuses the cached macro result.
-  PartIncludeWithFile? inputMacroPartInclude;
-
-  /// The sink for macro applying facts, for caching.
-  final MacroProcessing macroProcessing = MacroProcessing();
-
-  final List<List<macro.MacroExecutionResult>> _macroResults = [];
 
   LibraryBuilder._({
     required this.linker,
@@ -222,8 +199,8 @@ class LibraryBuilder with MacroApplicationsContainer {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateInterfaceToBounds(
-          element: enum_.element,
+        element.typeSystem.instantiateInterfaceToBounds2(
+          element: enum_.element.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
@@ -304,346 +281,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   void declare(String name, Reference reference) {
     _declaredReferences[name] = reference;
-  }
-
-  void disposeMacroApplications() {
-    var macroApplier = linker.macroApplier;
-    if (macroApplier == null) {
-      return;
-    }
-
-    macroApplier.disposeMacroApplications(
-      libraryBuilder: this,
-    );
-  }
-
-  /// Completes with `true` if a macro application was run in this library.
-  ///
-  /// Completes with `false` if there are no macro applications to run, either
-  /// because we ran all, or those that we have not run yet have dependencies
-  /// of interfaces declared in other libraries that, and we have not run yet
-  /// declarations phase macro applications for them.
-  Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
-    required ElementImpl? targetElement,
-    required OperationPerformanceImpl performance,
-  }) async {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
-      return MacroDeclarationsPhaseStepResult.nothing;
-    }
-
-    var macroApplier = linker.macroApplier;
-    if (macroApplier == null) {
-      return MacroDeclarationsPhaseStepResult.nothing;
-    }
-
-    var applicationResult = await performance.runAsync(
-      'macroApplier.executeDeclarationsPhase',
-      (performance) async {
-        return await macroApplier.executeDeclarationsPhase(
-          libraryBuilder: this,
-          targetElement: targetElement,
-          performance: performance,
-        );
-      },
-    );
-
-    // No more applications to execute.
-    if (applicationResult == null) {
-      return MacroDeclarationsPhaseStepResult.nothing;
-    }
-
-    await performance.runAsync(
-      'addMacroResults',
-      (performance) async {
-        await _addMacroResults(
-          macroApplier,
-          applicationResult,
-          phase: macro.Phase.declarations,
-          performance: performance,
-        );
-      },
-    );
-
-    // Check if a new top-level declaration was added.
-    var augmentationUnit = units.last.element;
-    if (augmentationUnit.functions.isNotEmpty ||
-        augmentationUnit.topLevelVariables.isNotEmpty) {
-      element.resetScope();
-      return MacroDeclarationsPhaseStepResult.topDeclaration;
-    }
-
-    // Probably class member declarations.
-    return MacroDeclarationsPhaseStepResult.otherProgress;
-  }
-
-  Future<void> executeMacroDefinitionsPhase({
-    required OperationPerformanceImpl performance,
-  }) async {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
-      return;
-    }
-
-    var macroApplier = linker.macroApplier;
-    if (macroApplier == null) {
-      return;
-    }
-
-    while (true) {
-      var applicationResult = await performance.runAsync(
-        'macroApplier.executeDefinitionsPhase',
-        (performance) async {
-          return await macroApplier.executeDefinitionsPhase(
-            libraryBuilder: this,
-            performance: performance,
-          );
-        },
-      );
-
-      // No more applications to execute.
-      if (applicationResult == null) {
-        return;
-      }
-
-      await performance.runAsync(
-        'addMacroResults',
-        (performance) async {
-          await _addMacroResults(
-            macroApplier,
-            applicationResult,
-            phase: macro.Phase.definitions,
-            performance: performance,
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> executeMacroTypesPhase({
-    required OperationPerformanceImpl performance,
-  }) async {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
-      return;
-    }
-
-    var macroApplier = linker.macroApplier;
-    if (macroApplier == null) {
-      return;
-    }
-
-    while (true) {
-      var applicationResult = await performance.runAsync(
-        'macroApplier.executeTypesPhase',
-        (performance) async {
-          return await macroApplier.executeTypesPhase(
-            libraryBuilder: this,
-          );
-        },
-      );
-
-      // No more applications to execute.
-      if (applicationResult == null) {
-        break;
-      }
-
-      await performance.runAsync(
-        'addMacroResults',
-        (performance) async {
-          await _addMacroResults(
-            macroApplier,
-            applicationResult,
-            phase: macro.Phase.types,
-            performance: performance,
-          );
-        },
-      );
-    }
-  }
-
-  /// Fills with macro applications in user code.
-  Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
-    for (var linkingUnit in units) {
-      await macroApplier.add(
-        libraryBuilder: this,
-        container: linkingUnit.element,
-        unit: linkingUnit.node,
-      );
-    }
-  }
-
-  MacroResultOutput? getCacheableMacroResult() {
-    // Nothing if we already reuse a cached result.
-    if (inputMacroPartInclude != null) {
-      return null;
-    }
-
-    var macroImport = kind.partIncludes.lastOrNull;
-    if (macroImport is file_state.PartIncludeWithFile) {
-      var includedFile = macroImport.includedFile;
-      if (includedFile.isMacroPart) {
-        return MacroResultOutput(
-          library: kind,
-          processing: macroProcessing,
-          code: includedFile.content,
-        );
-      }
-    }
-
-    return null;
-  }
-
-  /// Merges accumulated [_macroResults] and corresponding macro augmentation
-  /// libraries into a single macro augmentation library.
-  Future<void> mergeMacroAugmentations({
-    required OperationPerformanceImpl performance,
-  }) async {
-    var macroApplier = linker.macroApplier;
-    if (macroApplier == null) {
-      return;
-    }
-
-    var augmentationCode = performance.run(
-      'buildAugmentationLibraryCode',
-      (performance) {
-        var code = macroApplier.buildAugmentationLibraryCode(
-          uri,
-          _macroResults.flattenedToList,
-        );
-        // TODO(scheglov): Replace when the framework is migrated.
-        return code?.replaceAll(
-          'augment library ',
-          'part of ',
-        );
-      },
-    );
-    if (augmentationCode == null) {
-      return;
-    }
-
-    kind.disposeMacroAugmentations(disposeFiles: true);
-
-    // Remove import for partial macro augmentations.
-    element.definingCompilationUnit.parts = element
-        .definingCompilationUnit.parts
-        .take(
-            element.definingCompilationUnit.parts.length - _macroResults.length)
-        .toFixedList();
-
-    // Remove units with partial macro augmentations.
-    var partialUnits = units.sublist(units.length - _macroResults.length);
-    units.length -= _macroResults.length;
-
-    List<macro.Edit> optimizedCodeEdits;
-    String optimizedCode;
-    if (_enableMacroCodeOptimizer) {
-      optimizedCodeEdits = _CodeOptimizer(
-        elementFactory: linker.elementFactory,
-      ).optimize(
-        augmentationCode,
-        libraryDeclarationNames: element.definingCompilationUnit.children
-            .map((e) => e.name)
-            .nonNulls
-            .toSet(),
-        scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
-      );
-      optimizedCode = macro.Edit.applyList(
-        optimizedCodeEdits,
-        augmentationCode,
-      );
-    } else {
-      optimizedCodeEdits = [];
-      optimizedCode = augmentationCode;
-    }
-
-    var partIncludeState = performance.run(
-      'kind.addMacroAugmentation',
-      (performance) {
-        return kind.addMacroPart(
-          optimizedCode,
-          partialIndex: null,
-          performance: performance,
-        );
-      },
-    );
-    var includedPart = partIncludeState.includedPart!;
-    var includedFile = includedPart.file;
-
-    var includedFileParsed = includedFile.getParsed(
-      performance: performance,
-    );
-    var unitNode = includedFileParsed.unit;
-
-    var unitElement = CompilationUnitElementImpl(
-      library: element,
-      source: includedFile.source,
-      lineInfo: unitNode.lineInfo,
-    );
-    unitElement.setCodeRange(0, unitNode.length);
-
-    var unitReference =
-        reference.getChild('@fragment').getChild(includedFile.uriStr);
-    _bindReference(unitReference, unitElement);
-
-    var informativeBytes = includedFile.unlinked2.informativeBytes;
-    unitElement.macroGenerated = MacroGeneratedLibraryFragment(
-      code: includedFile.content,
-      informativeBytes: informativeBytes,
-    );
-
-    _buildDirectives(
-      kind: includedPart,
-      containerUnit: unitElement,
-    );
-
-    MacroElementsMerger(
-      partialUnits: partialUnits,
-      unitReference: unitReference,
-      unitNode: unitNode,
-      unitElement: unitElement,
-    ).perform(updateConstants: () {
-      if (optimizedCodeEdits.isNotEmpty) {
-        var mergedUnit = performance.run(
-          'mergedUnit',
-          (performance) {
-            performance.getDataInt('length').add(augmentationCode.length);
-            return kind.file.parseCode(
-              code: augmentationCode,
-              errorListener: AnalysisErrorListener.NULL_LISTENER,
-              performance: performance,
-            );
-          },
-        );
-
-        MacroUpdateConstantsForOptimizedCode(
-          libraryElement: element,
-          unitNode: mergedUnit,
-          codeEdits: optimizedCodeEdits,
-          unitElement: unitElement,
-        ).perform();
-      }
-    });
-
-    var importUri = DirectiveUriWithUnitImpl(
-      relativeUriString: partIncludeState.selectedUri.relativeUriStr,
-      relativeUri: partIncludeState.selectedUri.relativeUri,
-      unit: unitElement,
-    );
-
-    var partInclude = PartElementImpl(
-      uri: importUri,
-    );
-    partInclude.isSynthetic = true;
-
-    element.definingCompilationUnit.parts = [
-      ...element.definingCompilationUnit.parts,
-      partInclude,
-    ].toFixedList();
-
-    // Set offsets the same way as when reading from summary.
-    InformativeDataApplier(
-      linker.elementFactory,
-      {},
-      NoOpInfoDeclarationStore(),
-    ).applyToUnit(unitElement, informativeBytes);
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
@@ -762,154 +399,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
     }
-  }
-
-  /// Updates the element of the macro augmentation.
-  void updateInputMacroAugmentation() {
-    if (inputMacroPartInclude case var import?) {
-      var partInclude = element.units.last;
-      var includedFile = import.includedFile;
-      var informativeBytes = includedFile.unlinked2.informativeBytes;
-      partInclude.macroGenerated = MacroGeneratedLibraryFragment(
-        code: includedFile.content,
-        informativeBytes: informativeBytes,
-      );
-    }
-  }
-
-  CompilationUnitElementImpl _addMacroAugmentation(
-    PartIncludeWithFile state, {
-    required OperationPerformanceImpl performance,
-  }) {
-    // TODO(scheglov): measure performance
-    var partInclude = _buildPartInclude(
-      containerLibrary: element,
-      containerUnit: element.definingCompilationUnit,
-      state: state,
-    );
-    partInclude.isSynthetic = true;
-    element.definingCompilationUnit.parts = [
-      ...element.definingCompilationUnit.parts,
-      partInclude,
-    ].toFixedList();
-
-    // TODO(scheglov): add like `LibraryElementImpl? get importedLibrary`
-    var partUri = partInclude.uri as DirectiveUriWithUnitImpl;
-    var includedUnit = partUri.unit;
-    includedUnit.macroGenerated = MacroGeneratedLibraryFragment(
-      code: state.includedFile.content,
-      informativeBytes: state.includedFile.unlinked2.informativeBytes,
-    );
-
-    return includedUnit;
-  }
-
-  /// Add results from the declarations or definitions phase.
-  Future<void> _addMacroResults(
-    LibraryMacroApplier macroApplier,
-    ApplicationResult applicationResult, {
-    required macro.Phase phase,
-    required OperationPerformanceImpl performance,
-  }) async {
-    // No results from the application.
-    var results = applicationResult.results;
-    if (results.isEmpty) {
-      return;
-    }
-
-    var augmentationCode = performance.run(
-      'buildAugmentationLibraryCode',
-      (performance) {
-        var code = macroApplier.buildAugmentationLibraryCode(
-          uri,
-          results,
-        );
-        // TODO(scheglov): Replace when the framework is migrated.
-        return code?.replaceAll(
-          'augment library ',
-          'part of ',
-        );
-      },
-    );
-    if (augmentationCode == null) {
-      return;
-    }
-
-    var importState = performance.run(
-      'kind.addMacroAugmentation',
-      (performance) {
-        performance.getDataInt('length').add(augmentationCode.length);
-        return kind.addMacroPart(
-          augmentationCode,
-          partialIndex: _macroResults.length,
-          performance: performance,
-        );
-      },
-    );
-
-    var unitElement = performance.run(
-      '_addMacroAugmentation',
-      (performance) {
-        return _addMacroAugmentation(
-          importState,
-          performance: performance,
-        );
-      },
-    );
-    var macroLinkingUnit = units.last;
-
-    // If the generated code contains declarations that are not allowed at
-    // this phase, then add a diagnostic, and discard the code.
-    var notAllowed = findDeclarationsNotAllowedAtPhase(
-      unit: macroLinkingUnit.node,
-      phase: phase,
-    );
-    if (notAllowed.isNotEmpty) {
-      var application = applicationResult.application;
-      application.target.element.addMacroDiagnostic(
-        NotAllowedDeclarationDiagnostic(
-          annotationIndex: application.annotationIndex,
-          phase: phase,
-          code: augmentationCode,
-          nodeRanges: notAllowed
-              .map((node) => SourceRange(node.offset, node.length))
-              .toList(),
-        ),
-      );
-      units.removeLast();
-      element.definingCompilationUnit.parts =
-          element.definingCompilationUnit.parts.withoutLast.toFixedList();
-      kind.removeLastMacroPartInclude();
-      return;
-    }
-
-    performance.run('elements + types', (performance) {
-      ElementBuilder(
-        libraryBuilder: this,
-        unitElement: macroLinkingUnit.element,
-      ).buildDeclarationElements(macroLinkingUnit.node);
-
-      if (phase != macro.Phase.types) {
-        var nodesToBuildType = NodesToBuildType();
-        var resolver = ReferenceResolver(
-          linker,
-          nodesToBuildType,
-          element.typeSystem,
-          macroLinkingUnit.element.scope,
-        );
-        macroLinkingUnit.node.accept(resolver);
-        TypesBuilder(linker).build(nodesToBuildType);
-      }
-    });
-
-    _macroResults.add(results);
-
-    // Append applications from the partial augmentation.
-    await macroApplier.add(
-      libraryBuilder: this,
-      container: unitElement,
-      unit: macroLinkingUnit.node,
-    );
   }
 
   List<NamespaceCombinator> _buildCombinators(
@@ -1295,7 +784,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   static void build({
     required Linker linker,
     required LibraryFileKind inputLibrary,
-    required MacroResultInput? inputMacroResult,
     required OperationPerformanceImpl performance,
   }) {
     var elementFactory = linker.elementFactory;
@@ -1377,15 +865,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     builder._createLoadLibraryReferences();
     elementFactory.setLibraryTypeSystem(libraryElement);
 
-    if (inputMacroResult != null) {
-      var import = inputLibrary.addMacroPart(
-        inputMacroResult.code,
-        partialIndex: null,
-        performance: OperationPerformanceImpl('<root>'),
-      );
-      builder.inputMacroPartInclude = import;
-    }
-
     linker.builders[builder.uri] = builder;
   }
 
@@ -1405,33 +884,6 @@ class LinkingUnit {
     required this.node,
     required this.element,
   });
-}
-
-enum MacroDeclarationsPhaseStepResult {
-  nothing,
-  otherProgress,
-  topDeclaration,
-}
-
-class _CodeOptimizer extends macro.CodeOptimizer {
-  final LinkedElementFactory elementFactory;
-  final Map<Uri, Set<String>> exportedNames = {};
-
-  _CodeOptimizer({
-    required this.elementFactory,
-  });
-
-  @override
-  Set<String> getImportedNames(String uriStr) {
-    var uri = Uri.parse(uriStr);
-    var libraryElement = elementFactory.libraryOfUri(uri);
-    if (libraryElement != null) {
-      return exportedNames[uri] ??= libraryElement.exportedReferences
-          .map((exported) => exported.reference.name)
-          .toSet();
-    }
-    return const <String>{};
-  }
 }
 
 /// This class examines all the [InterfaceElement]s in a library and determines

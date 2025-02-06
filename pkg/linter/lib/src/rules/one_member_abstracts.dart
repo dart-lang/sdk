@@ -13,17 +13,16 @@ const _desc =
 
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
-      : super(
-          name: LintNames.one_member_abstracts,
-          description: _desc,
-        );
+    : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
   LintCode get lintCode => LinterLintCode.one_member_abstracts;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
@@ -39,7 +38,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.abstractKeyword == null) return;
     if (node.extendsClause != null) return;
 
-    if (node.macroKeyword != null) return;
     if (node.isAugmentation) return;
 
     var element = node.declaredFragment?.element;

@@ -348,24 +348,24 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     var referenceIsBody = node.body == _reference;
     return switch (forLoopParts) {
       ForPartsWithDeclarations() => _inOrderAsyncState([
-          for (var declaration in forLoopParts.variables.variables)
-            (node: declaration, mountedCanGuard: false),
-          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
-          for (var updater in forLoopParts.updaters)
-            (node: updater, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        for (var declaration in forLoopParts.variables.variables)
+          (node: declaration, mountedCanGuard: false),
+        (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+        for (var updater in forLoopParts.updaters)
+          (node: updater, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       ForPartsWithExpression() => _inOrderAsyncState([
-          (node: forLoopParts.initialization, mountedCanGuard: false),
-          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
-          for (var updater in forLoopParts.updaters)
-            (node: updater, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        (node: forLoopParts.initialization, mountedCanGuard: false),
+        (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+        for (var updater in forLoopParts.updaters)
+          (node: updater, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       ForEachParts() => _inOrderAsyncState([
-          (node: forLoopParts.iterable, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        (node: forLoopParts.iterable, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       _ => null,
     };
   }
@@ -376,35 +376,37 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     var referenceIsBody = node.body == _reference;
     return switch (forLoopParts) {
       ForPartsWithDeclarations() => _inOrderAsyncState([
-          for (var declaration in forLoopParts.variables.variables)
-            (node: declaration, mountedCanGuard: false),
-          // The body can be guarded by the condition.
-          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
-          for (var updater in forLoopParts.updaters)
-            (node: updater, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        for (var declaration in forLoopParts.variables.variables)
+          (node: declaration, mountedCanGuard: false),
+        // The body can be guarded by the condition.
+        (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+        for (var updater in forLoopParts.updaters)
+          (node: updater, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       ForPartsWithExpression() => _inOrderAsyncState([
-          (node: forLoopParts.initialization, mountedCanGuard: false),
-          // The body can be guarded by the condition.
-          (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
-          for (var updater in forLoopParts.updaters)
-            (node: updater, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        (node: forLoopParts.initialization, mountedCanGuard: false),
+        // The body can be guarded by the condition.
+        (node: forLoopParts.condition, mountedCanGuard: referenceIsBody),
+        for (var updater in forLoopParts.updaters)
+          (node: updater, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       ForEachParts() => _inOrderAsyncState([
-          (node: forLoopParts.iterable, mountedCanGuard: false),
-          (node: node.body, mountedCanGuard: false),
-        ]),
+        (node: forLoopParts.iterable, mountedCanGuard: false),
+        (node: node.body, mountedCanGuard: false),
+      ]),
       _ => null,
     };
   }
 
   @override
   AsyncState? visitFunctionExpressionInvocation(
-          FunctionExpressionInvocation node) =>
-      _asynchronousIfAnyIsAsync(
-          [node.function, ...node.argumentList.arguments]);
+    FunctionExpressionInvocation node,
+  ) => _asynchronousIfAnyIsAsync([
+    node.function,
+    ...node.argumentList.arguments,
+  ]);
 
   @override
   AsyncState? visitGuardedPattern(GuardedPattern node) =>
@@ -412,19 +414,19 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitIfElement(IfElement node) => _visitIfLike(
-        expression: node.expression,
-        caseClause: node.caseClause,
-        thenBranch: node.thenElement,
-        elseBranch: node.elseElement,
-      );
+    expression: node.expression,
+    caseClause: node.caseClause,
+    thenBranch: node.thenElement,
+    elseBranch: node.elseElement,
+  );
 
   @override
   AsyncState? visitIfStatement(IfStatement node) => _visitIfLike(
-        expression: node.expression,
-        caseClause: node.caseClause,
-        thenBranch: node.thenStatement,
-        elseBranch: node.elseStatement,
-      );
+    expression: node.expression,
+    caseClause: node.caseClause,
+    thenBranch: node.thenStatement,
+    elseBranch: node.elseStatement,
+  );
 
   @override
   AsyncState? visitIndexExpression(IndexExpression node) =>
@@ -432,8 +434,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitInstanceCreationExpression(
-          InstanceCreationExpression node) =>
-      _asynchronousIfAnyIsAsync(node.argumentList.arguments);
+    InstanceCreationExpression node,
+  ) => _asynchronousIfAnyIsAsync(node.argumentList.arguments);
 
   @override
   AsyncState? visitInterpolationExpression(InterpolationExpression node) =>
@@ -520,8 +522,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitSwitchCase(SwitchCase node) =>
-      // TODO(srawlins): Handle when `reference` is in one of the statements.
-      _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
+  // TODO(srawlins): Handle when `reference` is in one of the statements.
+  _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
   AsyncState? visitSwitchDefault(SwitchDefault node) =>
@@ -553,8 +555,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     if (_reference == node.guardedPattern) {
       return null;
     }
-    var statementsAsyncState =
-        _visitBlockLike(node.statements, parent: node.parent);
+    var statementsAsyncState = _visitBlockLike(
+      node.statements,
+      parent: node.parent,
+    );
     if (statementsAsyncState != null) return statementsAsyncState;
     if (node.statements.contains(_reference)) {
       // Any when-clause in `node` and any fallthrough when-clauses are handled
@@ -644,10 +648,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitVariableDeclarationStatement(
-          VariableDeclarationStatement node) =>
-      _asynchronousIfAnyIsAsync([
-        for (var variable in node.variables.variables) variable.initializer,
-      ]);
+    VariableDeclarationStatement node,
+  ) => _asynchronousIfAnyIsAsync([
+    for (var variable in node.variables.variables) variable.initializer,
+  ]);
 
   @override
   AsyncState? visitWhenClause(WhenClause node) => node.expression.accept(this);
@@ -709,11 +713,13 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   /// If [_reference] is one of the [nodes], this traversal starts at the node
   /// that precedes it, rather than at the end of the list.
   AsyncState? _inOrderAsyncState(
-      List<({AstNode? node, bool mountedCanGuard})> nodes) {
+    List<({AstNode? node, bool mountedCanGuard})> nodes,
+  ) {
     if (nodes.isEmpty) return null;
     if (nodes.first.node == _reference) return null;
-    var referenceIndex =
-        nodes.indexWhere((element) => element.node == _reference);
+    var referenceIndex = nodes.indexWhere(
+      (element) => element.node == _reference,
+    );
     var startingIndex =
         referenceIndex > 0 ? referenceIndex - 1 : nodes.length - 1;
 
@@ -742,8 +748,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       ]);
 
   /// Compute the [AsyncState] of a "block-like" node which has [statements].
-  AsyncState? _visitBlockLike(List<Statement> statements,
-      {required AstNode? parent}) {
+  AsyncState? _visitBlockLike(
+    List<Statement> statements, {
+    required AstNode? parent,
+  }) {
     var reference = _reference;
     if (reference is Statement) {
       var index = statements.indexOf(reference);
@@ -756,8 +764,9 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
           // Check for asynchrony in the statements that _follow_ [reference],
           // as they may lead to an async gap before we loop back to
           // [reference].
-          return _inOrderAsyncStateGuardable(statements.skip(index + 1))
-              ?.asynchronousOrNull;
+          return _inOrderAsyncStateGuardable(
+            statements.skip(index + 1),
+          )?.asynchronousOrNull;
         }
         return null;
       }
@@ -808,8 +817,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     var caseClauseAsyncState = caseClause?.accept(this);
     // The condition state is the combined state of `expression` and
     // `caseClause`.
-    var conditionAsyncState =
-        switch ((expressionAsyncState, caseClauseAsyncState)) {
+    var conditionAsyncState = switch ((
+      expressionAsyncState,
+      caseClauseAsyncState,
+    )) {
       // If the left is uninteresting, just return the state of the right.
       (null, _) => caseClauseAsyncState,
       // If the right is uninteresting, just return the state of the left.
@@ -898,27 +909,34 @@ class ProtectedFunction {
   /// The list of named parameters that are protected.
   final List<String> named;
 
-  const ProtectedFunction(this.library, this.type, this.name,
-      {this.positional = const <int>[], this.named = const <String>[]});
+  const ProtectedFunction(
+    this.library,
+    this.type,
+    this.name, {
+    this.positional = const <int>[],
+    this.named = const <String>[],
+  });
 }
 
 class UseBuildContextSynchronously extends LintRule {
   UseBuildContextSynchronously()
-      : super(
-          name: LintNames.use_build_context_synchronously,
-          description: _desc,
-          state: State.stable(since: Version(3, 2, 0)),
-        );
+    : super(
+        name: LintNames.use_build_context_synchronously,
+        description: _desc,
+        state: State.stable(since: Version(3, 2, 0)),
+      );
 
   @override
   List<LintCode> get lintCodes => [
-        LinterLintCode.use_build_context_synchronously_async_use,
-        LinterLintCode.use_build_context_synchronously_wrong_mounted
-      ];
+    LinterLintCode.use_build_context_synchronously_async_use,
+    LinterLintCode.use_build_context_synchronously_wrong_mounted,
+  ];
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var unit = context.definingUnit.unit;
     if (!unit.inTestDir) {
       var visitor = _Visitor(this);
@@ -942,65 +960,137 @@ class _Visitor extends SimpleAstVisitor<void> {
     ProtectedFunction('dart.async', 'Future', 'microtask', positional: [0]),
 
     // Stream constructors.
-    ProtectedFunction('dart.async', 'Stream', 'eventTransformed',
-        positional: [1]),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'eventTransformed',
+      positional: [1],
+    ),
     ProtectedFunction('dart.async', 'Stream', 'multi', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'periodic', positional: [1]),
 
     // StreamController constructors.
-    ProtectedFunction('dart.async', 'StreamController', null,
-        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
-    ProtectedFunction('dart.async', 'StreamController', 'new',
-        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
-    ProtectedFunction('dart.async', 'StreamController', 'broadcast',
-        named: ['onListen', 'onCancel']),
+    ProtectedFunction(
+      'dart.async',
+      'StreamController',
+      null,
+      named: ['onListen', 'onPause', 'onResume', 'onCancel'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'StreamController',
+      'new',
+      named: ['onListen', 'onPause', 'onResume', 'onCancel'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'StreamController',
+      'broadcast',
+      named: ['onListen', 'onCancel'],
+    ),
   ];
 
   static const protectedInstanceMethods = [
     // Future instance methods.
-    ProtectedFunction('dart.async', 'Future', 'catchError',
-        positional: [0], named: ['test']),
-    ProtectedFunction('dart.async', 'Future', 'onError',
-        positional: [0], named: ['test']),
-    ProtectedFunction('dart.async', 'Future', 'then',
-        positional: [0], named: ['onError']),
+    ProtectedFunction(
+      'dart.async',
+      'Future',
+      'catchError',
+      positional: [0],
+      named: ['test'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'Future',
+      'onError',
+      positional: [0],
+      named: ['test'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'Future',
+      'then',
+      positional: [0],
+      named: ['onError'],
+    ),
     ProtectedFunction('dart.async', 'Future', 'timeout', named: ['onTimeout']),
     ProtectedFunction('dart.async', 'Future', 'whenComplete', positional: [0]),
 
     // Stream instance methods.
     ProtectedFunction('dart.async', 'Stream', 'any', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'asBroadcastStream',
-        named: ['onListen', 'onCancel']),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'asBroadcastStream',
+      named: ['onListen', 'onCancel'],
+    ),
     ProtectedFunction('dart.async', 'Stream', 'asyncExpand', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'asyncMap', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'distinct', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'expand', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'firstWhere',
-        positional: [0], named: ['orElse']),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'firstWhere',
+      positional: [0],
+      named: ['orElse'],
+    ),
     ProtectedFunction('dart.async', 'Stream', 'fold', positional: [1]),
     ProtectedFunction('dart.async', 'Stream', 'forEach', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'handleError',
-        positional: [0], named: ['test']),
-    ProtectedFunction('dart.async', 'Stream', 'lastWhere',
-        positional: [0], named: ['orElse']),
-    ProtectedFunction('dart.async', 'Stream', 'listen',
-        positional: [0], named: ['onError', 'onDone']),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'handleError',
+      positional: [0],
+      named: ['test'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'lastWhere',
+      positional: [0],
+      named: ['orElse'],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'listen',
+      positional: [0],
+      named: ['onError', 'onDone'],
+    ),
     ProtectedFunction('dart.async', 'Stream', 'map', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'reduce', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'singleWhere',
-        positional: [0], named: ['orElse']),
+    ProtectedFunction(
+      'dart.async',
+      'Stream',
+      'singleWhere',
+      positional: [0],
+      named: ['orElse'],
+    ),
     ProtectedFunction('dart.async', 'Stream', 'skipWhile', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'takeWhile', positional: [0]),
     ProtectedFunction('dart.async', 'Stream', 'timeout', named: ['onTimeout']),
     ProtectedFunction('dart.async', 'Stream', 'where', positional: [0]),
 
     // StreamSubscription instance methods.
-    ProtectedFunction('dart.async', 'StreamSubscription', 'onData',
-        positional: [0]),
-    ProtectedFunction('dart.async', 'StreamSubscription', 'onDone',
-        positional: [0]),
-    ProtectedFunction('dart.async', 'StreamSubscription', 'onError',
-        positional: [0]),
+    ProtectedFunction(
+      'dart.async',
+      'StreamSubscription',
+      'onData',
+      positional: [0],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'StreamSubscription',
+      'onDone',
+      positional: [0],
+    ),
+    ProtectedFunction(
+      'dart.async',
+      'StreamSubscription',
+      'onError',
+      positional: [0],
+    ),
   ];
 
   static const protectedStaticMethods = [
@@ -1030,9 +1120,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState.isGuarded) return;
 
       if (asyncState == AsyncState.asynchronous) {
-        var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
-            ? LinterLintCode.use_build_context_synchronously_wrong_mounted
-            : LinterLintCode.use_build_context_synchronously_async_use;
+        var errorCode =
+            asyncStateTracker.hasUnrelatedMountedCheck
+                ? LinterLintCode.use_build_context_synchronously_wrong_mounted
+                : LinterLintCode.use_build_context_synchronously_async_use;
         rule.reportLint(node, errorCode: errorCode);
         return;
       }
@@ -1086,9 +1177,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (invocation.constructorName.name?.name == constructor.name &&
           staticType.isSameAs(constructor.type, constructor.library)) {
         checkPositionalArguments(
-            constructor.positional, positionalArguments, callback, errorNode);
+          constructor.positional,
+          positionalArguments,
+          callback,
+          errorNode,
+        );
         checkNamedArguments(
-            constructor.named, namedArguments, callback, errorNode);
+          constructor.named,
+          namedArguments,
+          callback,
+          errorNode,
+        );
       }
     }
   }
@@ -1117,9 +1216,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (invocation.methodName.name == method.name &&
             targetElement.name3 == method.type) {
           checkPositionalArguments(
-              method.positional, positionalArguments, callback, errorNode);
+            method.positional,
+            positionalArguments,
+            callback,
+            errorNode,
+          );
           checkNamedArguments(
-              method.named, namedArguments, callback, errorNode);
+            method.named,
+            namedArguments,
+            callback,
+            errorNode,
+          );
         }
       }
     } else {
@@ -1129,9 +1236,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (invocation.methodName.name == method.name &&
             staticType.element3?.name3 == method.type) {
           checkPositionalArguments(
-              method.positional, positionalArguments, callback, errorNode);
+            method.positional,
+            positionalArguments,
+            callback,
+            errorNode,
+          );
           checkNamedArguments(
-              method.named, namedArguments, callback, errorNode);
+            method.named,
+            namedArguments,
+            callback,
+            errorNode,
+          );
         }
       }
     }
@@ -1140,18 +1255,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Checks whether [callback] is one of the [namedArguments] for one of the
   /// protected argument [names] for a protected function.
   void checkNamedArguments(
-      List<String> names,
-      List<NamedExpression> namedArguments,
-      Expression callback,
-      Expression errorNode) {
+    List<String> names,
+    List<NamedExpression> namedArguments,
+    Expression callback,
+    Expression errorNode,
+  ) {
     for (var named in names) {
-      var argument =
-          namedArguments.firstWhereOrNull((a) => a.name.label.name == named);
+      var argument = namedArguments.firstWhereOrNull(
+        (a) => a.name.label.name == named,
+      );
       if (argument == null) continue;
       if (callback == argument.expression) {
-        rule.reportLint(errorNode,
-            errorCode:
-                LinterLintCode.use_build_context_synchronously_async_use);
+        rule.reportLint(
+          errorNode,
+          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+        );
       }
     }
   }
@@ -1159,16 +1277,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Checks whether [callback] is one of the [positionalArguments] for one of
   /// the protected argument [positions] for a protected function.
   void checkPositionalArguments(
-      List<int> positions,
-      List<Expression> positionalArguments,
-      Expression callback,
-      Expression errorNode) {
+    List<int> positions,
+    List<Expression> positionalArguments,
+    Expression callback,
+    Expression errorNode,
+  ) {
     for (var position in positions) {
       if (positionalArguments.length > position &&
           callback == positionalArguments[position]) {
-        rule.reportLint(errorNode,
-            errorCode:
-                LinterLintCode.use_build_context_synchronously_async_use);
+        rule.reportLint(
+          errorNode,
+          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+        );
       }
     }
   }
@@ -1343,19 +1463,23 @@ extension ElementExtension on Element2 {
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
         return enclosingElement.lookUpGetter2(
-            name: 'mounted', library: enclosingElement.library2);
+          name: 'mounted',
+          library: enclosingElement.library2,
+        );
       }
     }
 
-    var buildContextElement = switch (self) {
-      ExecutableElement2() => self.returnType,
-      VariableElement2() => self.type,
-      _ => null,
-    }
-        ?.element3;
+    var buildContextElement =
+        switch (self) {
+          ExecutableElement2() => self.returnType,
+          VariableElement2() => self.type,
+          _ => null,
+        }?.element3;
     if (buildContextElement is InterfaceElement2) {
       return buildContextElement.lookUpGetter2(
-          name: 'mounted', library: buildContextElement.library2);
+        name: 'mounted',
+        library: buildContextElement.library2,
+      );
     }
 
     return null;

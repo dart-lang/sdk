@@ -7,40 +7,26 @@
 
 var get;
 
-
-
 var set;
-
-
 
 class C0 {
   var get;
 
-
-
   var set;
-
-
 }
 
 class C1 {
   List? get;
   List? get a => null;
 
-
   List? set;
-
-
 }
 
 class C2 {
   List<int>? get;
   List<int>? get a => null;
 
-
   List<int>? set;
-
-
 }
 
 main() {

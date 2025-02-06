@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
+import '../api_prototype/lowering_predicates.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/export.dart';
@@ -16,15 +17,14 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
-import 'source_enum_builder.dart';
 import 'source_library_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
@@ -217,7 +217,7 @@ abstract class BuilderFactory {
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder? mixins,
+      required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
@@ -229,11 +229,17 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
       required List<NominalParameterBuilder>? typeParameters,
-      required MixinApplicationBuilder? supertypeBuilder,
-      required List<TypeBuilder>? interfaceBuilders,
-      required List<EnumConstantInfo?>? enumConstantInfos,
+      required List<TypeBuilder>? mixins,
+      required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset});
+
+  void addEnumElement(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required ConstructorReferenceBuilder? constructorReferenceBuilder,
+      required Token? argumentsBeginToken});
 
   void addExtensionDeclaration(
       {required OffsetMap offsetMap,
@@ -275,14 +281,11 @@ abstract class BuilderFactory {
       required List<NominalParameterBuilder>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
-      required MixinApplicationBuilder mixinApplication,
+      required List<TypeBuilder> mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int nameOffset,
       required int endOffset});
-
-  MixinApplicationBuilder addMixinApplication(
-      List<TypeBuilder> mixins, int charOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder>? metadata,
@@ -492,6 +495,169 @@ class NominalParameterCopy {
 
   NominalParameterCopy(this.newParameterBuilders, this.newTypeArguments,
       this.substitutionMap, this.newToOldParameterMap);
+
+  /// Creates a [NominalParameterCopy] object containing a copy of
+  /// [oldParameterBuilders], adding any newly created parameters in
+  /// [unboundNominalParameters] for later processing.
+  ///
+  /// This is used for adding copies of class type parameters to factory
+  /// methods and unnamed mixin applications, and for adding copies of
+  /// extension type parameters to extension instance methods.
+  static NominalParameterCopy? copyTypeParameters(
+      List<NominalParameterBuilder> unboundNominalParameters,
+      List<NominalParameterBuilder>? oldParameterBuilders,
+      {required TypeParameterKind kind,
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
+    if (oldParameterBuilders == null || oldParameterBuilders.isEmpty) {
+      return null;
+    }
+
+    List<TypeBuilder> newTypeArguments = [];
+    Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
+        new Map.identity();
+    Map<NominalParameterBuilder, NominalParameterBuilder> newToOldVariableMap =
+        new Map.identity();
+
+    List<NominalParameterBuilder> newVariableBuilders =
+        <NominalParameterBuilder>[];
+    for (NominalParameterBuilder oldVariable in oldParameterBuilders) {
+      NominalParameterBuilder newVariable = new NominalParameterBuilder(
+          oldVariable.name, oldVariable.fileOffset, oldVariable.fileUri,
+          kind: kind,
+          variableVariance: oldVariable.parameter.isLegacyCovariant
+              ? null
+              :
+              // Coverage-ignore(suite): Not run.
+              oldVariable.variance,
+          isWildcard: oldVariable.isWildcard);
+      newVariableBuilders.add(newVariable);
+      newToOldVariableMap[newVariable] = oldVariable;
+      unboundNominalParameters.add(newVariable);
+    }
+    for (int i = 0; i < newVariableBuilders.length; i++) {
+      NominalParameterBuilder oldVariableBuilder = oldParameterBuilders[i];
+      TypeBuilder newTypeArgument =
+          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+              newVariableBuilders[i], const NullabilityBuilder.omitted(),
+              instanceTypeParameterAccess: instanceTypeParameterAccess);
+      substitutionMap[oldVariableBuilder] = newTypeArgument;
+      newTypeArguments.add(newTypeArgument);
+
+      if (oldVariableBuilder.bound != null) {
+        newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
+            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
+      }
+    }
+    return new NominalParameterCopy(newVariableBuilders, newTypeArguments,
+        substitutionMap, newToOldVariableMap);
+  }
+
+  /// Creates a [SynthesizedTypeBuilder] for [typeBuilder] in the context of
+  /// [newParameterBuilders].
+  TypeBuilder createInContext(TypeBuilder typeBuilder) {
+    return new SynthesizedTypeBuilder(
+        typeBuilder, newToOldParameterMap, substitutionMap);
+  }
+}
+
+/// The synthesized type parameters and this formal for an extension instance
+/// member.
+class SynthesizedExtensionSignature {
+  final List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
+  final FormalParameterBuilder thisFormal;
+
+  SynthesizedExtensionSignature._(
+      this.clonedDeclarationTypeParameters, this.thisFormal);
+
+  factory SynthesizedExtensionSignature(ExtensionBuilder declarationBuilder,
+      List<NominalParameterBuilder> unboundNominalParameters,
+      {required Uri fileUri, required int fileOffset}) {
+    List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
+
+    NominalParameterCopy? nominalVariableCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters, declarationBuilder.typeParameters,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+
+    clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
+
+    TypeBuilder thisType = declarationBuilder.onType;
+    if (nominalVariableCopy != null) {
+      thisType = nominalVariableCopy.createInContext(thisType);
+    }
+
+    FormalParameterBuilder thisFormal = new FormalParameterBuilder(
+        FormalParameterKind.requiredPositional,
+        Modifiers.Final,
+        thisType,
+        syntheticThisName,
+        fileOffset,
+        fileUri: fileUri,
+        isExtensionThis: true,
+        hasImmediatelyDeclaredInitializer: false);
+    return new SynthesizedExtensionSignature._(
+        clonedDeclarationTypeParameters, thisFormal);
+  }
+}
+
+/// The synthesized type parameters and this formal for an extension type
+/// instance member.
+class SynthesizedExtensionTypeSignature {
+  final List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
+  final FormalParameterBuilder thisFormal;
+
+  SynthesizedExtensionTypeSignature._(
+      this.clonedDeclarationTypeParameters, this.thisFormal);
+
+  factory SynthesizedExtensionTypeSignature(
+      ExtensionTypeDeclarationBuilder declarationBuilder,
+      List<NominalParameterBuilder> unboundNominalParameters,
+      {required Uri fileUri,
+      required int fileOffset}) {
+    List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
+
+    NominalParameterCopy? nominalVariableCopy =
+        NominalParameterCopy.copyTypeParameters(
+            unboundNominalParameters, declarationBuilder.typeParameters,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+
+    clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
+
+    TypeBuilder thisType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        declarationBuilder, const NullabilityBuilder.omitted(),
+        arguments: declarationBuilder.typeParameters != null
+            ? new List<TypeBuilder>.generate(
+                declarationBuilder.typeParameters!.length,
+                (int index) =>
+                    new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                        clonedDeclarationTypeParameters![index],
+                        const NullabilityBuilder.omitted(),
+                        instanceTypeParameterAccess:
+                            InstanceTypeParameterAccessState.Allowed))
+            : null,
+        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed);
+
+    if (nominalVariableCopy != null) {
+      thisType = nominalVariableCopy.createInContext(thisType);
+    }
+
+    FormalParameterBuilder thisFormal = new FormalParameterBuilder(
+        FormalParameterKind.requiredPositional,
+        Modifiers.Final,
+        thisType,
+        syntheticThisName,
+        fileOffset,
+        fileUri: fileUri,
+        isExtensionThis: true,
+        hasImmediatelyDeclaredInitializer: false);
+
+    return new SynthesizedExtensionTypeSignature._(
+        clonedDeclarationTypeParameters, thisFormal);
+  }
 }
 
 class FieldInfo {

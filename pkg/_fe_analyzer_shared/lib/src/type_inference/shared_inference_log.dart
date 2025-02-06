@@ -59,7 +59,7 @@ enum ConstraintGenerationSource {
   /// `GenericInferrer.constrainGenericFunctionInContext` method.
   genericFunctionInContext(description: 'GENERIC FUNCTION IN CONTEXT'),
 
-  /// The source of the constraint is the the context of the invocation whose
+  /// The source of the constraint is the context of the invocation whose
   /// type is being inferred, being matched against the return type in function
   /// or method being invoked.
   returnType(description: 'RETURN TYPE');
@@ -121,11 +121,7 @@ class GenericInferenceState<TypeParameter extends Object> extends State {
 /// This class defines methods that the analyzer or CFE can use to instrument
 /// their type inference logic. The implementations are found in
 /// [SharedInferenceLogWriterImpl].
-abstract interface class SharedInferenceLogWriter<
-    TypeStructure extends SharedTypeStructure<TypeStructure>,
-    Type extends SharedTypeStructure<Type>,
-    TypeParameterStructure extends SharedTypeParameterStructure<
-        TypeStructure>> {
+abstract interface class SharedInferenceLogWriter {
   /// If [inProgress] is `true`, verifies that generic type inference is in
   /// progress; otherwise, verifies that generic type inference is not in
   /// progress.
@@ -150,18 +146,18 @@ abstract interface class SharedInferenceLogWriter<
 
   /// Called when generic type inference starts collecting constraints by
   /// attempting to match one type schema against another.
-  void enterConstraintGeneration(
-      ConstraintGenerationSource source, Type p, Type q);
+  void enterConstraintGeneration(ConstraintGenerationSource source,
+      covariant SharedType p, covariant SharedType q);
 
   /// Called when type inference begins inferring a collection element.
   void enterElement(Object node);
 
   /// Called when type inference begins inferring an expression.
-  void enterExpression(Object node, Type contextType);
+  void enterExpression(Object node, covariant SharedType contextType);
 
   /// Called when type inference begins inferring an AST node associated with
   /// extension override syntax.
-  void enterExtensionOverride(Object node, Type contextType);
+  void enterExtensionOverride(Object node, covariant SharedType contextType);
 
   /// Called when type inference has discovered that a construct that uses
   /// method invocation syntax (e.g. `x.f()`) is actually an invocation of a
@@ -172,7 +168,7 @@ abstract interface class SharedInferenceLogWriter<
 
   /// Called when generic type inference begins.
   void enterGenericInference(
-      List<TypeParameterStructure> typeFormals, Type template);
+      List<SharedTypeParameter> typeFormals, covariant SharedType template);
 
   /// Called when type inference begins inferring the left hand side of an
   /// assignment.
@@ -202,7 +198,9 @@ abstract interface class SharedInferenceLogWriter<
 
   /// Called when generic type inference ends.
   void exitGenericInference(
-      {bool aborted = false, bool failed = false, List<Type>? finalTypes});
+      {bool aborted = false,
+      bool failed = false,
+      covariant List<SharedType>? finalTypes});
 
   /// Called when type inference has finished inferring the left hand side of an
   /// assignment.
@@ -236,26 +234,23 @@ abstract interface class SharedInferenceLogWriter<
 
   /// Records a constraint that was generated during the process of matching one
   /// type schema to another.
-  void recordGeneratedConstraint(
-      TypeParameterStructure parameter,
-      MergedTypeConstraint<TypeStructure, TypeParameterStructure, Object, Type,
-              Object>
-          constraint);
+  void recordGeneratedConstraint(SharedTypeParameter parameter,
+      MergedTypeConstraint<Object, SharedType, Object> constraint);
 
   /// Records that type inference has resolved a method name.
   void recordLookupResult(
       {required Object expression,
-      required Type type,
+      required SharedType type,
       required Object? target,
       required String methodName});
 
   /// Records the preliminary types chosen during either a downwards or a
   /// horizontal inference step.
-  void recordPreliminaryTypes(List<Type> types);
+  void recordPreliminaryTypes(List<SharedType> types);
 
   /// Called when type inference is inferring an expression, and assigns the
   /// expression a static type.
-  void recordStaticType(Object expression, Type type);
+  void recordStaticType(Object expression, SharedType type);
 }
 
 /// Implementation of the interface log writer.
@@ -267,13 +262,8 @@ abstract interface class SharedInferenceLogWriter<
 /// from classes derived from [SharedInferenceLogWriterImpl], but these methods
 /// are not exposed in [SharedInferenceLogWriter] so that they won't be called
 /// accidentally on their own.
-abstract class SharedInferenceLogWriterImpl<
-        TypeStructure extends SharedTypeStructure<TypeStructure>,
-        Type extends SharedTypeStructure<Type>,
-        TypeParameterStructure extends SharedTypeParameterStructure<
-            TypeStructure>>
-    implements
-        SharedInferenceLogWriter<TypeStructure, Type, TypeParameterStructure> {
+abstract class SharedInferenceLogWriterImpl
+    implements SharedInferenceLogWriter {
   /// A stack of [State] objects representing the calls that have been made to
   /// `enter...` methods without any matched `exit...` method.
   ///
@@ -403,7 +393,7 @@ abstract class SharedInferenceLogWriterImpl<
 
   @override
   void enterConstraintGeneration(
-      ConstraintGenerationSource source, Type p, Type q) {
+      ConstraintGenerationSource source, SharedType p, SharedType q) {
     checkCall(
         method: 'enterConstraintGeneration',
         arguments: [source, p, q],
@@ -425,7 +415,7 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void enterExpression(Object node, Type contextType) {
+  void enterExpression(Object node, SharedType contextType) {
     pushState(new ExpressionState(
         writer: this,
         message: 'INFER EXPRESSION ${describe(node)} IN CONTEXT $contextType',
@@ -433,7 +423,7 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void enterExtensionOverride(Object node, Type contextType) {
+  void enterExtensionOverride(Object node, SharedType contextType) {
     pushState(new State(
         kind: StateKind.extensionOverride,
         writer: this,
@@ -452,13 +442,12 @@ abstract class SharedInferenceLogWriterImpl<
 
   @override
   void enterGenericInference(
-      List<TypeParameterStructure> typeFormals, Type template) {
+      List<SharedTypeParameter> typeFormals, SharedType template) {
     if (state.kind == StateKind.genericInference) {
       fail('Tried to start generic inference when already in progress');
     }
     String typeFormalNames = [
-      for (TypeParameterStructure typeFormal in typeFormals)
-        typeFormal.displayName
+      for (SharedTypeParameter typeFormal in typeFormals) typeFormal.displayName
     ].join(', ');
     pushState(new GenericInferenceState(
         writer: this,
@@ -548,7 +537,9 @@ abstract class SharedInferenceLogWriterImpl<
 
   @override
   void exitGenericInference(
-      {bool aborted = false, bool failed = false, List<Type>? finalTypes}) {
+      {bool aborted = false,
+      bool failed = false,
+      List<SharedType>? finalTypes}) {
     if ((aborted ? 1 : 0) + (failed ? 1 : 0) + (finalTypes != null ? 1 : 0) !=
         1) {
       fail('Must specify exactly one of aborted=true, failed=true, '
@@ -677,11 +668,8 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void recordGeneratedConstraint(
-      TypeParameterStructure parameter,
-      MergedTypeConstraint<TypeStructure, TypeParameterStructure, Object, Type,
-              Object>
-          constraint) {
+  void recordGeneratedConstraint(SharedTypeParameter parameter,
+      MergedTypeConstraint<Object, SharedType, Object> constraint) {
     checkCall(
         method: 'recordGeneratedConstraint',
         arguments: [parameter, constraint],
@@ -694,7 +682,7 @@ abstract class SharedInferenceLogWriterImpl<
   @override
   void recordLookupResult(
       {required Object expression,
-      required Type type,
+      required SharedType type,
       required Object? target,
       required String methodName}) {
     checkCall(
@@ -713,7 +701,7 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void recordPreliminaryTypes(List<Type> types) {
+  void recordPreliminaryTypes(List<SharedType> types) {
     checkCall(
         method: 'recordPreliminaryTypes',
         arguments: [types],
@@ -727,7 +715,7 @@ abstract class SharedInferenceLogWriterImpl<
   }
 
   @override
-  void recordStaticType(Object expression, Type type) {
+  void recordStaticType(Object expression, SharedType type) {
     checkCall(
         method: 'recordStaticType',
         arguments: [expression, type],

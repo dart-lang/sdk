@@ -195,7 +195,7 @@ Running the CFE on a Dart file can be done with the following configuration.
 You can read more about kernel format in the [VM readme](https://github.com/dart-lang/sdk/blob/main/runtime/docs/README.md).
 
 
-# Contributing to the the Dart FFI implementation in the VM
+# Contributing to the Dart FFI implementation in the VM
 
 In order to be able to work on the VM implementation of Dart FFI, you first need to familiarize yourself with the Dart VM:
 

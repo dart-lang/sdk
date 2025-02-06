@@ -60,9 +60,6 @@ void runTests(SetupCompilerOptions setup, {bool verbose = false}) {
             badPath,
             '--module-format',
             setup.moduleFormat.name,
-            setup.soundNullSafety
-                ? '--sound-null-safety'
-                : '--no-sound-null-safety',
             if (setup.enableAsserts) '--enable-asserts',
             if (setup.canaryFeatures) '--canary',
             if (verbose) '--verbose',
@@ -732,12 +729,10 @@ class TestProjectConfiguration {
   static final String outputDir = 'out';
 
   final Directory rootDirectory;
-  final bool soundNullSafety;
   final ModuleFormat moduleFormat;
   late final Map<String, ModuleConfiguration> modules;
 
-  TestProjectConfiguration(
-      this.rootDirectory, this.soundNullSafety, this.moduleFormat);
+  TestProjectConfiguration(this.rootDirectory, this.moduleFormat);
 
   void initialize() {
     final testModule4 = ModuleConfiguration(
@@ -815,10 +810,7 @@ class TestProjectConfiguration {
   // Use the outline copied to the released SDK.
   // Unsound .dill files are not longer in the released SDK so this file must be
   // read from the build output directory.
-  Uri get sdkSummaryPath => soundNullSafety
-      ? sdkRoot.resolve('ddc_outline.dill')
-      : computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve('ddc_outline_unsound.dill');
+  Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   List get inputUris => [
@@ -1045,8 +1037,7 @@ abstract class ExpressionCompilerWorkerTestDriver {
 
   Future<void> setUpAll() async {
     tempDir = Directory.systemTemp.createTempSync('foo bar');
-    config = TestProjectConfiguration(
-        tempDir, setup.soundNullSafety, setup.moduleFormat)
+    config = TestProjectConfiguration(tempDir, setup.moduleFormat)
       ..initialize();
 
     await start();
@@ -1076,7 +1067,6 @@ abstract class ExpressionCompilerWorkerTestDriver {
       fileSystem: assetFileSystem,
       requestStream: requestController.stream,
       sendResponse: responseController.add,
-      soundNullSafety: setup.soundNullSafety,
       moduleFormat: setup.moduleFormat,
       canaryFeatures: setup.canaryFeatures,
       enableAsserts: setup.enableAsserts,
@@ -1247,8 +1237,8 @@ class DDCKernelGenerator {
       '--reuse-compiler-result',
       '--use-incremental-compiler',
       '--packages-file=${config.packagesPath.path}',
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
+      // TODO(nshahan): Remove when kernel worker defaults to sound null safety.
+      '--sound-null-safety',
     ];
 
     return runProcess(dartExecutable, args, config.rootPath, verbose);
@@ -1276,8 +1266,6 @@ class DDCKernelGenerator {
       'org-dartlang-app',
       '--packages',
       config.packagesPath.toFilePath(),
-      if (config.soundNullSafety) '--sound-null-safety',
-      if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
       config.moduleFormat.name,
       '--no-summarize',

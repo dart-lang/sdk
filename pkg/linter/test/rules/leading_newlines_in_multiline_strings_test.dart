@@ -65,21 +65,23 @@ var x = '''this is a multiline string $a''';
   }
 
   test_textBeforeNewline() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var x = '''this
  is a multiline string''';
-""", [
-      lint(8, 33),
-    ]);
+""",
+      [lint(8, 33)],
+    );
   }
 
   test_textBeforeNewline_withInterpolation() async {
-    await assertDiagnostics(r"""
+    await assertDiagnostics(
+      r"""
 var a = 'a';
 var x = '''this
  is a multiline string$a''';
-""", [
-      lint(21, 35),
-    ]);
+""",
+      [lint(21, 35)],
+    );
   }
 }

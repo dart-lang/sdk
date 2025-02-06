@@ -94,6 +94,14 @@ List<AnalysisError> analyzeAnalysisOptions(
       var includeSpan = includeNode.span;
       initialIncludeSpan ??= includeSpan;
       var includeUri = includeSpan.text;
+      var (first, last) = (
+          includeUri.codeUnits.firstOrNull,
+          includeUri.codeUnits.lastOrNull);
+      if ((first == 0x0022 || first == 0x0027) && first == last) {
+            // The URI begins and ends with either a double quote or single quote
+            // i.e. the value of the "include" field is quoted.
+            includeUri = includeUri.substring(1, includeUri.length - 1);
+      }
 
       var includedSource = sourceFactory.resolveUri(source, includeUri);
       if (includedSource == initialSource) {

@@ -19093,6 +19093,7 @@ enum ServerService {
 /// {
 ///   "requests": List<String>
 ///   "supportsUris": optional bool
+///   "lspCapabilities": optional object
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -19125,7 +19126,21 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   /// capability.
   bool? supportsUris;
 
-  ServerSetClientCapabilitiesParams(this.requests, {this.supportsUris});
+  /// LSP capabilities of the client as defined by the Language Server Protocol
+  /// specification.
+  ///
+  /// If custom LSP capabilities are to be used, the setClientCapabilities
+  /// request should be called before any LSP requests are made to the server.
+  ///
+  /// If LSP capabilities are not provided or no setClientCapabilities request
+  /// is made, a very basic set of capabilities will be assumed.
+  Object? lspCapabilities;
+
+  ServerSetClientCapabilitiesParams(
+    this.requests, {
+    this.supportsUris,
+    this.lspCapabilities,
+  });
 
   factory ServerSetClientCapabilitiesParams.fromJson(
     JsonDecoder jsonDecoder,
@@ -19152,9 +19167,14 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
           json['supportsUris'],
         );
       }
+      Object? lspCapabilities;
+      if (json.containsKey('lspCapabilities')) {
+        lspCapabilities = json['lspCapabilities'] as Object;
+      }
       return ServerSetClientCapabilitiesParams(
         requests,
         supportsUris: supportsUris,
+        lspCapabilities: lspCapabilities,
       );
     } else {
       throw jsonDecoder.mismatch(
@@ -19187,6 +19207,10 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
     if (supportsUris != null) {
       result['supportsUris'] = supportsUris;
     }
+    var lspCapabilities = this.lspCapabilities;
+    if (lspCapabilities != null) {
+      result['lspCapabilities'] = lspCapabilities;
+    }
     return result;
   }
 
@@ -19213,13 +19237,15 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
             other.requests,
             (String a, String b) => a == b,
           ) &&
-          supportsUris == other.supportsUris;
+          supportsUris == other.supportsUris &&
+          lspCapabilities == other.lspCapabilities;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(Object.hashAll(requests), supportsUris);
+  int get hashCode =>
+      Object.hash(Object.hashAll(requests), supportsUris, lspCapabilities);
 }
 
 /// server.setClientCapabilities result

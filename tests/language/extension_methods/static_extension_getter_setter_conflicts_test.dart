@@ -164,30 +164,30 @@ void test1() {
   // [cfe] The property 'm2' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0];
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-//   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // ^
+  // [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0] = 0;
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-//   ^
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // ^
+  // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0] += 0;
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-//   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // ^
+  // [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0]++;
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-//   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // ^
+  // [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+  // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   C1<Object> c1c = C1<Object>(); // E1A is more specific.
 

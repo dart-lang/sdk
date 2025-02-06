@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 class Server {
@@ -23,7 +24,14 @@ class Server {
           response.close();
           return;
         }
-        ;
+
+        if (request.uri.path == "/malformedAuthenticate") {
+          response.statusCode = HttpStatus.unauthorized;
+          response.headers.set(HttpHeaders.wwwAuthenticateHeader,
+              'Basic malformed header no commas');
+          response.close();
+          return;
+        }
 
         String username;
         String password;
@@ -204,6 +212,53 @@ void testBasicAuthenticateCallback() {
   });
 }
 
+void testMalformedAuthenticateHeaderNoAuthHandler() {
+  setupServer().then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should resolve normally if no authentication is configured
+    await client.getUrl(uri).then((request) => request.close());
+
+    server.shutdown();
+    client.close();
+  });
+}
+
+void testMalformedAuthenticateHeaderWithAuthHandler() {
+  setupServer().then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should throw an exception if the authenticate handler is set
+    client.authenticate = (url, scheme, realm) async => false;
+    await asyncExpectThrows<HttpException>(
+      client.getUrl(uri).then((request) => request.close()));
+
+    server.shutdown();
+    client.close();
+  });
+}
+
+void testMalformedAuthenticateHeaderWithCredentials() {
+  setupServer().then((server) async {
+    HttpClient client = new HttpClient();
+    final uri = Uri.parse(
+        'http://${InternetAddress.loopbackIPv4.address}:${server.port}/malformedAuthenticate');
+
+    // Request should throw an exception if credentials have been added
+    client.addCredentials(
+        uri, 'realm', HttpClientBasicCredentials('dart', 'password'));
+    await asyncExpectThrows<HttpException>(
+      client.getUrl(uri).then((request) => request.close()));
+
+    server.shutdown();
+    client.close();
+  });
+}
+
 void testLocalServerBasic() {
   HttpClient client = new HttpClient();
 
@@ -250,6 +305,9 @@ main() {
   testBasicNoCredentials();
   testBasicCredentials();
   testBasicAuthenticateCallback();
+  testMalformedAuthenticateHeaderNoAuthHandler();
+  testMalformedAuthenticateHeaderWithAuthHandler();
+  testMalformedAuthenticateHeaderWithCredentials();
   // These teste are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerBasic();

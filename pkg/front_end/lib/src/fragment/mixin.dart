@@ -16,7 +16,7 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   late final List<MetadataBuilder>? metadata;
   late final Modifiers modifiers;
   late final TypeBuilder? supertype;
-  late final MixinApplicationBuilder? mixins;
+  late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;

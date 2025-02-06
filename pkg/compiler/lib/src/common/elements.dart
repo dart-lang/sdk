@@ -898,6 +898,9 @@ abstract class CommonElements {
 
   FunctionEntity get stringInterpolationHelper => _findHelperFunction('S');
 
+  FunctionEntity get initializeExceptionWrapper =>
+      _findHelperFunction('initializeExceptionWrapper');
+
   FunctionEntity get wrapExceptionHelper =>
       _findHelperFunction('wrapException');
 
@@ -1737,6 +1740,9 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// marker. The return type of the method is inspected to determine the type
   /// parameter of the Future, Stream or Iterable.
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
+
+  /// Returns `true` if [field] has an explicit `covariant` declaration.
+  bool isFieldCovariantByDeclaration(FieldEntity field);
 
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are

@@ -8752,7 +8752,7 @@ library
           typeParameters
             covariant T @37
               bound: A<dynamic>
-              defaultType: A<dynamic>
+              defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@mixin::A
 ----------------------------------------
 library
@@ -8782,7 +8782,7 @@ library
             T @37
               element: <not-implemented>
   mixins
-    mixin A
+    notSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       typeParameters
