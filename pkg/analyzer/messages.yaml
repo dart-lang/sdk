@@ -4575,8 +4575,8 @@ CompileTimeErrorCode:
 
       Rename the enum to something other than `values`.
   ENUM_WITHOUT_CONSTANTS:
-    problemMessage: The enum must have at least one constant.
-    correctionMessage: Try declaring a constant.
+    problemMessage: The enum must have at least one enum constant.
+    correctionMessage: Try declaring an enum constant.
     hasPublishedDocs: false
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
