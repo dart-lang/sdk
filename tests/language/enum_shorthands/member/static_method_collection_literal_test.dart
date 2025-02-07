@@ -5,7 +5,7 @@
 // Context type is propagated down in collection literals.
 // Testing with static method shorthands.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

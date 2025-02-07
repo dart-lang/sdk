@@ -6,7 +6,7 @@
 // (`if`, `||`, `while`), using an enum shorthand will match members in the
 // `bool` class.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

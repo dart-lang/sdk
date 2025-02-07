@@ -24,9 +24,9 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
   EnableString.digit_separators: ExperimentalFeatures.digit_separators,
+  EnableString.dot_shorthands: ExperimentalFeatures.dot_shorthands,
   EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
   EnableString.enhanced_parts: ExperimentalFeatures.enhanced_parts,
-  EnableString.enum_shorthands: ExperimentalFeatures.enum_shorthands,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
   EnableString.generic_metadata: ExperimentalFeatures.generic_metadata,
   EnableString.getter_setter_error: ExperimentalFeatures.getter_setter_error,
@@ -84,14 +84,14 @@ class EnableString {
   /// String to enable the experiment "digit-separators"
   static const String digit_separators = 'digit-separators';
 
+  /// String to enable the experiment "dot-shorthands"
+  static const String dot_shorthands = 'dot-shorthands';
+
   /// String to enable the experiment "enhanced-enums"
   static const String enhanced_enums = 'enhanced-enums';
 
   /// String to enable the experiment "enhanced-parts"
   static const String enhanced_parts = 'enhanced-parts';
-
-  /// String to enable the experiment "enum-shorthands"
-  static const String enum_shorthands = 'enum-shorthands';
 
   /// String to enable the experiment "extension-methods"
   static const String extension_methods = 'extension-methods';
@@ -258,8 +258,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final enhanced_enums = ExperimentalFeature(
+  static final dot_shorthands = ExperimentalFeature(
     index: 7,
+    enableString: EnableString.dot_shorthands,
+    isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
+    isExpired: IsExpired.dot_shorthands,
+    documentation: 'Shorter dot syntax for static accesses.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final enhanced_enums = ExperimentalFeature(
+    index: 8,
     enableString: EnableString.enhanced_enums,
     isEnabledByDefault: IsEnabledByDefault.enhanced_enums,
     isExpired: IsExpired.enhanced_enums,
@@ -270,23 +281,12 @@ class ExperimentalFeatures {
   );
 
   static final enhanced_parts = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.enhanced_parts,
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
     documentation: 'Generalize parts to be nested and have exports/imports.',
     experimentalReleaseVersion: Version.parse('3.6.0'),
-    releaseVersion: null,
-    channels: ["stable", "beta", "dev", "main"],
-  );
-
-  static final enum_shorthands = ExperimentalFeature(
-    index: 9,
-    enableString: EnableString.enum_shorthands,
-    isEnabledByDefault: IsEnabledByDefault.enum_shorthands,
-    isExpired: IsExpired.enum_shorthands,
-    documentation: 'Shorter dot syntax for enum values.',
-    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -631,14 +631,14 @@ class IsEnabledByDefault {
   /// Default state of the experiment "digit-separators"
   static const bool digit_separators = true;
 
+  /// Default state of the experiment "dot-shorthands"
+  static const bool dot_shorthands = false;
+
   /// Default state of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
 
   /// Default state of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
-
-  /// Default state of the experiment "enum-shorthands"
-  static const bool enum_shorthands = false;
 
   /// Default state of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -750,14 +750,14 @@ class IsExpired {
   /// Expiration status of the experiment "digit-separators"
   static const bool digit_separators = true;
 
+  /// Expiration status of the experiment "dot-shorthands"
+  static const bool dot_shorthands = false;
+
   /// Expiration status of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
 
   /// Expiration status of the experiment "enhanced-parts"
   static const bool enhanced_parts = false;
-
-  /// Expiration status of the experiment "enum-shorthands"
-  static const bool enum_shorthands = false;
 
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -869,14 +869,14 @@ mixin _CurrentState {
   /// Current state for the flag "digit-separators"
   bool get digit_separators => isEnabled(ExperimentalFeatures.digit_separators);
 
+  /// Current state for the flag "dot-shorthands"
+  bool get dot_shorthands => isEnabled(ExperimentalFeatures.dot_shorthands);
+
   /// Current state for the flag "enhanced-enums"
   bool get enhanced_enums => isEnabled(ExperimentalFeatures.enhanced_enums);
 
   /// Current state for the flag "enhanced-parts"
   bool get enhanced_parts => isEnabled(ExperimentalFeatures.enhanced_parts);
-
-  /// Current state for the flag "enum-shorthands"
-  bool get enum_shorthands => isEnabled(ExperimentalFeatures.enum_shorthands);
 
   /// Current state for the flag "extension-methods"
   bool get extension_methods =>

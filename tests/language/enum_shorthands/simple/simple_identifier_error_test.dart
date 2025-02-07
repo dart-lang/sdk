@@ -5,7 +5,7 @@
 // Erroneous ways to use shorthands for simple identifiers and const simple
 // identifiers.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

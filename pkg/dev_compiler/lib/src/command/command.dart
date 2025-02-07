@@ -374,7 +374,8 @@ Future<CompilerResult> _compile(List<String> args,
           lastAcceptedComponent, compiledLibraries);
       if (rejectionReasons.isNotEmpty) {
         throw StateError(
-            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}');
+            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
+            'Use hot restart instead.');
       }
     }
     var sink = File(reloadDeltaKernel).openWrite();

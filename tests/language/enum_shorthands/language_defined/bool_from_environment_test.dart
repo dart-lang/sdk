@@ -6,7 +6,7 @@
 // using an enum shorthand will match the `fromEnvironment` member in the
 // `bool` class.
 
-// SharedOptions=--enable-experiment=enum-shorthands -Da=true
+// SharedOptions=--enable-experiment=dot-shorthands -Da=true
 
 import 'package:expect/expect.dart';
 
