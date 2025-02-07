@@ -148,8 +148,8 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
-  enum-shorthands:
-    help: "Shorter dot syntax for enum values."
+  dot-shorthands:
+    help: "Shorter dot syntax for static accesses."
 
   getter-setter-error:
     help: "Stop reporting errors about mismatching types in a getter/setter pair."

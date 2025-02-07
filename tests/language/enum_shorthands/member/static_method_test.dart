@@ -5,7 +5,7 @@
 // Basic usages of enum shorthands with static members in classes and extension
 // types.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

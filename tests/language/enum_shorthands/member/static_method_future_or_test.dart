@@ -5,7 +5,7 @@
 // `FutureOr<S>` denotes the same namespace as `S` for enum shorthands on
 // static members.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import 'dart:async';
 

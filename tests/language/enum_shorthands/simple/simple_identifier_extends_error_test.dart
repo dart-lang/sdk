@@ -6,7 +6,7 @@
 // the static members of `T`. It is a compile-time error to use an enum
 // shorthand for type `X` in these cases.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import 'dart:async';
 

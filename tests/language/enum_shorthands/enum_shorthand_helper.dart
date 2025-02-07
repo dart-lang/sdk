@@ -4,7 +4,7 @@
 
 // Common classes and enums for testing enum shorthands.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 enum Color { red, green, blue }
 

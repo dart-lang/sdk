@@ -5,7 +5,7 @@
 // Test that there are no crashes when enum shorthands are used in places
 // with no context type, or it's not allowed.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

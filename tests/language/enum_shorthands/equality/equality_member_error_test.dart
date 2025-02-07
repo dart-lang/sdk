@@ -5,7 +5,7 @@
 // Testing erroneous ways of using shorthands with the `==` and `!=` operators
 // for static members.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 

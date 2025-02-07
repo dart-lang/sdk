@@ -4,7 +4,7 @@
 
 // `T?` denotes the same namespace as `T` for enum shorthands.
 
-// SharedOptions=--enable-experiment=enum-shorthands
+// SharedOptions=--enable-experiment=dot-shorthands
 
 import '../enum_shorthand_helper.dart';
 
