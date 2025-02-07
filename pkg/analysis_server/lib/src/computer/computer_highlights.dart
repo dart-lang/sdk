@@ -1497,15 +1497,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternFieldName(PatternFieldName node) {
-    var name = node.name;
+  void visitPatternField(PatternField node) {
+    var name = node.name?.name;
     if (name != null) {
-      computer._addRegion_token(
-        node.name,
-        HighlightRegionType.INSTANCE_GETTER_REFERENCE,
-      );
+      // Patterns can be method tear-offs as well as getters:
+      // https://github.com/dart-lang/sdk/issues/59976#issuecomment-2613558317
+      var type = switch (node.element2) {
+        MethodElement2() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
+        _ => HighlightRegionType.INSTANCE_GETTER_REFERENCE,
+      };
+
+      computer._addRegion_token(name, type);
     }
-    super.visitPatternFieldName(node);
+    super.visitPatternField(node);
   }
 
   @override
