@@ -150,6 +150,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         });
         // append parameters
         builder.writeFormalParameters(functionType.formalParameters);
+        if (functionType.returnType.isDartAsyncFuture) {
+          builder.write(' async');
+        }
         // close method
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);

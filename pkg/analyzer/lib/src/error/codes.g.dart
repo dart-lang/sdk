@@ -1546,8 +1546,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
       CompileTimeErrorCode(
     'ENUM_WITHOUT_CONSTANTS',
-    "The enum must have at least one constant.",
-    correctionMessage: "Try declaring a constant.",
+    "The enum must have at least one enum constant.",
+    correctionMessage: "Try declaring an enum constant.",
   );
 
   ///  Parameters:

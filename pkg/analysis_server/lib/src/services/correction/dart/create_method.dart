@@ -187,19 +187,23 @@ class CreateMethod extends ResolvedCorrectionProducer {
           builder.write('static ');
         }
         // Append return type.
-        {
-          var type = inferUndefinedExpressionType(invocation);
-          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-            builder.write(' ');
-          }
+
+        var type = inferUndefinedExpressionType(invocation);
+        if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
+          builder.write(' ');
         }
+
         // Append name.
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(_memberName);
         });
         builder.write('(');
         builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(') {}');
+        builder.write(')');
+        if (type?.isDartAsyncFuture == true) {
+          builder.write(' async');
+        }
+        builder.write(' {}');
       });
       if (targetFile == file) {
         builder.addLinkedPosition(range.node(node), 'NAME');

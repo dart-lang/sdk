@@ -207,6 +207,67 @@ class CreateMethodTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_METHOD;
 
+  Future<void> test_await_expression_statement() async {
+    await resolveTestCode('''
+class A {
+  Future<void> f() async {
+    await myUndefinedFunction();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> f() async {
+    await myUndefinedFunction();
+  }
+
+  Future<void> myUndefinedFunction() async {}
+}
+''');
+  }
+
+  Future<void> test_await_field_assignment() async {
+    await resolveTestCode('''
+class A {
+  int x = 1;
+  Future<void> f() async {
+    x = await myUndefinedFunction();
+    print(x);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int x = 1;
+  Future<void> f() async {
+    x = await myUndefinedFunction();
+    print(x);
+  }
+
+  Future<int> myUndefinedFunction() async {}
+}
+''');
+  }
+
+  Future<void> test_await_infer_from_parent() async {
+    await resolveTestCode('''
+class A {
+  Future<void> f() async {
+    if (await myUndefinedFunction()) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> f() async {
+    if (await myUndefinedFunction()) {}
+  }
+
+  Future<bool> myUndefinedFunction() async {}
+}
+''');
+  }
+
   Future<void> test_createQualified_emptyClassBody() async {
     await resolveTestCode('''
 class A {}
