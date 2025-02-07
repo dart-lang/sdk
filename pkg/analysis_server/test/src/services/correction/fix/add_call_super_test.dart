@@ -83,6 +83,35 @@ class B extends A {
 ''', matchFixMessage: "Add 'super.m(x)'");
   }
 
+  Future<void> test_body_multiple_parameters() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  void m(int x, bool y) {}
+}
+class B extends A {
+  @override
+  void m(int x, bool y) {}
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  void m(int x, bool y) {}
+}
+class B extends A {
+  @override
+  void m(int x, bool y) {
+    super.m(x, y);
+  }
+}
+''', matchFixMessage: "Add 'super.m(x, y)'");
+  }
+
   Future<void> test_body_optional() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
