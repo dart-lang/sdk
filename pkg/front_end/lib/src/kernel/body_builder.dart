@@ -6421,7 +6421,7 @@ class BodyBuilder extends StackListenerImpl
         typeName = type.fullNameForErrors;
       }
       push(buildUnresolvedError(
-          debugName(typeName!, name), nameToken.charOffset,
+          debugName(typeName!, name), nameLastToken.charOffset,
           arguments: arguments, kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;

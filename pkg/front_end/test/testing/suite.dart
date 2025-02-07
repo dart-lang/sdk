@@ -269,11 +269,11 @@ class FastaContext extends ChainContext with MatchContext {
       this.soundNullSafety)
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
-          new ErrorCommentChecker(compileMode),
           const Print(),
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
-              : VerificationStage.outline)
+              : VerificationStage.outline),
+          new ErrorCommentChecker(compileMode),
         ],
         suiteFolderOptions = new SuiteFolderOptions(baseUri),
         suiteTestOptions = new SuiteTestOptions() {
