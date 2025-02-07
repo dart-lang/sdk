@@ -19,7 +19,14 @@ permissions:
 jobs:
   triage_issues:
     runs-on: ubuntu-latest
+
+    # Don't fail the workflow if there's an error below (for example, if we
+    # have problems modifying an issue's labels) as that would send a failure
+    # email to the user who created the issue.
+    continue-on-error: true
+
     if: ${{ github.repository_owner == 'dart-lang' }}
+
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:

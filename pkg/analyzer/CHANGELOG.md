@@ -1,4 +1,4 @@
-## 7.3.0-dev
+## 7.3.0
 * Add `flags` optional named parameter to `FeatureSet.latestLanguageVersion()`.
 
 ## 7.2.0
