@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -91,13 +91,14 @@ import '$innerUri';
 }
 
 @reflectiveTest
-class AnalysisDriver_LintTest extends PubPackageResolutionTest {
+class AnalysisDriver_LintTest extends PubPackageResolutionTest
+    with LintRegistrationMixin {
   @override
   void setUp() {
     super.setUp();
 
     useEmptyByteStore();
-    Registry.ruleRegistry.registerLintRule(_AlwaysReportedLint.instance);
+    registerLintRule(_AlwaysReportedLint.instance);
     writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
       rules: [_AlwaysReportedLint.code.name],
     ));
@@ -105,7 +106,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest {
 
   @override
   Future<void> tearDown() {
-    Registry.ruleRegistry.unregisterLintRule(_AlwaysReportedLint.instance);
+    unregisterLintRules();
     return super.tearDown();
   }
 

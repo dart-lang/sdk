@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -43,7 +43,7 @@ class ErrorProcessorMatcher extends Matcher {
 }
 
 @reflectiveTest
-class OptionsProviderTest with ResourceProviderMixin {
+class OptionsProviderTest with ResourceProviderMixin, LintRegistrationMixin {
   late final SourceFactory sourceFactory;
 
   late final AnalysisOptionsProvider provider;
@@ -53,6 +53,10 @@ class OptionsProviderTest with ResourceProviderMixin {
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     provider = AnalysisOptionsProvider(sourceFactory);
+  }
+
+  void tearDown() {
+    unregisterLintRules();
   }
 
   test_chooseFirstLegacyPlugin() {
@@ -298,8 +302,7 @@ linter:
 
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.registerLintRule(lowLevelLint);
-    Registry.ruleRegistry.registerLintRule(topLevelLint);
+    registerLintRules([lowLevelLint, topLevelLint]);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
@@ -320,8 +323,7 @@ linter:
 
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.registerLintRule(lowLevelLint);
-    Registry.ruleRegistry.registerLintRule(topLevelLint);
+    registerLintRules([lowLevelLint, topLevelLint]);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
@@ -341,7 +343,7 @@ linter:
 ''');
 
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.registerLintRule(topLevelLint);
+    registerLintRule(topLevelLint);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, isNot(contains(topLevelLint)));

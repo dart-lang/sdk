@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -49,20 +49,19 @@ class RemovedRule extends LintRule {
 }
 
 @reflectiveTest
-class RemoveLintTest extends AnalysisOptionsFixTest {
+class RemoveLintTest extends AnalysisOptionsFixTest with LintRegistrationMixin {
   // Keep track of these rules so they can be unregistered in `tearDown`.
   var deprecatedRule = DeprecatedRule();
   var removedRule = RemovedRule();
 
   void setUp() {
     registerLintRules();
-    Registry.ruleRegistry.registerLintRule(deprecatedRule);
-    Registry.ruleRegistry.registerLintRule(removedRule);
+    registerLintRule(deprecatedRule);
+    registerLintRule(removedRule);
   }
 
   void tearDown() {
-    Registry.ruleRegistry.unregisterLintRule(deprecatedRule);
-    Registry.ruleRegistry.unregisterLintRule(removedRule);
+    unregisterLintRules();
   }
 
   Future<void> test_deprecated() async {
