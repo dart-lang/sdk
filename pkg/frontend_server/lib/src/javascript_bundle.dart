@@ -90,7 +90,11 @@ class IncrementalJavaScriptBundler {
       // connected component graph.
       final List<String> errors = _deltaInspector.compareGenerations(
           lastFullComponent, partialComponent);
-      if (errors.isNotEmpty) throw new Exception(errors.join('/n'));
+      if (errors.isNotEmpty) {
+        throw new Exception(errors.join('/n') +
+            '\nHot reload rejected due to unsupported changes. '
+                'Use hot restart instead.');
+      }
     }
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
