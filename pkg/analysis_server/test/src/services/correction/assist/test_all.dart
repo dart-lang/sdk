@@ -73,6 +73,8 @@ import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
 import 'flutter_wrap_sized_box_test.dart' as flutter_wrap_sized_box;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
+import 'flutter_wrap_value_listenable_builder_test.dart'
+    as flutter_wrap_value_listenable_builder;
 import 'import_add_show_test.dart' as import_add_show;
 import 'inline_invocation_test.dart' as inline_invocation;
 import 'invert_conditional_expression_test.dart'
@@ -164,6 +166,7 @@ void main() {
     flutter_wrap_sized_box.main();
     flutter_wrap_builder.main();
     flutter_wrap_stream_builder.main();
+    flutter_wrap_value_listenable_builder.main();
     import_add_show.main();
     inline_invocation.main();
     invert_conditional_expression.main();

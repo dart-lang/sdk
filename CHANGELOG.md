@@ -16,6 +16,8 @@
 
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
 
+- Added a quick assist for Wrap with ValueListenableBuilder.
+
 #### Dart Development Compiler (dartdevc)
 
 In order to align with dart2js semantics, DDC will now throw a runtime error
