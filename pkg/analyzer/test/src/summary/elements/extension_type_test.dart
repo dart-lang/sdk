@@ -1512,7 +1512,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            B
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1530,7 +1530,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            A
           fields
             final it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1573,14 +1573,14 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
-    extension type A
+    hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       interfaces
-        B
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1589,14 +1589,14 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasImplementsSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       interfaces
-        A
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1629,7 +1629,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            A
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1660,14 +1660,14 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
-    extension type A
+    hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       interfaces
-        A
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2924,7 +2924,7 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
-    extension type A
+    hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
@@ -2938,7 +2938,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
@@ -3049,7 +3049,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
@@ -3116,7 +3116,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
-    extension type A
+    hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
