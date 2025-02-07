@@ -2645,10 +2645,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _A&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A&B&C
-    ;
-}
 class A extends self::_A&B&C {
   synthetic constructor •() → self::A
     ;
@@ -2665,42 +2661,20 @@ class A3 extends core::Object {
   synthetic constructor •() → self::A3
     ;
 }
-abstract class _A4&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A4&Object&C
-    : super core::Object::•()
-    ;
-}
 class A4 extends self::_A4&Object&C {
   synthetic constructor •() → self::A4
-    ;
-}
-abstract class _A5&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A5&Object&C
-    : super core::Object::•()
     ;
 }
 class A5 extends self::_A5&Object&C {
   synthetic constructor •() → self::A5
     ;
 }
-abstract class _A6&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A6&B&C
-    ;
-}
 class A6 extends self::_A6&B&C {
   synthetic constructor •() → self::A6
     ;
 }
-abstract class _A7&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A7&B&C
-    ;
-}
 class A7 extends self::_A7&B&C {
   synthetic constructor •() → self::A7
-    ;
-}
-abstract class _A8&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A8&B&C
     ;
 }
 class A8 extends self::_A8&B&C {
@@ -2723,25 +2697,12 @@ class A12 extends core::Object {
   synthetic constructor •() → self::A12
     ;
 }
-abstract class _A13&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A13&B&C
-    ;
-}
 class A13 extends self::_A13&B&C {
   synthetic constructor •() → self::A13
     ;
 }
-abstract class _A14&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A14&B&C
-    ;
-}
 class A14 extends self::_A14&B&C {
   synthetic constructor •() → self::A14
-    ;
-}
-abstract class _A15&Object&D extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A15&Object&D
-    : super core::Object::•()
     ;
 }
 class A15 extends self::_A15&Object&D {
@@ -2768,17 +2729,8 @@ class A20 extends core::Object {
   synthetic constructor •() → self::A20
     ;
 }
-abstract class _A21&B&C extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A21&B&C
-    ;
-}
 class A21 extends self::_A21&B&C {
   synthetic constructor •() → self::A21
-    ;
-}
-abstract class _A22&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A22&Object&C
-    : super core::Object::•()
     ;
 }
 class A22 extends self::_A22&Object&C {
@@ -2791,11 +2743,6 @@ class A23 extends core::Object {
 }
 class A24 extends core::Object {
   synthetic constructor •() → self::A24
-    ;
-}
-abstract class _A25&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A25&Object&C
-    : super core::Object::•()
     ;
 }
 class A25 extends self::_A25&Object&C {
@@ -2866,11 +2813,6 @@ class N26 extends core::Object {
   synthetic constructor •() → self::N26
     ;
 }
-abstract class _E&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E extends self::_E&_Enum&C /*isEnum*/  {
   enum-element static const field self::E element = const self::E::•(0, "element");
   static const field core::List<self::E> values = const <self::E>[self::E::element];
@@ -2907,11 +2849,6 @@ class E3 extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E4&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E4 extends self::_E4&_Enum&C /*isEnum*/  {
   enum-element static const field self::E4 element = const self::E4::•(0, "element");
   static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
@@ -2920,11 +2857,6 @@ class E4 extends self::_E4&_Enum&C /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E5&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
 }
 class E5 extends self::_E5&_Enum&C /*isEnum*/  {
   enum-element static const field self::E5 element = const self::E5::•(0, "element");
@@ -2935,11 +2867,6 @@ class E5 extends self::_E5&_Enum&C /*isEnum*/  {
   method _enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E6&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E6 extends self::_E6&_Enum&C /*isEnum*/  {
   enum-element static const field self::E6 element = const self::E6::•(0, "element");
   static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
@@ -2949,11 +2876,6 @@ class E6 extends self::_E6&_Enum&C /*isEnum*/  {
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E7&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E7 extends self::_E7&_Enum&C /*isEnum*/  {
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
   static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
@@ -2962,11 +2884,6 @@ class E7 extends self::_E7&_Enum&C /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E8&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
 }
 class E8 extends self::_E8&_Enum&C /*isEnum*/  {
   enum-element static const field self::E8 element = const self::E8::•(0, "element");
@@ -3012,11 +2929,6 @@ class E12 extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "E12.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E13&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E13&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E13 extends self::_E13&_Enum&C /*isEnum*/  {
   enum-element static const field self::E13 element = const self::E13::•(0, "element");
   static const field core::List<self::E13> values = const <self::E13>[self::E13::element];
@@ -3026,11 +2938,6 @@ class E13 extends self::_E13&_Enum&C /*isEnum*/  {
   method _enumToString() → core::String
     return "E13.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E14&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E14&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E14 extends self::_E14&_Enum&C /*isEnum*/  {
   enum-element static const field self::E14 element = const self::E14::•(0, "element");
   static const field core::List<self::E14> values = const <self::E14>[self::E14::element];
@@ -3039,11 +2946,6 @@ class E14 extends self::_E14&_Enum&C /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E14.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E15&_Enum&D extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E15&_Enum&D
-    : super core::_Enum::•(index, _name)
-    ;
 }
 class E15 extends self::_E15&_Enum&D /*isEnum*/  {
   enum-element static const field self::E15 element = const self::E15::•(0, "element");
@@ -3099,11 +3001,6 @@ class E20 extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "E20.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E21&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E21&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E21 extends self::_E21&_Enum&C /*isEnum*/  {
   enum-element static const field self::E21 element = const self::E21::•(0, "element");
   static const field core::List<self::E21> values = const <self::E21>[self::E21::element];
@@ -3112,11 +3009,6 @@ class E21 extends self::_E21&_Enum&C /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E21.${this.{core::_Enum::_name}{core::String}}";
-}
-abstract class _E22&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E22&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
 }
 class E22 extends self::_E22&_Enum&C /*isEnum*/  {
   enum-element static const field self::E22 element = const self::E22::•(0, "element");
@@ -3145,11 +3037,6 @@ class E24 extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "E24.${this.{core::_Enum::_name}{core::String}}";
 }
-abstract class _E25&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E25&_Enum&C
-    : super core::_Enum::•(index, _name)
-    ;
-}
 class E25 extends self::_E25&_Enum&C /*isEnum*/  {
   enum-element static const field self::E25 element = const self::E25::•(0, "element");
   static const field core::List<self::E25> values = const <self::E25>[self::E25::element];
@@ -3167,6 +3054,119 @@ class E26 extends core::_Enum /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E26.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _A&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&B&C
+    ;
+}
+abstract class _A4&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A4&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A5&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A5&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A6&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A6&B&C
+    ;
+}
+abstract class _A7&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A7&B&C
+    ;
+}
+abstract class _A8&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A8&B&C
+    ;
+}
+abstract class _A13&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A13&B&C
+    ;
+}
+abstract class _A14&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A14&B&C
+    ;
+}
+abstract class _A15&Object&D extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A15&Object&D
+    : super core::Object::•()
+    ;
+}
+abstract class _A21&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A21&B&C
+    ;
+}
+abstract class _A22&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A22&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A25&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A25&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _E&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E4&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E5&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E6&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E7&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E8&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E13&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E13&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E14&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E14&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E15&_Enum&D extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E15&_Enum&D
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E21&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E21&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E22&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E22&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E25&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E25&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
 }
 static field dynamic with;
 static field dynamic C;

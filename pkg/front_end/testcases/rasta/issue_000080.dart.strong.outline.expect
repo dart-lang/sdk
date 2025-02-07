@@ -7,6 +7,14 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic
     ;
 }
+class Foo extends self::_Foo&Object&Mixin {
+  synthetic constructor •() → self::Foo
+    ;
+  method foo() → dynamic
+    ;
+  method bar() → dynamic
+    ;
+}
 abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Foo&Object&Mixin
     : super core::Object::•()
@@ -17,14 +25,6 @@ abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::field};
   mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
-}
-class Foo extends self::_Foo&Object&Mixin {
-  synthetic constructor •() → self::Foo
-    ;
-  method foo() → dynamic
-    ;
-  method bar() → dynamic
-    ;
 }
 static method main() → dynamic
   ;

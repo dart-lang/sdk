@@ -10,7 +10,7 @@ class TypedefFragment implements Fragment {
   @override
   final String name;
 
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<TypeParameterFragment>? typeParameters;
   final TypeBuilder type;
   final Uri fileUri;
   final int nameOffset;

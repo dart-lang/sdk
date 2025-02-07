@@ -142,11 +142,6 @@ class EnumClass2 extends self::AbstractEnumClass {
 }
 abstract class EnumMixin extends core::Enum /*isMixinDeclaration*/  {
 }
-abstract class _AbstractEnumClass2&Object&EnumMixin = core::Object with self::EnumMixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractEnumClass2&Object&EnumMixin
-    : super core::Object::•()
-    ;
-}
 abstract class AbstractEnumClass2 extends self::_AbstractEnumClass2&Object&EnumMixin {
   synthetic constructor •() → self::AbstractEnumClass2
     : super self::_AbstractEnumClass2&Object&EnumMixin::•()
@@ -158,6 +153,11 @@ class EnumClass3 extends self::AbstractEnumClass2 {
     ;
   no-such-method-forwarder get _name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+}
+abstract class _AbstractEnumClass2&Object&EnumMixin = core::Object with self::EnumMixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractEnumClass2&Object&EnumMixin
+    : super core::Object::•()
+    ;
 }
 static method main() → dynamic {}
 

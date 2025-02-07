@@ -26,7 +26,9 @@ main() {
       // `self.dartMainRunner`.
     } else {
       Expect.contains(
-          'no_such_method_restriction_stack_trace_lib1.dart', stackString);
+        'no_such_method_restriction_stack_trace_lib1.dart',
+        stackString,
+      );
     }
   }
 }

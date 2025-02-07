@@ -88,7 +88,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         parent = enclosingLibraryBuilder,
         _modifiers = fragment.modifiers,
         extensionName = fragment.extensionName,
-        typeParameters = fragment.typeParameters,
+        typeParameters = fragment.typeParameters?.builders,
         typeParameterScope = fragment.typeParameterScope,
         onType = fragment.onType,
         _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder() {

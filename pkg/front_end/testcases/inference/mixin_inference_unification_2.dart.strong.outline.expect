@@ -19,6 +19,10 @@ abstract class M0<T extends core::Object? = dynamic> extends core::Object implem
 }
 abstract class M1<T extends core::Object? = dynamic> extends core::Object implements self::I<core::List<self::M1::T%>, self::M1::T%> /*isMixinDeclaration*/  {
 }
+class A extends self::_A&Object&M0&M1 {
+  synthetic constructor •() → self::A
+    ;
+}
 abstract class _A&Object&M0 = core::Object with self::M0<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0
     : super core::Object::•()
@@ -27,10 +31,6 @@ abstract class _A&Object&M0 = core::Object with self::M0<dynamic> /*isAnonymousM
 abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0&M1
     : super self::_A&Object&M0::•()
-    ;
-}
-class A extends self::_A&Object&M0&M1 {
-  synthetic constructor •() → self::A
     ;
 }
 static method main() → dynamic

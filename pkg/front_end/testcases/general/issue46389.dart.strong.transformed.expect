@@ -25,6 +25,11 @@ abstract class B<X extends core::Object? = dynamic> extends core::Object /*isMix
   abstract set baz(covariant-by-class self::B::X% x) → void;
   abstract set boz(covariant-by-class self::B::X% x) → void;
 }
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    : super self::_C&A&B::•()
+    ;
+}
 abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
@@ -37,11 +42,6 @@ abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymou
     return super.{self::A::boz} = x as core::int;
   set baz(covariant-by-class core::num x) → void
     return super.{self::A::baz} = x as core::int;
-}
-class C extends self::_C&A&B {
-  synthetic constructor •() → self::C
-    : super self::_C&A&B::•()
-    ;
 }
 static method main() → void {
   self::C a = new self::C::•();

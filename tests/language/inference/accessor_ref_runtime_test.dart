@@ -34,12 +34,6 @@ var y = a.b.c ??= new D();
 
 test() {
   // Verify the types of x and y by trying to assign to them.
-
-
-
-
-
-
 }
 
 main() {}

@@ -9,9 +9,9 @@
 
 import "package:expect/expect.dart";
 
-abstract class S { }
-class C { }
+abstract class S {}
 
+class C {}
 
 main() {
   Expect.isFalse(new C() is S);

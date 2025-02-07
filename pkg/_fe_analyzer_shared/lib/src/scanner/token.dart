@@ -696,6 +696,7 @@ class SimpleToken implements Token {
    * Sets the `parent` property to `this` for the given [comment] and all the
    * next tokens.
    */
+  @pragma("vm:prefer-inline")
   void _setCommentParent(CommentToken? comment) {
     while (comment != null) {
       comment.parent = this;

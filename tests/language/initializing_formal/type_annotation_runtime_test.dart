@@ -11,13 +11,9 @@ class C {
   num a;
   C.sameType(num this.a);
   C.subType(int this.a);
-
-
 }
 
 main() {
   new C.sameType(3.14);
   new C.subType(42);
-
-
 }

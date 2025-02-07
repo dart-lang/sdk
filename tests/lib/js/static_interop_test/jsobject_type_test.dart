@@ -4,12 +4,8 @@
 
 // Check that `JSObject` can be used to type JS objects.
 
-@JS()
-library jsobject_type_test;
-
 import 'dart:js_interop';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 @JS()
 external void eval(String code);
@@ -21,6 +17,6 @@ void main() {
   eval('''
     globalThis.obj = {};
   ''');
-  expect(obj is JSObject, true);
+  Expect.isTrue(obj is JSObject);
   obj as JSObject;
 }

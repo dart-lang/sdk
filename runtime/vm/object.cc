@@ -3989,6 +3989,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
     const String& target_name,
     const Array& args_desc,
     UntaggedFunction::Kind kind) const {
+  ASSERT(target_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
@@ -4329,10 +4330,20 @@ bool Function::IsDynamicInvocationForwarderName(StringPtr name) {
 }
 
 StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::call().ptr();
+  }
   const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
   ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
   return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
                       name.Length() - kDynamicPrefixLength);
+}
+
+const String& Function::DropImplicitCallPrefix(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::DynamicCall();
+  }
+  return name;
 }
 
 StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
@@ -4395,6 +4406,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
+  ASSERT(mangled_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Class& owner = Class::Handle(zone, Owner());
@@ -10804,12 +10816,6 @@ bool Function::IsClosureCallDispatcher() const {
   if (!IsInvokeFieldDispatcher()) return false;
   if (!Class::IsClosureClass(Owner())) return false;
   return name() == Symbols::call().ptr();
-}
-
-bool Function::IsClosureCallGetter() const {
-  if (!IsGetterFunction()) return false;
-  if (!Class::IsClosureClass(Owner())) return false;
-  return name() == Symbols::GetCall().ptr();
 }
 
 FunctionPtr Function::ImplicitClosureFunction() const {

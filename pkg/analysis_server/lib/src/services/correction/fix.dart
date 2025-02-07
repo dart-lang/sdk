@@ -824,21 +824,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Extract local variable',
   );
-  static const IGNORE_ERROR_LINE = FixKind(
-    'dart.fix.ignore.line',
-    DartFixKindPriority.ignore,
-    "Ignore '{0}' for this line",
-  );
-  static const IGNORE_ERROR_FILE = FixKind(
-    'dart.fix.ignore.file',
-    DartFixKindPriority.ignore - 1,
-    "Ignore '{0}' for the whole file",
-  );
-  static const IGNORE_ERROR_ANALYSIS_FILE = FixKind(
-    'dart.fix.ignore.analysis',
-    DartFixKindPriority.ignore - 2,
-    "Ignore '{0}' in `analysis_options.yaml`",
-  );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
     49,
@@ -848,6 +833,11 @@ abstract final class DartFixKind {
     'dart.fix.import.libraryCombinator',
     DartFixKindPriority.standard + 5,
     "Update library '{0}' import",
+  );
+  static const IMPORT_LIBRARY_HIDE = FixKind(
+    'dart.fix.import.libraryHide',
+    DartFixKindPriority.standard,
+    "Hide others to use '{0}' from '{1}'{2}",
   );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
@@ -914,6 +904,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 1,
     "Import library '{0}' with 'show'",
   );
+  static const IMPORT_LIBRARY_REMOVE_SHOW = FixKind(
+    'dart.fix.import.libraryRemoveShow',
+    DartFixKindPriority.standard - 1,
+    "Remove show to use '{0}' from '{1}'{2}",
+  );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
@@ -924,15 +919,15 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 4,
     "Import library '{0}' with prefix '{1}'",
   );
-  static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
-    'dart.fix.import.librarySdkPrefixedShow',
-    DartFixKindPriority.standard + 4,
-    "Import library '{0}' with prefix '{1}' and 'show'",
-  );
   static const IMPORT_LIBRARY_SDK_SHOW = FixKind(
     'dart.fix.import.librarySdkShow',
     DartFixKindPriority.standard + 4,
     "Import library '{0}' with 'show'",
+  );
+  static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.librarySdkPrefixedShow',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with prefix '{1}' and 'show'",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',

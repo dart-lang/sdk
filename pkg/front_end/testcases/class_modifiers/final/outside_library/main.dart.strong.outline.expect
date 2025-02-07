@@ -51,11 +51,11 @@ class EnumImplementsFinalMixin extends core::_Enum implements mai::A /*isEnum*/ 
 }
 abstract base class MixinOnA extends mai::A /*isMixinDeclaration*/  {
 }
+abstract base class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
+}
 abstract class _MixinOnAB&A&B extends core::Object implements mai::A, mai::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MixinOnAB&A&B
     ;
-}
-abstract base class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
 }
 
 library;

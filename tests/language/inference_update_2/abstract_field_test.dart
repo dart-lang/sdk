@@ -15,9 +15,7 @@ class D {
   final int? _f1;
   final int? _f2;
 
-  D(int i)
-      : _f1 = i,
-        _f2 = i;
+  D(int i) : _f1 = i, _f2 = i;
 }
 
 void testAbstractFinalFieldIsPromotable(C c) {

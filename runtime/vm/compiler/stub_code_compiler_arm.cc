@@ -231,6 +231,7 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
 
+  __ VerifyNotInGenerated(R0);
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
@@ -3081,7 +3082,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ cmp(tmp1, Operand(tmp2));
   __ b(&exit_through_non_ffi, NE);
   __ TransitionNativeToGenerated(tmp1, tmp2,
-                                 /*leave_safepoint=*/true,
+                                 /*exit_safepoint=*/true,
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 

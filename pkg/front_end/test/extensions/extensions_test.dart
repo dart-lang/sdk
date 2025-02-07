@@ -97,7 +97,6 @@ class Tags {
   static const String builderTypeParameters = 'builder-type-params';
   static const String builderSupertype = 'builder-supertype';
   static const String builderInterfaces = 'builder-interfaces';
-  static const String builderOnTypes = 'builder-onTypes';
   static const String builderOnType = 'builder-onType';
   static const String builderRequiredParameters = 'builder-params';
   static const String builderPositionalParameters = 'builder-pos-params';
@@ -174,11 +173,6 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     if (clsBuilder.interfaceBuilders != null) {
       for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
         features.addElement(Tags.builderInterfaces, superinterface.typeName);
-      }
-    }
-    if (clsBuilder.onTypes != null) {
-      for (TypeBuilder onType in clsBuilder.onTypes!) {
-        features.addElement(Tags.builderOnTypes, typeBuilderToText(onType));
       }
     }
 

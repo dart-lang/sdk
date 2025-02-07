@@ -158,6 +158,7 @@ mixin KernelNodes {
   late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
   late final wasmI16Class = index.getClass("dart:_wasm", "WasmI16");
   late final wasmI32Class = index.getClass("dart:_wasm", "WasmI32");
+  late final wasmI32Value = index.getField("dart:_wasm", "WasmI32", "_value");
   late final wasmI64Class = index.getClass("dart:_wasm", "WasmI64");
   late final wasmF32Class = index.getClass("dart:_wasm", "WasmF32");
   late final wasmF64Class = index.getClass("dart:_wasm", "WasmF64");

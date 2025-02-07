@@ -75,7 +75,7 @@ main() {
     c11,
     c12,
     c13,
-    c14
+    c14,
   ];
   Expect.allDistinct(values); // Non of them create constants.
   for (var value in values) {
@@ -139,7 +139,7 @@ void testNamed() {
     c11,
     c12,
     c13,
-    c14
+    c14,
   ];
   Expect.allDistinct(values); // Non of them create constants.
   for (var value in values) {

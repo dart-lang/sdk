@@ -36,14 +36,6 @@ class Bad extends core::Object {
   static factory WrongName() → self::Bad
     return throw "";
 }
-abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
-    : super lib::Supertype::•()
-    ;
-  method /* from org-dartlang-testcase:///qualified_lib.dart */ foo() → dynamic {
-    core::print("I'm Mixin.foo");
-  }
-}
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → self::WithMixin
     : super self::_WithMixin&Supertype&Mixin::•()
@@ -63,6 +55,14 @@ class C<T extends core::Object? = dynamic> extends core::Object { // from org-da
     ;
   static factory b<T extends core::Object? = dynamic>() → self::C<self::C::b::T%> /* redirection-target: lib::C::b<self::C::b::T%>*/
     return lib::C::b<self::C::b::T%>();
+}
+abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
+    : super lib::Supertype::•()
+    ;
+  method /* from org-dartlang-testcase:///qualified_lib.dart */ foo() → dynamic {
+    core::print("I'm Mixin.foo");
+  }
 }
 static method main() → dynamic {
   new self::C::•<core::String>();

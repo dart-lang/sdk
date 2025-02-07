@@ -16,15 +16,15 @@ class C<T extends Object> {
 List<T> foo<T extends Object>(T? value) => [value!];
 
 List<T> bar<T extends Object>(List<T?> value) => [
-      for (var element in value)
-        if (element != null) element
-    ];
+  for (var element in value)
+    if (element != null) element,
+];
 
 extension Ext<T extends Object> on List<T?> {
   List<T> whereNotNull() => [
-        for (var element in this)
-          if (element != null) element
-      ];
+    for (var element in this)
+      if (element != null) element,
+  ];
 }
 
 main() {

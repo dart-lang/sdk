@@ -173,6 +173,7 @@ enum BenchmarkPhases {
   outline_checkSemantics,
   outline_finishTypeParameters,
   outline_createTypeInferenceEngine,
+  outline_computeSupertypes,
   outline_buildComponent,
   outline_installDefaultSupertypes,
   outline_installSyntheticConstructors,

@@ -73,12 +73,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
   SourceEnumBuilder.internal(
-      {required List<MetadataBuilder>? metadata,
-      required String name,
+      {required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
-      required TypeBuilder supertypeBuilder,
-      required List<TypeBuilder>? interfaceBuilders,
       required LookupScope typeParameterScope,
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
       required List<EnumElementFragment> enumElements,
@@ -88,33 +85,27 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required this.startOffset,
       required int nameOffset,
       required this.endOffset,
-      required IndexedClass? indexedClass})
+      required IndexedClass? indexedClass,
+      required ClassDeclaration classDeclaration})
       : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
         _enumElements = enumElements,
         super(
-            metadata: metadata,
             modifiers: Modifiers.empty,
             name: name,
             typeParameters: typeParameters,
-            supertypeBuilder: supertypeBuilder,
-            interfaceBuilders: interfaceBuilders,
-            onTypes: null,
             typeParameterScope: typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: libraryBuilder,
             constructorReferences: constructorReferences,
             fileUri: fileUri,
-            startOffset: startOffset,
             nameOffset: nameOffset,
-            endOffset: endOffset,
-            indexedClass: indexedClass);
+            indexedClass: indexedClass,
+            classDeclaration: classDeclaration);
 
   factory SourceEnumBuilder(
-      {required List<MetadataBuilder>? metadata,
-      required String name,
+      {required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
-      required TypeBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
       required List<EnumElementFragment> enumElements,
       required SourceLibraryBuilder libraryBuilder,
@@ -125,15 +116,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required int endOffset,
       required IndexedClass? indexedClass,
       required LookupScope typeParameterScope,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder}) {
-    supertypeBuilder ??= underscoreEnumTypeBuilder;
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required ClassDeclaration classDeclaration}) {
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
-        metadata: metadata,
         name: name,
         typeParameters: typeParameters,
         underscoreEnumTypeBuilder: underscoreEnumTypeBuilder,
-        supertypeBuilder: supertypeBuilder,
-        interfaceBuilders: interfaceBuilders,
         typeParameterScope: typeParameterScope,
         nameSpaceBuilder: nameSpaceBuilder,
         enumElements: enumElements,
@@ -143,7 +131,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         startOffset: startOffset,
         nameOffset: nameOffset,
         endOffset: endOffset,
-        indexedClass: indexedClass);
+        indexedClass: indexedClass,
+        classDeclaration: classDeclaration);
     return enumBuilder;
   }
 

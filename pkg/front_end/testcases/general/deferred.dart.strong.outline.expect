@@ -22,11 +22,6 @@ library;
 // mixin E implements d.A {}
 //                    ^^^
 //
-// pkg/front_end/testcases/general/deferred.dart:15:14: Error: Classes can't mix in deferred mixins.
-// Try changing the import to not be deferred.
-// class F with d.M {}
-//              ^^^
-//
 // pkg/front_end/testcases/general/deferred.dart:17:23: Error: Classes can't mix in deferred mixins.
 // Try changing the import to not be deferred.
 // class G = Object with d.M;
@@ -57,6 +52,11 @@ library;
 // extension type ET6(d.B id) implements d.B {}
 //                                       ^^^
 //
+// pkg/front_end/testcases/general/deferred.dart:15:14: Error: Classes can't mix in deferred mixins.
+// Try changing the import to not be deferred.
+// class F with d.M {}
+//              ^^^
+//
 import self as self;
 import "deferred_lib2.dart" as def;
 import "dart:core" as core;
@@ -75,17 +75,17 @@ abstract class D extends def::A /*isMixinDeclaration*/  {
 }
 abstract class E extends core::Object implements def::A /*isMixinDeclaration*/  {
 }
-abstract class _F&Object&M = core::Object with def::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F&Object&M
-    : super core::Object::•()
-    ;
-}
 class F extends self::_F&Object&M {
   synthetic constructor •() → self::F
     ;
 }
 class G = core::Object with def::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::G
+    : super core::Object::•()
+    ;
+}
+abstract class _F&Object&M = core::Object with def::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F&Object&M
     : super core::Object::•()
     ;
 }

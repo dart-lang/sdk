@@ -3,6 +3,16 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "dart:collection" show ListMixin;
 
+  class WithListMixin extends main::_WithListMixin&Object&ListMixin {
+    field dart.core::int length = 2;
+    synthetic constructor •() → main::WithListMixin
+      : super main::_WithListMixin&Object&ListMixin::•()
+      ;
+    operator [](dart.core::int index) → dart.core::int
+      return index;
+    operator []=(dart.core::int index, covariant-by-class dart.core::int value) → void
+      return null;
+  }
   abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListBase<dart.core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
     const synthetic constructor •() → main::_WithListMixin&Object&ListMixin
       : super dart.core::Object::•()
@@ -502,16 +512,6 @@ library from "org-dartlang-test:///main.dart" as main {
       return new dart._internal::ReversedListIterable::•<dart.core::int>(this);
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String
       return dart.collection::ListBase::listToString(this);
-  }
-  class WithListMixin extends main::_WithListMixin&Object&ListMixin {
-    field dart.core::int length = 2;
-    synthetic constructor •() → main::WithListMixin
-      : super main::_WithListMixin&Object&ListMixin::•()
-      ;
-    operator [](dart.core::int index) → dart.core::int
-      return index;
-    operator []=(dart.core::int index, covariant-by-class dart.core::int value) → void
-      return null;
   }
 }
 constants  {

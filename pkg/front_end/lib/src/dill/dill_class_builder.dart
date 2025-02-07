@@ -7,7 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show unimplemented;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -148,10 +147,6 @@ class DillClassBuilder extends ClassBuilderImpl
     return supertype;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<TypeBuilder>? get onTypes => null;
-
   void addField(Field field) {
     DillFieldBuilder builder =
         new DillFieldBuilder(field, libraryBuilder, this);
@@ -237,12 +232,6 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? get mixedInTypeBuilder {
     return computeTypeBuilder(libraryBuilder, cls.mixedInType);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set mixedInTypeBuilder(TypeBuilder? mixin) {
-    unimplemented("mixedInType=", -1, null);
   }
 
   @override

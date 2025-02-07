@@ -13,8 +13,6 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -435,7 +433,9 @@ class KernelCompilationResults {
   final Iterable<Uri>? compiledSources;
   final Uri? usedPackageConfig;
 
-  KernelCompilationResults(this.component, this.loadedLibraries,
+  KernelCompilationResults(
+    this.component,
+    this.loadedLibraries,
     this.classHierarchy,
     this.coreTypes,
     this.compiledSources,
@@ -542,18 +542,16 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult = await CompilerContext.runWithOptions(processedOptions,
         (CompilerContext context) async {
       return args.requireMain
-        ? await kernelForProgram(args.source!, options,
-            additionalSources: args.additionalSources)
-        : await kernelForModule(
+          ? await kernelForProgram(args.source!, options,
+              additionalSources: args.additionalSources)
+          : await kernelForModule(
               [args.source!, ...args.additionalSources], options);
     });
     usedPackageConfig = await processedOptions.resolvePackagesFileUri();
   }
   final Component? component = compilerResult?.component;
 
-  // TODO(https://dartbug.com/55246): track macro deps when available.
-  Iterable<Uri>? compiledSources = component?.uriToSource.keys
-      .where((uri) => !macros.isMacroLibraryUri(uri));
+  Iterable<Uri>? compiledSources = component?.uriToSource.keys;
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
@@ -728,8 +726,10 @@ class ErrorPrinter {
   final DiagnosticMessageHandler? previousErrorHandler;
   final Map<Uri?, List<DiagnosticMessage>> compilationMessages =
       <Uri?, List<DiagnosticMessage>>{};
+  final void Function(String) println;
 
-  ErrorPrinter(this.verbosity, {this.previousErrorHandler});
+  ErrorPrinter(this.verbosity,
+      {this.previousErrorHandler, this.println = print});
 
   void call(DiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
@@ -754,7 +754,7 @@ class ErrorPrinter {
     for (final Uri? sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]!) {
         if (Verbosity.shouldPrint(verbosity, message)) {
-          printDiagnosticMessage(message, print);
+          printDiagnosticMessage(message, println);
         }
       }
     }

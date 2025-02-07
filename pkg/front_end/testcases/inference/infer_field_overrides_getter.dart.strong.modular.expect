@@ -39,17 +39,17 @@ class F extends core::Object implements self::B {
     : super core::Object::•()
     ;
 }
+class G extends self::_G&Object&B {
+  field core::int? x = null;
+  synthetic constructor •() → self::G
+    : super self::_G&Object&B::•()
+    ;
+}
 abstract class _G&Object&B = core::Object with self::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&B
     : super core::Object::•()
     ;
   mixin-super-stub get x() → core::int?
     return super.{self::B::x};
-}
-class G extends self::_G&Object&B {
-  field core::int? x = null;
-  synthetic constructor •() → self::G
-    : super self::_G&Object&B::•()
-    ;
 }
 static method main() → dynamic {}

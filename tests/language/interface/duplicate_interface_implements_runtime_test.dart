@@ -9,9 +9,7 @@ import "duplicate_interface_lib.dart" as alib;
 import "duplicate_interface_lib.dart" show InterfA;
 
 // Expect error since InterfA and alib.InterfA refer to the same interface.
-class Foo implements InterfA
-
-{}
+class Foo implements InterfA {}
 
 main() {
   new Foo();

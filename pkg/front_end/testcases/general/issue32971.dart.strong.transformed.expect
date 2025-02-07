@@ -12,11 +12,16 @@ import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
-abstract class _A&B&M extends self::B implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_A&B&M
-    : super self::B::•()
+class A extends self::_A&B&M {
+  synthetic constructor •() → self::A
+    : super self::_A&B&M::•()
     ;
-  method g() → core::bool {
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method f() → core::bool {
     #L1:
     switch(true) /* core::bool */ {
       #L2:
@@ -28,16 +33,11 @@ abstract class _A&B&M extends self::B implements self::M /*isAnonymousMixin,isEl
     return false;
   }
 }
-class A extends self::_A&B&M {
-  synthetic constructor •() → self::A
-    : super self::_A&B&M::•()
-    ;
-}
-class B extends core::Object {
-  synthetic constructor •() → self::B
+class M extends core::Object {
+  synthetic constructor •() → self::M
     : super core::Object::•()
     ;
-  method f() → core::bool {
+  method g() → core::bool {
     #L3:
     switch(true) /* core::bool */ {
       #L4:
@@ -49,9 +49,9 @@ class B extends core::Object {
     return false;
   }
 }
-class M extends core::Object {
-  synthetic constructor •() → self::M
-    : super core::Object::•()
+abstract class _A&B&M extends self::B implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_A&B&M
+    : super self::B::•()
     ;
   method g() → core::bool {
     #L5:

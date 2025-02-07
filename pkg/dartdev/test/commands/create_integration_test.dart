@@ -36,6 +36,8 @@ void defineCreateTests() {
         templateId,
         projectName,
       ]);
+      printOnFailure(createResult.stdout);
+      printOnFailure(createResult.stderr);
       expect(createResult.exitCode, 0, reason: createResult.stderr);
 
       // Validate that the project analyzes cleanly.

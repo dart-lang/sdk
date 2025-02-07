@@ -50,6 +50,7 @@ import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'ambiguous_import_fix_test.dart' as ambiguous_import_fix;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'change_argument_name_test.dart' as change_argument_name;
@@ -427,6 +428,7 @@ void main() {
     fix_processor_map.main();
     format_file.main();
     ignore_error.main();
+    ambiguous_import_fix.main();
     import_library_hide.main();
     import_library_prefix.main();
     import_library_project.main();

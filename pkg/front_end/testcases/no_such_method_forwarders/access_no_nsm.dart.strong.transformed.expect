@@ -62,13 +62,6 @@ class SubClass2 extends core::Object implements acc::SuperClass {
   no-such-method-forwarder method _inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
-abstract class _SubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ accessibleMethod() → void {}
-}
 class SubClass3 extends self::_SubClass3&Object&SuperClass {
   synthetic constructor •() → self::SubClass3
     : super self::_SubClass3&Object&SuperClass::•()
@@ -99,13 +92,6 @@ abstract class AbstractSubClass2 extends core::Object implements acc::SuperClass
     : super core::Object::•()
     ;
 }
-abstract class _AbstractSubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ accessibleMethod() → void {}
-}
 abstract class AbstractSubClass3 extends self::_AbstractSubClass3&Object&SuperClass {
   synthetic constructor •() → self::AbstractSubClass3
     : super self::_AbstractSubClass3&Object&SuperClass::•()
@@ -127,6 +113,20 @@ class SubAbstractSubClass3 extends self::AbstractSubClass3 {
   synthetic constructor •() → self::SubAbstractSubClass3
     : super self::AbstractSubClass3::•()
     ;
+}
+abstract class _SubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _AbstractSubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_no_nsm_lib.dart */ accessibleMethod() → void {}
 }
 
 library;

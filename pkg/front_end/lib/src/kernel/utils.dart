@@ -25,6 +25,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../source/builder_factory.dart';
 import 'body_builder.dart';
 
@@ -260,6 +261,16 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
     new NominalParameterBuilder(
         NominalParameterBuilder.noNameSentinel, -1, null,
         kind: TypeParameterKind.function);
+final TypeParameterFragment dummyTypeParameterFragment =
+    new TypeParameterFragment(
+        metadata: null,
+        name: '',
+        bound: null,
+        nameOffset: -1,
+        fileUri: dummyUri,
+        kind: TypeParameterKind.function,
+        isWildcard: false,
+        variableName: '');
 final StructuralParameterBuilder dummyStructuralVariableBuilder =
     new StructuralParameterBuilder(
         StructuralParameterBuilder.noNameSentinel, -1, null);

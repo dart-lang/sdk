@@ -7,9 +7,11 @@ environment:
   sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
-  analyzer: ^7.2.0
+  analyzer: ^7.3.0
   analyzer_plugin: ^0.13.0
   meta: ^1.16.0
+  yaml: ^3.1.0
+  yaml_edit: ^2.2.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

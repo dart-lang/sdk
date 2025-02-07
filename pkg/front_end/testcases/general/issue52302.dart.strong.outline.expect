@@ -5,6 +5,10 @@ import "issue52302_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue52302_lib.dart";
 
+abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
+  synthetic constructor •() → self::MixesInMixesInMixin
+    ;
+}
 abstract class _MixesInMixesInMixin&Object&MixesInMixin = core::Object with iss::MixesInMixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MixesInMixesInMixin&Object&MixesInMixin
     : super core::Object::•()
@@ -70,10 +74,6 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin = core::Object with iss:
     return super.{core::Iterable::elementAt}(index);
   mixin-super-stub method toString() → core::String
     return super.{core::Iterable::toString}();
-}
-abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Object&MixesInMixin {
-  synthetic constructor •() → self::MixesInMixesInMixin
-    ;
 }
 static method main() → void
   ;

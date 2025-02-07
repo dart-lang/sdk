@@ -21,13 +21,6 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
     : con::A::d = d, con::A::s = s, super core::Object::•()
     ;
 }
-abstract class _B&A&M = con::A with con::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •({core::double d = 3.14, core::String s = "default"}) → con::_B&A&M
-    : super con::A::•(d: d, s: s)
-    ;
-  mixin-super-stub method m1() → dynamic
-    return super.{con::M::m1}();
-}
 class B extends con::_B&A&M /*hasConstConstructor*/  {
   const constructor •({core::double d = 2.71}) → con::B
     : super con::_B&A&M::•(d: d)
@@ -36,6 +29,13 @@ class B extends con::_B&A&M /*hasConstConstructor*/  {
 abstract class M extends con::A /*isMixinDeclaration*/  {
   method m1() → dynamic
     ;
+}
+abstract class _B&A&M = con::A with con::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •({core::double d = 3.14, core::String s = "default"}) → con::_B&A&M
+    : super con::A::•(d: d, s: s)
+    ;
+  mixin-super-stub method m1() → dynamic
+    return super.{con::M::m1}();
 }
 
 

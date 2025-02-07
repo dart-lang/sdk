@@ -6,9 +6,6 @@
 // valid ones are those that <: `JavaScriptObject` and users can reference,
 // which end up only being the types in the SDK web libraries.
 
-@JS()
-library allowed_external_member_native_type_test;
-
 import 'dart:html';
 import 'dart:js_interop';
 import 'dart:svg';

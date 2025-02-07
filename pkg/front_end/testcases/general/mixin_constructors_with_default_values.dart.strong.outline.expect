@@ -27,13 +27,13 @@ class E extends self::D {
   synthetic constructor •() → self::E
     ;
 }
+class F extends self::_F&C&M {
+  synthetic constructor •() → self::F
+    ;
+}
 abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
   synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::_F&C&M
     : super self::C::•(a: a, b: b)
-    ;
-}
-class F extends self::_F&C&M {
-  synthetic constructor •() → self::F
     ;
 }
 static method main() → dynamic

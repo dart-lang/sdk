@@ -6,8 +6,6 @@ import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem;
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -242,9 +240,7 @@ Future<CompilationResult> compileToModule(
   if (depFile != null) {
     writeDepfile(
         compilerOptions.fileSystem,
-        // TODO(https://dartbug.com/55246): track macro deps when available.
-        component.uriToSource.keys
-            .where((uri) => !macros.isMacroLibraryUri(uri)),
+        component.uriToSource.keys,
         options.outputFile,
         depFile);
   }

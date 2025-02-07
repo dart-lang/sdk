@@ -114,17 +114,6 @@ class Interface extends core::Object {
   method mixedInStaticImplementedInstanceMethod() → void {}
   static method mixedInInstanceImplementedStaticMethod() → void {}
 }
-abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Class&Super&Mixin
-    : super self::Super::•()
-    ;
-  mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
-    return super.{self::Mixin::mixedInInstanceDeclaredStaticMethod}();
-  mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
-    return super.{self::Mixin::mixedInInstanceImplementedStaticMethod}();
-  mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
-    return super.{self::Mixin::extendedStaticMixedInInstanceMethod}();
-}
 abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
   synthetic constructor •() → self::Class
     : super self::_Class&Super&Mixin::•()
@@ -151,5 +140,16 @@ abstract class Class extends self::_Class&Super&Mixin implements self::Interface
     return 0;
   static get implementedInstanceSetterDeclaredStaticGetter() → core::int
     return 0;
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
+    return super.{self::Mixin::mixedInInstanceDeclaredStaticMethod}();
+  mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
+    return super.{self::Mixin::mixedInInstanceImplementedStaticMethod}();
+  mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
+    return super.{self::Mixin::extendedStaticMixedInInstanceMethod}();
 }
 static method main() → dynamic {}

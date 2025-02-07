@@ -14,7 +14,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final int endOffset;
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<TypeParameterFragment>? typeParameters;
   final TypeBuilder? supertype;
   final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
@@ -43,7 +43,6 @@ class NamedMixinApplicationFragment implements Fragment {
     return _builder!;
   }
 
-  // Coverage-ignore(suite): Not run.
   void set builder(SourceClassBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;

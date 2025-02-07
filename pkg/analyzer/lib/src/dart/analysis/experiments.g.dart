@@ -187,6 +187,7 @@ class ExperimentalFeatures {
     documentation: 'Augmentations - enhancing declarations from outside',
     experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final class_modifiers = ExperimentalFeature(
@@ -197,6 +198,7 @@ class ExperimentalFeatures {
     documentation: 'Class modifiers',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final const_functions = ExperimentalFeature(
@@ -208,6 +210,7 @@ class ExperimentalFeatures {
         'Allow more of the Dart language to be executed in const expressions.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final constant_update_2018 = ExperimentalFeature(
@@ -218,6 +221,7 @@ class ExperimentalFeatures {
     documentation: 'Enhanced constant expressions',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final constructor_tearoffs = ExperimentalFeature(
@@ -229,6 +233,7 @@ class ExperimentalFeatures {
         'Allow constructor tear-offs and explicit generic instantiations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.15.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final control_flow_collections = ExperimentalFeature(
@@ -239,6 +244,7 @@ class ExperimentalFeatures {
     documentation: 'Control Flow Collections',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final digit_separators = ExperimentalFeature(
@@ -249,6 +255,7 @@ class ExperimentalFeatures {
     documentation: 'Number literals with digit separators.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.6.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final enhanced_enums = ExperimentalFeature(
@@ -259,6 +266,7 @@ class ExperimentalFeatures {
     documentation: 'Enhanced Enums',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final enhanced_parts = ExperimentalFeature(
@@ -269,6 +277,7 @@ class ExperimentalFeatures {
     documentation: 'Generalize parts to be nested and have exports/imports.',
     experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final enum_shorthands = ExperimentalFeature(
@@ -279,6 +288,7 @@ class ExperimentalFeatures {
     documentation: 'Shorter dot syntax for enum values.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final extension_methods = ExperimentalFeature(
@@ -289,6 +299,7 @@ class ExperimentalFeatures {
     documentation: 'Extension Methods',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.6.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final generic_metadata = ExperimentalFeature(
@@ -300,6 +311,7 @@ class ExperimentalFeatures {
         'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final getter_setter_error = ExperimentalFeature(
@@ -311,6 +323,7 @@ class ExperimentalFeatures {
         'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_1 = ExperimentalFeature(
@@ -322,6 +335,7 @@ class ExperimentalFeatures {
         'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.18.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_2 = ExperimentalFeature(
@@ -332,6 +346,7 @@ class ExperimentalFeatures {
     documentation: 'Type promotion for fields',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.2.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_3 = ExperimentalFeature(
@@ -343,6 +358,7 @@ class ExperimentalFeatures {
         'Better handling of conditional expressions, and switch expressions.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.4.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_update_4 = ExperimentalFeature(
@@ -353,6 +369,7 @@ class ExperimentalFeatures {
     documentation: 'A bundle of updates to type inference.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inference_using_bounds = ExperimentalFeature(
@@ -364,6 +381,7 @@ class ExperimentalFeatures {
         'Use type parameter bounds more extensively in type inference.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.7.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final inline_class = ExperimentalFeature(
@@ -374,6 +392,7 @@ class ExperimentalFeatures {
     documentation: 'Extension Types',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.3.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final macros = ExperimentalFeature(
@@ -384,6 +403,7 @@ class ExperimentalFeatures {
     documentation: 'Static meta-programming',
     experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
@@ -394,6 +414,7 @@ class ExperimentalFeatures {
     documentation: 'Named Arguments Anywhere',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final native_assets = ExperimentalFeature(
@@ -404,6 +425,7 @@ class ExperimentalFeatures {
     documentation: 'Compile and bundle native assets.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["main", "dev"],
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -414,6 +436,7 @@ class ExperimentalFeatures {
     documentation: 'Non Nullable by default',
     experimentalReleaseVersion: Version.parse('2.10.0'),
     releaseVersion: Version.parse('2.12.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
@@ -424,6 +447,7 @@ class ExperimentalFeatures {
     documentation: 'Type aliases define a <type>, not just a <functionType>',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.13.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final null_aware_elements = ExperimentalFeature(
@@ -434,6 +458,7 @@ class ExperimentalFeatures {
     documentation: 'Null-aware elements and map entries in collections.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final patterns = ExperimentalFeature(
@@ -444,6 +469,7 @@ class ExperimentalFeatures {
     documentation: 'Patterns',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final record_use = ExperimentalFeature(
@@ -454,6 +480,7 @@ class ExperimentalFeatures {
     documentation: 'Output arguments used by static functions.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["main", "dev"],
   );
 
   static final records = ExperimentalFeature(
@@ -464,6 +491,7 @@ class ExperimentalFeatures {
     documentation: 'Records',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final sealed_class = ExperimentalFeature(
@@ -474,6 +502,7 @@ class ExperimentalFeatures {
     documentation: 'Sealed class',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final set_literals = ExperimentalFeature(
@@ -484,6 +513,7 @@ class ExperimentalFeatures {
     documentation: 'Set Literals',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final spread_collections = ExperimentalFeature(
@@ -494,6 +524,7 @@ class ExperimentalFeatures {
     documentation: 'Spread Collections',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.0.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final super_parameters = ExperimentalFeature(
@@ -504,6 +535,7 @@ class ExperimentalFeatures {
     documentation: 'Super-Initializer Parameters',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.17.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final test_experiment = ExperimentalFeature(
@@ -515,6 +547,7 @@ class ExperimentalFeatures {
         'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final triple_shift = ExperimentalFeature(
@@ -525,6 +558,7 @@ class ExperimentalFeatures {
     documentation: 'Triple-shift operator',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final unnamed_libraries = ExperimentalFeature(
@@ -535,6 +569,7 @@ class ExperimentalFeatures {
     documentation: 'Unnamed libraries',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.19.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final unquoted_imports = ExperimentalFeature(
@@ -545,6 +580,7 @@ class ExperimentalFeatures {
     documentation: 'Shorter import syntax.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final variance = ExperimentalFeature(
@@ -555,6 +591,7 @@ class ExperimentalFeatures {
     documentation: 'Sound variance',
     experimentalReleaseVersion: null,
     releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final wildcard_variables = ExperimentalFeature(
@@ -566,6 +603,7 @@ class ExperimentalFeatures {
         'Local declarations and parameters named `_` are non-binding.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.7.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 }
 

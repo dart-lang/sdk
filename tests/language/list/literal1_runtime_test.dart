@@ -8,7 +8,5 @@
 // A type mismatch in a list literal is a compile-time error
 
 main() {
-  var m = const
-
-      [0, 1];
+  var m = const [0, 1];
 }

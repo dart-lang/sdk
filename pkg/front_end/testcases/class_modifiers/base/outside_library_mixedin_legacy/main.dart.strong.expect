@@ -38,19 +38,9 @@ import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract final class _WithBaseMixinClass&Object&BaseMixinClass = core::Object with mai::BaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_WithBaseMixinClass&Object&BaseMixinClass
-    : super core::Object::•()
-    ;
-}
 class WithBaseMixinClass extends self::_WithBaseMixinClass&Object&BaseMixinClass {
   synthetic constructor •() → self::WithBaseMixinClass
     : super self::_WithBaseMixinClass&Object&BaseMixinClass::•()
-    ;
-}
-abstract final class _WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass = core::Object with mai::AbstractBaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass
-    : super core::Object::•()
     ;
 }
 class WithAbstractBaseMixinClass extends self::_WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass {
@@ -58,19 +48,9 @@ class WithAbstractBaseMixinClass extends self::_WithAbstractBaseMixinClass&Objec
     : super self::_WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass::•()
     ;
 }
-abstract final class _WithBaseMixin&Object&BaseMixin = core::Object with mai::BaseMixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_WithBaseMixin&Object&BaseMixin
-    : super core::Object::•()
-    ;
-}
 class WithBaseMixin extends self::_WithBaseMixin&Object&BaseMixin {
   synthetic constructor •() → self::WithBaseMixin
     : super self::_WithBaseMixin&Object&BaseMixin::•()
-    ;
-}
-abstract final class _AbstractWithBaseMixinClass&Object&BaseMixinClass = core::Object with mai::BaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractWithBaseMixinClass&Object&BaseMixinClass
-    : super core::Object::•()
     ;
 }
 abstract class AbstractWithBaseMixinClass extends self::_AbstractWithBaseMixinClass&Object&BaseMixinClass {
@@ -78,24 +58,44 @@ abstract class AbstractWithBaseMixinClass extends self::_AbstractWithBaseMixinCl
     : super self::_AbstractWithBaseMixinClass&Object&BaseMixinClass::•()
     ;
 }
-abstract final class _AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass = core::Object with mai::AbstractBaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass
-    : super core::Object::•()
-    ;
-}
 abstract class AbstractWithAbstractBaseMixinClass extends self::_AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass {
   synthetic constructor •() → self::AbstractWithAbstractBaseMixinClass
     : super self::_AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass::•()
     ;
 }
-abstract final class _AbstractWithBaseMixin&Object&BaseMixin = core::Object with mai::BaseMixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractWithBaseMixin&Object&BaseMixin
-    : super core::Object::•()
-    ;
-}
 abstract class AbstractWithBaseMixin extends self::_AbstractWithBaseMixin&Object&BaseMixin {
   synthetic constructor •() → self::AbstractWithBaseMixin
     : super self::_AbstractWithBaseMixin&Object&BaseMixin::•()
+    ;
+}
+abstract final class _WithBaseMixinClass&Object&BaseMixinClass = core::Object with mai::BaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithBaseMixinClass&Object&BaseMixinClass
+    : super core::Object::•()
+    ;
+}
+abstract final class _WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass = core::Object with mai::AbstractBaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithAbstractBaseMixinClass&Object&AbstractBaseMixinClass
+    : super core::Object::•()
+    ;
+}
+abstract final class _WithBaseMixin&Object&BaseMixin = core::Object with mai::BaseMixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithBaseMixin&Object&BaseMixin
+    : super core::Object::•()
+    ;
+}
+abstract final class _AbstractWithBaseMixinClass&Object&BaseMixinClass = core::Object with mai::BaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractWithBaseMixinClass&Object&BaseMixinClass
+    : super core::Object::•()
+    ;
+}
+abstract final class _AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass = core::Object with mai::AbstractBaseMixinClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractWithAbstractBaseMixinClass&Object&AbstractBaseMixinClass
+    : super core::Object::•()
+    ;
+}
+abstract final class _AbstractWithBaseMixin&Object&BaseMixin = core::Object with mai::BaseMixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractWithBaseMixin&Object&BaseMixin
+    : super core::Object::•()
     ;
 }
 

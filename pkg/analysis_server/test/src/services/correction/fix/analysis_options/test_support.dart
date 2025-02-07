@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 /// A base class providing utility methods for tests of fixes associated with
-/// errors in Dart files.
+/// errors in analysis options files.
 class AnalysisOptionsFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
     String initialContent,

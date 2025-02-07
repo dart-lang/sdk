@@ -479,6 +479,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  void computeSupertypes() {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+    List<SourceClassBuilder> sourceClasses = _nameSpace!
+        .filteredIterator<SourceClassBuilder>(
+            includeDuplicates: true, includeAugmentations: true, parent: this)
+        .toList();
+    for (SourceClassBuilder sourceClassBuilder in sourceClasses) {
+      _computeSupertypeBuilderForClass(sourceClassBuilder);
+    }
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.computeSupertypes();
+      }
+    }
+  }
+
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary) {
     assert(checkState(
@@ -659,6 +677,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     state = SourceLibraryBuilderState.nameSpaceBuilt;
   }
 
+  void _computeSupertypeBuilderForClass(SourceClassBuilder classBuilder) {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+    classBuilder.computeSupertypeBuilder(
+        loader: loader,
+        problemReporting: this,
+        unboundNominalParameters: _unboundNominalParameters,
+        indexedLibrary: indexedLibrary,
+        mixinApplications: _mixinApplications!,
+        addAnonymousMixinClassBuilder: (SourceClassBuilder classBuilder) {
+          _nameSpace!
+              .addLocalMember(classBuilder.name, classBuilder, setter: false);
+          _computeSupertypeBuilderForClass(classBuilder);
+        });
+  }
+
   void buildScopes(LibraryBuilder coreLibrary) {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
@@ -724,19 +759,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
       SourceClassBuilder declaration = iterator.current;
-      Class cls = declaration.cls;
-      if (cls != objectClass) {
-        cls.supertype ??= objectClass.asRawSupertype;
-        declaration.supertypeBuilder ??=
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                objectClassBuilder, const NullabilityBuilder.omitted(),
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Unexpected);
-      }
-      if (declaration.isMixinApplication) {
-        cls.mixedInType =
-            declaration.mixedInTypeBuilder!.buildMixedInType(this);
-      }
+      declaration.installDefaultSupertypes(objectClassBuilder, objectClass);
     }
   }
 
@@ -777,9 +800,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<ClassDeclaration> iterator = localMembersIteratorOfType();
+    Iterator<ClassDeclarationBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      ClassDeclaration builder = iterator.current;
+      ClassDeclarationBuilder builder = iterator.current;
       count += builder.resolveConstructors(this);
     }
     return count;

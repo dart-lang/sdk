@@ -143,16 +143,11 @@ library;
 //                  ^
 //
 import self as self;
-import "dart:core" as core;
 import "main_lib.dart" as mai;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class _Mixin1&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Mixin1&Super1&Super2
-    : super core::Object::•()
-    ;
-}
 abstract class Mixin1 extends self::_Mixin1&Super1&Super2 /*isMixinDeclaration*/  {
   late field core::int field1 = (() → core::int {
     return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
@@ -180,6 +175,66 @@ abstract class Class1a extends mai::Super1 implements mai::Super2 {
     : super mai::Super1::•()
     ;
 }
+class Class1b extends self::_Class1b&Class1a&Mixin1 {
+  synthetic constructor •() → self::Class1b
+    : super self::_Class1b&Class1a&Mixin1::•()
+    ;
+}
+abstract class Class2a extends mai::Super2 implements mai::Super1 {
+  synthetic constructor •() → self::Class2a
+    : super mai::Super2::•()
+    ;
+}
+class Class2b extends self::_Class2b&Class2a&Mixin1 {
+  synthetic constructor •() → self::Class2b
+    : super self::_Class2b&Class2a&Mixin1::•()
+    ;
+}
+abstract class Class3a extends core::Object implements mai::Super1, mai::Super2 {
+  synthetic constructor •() → self::Class3a
+    : super core::Object::•()
+    ;
+}
+class Class3b extends self::_Class3b&Class3a&Mixin1 {
+  synthetic constructor •() → self::Class3b
+    : super self::_Class3b&Class3a&Mixin1::•()
+    ;
+}
+abstract class Class4a extends mai::Super1 implements mai::Super2 {
+  synthetic constructor •() → self::Class4a
+    : super mai::Super1::•()
+    ;
+}
+class Class4b extends self::_Class4b&Class4a&Mixin2 {
+  synthetic constructor •() → self::Class4b
+    : super self::_Class4b&Class4a&Mixin2::•()
+    ;
+}
+abstract class Class5a extends mai::Super2 implements mai::Super1 {
+  synthetic constructor •() → self::Class5a
+    : super mai::Super2::•()
+    ;
+}
+class Class5b extends self::_Class5b&Class5a&Mixin2 {
+  synthetic constructor •() → self::Class5b
+    : super self::_Class5b&Class5a&Mixin2::•()
+    ;
+}
+abstract class Class6a extends core::Object implements mai::Super1, mai::Super2 {
+  synthetic constructor •() → self::Class6a
+    : super core::Object::•()
+    ;
+}
+class Class6b extends self::_Class6b&Class6a&Mixin2 {
+  synthetic constructor •() → self::Class6b
+    : super self::_Class6b&Class6a&Mixin2::•()
+    ;
+}
+abstract class _Mixin1&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Mixin1&Super1&Super2
+    : super core::Object::•()
+    ;
+}
 abstract class _Class1b&Class1a&Mixin1 extends self::Class1a implements self::Mixin1 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
     return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
@@ -204,16 +259,6 @@ abstract class _Class1b&Class1a&Mixin1 extends self::Class1a implements self::Mi
     super.{mai::Super1::property1} = value;
   }
   set property2(core::int value) → void {}
-}
-class Class1b extends self::_Class1b&Class1a&Mixin1 {
-  synthetic constructor •() → self::Class1b
-    : super self::_Class1b&Class1a&Mixin1::•()
-    ;
-}
-abstract class Class2a extends mai::Super2 implements mai::Super1 {
-  synthetic constructor •() → self::Class2a
-    : super mai::Super2::•()
-    ;
 }
 abstract class _Class2b&Class2a&Mixin1 extends self::Class2a implements self::Mixin1 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
@@ -240,16 +285,6 @@ abstract class _Class2b&Class2a&Mixin1 extends self::Class2a implements self::Mi
   }
   set property2(core::int value) → void {}
 }
-class Class2b extends self::_Class2b&Class2a&Mixin1 {
-  synthetic constructor •() → self::Class2b
-    : super self::_Class2b&Class2a&Mixin1::•()
-    ;
-}
-abstract class Class3a extends core::Object implements mai::Super1, mai::Super2 {
-  synthetic constructor •() → self::Class3a
-    : super core::Object::•()
-    ;
-}
 abstract class _Class3b&Class3a&Mixin1 extends self::Class3a implements self::Mixin1 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
     return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
@@ -274,16 +309,6 @@ abstract class _Class3b&Class3a&Mixin1 extends self::Class3a implements self::Mi
     super.{mai::Super1::property1} = value;
   }
   set property2(core::int value) → void {}
-}
-class Class3b extends self::_Class3b&Class3a&Mixin1 {
-  synthetic constructor •() → self::Class3b
-    : super self::_Class3b&Class3a&Mixin1::•()
-    ;
-}
-abstract class Class4a extends mai::Super1 implements mai::Super2 {
-  synthetic constructor •() → self::Class4a
-    : super mai::Super1::•()
-    ;
 }
 abstract class _Class4b&Class4a&Mixin2 extends self::Class4a implements mai::Mixin2 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
@@ -310,16 +335,6 @@ abstract class _Class4b&Class4a&Mixin2 extends self::Class4a implements mai::Mix
   }
   set /* from org-dartlang-testcase:///main_lib.dart */ property2(core::int value) → void {}
 }
-class Class4b extends self::_Class4b&Class4a&Mixin2 {
-  synthetic constructor •() → self::Class4b
-    : super self::_Class4b&Class4a&Mixin2::•()
-    ;
-}
-abstract class Class5a extends mai::Super2 implements mai::Super1 {
-  synthetic constructor •() → self::Class5a
-    : super mai::Super2::•()
-    ;
-}
 abstract class _Class5b&Class5a&Mixin2 extends self::Class5a implements mai::Mixin2 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
     return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
@@ -344,16 +359,6 @@ abstract class _Class5b&Class5a&Mixin2 extends self::Class5a implements mai::Mix
     super.{mai::Super1::property1} = value;
   }
   set /* from org-dartlang-testcase:///main_lib.dart */ property2(core::int value) → void {}
-}
-class Class5b extends self::_Class5b&Class5a&Mixin2 {
-  synthetic constructor •() → self::Class5b
-    : super self::_Class5b&Class5a&Mixin2::•()
-    ;
-}
-abstract class Class6a extends core::Object implements mai::Super1, mai::Super2 {
-  synthetic constructor •() → self::Class6a
-    : super core::Object::•()
-    ;
 }
 abstract class _Class6b&Class6a&Mixin2 extends self::Class6a implements mai::Mixin2 /*isAnonymousMixin,isEliminatedMixin*/  {
   late field core::int field1 = (() → core::int {
@@ -380,11 +385,6 @@ abstract class _Class6b&Class6a&Mixin2 extends self::Class6a implements mai::Mix
   }
   set /* from org-dartlang-testcase:///main_lib.dart */ property2(core::int value) → void {}
 }
-class Class6b extends self::_Class6b&Class6a&Mixin2 {
-  synthetic constructor •() → self::Class6b
-    : super self::_Class6b&Class6a&Mixin2::•()
-    ;
-}
 
 library;
 import self as mai;
@@ -405,11 +405,6 @@ class Super2 extends core::Object {
     : super core::Object::•()
     ;
   method method2() → void {}
-}
-abstract class _Mixin2&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
-  synthetic constructor •() → mai::_Mixin2&Super1&Super2
-    : super core::Object::•()
-    ;
 }
 abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/  {
   late field core::int field1 = (() → core::int {
@@ -432,4 +427,9 @@ abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/ 
     return 42;
   }
   set property2(core::int value) → void {}
+}
+abstract class _Mixin2&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → mai::_Mixin2&Super1&Super2
+    : super core::Object::•()
+    ;
 }

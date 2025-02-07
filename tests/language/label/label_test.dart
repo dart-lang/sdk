@@ -302,7 +302,8 @@ class Helper {
       }
     Expect.equals(111, i);
 
-    if (false) {} else
+    if (false) {
+    } else
       L:
       {
         while (doAgain()) {

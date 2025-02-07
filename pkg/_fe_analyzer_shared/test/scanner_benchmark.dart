@@ -27,7 +27,7 @@ void main(List<String> args) {
     } else if (arg.startsWith("--")) {
       throw "Unsupported setting: $arg";
     } else {
-      f = new File(args[0]);
+      f = new File(arg);
     }
   }
   if (f == null) {

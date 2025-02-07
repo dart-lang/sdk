@@ -42,10 +42,10 @@ import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
+    with SourceDeclarationBuilderMixin, ClassDeclarationBuilderMixin
     implements
         Comparable<SourceExtensionTypeDeclarationBuilder>,
-        ClassDeclaration {
+        ClassDeclarationBuilder {
   @override
   final SourceLibraryBuilder parent;
 
@@ -108,7 +108,7 @@ class SourceExtensionTypeDeclarationBuilder
       : parent = enclosingLibraryBuilder,
         fileOffset = nameOffset,
         _modifiers = fragment.modifiers,
-        typeParameters = fragment.typeParameters,
+        typeParameters = fragment.typeParameters?.builders,
         interfaceBuilders = fragment.interfaces,
         typeParameterScope = fragment.typeParameterScope,
         _introductory = fragment,
@@ -123,7 +123,7 @@ class SourceExtensionTypeDeclarationBuilder
         name: name,
         fileUri: fileUri,
         typeParameters: NominalParameterBuilder.typeParametersFromBuilders(
-            fragment.typeParameters),
+            fragment.typeParameters?.builders),
         reference: indexedContainer?.reference)
       ..fileOffset = nameOffset;
   }

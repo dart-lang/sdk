@@ -33,13 +33,25 @@ import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
+class BaseWith extends self::_BaseWith&Object&BaseClass {
+  synthetic constructor •() → self::BaseWith
+    ;
+}
+class InterfaceWith extends self::_InterfaceWith&Object&InterfaceClass {
+  synthetic constructor •() → self::InterfaceWith
+    ;
+}
+class FinalWith extends self::_FinalWith&Object&FinalClass {
+  synthetic constructor •() → self::FinalWith
+    ;
+}
+class SealedWith extends self::_SealedWith&Object&SealedClass {
+  synthetic constructor •() → self::SealedWith
+    ;
+}
 abstract final class _BaseWith&Object&BaseClass = core::Object with mai::BaseClass /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_BaseWith&Object&BaseClass
     : super core::Object::•()
-    ;
-}
-class BaseWith extends self::_BaseWith&Object&BaseClass {
-  synthetic constructor •() → self::BaseWith
     ;
 }
 abstract class _InterfaceWith&Object&InterfaceClass = core::Object with mai::InterfaceClass /*isAnonymousMixin,hasConstConstructor*/  {
@@ -47,26 +59,14 @@ abstract class _InterfaceWith&Object&InterfaceClass = core::Object with mai::Int
     : super core::Object::•()
     ;
 }
-class InterfaceWith extends self::_InterfaceWith&Object&InterfaceClass {
-  synthetic constructor •() → self::InterfaceWith
-    ;
-}
 abstract final class _FinalWith&Object&FinalClass = core::Object with mai::FinalClass /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_FinalWith&Object&FinalClass
     : super core::Object::•()
     ;
 }
-class FinalWith extends self::_FinalWith&Object&FinalClass {
-  synthetic constructor •() → self::FinalWith
-    ;
-}
 abstract sealed class _SealedWith&Object&SealedClass = core::Object with mai::SealedClass /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_SealedWith&Object&SealedClass
     : super core::Object::•()
-    ;
-}
-class SealedWith extends self::_SealedWith&Object&SealedClass {
-  synthetic constructor •() → self::SealedWith
     ;
 }
 

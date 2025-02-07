@@ -22,16 +22,16 @@ class C {
   final int? _f10;
 
   C(int? i)
-      : _f1 = i,
-        _f2 = i,
-        _f3 = i,
-        _f4 = i,
-        _f5 = i,
-        _f6 = i,
-        _f7 = i,
-        _f8 = i,
-        _f9 = i,
-        _f10 = i;
+    : _f1 = i,
+      _f2 = i,
+      _f3 = i,
+      _f4 = i,
+      _f5 = i,
+      _f6 = i,
+      _f7 = i,
+      _f8 = i,
+      _f9 = i,
+      _f10 = i;
 }
 
 class A {
@@ -50,11 +50,7 @@ abstract class D extends A with M3 {
   final int? _f5;
   int? get _f10;
 
-  D(int? i)
-      : _f1 = i,
-        _f4 = i,
-        _f5 = i,
-        super(i);
+  D(int? i) : _f1 = i, _f4 = i, _f5 = i, super(i);
 }
 
 mixin M1 {

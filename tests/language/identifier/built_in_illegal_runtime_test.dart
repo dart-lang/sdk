@@ -8,21 +8,4 @@
 
 // Pseudo keywords are not allowed to be used as class names.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 main() {}

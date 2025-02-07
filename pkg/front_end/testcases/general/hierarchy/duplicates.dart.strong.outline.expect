@@ -140,15 +140,6 @@ class Interface extends core::Object {
   method implementedDuplicate2() → void
     ;
 }
-abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Class&Super&Mixin
-    : super self::Super::•()
-    ;
-  mixin-super-stub method mixedInDuplicate1() → void
-    return super.{self::Mixin::mixedInDuplicate1}();
-  mixin-super-stub method mixedInDuplicate2() → void
-    return super.{self::Mixin::mixedInDuplicate2}();
-}
 abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
   synthetic constructor •() → self::Class
     ;
@@ -172,6 +163,15 @@ abstract class Class extends self::_Class&Super&Mixin implements self::Interface
     ;
   get implementedDuplicate2() → core::int
     ;
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInDuplicate1() → void
+    return super.{self::Mixin::mixedInDuplicate1}();
+  mixin-super-stub method mixedInDuplicate2() → void
+    return super.{self::Mixin::mixedInDuplicate2}();
 }
 static method main() → dynamic
   ;

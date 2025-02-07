@@ -5,9 +5,6 @@
 // Test that interop classes that inherit/implement other classes have the
 // appropriate static interop static errors.
 
-@JS()
-library supertype_test;
-
 import 'package:js/js.dart';
 
 // Base static interop class.

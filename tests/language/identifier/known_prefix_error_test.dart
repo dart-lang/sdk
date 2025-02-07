@@ -26,35 +26,35 @@ import 'built_in_prefix_library_sync.dart' as sync;
 import 'built_in_prefix_library_yield.dart' as yield;
 
 async<dynamic> _async = new async.A();
-// [error line 28, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'async' isn't a type.
 await<dynamic> _await = new await.A();
-// [error line 32, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'await' isn't a type.
 hide<dynamic> _hide = new hide.A();
-// [error line 36, column 1, length 4]
+// [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'hide' isn't a type.
 of<dynamic> _of = new of.A();
-// [error line 40, column 1, length 2]
+// [error column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'of' isn't a type.
 on<dynamic> _on = new on.A();
-// [error line 44, column 1, length 2]
+// [error column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'on' isn't a type.
 show<dynamic> _show = new show.A();
-// [error line 48, column 1, length 4]
+// [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'show' isn't a type.
 sync<dynamic> _sync = new sync.A();
-// [error line 52, column 1, length 4]
+// [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sync' isn't a type.
 yield<dynamic> _yield = new yield.A();
-// [error line 56, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'yield' isn't a type.
 

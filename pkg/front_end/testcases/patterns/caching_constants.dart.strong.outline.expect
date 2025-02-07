@@ -5,6 +5,25 @@ import "dart:collection" as col;
 
 import "dart:collection";
 
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
+  field core::int containsKeyCount;
+  field core::int indexGetCount;
+  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    ;
+  method containsKey(core::Object? key) → core::bool
+    ;
+  operator [](core::Object? key) → self::MyMap::V?
+    ;
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
+    ;
+  method clear() → void
+    ;
+  get keys() → core::Iterable<self::MyMap::K%>
+    ;
+  method remove(core::Object? key) → self::MyMap::V?
+    ;
+}
 abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> = core::Object with col::MapBase<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MyMap&Object&MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>
     : super core::Object::•()
@@ -48,25 +67,6 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
     return super.{col::MapBase::values};
   mixin-super-stub method toString() → core::String
     return super.{col::MapBase::toString}();
-}
-class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
-  field core::int containsKeyCount;
-  field core::int indexGetCount;
-  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
-  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
-    ;
-  method containsKey(core::Object? key) → core::bool
-    ;
-  operator [](core::Object? key) → self::MyMap::V?
-    ;
-  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
-    ;
-  method clear() → void
-    ;
-  get keys() → core::Iterable<self::MyMap::K%>
-    ;
-  method remove(core::Object? key) → self::MyMap::V?
-    ;
 }
 static get hasUnsoundNullSafety() → core::bool
   ;

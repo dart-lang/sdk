@@ -32,7 +32,7 @@ void checkSample(
 }
 
 void main() {
-  final executable = Platform.executable;
+  final executable = File(Platform.executable).absolute.path;
   final out = executable.substring(0, executable.lastIndexOf('dart') - 1);
 
   checkSample('$out/run_main_kernel', ['$out/gen/hello_kernel.dart.snapshot']);

@@ -51,6 +51,16 @@ abstract class Mixin extends self::Super /*isMixinDeclaration*/  {
     super.{self::Super::property} = value;
   }
 }
+class Class1 extends self::_Class1&Super&Mixin {
+  synthetic constructor •() → self::Class1
+    : super self::_Class1&Super&Mixin::•()
+    ;
+}
+class Class2 extends self::_Class2&Object&Mixin implements self::Super {
+  synthetic constructor •() → self::Class2
+    : super self::_Class2&Object&Mixin::•()
+    ;
+}
 abstract class _Class1&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Class1&Super&Mixin
     : super self::Super::•()
@@ -65,11 +75,6 @@ abstract class _Class1&Super&Mixin extends self::Super implements self::Mixin /*
     super.{self::Super::property} = value;
   }
 }
-class Class1 extends self::_Class1&Super&Mixin {
-  synthetic constructor •() → self::Class1
-    : super self::_Class1&Super&Mixin::•()
-    ;
-}
 abstract class _Class2&Object&Mixin extends core::Object implements self::Mixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&Mixin
     : super core::Object::•()
@@ -83,9 +88,4 @@ abstract class _Class2&Object&Mixin extends core::Object implements self::Mixin 
   set property(core::int value) → void {
     super.{self::Super::property} = value;
   }
-}
-class Class2 extends self::_Class2&Object&Mixin implements self::Super {
-  synthetic constructor •() → self::Class2
-    : super self::_Class2&Object&Mixin::•()
-    ;
 }

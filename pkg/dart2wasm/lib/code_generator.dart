@@ -670,11 +670,13 @@ abstract class AstCodeGenerator
   List<w.ValueType> call(Reference target) {
     final targetModule = translator.moduleForReference(target);
     final isLocalModuleCall = targetModule == b.module;
+    final name = translator.functions.getFunctionName(target);
 
     if (isLocalModuleCall) {
+      b.comment('Direct call to $name');
       return b.invoke(translator.directCallTarget(target));
     } else {
-      b.comment('Indirect call to $target');
+      b.comment('Direct call to $name (across modules)');
       return translator.callReference(target, b);
     }
   }
@@ -1669,7 +1671,7 @@ abstract class AstCodeGenerator
             translateExpression(node.receiver, signature.inputs.first),
         (w.FunctionType signature, ParameterInfo paramInfo) {
       _visitArguments(node.arguments, signature, paramInfo, 1);
-    });
+    }, useUncheckedEntry: useUncheckedEntry);
   }
 
   @override
@@ -1808,11 +1810,13 @@ abstract class AstCodeGenerator
         }
       }
 
+      final useUncheckedEntry =
+          translator.canUseUncheckedEntry(node.left, node);
       if (singleTarget != null) {
         left();
         right();
         call(translator.getFunctionEntry(singleTarget.reference,
-            uncheckedEntry: translator.canUseUncheckedEntry(node, node.left)));
+            uncheckedEntry: useUncheckedEntry));
       } else {
         _virtualCall(
           node,
@@ -1820,6 +1824,7 @@ abstract class AstCodeGenerator
           _VirtualCallKind.Call,
           left,
           right,
+          useUncheckedEntry: useUncheckedEntry,
         );
       }
       if (leftNullable || rightNullable) {
@@ -1853,33 +1858,34 @@ abstract class AstCodeGenerator
       _VirtualCallKind kind,
       void Function(w.FunctionType signature) pushReceiver,
       void Function(w.FunctionType signature, ParameterInfo) pushArguments,
-      {bool useUncheckedEntry = false}) {
+      {required bool useUncheckedEntry}) {
     assert(kind != _VirtualCallKind.Get || !useUncheckedEntry);
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
         interfaceTarget.referenceAs(
             getter: kind.isGetter, setter: kind.isSetter));
+    final name = selector.entryPointName(useUncheckedEntry);
     assert(selector.name == interfaceTarget.name.text);
 
     pushReceiver(selector.signature);
 
-    if (selector.targetRanges.length == 1) {
+    final targets = selector.targets(unchecked: useUncheckedEntry);
+
+    if (targets.targetRanges.length == 1) {
       // TODO(natebiggs): Ensure dynamic modules exclude this.
 
-      assert(selector.staticDispatchRanges.length == 1);
-      final target = translator.getFunctionEntry(
-          selector.targetRanges[0].target,
-          uncheckedEntry: useUncheckedEntry);
+      assert(targets.staticDispatchRanges.length == 1);
+      final target = targets.targetRanges.single.target;
       final signature = translator.signatureForDirectCall(target);
       final paramInfo = translator.paramInfoForDirectCall(target);
       pushArguments(signature, paramInfo);
       return translator.outputOrVoid(call(target));
     }
 
-    if (selector.targetRanges.isEmpty) {
+    if (targets.targetRanges.isEmpty) {
       // TODO(natebiggs): Ensure dynamic modules exclude this.
 
       // Unreachable call
-      b.comment("Virtual call of ${selector.name} with no targets"
+      b.comment("Virtual call of $name with no targets"
           " at ${node.location}");
       pushArguments(selector.signature, selector.paramInfo);
       for (int i = 0; i < selector.signature.inputs.length; ++i) {
@@ -1897,16 +1903,18 @@ abstract class AstCodeGenerator
     b.local_tee(receiverVar);
     pushArguments(selector.signature, selector.paramInfo);
 
-    if (selector.staticDispatchRanges.isNotEmpty) {
+    if (targets.staticDispatchRanges.isNotEmpty) {
       // TODO(natebiggs): Ensure dynamic modules exclude this.
 
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
-          .getPolymorphicDispatcher(selector));
+          .getPolymorphicDispatcher(selector,
+              useUncheckedEntry: useUncheckedEntry));
     } else {
-      b.comment("Instance $kind of '${selector.name}'");
+      b.comment("Instance $kind of '$name'");
       b.local_get(receiverVar);
-      translator.callDispatchTable(b, selector);
+      translator.callDispatchTable(b, selector,
+          useUncheckedEntry: useUncheckedEntry);
     }
 
     return translator.outputOrVoid(selector.signature.outputs);
@@ -2039,7 +2047,7 @@ abstract class AstCodeGenerator
         w.Label nullLabel = b.block();
         translateExpression(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_, __) {});
+      }, (_, __) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2069,7 +2077,8 @@ abstract class AstCodeGenerator
           _VirtualCallKind.Get,
           (signature) =>
               translateExpression(node.receiver, signature.inputs.first),
-          (_, __) {});
+          (_, __) {},
+          useUncheckedEntry: false);
     }
   }
 
@@ -2181,7 +2190,7 @@ abstract class AstCodeGenerator
         b.br_on_null(nullLabel);
         translator.convertType(
             b, translator.topInfo.nullableType, signature.inputs[0]);
-      }, (_, __) {});
+      }, (_, __) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2212,7 +2221,8 @@ abstract class AstCodeGenerator
         _VirtualCallKind.Get,
         (signature) =>
             translateExpression(node.receiver, signature.inputs.first),
-        (_, __) {});
+        (_, __) {},
+        useUncheckedEntry: false);
   }
 
   @override
@@ -3187,13 +3197,13 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
 
 class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
   final Procedure member;
-  final SynchronousProcedureKind kind;
+  final EntryPoint kind;
 
   SynchronousProcedureCodeGenerator(Translator translator,
       w.FunctionType functionType, this.member, this.kind)
       : super(translator, functionType, member) {
-    assert(!translator.needToCheckTypesFor(member) ||
-        kind != SynchronousProcedureKind.normal);
+    assert(
+        !translator.needToCheckTypesFor(member) || kind != EntryPoint.normal);
   }
 
   @override
@@ -3216,16 +3226,16 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
     closures = translator.getClosures(member);
 
     switch (kind) {
-      case SynchronousProcedureKind.normal:
+      case EntryPoint.normal:
         b.comment('Normal Entry');
         _makeNonMultiEntryPointFunction();
-      case SynchronousProcedureKind.checked:
+      case EntryPoint.checked:
         b.comment('Checked Entry');
         _makeMultipleEntryPoint(true);
-      case SynchronousProcedureKind.unchecked:
+      case EntryPoint.unchecked:
         b.comment('Unchecked Entry');
         _makeMultipleEntryPoint(false);
-      case SynchronousProcedureKind.body:
+      case EntryPoint.body:
         b.comment('Body for Checked & Unchecked Entry');
         _makeMultipleEntryPointSharedBody();
         break;

@@ -14,14 +14,14 @@ FutureOr<num> v = 0;
 Future<int> test1() async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'FutureOr<num>' can't be returned from an async function with return type 'Future<int>'.
 }
 
 Future<int> Function() test2 = () async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
   // [cfe] A value of type 'FutureOr<num>' can't be returned from an async function with return type 'Future<int>'.
 };
 

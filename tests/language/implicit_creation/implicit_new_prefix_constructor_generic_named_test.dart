@@ -10,8 +10,8 @@ import "implicit_new_prefix_constructor_generic_named_test.dart" as prefix;
 
 class C<T> {
   final T x;
-  C(this.x);  // Not const constructor.
-  const C.c(this.x);  // Const constructor.
+  C(this.x); // Not const constructor.
+  const C.c(this.x); // Const constructor.
 
   operator <(other) => this;
   operator >(other) => other;
@@ -26,7 +26,7 @@ T id<T>(T x) => x;
 main() {
   const cc = const C<int>.c(42); // Canonicalized.
   var x = 42; // Avoid constant parameter.
-  var c0 = new prefix.C<int>.c(x);  // Original syntax.
+  var c0 = new prefix.C<int>.c(x); // Original syntax.
 
   // Uses of `prefix.C<int>.c(x)` in various contexts.
   var c1 = prefix.C<int>.c(x);
@@ -54,15 +54,31 @@ main() {
       Expect.fail("Should not be const");
       break;
     default:
-      // Success.
+    // Success.
   }
 
   for (prefix.C<int>.c(x); false; prefix.C<int>.c(x), prefix.C<int>.c(x)) {
     Expect.fail("Unreachable");
   }
 
-  var values =
-      [cc, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14];
+  var values = [
+    cc,
+    c0,
+    c1,
+    c2,
+    c3,
+    c4,
+    c5,
+    c6,
+    c7,
+    c8,
+    c9,
+    c10,
+    c11,
+    c12,
+    c13,
+    c14,
+  ];
   Expect.allDistinct(values); // Non of them create constants.
   for (var value in values) {
     Expect.isTrue(value is C<int>);

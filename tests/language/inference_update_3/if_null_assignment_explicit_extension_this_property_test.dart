@@ -104,8 +104,9 @@ extension Extension on String {
       // - T <: S
       // Therefore the type of `e` is T = num.
       var d = 2.0;
-      context<Object>((Extension(this).pIntQuestion ??= d)
-        ..expectStaticType<Exactly<num>>());
+      context<Object>(
+        (Extension(this).pIntQuestion ??= d)..expectStaticType<Exactly<num>>(),
+      );
 
       // This example has:
       // - K = Iterable<_>
@@ -118,8 +119,10 @@ extension Extension on String {
       // - T <: S
       // Therefore the type of `e` is T = Iterable<num>.
       var iterableDouble = <double>[] as Iterable<double>;
-      contextIterable((Extension(this).pIterableIntQuestion ??= iterableDouble)
-        ..expectStaticType<Exactly<Iterable<num>>>());
+      contextIterable(
+        (Extension(this).pIterableIntQuestion ??= iterableDouble)
+          ..expectStaticType<Exactly<Iterable<num>>>(),
+      );
 
       // This example has:
       // - K = Function
@@ -133,8 +136,10 @@ extension Extension on String {
       // - T <: S
       // Therefore the type of `e` is T = Function.
       var callableClassInt = CallableClass<int>();
-      context<Function>((Extension(this).pFunctionQuestion ??= callableClassInt)
-        ..expectStaticType<Exactly<Function>>());
+      context<Function>(
+        (Extension(this).pFunctionQuestion ??= callableClassInt)
+          ..expectStaticType<Exactly<Function>>(),
+      );
     }
 
     //   - Otherwise, if NonNull(T1) <: S and T2' <: S, then the type of `e` is
@@ -153,8 +158,10 @@ extension Extension on String {
       // - T2' <: S
       // Therefore the type of `e` is S = B1<Object?>.
       var c2Double = C2<double>();
-      contextB1((Extension(this).pC1IntQuestion ??= c2Double)
-        ..expectStaticType<Exactly<B1<Object?>>>());
+      contextB1(
+        (Extension(this).pC1IntQuestion ??= c2Double)
+          ..expectStaticType<Exactly<B1<Object?>>>(),
+      );
 
       // This example has:
       // - K = B1<Object>
@@ -168,8 +175,10 @@ extension Extension on String {
       // - NonNull(T1) <: S
       // - T2' <: S
       // Therefore the type of `e` is S = B1<Object>.
-      contextB1<Object>((Extension(this).pC1IntQuestion ??= c2Double)
-        ..expectStaticType<Exactly<B1<Object>>>());
+      contextB1<Object>(
+        (Extension(this).pC1IntQuestion ??= c2Double)
+          ..expectStaticType<Exactly<B1<Object>>>(),
+      );
 
       // This example has:
       // - K = Iterable<num>
@@ -184,8 +193,10 @@ extension Extension on String {
       // - T2' <: S
       // Therefore the type of `e` is S = Iterable<num>.
       var listNum = <num>[];
-      context<Iterable<num>>((Extension(this).pIterableIntQuestion ??= listNum)
-        ..expectStaticType<Exactly<Iterable<num>>>());
+      context<Iterable<num>>(
+        (Extension(this).pIterableIntQuestion ??= listNum)
+          ..expectStaticType<Exactly<Iterable<num>>>(),
+      );
 
       // This example has:
       // - K = B1<int> Function()
@@ -201,9 +212,10 @@ extension Extension on String {
       // - T2' <: S
       // Therefore the type of `e` is S = B1<int> Function().
       var callableClassC2Int = CallableClass<C2<int>>();
-      context<B1<int> Function()>((Extension(this).pC1IntFunctionQuestion ??=
-          callableClassC2Int)
-        ..expectStaticType<Exactly<B1<int> Function()>>());
+      context<B1<int> Function()>(
+        (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
+          ..expectStaticType<Exactly<B1<int> Function()>>(),
+      );
     }
 
     //   - Otherwise, the type of `e` is T.
@@ -227,8 +239,9 @@ extension Extension on String {
         // The fact that T2' <!: S precludes using S as static type.
         // Therefore the type of `e` is T = num.
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pIntQuestion ??= d)
-          ..expectStaticType<Exactly<num>>();
+        o =
+            (Extension(this).pIntQuestion ??= d)
+              ..expectStaticType<Exactly<num>>();
       }
       o = 0 as Object?;
       if (o is int?) {
@@ -246,8 +259,9 @@ extension Extension on String {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = num?.
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pDoubleQuestion ??= intQuestion)
-          ..expectStaticType<Exactly<num?>>();
+        o =
+            (Extension(this).pDoubleQuestion ??= intQuestion)
+              ..expectStaticType<Exactly<num?>>();
       }
       o = '' as Object?;
       if (o is String?) {
@@ -266,8 +280,9 @@ extension Extension on String {
         // static type.
         // Therefore the type of `e` is T = num.
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pIntQuestion ??= d)
-          ..expectStaticType<Exactly<num>>();
+        o =
+            (Extension(this).pIntQuestion ??= d)
+              ..expectStaticType<Exactly<num>>();
       }
 
       var callableClassC2Int = CallableClass<C2<int>>();
@@ -288,8 +303,9 @@ extension Extension on String {
         // The fact that T2' <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = (() => C2<int>()) as Object?;
@@ -309,8 +325,9 @@ extension Extension on String {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = 0 as Object?;
@@ -330,8 +347,9 @@ extension Extension on String {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o = (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
-          ..expectStaticType<Exactly<A Function()>>();
+        o =
+            (Extension(this).pC1IntFunctionQuestion ??= callableClassC2Int)
+              ..expectStaticType<Exactly<A Function()>>();
       }
     }
   }

@@ -17,11 +17,6 @@ class A extends core::Object {
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
-  synthetic constructor •(core::int? i) → self::_D&A&M3
-    : super self::A::•(i)
-    ;
-}
 abstract class D extends self::_D&A&M3 {
   final field core::int? _f4;
   constructor •(core::int? i) → self::D
@@ -38,6 +33,19 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
+class E extends self::_E&B&M1 implements self::D {
+  constructor •(core::int? i) → self::E
+    : super self::_E&B&M1::•(i)
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return super.{core::Object::noSuchMethod}(invocation);
+}
+abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_D&A&M3
+    : super self::A::•(i)
+    ;
+}
 abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int? i) → self::_E&B&M1
     : super self::B::•(i)
@@ -52,14 +60,6 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
     return super.{self::M1::_f3} = value;
   mixin-super-stub get _f4() → core::int?
     return super.{self::M1::_f4};
-}
-class E extends self::_E&B&M1 implements self::D {
-  constructor •(core::int? i) → self::E
-    : super self::_E&B&M1::•(i)
-    ;
-  @#C1
-  method noSuchMethod(core::Invocation invocation) → dynamic
-    return super.{core::Object::noSuchMethod}(invocation);
 }
 static method acceptsInt(core::int x) → void {}
 static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C c) → void {

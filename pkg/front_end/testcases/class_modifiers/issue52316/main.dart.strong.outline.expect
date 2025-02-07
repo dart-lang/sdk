@@ -48,13 +48,21 @@ class LegacyExtendsFinal extends mai::LegacyImplementFinalCore {
   synthetic constructor •() → self::LegacyExtendsFinal
     ;
 }
+abstract class LegacyWithBase<E extends col::LinkedListEntry<self::LegacyWithBase::E> = col::LinkedListEntry<dynamic>> extends self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::LegacyWithBase::E> {
+  synthetic constructor •() → self::LegacyWithBase<self::LegacyWithBase::E>
+    ;
+}
+class LegacyWithFinal extends self::_LegacyWithFinal&Object&LegacyImplementFinalCore {
+  synthetic constructor •() → self::LegacyWithFinal
+    ;
+}
+abstract class LegacyOnBase<E extends col::LinkedListEntry<self::LegacyOnBase::E> = col::LinkedListEntry<dynamic>> extends mai::LegacyImplementBaseCore<self::LegacyOnBase::E> /*isMixinDeclaration*/  {
+}
+abstract class LegacyOnFinal extends mai::LegacyImplementFinalCore /*isMixinDeclaration*/  {
+}
 abstract class _LegacyWithBase&Object&LegacyImplementBaseCore<E extends col::LinkedListEntry<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> = col::LinkedListEntry<dynamic>> = core::Object with mai::LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::_LegacyWithBase&Object&LegacyImplementBaseCore::E>
     : super core::Object::•()
-    ;
-}
-abstract class LegacyWithBase<E extends col::LinkedListEntry<self::LegacyWithBase::E> = col::LinkedListEntry<dynamic>> extends self::_LegacyWithBase&Object&LegacyImplementBaseCore<self::LegacyWithBase::E> {
-  synthetic constructor •() → self::LegacyWithBase<self::LegacyWithBase::E>
     ;
 }
 abstract class _LegacyWithFinal&Object&LegacyImplementFinalCore = core::Object with mai::LegacyImplementFinalCore /*isAnonymousMixin,hasConstConstructor*/  {
@@ -67,14 +75,6 @@ abstract class _LegacyWithFinal&Object&LegacyImplementFinalCore = core::Object w
     return super.{mai::LegacyImplementFinalCore::value};
   mixin-super-stub method toString() → core::String
     return super.{mai::LegacyImplementFinalCore::toString}();
-}
-class LegacyWithFinal extends self::_LegacyWithFinal&Object&LegacyImplementFinalCore {
-  synthetic constructor •() → self::LegacyWithFinal
-    ;
-}
-abstract class LegacyOnBase<E extends col::LinkedListEntry<self::LegacyOnBase::E> = col::LinkedListEntry<dynamic>> extends mai::LegacyImplementBaseCore<self::LegacyOnBase::E> /*isMixinDeclaration*/  {
-}
-abstract class LegacyOnFinal extends mai::LegacyImplementFinalCore /*isMixinDeclaration*/  {
 }
 
 library;

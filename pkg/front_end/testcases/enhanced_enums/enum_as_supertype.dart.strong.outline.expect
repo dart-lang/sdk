@@ -23,13 +23,6 @@ abstract mixin class A extends core::Enum {
   get foo() → core::int
     ;
 }
-abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub get foo() → core::int
-    return super.{self::A::foo};
-}
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   enum-element static const field self::EA element = const self::EA::•(0, "element");
   static const field core::List<self::EA> values = const <self::EA>[self::EA::element];
@@ -45,13 +38,6 @@ abstract mixin class B extends core::Object implements core::Enum {
   get foo() → core::int
     ;
 }
-abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub get foo() → core::int
-    return super.{self::B::foo};
-}
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   enum-element static const field self::EB element = const self::EB::•(0, "element");
   static const field core::List<self::EB> values = const <self::EB>[self::EB::element];
@@ -64,13 +50,6 @@ class EB extends self::_EB&_Enum&B /*isEnum*/  {
 abstract class M extends core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
     ;
-}
-abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub get foo() → core::int
-    return super.{self::M::foo};
 }
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   enum-element static const field self::EM element = const self::EM::•(0, "element");
@@ -85,13 +64,6 @@ abstract class N extends core::Object implements core::Enum /*isMixinDeclaration
   get foo() → core::int
     ;
 }
-abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub get foo() → core::int
-    return super.{self::N::foo};
-}
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   enum-element static const field self::EN element = const self::EN::•(0, "element");
   static const field core::List<self::EN> values = const <self::EN>[self::EN::element];
@@ -100,6 +72,34 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::A::foo};
+}
+abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::B::foo};
+}
+abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::M::foo};
+}
+abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::N::foo};
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic
   ;

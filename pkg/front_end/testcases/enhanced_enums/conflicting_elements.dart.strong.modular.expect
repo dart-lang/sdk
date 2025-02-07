@@ -147,13 +147,6 @@ class E7 extends core::_Enum /*isEnum*/  {
 abstract class A8 extends core::Object /*isMixinDeclaration*/  {
   set element(dynamic value) → void {}
 }
-abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&A8
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub set element(dynamic value) → void
-    return super.{self::A8::element} = value;
-}
 class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   enum-element static const field self::E8 element = #C17;
   static const field core::List<self::E8> values = #C18;
@@ -165,15 +158,6 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
 }
 abstract class A9 extends core::Object /*isMixinDeclaration*/  {
   field core::int element = 42;
-}
-abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
-  synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub set element(core::int value) → void
-    return super.{self::A9::element} = value;
-  mixin-super-stub get element() → core::int
-    return super.{self::A9::element};
 }
 class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   enum-element static const field self::E9 element = invalid-expression "A constant constructor can't call a non-constant super constructor.";
@@ -187,13 +171,6 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
 abstract class A10 extends core::Object /*isMixinDeclaration*/  {
   method element() → void {}
 }
-abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10
-    : super core::_Enum::•(index, _name)
-    ;
-  mixin-super-stub method element() → void
-    return super.{self::A10::element}();
-}
 class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   enum-element static const field self::E10 element = #C19;
   static const field core::List<self::E10> values = #C20;
@@ -202,6 +179,29 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&A8
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub set element(dynamic value) → void
+    return super.{self::A8::element} = value;
+}
+abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub set element(core::int value) → void
+    return super.{self::A9::element} = value;
+  mixin-super-stub get element() → core::int
+    return super.{self::A9::element};
+}
+abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method element() → void
+    return super.{self::A10::element}();
 }
 static method main() → dynamic {}
 

@@ -11,12 +11,16 @@ extension IntExtension on int {
   /// character.
   bool get isEOL => this == 0x0D || this == 0x0A;
 
+  bool get isEqual => this == 0x3D;
+
   bool get isLetter =>
       (this >= 0x41 && this <= 0x5A) || (this >= 0x61 && this <= 0x7A);
 
   bool get isLetterOrDigit => isLetter || isDigit;
 
   bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
+
+  bool get isSlash => this == 0x2F;
 
   /// Whether this, as an ASCII character, is a space or tab character.
   bool get isSpace => this == 0x20 || this == 0x09;

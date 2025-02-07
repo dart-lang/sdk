@@ -12,11 +12,11 @@ import 'package:expect/static_type_helper.dart';
 
 testProductOfNums(List<num> values) {
   num a = values.fold(
-      1,
-      (p, v) =>
-          (p..expectStaticType<Exactly<num>>()) *
-          (v..expectStaticType<Exactly<num>>()))
-    ..expectStaticType<Exactly<num>>();
+    1,
+    (p, v) =>
+        (p..expectStaticType<Exactly<num>>()) *
+        (v..expectStaticType<Exactly<num>>()),
+  )..expectStaticType<Exactly<num>>();
 }
 
 main() {}

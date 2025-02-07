@@ -29,9 +29,7 @@ class E<T> {
 class F<T> extends E<T> {
   T f;
 
-  F(T f)
-      : this.f = f,
-        super(f);
+  F(T f) : this.f = f, super(f);
 }
 
 void main() {

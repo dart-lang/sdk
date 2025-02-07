@@ -283,6 +283,47 @@ class Interface2 extends core::Object {
   method implementedFieldImplementedMethod() → void
     ;
 }
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
+  field core::int extendedMethodDeclaredField;
+  field core::int mixedInMethodDeclaredField;
+  field core::int implementedMethodDeclaredField;
+  synthetic constructor •() → self::Class
+    ;
+  get extendedMethodDeclaredGetter() → core::int
+    ;
+  set extendedMethodDeclaredSetter(core::int value) → void
+    ;
+  method extendedGetterDeclaredMethod() → void
+    ;
+  method extendedSetterDeclaredMethod() → void
+    ;
+  method extendedFieldDeclaredMethod() → void
+    ;
+  get mixedInMethodDeclaredGetter() → core::int
+    ;
+  set mixedInMethodDeclaredSetter(core::int value) → void
+    ;
+  method mixedInGetterDeclaredMethod() → void
+    ;
+  method mixedInSetterDeclaredMethod() → void
+    ;
+  method mixedInFieldDeclaredMethod() → void
+    ;
+  get implementedMethodDeclaredGetter() → core::int
+    ;
+  set implementedMethodDeclaredSetter(core::int value) → void
+    ;
+  method implementedGetterDeclaredMethod() → void
+    ;
+  method implementedSetterDeclaredMethod() → void
+    ;
+  method implementedFieldDeclaredMethod() → void
+    ;
+  method declaredMethodAndSetter() → void
+    ;
+  set declaredMethodAndSetter(core::int value) → void
+    ;
+}
 abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
@@ -329,47 +370,6 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInSetterImplementedMethod} = value;
   mixin-super-stub set extendedMethodMixedInSetter(core::int value) → void
     return super.{self::Mixin::extendedMethodMixedInSetter} = value;
-}
-abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
-  field core::int extendedMethodDeclaredField;
-  field core::int mixedInMethodDeclaredField;
-  field core::int implementedMethodDeclaredField;
-  synthetic constructor •() → self::Class
-    ;
-  get extendedMethodDeclaredGetter() → core::int
-    ;
-  set extendedMethodDeclaredSetter(core::int value) → void
-    ;
-  method extendedGetterDeclaredMethod() → void
-    ;
-  method extendedSetterDeclaredMethod() → void
-    ;
-  method extendedFieldDeclaredMethod() → void
-    ;
-  get mixedInMethodDeclaredGetter() → core::int
-    ;
-  set mixedInMethodDeclaredSetter(core::int value) → void
-    ;
-  method mixedInGetterDeclaredMethod() → void
-    ;
-  method mixedInSetterDeclaredMethod() → void
-    ;
-  method mixedInFieldDeclaredMethod() → void
-    ;
-  get implementedMethodDeclaredGetter() → core::int
-    ;
-  set implementedMethodDeclaredSetter(core::int value) → void
-    ;
-  method implementedGetterDeclaredMethod() → void
-    ;
-  method implementedSetterDeclaredMethod() → void
-    ;
-  method implementedFieldDeclaredMethod() → void
-    ;
-  method declaredMethodAndSetter() → void
-    ;
-  set declaredMethodAndSetter(core::int value) → void
-    ;
 }
 static method main() → dynamic
   ;

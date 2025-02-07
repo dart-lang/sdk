@@ -22,9 +22,9 @@ part 'dart:_foreign_helper';
 
 void main() {
   JS('int', '0');
-//^
-// [cfe] Method not found: 'JS'.
+  // [error column 3]
+  // [cfe] Method not found: 'JS'.
   JS('int', '0');
-//^
-// [cfe] Method not found: 'JS'.
+  // [error column 3]
+  // [cfe] Method not found: 'JS'.
 }

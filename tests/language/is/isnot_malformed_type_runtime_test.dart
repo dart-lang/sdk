@@ -9,9 +9,6 @@ import 'package:expect/expect.dart';
 
 f(obj) {
   // 'Baz' is not loaded, throws a type error on test.
-
 }
 
-main() {
-
-}
+main() {}

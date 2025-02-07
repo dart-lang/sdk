@@ -190,6 +190,8 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
                          compiler::target::Thread::exit_through_ffi_offset()),
        new_exit_through_ffi);
 
+  VerifyInGenerated(TMP);
+  // Mark that the thread is executing native code.
   movq(Assembler::VMTagAddress(), destination_address);
   movq(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::native_execution_state()));
@@ -259,10 +261,10 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
+void Assembler::TransitionNativeToGenerated(bool exit_safepoint,
                                             bool ignore_unwind_in_progress,
                                             bool set_tag) {
-  if (leave_safepoint) {
+  if (exit_safepoint) {
     ExitFullSafepoint(ignore_unwind_in_progress);
   } else {
     // flag only makes sense if we are leaving safepoint
@@ -278,6 +280,8 @@ void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
 #endif
   }
 
+  VerifyNotInGenerated(TMP);
+  // Mark that the thread is executing Dart code.
   if (set_tag) {
     movq(Assembler::VMTagAddress(),
          Immediate(target::Thread::vm_tag_dart_id()));
@@ -291,6 +295,32 @@ void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
   movq(compiler::Address(THR,
                          compiler::target::Thread::exit_through_ffi_offset()),
        compiler::Immediate(0));
+}
+
+void Assembler::VerifyInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in generated.
+  Comment("VerifyInGenerated");
+  movq(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
+}
+
+void Assembler::VerifyNotInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in native or VM.
+  Comment("VerifyNotInGenerated");
+  movq(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(NOT_EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::EmitQ(int reg,

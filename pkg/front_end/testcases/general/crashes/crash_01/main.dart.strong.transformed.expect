@@ -17,16 +17,16 @@ abstract class RenderSliver extends mai::RenderObject {
   get constraints() → self::SliverConstraints
     return super.{mai::RenderObject::constraints} as{Unchecked} self::SliverConstraints;
 }
+abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin {
+  synthetic constructor •() → self::RenderSliverSingleBoxAdapter
+    : super self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin::•()
+    ;
+}
 abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin extends self::RenderSliver implements mai::RenderObjectWithChildMixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
     : super self::RenderSliver::•()
     ;
   abstract member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
-}
-abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin {
-  synthetic constructor •() → self::RenderSliverSingleBoxAdapter
-    : super self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin::•()
-    ;
 }
 static method main() → dynamic {}
 

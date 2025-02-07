@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library allowed_external_member_type_test;
-
 import 'dart:js_interop';
 
 import 'package:js/js.dart' as pkgJs;
@@ -192,8 +189,13 @@ external ExtensionType interopExtensionTypeMethod(ExtensionType _);
 @JS()
 external void primitivesMethod(num a, int b, double c, bool d, String e);
 
-void functionToJSTest<T extends JSAny, U extends ExtensionType,
-    V extends StaticInterop, W, Y>() {
+void functionToJSTest<
+  T extends JSAny,
+  U extends ExtensionType,
+  V extends StaticInterop,
+  W,
+  Y
+>() {
   // Test `toJS` conversions of functions.
   ((double _) => 4.0.toJS).toJS;
 

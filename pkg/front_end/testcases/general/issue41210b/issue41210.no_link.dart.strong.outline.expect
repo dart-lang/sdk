@@ -18,6 +18,18 @@ import "issue41210_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue41210_lib.dart";
 
+class C extends self::_C&Object&A&B {
+  synthetic constructor •() → self::C
+    ;
+}
+class E extends self::_E&Object&A&D {
+  synthetic constructor •() → self::E
+    ;
+}
+class G extends self::_G&Object&A&F {
+  synthetic constructor •() → self::G
+    ;
+}
 abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A
     : super core::Object::•()
@@ -30,10 +42,6 @@ abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,
     : super self::_C&Object&A::•()
     ;
   abstract mixin-stub method method(core::num i) → core::String; -> iss::B::method
-}
-class C extends self::_C&Object&A&B {
-  synthetic constructor •() → self::C
-    ;
 }
 abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A
@@ -49,10 +57,6 @@ abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,
   forwarding-stub method method(covariant-by-declaration core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
-class E extends self::_E&Object&A&D {
-  synthetic constructor •() → self::E
-    ;
-}
 abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A
     : super core::Object::•()
@@ -63,10 +67,6 @@ abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
 abstract class _G&Object&A&F = self::_G&Object&A with iss::F /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A&F
     : super self::_G&Object&A::•()
-    ;
-}
-class G extends self::_G&Object&A&F {
-  synthetic constructor •() → self::G
     ;
 }
 static method main() → dynamic

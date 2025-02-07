@@ -14,21 +14,21 @@ Future<void> v = Future.value(null);
 FutureOr<Object> test1() async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'FutureOr<Object>'.
 }
 
 FutureOr<Object?> test2() async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'FutureOr<Object?>'.
 }
 
 FutureOr<Object> Function() test3 = () async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
   // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'Future<Object>'.
 };
 

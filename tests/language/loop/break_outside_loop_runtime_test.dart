@@ -7,7 +7,5 @@
 // Dart test program to test check that we catch label errors.
 
 main() {
-  if (true) {
-
-  }
+  if (true) {}
 }

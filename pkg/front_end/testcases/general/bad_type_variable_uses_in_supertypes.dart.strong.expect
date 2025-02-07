@@ -50,30 +50,6 @@ library;
 // class Ei<T> = A<InvariantUse<T>> with Empty;
 //       ^
 //
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:37:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
-// class F<T> extends Object with A<Function(T)> {}
-//       ^
-//
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:39:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
-// class Fc<T> extends Object with A<ContravariantUse<T>> {}
-//       ^
-//
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:41:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
-// class Fi<T> extends Object with A<InvariantUse<T>> {}
-//       ^
-//
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:43:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
-// class G<T> extends A<Function(T)> with Empty {}
-//       ^
-//
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:45:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
-// class Gc<T> extends A<ContravariantUse<T>> with Empty {}
-//       ^
-//
-// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:47:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
-// class Gi<T> extends A<InvariantUse<T>> with Empty {}
-//       ^
-//
 // pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:57:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
 // class Hii<T> extends A<InvariantUse<InvariantUse<T>>> {}
 //       ^
@@ -108,6 +84,30 @@ library;
 //
 // pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:85:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
 // class Jccc<T>
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:37:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// class F<T> extends Object with A<Function(T)> {}
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:39:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// class Fc<T> extends Object with A<ContravariantUse<T>> {}
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:41:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
+// class Fi<T> extends Object with A<InvariantUse<T>> {}
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:43:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// class G<T> extends A<Function(T)> with Empty {}
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:45:7: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'A'.
+// class Gc<T> extends A<ContravariantUse<T>> with Empty {}
+//       ^
+//
+// pkg/front_end/testcases/general/bad_type_variable_uses_in_supertypes.dart:47:7: Error: Can't use implicitly 'out' variable 'T' in an 'inout' position in supertype 'A'.
+// class Gi<T> extends A<InvariantUse<T>> with Empty {}
 //       ^
 //
 import self as self;
@@ -182,19 +182,9 @@ class Ei<T extends core::Object? = dynamic> = core::Object with self::Empty {
     : super core::Object::•()
     ;
 }
-abstract class _F&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T%>
-    : super core::Object::•()
-    ;
-}
 class F<T extends core::Object? = dynamic> extends self::_F&Object&A<self::F::T%> {
   synthetic constructor •() → self::F<self::F::T%>
     : super self::_F&Object&A::•()
-    ;
-}
-abstract class _Fc&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T%>
-    : super core::Object::•()
     ;
 }
 class Fc<T extends core::Object? = dynamic> extends self::_Fc&Object&A<self::Fc::T%> {
@@ -202,19 +192,9 @@ class Fc<T extends core::Object? = dynamic> extends self::_Fc&Object&A<self::Fc:
     : super self::_Fc&Object&A::•()
     ;
 }
-abstract class _Fi&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T%>
-    : super core::Object::•()
-    ;
-}
 class Fi<T extends core::Object? = dynamic> extends self::_Fi&Object&A<self::Fi::T%> {
   synthetic constructor •() → self::Fi<self::Fi::T%>
     : super self::_Fi&Object&A::•()
-    ;
-}
-abstract class _G&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T%>
-    : super core::Object::•()
     ;
 }
 class G<T extends core::Object? = dynamic> extends self::_G&A&Empty<self::G::T%> {
@@ -222,19 +202,9 @@ class G<T extends core::Object? = dynamic> extends self::_G&A&Empty<self::G::T%>
     : super self::_G&A&Empty::•()
     ;
 }
-abstract class _Gc&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T%>
-    : super core::Object::•()
-    ;
-}
 class Gc<T extends core::Object? = dynamic> extends self::_Gc&A&Empty<self::Gc::T%> {
   synthetic constructor •() → self::Gc<self::Gc::T%>
     : super self::_Gc&A&Empty::•()
-    ;
-}
-abstract class _Gi&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T%>
-    : super core::Object::•()
     ;
 }
 class Gi<T extends core::Object? = dynamic> extends self::_Gi&A&Empty<self::Gi::T%> {
@@ -334,6 +304,36 @@ class Jccf<T extends core::Object? = dynamic> extends core::Object {
 }
 class Jccc<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Jccc<self::Jccc::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _F&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _Fc&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _Fi&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _G&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _Gc&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class _Gi&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T%>
     : super core::Object::•()
     ;
 }

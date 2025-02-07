@@ -20,7 +20,9 @@ withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {
 }
 
 withUnnamedArgumentsParenthesized(
-    int? i, void Function(void Function(), Object?) f) {
+  int? i,
+  void Function(void Function(), Object?) f,
+) {
   if (i != null) {
     f((() {
       i = null;
@@ -30,7 +32,9 @@ withUnnamedArgumentsParenthesized(
 }
 
 withUnnamedArgumentsParenthesizedTwice(
-    int? i, void Function(void Function(), Object?) f) {
+  int? i,
+  void Function(void Function(), Object?) f,
+) {
   if (i != null) {
     f(((() {
       i = null;
@@ -40,37 +44,46 @@ withUnnamedArgumentsParenthesizedTwice(
 }
 
 withNamedArguments(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: () {
-          i = null;
-        },
-        x: i..expectStaticType<Exactly<int>>());
+      g: () {
+        i = null;
+      },
+      x: i..expectStaticType<Exactly<int>>(),
+    );
     i..expectStaticType<Exactly<int?>>();
   }
 }
 
 withNamedArgumentsParenthesized(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: (() {
-          i = null;
-        }),
-        x: i..expectStaticType<Exactly<int>>());
+      g: (() {
+        i = null;
+      }),
+      x: i..expectStaticType<Exactly<int>>(),
+    );
     i..expectStaticType<Exactly<int?>>();
   }
 }
 
 withNamedArgumentsParenthesizedTwice(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: ((() {
-          i = null;
-        })),
-        x: i..expectStaticType<Exactly<int>>());
+      g: ((() {
+        i = null;
+      })),
+      x: i..expectStaticType<Exactly<int>>(),
+    );
     i..expectStaticType<Exactly<int?>>();
   }
 }
@@ -97,16 +110,16 @@ withIdentical_rhs(int? i) {
 class B {
   B(Object? x, void Function() g, Object? y);
   B.redirectingConstructorInvocation(int? i)
-      : this(i!, () {
-          i = null;
-        }, i..expectStaticType<Exactly<int>>());
+    : this(i!, () {
+        i = null;
+      }, i..expectStaticType<Exactly<int>>());
 }
 
 class C extends B {
   C.superConstructorInvocation(int? i)
-      : super(i!, () {
-          i = null;
-        }, i..expectStaticType<Exactly<int>>());
+    : super(i!, () {
+        i = null;
+      }, i..expectStaticType<Exactly<int>>());
 }
 
 main() {}

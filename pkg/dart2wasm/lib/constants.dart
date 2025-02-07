@@ -109,6 +109,11 @@ class Constants {
   Types get types => translator.types;
   CoreTypes get coreTypes => translator.coreTypes;
 
+  Constant makeWasmI32(int value) {
+    return InstanceConstant(translator.wasmI32Class.reference, const [],
+        {translator.wasmI32Value.fieldReference: IntConstant(value)});
+  }
+
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) {
     return makeArrayOf(
@@ -225,7 +230,7 @@ class Constants {
   InstanceConstant _makeInterfaceTypeConstant(InterfaceType type) {
     return _makeTypeConstant(translator.interfaceTypeClass, type.nullability, {
       translator.interfaceTypeClassIdField.fieldReference:
-          IntConstant(translator.classIdNumbering.classIds[type.classNode]!),
+          makeWasmI32(translator.classIdNumbering.classIds[type.classNode]!),
       translator.interfaceTypeTypeArguments.fieldReference:
           makeTypeArray(type.typeArguments),
     });
@@ -592,6 +597,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
     if (cls == translator.immutableWasmArrayClass) {
       return _makeWasmArrayLiteral(constant, mutable: false);
+    }
+    if (cls == translator.wasmI32Class) {
+      return null;
     }
 
     ClassInfo info = translator.classInfo[cls]!;

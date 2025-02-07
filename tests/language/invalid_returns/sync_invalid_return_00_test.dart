@@ -9,9 +9,9 @@ import 'dart:async';
 
 int? test() {
   return;
-//^
-// [analyzer] unspecified
-// [cfe] A value must be explicitly returned from a non-void function.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_WITHOUT_VALUE
+  // [cfe] A value must be explicitly returned from a non-void function.
 }
 
 void main() {

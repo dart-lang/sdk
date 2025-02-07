@@ -1078,7 +1078,6 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   List<T> toList() {
     List<T> list = [];
     while (moveNext()) {

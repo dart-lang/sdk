@@ -8,11 +8,9 @@
 main() {
   L:
   while (false) {
-
     break L;
     void innerfunc() {
       // Illegal: jump target is outside of function
-
     }
 
     innerfunc();

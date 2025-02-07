@@ -5,6 +5,30 @@ import "dart:collection" as col;
 
 import "dart:collection";
 
+class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
+  field core::int containsKeyCount = 0;
+  field core::int indexGetCount = 0;
+  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
+  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+    : self::MyMap::_map = _map, super self::_MyMap&Object&MapMixin::•()
+    ;
+  method containsKey(core::Object? key) → core::bool {
+    this.{self::MyMap::containsKeyCount} = this.{self::MyMap::containsKeyCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::containsKey}(key){(core::Object?) → core::bool};
+  }
+  operator [](core::Object? key) → self::MyMap::V? {
+    this.{self::MyMap::indexGetCount} = this.{self::MyMap::indexGetCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::MyMap::V?};
+  }
+  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
+    return let final core::Map<self::MyMap::K%, self::MyMap::V%> #t1 = this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>} in let final self::MyMap::K% #t2 = key in let final self::MyMap::V% #t3 = value in let final void #t4 = #t1.{core::Map::[]=}(#t2, #t3){(self::MyMap::K%, self::MyMap::V%) → void} in #t3;
+  method clear() → void
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::clear}(){() → void};
+  get keys() → core::Iterable<self::MyMap::K%>
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::keys}{core::Iterable<self::MyMap::K%>};
+  method remove(core::Object? key) → self::MyMap::V?
+    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
+}
 abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object implements col::MapBase<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MyMap&Object&MapMixin<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>
     : super core::Object::•()
@@ -24,7 +48,7 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         self::_MyMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
         {
-          action(key, let self::_MyMap&Object&MapMixin::V? #t1 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t1 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t2 = #t1 in #t2 == null ?{self::_MyMap&Object&MapMixin::V%} #t2 as self::_MyMap&Object&MapMixin::V% : #t2{self::_MyMap&Object&MapMixin::V%} : #t1{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void};
+          action(key, let self::_MyMap&Object&MapMixin::V? #t5 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t5 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t6 = #t5 in #t6 == null ?{self::_MyMap&Object&MapMixin::V%} #t6 as self::_MyMap&Object&MapMixin::V% : #t6{self::_MyMap&Object&MapMixin::V%} : #t5{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void};
         }
       }
     }
@@ -49,16 +73,16 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ putIfAbsent(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class () → self::_MyMap&Object&MapMixin::V% ifAbsent) → self::_MyMap&Object&MapMixin::V% {
     if(this.{col::MapBase::containsKey}(key){(core::Object?) → core::bool}) {
-      return let self::_MyMap&Object&MapMixin::V? #t3 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t3 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t4 = #t3 in #t4 == null ?{self::_MyMap&Object&MapMixin::V%} #t4 as self::_MyMap&Object&MapMixin::V% : #t4{self::_MyMap&Object&MapMixin::V%} : #t3{self::_MyMap&Object&MapMixin::V%};
+      return let self::_MyMap&Object&MapMixin::V? #t7 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t7 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t8 = #t7 in #t8 == null ?{self::_MyMap&Object&MapMixin::V%} #t8 as self::_MyMap&Object&MapMixin::V% : #t8{self::_MyMap&Object&MapMixin::V%} : #t7{self::_MyMap&Object&MapMixin::V%};
     }
-    return let final self::_MyMap&Object&MapMixin::K% #t5 = key in let final self::_MyMap&Object&MapMixin::V% #t6 = ifAbsent(){() → self::_MyMap&Object&MapMixin::V%} in let final void #t7 = this.{col::MapBase::[]=}(#t5, #t6){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t6;
+    return let final self::_MyMap&Object&MapMixin::K% #t9 = key in let final self::_MyMap&Object&MapMixin::V% #t10 = ifAbsent(){() → self::_MyMap&Object&MapMixin::V%} in let final void #t11 = this.{col::MapBase::[]=}(#t9, #t10){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t10;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ update(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class (self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V% update, {covariant-by-class () →? self::_MyMap&Object&MapMixin::V% ifAbsent = #C1}) → self::_MyMap&Object&MapMixin::V% {
     if(this.{col::MapBase::containsKey}(key){(core::Object?) → core::bool}) {
-      return let final self::_MyMap&Object&MapMixin::K% #t8 = key in let final self::_MyMap&Object&MapMixin::V% #t9 = update(let self::_MyMap&Object&MapMixin::V? #t10 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t10 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t11 = #t10 in #t11 == null ?{self::_MyMap&Object&MapMixin::V%} #t11 as self::_MyMap&Object&MapMixin::V% : #t11{self::_MyMap&Object&MapMixin::V%} : #t10{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V%} in let final void #t12 = this.{col::MapBase::[]=}(#t8, #t9){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t9;
+      return let final self::_MyMap&Object&MapMixin::K% #t12 = key in let final self::_MyMap&Object&MapMixin::V% #t13 = update(let self::_MyMap&Object&MapMixin::V? #t14 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t14 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t15 = #t14 in #t15 == null ?{self::_MyMap&Object&MapMixin::V%} #t15 as self::_MyMap&Object&MapMixin::V% : #t15{self::_MyMap&Object&MapMixin::V%} : #t14{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V%} in let final void #t16 = this.{col::MapBase::[]=}(#t12, #t13){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t13;
     }
     if(!(ifAbsent == null)) {
-      return let final self::_MyMap&Object&MapMixin::K% #t13 = key in let final self::_MyMap&Object&MapMixin::V% #t14 = ifAbsent{() → self::_MyMap&Object&MapMixin::V%}(){() → self::_MyMap&Object&MapMixin::V%} in let final void #t15 = this.{col::MapBase::[]=}(#t13, #t14){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t14;
+      return let final self::_MyMap&Object&MapMixin::K% #t17 = key in let final self::_MyMap&Object&MapMixin::V% #t18 = ifAbsent{() → self::_MyMap&Object&MapMixin::V%}(){() → self::_MyMap&Object&MapMixin::V%} in let final void #t19 = this.{col::MapBase::[]=}(#t17, #t18){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void} in #t18;
     }
     throw new core::ArgumentError::value(key, "key", "Key not in map.");
   }
@@ -68,13 +92,13 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         self::_MyMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
         {
-          this.{col::MapBase::[]=}(key, update(key, let self::_MyMap&Object&MapMixin::V? #t16 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t16 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t17 = #t16 in #t17 == null ?{self::_MyMap&Object&MapMixin::V%} #t17 as self::_MyMap&Object&MapMixin::V% : #t17{self::_MyMap&Object&MapMixin::V%} : #t16{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void};
+          this.{col::MapBase::[]=}(key, update(key, let self::_MyMap&Object&MapMixin::V? #t20 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t20 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t21 = #t20 in #t21 == null ?{self::_MyMap&Object&MapMixin::V%} #t21 as self::_MyMap&Object&MapMixin::V% : #t21{self::_MyMap&Object&MapMixin::V%} : #t20{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void};
         }
       }
     }
   }
   get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ entries() → core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>> {
-    return this.{col::MapBase::keys}{core::Iterable<self::_MyMap&Object&MapMixin::K%>}.{core::Iterable::map}<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>((self::_MyMap&Object&MapMixin::K% key) → core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> => new core::MapEntry::_<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>(key, let self::_MyMap&Object&MapMixin::V? #t18 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t18 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t19 = #t18 in #t19 == null ?{self::_MyMap&Object&MapMixin::V%} #t19 as self::_MyMap&Object&MapMixin::V% : #t19{self::_MyMap&Object&MapMixin::V%} : #t18{self::_MyMap&Object&MapMixin::V%})){((self::_MyMap&Object&MapMixin::K%) → core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>) → core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>};
+    return this.{col::MapBase::keys}{core::Iterable<self::_MyMap&Object&MapMixin::K%>}.{core::Iterable::map}<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>((self::_MyMap&Object&MapMixin::K% key) → core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%> => new core::MapEntry::_<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>(key, let self::_MyMap&Object&MapMixin::V? #t22 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t22 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t23 = #t22 in #t23 == null ?{self::_MyMap&Object&MapMixin::V%} #t23 as self::_MyMap&Object&MapMixin::V% : #t23{self::_MyMap&Object&MapMixin::V%} : #t22{self::_MyMap&Object&MapMixin::V%})){((self::_MyMap&Object&MapMixin::K%) → core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>) → core::Iterable<core::MapEntry<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>>};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> transform) → core::Map<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> {
     core::Map<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> result = <self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>{};
@@ -83,7 +107,7 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         self::_MyMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
         {
-          core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> entry = transform(key, let self::_MyMap&Object&MapMixin::V? #t20 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t20 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t21 = #t20 in #t21 == null ?{self::_MyMap&Object&MapMixin::V%} #t21 as self::_MyMap&Object&MapMixin::V% : #t21{self::_MyMap&Object&MapMixin::V%} : #t20{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>};
+          core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%> entry = transform(key, let self::_MyMap&Object&MapMixin::V? #t24 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t24 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t25 = #t24 in #t25 == null ?{self::_MyMap&Object&MapMixin::V%} #t25 as self::_MyMap&Object&MapMixin::V% : #t25{self::_MyMap&Object&MapMixin::V%} : #t24{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::MapEntry<self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%>};
           result.{core::Map::[]=}(entry.{core::MapEntry::key}{self::_MyMap&Object&MapMixin::map::K2%}, entry.{core::MapEntry::value}{self::_MyMap&Object&MapMixin::map::V2%}){(self::_MyMap&Object&MapMixin::map::K2%, self::_MyMap&Object&MapMixin::map::V2%) → void};
         }
       }
@@ -108,7 +132,7 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         self::_MyMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
         {
-          if(test(key, let self::_MyMap&Object&MapMixin::V? #t22 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t22 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t23 = #t22 in #t23 == null ?{self::_MyMap&Object&MapMixin::V%} #t23 as self::_MyMap&Object&MapMixin::V% : #t23{self::_MyMap&Object&MapMixin::V%} : #t22{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::bool})
+          if(test(key, let self::_MyMap&Object&MapMixin::V? #t26 = this.{col::MapBase::[]}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?} in #t26 == null ?{self::_MyMap&Object&MapMixin::V%} let self::_MyMap&Object&MapMixin::V? #t27 = #t26 in #t27 == null ?{self::_MyMap&Object&MapMixin::V%} #t27 as self::_MyMap&Object&MapMixin::V% : #t27{self::_MyMap&Object&MapMixin::V%} : #t26{self::_MyMap&Object&MapMixin::V%}){(self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → core::bool})
             keysToRemove.{core::List::add}(key){(self::_MyMap&Object&MapMixin::K%) → void};
         }
       }
@@ -133,30 +157,6 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
     return new col::_MapBaseValueIterable::•<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ toString() → core::String
     return col::MapBase::mapToString(this);
-}
-class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends self::_MyMap&Object&MapMixin<self::MyMap::K%, self::MyMap::V%> {
-  field core::int containsKeyCount = 0;
-  field core::int indexGetCount = 0;
-  final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
-  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
-    : self::MyMap::_map = _map, super self::_MyMap&Object&MapMixin::•()
-    ;
-  method containsKey(core::Object? key) → core::bool {
-    this.{self::MyMap::containsKeyCount} = this.{self::MyMap::containsKeyCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
-    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::containsKey}(key){(core::Object?) → core::bool};
-  }
-  operator [](core::Object? key) → self::MyMap::V? {
-    this.{self::MyMap::indexGetCount} = this.{self::MyMap::indexGetCount}{core::int}.{core::num::+}(1){(core::num) → core::int};
-    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::[]}(key){(core::Object?) → self::MyMap::V?};
-  }
-  operator []=(covariant-by-class self::MyMap::K% key, covariant-by-class self::MyMap::V% value) → void
-    return let final core::Map<self::MyMap::K%, self::MyMap::V%> #t24 = this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>} in let final self::MyMap::K% #t25 = key in let final self::MyMap::V% #t26 = value in let final void #t27 = #t24.{core::Map::[]=}(#t25, #t26){(self::MyMap::K%, self::MyMap::V%) → void} in #t26;
-  method clear() → void
-    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::clear}(){() → void};
-  get keys() → core::Iterable<self::MyMap::K%>
-    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::keys}{core::Iterable<self::MyMap::K%>};
-  method remove(core::Object? key) → self::MyMap::V?
-    return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
 }
 static get hasUnsoundNullSafety() → core::bool
   return #C2 is core::List<core::Object>;

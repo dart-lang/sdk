@@ -62,6 +62,7 @@ import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 
 part 'class.dart';
+part 'class/declaration.dart';
 part 'constructor.dart';
 part 'enum.dart';
 part 'enum_element.dart';
@@ -79,6 +80,7 @@ part 'mixin.dart';
 part 'named_mixin_application.dart';
 part 'primary_constructor.dart';
 part 'setter.dart';
+part 'type_parameter.dart';
 part 'typedef.dart';
 part 'util.dart';
 

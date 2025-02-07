@@ -94,6 +94,7 @@ class ObjectPointerVisitor;
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
   V(DynamicCallCurrentTypeParamVar, ":dyn_call_current_type_param")            \
   V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
+  V(DynamicImplicitCall, "dyn:implicit:call")                                  \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \

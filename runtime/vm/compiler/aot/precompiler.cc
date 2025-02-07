@@ -993,6 +993,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       const auto& call_site = UnlinkedCall::Cast(entry);
       // A dynamic call.
       *temp_selector = call_site.target_name();
+      *temp_selector = Function::DropImplicitCallPrefix(*temp_selector).ptr();
       AddSelector(*temp_selector);
       if (IsPotentialClosureCall(*temp_selector)) {
         const Array& arguments_descriptor =
@@ -1005,6 +1006,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       // A dynamic call.
       const auto& cache = MegamorphicCache::Cast(entry);
       *temp_selector = cache.target_name();
+      *temp_selector = Function::DropImplicitCallPrefix(*temp_selector).ptr();
       AddSelector(*temp_selector);
       if (IsPotentialClosureCall(*temp_selector)) {
         const Array& arguments_descriptor =

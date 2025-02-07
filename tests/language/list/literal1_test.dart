@@ -5,13 +5,11 @@
 // A type mismatch in a list literal is a compile-time error
 
 main() {
-  var m = const
-      <String>
-      [0, 1];
-//     ^
-// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
-//        ^
-// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  var m = const <String>[0, 1];
+  //                     ^
+  // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  //                        ^
+  // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

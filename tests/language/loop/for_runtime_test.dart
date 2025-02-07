@@ -15,7 +15,7 @@ class Helper {
 
   static int f2(var n) {
     int i = 0;
-    for (; i < n; i++);
+    for (; i < n; i++) ;
     return i;
   }
 
@@ -38,7 +38,7 @@ class Helper {
   static var status;
   static void f5() {
     status = 0;
-    for (var stop = false;;) {
+    for (var stop = false; ;) {
       if (stop) {
         break;
       } else {
@@ -89,5 +89,4 @@ main() {
 
 void testShadowLocal() {
   List<int> x = [1, 2, 3];
-
 }

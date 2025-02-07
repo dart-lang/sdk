@@ -40,17 +40,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
       currentSdkAllows(state.since);
 
-  bool isRemovedInCurrentOrEarlierSdk(State state) {
+  bool isRemovedInCurrentSdk(State state) {
     if (state is! RemovedState) return false;
-
-    var removed = state.since;
-    // No "since" applies to all SDKs.
-    if (removed == null) return true;
-
-    return switch (sdkVersionConstraint) {
-      VersionRange(min: var min?) => removed <= min,
-      _ => false
-    };
+    return currentSdkAllows(state.since);
   }
 
   @override
@@ -124,7 +116,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
               arguments: [value],
             );
           }
-        } else if (isRemovedInCurrentOrEarlierSdk(state)) {
+        } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
           var replacedBy = (state as RemovedState).replacedBy;
           if (replacedBy != null) {

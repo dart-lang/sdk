@@ -7,7 +7,9 @@ class A {
   int y;
   // x has type int in the initialization list, but num inside the constructor
   // body.
-  A(int this.x) : y = x { // OK.
+  A(int this.x)
+    // OK.
+    : y = x {
     int z = x;
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

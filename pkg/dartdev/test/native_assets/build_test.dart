@@ -22,6 +22,10 @@ final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
 String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
 void main(List<String> args) async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    return;
+  }
+
   final bool fromDartdevSource = args.contains('--source');
   final hostOS = Platform.operatingSystem;
   final crossOS = Platform.isLinux ? 'macos' : 'linux';

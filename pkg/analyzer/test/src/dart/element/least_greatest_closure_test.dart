@@ -26,7 +26,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   void setUp() {
     super.setUp();
 
-    T = typeParameter2('T') as TypeParameterElementImpl2;
+    T = typeParameter2('T');
     T_none = typeParameterTypeNone2(T);
     T_question = typeParameterTypeQuestion2(T);
   }

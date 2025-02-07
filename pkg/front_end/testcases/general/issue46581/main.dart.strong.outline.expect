@@ -1,10 +1,16 @@
 library;
 import self as self;
-import "main_lib.dart" as mai;
 import "dart:core" as core;
+import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
+class TestClass extends self::_TestClass&MyClass&MyMixin {
+  constructor •() → self::TestClass
+    ;
+}
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
+}
 abstract class _TestClass&MyClass&MyMixin = mai::MyClass with self::MyMixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor _() → self::_TestClass&MyClass&MyMixin
     : super mai::MyClass::_()
@@ -12,12 +18,6 @@ abstract class _TestClass&MyClass&MyMixin = mai::MyClass with self::MyMixin /*is
   const synthetic constructor named() → self::_TestClass&MyClass&MyMixin
     : super mai::MyClass::named()
     ;
-}
-class TestClass extends self::_TestClass&MyClass&MyMixin {
-  constructor •() → self::TestClass
-    ;
-}
-abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 }
 static method main() → void
   ;

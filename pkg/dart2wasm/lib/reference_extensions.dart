@@ -101,17 +101,17 @@ extension IsCustomReference on Reference {
   bool get isConstructorBodyReference =>
       _constructorBodyReference[asMember] == this;
 
-  SynchronousProcedureKind get entryKind {
+  EntryPoint get entryKind {
     if (isUncheckedEntryReference) {
-      return SynchronousProcedureKind.unchecked;
+      return EntryPoint.unchecked;
     }
     if (isCheckedEntryReference) {
-      return SynchronousProcedureKind.checked;
+      return EntryPoint.checked;
     }
     if (isBodyReference) {
-      return SynchronousProcedureKind.body;
+      return EntryPoint.body;
     }
-    return SynchronousProcedureKind.normal;
+    return EntryPoint.normal;
   }
 }
 
@@ -148,7 +148,7 @@ bool _memberCanHaveMultipleEntryPoints(Member member) {
   return false;
 }
 
-enum SynchronousProcedureKind {
+enum EntryPoint {
   // A single procedure doing type argument checks, optional argument handling
   // and the body.
   normal,

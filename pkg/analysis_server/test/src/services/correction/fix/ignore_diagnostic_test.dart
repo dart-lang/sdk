@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
+  FixKind get kind => ignoreErrorAnalysisFileKind;
 
   @override
   void setUp() {
@@ -187,7 +187,7 @@ void f() {
 @reflectiveTest
 class IgnoreDiagnosticFileTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IGNORE_ERROR_FILE;
+  FixKind get kind => ignoreErrorFileKind;
 
   Future<void> test_cannotIgnore_other() async {
     createAnalysisOptionsFile(
@@ -304,7 +304,7 @@ void f() {
 @reflectiveTest
 class IgnoreDiagnosticLineTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IGNORE_ERROR_LINE;
+  FixKind get kind => ignoreErrorLineKind;
 
   Future<void> test_cannotIgnore_other() async {
     createAnalysisOptionsFile(

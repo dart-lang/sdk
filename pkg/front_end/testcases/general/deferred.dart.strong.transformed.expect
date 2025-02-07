@@ -22,11 +22,6 @@ library;
 // mixin E implements d.A {}
 //                    ^^^
 //
-// pkg/front_end/testcases/general/deferred.dart:15:14: Error: Classes can't mix in deferred mixins.
-// Try changing the import to not be deferred.
-// class F with d.M {}
-//              ^^^
-//
 // pkg/front_end/testcases/general/deferred.dart:17:23: Error: Classes can't mix in deferred mixins.
 // Try changing the import to not be deferred.
 // class G = Object with d.M;
@@ -56,6 +51,11 @@ library;
 // Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
 // extension type ET6(d.B id) implements d.B {}
 //                                       ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:15:14: Error: Classes can't mix in deferred mixins.
+// Try changing the import to not be deferred.
+// class F with d.M {}
+//              ^^^
 //
 // pkg/front_end/testcases/general/deferred.dart:19:20: Error: The type 'A' is deferred loaded via prefix 'd' and can't be used as a type annotation.
 //  - 'A' is from 'pkg/front_end/testcases/general/deferred_lib2.dart'.
@@ -111,11 +111,6 @@ abstract class D extends def::A /*isMixinDeclaration*/  {
 }
 abstract class E extends core::Object implements def::A /*isMixinDeclaration*/  {
 }
-abstract class _F&Object&M extends core::Object implements def::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F&Object&M
-    : super core::Object::•()
-    ;
-}
 class F extends self::_F&Object&M {
   synthetic constructor •() → self::F
     : super self::_F&Object&M::•()
@@ -123,6 +118,11 @@ class F extends self::_F&Object&M {
 }
 class G extends core::Object implements def::M /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::G
+    : super core::Object::•()
+    ;
+}
+abstract class _F&Object&M extends core::Object implements def::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F&Object&M
     : super core::Object::•()
     ;
 }

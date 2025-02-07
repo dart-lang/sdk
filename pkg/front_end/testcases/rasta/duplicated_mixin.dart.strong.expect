@@ -5,6 +5,11 @@ import "dart:core" as core;
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field dynamic field = null;
 }
+class A extends self::_A&Object&Mixin&Mixin {
+  synthetic constructor •() → self::A
+    : super self::_A&Object&Mixin&Mixin::•()
+    ;
+}
 abstract class _A&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&Object&Mixin
     : super core::Object::•()
@@ -22,9 +27,4 @@ abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin /*
     return super.{self::Mixin::field};
   mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
-}
-class A extends self::_A&Object&Mixin&Mixin {
-  synthetic constructor •() → self::A
-    : super self::_A&Object&Mixin&Mixin::•()
-    ;
 }

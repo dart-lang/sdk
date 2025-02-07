@@ -200,19 +200,6 @@ linter:
     );
   }
 
-  /// https://github.com/dart-lang/sdk/issues/59869
-  test_removed_rule_previousSdk() {
-    assertErrors(
-      '''
-linter:
-  rules:
-    - removed_in_2_12_lint
-''',
-      [AnalysisOptionsWarningCode.REMOVED_LINT],
-      sdk: dart3_3,
-    );
-  }
-
   test_replaced_rule() {
     assertErrors(
       '''

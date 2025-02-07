@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/src/utils/run_process.dart'
@@ -247,3 +249,7 @@ Future<run_process.RunProcessResult> runDart({
   }
   return result;
 }
+
+final nativeAssetsExperimentAvailableOnCurrentChannel = ExperimentalFeatures
+    .native_assets.channels
+    .contains(Runtime.runtime.channel);
