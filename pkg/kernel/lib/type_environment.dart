@@ -293,11 +293,7 @@ abstract class TypeEnvironment extends Types {
       {required DartType expressionStaticType,
       required DartType checkTargetType,
       required SubtypeCheckMode subtypeCheckMode}) {
-    if (!IsSubtypeOf.basedSolelyOnNullabilities(
-            expressionStaticType, checkTargetType)
-        .inMode(subtypeCheckMode)) {
-      return TypeShapeCheckSufficiency.insufficient;
-    } else if (checkTargetType is InterfaceType &&
+    if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
 
