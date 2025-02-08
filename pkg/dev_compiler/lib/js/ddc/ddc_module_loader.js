@@ -1516,7 +1516,8 @@ if (!self.deferred_loader) {
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
       this.savedEntryPointLibraryName = entryPointLibraryName;
       this.savedDartSdkRuntimeOptions = dartSdkRuntimeOptions;
-      entryPointLibrary.main();
+      // TODO(35113): Provide the ability to pass arguments in a type safe way.
+      entryPointLibrary.main([]);
     }
 
     setDartSDKRuntimeOptions(options) {
@@ -1635,7 +1636,8 @@ if (!self.deferred_loader) {
       console.log('Hot restarting application from main method in: ' +
         this.savedEntryPointLibraryName + ' (generation: ' +
         this.hotRestartGeneration + ').');
-      entryPointLibrary.main();
+      // TODO(35113): Provide the ability to pass arguments in a type safe way.
+      entryPointLibrary.main([]);
     }
   }
 

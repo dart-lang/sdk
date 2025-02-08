@@ -196,15 +196,20 @@ class LibraryContext {
       }
     }
 
+    var libraryCycle = performance.run('libraryCycle', (performance) {
+      fileSystemState.newFileOperationPerformance = performance;
+      try {
+        return targetLibrary.libraryCycle;
+      } finally {
+        fileSystemState.newFileOperationPerformance = null;
+      }
+    });
+
+    if (loadedBundles.contains(libraryCycle)) {
+      return;
+    }
+
     logger.run('Prepare linked bundles', () {
-      var libraryCycle = performance.run('libraryCycle', (performance) {
-        fileSystemState.newFileOperationPerformance = performance;
-        try {
-          return targetLibrary.libraryCycle;
-        } finally {
-          fileSystemState.newFileOperationPerformance = null;
-        }
-      });
       loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
