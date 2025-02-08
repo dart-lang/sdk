@@ -9653,10 +9653,8 @@ class PartElementImpl extends _ExistingElementImpl
   }
 
   @override
-  CompilationUnitElementImpl get enclosingUnit {
-    var enclosingLibrary = enclosingElement3 as LibraryElementImpl;
-    return enclosingLibrary._definingCompilationUnit;
-  }
+  CompilationUnitElementImpl get enclosingUnit =>
+      enclosingElement3 as CompilationUnitElementImpl;
 
   @override
   String get identifier => 'part';
