@@ -1002,14 +1002,14 @@ class _Element2Writer extends _AbstractElementWriter {
         case ExtensionElementImpl2():
           _sink.write('extension ');
         case ExtensionTypeElementImpl2():
-          //   _sink.writeIf(
-          //     e.hasRepresentationSelfReference,
-          //     'hasRepresentationSelfReference ',
-          //   );
-          //   _sink.writeIf(
-          //     e.hasImplementsSelfReference,
-          //     'hasImplementsSelfReference ',
-          //   );
+          _sink.writeIf(
+            e.hasRepresentationSelfReference,
+            'hasRepresentationSelfReference ',
+          );
+          _sink.writeIf(
+            e.hasImplementsSelfReference,
+            'hasImplementsSelfReference ',
+          );
           _writeNotSimplyBounded(e);
           _sink.write('extension type ');
         case MixinElementImpl2():
@@ -1255,7 +1255,6 @@ class _Element2Writer extends _AbstractElementWriter {
       });
     }
   }
-
 
   void _writeMetadata(Metadata metadata) {
     if (configuration.withMetadata) {
@@ -2415,7 +2414,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeNamespaceCombinators(e.combinators);
     });
   }
-
 
   void _writeMetadata(Element element) {
     if (configuration.withMetadata) {

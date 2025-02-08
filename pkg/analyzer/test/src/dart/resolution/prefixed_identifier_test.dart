@@ -713,10 +713,10 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');

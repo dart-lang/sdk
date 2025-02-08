@@ -4225,6 +4225,30 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
     ];
   }
 
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  bool get hasImplementsSelfReference {
+    return firstFragment.hasImplementsSelfReference;
+  }
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  set hasImplementsSelfReference(bool value) {
+    firstFragment.hasImplementsSelfReference = value;
+  }
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  bool get hasRepresentationSelfReference {
+    return firstFragment.hasRepresentationSelfReference;
+  }
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  set hasRepresentationSelfReference(bool value) {
+    firstFragment.hasRepresentationSelfReference = value;
+  }
+
   @override
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 

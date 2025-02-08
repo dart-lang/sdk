@@ -1726,7 +1726,9 @@ void f() {
     var content = r'''
 void f() {
   switch (1) {
-    case int(isEven: var isEven) when isEven:
+    case int(isEven: var isEven, toString: var toString) when isEven:
+      isEven;
+      toString;
   }
 }
 ''';
@@ -1754,10 +1756,19 @@ void f() {
       _Token('isEven', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
       ]),
+      _Token('toString', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('toString', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('when', SemanticTokenTypes.keyword, [
         CustomSemanticTokenModifiers.control,
       ]),
       _Token('isEven', SemanticTokenTypes.variable),
+      _Token('isEven', SemanticTokenTypes.variable),
+      _Token('toString', SemanticTokenTypes.variable),
     ];
 
     await _initializeAndVerifyTokens(content, expected);

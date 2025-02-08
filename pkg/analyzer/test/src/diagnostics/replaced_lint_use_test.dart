@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,12 +25,19 @@ class RemovedLint extends LintRule {
 }
 
 @reflectiveTest
-class ReplacedLintUseTest extends PubPackageResolutionTest {
+class ReplacedLintUseTest extends PubPackageResolutionTest
+    with LintRegistrationMixin {
   @override
   void setUp() {
     super.setUp();
-    Registry.ruleRegistry.registerLintRule(RemovedLint());
-    Registry.ruleRegistry.registerLintRule(ReplacingLint());
+    registerLintRule(RemovedLint());
+    registerLintRule(ReplacingLint());
+  }
+
+  @override
+  Future<void> tearDown() {
+    unregisterLintRules();
+    return super.tearDown();
   }
 
   @FailingTest(

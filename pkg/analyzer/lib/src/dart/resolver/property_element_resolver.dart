@@ -954,6 +954,14 @@ class PropertyElementResolverResult {
     return readElement.asElement2;
   }
 
+  Element2? get readElementRecovery2 {
+    return readElementRecovery.asElement2;
+  }
+
+  Element2? get readElementRequested2 {
+    return readElementRequested.asElement2;
+  }
+
   Element? get writeElement {
     return writeElementRequested ?? writeElementRecovery;
   }

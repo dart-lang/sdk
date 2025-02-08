@@ -321,6 +321,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with StreamBuilder',
   );
+  static const FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.valueListenableBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with ValueListenableBuilder',
+  );
   static const FLUTTER_SWAP_WITH_CHILD = AssistKind(
     'dart.assist.flutter.swap.withChild',
     DartAssistKindPriority.FLUTTER_SWAP,

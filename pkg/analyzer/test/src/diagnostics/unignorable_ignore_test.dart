@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,7 +18,14 @@ main() {
 }
 
 @reflectiveTest
-class UnignorableIgnoreTest extends PubPackageResolutionTest {
+class UnignorableIgnoreTest extends PubPackageResolutionTest
+    with LintRegistrationMixin {
+  @override
+  Future<void> tearDown() {
+    unregisterLintRules();
+    return super.tearDown();
+  }
+
   test_file_lowerCase() async {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['undefined_annotation']),
@@ -63,7 +70,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest {
       ),
     );
     var avoidIntRule = _AvoidIntRule();
-    Registry.ruleRegistry.registerLintRule(avoidIntRule);
+    registerLintRule(avoidIntRule);
     await assertErrorsInCode(r'''
 // ignore: avoid_int
 int a = 0;
